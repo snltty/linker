@@ -20,6 +20,12 @@
         TestClient = 2311,
         TestClientForward = 2312,
 
+
+        StartClient = 2313,
+        StartClientForward = 2314,
+        StopClient = 2315,
+        StopClientForward = 2316,
+
         Max = 2399
     }
 }

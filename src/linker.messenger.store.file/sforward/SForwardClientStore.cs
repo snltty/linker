@@ -11,28 +11,16 @@ namespace linker.messenger.store.file.sforward
         public string SecretKey => fileConfig.Data.Client.SForward.SecretKey;
 
         private readonly FileConfig fileConfig;
-        private readonly RunningConfig runningConfig;
         private readonly Storefactory dBfactory;
         private readonly ILiteCollection<SForwardInfo> liteCollection;
 
-        public SForwardClientStore(FileConfig fileConfig, RunningConfig runningConfig, Storefactory dBfactory)
+        public SForwardClientStore(FileConfig fileConfig, Storefactory dBfactory)
         {
+            this.fileConfig = fileConfig;
+
             this.dBfactory = dBfactory;
             liteCollection = dBfactory.GetCollection<SForwardInfo>("sforward");
-
-            this.fileConfig = fileConfig;
-            this.runningConfig = runningConfig;
-
-            foreach (var item in runningConfig.Data.SForwards)
-            {
-                item.Proxy = false;
-                item.Id = 0;
-                liteCollection.Insert(item);
-            }
-            runningConfig.Data.SForwards = new List<SForwardInfo>();
-            runningConfig.Data.Update();
-
-            liteCollection.UpdateMany(c => new SForwardInfo { Proxy = false }, c => c.Proxy == true);
+            liteCollection.UpdateMany(c => new SForwardInfo { Started = false }, c => c.Started == true);
         }
         public bool SetSecretKey(string key)
         {
@@ -103,10 +91,6 @@ namespace linker.messenger.store.file.sforward
         public bool Update(long id, bool started, string msg)
         {
             return liteCollection.UpdateMany(c => new SForwardInfo { Started = started, Msg = msg }, c => c.Id == id) > 0;
-        }
-        public bool Update(long id, bool started, bool proxy, string msg)
-        {
-            return liteCollection.UpdateMany(c => new SForwardInfo { Started = started, Proxy = proxy, Msg = msg }, c => c.Id == id) > 0;
         }
         public bool Update(long id, bool started)
         {

@@ -2,7 +2,8 @@
   <el-dialog v-model="state.show" @open="handleOnShowList" append-to=".app-wrap" :title="`【${state.machineName}】的端口转发`" top="1vh" width="780">
         <div>
             <div class="t-c head">
-                <el-button type="success" size="small" @click="handleAdd">添加</el-button>
+                <el-button type="success" size="small" @click="handleAdd" :loading="state.loading">添加</el-button>
+                <el-button size="small" @click="handleRefresh">刷新</el-button>
             </div>
             <el-table :data="state.data" size="small" border height="500" @cell-dblclick="handleCellClick">
                 <el-table-column property="Name" label="名称" width="100">
@@ -199,6 +200,10 @@ export default {
                 state.timer1 = setTimeout(_getForwardInfo,1000);
             }
         }
+        const handleRefresh = () => {
+            _getForwardInfo();
+            ElMessage.success('已刷新')
+        }
 
         const _getSignInNames = ()=>{
             getSignInNames().then((res)=>{
@@ -278,10 +283,13 @@ export default {
             saveRow(row);
         }
         const saveRow = (row) => {
+            state.loading = true;
             row.Port = parseInt(row.Port);
             addForwardInfo({machineId:state.machineId,data:row}).then(() => {
+                state.loading = false;
                 _getForwardInfo();
             }).catch((err) => {
+                state.loading = false;
                 ElMessage.error(err);
             });
         }
@@ -298,7 +306,7 @@ export default {
         });
 
         return {
-            state, handleOnShowList, handleCellClick, handleAdd, handleEdit, handleEditBlur, handleDel, handleStartChange,
+            state, handleOnShowList, handleCellClick,handleRefresh, handleAdd, handleEdit, handleEditBlur, handleDel, handleStartChange,
             handleSearch,handlePageChange
         }
     }

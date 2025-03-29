@@ -44,8 +44,6 @@ namespace linker.messenger.sforward
         /// </summary>
         public string LocalMsg { get; set; }
 
-        public bool Proxy { get; set; }
-
         /// <summary>
         /// 端口范围
         /// </summary>

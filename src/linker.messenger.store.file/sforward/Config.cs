@@ -8,7 +8,7 @@ namespace linker.messenger.store.file
         /// <summary>
         /// 服务器穿透列表
         /// </summary>
-        public List<SForwardInfo> SForwards { get; set; } = new List<SForwardInfo>();
+        //public List<SForwardInfo> SForwards { get; set; } = new List<SForwardInfo>();
     }
     public sealed partial class ConfigClientInfo
     {

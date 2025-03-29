@@ -15,7 +15,6 @@
                         {{ state.ruleForm.Rule }}
                     </strong>
                 </el-form-item>
-               
                 <el-form-item label="在" prop="Rule" v-if="state.ruleForm.Method == 100">
                     <div class="w-100">
                         <el-select v-model="state.ruleAt.type" style="width:10rem" @change="handleChange">
@@ -75,6 +74,9 @@
                         <span>后</span>
                     </div>
                 </el-form-item> 
+                <el-form-item label="内容" prop="Value">
+                    <el-input type="textarea" resize="none" rows="5" v-model="state.ruleForm.Value"></el-input>
+                </el-form-item>
                 <el-form-item label="禁用" prop="Disabled">
                     <el-switch v-model="state.ruleForm.Disabled" />
                 </el-form-item>
@@ -82,7 +84,7 @@
                 <el-form-item label="" prop="Btns">
                    <div class="t-c w-100">
                        <el-button @click="state.show = false">取消</el-button>
-                       <el-button type="primary" @click="handleSave">确认</el-button>
+                       <el-button type="primary" @click="handleSave" :loading="state.loading">确认</el-button>
                    </div>
                 </el-form-item>
            </el-form>
@@ -90,19 +92,26 @@
    </el-dialog>
 </template>
 <script>
-import { inject, reactive, ref, watch } from 'vue';
+import { addPlan } from '@/apis/plan';
+import { inject, onMounted, reactive, ref, watch } from 'vue';
 
 export default {
    props: ['data','modelValue'],
    emits: ['change','update:modelValue'],
    setup(props, { emit }) {
+
+        const regex = /(\d+|\*)-(\d+|\*)-(\d+|\*)\s+(\d+|\*):(\d+|\*):(\d+|\*)/;
+        const regexNumber = /(\d+)-(\d+)-(\d+)\s+(\d+):(\d+):(\d+)/;
+        const regexCorn = /(.+)\s+(.+)\s+(.+)\s+(.+)\s+(.+)\s+(.+)/;
         const ruleFormRef = ref(null);
         const plan = inject('plan');
         if(!plan.value.current.TriggerHandle && plan.value.triggers.length > 0){
             plan.value.current.TriggerHandle = plan.value.triggers[0].value;
         }
+        
         const state = reactive({
            show: true,
+           loading: false,
            ruleCron:{
                 week:'*',
                 month:'*',
@@ -112,9 +121,9 @@ export default {
                 sec:'30',
            },
            ruleAt:{
-                type:2,
-                month:1,
-                day:1,
+                type:3,
+                month:'*',
+                day:'*',
                 hour:0,
                 min:0,
                 sec:0,
@@ -155,8 +164,74 @@ export default {
                }, 300);
            }
         });
+     
+        const decodeRuleJson = {
+            100:(rule)=>{
+                rule = rule || `*-*-* 0:0:0`;
+                if(regex.test(rule) == false){
+                    return;
+                }
+                console.log(rule.match(regex));
+                const [,year,month,day,hour,minute,second] = rule.match(regex);
+                if(minute == '*') state.ruleAt.type = 5;
+                else if(hour == '*') state.ruleAt.type = 4;
+                else if(day == '*') state.ruleAt.type = 3;
+                else if(month == '*') state.ruleAt.type = 2;
+                state.ruleAt.year = year;
+                state.ruleAt.month = month;
+                state.ruleAt.day = day;
+                state.ruleAt.hour = hour;
+                state.ruleAt.min = minute;
+                state.ruleAt.sec = second;
+            },
+            101:(rule)=>{
+                rule = rule || `0-0-0 0:0:30`;
+                if(regexNumber.test(rule) == false){
+                    return;
+                }
+                const [,year,month,day,hour,minute,second] = rule.match(regexNumber);
+                state.ruleTimer.year = year;
+                state.ruleTimer.month = month;
+                state.ruleTimer.day = day;
+                state.ruleTimer.hour = hour;
+                state.ruleTimer.min = minute;
+                state.ruleTimer.sec = second;
+            },
+            102:(rule)=>{
+                rule = rule || `30 * * * * ?`;
+                if(regexCorn.test(rule) == false){
+                    return;
+                }
+                const [,second,minute,hour,day,month,week] = rule.match(regexCorn);
+                state.ruleCron.sec = second;
+                state.ruleCron.min = minute;
+                state.ruleCron.hour = hour;
+                state.ruleCron.day = day;
+                state.ruleCron.month = month;
+                state.ruleCron.week = week;
+                console.log(rule.match(regexCorn));
+            },
+            103:(rule)=>{
+                rule = rule || `0-0-0 0:0:30`;
+                if(regexNumber.test(rule) == false){
+                    return;
+                }
+                const [,year,month,day,hour,minute,second] = rule.match(regexNumber);
+                state.ruleTrigger.year = year;
+                state.ruleTrigger.month = month;
+                state.ruleTrigger.day = day;
+                state.ruleTrigger.hour = hour;
+                state.ruleTrigger.min = minute;
+                state.ruleTrigger.sec = second;
+            }
+        };
+        const decodeRule = ()=>{
+            if(state.ruleForm.Method in decodeRuleJson){
+                decodeRuleJson[state.ruleForm.Method](state.ruleForm.Rule);
+            }
+        }
 
-        const buildRule = {
+        const buildRuleJson = {
             100:()=>{
                 switch (state.ruleAt.type) {
                     case 2:
@@ -178,18 +253,34 @@ export default {
             102:()=>`${state.ruleCron.sec} ${state.ruleCron.min} ${state.ruleCron.hour} ${state.ruleCron.day} ${state.ruleCron.month} ${state.ruleCron.week}`,
             103:()=>`${state.ruleTrigger.year}-${state.ruleTrigger.month}-${state.ruleTrigger.day} ${state.ruleTrigger.hour}:${state.ruleTrigger.min}:${state.ruleTrigger.sec}`,
         }
-        const handleChange = () => {
-            if(state.ruleForm.Method in buildRule){
-                state.ruleForm.Rule = buildRule[state.ruleForm.Method]();
+        const buildRule= ()=>{
+            if(state.ruleForm.Method in buildRuleJson){
+                state.ruleForm.Rule = buildRuleJson[state.ruleForm.Method]();
             }
+        }
+        const handleChange = () => {
+            buildRule();
         }
 
         const handleSave = () => {
+            const json = JSON.parse(JSON.stringify(state.ruleForm));
+            
+            state.loading = true;
+            addPlan(plan.value.machineid,json).then((res)=>{
+                state.loading = false;
+                state.show = false;
+            }).catch(()=>{
+                state.loading = false;
+            })
         }
 
-       return {
+        onMounted(()=>{
+            decodeRule();
+            handleChange();
+        });
+        return {
           state, ruleFormRef,plan,handleChange,  handleSave
-       }
+        }
    }
 }
 </script>

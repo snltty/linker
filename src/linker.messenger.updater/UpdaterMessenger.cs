@@ -132,7 +132,7 @@ namespace linker.messenger.updater
                 MachineId = string.Empty,
                 Current = info.Current,
                 Length = info.Length,
-                Status = info.Status,
+                Status = info.Status, 
                 Version = info.Version
             };
             connection.Write(serializer.Serialize(result));

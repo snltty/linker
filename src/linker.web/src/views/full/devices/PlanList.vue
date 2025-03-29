@@ -15,12 +15,14 @@ export default {
     setup (props) {
         
         const plan = ref({
+            machineid:props.machineid,
             timer:0,
             list:{},
             current:{},
             showEdit:false,
             category:props.category||'',
             handles:props.handles||[],
+            handleJson:(props.handles||[]).reduce((json,item,index)=>{ json[item.value] = item.label; return json;  },{}),
             triggers:[],
             methods:[
                 {label:'手动',value:0},
@@ -34,8 +36,11 @@ export default {
         provide('plan',plan);
         const _getPlans = () => {
             clearTimeout(plan.value.timer);
-            getPlans(props.machineid,props.category).then((res) => {
-                console.log(res);
+            getPlans(plan.value.machineid,props.category).then((res) => {
+                plan.value.list =  res.reduce((json,item,index)=>{
+                    json[`${item.Key}-${item.Handle}`] = item;
+                    return json;
+                },{});
 
                 plan.value.timer = setTimeout(_getPlans,1000);
             }).catch(()=>{
@@ -44,7 +49,6 @@ export default {
         }
         onMounted(()=>{
             _getPlans();
-            console.log(props);
         });
         onUnmounted(()=>{
             clearTimeout(plan.value.timer);

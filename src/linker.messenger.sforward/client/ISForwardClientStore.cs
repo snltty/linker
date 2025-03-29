@@ -62,15 +62,6 @@
         /// </summary>
         /// <param name="id"></param>
         /// <param name="started"></param>
-        /// <param name="proxy"></param>
-        /// <param name="msg"></param>
-        /// <returns></returns>
-        public bool Update(long id,bool started,bool proxy,string msg);
-        /// <summary>
-        /// 更新
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="started"></param>
         /// <returns></returns>
         public bool Update(long id,bool started);
         /// <summary>

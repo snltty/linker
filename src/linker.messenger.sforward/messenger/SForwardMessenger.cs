@@ -302,6 +302,35 @@ namespace linker.plugins.sforward.messenger
                 }).ConfigureAwait(false);
             }
         }
+        
+        [MessengerId((ushort)SForwardMessengerIds.StartClientForward)]
+        public async Task StartClientForward(IConnection connection)
+        {
+            SForwardRemoveForwardInfo info = serializer.Deserialize<SForwardRemoveForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            {
+                await sender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = cacheTo.Connection,
+                    MessengerId = (ushort)SForwardMessengerIds.StartClient,
+                    Payload = serializer.Serialize(info.Id)
+                }).ConfigureAwait(false);
+            }
+        }
+        [MessengerId((ushort)SForwardMessengerIds.StopClientForward)]
+        public async Task StopClientForward(IConnection connection)
+        {
+            SForwardRemoveForwardInfo info = serializer.Deserialize<SForwardRemoveForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            {
+                await sender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = cacheTo.Connection,
+                    MessengerId = (ushort)SForwardMessengerIds.StopClient,
+                    Payload = serializer.Serialize(info.Id)
+                }).ConfigureAwait(false);
+            }
+        }
 
         /// <summary>
         /// 测试对端的穿透记录
@@ -401,12 +430,14 @@ namespace linker.plugins.sforward.messenger
         private readonly SForwardClientTransfer sForwardTransfer;
         private readonly ISForwardClientStore sForwardClientStore;
         private readonly ISerializer serializer;
-        public SForwardClientMessenger(SForwardProxy proxy, SForwardClientTransfer sForwardTransfer, ISForwardClientStore sForwardClientStore, ISerializer serializer)
+        private readonly SForwardPlanHandle sForwardPlanHandle;
+        public SForwardClientMessenger(SForwardProxy proxy, SForwardClientTransfer sForwardTransfer, ISForwardClientStore sForwardClientStore, ISerializer serializer, SForwardPlanHandle sForwardPlanHandle)
         {
             this.proxy = proxy;
             this.sForwardTransfer = sForwardTransfer;
             this.sForwardClientStore = sForwardClientStore;
             this.serializer = serializer;
+            this.sForwardPlanHandle = sForwardPlanHandle;
         }
 
         /// <summary>
@@ -441,6 +472,19 @@ namespace linker.plugins.sforward.messenger
             sForwardTransfer.Remove(id);
             connection.Write(Helper.TrueArray);
         }
+        [MessengerId((ushort)SForwardMessengerIds.StartClient)]
+        public void StartClient(IConnection connection)
+        {
+            int id = serializer.Deserialize<int>(connection.ReceiveRequestWrap.Payload.Span);
+            sForwardTransfer.Start(id);
+        }
+        [MessengerId((ushort)SForwardMessengerIds.StopClient)]
+        public void StopClient(IConnection connection)
+        {
+            int id = serializer.Deserialize<int>(connection.ReceiveRequestWrap.Payload.Span);
+            sForwardTransfer.Stop(id);
+        }
+
         // <summary>
         /// 测试
         /// </summary>

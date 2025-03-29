@@ -18,7 +18,7 @@
                             </template>
                         </template>
                     </el-table-column>
-                    <el-table-column prop="Plan" label="计划" width="200">
+                    <el-table-column prop="Plan" label="开启和关闭计划" width="200">
                         <template #default="scope">
                             <div class="plan">
                                 <p><el-icon><Select /></el-icon><PlanShow handle="start"  :keyid="scope.row.Id"></PlanShow></p>
@@ -64,8 +64,8 @@
                     </el-table-column>
                     <el-table-column property="Started" label="状态" width="60">
                         <template #default="scope">
-                            <el-switch v-model="scope.row.Started" @change="handleStartChange(scope.row)" inline-prompt
-                                active-text="是" inactive-text="否" />
+                            <el-switch disabled v-model="scope.row.Started" inline-prompt
+                                active-text="是" inactive-text="否" @click="handleStartChange(scope.row)" />
                         </template>
                     </el-table-column>
                     <el-table-column label="操作" width="54">
@@ -85,7 +85,7 @@
 </template>
 <script>
 import { onMounted, onUnmounted,  reactive, watch } from 'vue';
-import { getSForwardInfo, removeSForwardInfo, addSForwardInfo,testLocalSForwardInfo } from '@/apis/sforward'
+import { getSForwardInfo, removeSForwardInfo, addSForwardInfo,testLocalSForwardInfo, stopSForwardInfo, startSForwardInfo } from '@/apis/sforward'
 import { ElMessage } from 'element-plus';
 import {WarnTriangleFilled,Delete,Select,CloseBold} from '@element-plus/icons-vue'
 import { injectGlobalData } from '@/provide';
@@ -206,7 +206,18 @@ export default {
             });
         }
         const handleStartChange = (row) => {
-            saveRow(row);
+            state.loading = true;
+
+            const func = row.Started 
+            ? stopSForwardInfo({machineid:sforward.value.machineid,id:row.Id}) 
+            : startSForwardInfo({machineid:sforward.value.machineid,id:row.Id});
+            func.then(() => {
+                state.loading = false;
+                _getSForwardInfo();
+            }).catch((err) => {
+                state.loading = false;
+                ElMessage.error(err);
+            });
         }
         const saveRow = (row) => {
             if(!row.Temp) return;
@@ -259,7 +270,8 @@ export default {
 }
 .plan{
     .el-icon{
-        vertical-align:middle
+        vertical-align:middle;
+        margin-right:0.4rem;
     }
 }
 </style>

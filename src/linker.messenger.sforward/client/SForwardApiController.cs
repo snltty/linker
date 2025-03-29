@@ -18,8 +18,9 @@ namespace linker.messenger.sforward.client
         private readonly ISForwardClientStore sForwardClientStore;
         private readonly ISerializer serializer;
         private readonly IAccessStore accessStore;
+        private readonly SForwardPlanHandle sForwardPlanHandle;
 
-        public SForwardApiController(SForwardClientTransfer forwardTransfer, IMessengerSender messengerSender, SignInClientState signInClientState, ISignInClientStore signInClientStore, SForwardDecenter sForwardDecenter, ISForwardClientStore sForwardClientStore, ISerializer serializer, IAccessStore accessStore)
+        public SForwardApiController(SForwardClientTransfer forwardTransfer, IMessengerSender messengerSender, SignInClientState signInClientState, ISignInClientStore signInClientStore, SForwardDecenter sForwardDecenter, ISForwardClientStore sForwardClientStore, ISerializer serializer, IAccessStore accessStore, SForwardPlanHandle sForwardPlanHandle)
         {
             this.forwardTransfer = forwardTransfer;
             this.messengerSender = messengerSender;
@@ -29,6 +30,7 @@ namespace linker.messenger.sforward.client
             this.sForwardClientStore = sForwardClientStore;
             this.serializer = serializer;
             this.accessStore = accessStore;
+            this.sForwardPlanHandle = sForwardPlanHandle;
         }
 
         /// <summary>
@@ -145,6 +147,42 @@ namespace linker.messenger.sforward.client
                 Payload = serializer.Serialize(info)
             }).ConfigureAwait(false);
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
+        }
+        public async Task<bool> Start(ApiControllerParamsInfo param)
+        {
+            SForwardRemoveForwardInfo info = param.Content.DeJson<SForwardRemoveForwardInfo>();
+            if (info.MachineId == signInClientStore.Id)
+            {
+                if (accessStore.HasAccess(AccessValue.ForwardSelf) == false) return false;
+                forwardTransfer.Start(info.Id);
+                return true;
+            }
+            if (accessStore.HasAccess(AccessValue.ForwardOther) == false) return false;
+            await messengerSender.SendOnly(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)SForwardMessengerIds.StartClientForward,
+                Payload = serializer.Serialize(info)
+            }).ConfigureAwait(false);
+            return true;
+        }
+        public async Task<bool> Stop(ApiControllerParamsInfo param)
+        {
+            SForwardRemoveForwardInfo info = param.Content.DeJson<SForwardRemoveForwardInfo>();
+            if (info.MachineId == signInClientStore.Id)
+            {
+                if (accessStore.HasAccess(AccessValue.ForwardSelf) == false) return false;
+                forwardTransfer.Stop(info.Id);
+                return true;
+            }
+            if (accessStore.HasAccess(AccessValue.ForwardOther) == false) return false;
+            await messengerSender.SendOnly(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)SForwardMessengerIds.StopClientForward,
+                Payload = serializer.Serialize(info)
+            }).ConfigureAwait(false);
+            return true;
         }
 
         /// <summary>

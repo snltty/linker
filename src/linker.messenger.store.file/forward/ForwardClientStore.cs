@@ -6,25 +6,13 @@ namespace linker.messenger.store.file.forward
 {
     public sealed class ForwardClientStore : IForwardClientStore
     {
-        private readonly RunningConfig runningConfig;
         private readonly Storefactory dBfactory;
         private readonly ILiteCollection<ForwardInfo> liteCollection;
-        public ForwardClientStore(RunningConfig runningConfig, Storefactory dBfactory)
+        public ForwardClientStore(Storefactory dBfactory)
         {
             this.dBfactory = dBfactory;
             liteCollection = dBfactory.GetCollection<ForwardInfo>("forward");
-            this.runningConfig = runningConfig;
-
-            foreach (var item in runningConfig.Data.Forwards)
-            {
-                item.Proxy = false;
-                item.Id = 0;
-                liteCollection.Insert(item);
-            }
-            runningConfig.Data.Forwards = new List<ForwardInfo>();
-            runningConfig.Data.Update();
-
-            liteCollection.UpdateMany(c => new ForwardInfo { Proxy = false },c=>c.Proxy==true);
+            liteCollection.UpdateMany(c => new ForwardInfo { Proxy = false }, c => c.Proxy == true);
         }
         public int Count()
         {

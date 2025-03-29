@@ -25,3 +25,10 @@ export const addSForwardInfo = (data) => {
 export const testLocalSForwardInfo = (data) => {
     return sendWebsocketMsg('sforward/TestLocal', data);
 }
+
+export const startSForwardInfo = (data) => {
+    return sendWebsocketMsg('sforward/start', data);
+}
+export const stopSForwardInfo = (data) => {
+    return sendWebsocketMsg('sforward/start', data);
+}

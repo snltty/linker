@@ -49,6 +49,15 @@ namespace linker.messenger.plan
             return result;
         }
 
+        public void Trigger(string category,string key,string handle)
+        {
+            PlanExecCacheInfo trigger = caches.Values.FirstOrDefault(c => c.Plan.Category == category && c.Plan.Key == key && c.Plan.TriggerHandle == handle && c.Plan.TriggerHandle != c.Plan.Handle && c.Plan.Method == PlanMethod.Trigger);
+            if (trigger != null)
+            {
+                trigger.Active = UpdateNextTime(trigger);
+            }
+        }
+
         private void PlanTask()
         {
             Load();
