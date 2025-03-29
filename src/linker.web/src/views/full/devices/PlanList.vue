@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import { getPlans } from '@/apis/plan';
+import { getPlans, removePlan } from '@/apis/plan';
 import { onMounted, onUnmounted,  provide,  ref } from 'vue';
 import PlanEdit from './PlanEdit.vue';
 export default {
@@ -36,7 +36,6 @@ export default {
         provide('plan',plan);
         const _getPlans = () => {
             clearTimeout(plan.value.timer);
-            console.log(plan.value.machineid,props.category);
             getPlans(plan.value.machineid,props.category).then((res) => {
                 plan.value.list =  res.reduce((json,item,index)=>{
                     json[`${item.Key}-${item.Handle}`] = item;
@@ -47,6 +46,15 @@ export default {
                 plan.value.timer = setTimeout(_getPlans,1000);
             });
         }
+        const remove = (key,handle)=>{
+            const item = plan.value.list[`${key}-${handle}`];
+            if(item){
+                removePlan(plan.value.machineid,item.Id).then(()=>{
+                    _getPlans();
+                });
+            }
+        }
+
         onMounted(()=>{
             _getPlans();
         });
@@ -54,7 +62,7 @@ export default {
             clearTimeout(plan.value.timer);
         })
 
-        return {plan}
+        return {plan,remove}
     }
 }
 </script>

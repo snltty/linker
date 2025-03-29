@@ -208,7 +208,6 @@ export default {
                 state.ruleCron.day = day;
                 state.ruleCron.month = month;
                 state.ruleCron.week = week;
-                console.log(rule.match(regexCorn));
             },
             103:(rule)=>{
                 rule = rule || `0-0-0 0:0:30`;

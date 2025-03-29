@@ -1,5 +1,5 @@
 <template>
-    <PlanList :machineid="machineId" category="sforward" :handles="state.handles">
+    <PlanList ref="planDom" :machineid="machineId" category="sforward" :handles="state.handles">
         <el-dialog v-model="state.show" @open="handleOnShowList" append-to=".app-wrap" :title="`【${machineName}】的内网穿透`" top="2vh" width="760">
             <div>
                 <div class="t-c head">
@@ -84,7 +84,7 @@
     </PlanList>
 </template>
 <script>
-import { onMounted, onUnmounted,  reactive, watch } from 'vue';
+import { inject, onMounted, onUnmounted,  reactive, ref, watch } from 'vue';
 import { getSForwardInfo, removeSForwardInfo, addSForwardInfo,testLocalSForwardInfo, stopSForwardInfo, startSForwardInfo } from '@/apis/sforward'
 import { ElMessage } from 'element-plus';
 import {WarnTriangleFilled,Delete,Select,CloseBold} from '@element-plus/icons-vue'
@@ -98,6 +98,7 @@ export default {
     components:{WarnTriangleFilled,Delete,Select,CloseBold,PlanList,PlanShow},
     setup(props, { emit }) {
 
+        const planDom = ref(null);
         const globalData = injectGlobalData();
         const sforward = useSforward();
         const state = reactive({
@@ -195,7 +196,8 @@ export default {
             saveRow(row);
         }
         const handleDel = (id) => {
-            state.loading = true;
+            planDom.value.remove(id,'start');
+            planDom.value.remove(id,'stop');
             removeSForwardInfo({machineid:sforward.value.machineid,id:id})
             .then(() => {
                 state.loading = false;
@@ -207,7 +209,6 @@ export default {
         }
         const handleStartChange = (row) => {
             state.loading = true;
-
             const func = row.Started 
             ? stopSForwardInfo({machineid:sforward.value.machineid,id:row.Id}) 
             : startSForwardInfo({machineid:sforward.value.machineid,id:row.Id});
@@ -250,7 +251,7 @@ export default {
         })
 
         return {
-            state,
+            state,planDom,
             machineName:sforward.value.machineName, 
             machineId:sforward.value.machineid, 
             handleOnShowList, handleCellClick, handleRefresh, handleAdd, handleEdit, handleEditBlur, handleDel, handleStartChange

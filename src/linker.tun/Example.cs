@@ -1,6 +1,5 @@
 ﻿using System.Buffers.Binary;
 using System.Net;
-using System.Runtime.InteropServices;
 
 namespace linker.tun
 {

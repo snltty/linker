@@ -8,5 +8,5 @@ export const addPlan = (machineId,plan) => {
     return sendWebsocketMsg('plan/add', {machineId,plan});
 }
 export const removePlan = (machineId,planId) => {
-    return sendWebsocketMsg('plan/reove', {machineId,planId});
+    return sendWebsocketMsg('plan/remove', {machineId,planId});
 }
