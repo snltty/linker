@@ -34,6 +34,7 @@ namespace linker.messenger.sforward.client
             if (forwardInfo != null)
             {
                 Start(forwardInfo, flag);
+                OnChanged();
             }
         }
         public void Stop(long id, string flag = "")
@@ -42,6 +43,7 @@ namespace linker.messenger.sforward.client
             if (forwardInfo != null)
             {
                 Stop(forwardInfo, flag);
+                OnChanged();
             }
         }
         private void Start(SForwardInfo forwardInfo, string flag = "")
@@ -82,15 +84,12 @@ namespace linker.messenger.sforward.client
                     {
                         sForwardClientStore.Update(forwardInfo.Id, false, string.Empty);
                     }
-
-                    OnChanged();
                 });
             }
             catch (Exception ex)
             {
                 sForwardClientStore.Update(forwardInfo.Id, false, ex.Message);
                 LoggerHelper.Instance.Error(ex);
-                OnChanged();
             }
 
         }
@@ -109,7 +108,6 @@ namespace linker.messenger.sforward.client
                 {
                     OnClose(forwardInfo.Id, flag);
                     sForwardClientStore.Update(forwardInfo.Id, false, string.Empty);
-                    OnChanged();
                 });
             }
             catch (Exception ex)
@@ -122,12 +120,14 @@ namespace linker.messenger.sforward.client
         public bool Add(SForwardInfo forwardInfo)
         {
             sForwardClientStore.Add(forwardInfo);
+            OnChanged();
             return true;
         }
         public bool Remove(int id)
         {
             Stop(id);
             sForwardClientStore.Remove(id);
+            OnChanged();
             return true;
         }
 

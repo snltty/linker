@@ -36,12 +36,12 @@ export default {
         provide('plan',plan);
         const _getPlans = () => {
             clearTimeout(plan.value.timer);
+            console.log(plan.value.machineid,props.category);
             getPlans(plan.value.machineid,props.category).then((res) => {
                 plan.value.list =  res.reduce((json,item,index)=>{
                     json[`${item.Key}-${item.Handle}`] = item;
                     return json;
                 },{});
-
                 plan.value.timer = setTimeout(_getPlans,1000);
             }).catch(()=>{
                 plan.value.timer = setTimeout(_getPlans,1000);

@@ -171,7 +171,6 @@ export default {
                 if(regex.test(rule) == false){
                     return;
                 }
-                console.log(rule.match(regex));
                 const [,year,month,day,hour,minute,second] = rule.match(regex);
                 if(minute == '*') state.ruleAt.type = 5;
                 else if(hour == '*') state.ruleAt.type = 4;

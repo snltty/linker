@@ -346,7 +346,7 @@ namespace linker.plugins.sforward.messenger
                 await sender.SendOnly(new MessageRequestWrap
                 {
                     Connection = cacheTo.Connection,
-                    MessengerId = (ushort)SForwardMessengerIds.TestClientForward
+                    MessengerId = (ushort)SForwardMessengerIds.TestClient
                 }).ConfigureAwait(false);
             }
         }

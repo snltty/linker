@@ -71,7 +71,7 @@ namespace linker.messenger.plan
         {
             PlanGetInfo info = serializer.Deserialize<PlanGetInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
-            {
+            { 
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
                 await messengerSender.SendReply(new MessageRequestWrap
                 {

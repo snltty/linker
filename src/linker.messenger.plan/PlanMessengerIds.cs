@@ -2,17 +2,17 @@
 {
     public enum PlanMessengerIds : ushort
     {
-        Min = 3000,
+        Min = 3200,
 
-        Add = 3001,
-        AddForward = 3002,
+        Add = 3201,
+        AddForward = 3202,
 
-        Remove = 3003,
-        RemoveForward = 3004,
+        Remove = 3203,
+        RemoveForward = 3204,
 
-        Get = 3005,
-        GetForward = 3006,
+        Get = 3205,
+        GetForward = 3206,
 
-        Max = 3099
+        Max = 3299
     }
 }
