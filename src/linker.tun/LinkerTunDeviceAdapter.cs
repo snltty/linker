@@ -43,7 +43,7 @@ namespace linker.tun
         /// 初始化
         /// </summary>
         /// <param name="linkerTunDeviceCallback">读取数据回调</param>
-        public void Initialize(ILinkerTunDeviceCallback linkerTunDeviceCallback)
+        public bool Initialize(ILinkerTunDeviceCallback linkerTunDeviceCallback)
         {
             this.linkerTunDeviceCallback = linkerTunDeviceCallback;
             if (linkerTunDevice == null)
@@ -51,10 +51,12 @@ namespace linker.tun
                 if (OperatingSystem.IsWindows())
                 {
                     linkerTunDevice = new LinkerWinTunDevice();
+                    return true;
                 }
                 else if (OperatingSystem.IsLinux())
                 {
                     linkerTunDevice = new LinkerLinuxTunDevice();
+                    return true;
                 }
                 /*
                 else if (OperatingSystem.IsMacOS())
@@ -63,11 +65,13 @@ namespace linker.tun
                 }
                 */
             }
+            return false;
         }
-        public void Initialize(ILinkerTunDevice linkerTunDevice,ILinkerTunDeviceCallback linkerTunDeviceCallback)
+        public bool Initialize(ILinkerTunDevice linkerTunDevice, ILinkerTunDeviceCallback linkerTunDeviceCallback)
         {
             this.linkerTunDevice = linkerTunDevice;
             this.linkerTunDeviceCallback = linkerTunDeviceCallback;
+            return true;
         }
 
         /// <summary>
@@ -223,7 +227,7 @@ namespace linker.tun
                         }
 
                         LinkerTunDevicPacket packet = new LinkerTunDevicPacket();
-                        packet.Unpacket(buffer,0,length);
+                        packet.Unpacket(buffer, 0, length);
                         try
                         {
                             await linkerTunDeviceCallback.Callback(packet).ConfigureAwait(false);

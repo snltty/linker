@@ -12,6 +12,7 @@ namespace linker.app
         {
             InitializeComponent();
 
+           
         }
 
         private void OnCounterClicked(object sender, EventArgs e)
@@ -26,8 +27,12 @@ namespace linker.app
             SemanticScreenReader.Announce(CounterBtn.Text);
 
             ITuntapClientStore tuntapClientStore = LinkerMessengerEntry.GetService<ITuntapClientStore>();
-            tuntapClientStore.Info.IP = System.Net.IPAddress.Parse(IPEntry.Text);
-            tuntapClientStore.Confirm();
+            if(string.IsNullOrWhiteSpace(IPEntry.Text) == false)
+            {
+                tuntapClientStore.Info.IP = System.Net.IPAddress.Parse(IPEntry.Text);
+                tuntapClientStore.Confirm();
+            }
+           
 
 #if ANDROID
 

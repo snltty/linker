@@ -8,6 +8,8 @@ using System.Buffers;
 using linker.messenger.relay.client;
 using linker.messenger.signin;
 using linker.messenger.pcp;
+using System.Net;
+using System.Net.Sockets;
 
 namespace linker.messenger.tuntap
 {
@@ -61,6 +63,7 @@ namespace linker.messenger.tuntap
         public async Task Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer, object state)
 #pragma warning restore CS1998 // 异步方法缺少 "await" 运算符，将以同步方式运行
         {
+            //LoggerHelper.Instance.Warning($"tuntap write {buffer.Length}");
             Callback.Receive(connection, buffer);
         }
         /// <summary>
@@ -82,6 +85,7 @@ namespace linker.messenger.tuntap
         /// <returns></returns>
         public async Task InputPacket(LinkerTunDevicPacket packet)
         {
+            //LoggerHelper.Instance.Warning($"tuntap read to {new IPEndPoint(new IPAddress(packet.DistIPAddress.Span), packet.DistPort)} {packet.Length}");
             //IPV4广播组播、IPV6 多播
             if (packet.IPV4Broadcast || packet.IPV6Multicast)
             {

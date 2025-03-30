@@ -80,7 +80,7 @@ namespace linker.app
         TuntapConfigTransfer tuntapConfigTransfer;
         TuntapProxy tuntapProxy;
         TuntapDecenter tuntapDecenter;
-        TuntapTransfer  tuntapTransfer;
+        TuntapTransfer tuntapTransfer;
         public VpnServiceLinker()
         {
             tuntapTransfer = LinkerMessengerEntry.GetService<TuntapTransfer>();
@@ -112,6 +112,7 @@ namespace linker.app
 
         public async Task Callback(LinkerTunDevicPacket packet)
         {
+           
             await tuntapProxy.InputPacket(packet).ConfigureAwait(false);
         }
         public async ValueTask Close(ITunnelConnection connection)
@@ -123,7 +124,7 @@ namespace linker.app
         {
             tuntapTransfer.Write(buffer);
         }
-       
+
     }
 
 
@@ -276,9 +277,10 @@ namespace linker.app
             {
                 while (fd > 0)
                 {
-                    length = vpnInput.Read(buffer, 4, 2048);
+                    length = vpnInput.Read(buffer, 4, buffer.Length - 4);
                     if (length > 0)
                     {
+                        length += 4;
                         length.ToBytes(buffer);
                         return buffer;
                     }
@@ -296,6 +298,7 @@ namespace linker.app
             {
                 buffer.CopyTo(bufferWrite);
                 vpnOutput.Write(bufferWrite, 0, buffer.Length);
+                vpnOutput.Flush();
                 return true;
             }
             catch (Exception)
@@ -402,7 +405,6 @@ namespace linker.app
             [DllImport("libc", SetLastError = true)]
             public static extern int poll([In, Out] PollFD[] fds, int nfds, int timeout);
         }
-
         [StructLayout(LayoutKind.Sequential)]
         public struct PollFD
         {
@@ -410,7 +412,6 @@ namespace linker.app
             public short events;
             public short revents;
         }
-
         public enum PollEvent : short
         {
             In = 0x001,
