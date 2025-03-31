@@ -58,33 +58,33 @@
     /// <summary>
     /// 计划任务方法
     /// </summary>
+    [Flags]
     public enum PlanMethod : byte
     {
         /// <summary>
         /// 手动
         /// </summary>
-        Hand = 0,
+        None = 0,
         /// <summary>
         /// 启动后
         /// </summary>
         Setup = 1,
-
         /// <summary>
         /// 到点
         /// </summary>
-        At = 100,
+        At = 2,
         /// <summary>
         /// 定时
         /// </summary>
-        Timer = 101,
+        Timer = 4,
         /// <summary>
         /// 表达式
         /// </summary>
-        Cron = 102,
+        Cron = 8,
         /// <summary>
         /// 触发
         /// </summary>
-        Trigger = 103,
+        Trigger = 16,
     }
 
 }

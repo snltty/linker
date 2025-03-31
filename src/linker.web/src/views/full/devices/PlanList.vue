@@ -27,10 +27,10 @@ export default {
             methods:[
                 {label:'手动',value:0},
                 {label:'启动后',value:1},
-                {label:'到点',value:100},
-                {label:'定时',value:101},
-                {label:'Cron',value:102},
-                {label:'触发',value:103},
+                {label:'到点',value:2},
+                {label:'定时',value:4},
+                {label:'Cron',value:8},
+                {label:'触发',value:16},
             ]
         });
         provide('plan',plan);

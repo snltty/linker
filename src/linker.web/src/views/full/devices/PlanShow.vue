@@ -17,7 +17,7 @@ export default {
         const ruleTrans = {
             0:()=>`手动`,
             1:()=>`网络启动后`,
-            100:(item,rule)=>{
+            2:(item,rule)=>{
                 if(regex.test(rule) == false){
                     return rule;
                 }
@@ -28,7 +28,7 @@ export default {
                 if(month == '*') return `每月的${day}日${hour}时${minute}分${second}秒`;
                 if(year == '*') return `每年的${month}月${day}日${hour}时${minute}分${second}秒`;
             },
-            101:(item,rule)=>{
+            4:(item,rule)=>{
                 if(regexNumber.test(rule) == false){
                     return rule;
                 }
@@ -42,10 +42,10 @@ export default {
                 if(second != '0') arr.push(`${second}秒`);
                 return `每${arr.join('')}`
             },
-            102:(item,rule)=>{
+            8:(item,rule)=>{
                 return `Cron : ${rule}`;
             },
-            103:(item,rule)=>{
+            16:(item,rule)=>{
                 if(regexNumber.test(rule) == false){
                     return rule;
                 }
@@ -80,7 +80,7 @@ export default {
                 Value:'',
                 Disabled:false,
                 TriggerHandle:'',
-                Method:100,
+                Method:2,
                 Rule:''
             };
             plan.value.triggers = JSON.parse(JSON.stringify(plan.value.handles.filter(c=>c.value != props.handle)));

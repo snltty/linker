@@ -11,11 +11,11 @@
                     <el-select v-model="state.ruleForm.Method" style="width:10rem" @change="handleChange">
                         <el-option v-for="(item,index) in plan.methods" :value="item.value" :label="item.label"></el-option>
                     </el-select>
-                    <strong class="mgl-2" v-if="state.ruleForm.Method >= 100">
+                    <strong class="mgl-2" v-if="state.ruleForm.Method >= 2">
                         {{ state.ruleForm.Rule }}
                     </strong>
                 </el-form-item>
-                <el-form-item label="在" prop="Rule" v-if="state.ruleForm.Method == 100">
+                <el-form-item label="在" prop="Rule" v-if="state.ruleForm.Method == 2">
                     <div class="w-100">
                         <el-select v-model="state.ruleAt.type" style="width:10rem" @change="handleChange">
                             <el-option :value="2" label="每月"></el-option>
@@ -32,7 +32,7 @@
                         <el-input @change="handleChange" :class="{'mgl-1':state.ruleAt.type < 5}" v-model="state.ruleAt.sec" style="width: 8rem"><template #append>秒</template></el-input>
                     </div>
                 </el-form-item>
-                <el-form-item label="每" prop="Rule" v-if="state.ruleForm.Method == 101">
+                <el-form-item label="每" prop="Rule" v-if="state.ruleForm.Method == 4">
                     <div class="w-100">
                         <el-input @change="handleChange" v-model="state.ruleTimer.year" style="width: 8rem"><template #append>年</template></el-input>
                         <el-input @change="handleChange" class="mgl-1" v-model="state.ruleTimer.month" style="width: 8rem"><template #append>月</template></el-input>
@@ -44,7 +44,7 @@
                         <el-input @change="handleChange" class="mgl-1" v-model="state.ruleTimer.sec" style="width: 8rem"><template #append>秒</template></el-input>
                     </div>
                 </el-form-item>
-                <el-form-item label="Cron" prop="Rule" v-if="state.ruleForm.Method == 102">
+                <el-form-item label="Cron" prop="Rule" v-if="state.ruleForm.Method == 8">
                     <div class="w-100">
                         <el-input @change="handleChange" v-model="state.ruleCron.sec" style="width: 8rem"><template #append>秒</template></el-input>
                         <el-input @change="handleChange" class="mgl-1" v-model="state.ruleCron.min" style="width: 8rem"><template #append>分</template></el-input>
@@ -56,7 +56,7 @@
                         <el-input @change="handleChange" class="mgl-1" v-model="state.ruleCron.week" style="width: 8rem"><template #append>周</template></el-input>
                     </div>
                 </el-form-item>
-                <el-form-item label="在" prop="Rule" v-if="state.ruleForm.Method == 103">
+                <el-form-item label="在" prop="Rule" v-if="state.ruleForm.Method == 16">
                     <div class="w-100">
                         <el-select v-model="state.ruleForm.TriggerHandle" style="width:10rem" @change="handleChange">
                             <el-option v-for="(item,index) in plan.triggers" :value="item.value" :label="item.label"></el-option>
@@ -166,7 +166,7 @@ export default {
         });
      
         const decodeRuleJson = {
-            100:(rule)=>{
+            2:(rule)=>{
                 rule = rule || `*-*-* 0:0:0`;
                 if(regex.test(rule) == false){
                     return;
@@ -183,7 +183,7 @@ export default {
                 state.ruleAt.min = minute;
                 state.ruleAt.sec = second;
             },
-            101:(rule)=>{
+            4:(rule)=>{
                 rule = rule || `0-0-0 0:0:30`;
                 if(regexNumber.test(rule) == false){
                     return;
@@ -196,7 +196,7 @@ export default {
                 state.ruleTimer.min = minute;
                 state.ruleTimer.sec = second;
             },
-            102:(rule)=>{
+            8:(rule)=>{
                 rule = rule || `30 * * * * ?`;
                 if(regexCorn.test(rule) == false){
                     return;
@@ -209,7 +209,7 @@ export default {
                 state.ruleCron.month = month;
                 state.ruleCron.week = week;
             },
-            103:(rule)=>{
+            16:(rule)=>{
                 rule = rule || `0-0-0 0:0:30`;
                 if(regexNumber.test(rule) == false){
                     return;
@@ -230,7 +230,7 @@ export default {
         }
 
         const buildRuleJson = {
-            100:()=>{
+            2:()=>{
                 switch (state.ruleAt.type) {
                     case 2:
                         return `*-*-${state.ruleAt.day} ${state.ruleAt.hour}:${state.ruleAt.min}:${state.ruleAt.sec}`;
@@ -247,9 +247,9 @@ export default {
                 } 
                 return '';
             },
-            101:()=>`${state.ruleTimer.year}-${state.ruleTimer.month}-${state.ruleTimer.day} ${state.ruleTimer.hour}:${state.ruleTimer.min}:${state.ruleTimer.sec}`,
-            102:()=>`${state.ruleCron.sec} ${state.ruleCron.min} ${state.ruleCron.hour} ${state.ruleCron.day} ${state.ruleCron.month} ${state.ruleCron.week}`,
-            103:()=>`${state.ruleTrigger.year}-${state.ruleTrigger.month}-${state.ruleTrigger.day} ${state.ruleTrigger.hour}:${state.ruleTrigger.min}:${state.ruleTrigger.sec}`,
+            4:()=>`${state.ruleTimer.year}-${state.ruleTimer.month}-${state.ruleTimer.day} ${state.ruleTimer.hour}:${state.ruleTimer.min}:${state.ruleTimer.sec}`,
+            8:()=>`${state.ruleCron.sec} ${state.ruleCron.min} ${state.ruleCron.hour} ${state.ruleCron.day} ${state.ruleCron.month} ${state.ruleCron.week}`,
+            16:()=>`${state.ruleTrigger.year}-${state.ruleTrigger.month}-${state.ruleTrigger.day} ${state.ruleTrigger.hour}:${state.ruleTrigger.min}:${state.ruleTrigger.sec}`,
         }
         const buildRule= ()=>{
             if(state.ruleForm.Method in buildRuleJson){
