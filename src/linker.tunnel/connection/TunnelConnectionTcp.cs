@@ -7,6 +7,7 @@ using System.Text.Json.Serialization;
 using System.Text;
 using System.Net.Sockets;
 using System.IO.Pipelines;
+using System;
 
 namespace linker.tunnel.connection
 {
@@ -310,6 +311,7 @@ namespace linker.tunnel.connection
                     await Socket.SendAsync(buffer.AsMemory(offset, length), SocketFlags.None).ConfigureAwait(false);
                 }
                 SendBytes += length;
+                LastTicks.Update();
                 return true;
             }
             catch (Exception ex)

@@ -10,6 +10,7 @@
         /// 分组
         /// </summary>
         public SignInClientGroupInfo Group { get; }
+        public SignInClientGroupInfo[] Groups { get; }
         /// <summary>
         /// id
         /// </summary>

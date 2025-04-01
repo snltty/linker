@@ -29,12 +29,32 @@ namespace linker.app
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
-            Window.SetFlags(WindowManagerFlags.TranslucentStatus, WindowManagerFlags.TranslucentStatus);
-            Window.SetStatusBarColor(Android.Graphics.Color.Transparent);
-            Window.SetNavigationBarColor(Android.Graphics.Color.Transparent);
+            //SetLightStatusBar(true);
 
             base.OnCreate(savedInstanceState);
             ConfigureVpn();
+        }
+        public void SetLightStatusBar(bool isLight)
+        {
+            Window.SetFlags(WindowManagerFlags.LayoutNoLimits, WindowManagerFlags.LayoutNoLimits);
+            Window.SetStatusBarColor(Android.Graphics.Color.Black);
+            Window.SetNavigationBarColor(Android.Graphics.Color.Black);
+            if (OperatingSystem.IsAndroidVersionAtLeast(23)) // Android 6.0 (Marshmallow) 及以上
+            {
+                var decorView = Window.DecorView;
+                var flags = (int)decorView.SystemUiVisibility;
+                if (isLight)
+                {
+                    // 添加浅色状态栏标志
+                    flags |= (int)SystemUiFlags.LightStatusBar;
+                }
+                else
+                {
+                    // 移除浅色状态栏标志
+                    flags &= ~(int)SystemUiFlags.LightStatusBar;
+                }
+                decorView.SystemUiVisibility = (StatusBarVisibility)flags;
+            }
         }
 
         protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
@@ -95,8 +115,6 @@ namespace linker.app
         public override void OnCreate()
         {
             base.OnCreate();
-            string name = string.IsNullOrWhiteSpace(tuntapConfigTransfer.Info.Name) ? "linker" : tuntapConfigTransfer.Info.Name;
-            tuntapTransfer.Setup(name, tuntapConfigTransfer.Info.IP, tuntapConfigTransfer.Info.PrefixLength);
         }
         public override StartCommandResult OnStartCommand(Intent intent, StartCommandFlags flags, int startId)
         {
@@ -106,13 +124,11 @@ namespace linker.app
         public override void OnDestroy()
         {
             base.OnDestroy();
-            tuntapTransfer.Shutdown();
-            Android.App.Application.Context.StopService(new Intent(Android.App.Application.Context, typeof(ForegroundService)));
+            tuntapTransfer.Shutdown(false);
         }
 
         public async Task Callback(LinkerTunDevicPacket packet)
         {
-           
             await tuntapProxy.InputPacket(packet).ConfigureAwait(false);
         }
         public async ValueTask Close(ITunnelConnection connection)
@@ -138,6 +154,7 @@ namespace linker.app
         private static readonly string CHANNEL_CONTENT = "linker.app are running";
 
         Intent intent;
+        Intent vpnIntent;
         public override IBinder OnBind(Intent intent)
         {
             return null;
@@ -148,6 +165,7 @@ namespace linker.app
             base.OnCreate();
             RunLinker();
         }
+
         public override StartCommandResult OnStartCommand(Intent intent, StartCommandFlags flags, int startId)
         {
             intent.SetFlags(ActivityFlags.NewTask);
@@ -219,6 +237,21 @@ namespace linker.app
             LinkerMessengerEntry.Initialize();
             LinkerMessengerEntry.Build();
             LinkerMessengerEntry.Setup(ExcludeModule.Logger, dic);
+
+            TuntapTransfer tuntapTransfer = LinkerMessengerEntry.GetService<TuntapTransfer>();
+            tuntapTransfer.OnSetupBefore += () =>
+            {
+                vpnIntent = new Intent(Android.App.Application.Context, typeof(VpnServiceLinker));
+                Android.App.Application.Context.StartService(vpnIntent);
+            };
+            tuntapTransfer.OnShutdownBefore += () =>
+            {
+                if (vpnIntent != null)
+                {
+                    Android.App.Application.Context.StopService(vpnIntent);
+                    vpnIntent = null;
+                }
+            };
         }
     }
 
@@ -280,8 +313,8 @@ namespace linker.app
                     length = vpnInput.Read(buffer, 4, buffer.Length - 4);
                     if (length > 0)
                     {
-                        length += 4;
                         length.ToBytes(buffer);
+                        length += 4;
                         return buffer;
                     }
                     WaitForTunRead();
@@ -346,21 +379,9 @@ namespace linker.app
 
         public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip)
         {
-            /*
-            foreach (var item in ips)
-            {
-                builder.AddRoute(item.Address.ToString(), item.PrefixLength);
-            }
-           */
         }
         public void DelRoute(LinkerTunDeviceRouteItem[] ips)
         {
-            /*
-            foreach (var item in ips)
-            {
-                builder.ExcludeRoute(new IpPrefix(InetAddress.GetByName(item.Address.ToString()), item.PrefixLength));
-            }
-            */
         }
         public async Task<bool> CheckAvailable(bool order = false)
         {
@@ -419,22 +440,5 @@ namespace linker.app
         }
     }
 
-    public sealed class AndroidLinkerVpnService
-    {
-        public bool Running => intent != null;
-
-        private Intent intent;
-        public void StartVpnService()
-        {
-            intent = new Intent(Android.App.Application.Context, typeof(VpnServiceLinker));
-            Android.App.Application.Context.StartService(intent);
-        }
-
-        public void StopVpnService()
-        {
-            Android.App.Application.Context.StopService(intent);
-            intent = null;
-        }
-    }
 }
 

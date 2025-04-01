@@ -314,7 +314,7 @@ namespace linker.tun
                 if (packet != 0)
                 {
                     new Span<byte>((byte*)packet, length).CopyTo(buffer.AsSpan(4, length));
-                    (length).ToBytes(buffer);
+                    length.ToBytes(buffer);
                     WinTun.WintunReleaseReceivePacket(session, packet);
                     length += 4;
                     return buffer;

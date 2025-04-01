@@ -6,6 +6,7 @@ namespace linker.messenger.store.file.signIn
     {
         public SignInClientServerInfo Server => config.Data.Client.Servers[0];
         public SignInClientGroupInfo Group => config.Data.Client.Groups[0];
+        public SignInClientGroupInfo[] Groups => config.Data.Client.Groups;
 
         public string Id => config.Data.Client.Id;
         public string Name => config.Data.Client.Name;
@@ -14,6 +15,7 @@ namespace linker.messenger.store.file.signIn
         public SignInClientStore(FileConfig config)
         {
             this.config = config;
+
         }
 
         public void SetName(string newName)

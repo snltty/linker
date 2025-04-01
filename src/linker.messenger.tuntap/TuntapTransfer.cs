@@ -25,30 +25,21 @@ namespace linker.messenger.tuntap
         public TuntapTransfer(LinkerTunDeviceAdapter linkerTunDeviceAdapter)
         {
             this.linkerTunDeviceAdapter = linkerTunDeviceAdapter;
-        }
-
-        bool inited = false;
-        public void Init(ILinkerTunDeviceCallback linkerTunDeviceCallback)
-        {
-            if (inited) return;
-
-            inited = linkerTunDeviceAdapter.Initialize(linkerTunDeviceCallback);
-            if (inited && OperatingSystem.IsAndroid() == false)
+            if (OperatingSystem.IsAndroid() == false)
             {
                 AppDomain.CurrentDomain.ProcessExit += (s, e) => linkerTunDeviceAdapter.Shutdown();
                 Console.CancelKeyPress += (s, e) => linkerTunDeviceAdapter.Shutdown();
             }
+        }
+
+        public void Init(ILinkerTunDeviceCallback linkerTunDeviceCallback)
+        {
+            linkerTunDeviceAdapter.Initialize(linkerTunDeviceCallback);
+
         }
         public void Init(ILinkerTunDevice linkerTunDevice, ILinkerTunDeviceCallback linkerTunDeviceCallback)
         {
-            if (inited) return;
-
-            inited = linkerTunDeviceAdapter.Initialize(linkerTunDevice, linkerTunDeviceCallback);
-            if (inited && OperatingSystem.IsAndroid() == false)
-            {
-                AppDomain.CurrentDomain.ProcessExit += (s, e) => linkerTunDeviceAdapter.Shutdown();
-                Console.CancelKeyPress += (s, e) => linkerTunDeviceAdapter.Shutdown();
-            }
+            linkerTunDeviceAdapter.Initialize(linkerTunDevice, linkerTunDeviceCallback);
         }
 
         public bool Write(ReadOnlyMemory<byte> buffer)
@@ -136,7 +127,7 @@ namespace linker.messenger.tuntap
         /// <summary>
         /// 停止网卡
         /// </summary>
-        public void Shutdown()
+        public void Shutdown(bool notify = true)
         {
             if (operatingManager.StartOperation() == false)
             {
@@ -144,10 +135,12 @@ namespace linker.messenger.tuntap
             }
             try
             {
-                OnShutdownBefore();
+                if (notify)
+                    OnShutdownBefore();
                 linkerTunDeviceAdapter.Shutdown();
                 linkerTunDeviceAdapter.RemoveNat();
-                OnShutdownSuccess();
+                if (notify)
+                    OnShutdownSuccess();
             }
             catch (Exception ex)
             {
@@ -158,7 +151,8 @@ namespace linker.messenger.tuntap
             }
             finally
             {
-                OnShutdownAfter();
+                if (notify)
+                    OnShutdownAfter();
                 operatingManager.StopOperation();
             }
         }

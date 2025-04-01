@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
 	<PropertyGroup>
 		<TargetFrameworks>net8.0-android;net8.0-ios;net8.0-maccatalyst</TargetFrameworks>
@@ -111,6 +111,15 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Include="Components\Layout\MainLayout.razor" />
+	  <None Include="Components\Pages\Home.razor" />
+	  <None Include="Components\Routes.razor" />
+	  <None Include="Components\_Imports.razor" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="AntDesign" Version="1.3.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
@@ -121,10 +130,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Update="Resources\Images\logo.png">
-	    <Pack>True</Pack>
-	    <PackagePath>\</PackagePath>
-	  </None>
+	  <MauiImage Update="Resources\Images\logo.png">
+	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+	  </MauiImage>
 	</ItemGroup>
-
 </Project>

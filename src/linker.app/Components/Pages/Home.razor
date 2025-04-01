@@ -1,0 +1,146 @@
+﻿@page "/"
+
+<ul class="device-list">
+    @foreach (var item in response.List)
+    {
+        <li class="device">
+            <div class="head flex">
+                @if (item.Connected)
+                {
+                    <h3 class="green">@item.MachineName</h3>
+                }
+                else
+                {
+                    <h3>@item.MachineName</h3>
+                }
+                @if(item.MachineId == id)
+                {
+                    <span style="color:#d400ff; font-size:1.6rem">★</span>
+                }
+
+                <span class="flex-1"></span>
+                <span>@item.Version</span>
+            </div>
+            @if (tuntaps.TryGetValue(item.MachineId, out TuntapInfo tuntap))
+            {
+                <div class="tuntap flex">
+                    <div class="ip">
+                        <div class="flex">
+                            <h3>@tuntap.IP</h3>
+                            @if (tuntap.Status == TuntapStatus.Running)
+                            {
+                                <Switch Checked="true" />
+                            }
+                            else
+                            {
+                                <Switch Checked="false" />
+                            }
+                        </div>
+                        @if (tuntap.ShowDelay)
+                        {
+                            <div>@tuntap.Delay ms</div>
+                        }
+                    </div>
+                    <span class="flex-1"></span>
+                    <div class="lans">
+                        @if (tuntap.Lans.Count == 0)
+                        {
+                            <p class="disable">0.0.0.0 / 0</p>
+                        }
+                        else
+                        {
+                            @foreach (var lan in tuntap.Lans)
+                            {
+                                @if (lan.Disabled)
+                                {
+                                    <p class="disable">@lan.IP / @lan.PrefixLength</p>
+                                }
+                                else if (lan.Exists)
+                                {
+                                    <p class="yellow">
+                                        @lan.IP / @lan.PrefixLength
+                                    </p>
+                                }
+                                else
+                                {
+                                    <p class="green">@lan.IP / @lan.PrefixLength</p>
+                                }
+                            }
+                        }
+                    </div>
+                </div>
+            }
+        </li>
+    }
+
+</ul>
+
+@using System.Collections.Concurrent
+@using linker.messenger.entry;
+@using linker.messenger.signin;
+@using linker.messenger;
+@using linker.messenger.tuntap
+@code {
+
+    SignInListRequestInfo request = new SignInListRequestInfo { Page = 1, Size = 10 };
+    SignInListResponseInfo response = new SignInListResponseInfo { Count = 0, List = new List<SignCacheInfo>() };
+    SignInClientTransfer signInClientTransfer = LinkerMessengerEntry.GetService<SignInClientTransfer>();
+    TuntapDecenter tuntapDecenter = LinkerMessengerEntry.GetService<TuntapDecenter>();
+    ISignInClientStore signInClientStore = LinkerMessengerEntry.GetService<ISignInClientStore>();
+
+    ConcurrentDictionary<string, TuntapInfo> tuntaps => tuntapDecenter.Infos;
+    string id => signInClientStore.Id;
+
+    protected override void OnInitialized()
+    {
+        Task.Run(async () =>
+        {
+            while (true)
+            {
+
+                SignInListResponseInfo resp = await signInClientTransfer.List(request);
+                request.Page = resp.Request.Page;
+                request.Size = resp.Request.Size;
+
+                response.Count = resp.Count;
+                response.List = resp.List;
+
+                await InvokeAsync(StateHasChanged);
+                await Task.Delay(5000);
+            }
+        });
+    }
+}
+
+<style>
+    ul.device-list {
+        padding: 1rem;
+    }
+
+    li.device {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+    }
+
+        li.device .head {
+            background-color: #fafafa;
+            padding: .6rem .6rem 0 .6rem;
+        }
+
+        li.device .tuntap {
+            border-top: 1px solid #ddd;
+            padding: .6rem .6rem 0 .6rem;
+            line-height: 2rem;
+            margin: 0;
+        }
+
+            li.device .tuntap .ip h3 {
+                margin-right: .6rem;
+                line-height: normal
+            }
+
+            li.device .tuntap .lans p {
+                margin: 0;
+            }
+</style>

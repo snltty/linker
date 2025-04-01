@@ -63,7 +63,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.app", "src\linker.ap
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "linker.ics", "src\linker.ics\linker.ics.csproj", "{BBE91688-7734-4BEF-B957-54F8C17F47CE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "linker.messenger.plan", "src\linker.messenger.plan\linker.messenger.plan.csproj", "{5649D02E-200B-45E0-A82F-8EBE76CF96C6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.plan", "src\linker.messenger.plan\linker.messenger.plan.csproj", "{5649D02E-200B-45E0-A82F-8EBE76CF96C6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
