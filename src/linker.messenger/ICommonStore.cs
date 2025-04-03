@@ -3,6 +3,7 @@
     public interface ICommonStore
     {
         public CommonModes Modes { get; }
+        public bool Installed { get; }
 
         public void SetModes(CommonModes modes);
         public void SetInstalled(bool installed);

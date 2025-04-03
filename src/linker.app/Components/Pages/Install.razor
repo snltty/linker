@@ -1,0 +1,131 @@
+﻿@page "/install"
+
+<div class="install-wrap">
+    <Form @ref="form" Layout="@FormLayout.Horizontal" Model="@model" Size="@FormSize.Large">
+        <FormItem Label="名称">
+            <Input @bind-Value="@context.Name" />
+        </FormItem>
+        <FormItem Label="分组名">
+            <Input @bind-Value="@context.GroupName" />
+        </FormItem>
+        <FormItem Label="分组密码">
+            <Input @bind-Value="@context.GroupPassword" />
+        </FormItem>
+        <FormItem Label="信标服务器">
+            <Input @bind-Value="@context.Server" />
+        </FormItem>
+        <FormItem Label="信标密钥">
+            <Input @bind-Value="@context.SignInPassword" />
+        </FormItem>
+        <FormItem Label="穿透密钥">
+            <Input @bind-Value="@context.SForwardPassword" />
+        </FormItem>
+        <FormItem Label="中继密钥">
+            <Input @bind-Value="@context.RelayPassword" />
+        </FormItem>
+        <FormItem Label="更新密钥">
+            <Input @bind-Value="@context.UpdaterPassword" />
+        </FormItem>
+        <FormItem class="t-c">
+            <Button Type="ButtonType.Primary" OnClick="Save">提交保存</Button>
+        </FormItem>
+    </Form>
+</div>
+
+@using System.ComponentModel.DataAnnotations
+@using linker.app.Services
+@using linker.messenger
+@using linker.messenger.forward
+@using linker.messenger.relay.client
+@using linker.messenger.sforward.client
+@using linker.messenger.signin
+@using linker.messenger.updater
+@inject NavigationManager Navigation
+@inject IMessageService _message
+@inject TitleService TitleService
+@code {
+
+    public class Model
+    {
+        [Required]
+        public string Name { get; set; }
+
+        [Required]
+        public string GroupName { get; set; }
+        [Required]
+        public string GroupPassword { get; set; }
+
+        [Required]
+        public string Server { get; set; }
+
+        public string SignInPassword { get; set; }
+        public string SForwardPassword { get; set; }
+        public string RelayPassword { get; set; }
+        public string UpdaterPassword { get; set; }
+    }
+
+    private Model model = new Model();
+    private Form<Model> form;
+
+    ISignInClientStore signInClientStore = LinkerMessengerEntry.GetService<ISignInClientStore>();
+    ISForwardClientStore sforwardClientStore = LinkerMessengerEntry.GetService<ISForwardClientStore>();
+    IRelayClientStore relayClientStore = LinkerMessengerEntry.GetService<IRelayClientStore>();
+    IUpdaterClientStore updaterClientStore = LinkerMessengerEntry.GetService<IUpdaterClientStore>();
+    ICommonStore commonStore = LinkerMessengerEntry.GetService<ICommonStore>();
+
+    protected override void OnInitialized()
+    {
+        TitleService.SetTitle("初始化");
+
+        model.Name = signInClientStore.Name;
+
+        model.GroupName = signInClientStore.Group.Name;
+        model.GroupPassword = signInClientStore.Group.Password;
+
+        model.Server = signInClientStore.Server.Host;
+        model.SignInPassword = signInClientStore.Server.SecretKey;
+
+        model.SForwardPassword = sforwardClientStore.SecretKey;
+
+        model.RelayPassword = relayClientStore.Server.SecretKey;
+
+        model.UpdaterPassword = updaterClientStore.SecretKey;
+
+    }
+    public void Save()
+    {
+
+        signInClientStore.SetName(model.Name);
+        signInClientStore.Confirm();
+
+        signInClientStore.Group.Name = model.GroupName;
+        signInClientStore.Group.Password = model.GroupPassword;
+        signInClientStore.SetGroups(signInClientStore.Groups);
+        signInClientStore.Confirm();
+
+        signInClientStore.Server.Host = model.Server;
+        signInClientStore.Server.SecretKey = model.SignInPassword;
+        signInClientStore.SetServer(signInClientStore.Server);
+        signInClientStore.Confirm();
+
+        sforwardClientStore.SetSecretKey(model.SForwardPassword);
+
+        relayClientStore.SetServerSecretKey(model.RelayPassword);
+        relayClientStore.Confirm();
+
+        model.UpdaterPassword = updaterClientStore.SecretKey;
+        updaterClientStore.SetSecretKey(model.UpdaterPassword);
+
+        commonStore.SetInstalled(true);
+
+        _message.Success("已操作");
+        Navigation.NavigateTo("/",true);
+    }
+}
+
+<style>
+    .install-wrap {
+        padding: 2rem;
+        width: 100%;
+    }
+</style>

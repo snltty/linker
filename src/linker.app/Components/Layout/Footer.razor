@@ -56,7 +56,7 @@
         {
             while (true)
             {
-                InvokeAsync(StateHasChanged);
+                await InvokeAsync(StateHasChanged);
                 await Task.Delay(1000);
             }
         });
@@ -82,10 +82,12 @@
 
 <style>
     .footer {
+        position:relative;
+        z-index:99999;
         height: 5rem;
-        border-top: 1px solid #ddd;
-        background-color: #f5f5f5;
-        box-shadow: -1px -1px 6px rgba(0,0,0,0.05)
+        background-color: #f6f8fa;
+        border-top: 1px solid #d0d7de;
+        box-shadow: -1px -1px 4px rgba(0, 0, 0, .05);
     }
     .group-wrap{
         padding-top:1.4rem;
@@ -97,13 +99,13 @@
         display: block;
         width: 6rem;
         height: 6rem;
-        border: 1px solid #ddd;
+        border: 1px solid #d0d7de;
         border-radius: 50%;
         box-sizing: border-box;
         padding: .6rem;
         margin-top: -3rem;
         background-color: #fff;
-        box-shadow: 0 0 6px rgba(0,0,0,0.075);
+        box-shadow: 0px 0px 4px rgba(0, 0, 0, .05);
     }
 
         .logo a img {

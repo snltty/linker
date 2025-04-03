@@ -76,10 +76,13 @@
 </ul>
 
 @using System.Collections.Concurrent
+@using linker.app.Services
 @using linker.messenger.entry;
 @using linker.messenger.signin;
 @using linker.messenger;
 @using linker.messenger.tuntap
+@inject NavigationManager Navigation
+@inject TitleService TitleService
 @code {
 
     SignInListRequestInfo request = new SignInListRequestInfo { Page = 1, Size = 10 };
@@ -88,11 +91,19 @@
     TuntapDecenter tuntapDecenter = LinkerMessengerEntry.GetService<TuntapDecenter>();
     ISignInClientStore signInClientStore = LinkerMessengerEntry.GetService<ISignInClientStore>();
 
+    ICommonStore commonStore = LinkerMessengerEntry.GetService<ICommonStore>();
+
     ConcurrentDictionary<string, TuntapInfo> tuntaps => tuntapDecenter.Infos;
     string id => signInClientStore.Id;
 
     protected override void OnInitialized()
     {
+        TitleService.SetTitle("linker");
+        if(commonStore.Installed == false)
+        {
+            Navigation.NavigateTo("/install");
+        }
+
         Task.Run(async () =>
         {
             while (true)

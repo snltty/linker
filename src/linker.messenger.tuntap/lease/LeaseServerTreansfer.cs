@@ -107,11 +107,15 @@ namespace linker.messenger.tuntap.lease
 
             LeaseCacheUserInfo self = cache.Users.FirstOrDefault(c => c.Id == userId);
             //已有的
-            if (self != null && (info.IP.Equals(NetworkHelper.ToIP(self.IP)) || info.IP.Equals(IPAddress.Any)))
+            if (self != null)
             {
-                self.LastTime = DateTime.Now;
-                info.IP = NetworkHelper.ToIP(self.IP);
-                return info;
+                if (NetworkHelper.ToValue(info.IP) == self.IP || info.IP.Equals(IPAddress.Any))
+                {
+                    self.LastTime = DateTime.Now;
+                    info.IP = NetworkHelper.ToIP(self.IP);
+                    return info;
+                }
+                cache.Users.Remove(self);
             }
 
             lock (cache)

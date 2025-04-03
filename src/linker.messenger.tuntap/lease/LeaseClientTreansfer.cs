@@ -46,8 +46,6 @@ namespace linker.messenger.tuntap.lease
             if (resp.Code == MessageResponeCodes.OK)
             {
                 LeaseInfo info = serializer.Deserialize<LeaseInfo>(resp.Data.Span);
-                leaseClientStore.Set(signInClientStore.Group.Id, info);
-                leaseClientStore.Confirm();
                 return info;
             }
             return new LeaseInfo { IP = IPAddress.Any, PrefixLength = 24 };
@@ -73,7 +71,7 @@ namespace linker.messenger.tuntap.lease
             if (resp.Code == MessageResponeCodes.OK)
             {
                 LeaseInfo newip = serializer.Deserialize<LeaseInfo>(resp.Data.Span);
-                if (newip.Equals(IPAddress.Any) == false)
+                if (newip.IP.Equals(IPAddress.Any) == false)
                 {
                     return newip;
                 }
@@ -87,7 +85,6 @@ namespace linker.messenger.tuntap.lease
             {
                 try
                 {
-                    await GetNetwork().ConfigureAwait(false);
                     LeaseInfo info = leaseClientStore.Get(signInClientStore.Group.Id);
                     if (info != null && info.IP.Equals(IPAddress.Any) == false)
                     {
@@ -96,7 +93,7 @@ namespace linker.messenger.tuntap.lease
                 }
                 catch (Exception ex)
                 {
-                    if(LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
                         LoggerHelper.Instance.Error(ex);
                     }

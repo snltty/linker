@@ -13,7 +13,7 @@ namespace linker.tun
         {
             linkerTunDeviceAdapter = new LinkerTunDeviceAdapter();
             linkerTunDeviceAdapter.Initialize(new LinkerTunDeviceCallbackICMP());
-            linkerTunDeviceAdapter.Setup("linker0", IPAddress.Parse("192.168.55.2"), 24, 1416);
+            linkerTunDeviceAdapter.Setup("linker0", IPAddress.Parse("192.168.55.2"), 24, 1420);
 
             if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.SetupError))
             {

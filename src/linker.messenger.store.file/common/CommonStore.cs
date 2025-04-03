@@ -18,6 +18,7 @@
                 return modes;
             }
         }
+        public bool Installed => fileConfig.Data.Common.Install;
 
         private readonly FileConfig fileConfig;
         public CommonStore(FileConfig fileConfig)

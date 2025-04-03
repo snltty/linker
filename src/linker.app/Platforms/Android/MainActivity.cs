@@ -11,6 +11,7 @@ using Java.IO;
 using linker.libs;
 using linker.libs.extends;
 using linker.messenger.entry;
+using linker.messenger.store.file;
 using linker.messenger.tuntap;
 using linker.tun;
 using linker.tunnel.connection;
@@ -29,32 +30,15 @@ namespace linker.app
 
         protected override void OnCreate(Bundle savedInstanceState)
         {
-            //SetLightStatusBar(true);
+            SetLightStatusBar();
 
             base.OnCreate(savedInstanceState);
             ConfigureVpn();
         }
-        public void SetLightStatusBar(bool isLight)
+        public void SetLightStatusBar()
         {
-            Window.SetFlags(WindowManagerFlags.LayoutNoLimits, WindowManagerFlags.LayoutNoLimits);
-            Window.SetStatusBarColor(Android.Graphics.Color.Black);
-            Window.SetNavigationBarColor(Android.Graphics.Color.Black);
-            if (OperatingSystem.IsAndroidVersionAtLeast(23)) // Android 6.0 (Marshmallow) 及以上
-            {
-                var decorView = Window.DecorView;
-                var flags = (int)decorView.SystemUiVisibility;
-                if (isLight)
-                {
-                    // 添加浅色状态栏标志
-                    flags |= (int)SystemUiFlags.LightStatusBar;
-                }
-                else
-                {
-                    // 移除浅色状态栏标志
-                    flags &= ~(int)SystemUiFlags.LightStatusBar;
-                }
-                decorView.SystemUiVisibility = (StatusBarVisibility)flags;
-            }
+            Window.SetStatusBarColor(Android.Graphics.Color.Rgb(0,128,0));
+            Window.SetNavigationBarColor(Android.Graphics.Color.Rgb(246, 248, 250));
         }
 
         protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
@@ -208,35 +192,39 @@ namespace linker.app
 
         private void RunLinker()
         {
-            /*
+            Helper.currentDirectory = FileSystem.Current.AppDataDirectory;
+
+            
             try
             {
-                System.IO.File.Delete(System.IO.Path.Combine(FileSystem.Current.AppDataDirectory, "./configs/", "client.json"));
-                System.IO.File.Delete(System.IO.Path.Combine(FileSystem.Current.AppDataDirectory, "./configs/", "server.json"));
-                System.IO.File.Delete(System.IO.Path.Combine(FileSystem.Current.AppDataDirectory, "./configs/", "common.json"));
+                System.IO.File.Delete(System.IO.Path.Combine(Helper.currentDirectory, "./configs/", "client.json"));
+                System.IO.File.Delete(System.IO.Path.Combine(Helper.currentDirectory, "./configs/", "server.json"));
+                System.IO.File.Delete(System.IO.Path.Combine(Helper.currentDirectory, "./configs/", "common.json"));
             }
             catch (Exception)
             {
             }
-            */
+            
             LoggerHelper.Instance.OnLogger += (model) =>
             {
                 string line = $"[{model.Type,-7}][{model.Time:yyyy-MM-dd HH:mm:ss}]:{model.Content}";
                 Android.Util.Log.Debug("linker", line);
             };
-            Helper.currentDirectory = FileSystem.Current.AppDataDirectory;
-            Dictionary<string, string> dic = new Dictionary<string, string>();
-            dic["Client"] = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new
+            
+            ConfigClientInfo client = new ConfigClientInfo
             {
-                CApi = new { ApiPort = 0, WebPort = 0, ApiPassword = "" },
-                Servers = new object[] { new { Name = "linker", Host = "192.168.56.2:1802", UserId = Guid.NewGuid().ToString() } },
-                Groups = new object[] { new { Name = "Linker", Id = "snltty", Password = "snltty" } }
-            })));
-
-            dic["Common"] = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new { Modes = new string[] { "client" }, LoggerType = 0 })));
+                CApi = new messenger.api.ApiClientInfo { ApiPort = 0, WebPort = 0, ApiPassword = "" }
+            };
+            ConfigCommonInfo common = new ConfigCommonInfo
+            {
+                Modes = new string[] { "client" },LoggerType = 0
+            };
             LinkerMessengerEntry.Initialize();
             LinkerMessengerEntry.Build();
-            LinkerMessengerEntry.Setup(ExcludeModule.Logger, dic);
+            LinkerMessengerEntry.Setup(ExcludeModule.Logger, new Dictionary<string, string> {
+                {"Client",Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(client)))},
+                {"Common", Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(common)))}
+            });
 
             TuntapTransfer tuntapTransfer = LinkerMessengerEntry.GetService<TuntapTransfer>();
             tuntapTransfer.OnSetupBefore += () =>

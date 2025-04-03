@@ -1,8 +1,7 @@
 ﻿@inherits LayoutComponentBase
 
 <div class="absolute flex flex-column flex-nowrap">
-    <div class="body flex-1">@Body</div>
-    <div class="footer">
-        <linker.app.Components.Layout.Footer></linker.app.Components.Layout.Footer>
-    </div>
+    <linker.app.Components.Layout.Header></linker.app.Components.Layout.Header>
+    <div class="body flex-1 scrollbar">@Body</div>
+    <linker.app.Components.Layout.Footer></linker.app.Components.Layout.Footer>
 </div>

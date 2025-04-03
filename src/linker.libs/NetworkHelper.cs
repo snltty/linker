@@ -208,23 +208,29 @@ namespace linker.libs
 
         private static IPAddress[] GetIP()
         {
-            try
-            {
-                return Dns.GetHostEntry(Dns.GetHostName()).AddressList;
-            }
-            catch (Exception)
+            if (OperatingSystem.IsAndroid() == false)
             {
                 try
                 {
-                    return NetworkInterface.GetAllNetworkInterfaces()
-                        .SelectMany(c => c.GetIPProperties().UnicastAddresses)
-                        .Select(c => c.Address)
-                        .ToArray();
+                    IPAddress[] ips = Dns.GetHostEntry(Dns.GetHostName()).AddressList;
+                    if (ips.Length > 0) return ips;
                 }
                 catch (Exception)
                 {
                 }
             }
+            
+            try
+            {
+                return NetworkInterface.GetAllNetworkInterfaces()
+                    .SelectMany(c => c.GetIPProperties().UnicastAddresses)
+                    .Select(c => c.Address)
+                    .ToArray();
+            }
+            catch (Exception)
+            {
+            }
+
             return Array.Empty<IPAddress>();
         }
         public static IPAddress[] GetIPV6()
@@ -235,8 +241,11 @@ namespace linker.libs
                  .Where(c => c.Equals(IPAddress.IPv6Loopback) == false)
                  .Where(c =>
                  {
-                     byte[] addressBytes = c.GetAddressBytes();
-                     return (addressBytes[0] == 0xFD || (addressBytes[0] == 0xFE && (addressBytes[1] & 0xC0) == 0x80)) == false;
+                 byte[] addressBytes = c.GetAddressBytes();
+                     return (
+                     addressBytes[0] == 0xFD 
+                     || (addressBytes[0] == 0xFE && (addressBytes[1] == 0x80 || addressBytes[1] == 0xC0))
+                     ) == false;
                  })
                  .Distinct().ToArray();
         }

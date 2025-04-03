@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using linker.app.Services;
+using Microsoft.Extensions.Logging;
 
 namespace linker.app
 {
@@ -16,6 +17,8 @@ namespace linker.app
                 });
             builder.Services.AddMauiBlazorWebView();
             builder.Services.AddAntDesign();
+
+            builder.Services.AddSingleton<TitleService>();
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();
             builder.Logging.AddDebug();

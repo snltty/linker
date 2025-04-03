@@ -1,0 +1,46 @@
+﻿@using linker.app.Services
+<div class="header flex">
+    <div class="icon">
+        @if (currentPath == "/" || string.IsNullOrWhiteSpace(currentPath))
+        {
+            <a href="javascript:;"><img src="./logo.png" alt="left" /></a>
+        }
+        else
+        {
+            <a href="javascript:;"><img src="./header-left-1.svg" alt="left" /></a>
+        }
+    </div>
+    <div class="title">@TitleService.CurrentTitle @currentPath</div>
+</div>
+
+@inject NavigationManager navigationManager
+@inject TitleService TitleService
+@code {
+
+    private string currentPath = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        TitleService.OnTitleChanged += StateHasChanged;
+
+        currentPath = navigationManager.BaseUri;
+    }
+    public void Dispose()
+    {
+        TitleService.OnTitleChanged -= StateHasChanged;
+    }
+}
+
+<style>
+    .header {
+        height: 5rem;
+        line-height: 5rem;
+        border-bottom: 1px solid #095a05;
+        background-color: #008000;
+        box-shadow:1px 1px 6px rgba(0,0,0,0.1);
+        padding:0 1rem;
+    }
+    .header .icon img{height:3rem;}
+
+    .header .title{color:#fff;font-size:2rem;padding-left:1rem;}
+</style>
