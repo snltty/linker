@@ -7,6 +7,10 @@ namespace linker.messenger.api
     /// </summary>
     public sealed class WebServer : libs.web.WebServer, IWebServer
     {
+        public WebServer(IWebServerFileReader webServerFileReader) : base(webServerFileReader)
+        {
+
+        }
     }
 
 }

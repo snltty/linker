@@ -7,7 +7,7 @@
                 </router-link>
             </div>
             <div class="menu flex-1">
-                <ul class="flex">
+                <ul class="flex" v-if="globalData.isPc">
                     <li>
                         <router-link :to="{name:'FullIndex'}"><img src="@/assets/shouye.svg"/> {{$t('head.home')}}</router-link>
                     </li>
@@ -24,8 +24,49 @@
                         <router-link :to="{name:'FullLogger'}"><img src="@/assets/rizhi.svg"/> {{$t('head.logger')}}</router-link>
                     </li>
                 </ul>
+                <ul class="flex" v-else>
+                    <li v-if="route.name == 'FullIndex'">
+                        <router-link :to="{name:'FullIndex'}"><img src="@/assets/shouye.svg"/> {{$t('head.home')}}</router-link>
+                    </li>
+                    <li v-if="hasConfig && route.name == 'FullServers'">
+                        <router-link :to="{name:'FullServers'}"><img src="@/assets/fuwuqi.svg"/> {{$t('head.server')}}</router-link>
+                    </li>
+                    <li v-if="hasTransport && route.name == 'FullTransport'">
+                        <router-link :to="{name:'FullTransport'}"><img src="@/assets/dadong.svg"/> {{$t('head.protocol')}}</router-link>
+                    </li>
+                    <li v-if="hasAction && route.name == 'FullAction'">
+                        <router-link :to="{name:'FullAction'}"><img src="@/assets/anquan.svg"/> {{$t('head.action')}}</router-link>
+                    </li>
+                    <li v-if="hasLogger && route.name == 'FullLogger'">
+                        <router-link :to="{name:'FullLogger'}"><img src="@/assets/rizhi.svg"/> {{$t('head.logger')}}</router-link>
+                    </li>
+                </ul>
             </div>
-            <div class="locale">
+            <div class="select" v-if="globalData.isPhone">
+                <el-dropdown>
+                    <span class="el-dropdown-link"><el-icon><Operation /></el-icon></span>
+                    <template #dropdown>
+                        <el-dropdown-menu class="select-menu">
+                            <el-dropdown-item>
+                                <router-link :to="{name:'FullIndex'}"><img src="@/assets/shouye.svg" height="20" style="vertical-align: text-top;"/> {{$t('head.home')}}</router-link>
+                            </el-dropdown-item>
+                            <el-dropdown-item>
+                                <router-link :to="{name:'FullServers'}"><img src="@/assets/fuwuqi.svg"  height="20" style="vertical-align: text-top;"/> {{$t('head.server')}}</router-link>
+                            </el-dropdown-item>
+                            <el-dropdown-item>
+                                <router-link :to="{name:'FullTransport'}"><img src="@/assets/dadong.svg"  height="20" style="vertical-align: text-top;"/> {{$t('head.protocol')}}</router-link>
+                            </el-dropdown-item>
+                            <el-dropdown-item>
+                                <router-link :to="{name:'FullAction'}"><img src="@/assets/anquan.svg"   height="20" style="vertical-align: text-top;"/> {{$t('head.action')}}</router-link>
+                            </el-dropdown-item>
+                            <el-dropdown-item>
+                                <router-link :to="{name:'FullLogger'}"><img src="@/assets/rizhi.svg"  height="20" style="vertical-align: text-top;"/> {{$t('head.logger')}}</router-link>
+                            </el-dropdown-item>
+                        </el-dropdown-menu>
+                    </template>
+                </el-dropdown>
+            </div>
+            <div class="locale" v-if="globalData.isPc">
                 <el-dropdown>
                     <span class="el-dropdown-link">
                     {{localeOptions[locale]}}
@@ -40,7 +81,7 @@
                     </template>
                 </el-dropdown>
             </div>
-            <div class="image">
+            <div class="image" v-if="globalData.isPc">
                 <Background name="full"></Background>
             </div>
         </div>
@@ -48,16 +89,18 @@
 </template>
 
 <script>
-import {Promotion,StarFilled,WarnTriangleFilled,PhoneFilled,HelpFilled,ArrowDown} from '@element-plus/icons-vue'
+import {Operation} from '@element-plus/icons-vue'
 import { injectGlobalData } from '@/provide';
 import { computed, ref} from 'vue';
 import Background from './Background.vue';
 import { LOCALE_OPTIONS } from '@/lang'
 import useLocale from '@/lang/provide'
+import { useRoute } from 'vue-router';
 export default {
-    components:{Promotion,StarFilled,WarnTriangleFilled,PhoneFilled,HelpFilled,Background,ArrowDown},
+    components:{Background,Operation},
     setup() {
 
+        const route = useRoute();
         const globalData = injectGlobalData();
         const hasConfig = computed(()=>globalData.value.hasAccess('Config') || globalData.value.hasAccess('Sync') || globalData.value.hasAccess('Group')); 
         const hasLogger = computed(()=>globalData.value.hasAccess('LoggerShow')); 
@@ -78,9 +121,9 @@ export default {
         const handleLocale = (index) => {
             locale.value =index;
         }
-        
+
         return {
-            hasConfig,hasGroup,
+            route,globalData,hasConfig,hasGroup,
             hasLogger,hasTransport,hasAction,localeOptions,locale,handleLocale
         }
     }
@@ -120,7 +163,16 @@ export default {
             }
         }
     }
-
+    .select{
+        padding-right:1rem;
+        .el-dropdown{
+            vertical-align:middle;
+            .el-icon{
+                vertical-align:bottom;
+                font-size:2rem;
+            }
+        }
+    }
     .locale{
         padding-right:1rem;
         .el-dropdown{

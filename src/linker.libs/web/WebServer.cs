@@ -12,8 +12,11 @@ namespace linker.libs.web
     public class WebServer : IWebServer
     {
         private string root = "";
-        public WebServer()
+
+        private readonly IWebServerFileReader fileReader;
+        public WebServer(IWebServerFileReader fileReader)
         {
+            this.fileReader = fileReader;
         }
 
         /// <summary>
@@ -55,19 +58,18 @@ namespace linker.libs.web
                 if (path == "/") path = "index.html";
 
 
-                path = Path.Join(root, path);
-                if (File.Exists(path))
+                try
                 {
-                    byte[] bytes = File.ReadAllBytes(path);
+                    byte[] bytes = fileReader.Read(root,path, out DateTime last);
                     response.ContentLength64 = bytes.Length;
                     response.ContentType = GetContentType(path);
-                    response.Headers.Set("Last-Modified", File.GetLastWriteTimeUtc(path).ToString());
+                    response.Headers.Set("Last-Modified", last.ToString());
 
                     response.OutputStream.Write(bytes, 0, bytes.Length);
                     response.OutputStream.Flush();
                     response.OutputStream.Close();
                 }
-                else
+                catch (Exception)
                 {
                     response.StatusCode = (int)HttpStatusCode.NotFound;
                 }
@@ -108,4 +110,18 @@ namespace linker.libs.web
         }
     }
 
+
+    public interface IWebServerFileReader
+    {
+        public byte[] Read(string root, string fileName, out DateTime lastModified);
+    }
+    public sealed class WebServerFileReader: IWebServerFileReader
+    {
+        public byte[] Read(string root,string fileName, out DateTime lastModified)
+        {
+            fileName = Path.Join(root, fileName);
+            lastModified = File.GetLastWriteTimeUtc(fileName);
+            return File.ReadAllBytes(fileName);
+        }
+    }
 }

@@ -4,9 +4,5 @@
              xmlns:local="clr-namespace:linker.app"
              x:Class="linker.app.MainPage" BackgroundColor="{DynamicResource PageBackgroundColor}">
 
-    <BlazorWebView x:Name="blazorWebView" HostPage="wwwroot/index.html">
-        <BlazorWebView.RootComponents>
-            <RootComponent Selector="#app" ComponentType="{x:Type local:Components.Routes}" />
-        </BlazorWebView.RootComponents>
-    </BlazorWebView>
+    <WebView x:Name="webview" BackgroundColor="#f4f4f4" VerticalOptions="Fill" HorizontalOptions="Fill"></WebView>
 </ContentPage>

@@ -4,16 +4,16 @@
             <a href="javascript:;" class="memory" :title="$t('status.support')" @click="state.showPay = true">
                 <img src="@/assets/coin.svg" alt="memory" />
                 <span>{{$t('status.support')}}</span>
-                <span>©linker {{ self.Version }}</span>
             </a>
-            <a href="https://github.com/snltty/linker" target="_blank">Github</a>
-            <a href="https://linker.snltty.com" target="_blank">{{$t('status.website')}}</a>
-            <a href="https://linker-doc.snltty.com" target="_blank">{{$t('status.doc')}}</a>
-            <a href="https://v.netzo123.com" target="_blank">{{$t('status.cdkey')}}</a>
+            <span>©linker {{ self.Version }}</span>
+            <a v-if="globalData.isPc" href="https://github.com/snltty/linker" target="_blank">Github</a>
+            <a v-if="globalData.isPc" href="https://linker.snltty.com" target="_blank">{{$t('status.website')}}</a>
+            <a v-if="globalData.isPc" href="https://linker-doc.snltty.com" target="_blank">{{$t('status.doc')}}</a>
+            <a v-if="globalData.isPc" href="https://v.netzo123.com" target="_blank">{{$t('status.cdkey')}}</a>
         </div>
         <div class="flex-1"></div>
-        <div class="export"><Export :config="config"></Export></div>
-        <div class="api"><Api :config="config"></Api></div>
+        <div class="export" v-if="globalData.isPc"><Export :config="config"></Export></div>
+        <div class="api" v-if="globalData.isPc"><Api :config="config"></Api></div>
         <div class="server"><Server :config="config"></Server></div>
 
         <el-dialog v-model="state.showPay" :title="$t('status.support')" width="400">
@@ -41,7 +41,7 @@ export default {
             showPay:false
         });
         return {
-            state,config:props.config,self
+            globalData,state,config:props.config,self
         }
     }
 }

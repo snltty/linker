@@ -34,6 +34,7 @@ export default {
         const resizeTable = () => {
             nextTick(() => {
                 globalData.value.height = wrap.value.offsetHeight;
+                globalData.value.width = window.innerWidth;
             });
         }
         onMounted(() => {
@@ -56,15 +57,16 @@ export default {
 <style lang="stylus" scoped>
 @media screen and (max-width: 1000px) {
     body .app-wrap{
-        width:calc(100% - 40px);
-        height:calc(100% - 40px);
+        width:100%;
+        height:100%;
         position:absolute;
-        left:20px;
-        top:20px;
+        left:0;
+        top:0;
         right:0;
         bottom:0;
         transform:none;
-        max-width:calc(100% - 40px);
+        max-width:100%;
+        border:0;
     }
 }
 .app-wrap{

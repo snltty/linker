@@ -32,6 +32,13 @@ a.a-line {
     ;
 }
 
+.ellipsis {
+    white-space: nowrap;      /* 禁止换行 */
+    overflow: hidden;         /* 隐藏超出部分 */
+    text-overflow: ellipsis;  /* 显示省略号 */
+    max-width: 100%;
+  }
+
 
 .flex {
     display: flex;
@@ -475,4 +482,10 @@ h3.title {
 .el-dialog--center .el-dialog__body {
     padding-top: 1rem !important;
     padding-bottom: 1rem !important;
+}
+
+@media screen and (max-width: 1000px) {
+    body .phone-hide{
+        display: none;
+    }
 }

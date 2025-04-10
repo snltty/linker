@@ -1,5 +1,5 @@
 import { subWebsocketState } from "@/apis/request";
-import { inject, provide, ref } from "vue";
+import { computed, inject, provide, ref } from "vue";
 
 const globalDataSymbol = Symbol();
 
@@ -7,7 +7,10 @@ export const provideGlobalData = () => {
     const globalData = ref({
         //已连接
         api: { connected: false },
+        width: 0,
         height: 0,
+        isPhone:computed(()=>globalData.value.width < 800),
+        isPc:computed(()=>globalData.value.width >= 800),
         //配置信息
         config: {
             Common: {},

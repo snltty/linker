@@ -7,9 +7,16 @@
         <el-table-column v-if="socks5.show" prop="socks5" label="代理转发" width="160" sortable="custom"></el-table-column>
         <el-table-column label="columns" fixed="right">
             <template #header>
-                <el-checkbox v-model="tuntap.show" @change="handleTuntapShow" size="small" style="margin-right:1rem">网卡</el-checkbox> 
-                <el-checkbox v-model="socks5.show" @change="handleSocks5Show" size="small" style="margin-right:1rem">代理</el-checkbox> 
-                <el-checkbox v-model="forward.show" @change="handleForwardShow" size="small" style="margin-right:0rem">转发</el-checkbox> 
+                <el-dropdown class="show-columns">
+                    <span class="el-dropdown-link">显示项<el-icon><ArrowDownBold /></el-icon></span>
+                    <template #dropdown>
+                    <el-dropdown-menu>
+                        <el-dropdown-item><el-checkbox v-model="tuntap.show" @change="handleTuntapShow" size="small" style="margin-right:1rem">网卡</el-checkbox> </el-dropdown-item>
+                        <el-dropdown-item><el-checkbox v-model="socks5.show" @change="handleSocks5Show" size="small" style="margin-right:1rem">代理</el-checkbox> </el-dropdown-item>
+                        <el-dropdown-item><el-checkbox v-model="forward.show" @change="handleForwardShow" size="small" style="margin-right:0rem">转发</el-checkbox></el-dropdown-item>
+                    </el-dropdown-menu>
+                    </template>
+                </el-dropdown>
             </template>
         </el-table-column>
     </el-table>
@@ -19,9 +26,11 @@
 import { useForward } from './forward';
 import { useSocks5 } from './socks5';
 import { useTuntap } from './tuntap';
+import { ArrowDownBold } from '@element-plus/icons-vue';
 
 export default {
     emits: ['sort'],
+    components: { ArrowDownBold },
     setup (props, { emit }) {
 
         const tuntap = useTuntap();
@@ -54,5 +63,13 @@ export default {
 .table-sort 
 {
     th{border-bottom:0}
+}
+.show-columns{
+    vertical-align:middle;
+    font-size:1.2rem;
+    .el-icon{
+        vertical-align:bottom;
+        font-size:1.2rem;
+    }
 }
 </style>

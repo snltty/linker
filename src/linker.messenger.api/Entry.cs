@@ -9,6 +9,9 @@ namespace linker.messenger.api
         {
             serviceCollection.AddSingleton<IApiServer, ApiServer>();
             serviceCollection.AddSingleton<IWebServer, WebServer>();
+
+            serviceCollection.AddSingleton<IWebServerFileReader, WebServerFileReader>();
+
             return serviceCollection;
         }
         public static ServiceProvider UseApiClient(this ServiceProvider serviceProvider)

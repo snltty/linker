@@ -7,9 +7,12 @@ using Android.OS;
 using Android.Views;
 using AndroidX.Core.App;
 using AndroidX.Core.Content;
+using AndroidX.Core.View;
 using Java.IO;
+using linker.app.Services;
 using linker.libs;
 using linker.libs.extends;
+using linker.libs.web;
 using linker.messenger.entry;
 using linker.messenger.store.file;
 using linker.messenger.tuntap;
@@ -37,8 +40,17 @@ namespace linker.app
         }
         public void SetLightStatusBar()
         {
-            Window.SetStatusBarColor(Android.Graphics.Color.Rgb(0,128,0));
-            Window.SetNavigationBarColor(Android.Graphics.Color.Rgb(246, 248, 250));
+            Window.SetStatusBarColor(Android.Graphics.Color.Rgb(255, 255, 255));
+            Window.SetNavigationBarColor(Android.Graphics.Color.Rgb(255, 255, 255));
+
+            if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.R)
+            {
+                WindowCompat.GetInsetsController(Window, Window.DecorView).AppearanceLightStatusBars = true;
+            }
+            else
+            {
+                Window.DecorView.SystemUiFlags = SystemUiFlags.LightStatusBar;
+            }
         }
 
         protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
@@ -139,6 +151,7 @@ namespace linker.app
 
         Intent intent;
         Intent vpnIntent;
+
         public override IBinder OnBind(Intent intent)
         {
             return null;
@@ -193,44 +206,61 @@ namespace linker.app
         private void RunLinker()
         {
             Helper.currentDirectory = FileSystem.Current.AppDataDirectory;
+            Dictionary<string, string> config = InitConfig();
 
-            
-            try
-            {
-                System.IO.File.Delete(System.IO.Path.Combine(Helper.currentDirectory, "./configs/", "client.json"));
-                System.IO.File.Delete(System.IO.Path.Combine(Helper.currentDirectory, "./configs/", "server.json"));
-                System.IO.File.Delete(System.IO.Path.Combine(Helper.currentDirectory, "./configs/", "common.json"));
-            }
-            catch (Exception)
-            {
-            }
-            
+            InitLogger();
+
+            LinkerMessengerEntry.Initialize();
+            LinkerMessengerEntry.AddService<IWebServerFileReader, WebServerFileReader>();
+            LinkerMessengerEntry.Build();
+            LinkerMessengerEntry.Setup(ExcludeModule.Logger, config);
+            IPlatformApplication.Current.Services.GetService<InitializeService>().SendOnInitialized();
+
+            TuntapSetup();
+
+        }
+        private void InitLogger()
+        {
             LoggerHelper.Instance.OnLogger += (model) =>
             {
                 string line = $"[{model.Type,-7}][{model.Time:yyyy-MM-dd HH:mm:ss}]:{model.Content}";
                 Android.Util.Log.Debug("linker", line);
             };
-            
+        }
+        private Dictionary<string, string> InitConfig()
+        {
+            try
+            {
+                System.IO.File.Delete(System.IO.Path.Combine(Helper.currentDirectory, "./configs/", "client.json"));
+                System.IO.File.Delete(System.IO.Path.Combine(Helper.currentDirectory, "./configs/", "server.json"));
+                System.IO.File.Delete(System.IO.Path.Combine(Helper.currentDirectory, "./configs/", "common.json"));
+                System.IO.File.Delete(System.IO.Path.Combine(Helper.currentDirectory, "./configs/", "db.db"));
+                System.IO.File.Delete(System.IO.Path.Combine(Helper.currentDirectory, "./configs/", "db-log.db"));
+            }
+            catch (Exception)
+            {
+            }
             ConfigClientInfo client = new ConfigClientInfo
             {
-                CApi = new messenger.api.ApiClientInfo { ApiPort = 0, WebPort = 0, ApiPassword = "" }
             };
             ConfigCommonInfo common = new ConfigCommonInfo
             {
-                Modes = new string[] { "client" },LoggerType = 0
+                Modes = new string[] { "client" },
+                LoggerType = 0
             };
-            LinkerMessengerEntry.Initialize();
-            LinkerMessengerEntry.Build();
-            LinkerMessengerEntry.Setup(ExcludeModule.Logger, new Dictionary<string, string> {
+            return new Dictionary<string, string> {
                 {"Client",Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(client)))},
                 {"Common", Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(common)))}
-            });
-
+            };
+        }
+        private void TuntapSetup()
+        {
             TuntapTransfer tuntapTransfer = LinkerMessengerEntry.GetService<TuntapTransfer>();
             tuntapTransfer.OnSetupBefore += () =>
             {
                 vpnIntent = new Intent(Android.App.Application.Context, typeof(VpnServiceLinker));
                 Android.App.Application.Context.StartService(vpnIntent);
+                Task.Delay(3000).Wait();
             };
             tuntapTransfer.OnShutdownBefore += () =>
             {
@@ -425,6 +455,19 @@ namespace linker.app
         {
             In = 0x001,
             Out = 0x004
+        }
+    }
+
+    public sealed class WebServerFileReader : IWebServerFileReader
+    {
+        DateTime lastModified = DateTime.Now;
+        public byte[] Read(string root,string fileName, out DateTime lastModified)
+        {
+            lastModified = this.lastModified;
+            fileName = Path.Join("public/web", fileName);
+            using Stream fileStream = FileSystem.Current.OpenAppPackageFileAsync(fileName).Result;
+            using StreamReader reader = new StreamReader(fileStream);
+            return reader.ReadToEnd().ToBytes();
         }
     }
 

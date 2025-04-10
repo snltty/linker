@@ -29,10 +29,13 @@
                 <template v-if="scope.row.PasswordEditing">
                     <el-input type="password" show-password size="small" v-model="scope.row.Password" @blur="handleEditBlur(scope.row, 'Password')"></el-input>
                 </template>
-                <template v-else>{{ scope.row.Password.replace(/.{1}/g,'*') }}</template>
+                <template v-else>
+                    <template v-if="globalData.isPhone"><span>***</span></template>
+                    <template v-else><span>{{ scope.row.Password.replace(/.{1}/g,'*') }}</span></template>
+                </template>
             </template>
         </el-table-column>
-        <el-table-column prop="Oper" :label="$t('status.groupOper')" width="110">
+        <el-table-column prop="Oper" :label="$t('status.groupOper')" width="110" fixed="right">
             <template #header>
                 <div class="flex">
                     <strong>{{ $t('status.groupOper') }}</strong><span class="flex-1"></span><Sync name="GroupSecretKey"></Sync>
@@ -150,7 +153,7 @@ export default {
             });
         }
 
-        return {state,handleCellClick,handleEditBlur,handleDel,handleAdd,handleUse}
+        return {globalData,state,handleCellClick,handleEditBlur,handleDel,handleAdd,handleUse}
     }
 }
 </script>

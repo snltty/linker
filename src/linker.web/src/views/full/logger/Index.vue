@@ -1,6 +1,6 @@
 <template>
     <div class="logger-setting-wrap flex flex-column h-100" ref="wrap">
-        <el-tabs type="border-card">
+        <el-tabs type="border-card" class="w-100">
             <el-tab-pane :label="$t('logger.list')" v-if="hasLogger">
                 <div class="inner">
                     <div class="head flex">
@@ -19,7 +19,7 @@
                         <span class="flex-1"></span>
                     </div>
                     <div class="body flex-1 relative">
-                        <el-table stripe border :data="state.page.List" size="small" :height="`${state.height}px`" @row-click="handleRowClick" :row-class-name="tableRowClassName">
+                        <el-table stripe border :data="state.page.List" size="small" :height="`${state.height}px`" width="100%" @row-click="handleRowClick" :row-class-name="tableRowClassName">
                             <el-table-column type="index" width="50" />
                             <el-table-column prop="Type" :label="$t('logger.level')" width="80">
                                 <template #default="scope">
@@ -105,7 +105,7 @@ export default {
             return `type-${row.Type}`;
         }
         const handleRowClick = (row, column, event) => {
-            let css = `padding:1rem;border:1px solid #ddd; resize:none;width:39rem;box-sizing: border-box;white-space: nowrap; height:30rem;`;
+            let css = `padding:1rem;border:1px solid #ddd; resize:none;width:30rem;box-sizing: border-box;white-space: nowrap; height:30rem;`;
             
             ElMessageBox.alert(`<textarea class="scrollbar-4" style="${css}">${row.Content}</textarea>`, '', {
                 dangerouslyUseHTMLString: true,
@@ -117,7 +117,7 @@ export default {
         });
 
         return {
-            hasLogger,hasLoggerLevel,wrap,state, loadData, clearData, tableRowClassName, handleRowClick,handlePageChange
+            globalData,hasLogger,hasLoggerLevel,wrap,state, loadData, clearData, tableRowClassName, handleRowClick,handlePageChange
         }
     }
 }
