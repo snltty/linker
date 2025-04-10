@@ -85,49 +85,38 @@ namespace linker.messenger.tuntap
         {
             //LoggerHelper.Instance.Warning($"tuntap read to {new IPEndPoint(new IPAddress(packet.DistIPAddress.Span), packet.DistPort)} {packet.Length}");
             //IPV4广播组播、IPV6 多播
-            try
+            if (packet.IPV4Broadcast || packet.IPV6Multicast)
             {
-                if (packet.IPV4Broadcast || packet.IPV6Multicast)
+                if (tuntapConfigTransfer.Switch.HasFlag(TuntapSwitch.Multicast) == false && connections.IsEmpty == false)
                 {
-                    if (tuntapConfigTransfer.Switch.HasFlag(TuntapSwitch.Multicast) == false && connections.IsEmpty == false)
-                    {
-                        await Task.WhenAll(connections.Values.Where(c => c != null && c.Connected).Select(c => c.SendAsync(packet.Buffer, packet.Offset, packet.Length)));
-                    }
+                    await Task.WhenAll(connections.Values.Where(c => c != null && c.Connected).Select(c => c.SendAsync(packet.Buffer, packet.Offset, packet.Length)));
+                }
+                return;
+            }
+
+            //IPV4+IPV6 单播
+            uint ip = BinaryPrimitives.ReadUInt32BigEndian(packet.DistIPAddress.Span[^4..]);
+            if (ipConnections.TryGetValue(ip, out ITunnelConnection connection) == false || connection == null || connection.Connected == false)
+            {
+                //开始操作，开始失败直接丢包
+                if (operatingMultipleManager.StartOperation(ip) == false)
+                {
                     return;
                 }
 
-                //IPV4+IPV6 单播
-                uint ip = BinaryPrimitives.ReadUInt32BigEndian(packet.DistIPAddress.Span[^4..]);
-                if (ipConnections.TryGetValue(ip, out ITunnelConnection connection) == false || connection == null || connection.Connected == false)
+                _ = ConnectTunnel(ip).ContinueWith((result, state) =>
                 {
-                    //开始操作，开始失败直接丢包
-                    if (operatingMultipleManager.StartOperation(ip) == false)
+                    //结束操作
+                    operatingMultipleManager.StopOperation((uint)state);
+                    //连接成功就缓存隧道
+                    if (result.Result != null)
                     {
-                        return;
+                        ipConnections.AddOrUpdate((uint)state, result.Result, (a, b) => result.Result);
                     }
-
-                    _ = ConnectTunnel(ip).ContinueWith((result, state) =>
-                    {
-                        //结束操作
-                        operatingMultipleManager.StopOperation((uint)state);
-                        //连接成功就缓存隧道
-                        if (result.Result != null)
-                        {
-                            ipConnections.AddOrUpdate((uint)state, result.Result, (a, b) => result.Result);
-                        }
-                    }, ip);
-                    return;
-                }
-                await connection.SendAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);
+                }, ip);
+                return;
             }
-            catch (Exception ex)
-            {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Error($"tuntap proxy Exception {ex},{string.Join(",", packet.DistIPAddress.ToArray())},{string.Join(",", packet.Buffer.AsSpan(packet.Offset, packet.Length).ToArray())}");
-                }
-                   
-            }
+            await connection.SendAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);
         }
 
         /// <summary>

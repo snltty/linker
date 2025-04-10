@@ -230,6 +230,8 @@ namespace linker.tun
 
                         LinkerTunDevicPacket packet = new LinkerTunDevicPacket();
                         packet.Unpacket(buffer, 0, length);
+                        if (packet.DistIPAddress.Length == 0) continue;
+
                         try
                         {
                             await linkerTunDeviceCallback.Callback(packet).ConfigureAwait(false);
