@@ -124,7 +124,7 @@ namespace linker.messenger.tuntap
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    LoggerHelper.Instance.Error($"tuntap proxy Exception {ex}");
+                    LoggerHelper.Instance.Error($"tuntap proxy Exception {ex},{string.Join(",", packet.DistIPAddress.ToArray())},{string.Join(",", packet.Buffer.AsSpan(packet.Offset, packet.Length).ToArray())}");
                 }
                    
             }
