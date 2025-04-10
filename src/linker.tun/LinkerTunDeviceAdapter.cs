@@ -106,6 +106,8 @@ namespace linker.tun
             }
             catch (Exception ex)
             {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Warning($"tuntap setup Exception {ex}");
                 setupError = ex.Message;
             }
             finally
@@ -223,7 +225,7 @@ namespace linker.tun
                         if (length == 0)
                         {
                             await Task.Delay(1000);
-                            break;
+                            continue;
                         }
 
                         LinkerTunDevicPacket packet = new LinkerTunDevicPacket();
@@ -234,13 +236,15 @@ namespace linker.tun
                         }
                         catch (Exception ex)
                         {
+                            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                                LoggerHelper.Instance.Warning($"tuntap callback Exception {ex}");
                             setupError = ex.Message;
                         }
                     }
                     catch (Exception ex)
                     {
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                            LoggerHelper.Instance.Warning($"read buffer Exception, stop device");
+                            LoggerHelper.Instance.Warning($"tuntap read buffer Exception {ex}");
                         setupError = ex.Message;
                         await Task.Delay(1000);
                     }
