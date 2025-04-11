@@ -48,6 +48,7 @@ namespace linker.messenger.tuntap.lease
                 info = serializer.Deserialize<LeaseInfo>(resp.Data.Span);
             }
             leaseClientStore.Set(signInClientStore.Group.Id, info);
+            leaseClientStore.Confirm();
             return info;
         }
         public async Task LeaseChange()
