@@ -128,6 +128,35 @@ function writeUpload(data, tagName) {
         }
     });
 
+    /*
+    data.jobs.build.steps.push({
+        name: `upload-apk-oss`,
+        id: `upload-apk-oss`,
+        uses: 'tvrcgo/oss-action@v0.1.1',
+        with: {
+            'region': 'oss-cn-shenzhen',
+            'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
+            'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
+            'bucket': 'ide-qbcode',
+            'asset-path': `./public/publish-zip/linker.apk`,
+            'target-path': `/downloads/linker/${tagName}/linker.apk`
+        }
+    });
+    data.jobs.build.steps.push({
+        name: `upload-apk`,
+        id: `upload-apk`,
+        uses: 'actions/upload-release-asset@master',
+        env: {
+            'GITHUB_TOKEN': '${{ secrets.ACTIONS_TOKEN }}'
+        },
+        with: {
+            'upload_url': '${{ steps.create_release.outputs.upload_url }}',
+            'asset_path': `./public/publish-zip/linker.apk`,
+            'asset_name': `linker.apk`,
+            'asset_content_type': 'application/apk'
+        }
+    });
+    */
 }
 function writeUploadIpk(data, tagName) {
     const platforms = ['x64', 'arm', 'arm64'];

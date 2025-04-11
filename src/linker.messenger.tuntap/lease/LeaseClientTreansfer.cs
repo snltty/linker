@@ -81,6 +81,7 @@ namespace linker.messenger.tuntap.lease
 
         private void LeaseExpTask()
         {
+            /*
             signInClientState.OnSignInSuccess += async (times) =>
             {
                 try
@@ -99,6 +100,7 @@ namespace linker.messenger.tuntap.lease
                     }
                 }
             };
+            */
             TimerHelper.SetIntervalLong(async () =>
             {
                 await messengerSender.SendReply(new MessageRequestWrap

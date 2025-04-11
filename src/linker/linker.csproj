@@ -21,7 +21,10 @@
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Description>1. 内网穿透的计划任务
-2. 一些修复和优化</Description>
+2. 一些修复和优化
+3. 优化自动分配IP
+4. 优化网卡，排除不明数据包
+5. 优化管理UI，适配移动端</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>

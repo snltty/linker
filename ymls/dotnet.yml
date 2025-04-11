@@ -22,6 +22,9 @@ jobs:
         uses: microsoft/setup-msbuild@v2
         with:
           msbuild-architecture: x64
+      - name: install dotnet maui
+        run: dotnet workload install maui
+
       - name: get current date
         id: date
         run: echo "::set-output name=today::$(date +'%Y-%m-%d')"
@@ -37,4 +40,4 @@ jobs:
           prerelease: false
           body: ""
       - name: publish projects
-        run: ./publish.bat
+        run: ./publish.bat "C:\\Android\\android-sdk"

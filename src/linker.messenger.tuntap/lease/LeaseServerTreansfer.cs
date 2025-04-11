@@ -112,7 +112,8 @@ namespace linker.messenger.tuntap.lease
                 if (NetworkHelper.ToValue(info.IP) == self.IP || info.IP.Equals(IPAddress.Any))
                 {
                     self.LastTime = DateTime.Now;
-                    info.IP = NetworkHelper.ToIP(self.IP);
+                    uint networkValue = NetworkHelper.ToNetworkValue(cache.IP, cache.PrefixValue);
+                    info.IP = NetworkHelper.ToIP(self.IP & ~cache.PrefixValue | networkValue);
                     return info;
                 }
                 cache.Users.Remove(self);
@@ -124,6 +125,10 @@ namespace linker.messenger.tuntap.lease
                 //分配失败，怎么来的怎么回去
                 if (newIPValue == 0)
                 {
+                    //万一网络号已经不一样了，更新一下
+                    uint value = NetworkHelper.ToValue(info.IP);
+                    uint networkValue = NetworkHelper.ToNetworkValue(cache.IP, cache.PrefixValue);
+                    info.IP = NetworkHelper.ToIP(value & ~cache.PrefixValue | networkValue);
                     return info;
                 }
 

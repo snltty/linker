@@ -3,26 +3,26 @@
         <el-card shadow="never">
             <template #header>{{$t('server.messenger')}}</template>
             <div>
-                <el-form label-width="auto">
+                <el-form label-width="auto" :label-position="state.position">
                     <el-form-item :label="$t('server.messengerAddr')">
                         <div class="flex">
                             <el-input class="flex-1" v-model="state.list.Host" @change="handleSave" />
                             <Sync class="mgl-1" name="SignInServer"></Sync>
-                            <span class="mgl-1">{{$t('server.messengerText')}}</span>
+                            <span class="mgl-1" v-if="globalData.isPc">{{$t('server.messengerText')}}</span>
                         </div>
                     </el-form-item>
                     <el-form-item :label="$t('server.messengerSecretKey')">
                         <div class="flex">
                             <el-input class="flex-1" type="password" show-password maxlength="36" v-model="state.list.SecretKey" @change="handleSave" />
                             <Sync class="mgl-1" name="SignInSecretKey"></Sync>
-                            <span class="mgl-1">{{$t('server.messengerSecretKeyText')}}</span>
+                            <span class="mgl-1" v-if="globalData.isPc">{{$t('server.messengerSecretKeyText')}}</span>
                         </div>
                     </el-form-item>
                     <el-form-item :label="$t('server.messengerUserId')">
                         <div class="flex">
                             <el-input class="flex-1" type="password" show-password maxlength="36" v-model="state.list.UserId" @change="handleSave" />
                             <Sync class="mgl-1" name="SignInUserId"></Sync>
-                            <span class="mgl-1">{{$t('server.messengerUserIdText')}}</span>
+                            <span class="mgl-1" v-if="globalData.isPc">{{$t('server.messengerUserIdText')}}</span>
                         </div>
                     </el-form-item>
                     <RelayServers class="mgt-2"></RelayServers>
@@ -56,6 +56,7 @@ export default {
         const state = reactive({
             list:globalData.value.config.Client.Server,
             height: computed(()=>globalData.value.height-90),
+            position: computed(()=>globalData.value.isPhone ? 'top':'right'),
         });
 
         const handleSave = ()=>{
@@ -67,7 +68,7 @@ export default {
             });
         }
 
-        return {state,handleSave}
+        return {globalData,state,handleSave}
     }
 }
 </script>

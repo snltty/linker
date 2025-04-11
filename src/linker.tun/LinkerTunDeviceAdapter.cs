@@ -232,16 +232,7 @@ namespace linker.tun
                         packet.Unpacket(buffer, 0, length);
                         if (packet.DistIPAddress.Length == 0) continue;
 
-                        try
-                        {
-                            await linkerTunDeviceCallback.Callback(packet).ConfigureAwait(false);
-                        }
-                        catch (Exception ex)
-                        {
-                            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                                LoggerHelper.Instance.Warning($"tuntap callback Exception {ex}");
-                            setupError = ex.Message;
-                        }
+                        await linkerTunDeviceCallback.Callback(packet).ConfigureAwait(false);
                     }
                     catch (Exception ex)
                     {

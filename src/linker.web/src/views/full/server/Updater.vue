@@ -3,7 +3,7 @@
         <div class="flex">
             <el-input class="flex-1" type="password" show-password v-model="state.secretKey" maxlength="36" @blur="handleChange"/>
             <Sync class="mgl-1" name="UpdaterSecretKey"></Sync>
-            <span class="mgl-1">{{$t('server.updaterText')}}</span>
+            <span class="mgl-1" v-if="globalData.isPc">{{$t('server.updaterText')}}</span>
         </div>
     </el-form-item>
     <!-- <el-form-item :label="$t('server.updaterRate')">
@@ -96,7 +96,7 @@ export default {
             state.sec = seconds;
         });
 
-        return {state,handleChange,handleSecChange}
+        return {globalData,state,handleChange,handleSecChange}
     }
 }
 </script>
