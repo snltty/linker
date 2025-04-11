@@ -99,7 +99,7 @@ namespace linker.messenger.tuntap.messenger
         private readonly SignInServerCaching signCaching;
         private readonly LeaseServerTreansfer leaseTreansfer;
         private readonly ISerializer serializer;
-        public TuntapServerMessenger(IMessengerSender messengerSender, SignInServerCaching signCaching,  LeaseServerTreansfer leaseTreansfer, ISerializer serializer)
+        public TuntapServerMessenger(IMessengerSender messengerSender, SignInServerCaching signCaching, LeaseServerTreansfer leaseTreansfer, ISerializer serializer)
         {
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;

@@ -40,15 +40,15 @@ namespace linker.messenger.tuntap.lease
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
-                MessengerId = (ushort)TuntapMessengerIds.LeaseGetNetwork
-
+                MessengerId = (ushort)TuntapMessengerIds.LeaseGetNetwork,
             }).ConfigureAwait(false);
+            LeaseInfo info = new LeaseInfo { IP = IPAddress.Any, PrefixLength = 24 };
             if (resp.Code == MessageResponeCodes.OK)
             {
-                LeaseInfo info = serializer.Deserialize<LeaseInfo>(resp.Data.Span);
-                return info;
+                info = serializer.Deserialize<LeaseInfo>(resp.Data.Span);
             }
-            return new LeaseInfo { IP = IPAddress.Any, PrefixLength = 24 };
+            leaseClientStore.Set(signInClientStore.Group.Id, info);
+            return info;
         }
         public async Task LeaseChange()
         {
@@ -81,15 +81,18 @@ namespace linker.messenger.tuntap.lease
 
         private void LeaseExpTask()
         {
-            /*
             signInClientState.OnSignInSuccess += async (times) =>
             {
                 try
                 {
-                    LeaseInfo info = leaseClientStore.Get(signInClientStore.Group.Id);
-                    if (info != null && info.IP.Equals(IPAddress.Any) == false)
+                    LeaseInfo info = await GetNetwork();
+                    if (info.IP.Equals(IPAddress.Any))
                     {
-                        await AddNetwork(info);
+                        info = leaseClientStore.Get(signInClientStore.Group.Id);
+                        if (info != null && info.IP.Equals(IPAddress.Any) == false)
+                        {
+                            await AddNetwork(info);
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -100,7 +103,7 @@ namespace linker.messenger.tuntap.lease
                     }
                 }
             };
-            */
+
             TimerHelper.SetIntervalLong(async () =>
             {
                 await messengerSender.SendReply(new MessageRequestWrap
