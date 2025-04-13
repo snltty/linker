@@ -239,7 +239,19 @@ namespace linker.messenger.relay.client.transport
 
                 Socket socket = new Socket(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 socket.KeepAlive();
-                await socket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+                try
+                {
+                    await socket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Error($"relay connect server {ep} {ex}");
+                    }
+                    callback(null);
+                    return false;
+                }
 
                 RelayMessageInfo relayMessage = new RelayMessageInfo
                 {
@@ -302,7 +314,7 @@ namespace linker.messenger.relay.client.transport
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    LoggerHelper.Instance.Error(ex);
+                    LoggerHelper.Instance.Error($"relay wait ssl {ex}");
                 }
                 socket.SafeClose();
             }

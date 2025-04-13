@@ -20,19 +20,16 @@
 		<Title>linker</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>1. 内网穿透的计划任务
-2. 一些修复和优化
-3. 优化自动分配IP
-4. 优化网卡，排除不明数据包
-5. 优化管理UI，适配移动端
-6. 虚拟网卡点对网IP映射</Description>
+		<Description>1. 优化自动分配IP
+2. 优化网卡，排除不明数据包
+3. 虚拟网卡点对网IP映射，用于解决网段冲突</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>1.7.2</Version>
-		<AssemblyVersion>1.7.2</AssemblyVersion>
-		<FileVersion>1.7.2</FileVersion>
+		<Version>1.7.3</Version>
+		<AssemblyVersion>1.7.3</AssemblyVersion>
+		<FileVersion>1.7.3</FileVersion>
 		<DelaySign>False</DelaySign>
 	</PropertyGroup>
 
