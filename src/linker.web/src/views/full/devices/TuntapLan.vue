@@ -90,7 +90,7 @@ export default {
 
         const tuntap = useTuntap();
         const state = reactive({
-            lans: tuntap.value.current.Lans.slice(0)
+            lans: tuntap.value.current.Lans.slice(0).map(c=>{ c.MapIP = c.MapIP || '0.0.0.0'; c.MapPrefixLength=c.MapPrefixLength || 24; return c; })
         });
         if (state.lans.length == 0) {
             state.lans.push({ IP: '0.0.0.0', PrefixLength: 24,MapIP:'0.0.0.0',MapPrefixLength:24 });

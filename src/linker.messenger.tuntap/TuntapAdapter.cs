@@ -156,7 +156,7 @@ namespace linker.messenger.tuntap
         private void SetMaps()
         {
             var maps = tuntapConfigTransfer.Info.Lans
-                .Where(c => c.MapIP.Equals(IPAddress.Any) == false && c.Disabled == false)
+                .Where(c => c.MapIP != null && c.MapIP.Equals(IPAddress.Any) == false && c.Disabled == false)
                 .Select(c => new LanMapInfo { IP = c.IP, ToIP = c.MapIP, PrefixLength = c.MapPrefixLength }).ToArray();
             tuntapTransfer.SetMap(maps);
         }
