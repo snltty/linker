@@ -57,21 +57,40 @@ namespace linker.libs.web
                 //默认页面
                 if (path == "/") path = "index.html";
 
-
+                Memory<byte> memory = Helper.EmptyArray;
+                DateTime last = DateTime.Now;
                 try
                 {
-                    byte[] bytes = fileReader.Read(root,path, out DateTime last);
+                    memory = fileReader.Read(root, path, out last);
+                    if (memory.Length > 0)
+                    {
+                        response.ContentLength64 = memory.Length;
+                        response.ContentType = GetContentType(path);
+                        if (OperatingSystem.IsAndroid())
+                        {
+                            response.Headers.Set("Last-Modified", last.ToString("yyyy-MM-dd HH:mm:ss"));
+                        }
+                        else
+                        {
+                            response.Headers.Set("Last-Modified", last.ToString());
+                        }
+                        response.OutputStream.Write(memory.Span);
+                        response.OutputStream.Flush();
+                        response.OutputStream.Close();
+                    }
+                    else
+                    {
+                        response.StatusCode = (int)HttpStatusCode.NotFound;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    byte[] bytes = System.Text.Encoding.UTF8.GetBytes(ex + $"");
                     response.ContentLength64 = bytes.Length;
-                    response.ContentType = GetContentType(path);
-                    response.Headers.Set("Last-Modified", last.ToString());
-
+                    response.ContentType = "text/plain; charset=utf-8";
                     response.OutputStream.Write(bytes, 0, bytes.Length);
                     response.OutputStream.Flush();
                     response.OutputStream.Close();
-                }
-                catch (Exception)
-                {
-                    response.StatusCode = (int)HttpStatusCode.NotFound;
                 }
             }
             catch (Exception)
@@ -115,9 +134,9 @@ namespace linker.libs.web
     {
         public byte[] Read(string root, string fileName, out DateTime lastModified);
     }
-    public sealed class WebServerFileReader: IWebServerFileReader
+    public sealed class WebServerFileReader : IWebServerFileReader
     {
-        public byte[] Read(string root,string fileName, out DateTime lastModified)
+        public byte[] Read(string root, string fileName, out DateTime lastModified)
         {
             fileName = Path.Join(root, fileName);
             lastModified = File.GetLastWriteTimeUtc(fileName);

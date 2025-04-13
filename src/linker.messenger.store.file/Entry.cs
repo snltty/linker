@@ -106,7 +106,7 @@ namespace linker.messenger.store.file
             LoggerHelper.Instance.Info("use store file");
 
             FileConfig fileConfig = serviceProvider.GetService<FileConfig>();
-            fileConfig.Initialize(configDic);
+            fileConfig.Save(configDic);
             RunningConfig runningConfig = serviceProvider.GetService<RunningConfig>();
 
             IApiServer apiServer = serviceProvider.GetService<IApiServer>();

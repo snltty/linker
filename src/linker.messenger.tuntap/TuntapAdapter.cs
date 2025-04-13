@@ -5,6 +5,8 @@ using linker.messenger.exroute;
 using linker.messenger.signin;
 using linker.tun;
 using linker.tunnel.connection;
+using System.Linq;
+using System.Net;
 
 namespace linker.messenger.tuntap
 {
@@ -53,6 +55,7 @@ namespace linker.messenger.tuntap
             };
             tuntapTransfer.OnSetupSuccess += () =>
             {
+                SetMaps();
                 AddForward();
             };
             tuntapTransfer.OnShutdownBefore += () =>
@@ -70,7 +73,10 @@ namespace linker.messenger.tuntap
             };
 
             //配置有更新，去同步一下
-            tuntapConfigTransfer.OnUpdate += () => { AddForward(); _ = CheckDevice(); tuntapDecenter.Refresh(); };
+            tuntapConfigTransfer.OnUpdate += () =>
+            {
+                SetMaps(); AddForward(); _ = CheckDevice(); tuntapDecenter.Refresh();
+            };
 
             //隧道回调
             tuntapProxy.Callback = this;
@@ -123,7 +129,7 @@ namespace linker.messenger.tuntap
         {
             tuntapTransfer.Write(buffer);
         }
-       
+
 
         /// <summary>
         /// 重启网卡
@@ -147,6 +153,13 @@ namespace linker.messenger.tuntap
             tuntapTransfer.Shutdown();
         }
 
+        private void SetMaps()
+        {
+            var maps = tuntapConfigTransfer.Info.Lans
+                .Where(c => c.MapIP.Equals(IPAddress.Any) == false && c.Disabled == false)
+                .Select(c => new LanMapInfo { IP = c.IP, ToIP = c.MapIP, PrefixLength = c.MapPrefixLength }).ToArray();
+            tuntapTransfer.SetMap(maps);
+        }
         // <summary>
         /// 添加端口转发
         /// </summary>

@@ -1,6 +1,6 @@
 <template>
     <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap"
-        :title="`设置[${state.machineName}]组网`" top="1vh" width="760">
+        :title="`设置[${state.machineName}]组网`" top="1vh" width="780">
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="8rem">
                 <el-form-item label="网卡名" prop="Name">
@@ -12,7 +12,7 @@
                         <el-input @change="handlePrefixLengthChange" v-model="state.ruleForm.PrefixLength" style="width:4rem" />
                         
                 </el-form-item>
-                <el-form-item label="">
+                <el-form-item label="" class="mgb-0">
                         <el-checkbox class="mgr-1" v-model="state.ruleForm.ShowDelay" label="显示延迟" size="large" />
                         <el-checkbox class="mgr-1" v-model="state.ruleForm.AutoConnect" label="自动连接" size="large" />
                         <el-checkbox class="mgr-1" v-model="state.ruleForm.Multicast" label="禁用广播" size="large" />
@@ -145,6 +145,5 @@ export default {
 .upgrade-wrap{
     border:1px solid #ddd;
     margin-bottom:2rem
-    padding:0 0 1rem 0;
 }
 </style>

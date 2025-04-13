@@ -1,5 +1,10 @@
 ﻿using linker.libs;
 using linker.libs.timer;
+using System;
+using System.Buffers.Binary;
+using System.Collections.Concurrent;
+using System.Collections.Frozen;
+using System.Linq;
 using System.Net;
 
 namespace linker.tun
@@ -18,6 +23,10 @@ namespace linker.tun
 
         private string natError = string.Empty;
         public string NatError => natError;
+
+
+        private FrozenDictionary<uint, uint> mapDic = new Dictionary<uint, uint>().ToFrozenDictionary();
+        private uint[] masks = Array.Empty<uint>();
 
 
         private OperatingManager operatingManager = new OperatingManager();
@@ -224,6 +233,8 @@ namespace linker.tun
                         byte[] buffer = linkerTunDevice.Read(out int length);
                         if (length == 0)
                         {
+                            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                                LoggerHelper.Instance.Warning($"tuntap read buffer 0");
                             await Task.Delay(1000);
                             continue;
                         }
@@ -249,13 +260,57 @@ namespace linker.tun
         /// </summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        public bool Write(ReadOnlyMemory<byte> buffer)
+        public unsafe bool Write(ReadOnlyMemory<byte> buffer)
         {
             if (linkerTunDevice != null && Status == LinkerTunDeviceStatus.Running)
             {
+                MapToRealIP(buffer);
                 return linkerTunDevice.Write(buffer);
             }
             return false;
+        }
+        private unsafe void MapToRealIP(ReadOnlyMemory<byte> buffer)
+        {
+            //只支持映射IPV4
+            if ((byte)(buffer.Span[0] >> 4 & 0b1111) != 4) return;
+            //映射表不为空
+            if (masks.Length == 0 || mapDic.Count == 0) return;
+
+            uint dist = BinaryPrimitives.ReadUInt32BigEndian(buffer.Span.Slice(16, 4));
+            for (int i = 0; i < masks.Length; i++)
+            {
+                //目标IP网络号存在映射表中，找到映射后的真实网络号，替换网络号得到最终真实的IP
+                if (mapDic.TryGetValue(dist & masks[i], out uint realNetwork))
+                {
+                    //将原本的目标IP修改为映射的IP
+                    fixed (byte* ptr = buffer.Span)
+                    {
+                        //修改目标IP
+                        *(uint*)(ptr + 16) = BinaryPrimitives.ReverseEndianness(realNetwork | (dist & ~masks[i]));
+                        //重新计算IP头校验和
+                        *(ushort*)(ptr + 10) = 0;
+                        *(ushort*)(ptr + 10) = Checksum((ushort*)ptr, (byte)((*ptr & 0b1111) * 4));
+                    }
+                    break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 设置IP映射列表
+        /// </summary>
+        /// <param name="maps"></param>
+        public void SetMap(LanMapInfo[] maps)
+        {
+            if (maps == null || maps.Length == 0)
+            {
+                mapDic = new Dictionary<uint, uint>().ToFrozenDictionary();
+                masks = Array.Empty<uint>();
+                return;
+            }
+
+            mapDic = maps.ToFrozenDictionary(x => NetworkHelper.ToNetworkValue(x.IP, x.PrefixLength), x => NetworkHelper.ToNetworkValue(x.ToIP, x.PrefixLength));
+            masks = maps.Select(x => NetworkHelper.ToPrefixValue(x.PrefixLength)).ToArray();
         }
 
         /// <summary>
@@ -289,5 +344,12 @@ namespace linker.tun
         {
             return await linkerTunDevice.CheckAvailable(order);
         }
+    }
+
+    public sealed class LanMapInfo
+    {
+        public IPAddress IP { get; set; }
+        public IPAddress ToIP { get; set; }
+        public byte PrefixLength { get; set; }
     }
 }

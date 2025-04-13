@@ -341,11 +341,14 @@ namespace linker.messenger.tuntap
 
     public sealed partial class TuntapLanInfo
     {
-        public IPAddress IP { get; set; }
+        public IPAddress IP { get; set; } = IPAddress.Any;
         public byte PrefixLength { get; set; } = 24;
         public bool Disabled { get; set; }
         public bool Exists { get; set; }
         public string Error { get; set; } = string.Empty;
+
+        public IPAddress MapIP { get; set; } = IPAddress.Any;
+        public byte MapPrefixLength { get; set; } = 24;
     }
 
     public enum TuntapStatus : byte
@@ -395,6 +398,17 @@ namespace linker.messenger.tuntap
         /// 调整网卡顺序
         /// </summary>
         InterfaceOrder = 128,
+    }
+
+
+    public sealed class TuntapConfigServerInfo
+    {
+        public TuntapLeaseConfigServerInfo Lease { get; set; } = new TuntapLeaseConfigServerInfo();
+    }
+    public sealed class TuntapLeaseConfigServerInfo
+    {
+        public int IPDays { get; set; } = 7;
+        public int NetworkDays { get; set; } = 30;
     }
 }
 

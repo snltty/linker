@@ -1,7 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.timer;
 using linker.messenger.signin;
-using System;
 
 namespace linker.messenger.decenter
 {
@@ -72,6 +71,7 @@ namespace linker.messenger.decenter
             {
                 sync.AddData(decenterSyncInfo.Data);
                 sync.DataVersion.Increment();
+                versionMultipleManager.Increment(sync.Name);
             }
         }
 

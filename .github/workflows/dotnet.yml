@@ -37,7 +37,7 @@ jobs:
           release_name: v1.7.2.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 内网穿透的计划任务\r\n2. 一些修复和优化\r\n3. 优化自动分配IP\r\n4. 优化网卡，排除不明数据包\r\n5. 优化管理UI，适配移动端"
+          body: "1. 内网穿透的计划任务\r\n2. 一些修复和优化\r\n3. 优化自动分配IP\r\n4. 优化网卡，排除不明数据包\r\n5. 优化管理UI，适配移动端\r\n6. 虚拟网卡点对网IP映射"
       - name: publish projects
         run: ./publish.bat "C:\\Android\\android-sdk"
       - name: upload-win-x86-oss

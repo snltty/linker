@@ -5,9 +5,14 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
 using linker.libs.timer;
+using System.Text.Json;
 
 namespace linker.messenger.store.file
 {
+    public sealed class FileConfigInitParams
+    {
+
+    }
     public sealed class FileConfig
     {
         private SemaphoreSlim slim = new SemaphoreSlim(1);
@@ -19,11 +24,8 @@ namespace linker.messenger.store.file
 
         public FileConfig()
         {
-        }
-        public void Initialize(Dictionary<string, string> dic)
-        {
             Init();
-            Load(dic);
+            Load();
             Save();
             SaveTask();
         }
@@ -42,14 +44,14 @@ namespace linker.messenger.store.file
                 object property = item.GetValue(Data);
                 fsDic.Add(item.Name.ToLower(), new FileReadWrite
                 {
-                    Path = Path.Combine(Helper.currentDirectory,configPath, $"{item.Name.ToLower()}.json"),
+                    Path = Path.Combine(Helper.currentDirectory, configPath, $"{item.Name.ToLower()}.json"),
                     Property = item,
                     PropertyObject = property,
                     PropertyMethod = (IConfig)property,
                 });
             }
         }
-        private void Load(Dictionary<string, string> dic)
+        private void Load()
         {
             slim.Wait();
             try
@@ -67,10 +69,6 @@ namespace linker.messenger.store.file
                         if (File.Exists(item.Value.Path))
                         {
                             text = File.ReadAllText(item.Value.Path, encoding: System.Text.Encoding.UTF8);
-                        }
-                        else if (dic != null && dic.TryGetValue(item.Value.Property.Name, out string base64))
-                        {
-                            text = Encoding.UTF8.GetString(Convert.FromBase64String(base64));
                         }
                         if (string.IsNullOrWhiteSpace(text))
                         {
@@ -96,7 +94,7 @@ namespace linker.messenger.store.file
             }
 
         }
-        public void Save()
+        public void Save(Dictionary<string, string> dic = null)
         {
             slim.Wait();
             try
@@ -111,6 +109,11 @@ namespace linker.messenger.store.file
                             continue;
                         }
                         string text = item.Value.PropertyMethod.Serialize(item.Value.Property.GetValue(Data));
+                        if (dic != null && dic.TryGetValue(item.Value.Property.Name, out string base64))
+                        {
+                            string text2 = item.Value.PropertyMethod.Serialize(item.Value.PropertyMethod.Deserialize(Encoding.UTF8.GetString(Convert.FromBase64String(base64))));
+                            text = MergeJson(text, text2);
+                        }
                         File.WriteAllText($"{item.Value.Path}.temp", text, encoding: System.Text.Encoding.UTF8);
                         File.Move($"{item.Value.Path}.temp", item.Value.Path, true);
                     }
@@ -128,7 +131,10 @@ namespace linker.messenger.store.file
             {
                 slim.Release();
             }
+
         }
+
+
         private void SaveTask()
         {
             TimerHelper.SetIntervalLong(() =>
@@ -139,6 +145,61 @@ namespace linker.messenger.store.file
                     Data.Updated--;
                 }
             }, 3000);
+        }
+
+        public static string MergeJson(string json1, string json2)
+        {
+            using var doc1 = JsonDocument.Parse(json1);
+            using var doc2 = JsonDocument.Parse(json2);
+
+            var output = new Dictionary<string, object>();
+
+            foreach (var property in doc1.RootElement.EnumerateObject())
+            {
+                output[property.Name] = GetValue(property.Value);
+            }
+            foreach (var property in doc2.RootElement.EnumerateObject())
+            {
+                output[property.Name] = GetValue(property.Value);
+            }
+
+            return output.ToJson();
+
+            object GetValue(JsonElement element)
+            {
+                return element.ValueKind switch
+                {
+                    JsonValueKind.String => element.GetString(),
+                    JsonValueKind.Number => element.GetDecimal(),
+                    JsonValueKind.True => true,
+                    JsonValueKind.False => false,
+                    JsonValueKind.Null => null,
+                    JsonValueKind.Object => GetObjectValue(element),
+                    JsonValueKind.Array => GetArrayValue(element),
+                    JsonValueKind.Undefined => null,
+                    _ => null
+                };
+            }
+
+            Dictionary<string, object> GetObjectValue(JsonElement element)
+            {
+                var dict = new Dictionary<string, object>();
+                foreach (var prop in element.EnumerateObject())
+                {
+                    dict[prop.Name] = GetValue(prop.Value);
+                }
+                return dict;
+            }
+
+            List<object> GetArrayValue(JsonElement element)
+            {
+                var list = new List<object>();
+                foreach (var item in element.EnumerateArray())
+                {
+                    list.Add(GetValue(item));
+                }
+                return list;
+            }
         }
     }
 
@@ -190,9 +251,12 @@ namespace linker.messenger.store.file
         }
         public object Deserialize(string text)
         {
-            if (text.Contains("ApiPassword"))
+            try
             {
                 return text.DeJson<ConfigClientInfo>();
+            }
+            catch (Exception)
+            {
             }
             return Encoding.UTF8.GetString(crypto.Decode(Convert.FromBase64String(text)).ToArray()).DeJson<ConfigClientInfo>();
         }

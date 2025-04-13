@@ -48,8 +48,8 @@ namespace linker.tun
                 Shutdown();
                 return false;
             }
-            fsRead = new FileStream(safeFileHandle, FileAccess.Read, 32 * 1024, true);
-            fsWrite = new FileStream(safeFileHandle, FileAccess.Write, 32 * 1024, true);
+            fsRead = new FileStream(safeFileHandle, FileAccess.Read, 65 * 1024, true);
+            fsWrite = new FileStream(safeFileHandle, FileAccess.Write, 65 * 1024, true);
 
             interfaceLinux = GetLinuxInterfaceNum();
             return true;
@@ -310,7 +310,7 @@ namespace linker.tun
         }
 
 
-        private readonly byte[] buffer = new byte[8 * 1024];
+        private readonly byte[] buffer = new byte[65 * 1024];
         private readonly object writeLockObj = new object();
         public byte[] Read(out int length)
         {

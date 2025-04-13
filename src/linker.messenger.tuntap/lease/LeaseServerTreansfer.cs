@@ -194,7 +194,9 @@ namespace linker.messenger.tuntap.lease
             //空闲的IP
             IEnumerable<int> idleIPs = Enumerable.Range((int)firstIPValue, (int)length + 1).Except(cache.Users.Select(c => (int)c.IP));
             //过期的IP
-            IEnumerable<int> expireIPs = cache.Users.Where(c => (DateTime.Now - c.LastTime).TotalDays > 7).Select(c => (int)c.IP);
+            IEnumerable<int> expireIPs = cache.Users
+                .Where(c => (DateTime.Now - c.LastTime).TotalDays > leaseServerStore.Info.IPDays)
+                .OrderBy(c => c.LastTime).Select(c => (int)c.IP);
 
             uint newIPValue = (uint)idleIPs.FirstOrDefault();
             //没找到空闲的，但是有其它超时的，抢一个
@@ -240,7 +242,7 @@ namespace linker.messenger.tuntap.lease
                 {
                     DateTime now = DateTime.Now;
 
-                    var items = caches.Values.Where(c => (now - c.LastTime).TotalDays > 30).ToList();
+                    var items = caches.Values.Where(c => (now - c.LastTime).TotalDays > leaseServerStore.Info.NetworkDays).ToList();
                     if (items.Count > 0)
                     {
                         foreach (var item in items)

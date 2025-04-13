@@ -2,6 +2,8 @@
 {
     public interface ILeaseServerStore
     {
+        public TuntapLeaseConfigServerInfo Info { get; }
+
         public List<LeaseCacheInfo> Get();
         public bool Add(LeaseCacheInfo info);
         public bool Update(LeaseCacheInfo info);

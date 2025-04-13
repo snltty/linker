@@ -41,7 +41,6 @@ namespace linker.libs
         {
             return FindValue(NetworkHelper.ToValue(ip), out value);
         }
-
         public bool FindValue(uint ip, out T value)
         {
             if (ip2value.TryGetValue(ip, out value))

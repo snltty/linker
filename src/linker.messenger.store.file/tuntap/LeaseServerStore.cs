@@ -1,16 +1,22 @@
-﻿using linker.messenger.tuntap.lease;
+﻿using linker.messenger.tuntap;
+using linker.messenger.tuntap.lease;
 using LiteDB;
 
 namespace linker.messenger.store.file.tuntap
 {
     public sealed class LeaseServerStore : ILeaseServerStore
     {
+        public TuntapLeaseConfigServerInfo Info => fileConfig.Data.Server.Tuntap.Lease;
+
         private readonly Storefactory dBfactory;
         private readonly ILiteCollection<LeaseCacheInfo> liteCollection;
-        public LeaseServerStore(Storefactory dBfactory)
+        private readonly FileConfig fileConfig;
+        public LeaseServerStore(FileConfig fileConfig,Storefactory dBfactory)
         {
+            this.fileConfig = fileConfig;
             this.dBfactory = dBfactory;
             liteCollection = dBfactory.GetCollection<LeaseCacheInfo>("dhcp");
+           
         }
         public bool Add(LeaseCacheInfo info)
         {

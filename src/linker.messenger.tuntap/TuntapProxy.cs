@@ -83,7 +83,7 @@ namespace linker.messenger.tuntap
         /// <returns></returns>
         public async Task InputPacket(LinkerTunDevicPacket packet)
         {
-            //LoggerHelper.Instance.Warning($"tuntap read to {new IPEndPoint(new IPAddress(packet.DistIPAddress.Span), packet.DistPort)} {packet.Length}");
+            //LoggerHelper.Instance.Warning($"tuntap read {new IPEndPoint(new IPAddress(packet.SourceIPAddress.Span), packet.SourcePort)}->{new IPEndPoint(new IPAddress(packet.DistIPAddress.Span), packet.DistPort)}->{packet.Length}");
             //IPV4广播组播、IPV6 多播
             if (packet.IPV4Broadcast || packet.IPV6Multicast)
             {

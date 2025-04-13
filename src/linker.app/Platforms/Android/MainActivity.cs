@@ -460,14 +460,22 @@ namespace linker.app
 
     public sealed class WebServerFileReader : IWebServerFileReader
     {
-        DateTime lastModified = DateTime.Now;
-        public byte[] Read(string root,string fileName, out DateTime lastModified)
+        ReceiveDataBuffer receiveDataBuffer = new ReceiveDataBuffer();
+        byte[] buffer = new byte[4 * 1024];
+        public byte[] Read(string root, string fileName, out DateTime lastModified)
         {
-            lastModified = this.lastModified;
+            lastModified = DateTime.Now;
             fileName = Path.Join("public/web", fileName);
             using Stream fileStream = FileSystem.Current.OpenAppPackageFileAsync(fileName).Result;
-            using StreamReader reader = new StreamReader(fileStream);
-            return reader.ReadToEnd().ToBytes();
+            int length = 0;
+            while ((length = fileStream.Read(buffer, 0, buffer.Length)) != 0)
+            {
+                receiveDataBuffer.AddRange(buffer, 0, length);
+            }
+            byte[] result = receiveDataBuffer.Data.ToArray();
+            receiveDataBuffer.Clear();
+
+            return result;
         }
     }
 
