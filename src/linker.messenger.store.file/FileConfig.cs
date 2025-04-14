@@ -111,12 +111,15 @@ namespace linker.messenger.store.file
                         string text = item.Value.PropertyMethod.Serialize(item.Value.Property.GetValue(Data));
                         if (dic != null && dic.TryGetValue(item.Value.Property.Name, out string base64))
                         {
-                            string text2 = item.Value.PropertyMethod.Deserialize(Encoding.UTF8.GetString(Convert.FromBase64String(base64))).ToJson();
+                            string text2 = Encoding.UTF8.GetString(Convert.FromBase64String(base64));
 
                             text = item.Value.PropertyMethod.Deserialize(text).ToJson();
                             text = MergeJson(text, text2);
 
-                            text = item.Value.PropertyMethod.Serialize(item.Value.PropertyMethod.Deserialize(text));
+                            object value = item.Value.PropertyMethod.Deserialize(text);
+                            text = item.Value.PropertyMethod.Serialize(value);
+
+                            item.Value.Property.SetValue(Data, value);
                         }
                         File.WriteAllText($"{item.Value.Path}.temp", text, encoding: System.Text.Encoding.UTF8);
                         File.Move($"{item.Value.Path}.temp", item.Value.Path, true);

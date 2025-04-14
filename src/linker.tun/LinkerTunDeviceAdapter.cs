@@ -362,7 +362,7 @@ namespace linker.tun
                 {
                     uint realDist = BinaryPrimitives.ReverseEndianness(realNetwork | (fakeDist & ~masks[i]));
                     ReWriteIP(buffer, realDist, 16);
-                    natDic.AddOrUpdate(realDist, fakeDist, (a, b) => fakeDist);
+                    natDic.TryAdd(realDist, fakeDist);
                     break;
                 }
             }
