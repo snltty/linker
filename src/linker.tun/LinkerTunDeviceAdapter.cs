@@ -279,9 +279,9 @@ namespace linker.tun
             return false;
         }
 
-        private void OutputPacket(string tag,ReadOnlyMemory<byte> buffer)
+        private void OutputPacket(string tag, ReadOnlyMemory<byte> buffer)
         {
-            
+
             byte version = (byte)(buffer.Span[0] >> 4 & 0b1111);
 
             if (version == 4)
@@ -362,7 +362,7 @@ namespace linker.tun
                 {
                     uint realDist = BinaryPrimitives.ReverseEndianness(realNetwork | (fakeDist & ~masks[i]));
                     ReWriteIP(buffer, realDist, 16);
-                    natDic.TryAdd(realDist, fakeDist);
+                    natDic.AddOrUpdate(realDist, fakeDist, (a, b) => fakeDist);
                     break;
                 }
             }
