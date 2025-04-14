@@ -7,13 +7,12 @@ namespace linker.messenger.serializer.memorypack
     {
         public static ServiceCollection AddSerializerMemoryPack(this ServiceCollection serviceCollection)
         {
+            serviceCollection.AddSingleton<ISerializer, PlusMemoryPackSerializer>();
+
             MemoryPackFormatterProvider.Register(new IPEndPointFormatter());
             MemoryPackFormatterProvider.Register(new IPAddressFormatter());
             MemoryPackFormatterProvider.Register(new TunnelConnectionFormatter());
             MemoryPackFormatterProvider.Register(new ConnectionFormatter());
-
-
-            serviceCollection.AddSingleton<ISerializer, PlusMemoryPackSerializer>();
 
             MemoryPackFormatterProvider.Register(new SignInfoFormatter());
             MemoryPackFormatterProvider.Register(new SignCacheInfoFormatter());

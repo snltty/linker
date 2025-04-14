@@ -8,7 +8,7 @@ namespace linker.messenger.serializer.memorypack
     {
         public T Deserialize<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(ReadOnlySpan<byte> buffer)
         {
-            return Serializer.Deserialize<T>(buffer);
+            return MemoryPackSerializer.Deserialize<T>(buffer);
         }
 
         public byte[] Serialize<T>(T value)
@@ -16,17 +16,5 @@ namespace linker.messenger.serializer.memorypack
             return MemoryPackSerializer.Serialize(value);
         }
 
-    }
-    public sealed class Serializer
-    {
-        public static T Deserialize<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(ReadOnlySpan<byte> buffer)
-        {
-            return MemoryPackSerializer.Deserialize<T>(buffer);
-        }
-
-        public static byte[] Serialize<T>(T value)
-        {
-            return MemoryPackSerializer.Serialize(value);
-        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.libs.extends;
 using linker.libs.timer;
 using System;
 using System.Buffers.Binary;
@@ -6,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 
 namespace linker.tun
 {
@@ -27,6 +29,8 @@ namespace linker.tun
 
         private FrozenDictionary<uint, uint> mapDic = new Dictionary<uint, uint>().ToFrozenDictionary();
         private uint[] masks = Array.Empty<uint>();
+
+        private ConcurrentDictionary<uint, uint> natDic = new ConcurrentDictionary<uint, uint>();
 
 
         private OperatingManager operatingManager = new OperatingManager();
@@ -243,6 +247,9 @@ namespace linker.tun
                         packet.Unpacket(buffer, 0, length);
                         if (packet.DistIPAddress.Length == 0) continue;
 
+                        //OutputPacket("read before", packet.Buffer.AsMemory(4));
+                        ToMapIP(packet.Buffer.AsMemory(4));
+                        //OutputPacket("read after",packet.Buffer.AsMemory(4));
                         await linkerTunDeviceCallback.Callback(packet).ConfigureAwait(false);
                     }
                     catch (Exception ex)
@@ -264,38 +271,102 @@ namespace linker.tun
         {
             if (linkerTunDevice != null && Status == LinkerTunDeviceStatus.Running)
             {
+                //OutputPacket("write before", buffer);
                 MapToRealIP(buffer);
+                //OutputPacket("write after",buffer);
                 return linkerTunDevice.Write(buffer);
             }
             return false;
         }
-        private unsafe void MapToRealIP(ReadOnlyMemory<byte> buffer)
+
+        private void OutputPacket(string tag,ReadOnlyMemory<byte> buffer)
+        {
+            
+            byte version = (byte)(buffer.Span[0] >> 4 & 0b1111);
+
+            if (version == 4)
+            {
+                ProtocolType protocolType = (ProtocolType)buffer.Span[9];
+                if (protocolType == ProtocolType.Tcp)
+                {
+                    var sourceIPAddress = buffer.Slice(12, 4).ToArray();
+                    var distIPAddress = buffer.Slice(16, 4).ToArray();
+
+                    var sourcePort = BinaryPrimitives.ReverseEndianness(buffer.Slice(20, 2).ToUInt16());
+                    var distPort = BinaryPrimitives.ReverseEndianness(buffer.Slice(22, 2).ToUInt16());
+
+                    Console.WriteLine($"{tag} {string.Join(".", sourceIPAddress)}:{sourcePort}->{string.Join(".", distIPAddress)}:{distPort}");
+                }
+            }
+        }
+
+        private unsafe void ReWriteIP(ReadOnlyMemory<byte> buffer, uint newIP, int pos)
+        {
+            fixed (byte* ptr = buffer.Span)
+            {
+                byte ipHeaderLength = (byte)((*ptr & 0b1111) * 4);
+
+                //修改目标IP
+                *(uint*)(ptr + pos) = newIP;
+                //重新计算IP头校验和
+                *(ushort*)(ptr + 10) = 0;
+                *(ushort*)(ptr + 10) = BinaryPrimitives.ReverseEndianness(Checksum((ushort*)ptr, ipHeaderLength));
+
+                ProtocolType protocol = (ProtocolType)buffer.Span[9];
+                switch (protocol)
+                {
+                    case ProtocolType.Tcp:
+                        {
+                            *(ushort*)(ptr + ipHeaderLength + 16) = 0;
+                            ulong sum = PseudoHeaderSum(ptr, (uint)(buffer.Length - ipHeaderLength));
+                            ushort checksum = Checksum((ushort*)(ptr + ipHeaderLength), (uint)buffer.Length - ipHeaderLength, sum);
+                            *(ushort*)(ptr + ipHeaderLength + 16) = BinaryPrimitives.ReverseEndianness(checksum);
+                        }
+                        break;
+                    case ProtocolType.Udp:
+                        {
+                            *(ushort*)(ptr + ipHeaderLength + 6) = 0;
+                            ulong sum = PseudoHeaderSum(ptr, (uint)(buffer.Length - ipHeaderLength));
+                            ushort checksum = Checksum((ushort*)(ptr + ipHeaderLength), (uint)buffer.Length - ipHeaderLength, sum);
+                            *(ushort*)(ptr + ipHeaderLength + 6) = BinaryPrimitives.ReverseEndianness(checksum);
+                        }
+                        break;
+                }
+            }
+        }
+        private void ToMapIP(ReadOnlyMemory<byte> buffer)
+        {
+            //只支持映射IPV4
+            if ((byte)(buffer.Span[0] >> 4 & 0b1111) != 4) return;
+            //映射表不为空
+            if (natDic.IsEmpty) return;
+
+            uint realDist = BinaryPrimitives.ReadUInt32LittleEndian(buffer.Span.Slice(12, 4));
+            if (natDic.TryGetValue(realDist, out uint fakeDist))
+            {
+                ReWriteIP(buffer, BinaryPrimitives.ReverseEndianness(fakeDist), 12);
+            }
+        }
+        private void MapToRealIP(ReadOnlyMemory<byte> buffer)
         {
             //只支持映射IPV4
             if ((byte)(buffer.Span[0] >> 4 & 0b1111) != 4) return;
             //映射表不为空
             if (masks.Length == 0 || mapDic.Count == 0) return;
 
-            uint dist = BinaryPrimitives.ReadUInt32BigEndian(buffer.Span.Slice(16, 4));
+            uint fakeDist = BinaryPrimitives.ReadUInt32BigEndian(buffer.Span.Slice(16, 4));
             for (int i = 0; i < masks.Length; i++)
             {
                 //目标IP网络号存在映射表中，找到映射后的真实网络号，替换网络号得到最终真实的IP
-                if (mapDic.TryGetValue(dist & masks[i], out uint realNetwork))
+                if (mapDic.TryGetValue(fakeDist & masks[i], out uint realNetwork))
                 {
-                    //将原本的目标IP修改为映射的IP
-                    fixed (byte* ptr = buffer.Span)
-                    {
-                        //修改目标IP
-                        *(uint*)(ptr + 16) = BinaryPrimitives.ReverseEndianness(realNetwork | (dist & ~masks[i]));
-                        //重新计算IP头校验和
-                        *(ushort*)(ptr + 10) = 0;
-                        *(ushort*)(ptr + 10) = Checksum((ushort*)ptr, (byte)((*ptr & 0b1111) * 4));
-                    }
+                    uint realDist = BinaryPrimitives.ReverseEndianness(realNetwork | (fakeDist & ~masks[i]));
+                    ReWriteIP(buffer, realDist, 16);
+                    natDic.AddOrUpdate(realDist, fakeDist, (a, b) => fakeDist);
                     break;
                 }
             }
         }
-
         /// <summary>
         /// 设置IP映射列表
         /// </summary>
@@ -312,31 +383,51 @@ namespace linker.tun
             mapDic = maps.ToFrozenDictionary(x => NetworkHelper.ToNetworkValue(x.IP, x.PrefixLength), x => NetworkHelper.ToNetworkValue(x.ToIP, x.PrefixLength));
             masks = maps.Select(x => NetworkHelper.ToPrefixValue(x.PrefixLength)).ToArray();
         }
-
         /// <summary>
         /// 计算校验和
         /// </summary>
         /// <param name="addr">包头开始位置</param>
         /// <param name="count">长度,IP包仅包头，ICMP包则全部</param>
+        /// <param name="pseudoHeaderSum">伪头部和</param>
         /// <returns></returns>
-        public unsafe ushort Checksum(ushort* addr, uint count)
+        public unsafe ushort Checksum(ushort* addr, uint count, ulong pseudoHeaderSum = 0)
         {
-            ulong sum = 0;
             while (count > 1)
             {
-                sum += *addr++;
+                pseudoHeaderSum += (ushort)((*addr >> 8) + (*addr << 8));
+                addr++;
                 count -= 2;
             }
             if (count > 0)
             {
-                sum += (ulong)((*addr) & ((((0xff00) & 0xff) << 8) | (((0xff00) & 0xff00) >> 8)));
+                pseudoHeaderSum += (ulong)((*addr) & ((((0xff00) & 0xff) << 8) | (((0xff00) & 0xff00) >> 8)));
             }
-            while ((sum >> 16) != 0)
+
+            while ((pseudoHeaderSum >> 16) != 0)
             {
-                sum = (sum & 0xffff) + (sum >> 16);
+                pseudoHeaderSum = (pseudoHeaderSum & 0xffff) + (pseudoHeaderSum >> 16);
             }
-            sum = ~sum;
-            return ((ushort)sum);
+            pseudoHeaderSum = ~pseudoHeaderSum;
+            return (ushort)pseudoHeaderSum;
+        }
+        /// <summary>
+        /// 计算伪头和
+        /// </summary>
+        /// <param name="addr">IP包头开始</param>
+        /// <param name="length">TCP/UDP长度</param>
+        /// <returns></returns>
+        public unsafe ulong PseudoHeaderSum(byte* addr, uint length)
+        {
+            uint sum = 0;
+            for (byte i = 12; i < 20; i += 2)
+            {
+                sum += (uint)((*(addr + i) << 8) | *(addr + i + 1));
+            }
+
+            sum += *(addr + 9);
+
+            sum += length;
+            return sum;
         }
 
 
