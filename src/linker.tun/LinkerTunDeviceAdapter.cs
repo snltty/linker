@@ -377,6 +377,7 @@ namespace linker.tun
             {
                 mapDic = new Dictionary<uint, uint>().ToFrozenDictionary();
                 masks = Array.Empty<uint>();
+                natDic.Clear();
                 return;
             }
 
