@@ -78,6 +78,14 @@ LinkerMessengerEntry.Build();
 LinkerMessengerEntry.Setup(ExcludeModule.None);
 ```
 
+## 网段映射
+网段映射可以帮你解决多个内网网段冲突的问题
+
+<div align="center">
+<p><img src="./readme/mapto.jpg"></p> 
+</div>
+
+
 ## 管理页面
 
 <div align="center">
