@@ -247,9 +247,7 @@ namespace linker.tun
                         packet.Unpacket(buffer, 0, length);
                         if (packet.DistIPAddress.Length == 0) continue;
 
-                        //OutputPacket("read before", packet.Buffer.AsMemory(4));
-                        ToMapIP(packet.Buffer.AsMemory(4));
-                        //OutputPacket("read after",packet.Buffer.AsMemory(4));
+                        ToMapIP(buffer.AsMemory(4, length - 4));
                         await linkerTunDeviceCallback.Callback(packet).ConfigureAwait(false);
                     }
                     catch (Exception ex)
@@ -271,33 +269,10 @@ namespace linker.tun
         {
             if (linkerTunDevice != null && Status == LinkerTunDeviceStatus.Running)
             {
-                //OutputPacket("write before", buffer);
                 MapToRealIP(buffer);
-                //OutputPacket("write after",buffer);
                 return linkerTunDevice.Write(buffer);
             }
             return false;
-        }
-
-        private void OutputPacket(string tag, ReadOnlyMemory<byte> buffer)
-        {
-
-            byte version = (byte)(buffer.Span[0] >> 4 & 0b1111);
-
-            if (version == 4)
-            {
-                ProtocolType protocolType = (ProtocolType)buffer.Span[9];
-                if (protocolType == ProtocolType.Tcp)
-                {
-                    var sourceIPAddress = buffer.Slice(12, 4).ToArray();
-                    var distIPAddress = buffer.Slice(16, 4).ToArray();
-
-                    var sourcePort = BinaryPrimitives.ReverseEndianness(buffer.Slice(20, 2).ToUInt16());
-                    var distPort = BinaryPrimitives.ReverseEndianness(buffer.Slice(22, 2).ToUInt16());
-
-                    Console.WriteLine($"{tag} {string.Join(".", sourceIPAddress)}:{sourcePort}->{string.Join(".", distIPAddress)}:{distPort}");
-                }
-            }
         }
 
         private unsafe void ReWriteIP(ReadOnlyMemory<byte> buffer, uint newIP, int pos)
@@ -388,31 +363,27 @@ namespace linker.tun
         /// 计算校验和
         /// </summary>
         /// <param name="addr">包头开始位置</param>
-        /// <param name="count">长度,IP包仅包头，ICMP包则全部</param>
-        /// <param name="pseudoHeaderSum">伪头部和</param>
+        /// <param name="length">计算长度，不同协议不同长度，请自己斟酌</param>
+        /// <param name="pseudoHeaderSum">伪头部和，默认0不需要伪头部和</param>
         /// <returns></returns>
-        public unsafe ushort Checksum(ushort* addr, uint count, ulong pseudoHeaderSum = 0)
+        public unsafe ushort Checksum(ushort* addr, uint length, ulong pseudoHeaderSum = 0)
         {
-            while (count > 1)
+            //每两个字节为一个数，之和
+            while (length > 1)
             {
                 pseudoHeaderSum += (ushort)((*addr >> 8) + (*addr << 8));
                 addr++;
-                count -= 2;
+                length -= 2;
             }
-            if (count > 0)
-            {
-                pseudoHeaderSum += (ulong)((*addr) & ((((0xff00) & 0xff) << 8) | (((0xff00) & 0xff00) >> 8)));
-            }
-
-            while ((pseudoHeaderSum >> 16) != 0)
-            {
-                pseudoHeaderSum = (pseudoHeaderSum & 0xffff) + (pseudoHeaderSum >> 16);
-            }
-            pseudoHeaderSum = ~pseudoHeaderSum;
-            return (ushort)pseudoHeaderSum;
+            //奇数字节末尾补零
+            if (length > 0) pseudoHeaderSum += (ushort)((*addr) << 8);
+            //溢出处理
+            while ((pseudoHeaderSum >> 16) != 0) pseudoHeaderSum = (pseudoHeaderSum & 0xffff) + (pseudoHeaderSum >> 16);
+            //取反
+            return (ushort)(~pseudoHeaderSum);
         }
         /// <summary>
-        /// 计算伪头和
+        /// 计算伪头部和，如TCP/UDP校验和需要一个伪头部
         /// </summary>
         /// <param name="addr">IP包头开始</param>
         /// <param name="length">TCP/UDP长度</param>
@@ -420,13 +391,11 @@ namespace linker.tun
         public unsafe ulong PseudoHeaderSum(byte* addr, uint length)
         {
             uint sum = 0;
-            for (byte i = 12; i < 20; i += 2)
-            {
-                sum += (uint)((*(addr + i) << 8) | *(addr + i + 1));
-            }
-
+            //源IP+目的IP
+            for (byte i = 12; i < 20; i += 2) sum += (uint)((*(addr + i) << 8) | *(addr + i + 1));
+            //协议
             sum += *(addr + 9);
-
+            //协议内容长度
             sum += length;
             return sum;
         }

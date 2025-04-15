@@ -186,6 +186,10 @@ namespace linker.libs
                 {
                     using Ping pinger = new();
                     PingReply reply = pinger.Send(target, 100, Encoding.ASCII.GetBytes(Helper.GlobalString), new PingOptions { Ttl = i, DontFragment = true });
+                    if(reply.Status != IPStatus.Success)
+                    {
+                        continue;
+                    }
 
                     if (starts.Any(c => reply.Address.ToString().StartsWith(c)))
                     {
