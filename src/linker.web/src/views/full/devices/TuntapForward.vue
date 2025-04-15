@@ -14,7 +14,7 @@
                         </template>
                         <template v-else>
                             <strong v-if="scope.row.Error" :title="scope.row.Error" class="red">{{ scope.row.ListenPort }}</strong>
-                            <span v-else>{{ scope.row.ListenPort }}</span>
+                            <span v-else>{{ scope.row.ListenPort }} <a href="javascript:;" @click="scope.row.ListenPort=0"><el-icon><Delete /></el-icon></a></span>
                         </template>
                     </template>
                 </el-table-column>
@@ -26,7 +26,7 @@
                         </template>
                         <template v-else>
                             <strong v-if="scope.row.Error" :title="scope.row.Error" class="red">{{ scope.row.ConnectAddr }}</strong>
-                            <span v-else>{{ scope.row.ConnectAddr }}</span>
+                            <span v-else>{{ scope.row.ConnectAddr }} <a href="javascript:;" @click="scope.row.ConnectAddr='0.0.0.0'"><el-icon><Delete /></el-icon></a></span>
                         </template>
                     </template>
                 </el-table-column>
@@ -38,7 +38,7 @@
                         </template>
                         <template v-else>
                             <strong v-if="scope.row.Error" :title="scope.row.Error" class="red">{{ scope.row.ConnectPort }}</strong>
-                            <span v-else>{{ scope.row.ConnectPort }}</span>
+                            <span v-else>{{ scope.row.ConnectPort }} <a href="javascript:;" @click="scope.row.ConnectPort=0"><el-icon><Delete /></el-icon></a></span>
                         </template>
                     </template>
                 </el-table-column>

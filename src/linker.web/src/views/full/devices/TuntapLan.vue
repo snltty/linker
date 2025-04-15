@@ -13,7 +13,7 @@
                         </template>
                         <template v-else>
                             <strong v-if="scope.row.Error" :title="scope.row.Error" class="red">{{ scope.row.IP }}</strong>
-                            <span v-else>{{ scope.row.IP }}</span>
+                            <span v-else>{{ scope.row.IP }} <a href="javascript:;" @click="scope.row.IP='0.0.0.0'"><el-icon><Delete /></el-icon></a></span>
                         </template>
                     </template>
                 </el-table-column>
@@ -37,7 +37,7 @@
                         </template>
                         <template v-else>
                             <strong v-if="scope.row.Error" :title="scope.row.Error" class="red">{{ scope.row.MapIP }}</strong>
-                            <span v-else>{{ scope.row.MapIP }}</span>
+                            <span v-else>{{ scope.row.MapIP }} <a href="javascript:;" @click="scope.row.MapIP='0.0.0.0'"><el-icon><Delete /></el-icon></a></span>
                         </template>
                     </template>
                 </el-table-column>

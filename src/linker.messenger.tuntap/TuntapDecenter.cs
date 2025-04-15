@@ -136,7 +136,7 @@ namespace linker.messenger.tuntap
                 {
                     if (wan.Equals(c.Wan))
                     {
-                        foreach (var item in c.Lans)
+                        foreach (var item in c.Lans.Where(c=>c.MapIP==null || c.MapIP.Equals(IPAddress.Any)))
                         {
                             item.Exists = true;
                         }
