@@ -1,23 +1,40 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
+﻿using linker.libs;
+using linker.libs.timer;
+using System.Buffers.Binary;
+using System.Collections.Frozen;
+using System.Net;
 using System.Text;
-using System.Threading.Tasks;
-using static linker.libs.winapis.SECUR32;
-using static System.Collections.Specialized.BitVector32;
 
 namespace linker.tun
 {
     /// <summary>
     /// 应用层NAT
     /// </summary>
-    internal sealed class WinDivertNAT
+    public sealed class WinDivertNAT
     {
-        public WinDivertNAT()
+        WinDivert winDivert;
+        AddrInfo src;
+        AddrInfo[] dsts;
+
+        NetworkIPv4Addr srcAddr;
+
+        //网络号对应网卡IP，用来替换源IP
+        private FrozenDictionary<uint, NetworkIPv4Addr> sourceDic = new Dictionary<uint, NetworkIPv4Addr>().ToFrozenDictionary();
+        public WinDivertNAT(AddrInfo src, AddrInfo[] dsts)
         {
-            /*
-            winDivert = new WinDivert("inbound and (( ip.SrcAddr == 10.18.18.0/24 and ip.DstAddr == 192.168.56.0/24) or ( ip.SrcAddr == 192.168.56.0/24))", WinDivert.Layer.Network, 0, WinDivert.Flag.Sniff);
+            this.src = src;
+            this.dsts = dsts;
+            InitializeInterfaceIP();
+        }
+
+        public void Setup()
+        {
+            srcAddr = IPv4Addr.Parse(src.IP.ToString());
+
+            StringBuilder sb = new StringBuilder("inbound");
+            sb.Append($" and (ip.SrcAddr >= {src.NetworkIP} and ip.SrcAddr <= {src.BroadcastIP})");
+
+            winDivert = new WinDivert(sb.ToString(), WinDivert.Layer.Network, 0, WinDivert.Flag.Sniff);
             var packet = new Memory<byte>(new byte[WinDivert.MTUMax]);
             var abuf = new Memory<WinDivertAddress>(new WinDivertAddress[1]);
             TimerHelper.Async(() =>
@@ -45,16 +62,15 @@ namespace linker.tun
 
                 }
             });
-            */
         }
-       // NetworkIPv4Addr sourceAddr = IPv4Addr.Parse("10.18.18.23");
+
         private unsafe void ModifyPacket(WinDivertParseResult p, ref WinDivertAddress addr)
         {
-            /*
-            if (p.IPv4Hdr->SrcAddr == sourceAddr)
+
+            if (NetworkHelper.ToNetworkValue(BinaryPrimitives.ReverseEndianness(p.IPv4Hdr->SrcAddr.Raw), src.PrefixValue) == src.NetworkValue)
             {
-                Console.WriteLine($"{p.IPv4Hdr->SrcAddr}->{p.IPv4Hdr->DstAddr}");
-            }*/
+                Console.WriteLine($"{p.IPv4Hdr->SrcAddr}->{p.IPv4Hdr->DstAddr}================================");
+            }
             //WinDivert.CalcChecksums(p.Packet.Span, ref addr, 0);
         }
 
@@ -78,6 +94,44 @@ namespace linker.tun
                 }
             }
             */
+        }
+
+        private void InitializeInterfaceIP()
+        {
+
+        }
+
+        public void Dispose()
+        {
+            winDivert?.Dispose();
+        }
+
+        public sealed class AddrInfo
+        {
+            public AddrInfo(IPAddress ip, byte prefixLength)
+            {
+                IP = ip;
+                PrefixLength = prefixLength;
+
+                PrefixValue = NetworkHelper.ToPrefixValue(PrefixLength);
+                NetworkValue = NetworkHelper.ToNetworkValue(IP, PrefixLength);
+                BroadcastValue = NetworkHelper.ToBroadcastValue(IP, PrefixLength);
+
+                NetworkAddr = IPv4Addr.Parse(NetworkHelper.ToIP(NetworkValue).ToString());
+
+                NetworkIP = NetworkHelper.ToIP(NetworkValue);
+                BroadcastIP = NetworkHelper.ToIP(BroadcastValue);
+            }
+            public IPAddress IP { get; }
+            public byte PrefixLength { get; }
+
+            public NetworkIPv4Addr NetworkAddr { get; private set; }
+            public uint PrefixValue { get; private set; }
+            public uint NetworkValue { get; private set; }
+            public uint BroadcastValue { get; private set; }
+
+            public IPAddress NetworkIP { get; private set; }
+            public IPAddress BroadcastIP { get; private set; }
         }
     }
 }

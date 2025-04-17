@@ -4,6 +4,7 @@ using linker.libs.timer;
 using linker.tunnel.connection;
 using LiteDB;
 using System.Net;
+using System.Runtime.ExceptionServices;
 
 namespace linker.messenger.store.file
 {
@@ -14,7 +15,14 @@ namespace linker.messenger.store.file
     public sealed class Storefactory
     {
         LiteDatabase database;
+
+        
         public Storefactory()
+        {
+            Init();
+        }
+
+        private void Init()
         {
             BsonMapper bsonMapper = new BsonMapper();
             bsonMapper.RegisterType<IPEndPoint>(serialize: (a) => a.ToString(), deserialize: (a) => IPEndPoint.Parse(a.AsString));
@@ -24,12 +32,21 @@ namespace linker.messenger.store.file
             bsonMapper.RegisterType<IConnection>(serialize: (a) => string.Empty, deserialize: (a) => null);
 
             string db = Path.Join(Helper.currentDirectory, "./configs/db.db");
-            if(Directory.Exists(Path.GetDirectoryName(db)) == false)
+            if (Directory.Exists(Path.GetDirectoryName(db)) == false)
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(db));
             }
 
-            database = new LiteDatabase(new ConnectionString($"Filename={db};Password={Helper.GlobalString}"), bsonMapper);
+            try
+            {
+                database = new LiteDatabase(new ConnectionString($"Filename={db};Password={Helper.GlobalString}"), bsonMapper);
+            }
+            catch (Exception ex)
+            {
+                LoggerHelper.Instance.Error(ex);
+                //让服务自动重启
+                Environment.Exit(1);
+            }
 
             if (OperatingSystem.IsAndroid() == false)
             {

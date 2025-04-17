@@ -25,16 +25,18 @@ namespace linker.tun
         /// </summary>
         /// <param name="name"></param>
         /// <param name="address"></param>
-        /// <param name="gateway"></param>
         /// <param name="prefixLength"></param>
         /// <param name="error"></param>
         /// <returns></returns>
-        public bool Setup(string name,IPAddress address, IPAddress gateway, byte prefixLength, out string error);
+        public bool Setup(string name,IPAddress address, byte prefixLength, out string error);
         /// <summary>
         /// 关闭
         /// </summary>
         public void Shutdown();
 
+        /// <summary>
+        /// 刷新网卡
+        /// </summary>
         public void Refresh();
 
         /// <summary>
@@ -43,9 +45,14 @@ namespace linker.tun
         /// <param name="value"></param>
         public void SetMtu(int value);
         /// <summary>
-        /// 设置NAT转发
+        /// 设置系统NAT转发
         /// </summary>
-        public void SetNat(out string error);
+        public void SetSystemNat(out string error);
+        /// <summary>
+        /// 设置应用层NAT转发
+        /// </summary>
+        /// <param name="error"></param>
+        public void SetAppNat(LinkerTunAppNatItemInfo[] items, out string error);
         /// <summary>
         /// 移除NAT转发
         /// </summary>
@@ -72,15 +79,12 @@ namespace linker.tun
         /// 添加路由
         /// </summary>
         /// <param name="ips"></param>
-        /// <param name="ip"></param>
-        /// <param name="gateway">是不是网关，是网关，将使用NAT转发，不是网关将添加路由</param>
-        public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip);
+        public void AddRoute(LinkerTunDeviceRouteItem[] ips);
         /// <summary>
         /// 删除路由
         /// </summary>
-        /// <param name="ip"></param>
-        /// <param name="gateway">是不是网关，是网关，将删除NAT转发，不是网关将删除路由</param>
-        public void DelRoute(LinkerTunDeviceRouteItem[] ip);
+        /// <param name="ips"></param>
+        public void RemoveRoute(LinkerTunDeviceRouteItem[] ips);
 
         /// <summary>
         /// 读取数据包
@@ -259,5 +263,11 @@ namespace linker.tun
         /// 运行中
         /// </summary>
         Running = 2
+    }
+
+    public sealed class LinkerTunAppNatItemInfo
+    {
+        public IPAddress IP { get; set; }
+        public byte PrefixLength { get; set; }
     }
 }

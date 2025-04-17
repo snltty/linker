@@ -25,7 +25,7 @@ namespace linker.tun
 
         }
 
-        public bool Setup(string name, IPAddress address, IPAddress gateway, byte prefixLength, out string error)
+        public bool Setup(string name, IPAddress address, byte prefixLength, out string error)
         {
             this.name = name;
             error = string.Empty;
@@ -65,21 +65,21 @@ namespace linker.tun
 
         }
 
-        public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip)
+        public void AddRoute(LinkerTunDeviceRouteItem[] ips)
         {
             string[] commands = ips.Select(item =>
             {
                 IPAddress _ip = NetworkHelper.ToNetworkIP(item.Address, item.PrefixLength);
-                return $"route add -net {_ip}/{item.PrefixLength} {ip}";
+                return $"route add -net {_ip}/{item.PrefixLength} {address}";
             }).ToArray();
             if (commands.Length > 0)
             {
                 CommandHelper.Osx(string.Empty, commands.ToArray());
             }
         }
-        public void DelRoute(LinkerTunDeviceRouteItem[] ip)
+        public void RemoveRoute(LinkerTunDeviceRouteItem[] ips)
         {
-            string[] commands = ip.Select(item =>
+            string[] commands = ips.Select(item =>
             {
                 IPAddress _ip = NetworkHelper.ToNetworkIP(item.Address, item.PrefixLength);
                 return $"route delete -net {_ip}/{item.PrefixLength}";
@@ -95,7 +95,7 @@ namespace linker.tun
             CommandHelper.Osx(string.Empty, new string[] { $"ifconfig {Name} mtu {value}" });
         }
 
-        public void SetNat(out string error)
+        public void SetSystemNat(out string error)
         {
             error = string.Empty;
             /*
@@ -112,6 +112,10 @@ namespace linker.tun
                 "pfctl -f /etc/pf.conf -e",
             });
             */
+        }
+        public void SetAppNat(LinkerTunAppNatItemInfo[] items, out string error)
+        {
+            error = string.Empty;
         }
         public void RemoveNat(out string error)
         {

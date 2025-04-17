@@ -5,7 +5,6 @@ using linker.messenger.exroute;
 using linker.messenger.signin;
 using linker.tun;
 using linker.tunnel.connection;
-using System.Linq;
 using System.Net;
 
 namespace linker.messenger.tuntap
@@ -38,7 +37,7 @@ namespace linker.messenger.tuntap
             signInClientState.OnSignInSuccess += (times) => tuntapConfigTransfer.RefreshIP();
 
             //初始化网卡
-            tuntapTransfer.Init(this);
+            tuntapTransfer.Initialize(this);
             //网卡状态发生变化，同步一下信息
             tuntapTransfer.OnSetupBefore += () =>
             {
@@ -56,6 +55,7 @@ namespace linker.messenger.tuntap
             tuntapTransfer.OnSetupSuccess += () =>
             {
                 SetMaps();
+                SetAppNat();
                 AddForward();
             };
             tuntapTransfer.OnShutdownBefore += () =>
@@ -130,7 +130,6 @@ namespace linker.messenger.tuntap
             tuntapTransfer.Write(buffer);
         }
 
-
         /// <summary>
         /// 重启网卡
         /// </summary>
@@ -153,6 +152,9 @@ namespace linker.messenger.tuntap
             tuntapTransfer.Shutdown();
         }
 
+        /// <summary>
+        /// 设置映射
+        /// </summary>
         private void SetMaps()
         {
             var maps = tuntapConfigTransfer.Info.Lans
@@ -160,6 +162,24 @@ namespace linker.messenger.tuntap
                 .Select(c => new LanMapInfo { IP = c.IP, ToIP = c.MapIP, PrefixLength = c.MapPrefixLength }).ToArray();
             tuntapTransfer.SetMap(maps);
         }
+        /// <summary>
+        /// 设置应用层NAT
+        /// </summary>
+        private void SetAppNat()
+        {
+            if (tuntapConfigTransfer.Info.DisableNat == false)
+            {
+                var nats = tuntapConfigTransfer.Info.Lans
+               .Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false && c.MapIP != null && c.MapIP.Equals(IPAddress.Any) == false && c.Disabled == false)
+               .Select(c => new LinkerTunAppNatItemInfo
+               {
+                   IP = c.MapIP.Equals(IPAddress.Any) ? c.IP : c.MapIP,
+                   PrefixLength = c.MapIP.Equals(IPAddress.Any) ? c.PrefixLength : c.MapPrefixLength,
+               }).ToArray();
+                tuntapTransfer.SetAppNat(nats);
+            }
+        }
+
         // <summary>
         /// 添加端口转发
         /// </summary>

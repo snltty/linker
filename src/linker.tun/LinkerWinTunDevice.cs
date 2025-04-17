@@ -27,14 +27,13 @@ namespace linker.tun
 
         private CancellationTokenSource tokenSource;
 
-        private WinDivert winDivert;
+        private WinDivertNAT winDivertNAT;
 
         public LinkerWinTunDevice()
         {
         }
-      
 
-        public bool Setup(string name, IPAddress address, IPAddress gateway, byte prefixLength, out string error)
+        public bool Setup(string name, IPAddress address, byte prefixLength, out string error)
         {
             this.name = name;
             this.address = address;
@@ -184,9 +183,9 @@ namespace linker.tun
                  $"netsh interface ipv6 set subinterface {interfaceNumber}  mtu={value} store=persistent"
             });
         }
-        public void SetNat(out string error)
-        {
 
+        public void SetSystemNat(out string error)
+        {
             error = string.Empty;
 
             if (address == null || address.Equals(IPAddress.Any)) return;
@@ -194,30 +193,32 @@ namespace linker.tun
             {
                 CommandHelper.PowerShell($"start-service WinNat", [], out error);
                 CommandHelper.PowerShell($"Install-WindowsFeature -Name Routing -IncludeManagementTools", [], out error);
+                CommandHelper.PowerShell($"Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All", [], out error);
                 CommandHelper.PowerShell($"Set-ItemProperty -Path \"HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\" -Name \"IPEnableRouter\" -Value 1", [], out error);
 
                 IPAddress network = NetworkHelper.ToNetworkIP(this.address, NetworkHelper.ToPrefixValue(prefixLength));
                 CommandHelper.PowerShell($"Remove-NetNat -Name {Name} -Confirm:$false", [], out error);
                 CommandHelper.PowerShell($"New-NetNat -Name {Name} -InternalIPInterfaceAddressPrefix {network}/{prefixLength}", [], out error);
 
-                if (string.IsNullOrWhiteSpace(error))
+                string result = CommandHelper.PowerShell($"Get-NetNat", [], out error);
+                if (string.IsNullOrWhiteSpace(result) == false && result.Contains($"{network}/{prefixLength}"))
                 {
                     return;
                 }
-                /*
-                CommandHelper.Windows(string.Empty, [$"net start SharedAccess"]);
-                string result = CommandHelper.Windows(string.Empty, [$"linker.ics.exe {defaultInterfaceName} {Name} enable"]);
-                if (result.Contains($"enable success"))
-                {
-                    return;
-                }
-                */
-                error = "NetNat and ICS not supported";
+                error = $"NetNat and ICS not supported,{error}";
             }
             catch (Exception ex)
             {
                 error = ex.Message;
             }
+        }
+        public void SetAppNat(LinkerTunAppNatItemInfo[] items, out string error)
+        {
+            error = string.Empty;
+
+            winDivertNAT?.Dispose();
+            winDivertNAT = new WinDivertNAT(new WinDivertNAT.AddrInfo(address, prefixLength), items.Select(c => new WinDivertNAT.AddrInfo(c.IP, c.PrefixLength)).ToArray());
+            //winDivertNAT.Setup();
         }
         public void RemoveNat(out string error)
         {
@@ -228,11 +229,18 @@ namespace linker.tun
             {
                 CommandHelper.PowerShell($"start-service WinNat", [], out error);
                 CommandHelper.PowerShell($"Remove-NetNat -Name {Name} -Confirm:$false", [], out error);
-                //CommandHelper.Windows(string.Empty, [$"linker.ics.exe {defaultInterfaceName} {Name} disable"]);
             }
             catch (Exception ex)
             {
                 error = ex.Message;
+            }
+
+            try
+            {
+                winDivertNAT?.Dispose();
+            }
+            catch (Exception)
+            {
             }
         }
 
@@ -271,7 +279,7 @@ namespace linker.tun
         }
 
 
-        public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip)
+        public void AddRoute(LinkerTunDeviceRouteItem[] ips)
         {
             if (interfaceNumber > 0)
             {
@@ -281,7 +289,7 @@ namespace linker.tun
                     IPAddress mask = NetworkHelper.ToIP(maskValue);
                     IPAddress _ip = NetworkHelper.ToNetworkIP(item.Address, maskValue);
 
-                    return $"route add {_ip} mask {mask} {ip} metric 5 if {interfaceNumber}";
+                    return $"route add {_ip} mask {mask} {address} metric 5 if {interfaceNumber}";
                 }).ToArray();
                 if (commands.Length > 0)
                 {
@@ -291,9 +299,9 @@ namespace linker.tun
                 }
             }
         }
-        public void DelRoute(LinkerTunDeviceRouteItem[] ip)
+        public void RemoveRoute(LinkerTunDeviceRouteItem[] ips)
         {
-            string[] commands = ip.Select(item =>
+            string[] commands = ips.Select(item =>
             {
                 uint maskValue = NetworkHelper.ToPrefixValue(item.PrefixLength);
                 IPAddress mask = NetworkHelper.ToIP(maskValue);

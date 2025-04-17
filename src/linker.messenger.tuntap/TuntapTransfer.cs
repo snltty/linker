@@ -2,7 +2,6 @@
 using System.Net;
 using linker.tun;
 using linker.libs.timer;
-using System.ComponentModel;
 
 namespace linker.messenger.tuntap
 {
@@ -32,12 +31,12 @@ namespace linker.messenger.tuntap
             }
         }
 
-        public void Init(ILinkerTunDeviceCallback linkerTunDeviceCallback)
+        public void Initialize(ILinkerTunDeviceCallback linkerTunDeviceCallback)
         {
             linkerTunDeviceAdapter.Initialize(linkerTunDeviceCallback);
 
         }
-        public void Init(ILinkerTunDevice linkerTunDevice, ILinkerTunDeviceCallback linkerTunDeviceCallback)
+        public void Initialize(ILinkerTunDevice linkerTunDevice, ILinkerTunDeviceCallback linkerTunDeviceCallback)
         {
             linkerTunDeviceAdapter.Initialize(linkerTunDevice, linkerTunDeviceCallback);
         }
@@ -72,11 +71,14 @@ namespace linker.messenger.tuntap
                         return;
                     }
                     if (nat)
-                        linkerTunDeviceAdapter.SetNat();
-                    if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.NatError) == false)
                     {
-                        LoggerHelper.Instance.Error(linkerTunDeviceAdapter.NatError);
+                        linkerTunDeviceAdapter.SetSystemNat();
+                        if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.NatError) == false)
+                        {
+                            LoggerHelper.Instance.Error(linkerTunDeviceAdapter.NatError);
+                        }
                     }
+
                     OnSetupSuccess();
                 }
                 catch (Exception ex)
@@ -95,6 +97,35 @@ namespace linker.messenger.tuntap
             });
         }
 
+        /// <summary>
+        /// 停止网卡
+        /// </summary>
+        public void Shutdown(bool notify = true)
+        {
+            if (operatingManager.StartOperation() == false)
+            {
+                return;
+            }
+            try
+            {
+                if (notify) OnShutdownBefore();
+                linkerTunDeviceAdapter.Shutdown();
+                if (notify) OnShutdownSuccess();
+            }
+            catch (Exception ex)
+            {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
+            }
+            finally
+            {
+                if (notify)
+                    OnShutdownAfter();
+                operatingManager.StopOperation();
+            }
+        }
         /// <summary>
         /// 刷新网卡
         /// </summary>
@@ -123,64 +154,64 @@ namespace linker.messenger.tuntap
                 }
             });
         }
-
         /// <summary>
-        /// 停止网卡
+        /// 设置应用层NAT
         /// </summary>
-        public void Shutdown(bool notify = true)
+        /// <param name="items"></param>
+        public void SetAppNat(LinkerTunAppNatItemInfo[] items)
         {
-            if (operatingManager.StartOperation() == false)
-            {
-                return;
-            }
-            try
-            {
-                if (notify)
-                    OnShutdownBefore();
-                linkerTunDeviceAdapter.Shutdown();
-                linkerTunDeviceAdapter.RemoveNat();
-                if (notify)
-                    OnShutdownSuccess();
-            }
-            catch (Exception ex)
-            {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Error(ex);
-                }
-            }
-            finally
-            {
-                if (notify)
-                    OnShutdownAfter();
-                operatingManager.StopOperation();
-            }
+            if (string.IsNullOrWhiteSpace(NatError) == false)
+                linkerTunDeviceAdapter.SetAppNat(items);
         }
 
+        /// <summary>
+        /// 添加转发
+        /// </summary>
+        /// <param name="forward"></param>
         public void AddForward(List<LinkerTunDeviceForwardItem> forward)
         {
             linkerTunDeviceAdapter.AddForward(forward);
         }
+        /// <summary>
+        /// 移除转发
+        /// </summary>
+        /// <param name="forward"></param>
         public void RemoveForward(List<LinkerTunDeviceForwardItem> forward)
         {
             linkerTunDeviceAdapter.RemoveForward(forward);
         }
 
-        public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip)
+        /// <summary>
+        /// 添加路由
+        /// </summary>
+        /// <param name="ips"></param>
+        public void AddRoute(LinkerTunDeviceRouteItem[] ips)
         {
-            linkerTunDeviceAdapter.AddRoute(ips, ip);
+            linkerTunDeviceAdapter.AddRoute(ips);
         }
-        public void DelRoute(LinkerTunDeviceRouteItem[] ips)
+        /// <summary>
+        /// 移除路由
+        /// </summary>
+        /// <param name="ips"></param>
+        public void RemoveRoute(LinkerTunDeviceRouteItem[] ips)
         {
-            linkerTunDeviceAdapter.DelRoute(ips);
+            linkerTunDeviceAdapter.RemoveRoute(ips);
         }
 
-
+        /// <summary>
+        /// 添加映射
+        /// </summary>
+        /// <param name="maps"></param>
         public void SetMap(LanMapInfo[] maps)
         {
             linkerTunDeviceAdapter.SetMap(maps);
         }
 
+        /// <summary>
+        /// 检查网卡是否可用
+        /// </summary>
+        /// <param name="order"></param>
+        /// <returns></returns>
         public async Task<bool> CheckAvailable(bool order = false)
         {
             return await linkerTunDeviceAdapter.CheckAvailable(order).ConfigureAwait(false);

@@ -26,7 +26,7 @@ namespace linker.tun
         {
         }
 
-        public bool Setup(string name, IPAddress address, IPAddress gateway, byte prefixLength, out string error)
+        public bool Setup(string name, IPAddress address,  byte prefixLength, out string error)
         {
             error = string.Empty;
 
@@ -149,7 +149,7 @@ namespace linker.tun
         {
             return CommandHelper.Linux(string.Empty, ["ip route show default | awk '{print $5}'"]);
         }
-        public void SetNat(out string error)
+        public void SetSystemNat(out string error)
         {
             error = string.Empty;
             if (address == null || address.Equals(IPAddress.Any)) return;
@@ -181,6 +181,10 @@ namespace linker.tun
             {
                 error = ex.Message;
             }
+        }
+        public void SetAppNat(LinkerTunAppNatItemInfo[] items,out string error)
+        {
+            error = string.Empty;
         }
         public void RemoveNat(out string error)
         {
@@ -275,14 +279,14 @@ namespace linker.tun
         }
 
 
-        public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip)
+        public void AddRoute(LinkerTunDeviceRouteItem[] ips)
         {
             string[] commands = ips.Select(item =>
             {
                 uint prefixValue = NetworkHelper.ToPrefixValue(item.PrefixLength);
                 IPAddress network = NetworkHelper.ToNetworkIP(item.Address, prefixValue);
 
-                return $"ip route add {network}/{item.PrefixLength} via {ip} dev {Name} metric 1 ";
+                return $"ip route add {network}/{item.PrefixLength} via {address} dev {Name} metric 1 ";
             }).ToArray();
             if (commands.Length > 0)
             {
@@ -291,7 +295,7 @@ namespace linker.tun
                 CommandHelper.Linux(string.Empty, commands);
             }
         }
-        public void DelRoute(LinkerTunDeviceRouteItem[] ip)
+        public void RemoveRoute(LinkerTunDeviceRouteItem[] ip)
         {
             string[] commands = ip.Select(item =>
             {

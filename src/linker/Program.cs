@@ -2,9 +2,6 @@
 using System.ServiceProcess;
 using System.Diagnostics;
 using linker.messenger.entry;
-using linker.libs.extends;
-using System.Text;
-using System.Text.Json;
 
 namespace linker
 {

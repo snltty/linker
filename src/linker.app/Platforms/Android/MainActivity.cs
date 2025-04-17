@@ -106,7 +106,7 @@ namespace linker.app
             tuntapProxy.Callback = this;
             tuntapDecenter = LinkerMessengerEntry.GetService<TuntapDecenter>();
 
-            tuntapTransfer.Init(new LinkerVpnDevice(this), this);
+            tuntapTransfer.Initialize(new LinkerVpnDevice(this), this);
         }
         public override void OnCreate()
         {
@@ -294,7 +294,7 @@ namespace linker.app
             this.vpnService = vpnService;
         }
 
-        public bool Setup(string name, IPAddress address, IPAddress gateway, byte prefixLength, out string error)
+        public bool Setup(string name, IPAddress address, byte prefixLength, out string error)
         {
             error = string.Empty;
             if (address.Equals(IPAddress.Any)) return false;
@@ -374,7 +374,11 @@ namespace linker.app
         public void SetMtu(int value)
         {
         }
-        public void SetNat(out string error)
+        public void SetSystemNat(out string error)
+        {
+            error = string.Empty;
+        }
+        public void SetAppNat(LinkerTunAppNatItemInfo[] items, out string error)
         {
             error = string.Empty;
         }
@@ -395,10 +399,10 @@ namespace linker.app
             return new List<LinkerTunDeviceForwardItem>();
         }
 
-        public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip)
+        public void AddRoute(LinkerTunDeviceRouteItem[] ips)
         {
         }
-        public void DelRoute(LinkerTunDeviceRouteItem[] ips)
+        public void RemoveRoute(LinkerTunDeviceRouteItem[] ips)
         {
         }
         public async Task<bool> CheckAvailable(bool order = false)

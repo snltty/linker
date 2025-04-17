@@ -77,6 +77,12 @@ namespace linker.tun
             }
             return false;
         }
+        /// <summary>
+        /// 初始化
+        /// </summary>
+        /// <param name="linkerTunDevice">网卡实现</param>
+        /// <param name="linkerTunDeviceCallback">读取数据回调</param>
+        /// <returns></returns>
         public bool Initialize(ILinkerTunDevice linkerTunDevice, ILinkerTunDeviceCallback linkerTunDeviceCallback)
         {
             this.linkerTunDevice = linkerTunDevice;
@@ -105,7 +111,7 @@ namespace linker.tun
                     setupError = $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} not support";
                     return false;
                 }
-                linkerTunDevice.Setup(deviceName, address, NetworkHelper.ToGatewayIP(address, prefixLength), prefixLength, out setupError);
+                linkerTunDevice.Setup(deviceName, address, prefixLength, out setupError);
                 if (string.IsNullOrWhiteSpace(setupError) == false)
                 {
                     return false;
@@ -126,7 +132,6 @@ namespace linker.tun
             }
             return false;
         }
-
         /// <summary>
         /// 关闭网卡
         /// </summary>
@@ -141,6 +146,7 @@ namespace linker.tun
             {
                 cancellationTokenSource?.Cancel();
                 linkerTunDevice?.Shutdown();
+                linkerTunDevice?.RemoveNat(out string error);
             }
             catch (Exception)
             {
@@ -152,8 +158,6 @@ namespace linker.tun
             setupError = string.Empty;
             return true;
         }
-
-
         /// <summary>
         /// 刷新网卡
         /// </summary>
@@ -163,19 +167,26 @@ namespace linker.tun
         }
 
         /// <summary>
-        /// 添加NAT转发,这会将来到本网卡且目标IP不是本网卡IP的包转发到其它网卡
+        /// 设置系统层NAT
         /// </summary>
-        public void SetNat()
+        public void SetSystemNat()
         {
-            linkerTunDevice?.RemoveNat(out string error);
-            linkerTunDevice?.SetNat(out natError);
+            linkerTunDevice?.SetSystemNat(out natError);
         }
         /// <summary>
-        /// 移除NAT转发
+        /// 设置应用层NAT
+        /// </summary>
+        /// <param name="items"></param>
+        public void SetAppNat(LinkerTunAppNatItemInfo[] items)
+        {
+            linkerTunDevice?.SetAppNat(items, out natError);
+        }
+        /// <summary>
+        /// 移除NAT
         /// </summary>
         public void RemoveNat()
         {
-            linkerTunDevice?.RemoveNat(out string error);
+            linkerTunDevice.RemoveNat(out string error);
         }
 
         /// <summary>
@@ -208,17 +219,17 @@ namespace linker.tun
         /// </summary>
         /// <param name="ips"></param>
         /// <param name="ip"></param>
-        public void AddRoute(LinkerTunDeviceRouteItem[] ips, IPAddress ip)
+        public void AddRoute(LinkerTunDeviceRouteItem[] ips)
         {
-            linkerTunDevice?.AddRoute(ips, ip);
+            linkerTunDevice?.AddRoute(ips);
         }
         /// <summary>
         /// 删除路由
         /// </summary>
         /// <param name="ips"></param>
-        public void DelRoute(LinkerTunDeviceRouteItem[] ips)
+        public void RemoveRoute(LinkerTunDeviceRouteItem[] ips)
         {
-            linkerTunDevice?.DelRoute(ips);
+            linkerTunDevice?.RemoveRoute(ips);
         }
 
 
@@ -262,7 +273,7 @@ namespace linker.tun
         /// </summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        public unsafe bool Write(ReadOnlyMemory<byte> buffer)
+        public bool Write(ReadOnlyMemory<byte> buffer)
         {
             if (linkerTunDevice != null && Status == LinkerTunDeviceStatus.Running)
             {
@@ -272,6 +283,40 @@ namespace linker.tun
             return false;
         }
 
+
+        private void ToMapIP(ReadOnlyMemory<byte> buffer)
+        {
+            //只支持映射IPV4
+            if ((byte)(buffer.Span[0] >> 4 & 0b1111) != 4) return;
+            //映射表不为空
+            if (natDic.IsEmpty) return;
+
+            uint realDist = NetworkHelper.ToValue(buffer.Span.Slice(12, 4));
+            if (natDic.TryGetValue(realDist, out uint fakeDist))
+            {
+                ReWriteIP(buffer, BinaryPrimitives.ReverseEndianness(fakeDist), 12);
+            }
+        }
+        private void MapToRealIP(ReadOnlyMemory<byte> buffer)
+        {
+            //只支持映射IPV4
+            if ((byte)(buffer.Span[0] >> 4 & 0b1111) != 4) return;
+            //映射表不为空
+            if (masks.Length == 0 || mapDic.Count == 0) return;
+
+            uint fakeDist = NetworkHelper.ToValue(buffer.Span.Slice(16, 4));
+            for (int i = 0; i < masks.Length; i++)
+            {
+                //目标IP网络号存在映射表中，找到映射后的真实网络号，替换网络号得到最终真实的IP
+                if (mapDic.TryGetValue(fakeDist & masks[i], out uint realNetwork))
+                {
+                    uint realDist = realNetwork | (fakeDist & ~masks[i]);
+                    ReWriteIP(buffer, BinaryPrimitives.ReverseEndianness(realDist), 16);
+                    natDic.AddOrUpdate(realDist, fakeDist, (a, b) => fakeDist);
+                    break;
+                }
+            }
+        }
         private unsafe void ReWriteIP(ReadOnlyMemory<byte> buffer, uint newIP, int pos)
         {
             fixed (byte* ptr = buffer.Span)
@@ -303,39 +348,6 @@ namespace linker.tun
                             *(ushort*)(ptr + ipHeaderLength + 6) = BinaryPrimitives.ReverseEndianness(checksum);
                         }
                         break;
-                }
-            }
-        }
-        private void ToMapIP(ReadOnlyMemory<byte> buffer)
-        {
-            //只支持映射IPV4
-            if ((byte)(buffer.Span[0] >> 4 & 0b1111) != 4) return;
-            //映射表不为空
-            if (natDic.IsEmpty) return;
-
-            uint realDist = NetworkHelper.ToValue(buffer.Span.Slice(12, 4));
-            if (natDic.TryGetValue(realDist, out uint fakeDist))
-            {
-                ReWriteIP(buffer, BinaryPrimitives.ReverseEndianness( fakeDist), 12);
-            }
-        }
-        private void MapToRealIP(ReadOnlyMemory<byte> buffer)
-        {
-            //只支持映射IPV4
-            if ((byte)(buffer.Span[0] >> 4 & 0b1111) != 4) return;
-            //映射表不为空
-            if (masks.Length == 0 || mapDic.Count == 0) return;
-
-            uint fakeDist = NetworkHelper.ToValue(buffer.Span.Slice(16, 4));
-            for (int i = 0; i < masks.Length; i++)
-            {
-                //目标IP网络号存在映射表中，找到映射后的真实网络号，替换网络号得到最终真实的IP
-                if (mapDic.TryGetValue(fakeDist & masks[i], out uint realNetwork))
-                {
-                    uint realDist = realNetwork | (fakeDist & ~masks[i]);
-                    ReWriteIP(buffer, BinaryPrimitives.ReverseEndianness(realDist), 16);
-                    natDic.AddOrUpdate(realDist, fakeDist, (a, b) => fakeDist);
-                    break;
                 }
             }
         }
@@ -396,7 +408,6 @@ namespace linker.tun
             sum += length;
             return sum;
         }
-
 
         public async Task<bool> CheckAvailable(bool order = false)
         {

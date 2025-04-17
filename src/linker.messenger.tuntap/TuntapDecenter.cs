@@ -101,9 +101,9 @@ namespace linker.messenger.tuntap
 
             var removeItems = routeItems.Except(_routeItems, new LinkerTunDeviceRouteItemComparer()).ToArray();
             if (removeItems.Length > 0)
-                tuntapTransfer.DelRoute(removeItems);
+                tuntapTransfer.RemoveRoute(removeItems);
 
-            tuntapTransfer.AddRoute(_routeItems, tuntapConfigTransfer.Info.IP);
+            tuntapTransfer.AddRoute(_routeItems);
 
             tuntapProxy.SetIPs(ips);
             foreach (var item in Infos.Values)
@@ -120,7 +120,7 @@ namespace linker.messenger.tuntap
         private List<TuntapVeaLanIPAddressList> ParseIPs(List<TuntapInfo> infos)
         {
             //排除的IP，
-            uint[] excludeIps = exRouteTransfer.Get().Where(c=>c.Equals(IPAddress.Any)==false).Select(NetworkHelper.ToValue).Distinct().ToArray();
+            uint[] excludeIps = exRouteTransfer.Get().Where(c => c.Equals(IPAddress.Any) == false).Select(NetworkHelper.ToValue).Distinct().ToArray();
 
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Warning($"tuntap route ex ips : {string.Join(",", excludeIps.Select(c => NetworkHelper.ToIP(c)).ToList())}");
@@ -136,7 +136,7 @@ namespace linker.messenger.tuntap
                 {
                     if (wan.Equals(c.Wan))
                     {
-                        foreach (var item in c.Lans.Where(c=>c.MapIP==null || c.MapIP.Equals(IPAddress.Any)))
+                        foreach (var item in c.Lans.Where(c => c.MapIP == null || c.MapIP.Equals(IPAddress.Any)))
                         {
                             item.Exists = true;
                         }

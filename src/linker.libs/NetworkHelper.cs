@@ -315,6 +315,11 @@ namespace linker.libs
         {
             return ToNetworkValue(ip, ToPrefixValue(prefixLength));
         }
+
+        public static uint ToBroadcastValue(IPAddress ip, byte prefixLength)
+        {
+            return ToBroadcastValue(ToValue(ip), ToPrefixValue(prefixLength));
+        }
         public static uint ToBroadcastValue(uint ip, uint prefixIP)
         {
             return ip | ~prefixIP;
