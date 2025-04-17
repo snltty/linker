@@ -30,5 +30,5 @@ export const startSForwardInfo = (data) => {
     return sendWebsocketMsg('sforward/start', data);
 }
 export const stopSForwardInfo = (data) => {
-    return sendWebsocketMsg('sforward/start', data);
+    return sendWebsocketMsg('sforward/stop', data);
 }
