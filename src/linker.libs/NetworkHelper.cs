@@ -285,6 +285,10 @@ namespace linker.libs
         {
             return BinaryPrimitives.ReadUInt32BigEndian(ip.GetAddressBytes());
         }
+        public static uint ToValue(ReadOnlySpan<byte> span)
+        {
+            return BinaryPrimitives.ReadUInt32BigEndian(span);
+        }
         public static IPAddress ToIP(uint value)
         {
             return new IPAddress(BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(value)));

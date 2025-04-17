@@ -212,6 +212,7 @@ export default {
             const func = row.Started 
             ? stopSForwardInfo({machineid:sforward.value.machineid,id:row.Id}) 
             : startSForwardInfo({machineid:sforward.value.machineid,id:row.Id});
+
             func.then(() => {
                 state.loading = false;
                 _getSForwardInfo();
@@ -219,6 +220,7 @@ export default {
                 state.loading = false;
                 ElMessage.error(err);
             });
+            
         }
         const saveRow = (row) => {
             if(!row.Temp) return;

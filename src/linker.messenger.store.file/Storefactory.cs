@@ -29,7 +29,7 @@ namespace linker.messenger.store.file
                 Directory.CreateDirectory(Path.GetDirectoryName(db));
             }
 
-            database = new LiteDatabase(new ConnectionString($"Filename={db};Password={Helper.GlobalString};Connection=shared"), bsonMapper);
+            database = new LiteDatabase(new ConnectionString($"Filename={db};Password={Helper.GlobalString}"), bsonMapper);
 
             if (OperatingSystem.IsAndroid() == false)
             {

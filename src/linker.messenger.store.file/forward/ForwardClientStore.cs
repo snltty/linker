@@ -1,4 +1,5 @@
-﻿using linker.messenger.forward;
+﻿using linker.libs.extends;
+using linker.messenger.forward;
 using LiteDB;
 using System.Net;
 
@@ -37,6 +38,7 @@ namespace linker.messenger.store.file.forward
 
         public bool Add(ForwardInfo info)
         {
+            Console.WriteLine(info.ToJson());
             //同名或者同端口，但是ID不一样
             ForwardInfo old = liteCollection.FindOne(c => (c.Port == info.Port && c.Port != 0) && c.GroupId == info.GroupId && c.MachineId == info.MachineId);
             if (old != null && old.Id != info.Id) return false;

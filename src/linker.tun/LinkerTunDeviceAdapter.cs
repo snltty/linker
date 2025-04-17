@@ -316,10 +316,10 @@ namespace linker.tun
             //映射表不为空
             if (natDic.IsEmpty) return;
 
-            uint realDist = BinaryPrimitives.ReadUInt32LittleEndian(buffer.Span.Slice(12, 4));
+            uint realDist = NetworkHelper.ToValue(buffer.Span.Slice(12, 4));
             if (natDic.TryGetValue(realDist, out uint fakeDist))
             {
-                ReWriteIP(buffer, BinaryPrimitives.ReverseEndianness(fakeDist), 12);
+                ReWriteIP(buffer, BinaryPrimitives.ReverseEndianness( fakeDist), 12);
             }
         }
         private void MapToRealIP(ReadOnlyMemory<byte> buffer)
@@ -329,14 +329,14 @@ namespace linker.tun
             //映射表不为空
             if (masks.Length == 0 || mapDic.Count == 0) return;
 
-            uint fakeDist = BinaryPrimitives.ReadUInt32BigEndian(buffer.Span.Slice(16, 4));
+            uint fakeDist = NetworkHelper.ToValue(buffer.Span.Slice(16, 4));
             for (int i = 0; i < masks.Length; i++)
             {
                 //目标IP网络号存在映射表中，找到映射后的真实网络号，替换网络号得到最终真实的IP
                 if (mapDic.TryGetValue(fakeDist & masks[i], out uint realNetwork))
                 {
-                    uint realDist = BinaryPrimitives.ReverseEndianness(realNetwork | (fakeDist & ~masks[i]));
-                    ReWriteIP(buffer, realDist, 16);
+                    uint realDist = realNetwork | (fakeDist & ~masks[i]);
+                    ReWriteIP(buffer, BinaryPrimitives.ReverseEndianness(realDist), 16);
                     natDic.AddOrUpdate(realDist, fakeDist, (a, b) => fakeDist);
                     break;
                 }
