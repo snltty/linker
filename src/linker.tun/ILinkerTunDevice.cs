@@ -19,6 +19,10 @@ namespace linker.tun
         /// 是否正在运行
         /// </summary>
         public bool Running { get; }
+        /// <summary>
+        /// 是否应用层NAT
+        /// </summary>
+        public bool AppNat { get; }
 
         /// <summary>
         /// 启动

@@ -5,6 +5,7 @@ using linker.messenger.signin;
 using linker.messenger.exroute;
 using linker.tun;
 using System.Net;
+using linker.libs.extends;
 
 namespace linker.messenger.tuntap
 {
@@ -126,34 +127,25 @@ namespace linker.messenger.tuntap
                 LoggerHelper.Instance.Warning($"tuntap route ex ips : {string.Join(",", excludeIps.Select(c => NetworkHelper.ToIP(c)).ToList())}");
 
             HashSet<uint> hashSet = new HashSet<uint>();
-
             IPAddress wan = signInClientState.WanAddress.Address;
 
             return infos
                 .Where(c => c.MachineId != signInClientStore.Id)
-
-                .Where(c =>
-                {
-                    if (wan.Equals(c.Wan))
-                    {
-                        foreach (var item in c.Lans.Where(c => c.MapIP == null || c.MapIP.Equals(IPAddress.Any)))
-                        {
-                            item.Exists = true;
-                        }
-                        return false;
-                    }
-                    return true;
-                })
-
                 .OrderBy(c => c.IP, new IPAddressComparer()).OrderByDescending(c => c.Status)
                 .Select(c =>
                 {
-                    var lans = c.Lans.Where(c => c.Disabled == false && c.IP.Equals(IPAddress.Any) == false).Where(c =>
+                    var lans = c.Lans
+                    //未禁用 并且 设置了ip
+                    .Where(d => d.Disabled == false && d.IP.Equals(IPAddress.Any) == false)
+                    //不是同一个外网 或者 设置了映射
+                    .Where(d => wan.Equals(c.Wan) == false || (d.MapIP != null && d.MapIP.Equals(IPAddress.Any) == false))
+                    //未冲突
+                    .Where(d =>
                     {
-                        uint network = NetworkHelper.ToNetworkValue(c.IP, c.PrefixLength);
-                        c.Exists = excludeIps.Any(d => NetworkHelper.ToNetworkValue(d, c.PrefixLength) == network) || hashSet.Contains(network);
+                        uint network = NetworkHelper.ToNetworkValue(d.IP, d.PrefixLength);
+                        d.Exists = excludeIps.Any(e => NetworkHelper.ToNetworkValue(e, d.PrefixLength) == network) || hashSet.Contains(network);
                         hashSet.Add(network);
-                        return c.Exists == false;
+                        return d.Exists == false;
                     }).ToList();
 
                     return new TuntapVeaLanIPAddressList

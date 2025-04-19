@@ -15,6 +15,7 @@ namespace linker.tun
         private string name = string.Empty;
         public string Name => name;
         public bool Running => session != 0;
+        public bool AppNat => winDivertNAT != null && winDivertNAT.Running;
 
         private IntPtr waitHandle = IntPtr.Zero, adapter = IntPtr.Zero, session = IntPtr.Zero;
         private int interfaceNumber = 0;
@@ -24,6 +25,7 @@ namespace linker.tun
 
         private string defaultInterfaceName = string.Empty;
         private int defaultInterfaceNumber = 0;
+        private IPAddress defaultInterfaceIP;
 
         private CancellationTokenSource tokenSource;
 
@@ -186,6 +188,9 @@ namespace linker.tun
 
         public void SetSystemNat(out string error)
         {
+            error = "test app nat";
+            return;
+
             error = string.Empty;
 
             if (address == null || address.Equals(IPAddress.Any)) return;
@@ -193,11 +198,10 @@ namespace linker.tun
             {
                 CommandHelper.PowerShell($"start-service WinNat", [], out error);
                 CommandHelper.PowerShell($"Install-WindowsFeature -Name Routing -IncludeManagementTools", [], out error);
-                CommandHelper.PowerShell($"Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All", [], out error);
                 CommandHelper.PowerShell($"Set-ItemProperty -Path \"HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\" -Name \"IPEnableRouter\" -Value 1", [], out error);
+                CommandHelper.PowerShell($"Remove-NetNat -Name {Name} -Confirm:$false", [], out error);
 
                 IPAddress network = NetworkHelper.ToNetworkIP(this.address, NetworkHelper.ToPrefixValue(prefixLength));
-                CommandHelper.PowerShell($"Remove-NetNat -Name {Name} -Confirm:$false", [], out error);
                 CommandHelper.PowerShell($"New-NetNat -Name {Name} -InternalIPInterfaceAddressPrefix {network}/{prefixLength}", [], out error);
 
                 string result = CommandHelper.PowerShell($"Get-NetNat", [], out error);
@@ -214,11 +218,9 @@ namespace linker.tun
         }
         public void SetAppNat(LinkerTunAppNatItemInfo[] items, out string error)
         {
-            error = string.Empty;
-
             winDivertNAT?.Dispose();
-            winDivertNAT = new WinDivertNAT(new WinDivertNAT.AddrInfo(address, prefixLength), items.Select(c => new WinDivertNAT.AddrInfo(c.IP, c.PrefixLength)).ToArray());
-            //winDivertNAT.Setup();
+            winDivertNAT = new WinDivertNAT(new WinDivertNAT.AddrInfo(address, prefixLength), items.Select(c => new WinDivertNAT.AddrInfo(c.IP, c.PrefixLength)).ToArray(), defaultInterfaceIP);
+            winDivertNAT.Setup(out error);
         }
         public void RemoveNat(out string error)
         {
@@ -324,14 +326,14 @@ namespace linker.tun
             if (session == 0) return Helper.EmptyArray;
             for (; tokenSource.IsCancellationRequested == false;)
             {
-                IntPtr packet = WinTun.WintunReceivePacket(session, out uint size);
+                IntPtr packetPtr = WinTun.WintunReceivePacket(session, out uint size);
                 length = (int)size;
 
-                if (packet != 0)
+                if (packetPtr != 0)
                 {
-                    new Span<byte>((byte*)packet, length).CopyTo(buffer.AsSpan(4, length));
+                    new Span<byte>((byte*)packetPtr, length).CopyTo(buffer.AsSpan(4, length));
                     length.ToBytes(buffer);
-                    WinTun.WintunReleaseReceivePacket(session, packet);
+                    WinTun.WintunReleaseReceivePacket(session, packetPtr);
                     length += 4;
                     return buffer;
                 }
@@ -351,15 +353,17 @@ namespace linker.tun
             }
             return Helper.EmptyArray;
         }
-        public unsafe bool Write(ReadOnlyMemory<byte> buffer)
+        public unsafe bool Write(ReadOnlyMemory<byte> packet)
         {
             if (session == 0 || tokenSource.IsCancellationRequested) return false;
 
-            IntPtr packet = WinTun.WintunAllocateSendPacket(session, (uint)buffer.Length);
-            if (packet != 0)
+            if (ToAppNat(packet)) return true;
+
+            IntPtr packetPtr = WinTun.WintunAllocateSendPacket(session, (uint)packet.Length);
+            if (packetPtr != 0)
             {
-                buffer.Span.CopyTo(new Span<byte>((byte*)packet, buffer.Length));
-                WinTun.WintunSendPacket(session, packet);
+                packet.Span.CopyTo(new Span<byte>((byte*)packetPtr, packet.Length));
+                WinTun.WintunSendPacket(session, packetPtr);
                 return true;
             }
             else
@@ -367,6 +371,21 @@ namespace linker.tun
                 if (Marshal.GetLastWin32Error() == 111L)
                 {
                     return false;
+                }
+            }
+            return false;
+        }
+        private bool ToAppNat(ReadOnlyMemory<byte> packet)
+        {
+            ReadOnlySpan<byte> span = packet.Span;
+            if ((byte)(span[0] >> 4 & 0b1111) == 4 && AppNat) //只支持IPV4
+            {
+                ReadOnlySpan<byte> ip = span.Slice(16, 4);
+                uint distIP = BinaryPrimitives.ReadUInt32BigEndian(ip);
+                //不是虚拟网卡，不是广播，启用了应用层NAT，NAT成功
+                if (distIP != address32 && ip.GetIsBroadcastAddress() == false && winDivertNAT.Inject(packet))
+                {
+                    return true;
                 }
             }
             return false;
@@ -400,6 +419,7 @@ namespace linker.tun
                             {
                                 defaultInterfaceName = inter.Name;
                                 defaultInterfaceNumber = inter.GetIPProperties().GetIPv4Properties().Index;
+                                defaultInterfaceIP = ip;
                                 return;
                             }
                         }

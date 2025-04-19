@@ -170,7 +170,7 @@ namespace linker.messenger.tuntap
             if (tuntapConfigTransfer.Info.DisableNat == false)
             {
                 var nats = tuntapConfigTransfer.Info.Lans
-               .Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false && c.MapIP != null && c.MapIP.Equals(IPAddress.Any) == false && c.Disabled == false)
+               .Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false && c.MapIP != null && c.Disabled == false)
                .Select(c => new LinkerTunAppNatItemInfo
                {
                    IP = c.MapIP.Equals(IPAddress.Any) ? c.IP : c.MapIP,

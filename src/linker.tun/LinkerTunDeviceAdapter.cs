@@ -174,7 +174,10 @@ namespace linker.tun
             linkerTunDevice?.SetSystemNat(out natError);
         }
         /// <summary>
-        /// 设置应用层NAT
+        /// 设置应用层NAT，仅Windows，
+        /// 目录下
+        /// 64位，放x64的WinDivert.dll和WinDivert64.sys
+        /// 32位，放x86的WinDivert.dll和WinDivert64.sys，WinDivert.sys
         /// </summary>
         /// <param name="items"></param>
         public void SetAppNat(LinkerTunAppNatItemInfo[] items)
@@ -232,7 +235,6 @@ namespace linker.tun
             linkerTunDevice?.RemoveRoute(ips);
         }
 
-
         private void Read()
         {
             TimerHelper.Async(async () =>
@@ -283,7 +285,6 @@ namespace linker.tun
             return false;
         }
 
-
         private void ToMapIP(ReadOnlyMemory<byte> buffer)
         {
             //只支持映射IPV4
@@ -291,10 +292,12 @@ namespace linker.tun
             //映射表不为空
             if (natDic.IsEmpty) return;
 
+            //源IP
             uint realDist = NetworkHelper.ToValue(buffer.Span.Slice(12, 4));
             if (natDic.TryGetValue(realDist, out uint fakeDist))
             {
-                ReWriteIP(buffer, BinaryPrimitives.ReverseEndianness(fakeDist), 12);
+                //修改源IP
+                ReWriteIP(buffer, fakeDist, 12);
             }
         }
         private void MapToRealIP(ReadOnlyMemory<byte> buffer)
@@ -303,6 +306,8 @@ namespace linker.tun
             if ((byte)(buffer.Span[0] >> 4 & 0b1111) != 4) return;
             //映射表不为空
             if (masks.Length == 0 || mapDic.Count == 0) return;
+            //广播包
+            if (buffer.Span[19] == 255) return;
 
             uint fakeDist = NetworkHelper.ToValue(buffer.Span.Slice(16, 4));
             for (int i = 0; i < masks.Length; i++)
@@ -311,43 +316,30 @@ namespace linker.tun
                 if (mapDic.TryGetValue(fakeDist & masks[i], out uint realNetwork))
                 {
                     uint realDist = realNetwork | (fakeDist & ~masks[i]);
-                    ReWriteIP(buffer, BinaryPrimitives.ReverseEndianness(realDist), 16);
+                    //修改目标IP
+                    ReWriteIP(buffer, realDist, 16, linkerTunDevice.AppNat == false);
                     natDic.AddOrUpdate(realDist, fakeDist, (a, b) => fakeDist);
                     break;
                 }
             }
         }
-        private unsafe void ReWriteIP(ReadOnlyMemory<byte> buffer, uint newIP, int pos)
+        /// <summary>
+        /// 写入新IP
+        /// </summary>
+        /// <param name="packet">IP包</param>
+        /// <param name="newIP">大端IP</param>
+        /// <param name="pos">写入位置，源12，目的16</param>
+        /// <param name="checksum">是否计算校验和，当windows使用应用层NAT后，会计算一次，这样可以减少一次计算</param>
+        private unsafe void ReWriteIP(ReadOnlyMemory<byte> packet, uint newIP, int pos, bool checksum = true)
         {
-            fixed (byte* ptr = buffer.Span)
+            fixed (byte* ptr = packet.Span)
             {
-                byte ipHeaderLength = (byte)((*ptr & 0b1111) * 4);
-
-                //修改目标IP
-                *(uint*)(ptr + pos) = newIP;
-                //重新计算IP头校验和
-                *(ushort*)(ptr + 10) = 0;
-                *(ushort*)(ptr + 10) = BinaryPrimitives.ReverseEndianness(Checksum((ushort*)ptr, ipHeaderLength));
-
-                ProtocolType protocol = (ProtocolType)buffer.Span[9];
-                switch (protocol)
+                //修改目标IP，需要小端写入，IP计算都是按大端的，操作是小端的，所以转换一下
+                *(uint*)(ptr + pos) = BinaryPrimitives.ReverseEndianness(newIP);
+                if (checksum)
                 {
-                    case ProtocolType.Tcp:
-                        {
-                            *(ushort*)(ptr + ipHeaderLength + 16) = 0;
-                            ulong sum = PseudoHeaderSum(ptr, (uint)(buffer.Length - ipHeaderLength));
-                            ushort checksum = Checksum((ushort*)(ptr + ipHeaderLength), (uint)buffer.Length - ipHeaderLength, sum);
-                            *(ushort*)(ptr + ipHeaderLength + 16) = BinaryPrimitives.ReverseEndianness(checksum);
-                        }
-                        break;
-                    case ProtocolType.Udp:
-                        {
-                            *(ushort*)(ptr + ipHeaderLength + 6) = 0;
-                            ulong sum = PseudoHeaderSum(ptr, (uint)(buffer.Length - ipHeaderLength));
-                            ushort checksum = Checksum((ushort*)(ptr + ipHeaderLength), (uint)buffer.Length - ipHeaderLength, sum);
-                            *(ushort*)(ptr + ipHeaderLength + 6) = BinaryPrimitives.ReverseEndianness(checksum);
-                        }
-                        break;
+                    //计算校验和
+                    ChecksumHelper.Checksum(ptr, packet.Length);
                 }
             }
         }
@@ -368,46 +360,6 @@ namespace linker.tun
             mapDic = maps.ToFrozenDictionary(x => NetworkHelper.ToNetworkValue(x.IP, x.PrefixLength), x => NetworkHelper.ToNetworkValue(x.ToIP, x.PrefixLength));
             masks = maps.Select(x => NetworkHelper.ToPrefixValue(x.PrefixLength)).ToArray();
         }
-        /// <summary>
-        /// 计算校验和
-        /// </summary>
-        /// <param name="addr">包头开始位置</param>
-        /// <param name="length">计算长度，不同协议不同长度，请自己斟酌</param>
-        /// <param name="pseudoHeaderSum">伪头部和，默认0不需要伪头部和</param>
-        /// <returns></returns>
-        public unsafe ushort Checksum(ushort* addr, uint length, ulong pseudoHeaderSum = 0)
-        {
-            //每两个字节为一个数，之和
-            while (length > 1)
-            {
-                pseudoHeaderSum += (ushort)((*addr >> 8) + (*addr << 8));
-                addr++;
-                length -= 2;
-            }
-            //奇数字节末尾补零
-            if (length > 0) pseudoHeaderSum += (ushort)((*addr) << 8);
-            //溢出处理
-            while ((pseudoHeaderSum >> 16) != 0) pseudoHeaderSum = (pseudoHeaderSum & 0xffff) + (pseudoHeaderSum >> 16);
-            //取反
-            return (ushort)(~pseudoHeaderSum);
-        }
-        /// <summary>
-        /// 计算伪头部和，如TCP/UDP校验和需要一个伪头部
-        /// </summary>
-        /// <param name="addr">IP包头开始</param>
-        /// <param name="length">TCP/UDP长度</param>
-        /// <returns></returns>
-        public unsafe ulong PseudoHeaderSum(byte* addr, uint length)
-        {
-            uint sum = 0;
-            //源IP+目的IP
-            for (byte i = 12; i < 20; i += 2) sum += (uint)((*(addr + i) << 8) | *(addr + i + 1));
-            //协议
-            sum += *(addr + 9);
-            //协议内容长度
-            sum += length;
-            return sum;
-        }
 
         public async Task<bool> CheckAvailable(bool order = false)
         {
@@ -415,10 +367,22 @@ namespace linker.tun
         }
     }
 
+    /// <summary>
+    /// 映射对象
+    /// </summary>
     public sealed class LanMapInfo
     {
+        /// <summary>
+        /// 假IP
+        /// </summary>
         public IPAddress IP { get; set; }
+        /// <summary>
+        /// 真实IP
+        /// </summary>
         public IPAddress ToIP { get; set; }
+        /// <summary>
+        /// 前缀
+        /// </summary>
         public byte PrefixLength { get; set; }
     }
 }

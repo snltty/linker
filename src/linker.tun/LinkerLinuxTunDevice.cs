@@ -14,6 +14,7 @@ namespace linker.tun
         private string name = string.Empty;
         public string Name => name;
         public bool Running => safeFileHandle != null;
+        public bool AppNat => false;
 
         private string interfaceLinux = string.Empty;
         private FileStream fsRead = null;

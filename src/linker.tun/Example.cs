@@ -1,4 +1,5 @@
-﻿using System.Buffers.Binary;
+﻿using linker.libs;
+using System.Buffers.Binary;
 using System.Net;
 
 namespace linker.tun
@@ -79,18 +80,10 @@ namespace linker.tun
                     *(uint*)(ptr + 16) = *(uint*)(ptr + 12);
                     //假装是网关回复的
                     *(uint*)(ptr + 12) = dist;
-
-                    //计算一次IP头校验和
-                    *(ushort*)(ptr + 10) = 0;
-                    *(ushort*)(ptr + 10) = Program.linkerTunDeviceAdapter.Checksum((ushort*)ptr, 20);
-
                     //response
                     *(ushort*)(ptr + 20) = 0;
 
-                    //计算ICMP校验和
-                    *(ushort*)(ptr + 22) = 0;
-                    *(ushort*)(ptr + 22) = Program.linkerTunDeviceAdapter.Checksum((ushort*)(ptr + 20), (uint)(writableMemory.Length - 20));
-
+                    ChecksumHelper.Checksum(ptr, writableMemory.Length);
                     Program.linkerTunDeviceAdapter.Write(writableMemory);
                 }
             }

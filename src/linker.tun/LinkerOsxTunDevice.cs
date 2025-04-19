@@ -12,6 +12,7 @@ namespace linker.tun
         private string name = string.Empty;
         public string Name => name;
         public bool Running => fs != null;
+        public bool AppNat => false;
 
         private FileStream fs = null;
         private IPAddress address;

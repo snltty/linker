@@ -255,7 +255,7 @@ namespace linker.tun
         /// <param name="addr">The address.</param>
         /// <param name="flags">Additional flags.</param>
         /// <exception cref="ArgumentException"></exception>
-        public static unsafe void CalcChecksums(Span<byte> packet, ref WinDivertAddress addr, ChecksumFlag flags)
+        public static unsafe void CalcChecksums(ReadOnlySpan<byte> packet, ref WinDivertAddress addr, ChecksumFlag flags)
         {
             var success = false;
             fixed (void* pPacket = packet) fixed (WinDivertAddress* pAddr = &addr)
@@ -568,7 +568,7 @@ namespace linker.tun
         /// Initializes an instance of <see cref="WinDivertIndexedPacketParser"/> class with given packets.
         /// </summary>
         /// <param name="packet">Packets to be parsed.</param>
-        public WinDivertIndexedPacketParser(Memory<byte> packet) => e = new WinDivertPacketParser(packet);
+        public WinDivertIndexedPacketParser(ReadOnlyMemory<byte> packet) => e = new WinDivertPacketParser(packet);
 
         /// <summary>
         /// Initializes an instance of the <see cref="WinDivertIndexedPacketParser"/> class that wraps the given <see cref="WinDivertPacketParser"/>.
@@ -634,13 +634,13 @@ namespace linker.tun
     /// </summary>
     public struct WinDivertPacketParser : IEnumerable<WinDivertParseResult>
     {
-        private readonly Memory<byte> packet;
+        private readonly ReadOnlyMemory<byte> packet;
 
         /// <summary>
         /// Initializes an instance of <see cref="WinDivertPacketParser"/> class.
         /// </summary>
         /// <param name="packet">Packets to be parsed.</param>
-        public WinDivertPacketParser(Memory<byte> packet) => this.packet = packet;
+        public WinDivertPacketParser(ReadOnlyMemory<byte> packet) => this.packet = packet;
 
         /// <summary>
         /// Returns an enumerator that iterates over the results of packet parsing.
@@ -663,7 +663,7 @@ namespace linker.tun
     public unsafe struct WinDivertPacketEnumerator : IEnumerator<WinDivertParseResult>
     {
         private readonly MemoryHandle hmem;
-        private readonly Memory<byte> packet;
+        private readonly ReadOnlyMemory<byte> packet;
         private readonly byte* pPacket0;
         private byte* pPacket;
         private uint packetLen;
@@ -672,7 +672,7 @@ namespace linker.tun
         public WinDivertParseResult Current => current;
         object IEnumerator.Current => current;
 
-        internal WinDivertPacketEnumerator(Memory<byte> packet)
+        internal WinDivertPacketEnumerator(ReadOnlyMemory<byte> packet)
         {
             hmem = packet.Pin();
             this.packet = packet;
@@ -711,7 +711,7 @@ namespace linker.tun
             current.UDPHdr = udpHdr;
             current.Data = pData != null && dataLen > 0
                 ? packet[(int)(pData - pPacket0)..(int)(pData + dataLen - pPacket0)]
-                : Memory<byte>.Empty;
+                : ReadOnlyMemory<byte>.Empty;
 
             pPacket = pNext;
             packetLen = nextLen;
@@ -740,7 +740,7 @@ namespace linker.tun
         /// <summary>
         /// The entirety of the packet.
         /// </summary>
-        public Memory<byte> Packet;
+        public ReadOnlyMemory<byte> Packet;
 
         /// <summary>
         /// Points to the IPv4 header of the packet.
@@ -787,7 +787,7 @@ namespace linker.tun
         /// The packet's data/payload.
         /// If the packet does not contain any data/payload, it will be empty.
         /// </summary>
-        public Memory<byte> Data;
+        public ReadOnlyMemory<byte> Data;
     }
 
     /// <summary>

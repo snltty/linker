@@ -278,6 +278,7 @@ namespace linker.app
         private string name = string.Empty;
         public string Name => name;
         public bool Running => fd != 0;
+        public bool AppNat => false;
 
         private IPAddress address;
         private byte prefixLength = 24;

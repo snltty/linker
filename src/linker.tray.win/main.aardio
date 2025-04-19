@@ -6,7 +6,7 @@ btnInstall={cls="button";text="安装服务";left=79;top=12;right=167;bottom=54;
 btnRun={cls="button";text="运行服务";left=79;top=63;right=167;bottom=102;z=2};
 btnWebFull={cls="button";text="管理(专业)";left=130;top=116;right=202;bottom=145;z=5};
 btnWebNet={cls="button";text="管理(简单)";left=45;top=116;right=117;bottom=145;z=4};
-ckAutoStart={cls="checkbox";text="托盘自启动";left=90;top=166;right=176;bottom=183;z=3}
+ckAutoStart={cls="checkbox";text="托盘自启动";left=86;top=168;right=172;bottom=185;z=3}
 )
 /*}}*/
 
