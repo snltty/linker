@@ -71,10 +71,10 @@ namespace linker.tun
 
             if (OperatingSystem.IsWindows() == false || (RuntimeInformation.ProcessArchitecture != Architecture.X86 && RuntimeInformation.ProcessArchitecture != Architecture.X64))
             {
-                error = "only windows x64,x86";
+                error = "only win x64 and win x86";
                 return false;
             }
-            if (dsts == null || dsts.Length == 0)
+            if (src == null || dsts == null || dsts.Length == 0)
             {
                 error = "src is null, or dsts empty";
                 return false;
