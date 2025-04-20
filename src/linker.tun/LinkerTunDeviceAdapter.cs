@@ -4,7 +4,6 @@ using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Net;
-using System.Net.Sockets;
 
 namespace linker.tun
 {
@@ -23,10 +22,11 @@ namespace linker.tun
         private string natError = string.Empty;
         public string NatError => natError;
 
+        public bool AppNat=> linkerTunDevice?.AppNat ?? false;
+
 
         private FrozenDictionary<uint, uint> mapDic = new Dictionary<uint, uint>().ToFrozenDictionary();
         private uint[] masks = Array.Empty<uint>();
-
         private ConcurrentDictionary<uint, uint> natDic = new ConcurrentDictionary<uint, uint>();
 
 

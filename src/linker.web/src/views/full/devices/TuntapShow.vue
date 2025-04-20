@@ -10,6 +10,9 @@
                     <template v-else-if="tuntap.list[item.MachineId].Upgrade && tuntap.list[item.MachineId].NatError">
                         <strong class="yellow" :title="tuntap.list[item.MachineId].NatError">{{ tuntap.list[item.MachineId].IP }}</strong>
                     </template>
+                    <template v-else-if="tuntap.list[item.MachineId].AppNat">
+                        <strong class="app-nat" title="虚拟网卡IP，系统NAT失败，已启用内置应用层SNAT">{{ tuntap.list[item.MachineId].IP }}</strong>
+                    </template>
                     <template v-else>
                         <template v-if=" item.Connected && tuntap.list[item.MachineId].running">
                             <strong class="green gateway">{{ tuntap.list[item.MachineId].IP }}</strong>

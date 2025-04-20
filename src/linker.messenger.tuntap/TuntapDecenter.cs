@@ -65,7 +65,7 @@ namespace linker.messenger.tuntap
                 SystemInfo = $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} {(string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("SNLTTY_LINKER_IS_DOCKER")) == false ? "Docker" : "")}",
 
                 Forwards = tuntapConfigTransfer.Info.Forwards,
-                Switch = tuntapConfigTransfer.Info.Switch
+                Switch = tuntapConfigTransfer.Info.Switch | (tuntapTransfer.AppNat ? TuntapSwitch.AppNat : 0)
             });
         }
         public void AddData(Memory<byte> data)

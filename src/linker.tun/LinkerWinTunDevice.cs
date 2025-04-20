@@ -26,10 +26,11 @@ namespace linker.tun
         private string defaultInterfaceName = string.Empty;
         private int defaultInterfaceNumber = 0;
         private IPAddress defaultInterfaceIP;
+        private uint defaultInterfaceIP32;
 
         private CancellationTokenSource tokenSource;
 
-        private WinDivertNAT winDivertNAT;
+        private WinDivertNAT winDivertNAT = new WinDivertNAT();
 
         public LinkerWinTunDevice()
         {
@@ -218,9 +219,8 @@ namespace linker.tun
         }
         public void SetAppNat(LinkerTunAppNatItemInfo[] items, out string error)
         {
-            winDivertNAT?.Dispose();
-            winDivertNAT = new WinDivertNAT(new WinDivertNAT.AddrInfo(address, prefixLength), items.Select(c => new WinDivertNAT.AddrInfo(c.IP, c.PrefixLength)).ToArray(), defaultInterfaceIP);
-            winDivertNAT.Setup(out error);
+            winDivertNAT.Shutdown();
+            winDivertNAT.Setup(address, items.Select(c => new WinDivertNAT.AddrInfo(c.IP, c.PrefixLength)).ToArray(), defaultInterfaceIP, out error);
         }
         public void RemoveNat(out string error)
         {
@@ -239,7 +239,7 @@ namespace linker.tun
 
             try
             {
-                winDivertNAT?.Dispose();
+                winDivertNAT.Shutdown();
             }
             catch (Exception)
             {
@@ -357,7 +357,7 @@ namespace linker.tun
         {
             if (session == 0 || tokenSource.IsCancellationRequested) return false;
 
-            if (ToAppNat(packet)) return true;
+            if (winDivertNAT.Inject(packet)) return true;
 
             IntPtr packetPtr = WinTun.WintunAllocateSendPacket(session, (uint)packet.Length);
             if (packetPtr != 0)
@@ -371,21 +371,6 @@ namespace linker.tun
                 if (Marshal.GetLastWin32Error() == 111L)
                 {
                     return false;
-                }
-            }
-            return false;
-        }
-        private bool ToAppNat(ReadOnlyMemory<byte> packet)
-        {
-            ReadOnlySpan<byte> span = packet.Span;
-            if ((byte)(span[0] >> 4 & 0b1111) == 4 && AppNat) //只支持IPV4
-            {
-                ReadOnlySpan<byte> ip = span.Slice(16, 4);
-                uint distIP = BinaryPrimitives.ReadUInt32BigEndian(ip);
-                //不是虚拟网卡，不是广播，启用了应用层NAT，NAT成功
-                if (distIP != address32 && ip.GetIsBroadcastAddress() == false && winDivertNAT.Inject(packet))
-                {
-                    return true;
                 }
             }
             return false;
@@ -420,6 +405,7 @@ namespace linker.tun
                                 defaultInterfaceName = inter.Name;
                                 defaultInterfaceNumber = inter.GetIPProperties().GetIPv4Properties().Index;
                                 defaultInterfaceIP = ip;
+                                defaultInterfaceIP32 = NetworkHelper.ToValue(ip);
                                 return;
                             }
                         }

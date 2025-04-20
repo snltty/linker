@@ -135,7 +135,6 @@ namespace linker.messenger.tuntap
         /// 开关，多个bool集合
         /// </summary>
         public TuntapSwitch Switch { get; set; }
-
         /// <summary>
         /// 延迟ms
         /// </summary>
@@ -310,6 +309,10 @@ namespace linker.messenger.tuntap
                 }
             }
         }
+        /// <summary>
+        /// 是否开启了应用层NAT
+        /// </summary>
+        public bool AppNat => (Switch & TuntapSwitch.AppNat) == TuntapSwitch.AppNat;
     }
 
     public sealed partial class TuntapForwardInfo
@@ -398,6 +401,11 @@ namespace linker.messenger.tuntap
         /// 调整网卡顺序
         /// </summary>
         InterfaceOrder = 128,
+
+        /// <summary>
+        /// 是否开启了应用层NAT
+        /// </summary>
+        AppNat = 256,
     }
 
 

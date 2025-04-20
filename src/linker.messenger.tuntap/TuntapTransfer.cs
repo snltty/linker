@@ -14,6 +14,8 @@ namespace linker.messenger.tuntap
         public string SetupError => linkerTunDeviceAdapter.SetupError;
         public string NatError => linkerTunDeviceAdapter.NatError;
 
+        public bool AppNat => linkerTunDeviceAdapter.AppNat;
+
         public Action OnSetupBefore { get; set; } = () => { };
         public Action OnSetupAfter { get; set; } = () => { };
         public Action OnSetupSuccess { get; set; } = () => { };
