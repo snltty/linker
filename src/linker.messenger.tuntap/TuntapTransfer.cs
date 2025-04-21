@@ -162,10 +162,7 @@ namespace linker.messenger.tuntap
         /// <param name="items"></param>
         public void SetAppNat(LinkerTunAppNatItemInfo[] items)
         {
-            if (string.IsNullOrWhiteSpace(NatError) == false)
-            {
-                linkerTunDeviceAdapter.SetAppNat(items);
-            }
+            linkerTunDeviceAdapter.SetAppNat(items);
         }
 
         /// <summary>

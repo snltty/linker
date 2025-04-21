@@ -75,7 +75,11 @@ namespace linker.messenger.tuntap
             //配置有更新，去同步一下
             tuntapConfigTransfer.OnUpdate += () =>
             {
-                SetMaps(); AddForward(); _ = CheckDevice(); tuntapDecenter.Refresh();
+                tuntapDecenter.Refresh();
+                SetMaps();
+                SetAppNat();
+                AddForward();
+                _ = CheckDevice();
             };
 
             //隧道回调

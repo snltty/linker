@@ -85,6 +85,13 @@ Network mapping can help you resolve conflicts between multiple internal network
 <p><img src="./readme/mapto.jpg"></p> 
 </div>
 
+## SNAT
+Built-in SNAT enables you to use the point-to-site functionality even on Windows 7/8 and Windows Server 2008/2012 where NetNat is unavailable.
+
+<div align="center">
+<p><img src="./readme/snat.jpg"></p> 
+</div>
+
 ## Management Website
 
 <div align="center">

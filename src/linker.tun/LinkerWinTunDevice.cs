@@ -1,5 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.extends;
+using linker.snat;
 using System.Buffers.Binary;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -16,6 +17,7 @@ namespace linker.tun
         public string Name => name;
         public bool Running => session != 0;
         public bool AppNat => winDivertNAT != null && winDivertNAT.Running;
+        private bool systemNat = false;
 
         private IntPtr waitHandle = IntPtr.Zero, adapter = IntPtr.Zero, session = IntPtr.Zero;
         private int interfaceNumber = 0;
@@ -30,7 +32,7 @@ namespace linker.tun
 
         private CancellationTokenSource tokenSource;
 
-        private WinDivertNAT winDivertNAT = new WinDivertNAT();
+        private LinkerSNat winDivertNAT = new LinkerSNat();
 
         public LinkerWinTunDevice()
         {
@@ -189,14 +191,14 @@ namespace linker.tun
 
         public void SetSystemNat(out string error)
         {
-            error = "test app nat";
-            return;
-
             error = string.Empty;
-
-            if (address == null || address.Equals(IPAddress.Any)) return;
             try
             {
+                if (address == null || address.Equals(IPAddress.Any) || prefixLength == 0)
+                {
+                    error = "NetNat need CIDR,like 10.18.18.0/24";
+                    return;
+                }
                 CommandHelper.PowerShell($"start-service WinNat", [], out error);
                 CommandHelper.PowerShell($"Install-WindowsFeature -Name Routing -IncludeManagementTools", [], out error);
                 CommandHelper.PowerShell($"Set-ItemProperty -Path \"HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\" -Name \"IPEnableRouter\" -Value 1", [], out error);
@@ -216,11 +218,25 @@ namespace linker.tun
             {
                 error = ex.Message;
             }
+            finally
+            {
+                systemNat = string.IsNullOrWhiteSpace(error);
+            }
         }
         public void SetAppNat(LinkerTunAppNatItemInfo[] items, out string error)
         {
-            winDivertNAT.Shutdown();
-            winDivertNAT.Setup(address, items.Select(c => new WinDivertNAT.AddrInfo(c.IP, c.PrefixLength)).ToArray(), defaultInterfaceIP, out error);
+            error = string.Empty;
+            if (address == null || address.Equals(IPAddress.Any))
+            {
+                error = "NetNat need CIDR,like 10.18.18.0/24";
+                return;
+            }
+
+            if (systemNat == false)
+            {
+                winDivertNAT.Shutdown();
+                winDivertNAT.Setup(address, items.Select(c => new LinkerSNat.AddrInfo(c.IP, c.PrefixLength)).ToArray(), defaultInterfaceIP, out error);
+            }
         }
         public void RemoveNat(out string error)
         {

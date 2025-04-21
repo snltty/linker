@@ -85,6 +85,13 @@ LinkerMessengerEntry.Setup(ExcludeModule.None);
 <p><img src="./readme/mapto.jpg"></p> 
 </div>
 
+## SNAT
+内置的SNAT，让你在无法使用NetNat的 win7/8，win server 2008/2012上也可以使用点对网功能
+
+<div align="center">
+<p><img src="./readme/snat.jpg"></p> 
+</div>
+
 
 ## 管理页面
 
