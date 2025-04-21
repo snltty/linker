@@ -121,7 +121,7 @@ namespace linker.messenger.tuntap
         private List<TuntapVeaLanIPAddressList> ParseIPs(List<TuntapInfo> infos)
         {
             //排除的IP，
-            uint[] excludeIps = exRouteTransfer.Get().Where(c => c.Equals(IPAddress.Any) == false).Select(NetworkHelper.ToValue).Distinct().ToArray();
+            IEnumerable<uint> excludeIps = exRouteTransfer.Get().Where(c => c.Equals(IPAddress.Any) == false).Select(NetworkHelper.ToValue).Distinct();
 
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Warning($"tuntap route ex ips : {string.Join(",", excludeIps.Select(c => NetworkHelper.ToIP(c)).ToList())}");
@@ -137,14 +137,19 @@ namespace linker.messenger.tuntap
                     var lans = c.Lans
                     //未禁用 并且 设置了ip
                     .Where(d => d.Disabled == false && d.IP.Equals(IPAddress.Any) == false)
-                    //不是同一个外网 或者 设置了映射
-                    .Where(d => wan.Equals(c.Wan) == false || (d.MapIP != null && d.MapIP.Equals(IPAddress.Any) == false))
                     //未冲突
                     .Where(d =>
                     {
                         uint network = NetworkHelper.ToNetworkValue(d.IP, d.PrefixLength);
-                        d.Exists = excludeIps.Any(e => NetworkHelper.ToNetworkValue(e, d.PrefixLength) == network) || hashSet.Contains(network);
+                        //同个外网，且没有设置映射
+                        d.Exists = (wan.Equals(c.Wan) && IPAddress.Any.Equals(d.MapIP)) 
+                        //在排除列表中
+                        || excludeIps.Any(e => NetworkHelper.ToNetworkValue(e, d.PrefixLength) == network) 
+                        //已经存在过
+                        || hashSet.Contains(network);
+
                         hashSet.Add(network);
+
                         return d.Exists == false;
                     }).ToList();
 
