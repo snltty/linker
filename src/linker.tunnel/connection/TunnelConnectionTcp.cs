@@ -174,6 +174,8 @@ namespace linker.tunnel.connection
             catch (Exception ex)
             {
                 LoggerHelper.Instance.Error(ex);
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Error(string.Join(",", packet.ToArray()));
             }
         }
 
@@ -334,7 +336,7 @@ namespace linker.tunnel.connection
         private Pipe pipe;
         public void StartPacketMerge()
         {
-            pipe = new Pipe(new PipeOptions(pauseWriterThreshold:800*1024));
+            pipe = new Pipe(new PipeOptions(pauseWriterThreshold: 800 * 1024));
             _ = Reader();
         }
         private async Task Reader()

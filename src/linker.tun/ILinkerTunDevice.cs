@@ -196,7 +196,11 @@ namespace linker.tun
         public readonly bool IPV4Broadcast => Version == 4 && DistIPAddress.GetIsBroadcastAddress();
         public readonly bool IPV6Multicast => Version == 6 && (DistIPAddress.Span[0] & 0xFF) == 0xFF;
 
-        public void Unpacket(byte[] buffer,int offset,int length)
+        public LinkerTunDevicPacket(byte[] buffer, int offset, int length)
+        {
+            Unpacket(buffer, offset, length);
+        }
+        private void Unpacket(byte[] buffer,int offset,int length)
         {
             Buffer = buffer;
             Offset = offset;

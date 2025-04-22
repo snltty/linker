@@ -195,7 +195,7 @@ namespace linker.messenger.updater
             }
 
             //需要密钥
-            if ((confirm.All || confirm.GroupAll) && updaterServerStore.SecretKey != confirm.SecretKey)
+            if (confirm.All && updaterServerStore.SecretKey != confirm.SecretKey)
             {
                 connection.Write(Helper.FalseArray);
                 return;

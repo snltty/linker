@@ -50,6 +50,14 @@ namespace linker.messenger.tuntap
 
         public Memory<byte> GetData()
         {
+            if (tuntapTransfer.AppNat)
+            {
+                tuntapConfigTransfer.Info.Switch |= TuntapSwitch.AppNat;
+            }
+            else
+            {
+                tuntapConfigTransfer.Info.Switch &= ~TuntapSwitch.AppNat;
+            }
             return serializer.Serialize(new TuntapInfo
             {
                 IP = tuntapConfigTransfer.Info.IP,
@@ -65,7 +73,7 @@ namespace linker.messenger.tuntap
                 SystemInfo = $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} {(string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("SNLTTY_LINKER_IS_DOCKER")) == false ? "Docker" : "")}",
 
                 Forwards = tuntapConfigTransfer.Info.Forwards,
-                Switch = tuntapConfigTransfer.Info.Switch | (tuntapTransfer.AppNat ? TuntapSwitch.AppNat : 0)
+                Switch = tuntapConfigTransfer.Info.Switch
             });
         }
         public void AddData(Memory<byte> data)
@@ -142,9 +150,9 @@ namespace linker.messenger.tuntap
                     {
                         uint network = NetworkHelper.ToNetworkValue(d.IP, d.PrefixLength);
                         //同个外网，且没有设置映射
-                        d.Exists = (wan.Equals(c.Wan) && IPAddress.Any.Equals(d.MapIP)) 
+                        d.Exists = (wan.Equals(c.Wan) && IPAddress.Any.Equals(d.MapIP))
                         //在排除列表中
-                        || excludeIps.Any(e => NetworkHelper.ToNetworkValue(e, d.PrefixLength) == network) 
+                        || excludeIps.Any(e => NetworkHelper.ToNetworkValue(e, d.PrefixLength) == network)
                         //已经存在过
                         || hashSet.Contains(network);
 

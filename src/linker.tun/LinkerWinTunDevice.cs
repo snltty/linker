@@ -17,7 +17,6 @@ namespace linker.tun
         public string Name => name;
         public bool Running => session != 0;
         public bool AppNat => winDivertNAT != null && winDivertNAT.Running;
-        private bool systemNat = false;
 
         private IntPtr waitHandle = IntPtr.Zero, adapter = IntPtr.Zero, session = IntPtr.Zero;
         private int interfaceNumber = 0;
@@ -207,7 +206,7 @@ namespace linker.tun
                 IPAddress network = NetworkHelper.ToNetworkIP(this.address, NetworkHelper.ToPrefixValue(prefixLength));
                 CommandHelper.PowerShell($"New-NetNat -Name {Name} -InternalIPInterfaceAddressPrefix {network}/{prefixLength}", [], out error);
 
-                string result = CommandHelper.PowerShell($"Get-NetNat", [], out error);
+                string result = CommandHelper.PowerShell($"Get-NetNat", [], out string e);
                 if (string.IsNullOrWhiteSpace(result) == false && result.Contains($"{network}/{prefixLength}"))
                 {
                     return;
@@ -218,30 +217,35 @@ namespace linker.tun
             {
                 error = ex.Message;
             }
-            finally
-            {
-                systemNat = string.IsNullOrWhiteSpace(error);
-            }
         }
         public void SetAppNat(LinkerTunAppNatItemInfo[] items, out string error)
         {
             error = string.Empty;
-            if (address == null || address.Equals(IPAddress.Any))
+            winDivertNAT.Shutdown();
+
+            if (address == null || address.Equals(IPAddress.Any) || prefixLength == 0)
             {
-                error = "NetNat need CIDR,like 10.18.18.0/24";
+                error = "SNAT need CIDR,like 10.18.18.0/24";
                 return;
             }
 
-            if (systemNat == false)
+            IPAddress network = NetworkHelper.ToNetworkIP(this.address, NetworkHelper.ToPrefixValue(prefixLength));
+            string result = CommandHelper.PowerShell($"Get-NetNat", [], out string e);
+            if (string.IsNullOrWhiteSpace(result) == false && result.Contains($"{network}/{prefixLength}"))
             {
-                winDivertNAT.Shutdown();
-                winDivertNAT.Setup(address, items.Select(c => new LinkerSNat.AddrInfo(c.IP, c.PrefixLength)).ToArray(), defaultInterfaceIP, out error);
+                return;
             }
+           
+            winDivertNAT.Setup(new LinkerSNat.SetupInfo
+            {
+                Src = address,
+                Dsts = items.Select(c => new LinkerSNat.AddrInfo(c.IP, c.PrefixLength)).ToArray(),
+                InterfaceIp = defaultInterfaceIP
+            }, out error);
         }
         public void RemoveNat(out string error)
         {
             error = string.Empty;
-            if (address == null || address.Equals(IPAddress.Any)) return;
 
             try
             {

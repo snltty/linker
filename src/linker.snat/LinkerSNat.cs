@@ -64,12 +64,10 @@ namespace linker.snat
         /// <summary>
         /// 启动
         /// </summary>
-        /// <param name="src">虚拟网卡IP</param>
-        /// <param name="dsts">需要NAT的IP</param>
-        /// <param name="interfaceIp">本地网卡IP</param>
+        /// <param name="info">启动参数</param>
         /// <param name="error">false启动失败的时候会有报错信息</param>
         /// <returns></returns>
-        public bool Setup(IPAddress src, AddrInfo[] dsts, IPAddress interfaceIp, out string error)
+        public bool Setup(SetupInfo info, out string error)
         {
             error = string.Empty;
 
@@ -78,23 +76,23 @@ namespace linker.snat
                 error = "only win x64 and win x86";
                 return false;
             }
-            if (src == null || dsts == null || dsts.Length == 0)
+            if (info.Src == null || info.Dsts == null || info.Dsts.Length == 0)
             {
                 error = "src is null, or dsts empty，snat fail";
                 return false;
             }
-            if (interfaceIp == null || interfaceIp.Equals(IPAddress.Any))
+            if (info.InterfaceIp == null || info.InterfaceIp.Equals(IPAddress.Any))
             {
                 error = "snat need default interface ipaddres";
                 return false;
             }
             try
             {
-                srcIp = NetworkHelper.ToValue(src);
-                srcAddr = IPv4Addr.Parse(src.ToString());
+                srcIp = NetworkHelper.ToValue(info.Src);
+                srcAddr = IPv4Addr.Parse(info.Src.ToString());
 
-                interfaceAddr = IPv4Addr.Parse(interfaceIp.ToString());
-                winDivert = new WinDivert(BuildFilter(dsts), WinDivert.Layer.Network, 0, 0);
+                interfaceAddr = IPv4Addr.Parse(info.InterfaceIp.ToString());
+                winDivert = new WinDivert(BuildFilter(info.Dsts), WinDivert.Layer.Network, 0, 0);
 
                 cts = new CancellationTokenSource();
 
@@ -156,7 +154,8 @@ namespace linker.snat
         /// </summary>
         /// <param name="p"></param>
         /// <param name="addr"></param>
-        private unsafe void Recv(WinDivertParseResult p, ref WinDivertAddress addr)
+        /// <returns></returns>
+        private unsafe bool Recv(WinDivertParseResult p, ref WinDivertAddress addr)
         {
             fixed (byte* ptr = p.Packet.Span)
             {
@@ -173,6 +172,7 @@ namespace linker.snat
                 {
                     WinDivert.CalcChecksums(p.Packet.Span, ref addr, 0);
                 }
+                return result;
             }
         }
         /// <summary>
@@ -480,6 +480,30 @@ namespace linker.snat
             public IPAddress NetworkIP { get; private set; }
             public IPAddress BroadcastIP { get; private set; }
         }
+        public sealed class SetupInfo
+        {
+            /// <summary>
+            /// 虚拟网卡IP
+            /// </summary>
+            public IPAddress Src { get; init; }
+            /// <summary>
+            /// 需要NAT的IP
+            /// </summary>
+            public AddrInfo[] Dsts { get; init; }
+            /// <summary>
+            /// 本地网卡IP
+            /// </summary>
+            public IPAddress InterfaceIp { get; init; }
+
+            /// <summary>
+            /// 如果设置了回调，recv回来的数据就不注入虚拟网卡了，直接走回调回复给来源端，少走一次协议栈
+            /// </summary>
+            //public ILinkerSNatRecvCallback RecvCallback { get; init; }
+        }
+
+        /// <summary>
+        /// NAT映射记录
+        /// </summary>
         sealed class NatMapInfo
         {
             //IP头
@@ -501,8 +525,6 @@ namespace linker.snat
             public long LastTime { get; set; } = Environment.TickCount64;
             public int Timeout { get; set; } = 1 * 60 * 60;
         }
-
-
         /// <summary>
         /// IPV4 包
         /// </summary>
@@ -589,6 +611,18 @@ namespace linker.snat
                     this.ptr = ptr;
                 }
             }
+        }
+
+        /// <summary>
+        /// SNAT回调
+        /// </summary>
+        public interface ILinkerSNatRecvCallback
+        {
+            /// <summary>
+            /// 接收到的TCP/IP数据包
+            /// </summary>
+            /// <param name="packet"></param>
+            public void Recv(ReadOnlyMemory<byte> packet);
         }
     }
 }

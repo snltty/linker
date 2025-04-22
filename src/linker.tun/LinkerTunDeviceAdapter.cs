@@ -22,7 +22,7 @@ namespace linker.tun
         private string natError = string.Empty;
         public string NatError => natError;
 
-        public bool AppNat=> linkerTunDevice?.AppNat ?? false;
+        public bool AppNat => linkerTunDevice?.AppNat ?? false;
 
 
         private FrozenDictionary<uint, uint> mapDic = new Dictionary<uint, uint>().ToFrozenDictionary();
@@ -171,7 +171,8 @@ namespace linker.tun
         /// </summary>
         public void SetSystemNat()
         {
-            linkerTunDevice?.SetSystemNat(out natError);
+            if (linkerTunDevice.Running)
+                linkerTunDevice.SetSystemNat(out natError);
         }
         /// <summary>
         /// 设置应用层NAT，仅Windows，
@@ -182,7 +183,8 @@ namespace linker.tun
         /// <param name="items"></param>
         public void SetAppNat(LinkerTunAppNatItemInfo[] items)
         {
-            linkerTunDevice?.SetAppNat(items, out natError);
+            if (linkerTunDevice.Running)
+                linkerTunDevice.SetAppNat(items, out natError);
         }
         /// <summary>
         /// 移除NAT
@@ -206,7 +208,7 @@ namespace linker.tun
         /// <param name="forwards"></param>
         public void AddForward(List<LinkerTunDeviceForwardItem> forwards)
         {
-            linkerTunDevice?.AddForward(forwards);
+            linkerTunDevice.AddForward(forwards);
         }
         /// <summary>
         /// 移除端口转发
@@ -214,7 +216,7 @@ namespace linker.tun
         /// <param name="forwards"></param>
         public void RemoveForward(List<LinkerTunDeviceForwardItem> forwards)
         {
-            linkerTunDevice?.RemoveForward(forwards);
+            linkerTunDevice.RemoveForward(forwards);
         }
 
         /// <summary>
@@ -224,7 +226,8 @@ namespace linker.tun
         /// <param name="ip"></param>
         public void AddRoute(LinkerTunDeviceRouteItem[] ips)
         {
-            linkerTunDevice?.AddRoute(ips);
+            if (linkerTunDevice.Running)
+                linkerTunDevice.AddRoute(ips);
         }
         /// <summary>
         /// 删除路由
@@ -232,7 +235,7 @@ namespace linker.tun
         /// <param name="ips"></param>
         public void RemoveRoute(LinkerTunDeviceRouteItem[] ips)
         {
-            linkerTunDevice?.RemoveRoute(ips);
+            linkerTunDevice.RemoveRoute(ips);
         }
 
         private void Read()
@@ -253,8 +256,7 @@ namespace linker.tun
                             continue;
                         }
 
-                        LinkerTunDevicPacket packet = new LinkerTunDevicPacket();
-                        packet.Unpacket(buffer, 0, length);
+                        LinkerTunDevicPacket packet = new LinkerTunDevicPacket(buffer, 0, length);
                         if (packet.DistIPAddress.Length == 0) continue;
 
                         ToMapIP(buffer.AsMemory(4, length - 4));
