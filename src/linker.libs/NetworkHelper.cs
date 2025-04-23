@@ -296,7 +296,11 @@ namespace linker.libs
 
         public static IPAddress ToNetworkIP(IPAddress ip, uint prefixIP)
         {
-            return ToNetworkIP(BinaryPrimitives.ReadUInt32BigEndian(ip.GetAddressBytes()), prefixIP);
+            return ToNetworkIP(ToValue(ip), prefixIP);
+        }
+        public static IPAddress ToNetworkIP(IPAddress ip, byte prefixLength)
+        {
+            return ToNetworkIP(ToValue(ip), ToPrefixValue(prefixLength));
         }
         public static IPAddress ToNetworkIP(uint ip, uint prefixIP)
         {

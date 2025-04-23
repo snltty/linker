@@ -15,15 +15,7 @@ export const provideTuntap = () => {
     });
     provide(tuntapSymbol, tuntap);
 
-    const systems = {
-        linux: ['debian', 'ubuntu', 'alpine', 'rocky', 'centos', 'fedora', 'archlinux'],
-        armbian: ['armbian'],
-        openwrt: ['openwrt'],
-        ubuntu: ['ubuntu'],
-        windows: ['windows'],
-        android: ['android'],
-        ios: ['ios'],
-    }
+    const reg = /ios|android|windows|ubuntu|openwrt|armbian|archlinux|fedora|centos|rocky|alpine|debian|linux|docker/g;
 
     const _getTuntapInfo = () => {
         clearTimeout(tuntap.value.timer);
@@ -31,29 +23,13 @@ export const provideTuntap = () => {
             tuntap.value.hashcode = res.HashCode;
             if (res.List) {
                 for (let j in res.List) {
-                    let system = 'system';
                     const systemStr = res.List[j].SystemInfo.toLowerCase();
-                    for (let jj in systems) {
-                        if (systemStr.indexOf(jj) >= 0) {
-                            const items = systems[jj];
-                            if (items.length == 1) {
-                                system = items[0];
-                            } else {
-                                for (let i = 0; i < items.length; i++) {
-                                    if (systemStr.indexOf(items[i]) >= 0) {
-                                        system = items[i];
-                                        break;
-                                    }
-                                }
-                            }
-                            break;
-                        }
-                    }
+
+                    const match = systemStr.match(reg);
                     Object.assign(res.List[j], {
                         running: res.List[j].Status == 2,
                         loading: res.List[j].Status == 1,
-                        system: system,
-                        systemDocker: systemStr.indexOf('docker') >= 0,
+                        systems: match
                     });
                 }
                 tuntap.value.list = res.List;

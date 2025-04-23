@@ -92,6 +92,8 @@ namespace linker.app
     [Service(Label = "VpnServiceLinker", Name = "com.snltty.linker.app.VpnServiceLinker", Enabled = true, Permission = "android.permission.BIND_VPN_SERVICE")]
     public class VpnServiceLinker : VpnService, ILinkerTunDeviceCallback, ITuntapProxyCallback
     {
+        private static LinkerVpnDevice linkerVpnDevice = new LinkerVpnDevice();
+
         TuntapConfigTransfer tuntapConfigTransfer;
         TuntapProxy tuntapProxy;
         TuntapDecenter tuntapDecenter;
@@ -105,7 +107,8 @@ namespace linker.app
             tuntapProxy.Callback = this;
             tuntapDecenter = LinkerMessengerEntry.GetService<TuntapDecenter>();
 
-            tuntapTransfer.Initialize(new LinkerVpnDevice(this), this);
+            linkerVpnDevice.SetVpnService(this);
+            tuntapTransfer.Initialize(linkerVpnDevice, this);
         }
         public override void OnCreate()
         {
@@ -298,7 +301,13 @@ namespace linker.app
         FileInputStream vpnInput;
         FileOutputStream vpnOutput;
 
-        public LinkerVpnDevice(VpnService vpnService)
+        LinkerTunDeviceRouteItem[] routes = [];
+
+        public LinkerVpnDevice()
+        {
+        }
+
+        public void SetVpnService(VpnService vpnService)
         {
             this.vpnService = vpnService;
         }
@@ -317,6 +326,12 @@ namespace linker.app
             builder.SetMtu(1420)
                 .AddAddress(address.ToString(), prefixLength)
                 .AddDnsServer("8.8.8.8").SetBlocking(false);
+
+            foreach (var item in routes)
+            {
+                builder.AddRoute(NetworkHelper.ToNetworkIP(item.Address, item.PrefixLength).ToString(), item.PrefixLength);
+            }
+
             if (OperatingSystem.IsAndroidVersionAtLeast(29))
                 builder.SetMetered(false);
             vpnInterface = builder.SetSession(name).Establish();
@@ -350,10 +365,11 @@ namespace linker.app
             catch (Exception)
             {
             }
-            return buffer;
+            return Helper.EmptyArray;
         }
         public bool Write(ReadOnlyMemory<byte> buffer)
         {
+            if (fd == 0) return false;
             try
             {
                 buffer.CopyTo(bufferWrite);
@@ -409,6 +425,7 @@ namespace linker.app
 
         public void AddRoute(LinkerTunDeviceRouteItem[] ips)
         {
+            routes = ips.Select(c => new LinkerTunDeviceRouteItem { Address = c.Address, PrefixLength = c.PrefixLength }).ToArray();
         }
         public void RemoveRoute(LinkerTunDeviceRouteItem[] ips)
         {

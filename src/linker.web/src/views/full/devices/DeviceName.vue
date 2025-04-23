@@ -1,15 +1,16 @@
 <template>
     <div>
-        <template v-if="tuntap.list[item.MachineId] && tuntap.list[item.MachineId].system">
-            <span :title="tuntap.list[item.MachineId].SystemInfo">
-                <img class="system":src="`./${tuntap.list[item.MachineId].system}.svg`" />
-                <img v-if="tuntap.list[item.MachineId].systemDocker" class="system" :src="`./docker.svg`" />
-            </span>
-        </template>
         <a href="javascript:;" @click="handleEdit" title="此客户端的设备名" class="a-line">
             <strong class="gateway" :class="{green:item.Connected}">{{item.MachineName || 'null' }}</strong>
         </a>
         <strong class="self gateway" v-if="item.isSelf">(<el-icon size="16"><StarFilled /></el-icon>) </strong>
+        <template v-if="tuntap.list[item.MachineId] && tuntap.list[item.MachineId].systems">
+            <template v-for="system in tuntap.list[item.MachineId].systems">
+                <span :title="tuntap.list[item.MachineId].SystemInfo">
+                    <img class="system":src="`./${system}.svg`" />
+                </span>
+            </template>
+        </template>
     </div>
 </template>
 
@@ -57,7 +58,7 @@ export default {
 img.system{
     height:1.6rem;
     vertical-align: middle;
-    margin-right:.4rem
+    margin-left:.4rem
 }
 .self{
     color:#d400ff;
