@@ -56,7 +56,7 @@ namespace linker.tun
         /// 设置应用层NAT转发
         /// </summary>
         /// <param name="error"></param>
-        public void SetAppNat(LinkerTunAppNatItemInfo[] items, out string error);
+        public void SetAppNat(LinkerTunAppNatItemInfo[] items, ref string error);
         /// <summary>
         /// 移除NAT转发
         /// </summary>

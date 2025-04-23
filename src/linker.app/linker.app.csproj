@@ -22,7 +22,7 @@
 		<EnablePreviewFeatures>true</EnablePreviewFeatures>
 
 		<!-- Display name -->
-		<ApplicationTitle>linker.app</ApplicationTitle>
+		<ApplicationTitle>Linker</ApplicationTitle>
 
 		<!-- App Identifier -->
 		<ApplicationId>com.snltty.linker.app</ApplicationId>
@@ -113,8 +113,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Masa.Blazor" Version="1.9.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />

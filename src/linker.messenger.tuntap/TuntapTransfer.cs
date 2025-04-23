@@ -2,6 +2,7 @@
 using System.Net;
 using linker.tun;
 using linker.libs.timer;
+using static linker.snat.LinkerDstMapping;
 
 namespace linker.messenger.tuntap
 {
@@ -203,7 +204,7 @@ namespace linker.messenger.tuntap
         /// 添加映射
         /// </summary>
         /// <param name="maps"></param>
-        public void SetMap(LanMapInfo[] maps)
+        public void SetDstMap(DstMapInfo[] maps)
         {
             linkerTunDeviceAdapter.SetMap(maps);
         }

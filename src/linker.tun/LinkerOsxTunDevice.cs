@@ -114,9 +114,8 @@ namespace linker.tun
             });
             */
         }
-        public void SetAppNat(LinkerTunAppNatItemInfo[] items, out string error)
+        public void SetAppNat(LinkerTunAppNatItemInfo[] items, ref string error)
         {
-            error = string.Empty;
         }
         public void RemoveNat(out string error)
         {

@@ -179,7 +179,7 @@ export default {
         }
 
         onMounted(()=>{
-            if(step.value.json.Common.server == false){
+            if(step.value.json.Common.server == false || globalData.value.isPC == false){
                 step.value.step+=step.value.increment;
             }
         })

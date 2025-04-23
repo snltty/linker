@@ -94,19 +94,35 @@ namespace linker.messenger.signin
                     return;
                 }
 
+                if(LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Info($"connect to signin server:{ip}");
                 if (await ConnectServer(ip).ConfigureAwait(false) == false)
                 {
                     return;
                 }
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Info($"connect to signin server success:{signInClientStore.Server.Host}");
+
                 if (await SignIn2Server().ConfigureAwait(false) == false)
                 {
                     return;
                 }
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Info($"signin to server success:{signInClientStore.Server.Host}");
 
                 await GetServerVersion().ConfigureAwait(false);
 
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Info($"get server version:{clientSignInState.Version}");
+
                 clientSignInState.PushSignInSuccessBefore();
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Info($"push signin success before");
+
                 clientSignInState.PushSignInSuccess();
+
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Info($"push signin success");
 
                 GCHelper.FlushMemory();
             }
@@ -130,6 +146,9 @@ namespace linker.messenger.signin
             Socket socket = new Socket(remote.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socket.KeepAlive();
             await socket.ConnectAsync(remote).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Info($"begin recv signin connection");
             clientSignInState.Connection = await messengerResolver.BeginReceiveClient(socket, true, (byte)ResolverType.Messenger, Helper.EmptyArray).ConfigureAwait(false);
 
             return true;

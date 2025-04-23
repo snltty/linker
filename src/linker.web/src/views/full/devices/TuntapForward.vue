@@ -1,7 +1,7 @@
 <template>
     <div class="w-100">
         <div>
-            <span class="yellow">此设备无法使用NAT转发，或只想使用端口转发</span>
+            <span class="yellow">使用系统端口转发</span>
             <span class="green" v-if="state.testing">、testing</span>
         </div>
         <div class="wrap">
@@ -13,8 +13,10 @@
                                 @blur="handleEditBlur(scope.row, 'ListenPort')"></el-input>
                         </template>
                         <template v-else>
-                            <strong v-if="scope.row.Error" :title="scope.row.Error" class="red">{{ scope.row.ListenPort }}</strong>
-                            <span v-else>{{ scope.row.ListenPort }} <a href="javascript:;" @click="scope.row.ListenPort=0"><el-icon><Delete /></el-icon></a></span>
+                            <a href="javascript:;" class="a-line" @click="handleEdit(scope.row, 'ListenPort')">
+                                <strong v-if="scope.row.Error" :title="scope.row.Error" class="red">{{ scope.row.ListenPort }}</strong>
+                                <span v-else>{{ scope.row.ListenPort }} <a href="javascript:;" @click.stop="scope.row.ListenPort=0"><el-icon><Delete /></el-icon></a></span>
+                            </a>
                         </template>
                     </template>
                 </el-table-column>
@@ -25,8 +27,10 @@
                                 @blur="handleEditBlur(scope.row, 'ConnectAddr')"></el-input>
                         </template>
                         <template v-else>
-                            <strong v-if="scope.row.Error" :title="scope.row.Error" class="red">{{ scope.row.ConnectAddr }}</strong>
-                            <span v-else>{{ scope.row.ConnectAddr }} <a href="javascript:;" @click="scope.row.ConnectAddr='0.0.0.0'"><el-icon><Delete /></el-icon></a></span>
+                           <a href="javascript:;" class="a-line" @click="handleEdit(scope.row, 'ConnectAddr')">
+                                <strong v-if="scope.row.Error" :title="scope.row.Error" class="red">{{ scope.row.ConnectAddr }}</strong>
+                                <span v-else>{{ scope.row.ConnectAddr }} <a href="javascript:;" @click.stop="scope.row.ConnectAddr='0.0.0.0'"><el-icon><Delete /></el-icon></a></span>
+                           </a>
                         </template>
                     </template>
                 </el-table-column>
@@ -37,8 +41,10 @@
                                 @blur="handleEditBlur(scope.row, 'ConnectPort')"></el-input>
                         </template>
                         <template v-else>
-                            <strong v-if="scope.row.Error" :title="scope.row.Error" class="red">{{ scope.row.ConnectPort }}</strong>
-                            <span v-else>{{ scope.row.ConnectPort }} <a href="javascript:;" @click="scope.row.ConnectPort=0"><el-icon><Delete /></el-icon></a></span>
+                            <a href="javascript:;" class="a-line" @click="handleEdit(scope.row, 'ConnectPort')">
+                                <strong v-if="scope.row.Error" :title="scope.row.Error" class="red">{{ scope.row.ConnectPort }}</strong>
+                                <span v-else>{{ scope.row.ConnectPort }} <a href="javascript:;" @click.stop="scope.row.ConnectPort=0"><el-icon><Delete /></el-icon></a></span>
+                            </a>
                         </template>
                     </template>
                 </el-table-column>
@@ -50,7 +56,7 @@
                         </template>
                         <template v-else>
                             <div class="remark">
-                                {{ scope.row.Remark }}
+                                <a href="javascript:;" class="a-line" @click="handleEdit(scope.row, 'Remark')">{{ scope.row.Remark || '无' }}</a>
                             </div>
                         </template>
                     </template>
@@ -179,7 +185,7 @@ export default {
         }
 
         return {
-            state,handleCellClick,handleEditBlur,handleDel,handleAdd,getData
+            state,handleCellClick,handleEditBlur,handleEdit,handleDel,handleAdd,getData
         }
     }
 }

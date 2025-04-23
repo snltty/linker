@@ -40,6 +40,9 @@
                     <li v-if="hasLogger && route.name == 'FullLogger'">
                         <router-link :to="{name:'FullLogger'}"><img src="@/assets/rizhi.svg"/> {{$t('head.logger')}}</router-link>
                     </li>
+                    <li>
+                        <a href="javascript:void(0);" @click="refresh"><img src="@/assets/shuaxin2.svg"/> {{$t('head.refresh')}}</a>
+                    </li>
                 </ul>
             </div>
             <div class="select" v-if="globalData.isPhone">
@@ -122,9 +125,13 @@ export default {
             locale.value =index;
         }
 
+        const refresh = () => {
+            window.location.reload();
+        }
+
         return {
             route,globalData,hasConfig,hasGroup,
-            hasLogger,hasTransport,hasAction,localeOptions,locale,handleLocale
+            hasLogger,hasTransport,hasAction,localeOptions,locale,handleLocale,refresh
         }
     }
 }

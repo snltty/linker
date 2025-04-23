@@ -14,6 +14,7 @@ export default {
     'head.protocol': 'P2P Protocol',
     'head.action': 'Action',
     'head.logger': 'Logs',
+    'head.refresh': 'Refresh',
 
 
     'logger.list': 'List',

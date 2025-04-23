@@ -71,11 +71,11 @@ namespace linker.messenger
         /// <returns></returns>
         public async Task BeginReceiveServer(Socket socket, Memory<byte> memory)
         {
+            NetworkStream networkStream = new NetworkStream(socket, false);
+            SslStream sslStream = new SslStream(networkStream, true);
             try
             {
-                NetworkStream networkStream = new NetworkStream(socket, false);
-                SslStream sslStream = new SslStream(networkStream, true);
-                await sslStream.AuthenticateAsServerAsync(messengerStore.Certificate, OperatingSystem.IsAndroid(), SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls, false).ConfigureAwait(false);
+                await sslStream.AuthenticateAsServerAsync(messengerStore.Certificate, OperatingSystem.IsAndroid(), SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls, false).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
                 IConnection connection = CreateConnection(sslStream, networkStream, socket, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
 
                 connection.BeginReceive(this, null, true);
@@ -84,6 +84,10 @@ namespace linker.messenger
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Error(ex);
+
+                socket.SafeClose();
+                sslStream.Dispose();
+                networkStream.Dispose();
             }
         }
         /// <summary>
@@ -134,23 +138,37 @@ namespace linker.messenger
 
                 NetworkStream networkStream = new NetworkStream(socket, false);
                 SslStream sslStream = new SslStream(networkStream, true, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
-                await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
+                try
                 {
-                    AllowRenegotiation = true,
-                    EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls,
-                    CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
-                    ClientCertificates = new X509CertificateCollection { messengerStore.Certificate }
-                }).ConfigureAwait(false);
-                IConnection connection = CreateConnection(sslStream, networkStream, socket, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
+                    await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
+                    {
+                        AllowRenegotiation = true,
+                        EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls,
+                        CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
+                        ClientCertificates = new X509CertificateCollection { messengerStore.Certificate }
+                    }).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
 
-                connection.BeginReceive(this, null, true);
+                    IConnection connection = CreateConnection(sslStream, networkStream, socket, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
+                    connection.BeginReceive(this, null, true);
+                    return connection;
+                }
+                catch (Exception ex)
+                {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        LoggerHelper.Instance.Error(ex);
+                    socket.SafeClose();
+                    sslStream.Dispose();
+                    networkStream.Dispose();
 
-                return connection;
+                    return null;
+                }
             }
             catch (Exception ex)
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Error(ex);
+
+                socket.SafeClose();
             }
             return null;
         }

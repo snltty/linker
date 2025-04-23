@@ -32,7 +32,12 @@
                     </div>
                     <div class="pages t-c">
                         <div class="page-wrap">
-                            <el-pagination small :total="state.page.Count" v-model:currentPage="state.page.Page" :page-size="state.page.Size" @current-change="handlePageChange" background layout="total,prev, pager, next">
+                            <el-pagination small :total="state.page.Count"
+                             v-model:currentPage="state.page.Page" :page-size="state.page.Size" 
+                             :pager-count="globalData.isPc?7:3"
+                             :layout="globalData.isPc?'total,prev, pager, next':'prev, pager, next'"
+                             @current-change="handlePageChange" background 
+                           >
                             </el-pagination>
                         </div>
                     </div>

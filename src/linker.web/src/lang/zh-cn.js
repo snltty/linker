@@ -15,6 +15,7 @@ export default {
     'head.protocol': '打洞协议',
     'head.action': '自定义验证',
     'head.logger': '日志',
+    'head.refresh': '刷新',
 
 
     'logger.list': '列表',

@@ -37,7 +37,10 @@ a.a-line {
     overflow: hidden;         /* 隐藏超出部分 */
     text-overflow: ellipsis;  /* 显示省略号 */
     max-width: 100%;
-  }
+}
+.nowrap {
+    white-space: nowrap;  
+}
 
 
 .flex {

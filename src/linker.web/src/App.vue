@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div :class="{phone:globalData.isPhone}">
         <el-config-provider :locale="locale">
             <template v-if="configed">
                 <router-view />
@@ -25,7 +25,7 @@ export default {
 
         const locale = computed(() => (currentLocale.value == 'zh-CN' ? zhCn : en))
 
-        return { configed,locale};
+        return { configed,locale,globalData};
     }
 }
 </script>

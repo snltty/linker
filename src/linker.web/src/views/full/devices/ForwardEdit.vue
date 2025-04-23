@@ -13,7 +13,7 @@
                                 @blur="handleEditBlur(scope.row, 'Name')"></el-input>
                         </template>
                         <template v-else>
-                            {{ scope.row.Name }}
+                            <a href="javascript:;" class="a-line" @click="handleEdit(scope.row, 'Name')">{{ scope.row.Name || '未知' }}</a>
                         </template>
                     </template>
                 </el-table-column>
@@ -25,7 +25,7 @@
                             </el-select>
                         </template>
                         <template v-else>
-                            {{ state.bufferSize[scope.row.BufferSize ]}}
+                            <a href="javascript:;" class="a-line" @click="handleEdit(scope.row, 'BufferSize')">{{ state.bufferSize[scope.row.BufferSize ]}}</a>
                         </template>
                     </template>
                 </el-table-column>
@@ -37,7 +37,7 @@
                             </el-select>
                         </template>
                         <template v-else>
-                            {{ scope.row.BindIPAddress}}
+                            <a href="javascript:;" class="a-line" @click="handleEdit(scope.row, 'BindIPAddress')">{{ scope.row.BindIPAddress}}</a>
                         </template>
                     </template>
                 </el-table-column>
@@ -48,14 +48,16 @@
                                 @blur="handleEditBlur(scope.row, 'Port')"></el-input>
                         </template>
                         <template v-else>
-                            <template v-if="scope.row.Msg">
-                                <div class="error red" :title="scope.row.Msg">
-                                    <span>{{ scope.row.Port }}</span>
-                                </div>
-                            </template>
-                            <template v-else>
-                                <span :class="{green:scope.row.Started}">{{ scope.row.Port }}</span>
-                            </template>
+                            <a href="javascript:;" class="a-line" @click="handleEdit(scope.row, 'Port')">
+                                <template v-if="scope.row.Msg">
+                                    <div class="error red" :title="scope.row.Msg">
+                                        <span>{{ scope.row.Port }}</span>
+                                    </div>
+                                </template>
+                                <template v-else>
+                                    <span :class="{green:scope.row.Started}">{{ scope.row.Port }}</span>
+                                </template>
+                            </a>
                         </template>
                     </template>
                 </el-table-column>
@@ -80,12 +82,14 @@
                             </el-select>
                         </template>
                         <template v-else>
-                            <template v-if="state.names[scope.row.MachineId]">
-                                <span>{{ scope.row.MachineName}}</span>
-                            </template>
-                            <template v-else>
-                                <span class="error red" title="off line">{{ scope.row.MachineName}}</span>
-                            </template>
+                            <a href="javascript:;" class="a-line" @click="handleEdit(scope.row, 'MachineId')">
+                                <template v-if="state.names[scope.row.MachineId]">
+                                    <span>{{ scope.row.MachineName|| '未知'}}</span>
+                                </template>
+                                <template v-else>
+                                    <span class="error red" title="off line">{{ scope.row.MachineName || '未知'}}</span>
+                                </template>
+                            </a>
                         </template>
                     </template>
                 </el-table-column>
@@ -96,14 +100,16 @@
                                 @blur="handleEditBlur(scope.row, 'TargetEP')"></el-input>
                         </template>
                         <template v-else>
-                            <template v-if="scope.row.TargetMsg">
-                                <div class="error red" :title="scope.row.TargetMsg">
-                                    <span>{{ scope.row.TargetEP }}</span>
-                                </div>
-                            </template>
-                            <template v-else>
-                                <span :class="{green:scope.row.Started}">{{ scope.row.TargetEP }}</span>
-                            </template>
+                            <a href="javascript:;" class="a-line" @click="handleEdit(scope.row, 'TargetEP')">
+                                <template v-if="scope.row.TargetMsg">
+                                    <div class="error red" :title="scope.row.TargetMsg">
+                                        <span>{{ scope.row.TargetEP }}</span>
+                                    </div>
+                                </template>
+                                <template v-else>
+                                    <span :class="{green:scope.row.Started}">{{ scope.row.TargetEP }}</span>
+                                </template>
+                            </a>
                         </template>
                     </template>
                 </el-table-column>

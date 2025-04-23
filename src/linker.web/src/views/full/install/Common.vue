@@ -1,17 +1,19 @@
 <template>
     <div class="t-c">
         <el-checkbox v-model="state.form.client" label="作为客户端" />
-        <el-checkbox v-model="state.form.server" label="作为服务端" />
+        <el-checkbox v-model="state.form.server" label="作为服务端" v-if="globalData.isPc" />
     </div>
 </template>
 
 <script>
 import {inject, reactive} from 'vue'
 import {ElMessage} from 'element-plus'
+import { injectGlobalData } from '@/provide';
 export default {
     name: 'Common',
     setup () {
         
+        const globalData = injectGlobalData();
         const step = inject('step');
         const state =  reactive({
             form: {
@@ -44,7 +46,7 @@ export default {
 
 
         return {
-            state,handleValidate
+            state,globalData,handleValidate
         }
     }
 }

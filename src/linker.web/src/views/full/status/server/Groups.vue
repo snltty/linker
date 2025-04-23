@@ -9,7 +9,7 @@
                         @blur="handleEditBlur(scope.row, 'Name')"></el-input>
                 </template>
                 <template v-else>
-                    {{ scope.row.Name }}
+                    <a  href="javascript:;" class="a-line" @click="handleEdit(scope.row, 'Name')">{{ scope.row.Name || '未知' }}</a>
                 </template>
             </template>
         </el-table-column>
@@ -20,7 +20,7 @@
                         @blur="handleEditBlur(scope.row, 'Id')"></el-input>
                 </template>
                 <template v-else>
-                    {{ scope.row.Id }}
+                    <a  href="javascript:;" class="a-line" @click="handleEdit(scope.row, 'Id')">{{ scope.row.Id }}</a>
                 </template>
             </template>
         </el-table-column>
@@ -30,8 +30,10 @@
                     <el-input type="password" show-password size="small" v-model="scope.row.Password" @blur="handleEditBlur(scope.row, 'Password')"></el-input>
                 </template>
                 <template v-else>
-                    <template v-if="globalData.isPhone"><span>***</span></template>
-                    <template v-else><span>{{ scope.row.Password.replace(/.{1}/g,'*') }}</span></template>
+                    <a href="javascript:;" class="a-line" @click="handleEdit(scope.row, 'Password')">
+                        <template v-if="globalData.isPhone"><span>***</span></template>
+                        <template v-else><span>{{ scope.row.Password.replace(/.{1}/g,'*') }}</span></template>
+                    </a>
                 </template>
             </template>
         </el-table-column>
@@ -153,7 +155,7 @@ export default {
             });
         }
 
-        return {globalData,state,handleCellClick,handleEditBlur,handleDel,handleAdd,handleUse}
+        return {globalData,state,handleCellClick,handleEditBlur,handleEdit,handleDel,handleAdd,handleUse}
     }
 }
 </script>

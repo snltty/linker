@@ -35,7 +35,7 @@
 <script>
 import { injectGlobalData } from '@/provide';
 import { install } from '@/apis/config';
-import { reactive,   ref, provide } from 'vue';
+import { reactive,   ref, provide, computed } from 'vue';
 import { ElMessage } from 'element-plus';
 import Common from './Common.vue'
 import Client from './Client.vue'
@@ -47,10 +47,10 @@ export default {
         const globalData = injectGlobalData();
         const state = reactive({
             show: globalData.value.config.Common.Install == false,
-            steps:['选择模式',
-            '服务端',
+            steps:computed(()=>['选择模式',
+            globalData.value.isPc ? '服务端' : '',
             '客户端',
-            '完成']
+            '完成'])
         });
 
         const currentDom = ref(null);
@@ -82,7 +82,7 @@ export default {
             })
         }
 
-        return { state,currentDom,step,handlePrev,handleNext,handleSave};
+        return { state,globalData,currentDom,step,handlePrev,handleNext,handleSave};
     }
 }
 </script>

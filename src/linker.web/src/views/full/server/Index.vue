@@ -1,5 +1,5 @@
 <template>
-    <div class="servers-wrap" >
+    <div class="servers-wrap scrollbar" >
         <SignInServers v-if="hasConfig"></SignInServers>
     </div>
 </template>

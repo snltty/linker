@@ -31,7 +31,7 @@ namespace linker.tun
 
         private CancellationTokenSource tokenSource;
 
-        private LinkerSNat winDivertNAT = new LinkerSNat();
+        private LinkerSrcNat winDivertNAT = new LinkerSrcNat();
 
         public LinkerWinTunDevice()
         {
@@ -218,9 +218,8 @@ namespace linker.tun
                 error = ex.Message;
             }
         }
-        public void SetAppNat(LinkerTunAppNatItemInfo[] items, out string error)
+        public void SetAppNat(LinkerTunAppNatItemInfo[] items, ref string error)
         {
-            error = string.Empty;
             winDivertNAT.Shutdown();
 
             if (address == null || address.Equals(IPAddress.Any) || prefixLength == 0)
@@ -236,10 +235,10 @@ namespace linker.tun
                 return;
             }
            
-            winDivertNAT.Setup(new LinkerSNat.SetupInfo
+            winDivertNAT.Setup(new LinkerSrcNat.SetupInfo
             {
                 Src = address,
-                Dsts = items.Select(c => new LinkerSNat.AddrInfo(c.IP, c.PrefixLength)).ToArray(),
+                Dsts = items.Select(c => new LinkerSrcNat.AddrInfo(c.IP, c.PrefixLength)).ToArray(),
                 InterfaceIp = defaultInterfaceIP
             }, out error);
         }

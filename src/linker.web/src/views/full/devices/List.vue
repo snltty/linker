@@ -9,11 +9,14 @@
             <Forward v-if="forward.show" @edit="handleForwardEdit" @sedit="handleSForwardEdit"></Forward> 
             <Oper  @refresh="handlePageRefresh" @access="handleAccessEdit"></Oper>
         </el-table>
-        <div class="page t-c">
+        <div class="page" :class="{'t-c':globalData.isPc}">
             <div class="page-wrap">
-                <el-pagination small background layout="total,sizes,prev,pager, next" :total="devices.page.Count"
+                <el-pagination small background :total="devices.page.Count"
+                    :pager-count="globalData.isPc?7:3"
+                    :layout="globalData.isPc?'total,sizes,prev,pager, next':'prev, pager, next'"
                     :page-size="devices.page.Request.Size" :current-page="devices.page.Request.Page"
-                    @current-change="handlePageChange" @size-change="handlePageSizeChange" :page-sizes="[10, 20, 50, 100,255]" />
+                    @current-change="handlePageChange" @size-change="handlePageSizeChange" 
+                    :page-sizes="[10, 20, 50, 100,255]" />
             </div>
         </div>
         <DeviceEdit v-if="devices.showDeviceEdit" v-model="devices.showDeviceEdit"  @change="handlePageChange" :data="devices.deviceInfo"></DeviceEdit>
@@ -214,7 +217,7 @@ export default {
         });
 
         return {
-            state,devices, machineId,handleSortChange,
+            state,globalData,devices, machineId,handleSortChange,
             handleDeviceEdit,handleAccessEdit,handlePageRefresh,handlePageSearch, handlePageChange,handlePageSizeChange, handleDel,
             tuntap, handleTuntapEdit, handleTuntapRefresh,
             socks5, handleSocks5Edit, handleSocks5Refresh,

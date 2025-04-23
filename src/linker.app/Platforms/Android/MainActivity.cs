@@ -14,7 +14,6 @@ using linker.libs;
 using linker.libs.extends;
 using linker.libs.web;
 using linker.messenger.entry;
-using linker.messenger.store.file;
 using linker.messenger.tuntap;
 using linker.tun;
 using linker.tunnel.connection;
@@ -229,6 +228,7 @@ namespace linker.app
         }
         private Dictionary<string, string> InitConfig()
         {
+            /*
             try
             {
                 System.IO.File.Delete(System.IO.Path.Combine(Helper.currentDirectory, "./configs/", "client.json"));
@@ -240,13 +240,21 @@ namespace linker.app
             catch (Exception)
             {
             }
-            ConfigClientInfo client = new ConfigClientInfo
+            */
+            object client = new
             {
+                /*
+                Servers = new messenger.signin.SignInClientServerInfo[] {
+                    new messenger.signin.SignInClientServerInfo { Host = "linker.snltty.com:1802", Name = "linker" }
+                },
+                 Groups = new messenger.signin.SignInClientGroupInfo[] { new messenger.signin.SignInClientGroupInfo { Id="linker", Password="linker" } }
+                 */
             };
-            ConfigCommonInfo common = new ConfigCommonInfo
+            object common = new
             {
                 Modes = new string[] { "client" },
-                LoggerType = 0
+                //Install = false,
+                //LoggerType = 0
             };
             return new Dictionary<string, string> {
                 {"Client",Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(client)))},
@@ -379,9 +387,8 @@ namespace linker.app
         {
             error = string.Empty;
         }
-        public void SetAppNat(LinkerTunAppNatItemInfo[] items, out string error)
+        public void SetAppNat(LinkerTunAppNatItemInfo[] items, ref string error)
         {
-            error = string.Empty;
         }
         public void RemoveNat(out string error)
         {
@@ -472,15 +479,10 @@ namespace linker.app
             lastModified = DateTime.Now;
             fileName = Path.Join("public/web", fileName);
             using Stream fileStream = FileSystem.Current.OpenAppPackageFileAsync(fileName).Result;
-            int length = 0;
-            while ((length = fileStream.Read(buffer, 0, buffer.Length)) != 0)
-            {
-                receiveDataBuffer.AddRange(buffer, 0, length);
-            }
-            byte[] result = receiveDataBuffer.Data.ToArray();
-            receiveDataBuffer.Clear();
+            using MemoryStream memoryStream = new MemoryStream();
+            fileStream.CopyTo(memoryStream);
+            return memoryStream.ToArray();
 
-            return result;
         }
     }
 

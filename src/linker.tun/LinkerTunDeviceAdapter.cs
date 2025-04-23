@@ -1,9 +1,8 @@
 ﻿using linker.libs;
 using linker.libs.timer;
-using System.Buffers.Binary;
-using System.Collections.Concurrent;
-using System.Collections.Frozen;
+using linker.snat;
 using System.Net;
+using static linker.snat.LinkerDstMapping;
 
 namespace linker.tun
 {
@@ -23,14 +22,9 @@ namespace linker.tun
         public string NatError => natError;
 
         public bool AppNat => linkerTunDevice?.AppNat ?? false;
+        private readonly LinkerDstMapping linkerDstMapping = new LinkerDstMapping();
 
-
-        private FrozenDictionary<uint, uint> mapDic = new Dictionary<uint, uint>().ToFrozenDictionary();
-        private uint[] masks = Array.Empty<uint>();
-        private ConcurrentDictionary<uint, uint> natDic = new ConcurrentDictionary<uint, uint>();
-
-
-        private OperatingManager operatingManager = new OperatingManager();
+        private readonly OperatingManager operatingManager = new OperatingManager();
         public LinkerTunDeviceStatus Status
         {
             get
@@ -47,6 +41,7 @@ namespace linker.tun
 
         public LinkerTunDeviceAdapter()
         {
+
         }
 
         /// <summary>
@@ -137,6 +132,10 @@ namespace linker.tun
         /// </summary>
         public bool Shutdown()
         {
+            if (linkerTunDevice == null)
+            {
+                return false;
+            }
             if (operatingManager.StartOperation() == false)
             {
                 setupError = $"shutdown are operating";
@@ -145,8 +144,8 @@ namespace linker.tun
             try
             {
                 cancellationTokenSource?.Cancel();
-                linkerTunDevice?.Shutdown();
-                linkerTunDevice?.RemoveNat(out string error);
+                linkerTunDevice.Shutdown();
+                linkerTunDevice.RemoveNat(out string error);
             }
             catch (Exception)
             {
@@ -163,7 +162,11 @@ namespace linker.tun
         /// </summary>
         public void Refresh()
         {
-            linkerTunDevice?.Refresh();
+            if (linkerTunDevice == null)
+            {
+                return;
+            }
+            linkerTunDevice.Refresh();
         }
 
         /// <summary>
@@ -171,6 +174,10 @@ namespace linker.tun
         /// </summary>
         public void SetSystemNat()
         {
+            if (linkerTunDevice == null)
+            {
+                return;
+            }
             if (linkerTunDevice.Running)
                 linkerTunDevice.SetSystemNat(out natError);
         }
@@ -183,14 +190,22 @@ namespace linker.tun
         /// <param name="items"></param>
         public void SetAppNat(LinkerTunAppNatItemInfo[] items)
         {
+            if (linkerTunDevice == null)
+            {
+                return;
+            }
             if (linkerTunDevice.Running)
-                linkerTunDevice.SetAppNat(items, out natError);
+                linkerTunDevice.SetAppNat(items, ref natError);
         }
         /// <summary>
         /// 移除NAT
         /// </summary>
         public void RemoveNat()
         {
+            if (linkerTunDevice == null)
+            {
+                return;
+            }
             linkerTunDevice.RemoveNat(out string error);
         }
 
@@ -200,7 +215,11 @@ namespace linker.tun
         /// <returns></returns>
         public List<LinkerTunDeviceForwardItem> GetForward()
         {
-            return linkerTunDevice?.GetForward() ?? [];
+            if (linkerTunDevice == null)
+            {
+                return [];
+            }
+            return linkerTunDevice.GetForward();
         }
         /// <summary>
         /// 添加端口转发
@@ -208,6 +227,10 @@ namespace linker.tun
         /// <param name="forwards"></param>
         public void AddForward(List<LinkerTunDeviceForwardItem> forwards)
         {
+            if (linkerTunDevice == null)
+            {
+                return;
+            }
             linkerTunDevice.AddForward(forwards);
         }
         /// <summary>
@@ -216,6 +239,10 @@ namespace linker.tun
         /// <param name="forwards"></param>
         public void RemoveForward(List<LinkerTunDeviceForwardItem> forwards)
         {
+            if (linkerTunDevice == null)
+            {
+                return;
+            }
             linkerTunDevice.RemoveForward(forwards);
         }
 
@@ -226,6 +253,10 @@ namespace linker.tun
         /// <param name="ip"></param>
         public void AddRoute(LinkerTunDeviceRouteItem[] ips)
         {
+            if (linkerTunDevice == null)
+            {
+                return;
+            }
             if (linkerTunDevice.Running)
                 linkerTunDevice.AddRoute(ips);
         }
@@ -235,6 +266,10 @@ namespace linker.tun
         /// <param name="ips"></param>
         public void RemoveRoute(LinkerTunDeviceRouteItem[] ips)
         {
+            if (linkerTunDevice == null)
+            {
+                return;
+            }
             linkerTunDevice.RemoveRoute(ips);
         }
 
@@ -259,7 +294,7 @@ namespace linker.tun
                         LinkerTunDevicPacket packet = new LinkerTunDevicPacket(buffer, 0, length);
                         if (packet.DistIPAddress.Length == 0) continue;
 
-                        ToMapIP(buffer.AsMemory(4, length - 4));
+                        linkerDstMapping.ToFakeDst(buffer.AsMemory(4, length - 4));
                         await linkerTunDeviceCallback.Callback(packet).ConfigureAwait(false);
                     }
                     catch (Exception ex)
@@ -279,112 +314,31 @@ namespace linker.tun
         /// <returns></returns>
         public bool Write(ReadOnlyMemory<byte> buffer)
         {
-            if (linkerTunDevice != null && Status == LinkerTunDeviceStatus.Running)
-            {
-                MapToRealIP(buffer);
-                return linkerTunDevice.Write(buffer);
-            }
-            return false;
+            if (linkerTunDevice == null || Status != LinkerTunDeviceStatus.Running) return false;
+
+            linkerDstMapping.ToRealDst(buffer, AppNat == false);
+            return linkerTunDevice.Write(buffer);
         }
 
-        private void ToMapIP(ReadOnlyMemory<byte> buffer)
-        {
-            //只支持映射IPV4
-            if ((byte)(buffer.Span[0] >> 4 & 0b1111) != 4) return;
-            //映射表不为空
-            if (natDic.IsEmpty) return;
 
-            //源IP
-            uint realDist = NetworkHelper.ToValue(buffer.Span.Slice(12, 4));
-            if (natDic.TryGetValue(realDist, out uint fakeDist))
-            {
-                //修改源IP
-                ReWriteIP(buffer, fakeDist, 12);
-            }
-        }
-        private void MapToRealIP(ReadOnlyMemory<byte> buffer)
-        {
-            //只支持映射IPV4
-            if ((byte)(buffer.Span[0] >> 4 & 0b1111) != 4) return;
-            //映射表不为空
-            if (masks.Length == 0 || mapDic.Count == 0) return;
-            //广播包
-            if (buffer.Span[19] == 255) return;
-
-            uint fakeDist = NetworkHelper.ToValue(buffer.Span.Slice(16, 4));
-            for (int i = 0; i < masks.Length; i++)
-            {
-                //目标IP网络号存在映射表中，找到映射后的真实网络号，替换网络号得到最终真实的IP
-                if (mapDic.TryGetValue(fakeDist & masks[i], out uint realNetwork))
-                {
-                    uint realDist = realNetwork | (fakeDist & ~masks[i]);
-                    //修改目标IP
-                    ReWriteIP(buffer, realDist, 16, linkerTunDevice.AppNat == false);
-                    natDic.AddOrUpdate(realDist, fakeDist, (a, b) => fakeDist);
-                    break;
-                }
-            }
-        }
-        /// <summary>
-        /// 写入新IP
-        /// </summary>
-        /// <param name="packet">IP包</param>
-        /// <param name="newIP">大端IP</param>
-        /// <param name="pos">写入位置，源12，目的16</param>
-        /// <param name="checksum">是否计算校验和，当windows使用应用层NAT后，会计算一次，这样可以减少一次计算</param>
-        private unsafe void ReWriteIP(ReadOnlyMemory<byte> packet, uint newIP, int pos, bool checksum = true)
-        {
-            fixed (byte* ptr = packet.Span)
-            {
-                //修改目标IP，需要小端写入，IP计算都是按大端的，操作是小端的，所以转换一下
-                *(uint*)(ptr + pos) = BinaryPrimitives.ReverseEndianness(newIP);
-                if (checksum)
-                {
-                    //计算校验和
-                    ChecksumHelper.Checksum(ptr, packet.Length);
-                }
-            }
-        }
         /// <summary>
         /// 设置IP映射列表
         /// </summary>
         /// <param name="maps"></param>
-        public void SetMap(LanMapInfo[] maps)
+        public void SetMap(DstMapInfo[] maps)
         {
-            if (maps == null || maps.Length == 0)
-            {
-                mapDic = new Dictionary<uint, uint>().ToFrozenDictionary();
-                masks = Array.Empty<uint>();
-                natDic.Clear();
-                return;
-            }
-
-            mapDic = maps.ToFrozenDictionary(x => NetworkHelper.ToNetworkValue(x.IP, x.PrefixLength), x => NetworkHelper.ToNetworkValue(x.ToIP, x.PrefixLength));
-            masks = maps.Select(x => NetworkHelper.ToPrefixValue(x.PrefixLength)).ToArray();
+            linkerDstMapping.SetDsts(maps);
         }
 
         public async Task<bool> CheckAvailable(bool order = false)
         {
+            if (linkerTunDevice == null)
+            {
+                return false;
+            }
             return await linkerTunDevice.CheckAvailable(order);
         }
     }
 
-    /// <summary>
-    /// 映射对象
-    /// </summary>
-    public sealed class LanMapInfo
-    {
-        /// <summary>
-        /// 假IP
-        /// </summary>
-        public IPAddress IP { get; set; }
-        /// <summary>
-        /// 真实IP
-        /// </summary>
-        public IPAddress ToIP { get; set; }
-        /// <summary>
-        /// 前缀
-        /// </summary>
-        public byte PrefixLength { get; set; }
-    }
+
 }

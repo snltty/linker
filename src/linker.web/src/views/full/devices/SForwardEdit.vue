@@ -14,7 +14,7 @@
                                     @blur="handleEditBlur(scope.row, 'Name')"></el-input>
                             </template>
                             <template v-else>
-                                {{ scope.row.Name }}
+                                <a href="javascript:;" class="a-line" @click="handleEdit(scope.row, 'Name')">{{ scope.row.Name || '未知' }}</a>
                             </template>
                         </template>
                     </el-table-column>
@@ -33,13 +33,15 @@
                                     @blur="handleEditBlur(scope.row, 'Temp')"></el-input>
                             </template>
                             <template v-else>
-                                <template v-if="scope.row.Msg">
-                                    <div class="error red" :title="scope.row.Msg">
-                                        <span>{{ scope.row.Temp }}</span>
-                                        <el-icon size="20"><WarnTriangleFilled /></el-icon>
-                                    </div>
-                                </template>
-                                <template v-else><span :class="{green:scope.row.Started}">{{ scope.row.Temp }}</span></template>
+                                <a href="javascript:;" class="a-line" @click="handleEdit(scope.row, 'Temp')">
+                                    <template v-if="scope.row.Msg">
+                                        <div class="error red" :title="scope.row.Msg">
+                                            <span>{{ scope.row.Temp }}</span>
+                                            <el-icon size="20"><WarnTriangleFilled /></el-icon>
+                                        </div>
+                                    </template>
+                                    <template v-else><span :class="{green:scope.row.Started}">{{ scope.row.Temp }}</span></template>
+                                </a>
                             </template>
                         </template>
                     </el-table-column>
@@ -50,15 +52,17 @@
                                     @blur="handleEditBlur(scope.row, 'LocalEP')"></el-input>
                             </template>
                             <template v-else>
-                                <template v-if="scope.row.LocalMsg">
-                                    <div class="error red" :title="scope.row.LocalMsg">
-                                        <span>{{ scope.row.LocalEP }}</span>
-                                        <el-icon size="20"><WarnTriangleFilled /></el-icon>
-                                    </div>
-                                </template>
-                                <template v-else>
-                                    <span :class="{green:scope.row.Started}">{{ scope.row.LocalEP }}</span>
-                                </template>
+                                <a href="javascript:;" class="a-line" @click="handleEdit(scope.row, 'LocalEP')">
+                                    <template v-if="scope.row.LocalMsg">
+                                        <div class="error red" :title="scope.row.LocalMsg">
+                                            <span>{{ scope.row.LocalEP }}</span>
+                                            <el-icon size="20"><WarnTriangleFilled /></el-icon>
+                                        </div>
+                                    </template>
+                                    <template v-else>
+                                        <span :class="{green:scope.row.Started}">{{ scope.row.LocalEP }}</span>
+                                    </template>
+                                </a>
                             </template>
                         </template>
                     </el-table-column>

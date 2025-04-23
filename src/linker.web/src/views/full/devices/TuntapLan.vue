@@ -1,7 +1,7 @@
 <template>
     <div class="w-100">
         <div>
-            <span class="yellow">填写局域网IP，使用NAT转发</span>
+            <span class="yellow">使用系统NAT或应用层SNAT</span>
         </div>
         <div class="wrap">
             <el-table stripe  :data="state.lans" border size="small" width="100%" height="200px" @cell-dblclick="handleCellClick">
@@ -12,8 +12,10 @@
                                 @blur="handleEditBlur(scope.row, 'IP')"></el-input>
                         </template>
                         <template v-else>
-                            <strong v-if="scope.row.Error" :title="scope.row.Error" class="red">{{ scope.row.IP }}</strong>
-                            <span v-else>{{ scope.row.IP }} <a href="javascript:;" @click="scope.row.IP='0.0.0.0'"><el-icon><Delete /></el-icon></a></span>
+                            <a href="javascript:;" class="a-line" @click="handleEdit(scope.row, 'IP')">
+                                <strong v-if="scope.row.Error" :title="scope.row.Error" class="red">{{ scope.row.IP }}</strong>
+                                <span v-else>{{ scope.row.IP }} <a href="javascript:;" @click.stop="scope.row.IP='0.0.0.0'"><el-icon><Delete /></el-icon></a></span>
+                            </a>
                         </template>
                     </template>
                 </el-table-column>
@@ -24,8 +26,10 @@
                                 @blur="handleEditBlur(scope.row, 'PrefixLength')"></el-input>
                         </template>
                         <template v-else>
-                            <strong v-if="scope.row.Error" :title="scope.row.Error" class="red">{{ scope.row.PrefixLength }}</strong>
-                            <span v-else>{{ scope.row.PrefixLength }}</span>
+                            <a href="javascript:;" class="a-line" @click="handleEdit(scope.row, 'PrefixLength')">
+                                <strong v-if="scope.row.Error" :title="scope.row.Error" class="red">{{ scope.row.PrefixLength }}</strong>
+                                <span v-else>{{ scope.row.PrefixLength }}</span>
+                            </a>
                         </template>
                     </template>
                 </el-table-column>
@@ -36,8 +40,10 @@
                                 @blur="handleEditBlur(scope.row, 'MapIP')"></el-input>
                         </template>
                         <template v-else>
-                            <strong v-if="scope.row.Error" :title="scope.row.Error" class="red">{{ scope.row.MapIP }}</strong>
-                            <span v-else>{{ scope.row.MapIP }} <a href="javascript:;" @click="scope.row.MapIP='0.0.0.0'"><el-icon><Delete /></el-icon></a></span>
+                            <a href="javascript:;" class="a-line" @click="handleEdit(scope.row, 'MapIP')">
+                                <strong v-if="scope.row.Error" :title="scope.row.Error" class="red">{{ scope.row.MapIP }}</strong>
+                                <span v-else>{{ scope.row.MapIP }} <a href="javascript:;" @click.stop="scope.row.MapIP='0.0.0.0'"><el-icon><Delete /></el-icon></a></span>
+                            </a>
                         </template>
                     </template>
                 </el-table-column>
@@ -48,14 +54,16 @@
                                 @blur="handleEditBlur(scope.row, 'MapPrefixLength')"></el-input>
                         </template>
                         <template v-else>
-                            <strong v-if="scope.row.Error" :title="scope.row.Error" class="red">{{ scope.row.MapPrefixLength }}</strong>
-                            <span v-else>{{ scope.row.MapPrefixLength }}</span>
+                            <a href="javascript:;" class="a-line" @click="handleEdit(scope.row, 'MapPrefixLength')">
+                                <strong v-if="scope.row.Error" :title="scope.row.Error" class="red">{{ scope.row.MapPrefixLength }}</strong>
+                                <span v-else>{{ scope.row.MapPrefixLength }}</span>
+                            </a>
                         </template>
                     </template>
                 </el-table-column>
                 <el-table-column prop="Disabled" label="禁用">
                     <template #default="scope">
-                        <el-checkbox v-model="scope.row.Disabled" label="禁用记录"/>
+                        <el-checkbox v-model="scope.row.Disabled" label="禁用"/>
                     </template>
                 </el-table-column>
                 <el-table-column prop="Oper" label="操作" width="110">
@@ -136,7 +144,7 @@ export default {
         }
 
         return {
-            state,handleDel,handleAdd,getData,handleCellClick,handleEditBlur
+            state,handleDel,handleAdd,getData,handleCellClick,handleEditBlur,handleEdit
         }
     }
 }

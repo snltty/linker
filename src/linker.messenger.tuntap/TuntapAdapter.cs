@@ -6,6 +6,7 @@ using linker.messenger.signin;
 using linker.tun;
 using linker.tunnel.connection;
 using System.Net;
+using static linker.snat.LinkerDstMapping;
 
 namespace linker.messenger.tuntap
 {
@@ -163,8 +164,8 @@ namespace linker.messenger.tuntap
         {
             var maps = tuntapConfigTransfer.Info.Lans
                 .Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false && c.MapIP != null && c.MapIP.Equals(IPAddress.Any) == false && c.Disabled == false)
-                .Select(c => new LanMapInfo { IP = c.IP, ToIP = c.MapIP, PrefixLength = c.MapPrefixLength }).ToArray();
-            tuntapTransfer.SetMap(maps);
+                .Select(c => new DstMapInfo { FakeIP = c.IP, RealIP = c.MapIP, PrefixLength = c.MapPrefixLength }).ToArray();
+            tuntapTransfer.SetDstMap(maps);
         }
         /// <summary>
         /// 设置应用层NAT
