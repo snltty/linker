@@ -3,16 +3,21 @@
         <el-col :span="8">
             <el-checkbox v-model="state.checkAll" @change="handleCheckAllChange" label="全选" :indeterminate="state.isIndeterminate" />
         </el-col>
+        <el-col :span="8">
+            <el-checkbox v-model="state.full" ><span class="red">满权限(顶级管理权)</span></el-checkbox>
+        </el-col>
     </el-row>
-    <el-checkbox-group v-model="state.checkList" @change="handleCheckedChange">
-        <el-row>
-            <template v-for="(item,index) in access" :key="index">
-                <el-col :span="8">
-                    <el-checkbox :value="item.Value" :label="item.Text" />
-                </el-col>
-            </template>
-        </el-row>
-    </el-checkbox-group>
+    <div class="access-wrap scrollbar">
+        <el-checkbox-group v-model="state.checkList" @change="handleCheckedChange">
+            <el-row>
+                <template v-for="(item,index) in access" :key="index">
+                    <el-col :span="8">
+                        <el-checkbox :value="item.Value" :label="item.Text" />
+                    </el-col>
+                </template>
+            </el-row>
+        </el-checkbox-group>
+    </div>
 </template>
 <script>
 import {  computed, onMounted, reactive } from 'vue';
@@ -46,10 +51,12 @@ export default {
                 globalData.value.config.Client.Accesss.Group.Value,
             ],
             checkAll:false,
+            full:false,
             isIndeterminate:false
         });
 
         const getValue = ()=>{
+            if(state.full) return (+(BigInt(0xffffffffffffffff)>>BigInt(12)).toString())-1;
             return +state.checkList.reduce((sum,item)=>{
                 return (sum | BigInt(item));
             },BigInt(0)).toString();
@@ -84,4 +91,5 @@ export default {
 </script>
 <style lang="stylus" scoped>
  .el-col {text-align:left;}
+ .access-wrap{height:40rem}
 </style>

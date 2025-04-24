@@ -14,9 +14,6 @@ namespace linker.app
             {
                 webview.Source = new Uri($"http://127.0.0.1:1804?t={DateTime.Now.Ticks}");
             };
-
         }
-
     }
-
 }

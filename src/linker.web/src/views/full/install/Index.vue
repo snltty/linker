@@ -2,93 +2,40 @@
     <div>
         <el-dialog v-model="state.show" title="初始化配置" width="600" top="2vh">
             <div>
-                <div class="head">
-                    <el-steps :active="step.step" finish-status="success">
-                        <template v-for="(item,index) in state.steps">
-                            <el-step :title="item" />
-                        </template>
-                    </el-steps>
-                </div>
-                <div class="body">
-                    <el-card shadow="never" v-if="step.step == 1">
-                        <Common ref="currentDom"></Common>
-                    </el-card>
-                    <el-card shadow="never"  v-if="step.step == 2">
-                        <Server ref="currentDom"></Server>
-                    </el-card>
-                    <el-card shadow="never"  v-if="step.step == 3">
-                        <Client ref="currentDom"></Client>
-                    </el-card>
-                    <el-card shadow="never"  v-if="step.step == 4">
-                        <div class="t-c">完成保存后，请重启软件</div>
-                    </el-card>
-                </div>
-                <div class="footer t-c">
-                    <el-button :disabled="step.step <= 1" @click="handlePrev">上一步</el-button>
-                    <el-button v-if="step.step < state.steps.length" type="primary" @click="handleNext">下一步</el-button>
-                    <el-button v-else type="primary" @click="handleSave">完成</el-button>
-                </div>
+                <el-tabs type="border-card">
+                    <el-tab-pane label="手动输入">
+                        <Input></Input>
+                    </el-tab-pane>
+                    <el-tab-pane label="粘贴配置">
+                        <Copy></Copy>
+                    </el-tab-pane>
+                    <el-tab-pane label="在线导入">
+                        <Save></Save>
+                    </el-tab-pane>
+                </el-tabs>
             </div>
         </el-dialog>
     </div>
 </template>
 <script>
 import { injectGlobalData } from '@/provide';
-import { install } from '@/apis/config';
-import { reactive,   ref, provide, computed } from 'vue';
-import { ElMessage } from 'element-plus';
-import Common from './Common.vue'
-import Client from './Client.vue'
-import Server from './Server.vue'
+import { reactive} from 'vue';
+import Input from './Input.vue'
+import Copy from './Copy.vue'
+import Save from './Save.vue'
 export default {
-    components: { Common,Client,Server },
+    components: { Input,Copy,Save},
     setup(props) {
 
-        const globalData = injectGlobalData();
+        const globalData = injectGlobalData();   
         const state = reactive({
-            show: globalData.value.config.Common.Install == false,
-            steps:computed(()=>['选择模式',
-            globalData.value.isPc ? '服务端' : '',
-            '客户端',
-            '完成'])
-        });
+            show: globalData.value.config.Common.Install == false
+        });  
 
-        const currentDom = ref(null);
-        const step = ref({
-            step:1,
-            increment:1,
-            json:{},
-            form:{server:{},client:{},common:{}}
-        });
-        provide('step',step);
-        const handlePrev = ()=>{
-            step.value.step --;
-            step.value.increment = -1;
-        }
-        const handleNext = ()=>{
-            step.value.increment = 1;
-            currentDom.value.handleValidate().then((json)=>{
-                step.value.json = Object.assign(step.value.json,json.json);
-                step.value.form = Object.assign(step.value.form,json.form);
-                step.value.step ++;
-            }).catch(()=>{
-            });
-        }
-        const handleSave = ()=>{
-            install(step.value.json).then(()=>{
-                ElMessage.success('保存成功');
-            }).catch(()=>{
-                ElMessage.error('保存失败');
-            })
-        }
-
-        return { state,globalData,currentDom,step,handlePrev,handleNext,handleSave};
+        return { state,globalData};
     }
 }
 </script>
 <style lang="stylus" scoped>
-.body{margin-top:1rem;}
-.footer{
-    margin-top:2rem
-}
+
 </style>

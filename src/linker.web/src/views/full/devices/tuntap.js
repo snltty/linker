@@ -15,7 +15,7 @@ export const provideTuntap = () => {
     });
     provide(tuntapSymbol, tuntap);
 
-    const reg = /ios|android|windows|ubuntu|openwrt|armbian|archlinux|fedora|centos|rocky|alpine|debian|linux|docker/g;
+    const reg = /google|huawei|xiaomi|ios|android|windows|ubuntu|openwrt|armbian|archlinux|fedora|centos|rocky|alpine|debian|linux|docker/g;
 
     const _getTuntapInfo = () => {
         clearTimeout(tuntap.value.timer);

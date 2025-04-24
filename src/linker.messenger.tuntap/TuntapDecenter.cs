@@ -30,8 +30,9 @@ namespace linker.messenger.tuntap
         private readonly TuntapTransfer tuntapTransfer;
         private readonly ExRouteTransfer exRouteTransfer;
         private readonly SignInClientState signInClientState;
+        private readonly ISystemInformation systemInformation;
 
-        public TuntapDecenter(ISignInClientStore signInClientStore, SignInClientState signInClientState, ISerializer serializer, TuntapProxy tuntapProxy, TuntapConfigTransfer tuntapConfigTransfer, TuntapTransfer tuntapTransfer, ExRouteTransfer exRouteTransfer)
+        public TuntapDecenter(ISignInClientStore signInClientStore, SignInClientState signInClientState, ISerializer serializer, TuntapProxy tuntapProxy, TuntapConfigTransfer tuntapConfigTransfer, TuntapTransfer tuntapTransfer, ExRouteTransfer exRouteTransfer, ISystemInformation systemInformation)
         {
             this.signInClientStore = signInClientStore;
             this.serializer = serializer;
@@ -40,7 +41,7 @@ namespace linker.messenger.tuntap
             this.tuntapTransfer = tuntapTransfer;
             this.exRouteTransfer = exRouteTransfer;
             this.signInClientState = signInClientState;
-
+            this.systemInformation = systemInformation;
         }
 
         public void Refresh()
@@ -70,7 +71,7 @@ namespace linker.messenger.tuntap
                 Status = tuntapTransfer.Status,
                 SetupError = tuntapTransfer.SetupError,
                 NatError = tuntapTransfer.NatError,
-                SystemInfo = $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} {(string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("SNLTTY_LINKER_IS_DOCKER")) == false ? "Docker" : "")}",
+                SystemInfo = systemInformation.Get(),
 
                 Forwards = tuntapConfigTransfer.Info.Forwards,
                 Switch = tuntapConfigTransfer.Info.Switch

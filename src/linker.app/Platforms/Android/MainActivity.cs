@@ -88,7 +88,9 @@ namespace linker.app
 
     }
 
-
+    /// <summary>
+    /// VPN服务，先启动服务，才能创建VPN连接
+    /// </summary>
     [Service(Label = "VpnServiceLinker", Name = "com.snltty.linker.app.VpnServiceLinker", Enabled = true, Permission = "android.permission.BIND_VPN_SERVICE")]
     public class VpnServiceLinker : VpnService, ILinkerTunDeviceCallback, ITuntapProxyCallback
     {
@@ -142,6 +144,9 @@ namespace linker.app
     }
 
 
+    /// <summary>
+    /// 前台服务，运行Linker
+    /// </summary>
     [Service(Label = "ForegroundService", Name = "com.snltty.linker.app.ForegroundService", Exported = true)]
     [IntentFilter(new string[] { "com.snltty.linker.app.ForegroundService" })]
     public sealed class ForegroundService : Service
@@ -214,6 +219,7 @@ namespace linker.app
 
             LinkerMessengerEntry.Initialize();
             LinkerMessengerEntry.AddService<IWebServerFileReader, WebServerFileReader>();
+            LinkerMessengerEntry.AddService<ISystemInformation, SystemInformation>();
             LinkerMessengerEntry.Build();
             LinkerMessengerEntry.Setup(ExcludeModule.Logger, config);
             IPlatformApplication.Current.Services.GetService<InitializeService>().SendOnInitialized();
@@ -284,6 +290,9 @@ namespace linker.app
         }
     }
 
+    /// <summary>
+    /// VPN设备
+    /// </summary>
     public sealed class LinkerVpnDevice : ILinkerTunDevice
     {
         private string name = string.Empty;
@@ -487,6 +496,9 @@ namespace linker.app
         }
     }
 
+    /// <summary>
+    /// 管理页面的文件读取，跟PC的不太一样
+    /// </summary>
     public sealed class WebServerFileReader : IWebServerFileReader
     {
         ReceiveDataBuffer receiveDataBuffer = new ReceiveDataBuffer();
@@ -503,5 +515,18 @@ namespace linker.app
         }
     }
 
+
+    /// <summary>
+    /// 获取系统信息
+    /// </summary>
+    public sealed class SystemInformation: ISystemInformation
+    {
+        public string Get()
+        {
+            var deviceInfo = DeviceInfo.Current;
+            return $"{deviceInfo.Manufacturer} {deviceInfo.Name} {deviceInfo.VersionString} {deviceInfo.Platform} {deviceInfo.Idiom.ToString()}";
+        }
+    }
 }
 
+    

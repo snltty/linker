@@ -1,8 +1,7 @@
 <template>
     <div class="head-wrap">
         <div class="tools flex">
-            
-            <span class="label">服务器 </span><el-input v-model="state.server" readonly style="width: 14rem;" size="small"></el-input>
+            <span class="label">分组 : {{state.group}}</span>
             <span class="flex-1"></span>
             <el-button size="small" @click="handleRefresh">
                 刷新(F5)<el-icon><Refresh /></el-icon>
@@ -25,6 +24,7 @@ export default {
         const globalData = injectGlobalData();
         const state = reactive({
             server:computed(()=>globalData.value.config.Client.Server.Host),
+            group:computed(()=>globalData.value.config.Client.Group.Name),
         });
         const handleRefresh = ()=>{
             window.location.reload();

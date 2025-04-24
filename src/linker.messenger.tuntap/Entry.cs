@@ -31,6 +31,8 @@ namespace linker.messenger.tuntap
 
             serviceCollection.AddSingleton<TuntapExRoute>();
 
+            serviceCollection.AddSingleton<ISystemInformation, SystemInformation>();
+
             return serviceCollection;
         }
         public static ServiceProvider UseTuntapClient(this ServiceProvider serviceProvider)
@@ -69,6 +71,8 @@ namespace linker.messenger.tuntap
         {
             serviceCollection.AddSingleton<TuntapServerMessenger>();
             serviceCollection.AddSingleton<LeaseServerTreansfer>();
+
+            serviceCollection.AddSingleton<ISystemInformation, SystemInformation>();
 
             return serviceCollection;
         }

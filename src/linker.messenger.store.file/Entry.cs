@@ -99,6 +99,9 @@ namespace linker.messenger.store.file
 
             serviceCollection.AddSingleton<IPlanStore, PlanStore>();
 
+
+            serviceCollection.AddSingleton<ExportResolver>();
+
             return serviceCollection;
         }
         public static ServiceProvider UseStoreFile(this ServiceProvider serviceProvider,Dictionary<string,string> configDic)
@@ -119,6 +122,12 @@ namespace linker.messenger.store.file
                 serviceProvider.GetService<SignInSyncGroupSecretKey>(),
                 serviceProvider.GetService<SignInSyncServer>(),
                 
+            });
+
+            ResolverTransfer resolverTransfer = serviceProvider.GetService<ResolverTransfer>();
+            resolverTransfer.AddResolvers(new List<IResolver>
+            {
+                serviceProvider.GetService<ExportResolver>(),
             });
 
             return serviceProvider;

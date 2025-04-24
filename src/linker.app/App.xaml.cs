@@ -1,4 +1,6 @@
-﻿namespace linker.app
+﻿using linker.libs.extends;
+
+namespace linker.app
 {
     public partial class App : Application
     {
@@ -9,6 +11,8 @@
             // 注册全局异常处理
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+
+          
 
             MainPage = new MainPage();
         }
