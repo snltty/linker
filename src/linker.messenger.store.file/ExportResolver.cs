@@ -41,7 +41,7 @@ namespace linker.messenger.store.file
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                LoggerHelper.Instance.Error(ex);
             }
             finally
             {
@@ -56,7 +56,7 @@ namespace linker.messenger.store.file
         }
         public async Task<string> Get(IPEndPoint server, string value)
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(8*1024);
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024);
             Socket socket = new Socket(server.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             try
             {
@@ -71,7 +71,7 @@ namespace linker.messenger.store.file
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                LoggerHelper.Instance.Error(ex);
             }
             finally
             {

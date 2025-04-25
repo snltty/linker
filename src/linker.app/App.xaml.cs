@@ -1,4 +1,6 @@
-﻿namespace linker.app
+﻿using linker.libs;
+
+namespace linker.app
 {
     public partial class App : Application
     {
@@ -26,6 +28,7 @@
         private void HandleException(Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"全局异常: {ex}");
+            LoggerHelper.Instance.Error($"app全局异常: {ex}");
         }
     }
 }

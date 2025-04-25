@@ -15,7 +15,7 @@ export const provideTuntap = () => {
     });
     provide(tuntapSymbol, tuntap);
 
-    const reg = /google|huawei|xiaomi|ios|android|windows|ubuntu|openwrt|armbian|archlinux|fedora|centos|rocky|alpine|debian|linux|docker/g;
+    const reg = /iphone|samsung|vivo|oppo|google|huawei|xiaomi|ios|android|windows|ubuntu|openwrt|armbian|archlinux|fedora|centos|rocky|alpine|debian|linux|docker/g;
 
     const _getTuntapInfo = () => {
         clearTimeout(tuntap.value.timer);
@@ -25,7 +25,7 @@ export const provideTuntap = () => {
                 for (let j in res.List) {
                     const systemStr = res.List[j].SystemInfo.toLowerCase();
 
-                    const match = systemStr.match(reg);
+                    const match =[...new Set(systemStr.match(reg))];
                     Object.assign(res.List[j], {
                         running: res.List[j].Status == 2,
                         loading: res.List[j].Status == 1,
