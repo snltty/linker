@@ -18,7 +18,7 @@ cd ../../
 echo F|xcopy "version.txt" "public\\version.txt" /f /h /y
 
 echo F|xcopy "public\\extends\\any\\web\\*" "src\\linker.app\\public\\web\\*"  /s /f /h /y
-dotnet publish ./src/linker.app -c:Release -f:net8.0-android /p:AndroidSigningKeyPass=123321 /p:AndroidSdkDirectory=%sdkpath%
+dotnet publish ./src/linker.app -c:Release -f:net8.0-android /p:AndroidUseApkSigner=true /p:AndroidPackageFormat=apk /p:AndroidKeyStore=true /p:AndroidSigningKeyStore=linker.jks /p:AndroidSigningStorePass=linker /p:AndroidSigningKeyAlias=linker /p:AndroidSigningKeyPass=linker /p:AndroidSdkDirectory=%sdkpath%
 echo F|xcopy "src\\linker.app\\bin\\Release\\net8.0-android\\publish\\com.snltty.linker.app-Signed.apk" "public\\publish-zip\\linker.apk"  /s /f /h /y
 
 for %%r in (win-x86,win-x64,win-arm64) do (
