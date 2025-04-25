@@ -1,6 +1,4 @@
-﻿using linker.libs.extends;
-
-namespace linker.app
+﻿namespace linker.app
 {
     public partial class App : Application
     {
@@ -23,18 +21,11 @@ namespace linker.app
 
         private void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
         {
-            HandleException(e.Exception);
             e.SetObserved();
         }
         private void HandleException(Exception ex)
         {
-            //System.Diagnostics.Debug.WriteLine($"全局异常: {ex}");
-            /*
-            MainThread.BeginInvokeOnMainThread(async () =>
-            {
-                await Application.Current.MainPage.DisplayAlert("错误", $"{ex}", "确定");
-            });
-            */
+            System.Diagnostics.Debug.WriteLine($"全局异常: {ex}");
         }
     }
 }

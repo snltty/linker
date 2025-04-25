@@ -2,7 +2,14 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:linker.app"
-             x:Class="linker.app.MainPage" BackgroundColor="{DynamicResource PageBackgroundColor}">
+             x:Class="linker.app.MainPage" BackgroundColor="#f4f4f4">
 
-    <WebView x:Name="webview" BackgroundColor="#f4f4f4" VerticalOptions="Fill" HorizontalOptions="Fill"></WebView>
+    <FlexLayout  BackgroundColor="#f4f4f4" VerticalOptions="Fill" HorizontalOptions="Fill">
+        <WebView x:Name="webview" BackgroundColor="#f4f4f4" VerticalOptions="Fill" HorizontalOptions="Fill" FlexLayout.Grow="1"></WebView>
+        <AbsoluteLayout BackgroundColor="#f4f4f4" x:Name="LoadingOverlay" HorizontalOptions="Center" VerticalOptions="Center" FlexLayout.Grow="1">
+            <ActivityIndicator Color="#008000"  IsRunning="True"  HorizontalOptions="Center"  VerticalOptions="Center" />
+            <Label Text="启动中"  TextColor="#008000" HorizontalOptions="Center" VerticalOptions="Center" Margin="0,60,0,0" />
+        </AbsoluteLayout >
+    </FlexLayout>
+
 </ContentPage>

@@ -169,12 +169,15 @@ export default {
             state.loading = true;
             saveConfig(json).then((res)=>{
                 state.loading = false;
-                state.show = false;
-                ElMessage.success(t('common.oper'));
+                if(res){
+                    state.show = false;
+                    ElMessage.success(t('common.oper'));
 
-                state.saveContent = res;
-                state.showSave = true;
-
+                    state.saveContent = res;
+                    state.showSave = true;
+                }else{
+                    ElMessage.error(t('common.operFail'));
+                }
             }).catch(()=>{
                 ElMessage.error(t('common.operFail'));
                 state.loading = false;

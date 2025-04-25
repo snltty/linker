@@ -1,6 +1,5 @@
 ﻿
 using linker.app.Services;
-using Microsoft.Maui.Controls.PlatformConfiguration;
 
 namespace linker.app
 {
@@ -10,9 +9,17 @@ namespace linker.app
         {
             InitializeComponent();
 
+            LoadingOverlay.IsVisible = true;
+            webview.IsVisible = false;
             IPlatformApplication.Current.Services.GetService<InitializeService>().OnInitialized += () =>
             {
-                webview.Source = new Uri($"http://127.0.0.1:1804?t={DateTime.Now.Ticks}");
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    LoadingOverlay.IsVisible = false;
+                    webview.IsVisible = true;
+                    webview.Source = new Uri($"http://127.0.0.1:1804?t={DateTime.Now.Ticks}");
+                });
+               
             };
         }
     }
