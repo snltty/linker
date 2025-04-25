@@ -128,7 +128,7 @@ function writeUpload(data, tagName) {
         }
     });
 
-    /*
+    
     data.jobs.build.steps.push({
         name: `upload-apk-oss`,
         id: `upload-apk-oss`,
@@ -156,7 +156,7 @@ function writeUpload(data, tagName) {
             'asset_content_type': 'application/apk'
         }
     });
-    */
+    
 }
 function writeUploadIpk(data, tagName) {
     const platforms = ['x64', 'arm', 'arm64'];

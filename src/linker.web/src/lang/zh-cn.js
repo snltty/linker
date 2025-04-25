@@ -50,6 +50,7 @@ export default {
     'status.groupPassword': '密码',
     'status.groupOper': '操作',
     'status.groupDelConfirm': '确认删除吗?',
+    'status.groupValidate': '有名称或者id未设置的项',
 
     'status.support': '赞助',
     'status.website': '官网',
@@ -327,7 +328,7 @@ export default {
 
 
 
-    'server.asyncText': '同步到所有客户端',
+    'server.asyncText': '到本组所有客户端',
     'server.asyncSelect': '请选择',
     'server.asyncCheckAll': '全选',
     'server.asyncSignInSecretKey': '信标密钥',

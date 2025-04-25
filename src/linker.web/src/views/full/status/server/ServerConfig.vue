@@ -2,12 +2,12 @@
     <el-dropdown>
         <span class="el-dropdown-link" :class="{connected:state.connected}">
             <el-icon><Avatar /></el-icon>
-            {{state.groupName}}
+            {{state.groupName|| '未知'}}
             <el-icon><ArrowDown /></el-icon>
         </span>
         <template #dropdown>
             <el-dropdown-menu v-if="hasGroup">
-                <el-dropdown-item v-for="item in state.groups" @click="handleGroupChange(item.Id)">{{item.Name}}</el-dropdown-item>
+                <el-dropdown-item v-for="item in state.groups" @click="handleGroupChange(item.Id)">{{item.Name || '未知'}}</el-dropdown-item>
                 <el-dropdown-item @click="state.showGroups = true">{{$t('status.group')}}</el-dropdown-item>
             </el-dropdown-menu>
         </template>
@@ -32,27 +32,28 @@ export default {
         const state = reactive({
             loading: false,
             connected: computed(() => globalData.value.signin.Connected),
-            groupName: globalData.value.config.Client.Group.Name,
-            groups: globalData.value.config.Client.Groups.slice(),
+            groupName: computed(()=>globalData.value.config.Client.Group.Name),
+            groups:computed(()=>globalData.value.config.Client.Groups),
             showGroups:false
         });
+        console.log(globalData.value.config.Client.Groups);
 
         const handleGroupChange = (value)=>{
-
-            const index = state.groups.map((item,index)=>{
+            const groups = globalData.value.config.Client.Groups;
+            const index = groups.map((item,index)=>{
                 item.$index =  index;
                 return item;
             }).filter(c=>c.Id == value)[0].$index;
-            const temp = state.groups[index];
-            state.groups[index] = state.groups[0];
-            state.groups[0] = temp;
-            handleSave();
+            const temp =groups[index];
+            groups[index] = groups[0];
+            groups[0] = temp;
+            handleSave(groups);
         }
-        const handleSave = () => {
+        const handleSave = (groups) => {
             state.loading = true;
             setSignIn({
                 Name:globalData.value.config.Client.Name,
-                Groups:state.groups,
+                Groups:groups,
             }).then(() => {
                 state.loading = false;
                 state.show = false;

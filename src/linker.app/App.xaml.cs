@@ -12,8 +12,6 @@ namespace linker.app
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-          
-
             MainPage = new MainPage();
         }
 
@@ -30,7 +28,7 @@ namespace linker.app
         }
         private void HandleException(Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"全局异常: {ex}");
+            //System.Diagnostics.Debug.WriteLine($"全局异常: {ex}");
             /*
             MainThread.BeginInvokeOnMainThread(async () =>
             {

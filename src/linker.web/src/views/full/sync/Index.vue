@@ -23,7 +23,7 @@ export default {
                 ElMessage.success(t('common.access'));
                 return;
             }
-            ElMessageBox.confirm(`${t('server.sync')} ${t(`server.async${props.name}`)} ? `, t('common.tips'), {
+            ElMessageBox.confirm(`${t('server.sync')}【${t(`server.async${props.name}`)}】${t(`server.asyncText`)}? `, t('common.tips'), {
                 confirmButtonText: t('common.confirm'),
                 cancelButtonText:t('common.cancel'),
                 type: 'warning'

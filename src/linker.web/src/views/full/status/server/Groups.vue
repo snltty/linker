@@ -82,7 +82,7 @@ export default {
         const {t} = useI18n();
         const globalData = injectGlobalData();
         const state = reactive({
-            list:globalData.value.config.Client.Groups || [],
+            list:globalData.value.config.Client.Groups,
             show:true
         });
         watch(()=>globalData.value.config.Client.Groups,()=>{
@@ -122,6 +122,7 @@ export default {
         }
         const handleAdd = (index)=>{
             if(state.list.filter(c=>c.Id == '' || c.Name == '').length > 0){
+                ElMessage.error(t('status.groupValidate'));
                 return;
             }
             state.list.splice(index+1,0,{Name:'',Id:'',Password:''});

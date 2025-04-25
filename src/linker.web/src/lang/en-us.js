@@ -50,6 +50,7 @@ export default {
     'status.groupPassword': 'Password',
     'status.groupOper': 'Oper',
     'status.groupDelConfirm': 'Are you sure to delete?',
+    'status.groupValidate': 'Name or Id empty item has exists',
 
     'status.support': 'Support',
     'status.website': 'Website',
@@ -231,7 +232,7 @@ export default {
     'server.updaterMM': 'Minute',
     'server.updaterS': 'Second',
 
-    'server.asyncText': 'Synchronize to all clients',
+    'server.asyncText': 'to group all clients',
     'server.asyncSelect': 'Please select',
     'server.asyncCheckAll': 'Check all',
     'server.asyncSignInSecretKey': 'Signin secretKey',

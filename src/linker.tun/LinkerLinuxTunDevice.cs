@@ -196,12 +196,13 @@ namespace linker.tun
                 bool isSupport = string.IsNullOrWhiteSpace(supportError) && support.Contains("No such file or directory") == false;
 
                 CommandHelper.Linux(string.Empty, new string[] {
-                    $"iptables -t nat -D POSTROUTING -o {Name} -j MASQUERADE",
                     $"iptables -D FORWARD -i {interfaceLinux} -o {Name} -j ACCEPT",
+                    $"iptables -D FORWARD -i {Name} -j ACCEPT",
+                    $"iptables -t nat -D POSTROUTING -o {Name} -j MASQUERADE",
+                  
                     isSupport ? $"iptables -D FORWARD -i {Name} -o {interfaceLinux} -m state --state ESTABLISHED,RELATED -j ACCEPT"
                     : $"iptables -D FORWARD -i {Name} -o {interfaceLinux} -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT",
 
-                    $"iptables -D FORWARD -i {Name} -j ACCEPT",
                     isSupport ? $"iptables -D FORWARD -o {Name} -m state --state ESTABLISHED,RELATED -j ACCEPT"
                     : $"iptables -D FORWARD -o {Name} -m conntrack  --ctstate ESTABLISHED,RELATED -j ACCEPT"
                 });

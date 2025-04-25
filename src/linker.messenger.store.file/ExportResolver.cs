@@ -94,7 +94,6 @@ namespace linker.messenger.store.file
                     socket.SafeClose();
                     return;
                 }
-                Console.WriteLine(info.Type);
                 switch (info.Type)
                 {
                     case ExportSaveType.Save:

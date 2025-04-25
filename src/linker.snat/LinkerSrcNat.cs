@@ -76,9 +76,13 @@ namespace linker.snat
                 error = "only win x64 and win x86";
                 return false;
             }
-            if (info.Src == null || info.Dsts == null || info.Dsts.Length == 0)
+            if (info.Src == null)
             {
-                error = "src is null, or dsts empty，snat fail";
+                error = "src is null，snat fail";
+                return false;
+            }
+            if (info.Dsts == null || info.Dsts.Length == 0)
+            {
                 return false;
             }
             if (info.InterfaceIp == null || info.InterfaceIp.Equals(IPAddress.Any))
