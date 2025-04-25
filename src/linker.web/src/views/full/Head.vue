@@ -9,39 +9,39 @@
             <div class="menu flex-1">
                 <ul class="flex" v-if="globalData.isPc">
                     <li>
-                        <router-link :to="{name:'FullIndex'}"><img src="@/assets/shouye.svg"/> {{$t('head.home')}}</router-link>
+                        <router-link :to="{name:'FullIndex'}"><img src="@/assets/shouye.svg"/><span>{{$t('head.home')}}</span></router-link>
                     </li>
                     <li v-if="hasConfig">
-                        <router-link :to="{name:'FullServers'}"><img src="@/assets/fuwuqi.svg"/> {{$t('head.server')}}</router-link>
+                        <router-link :to="{name:'FullServers'}"><img src="@/assets/fuwuqi.svg"/><span>{{$t('head.server')}}</span></router-link>
                     </li>
                     <li v-if="hasTransport">
-                        <router-link :to="{name:'FullTransport'}"><img src="@/assets/dadong.svg"/> {{$t('head.protocol')}}</router-link>
+                        <router-link :to="{name:'FullTransport'}"><img src="@/assets/dadong.svg"/><span>{{$t('head.protocol')}}</span></router-link>
                     </li>
                     <li v-if="hasAction">
-                        <router-link :to="{name:'FullAction'}"><img src="@/assets/anquan.svg"/> {{$t('head.action')}}</router-link>
+                        <router-link :to="{name:'FullAction'}"><img src="@/assets/anquan.svg"/><span>{{$t('head.action')}}</span></router-link>
                     </li>
                     <li v-if="hasLogger">
-                        <router-link :to="{name:'FullLogger'}"><img src="@/assets/rizhi.svg"/> {{$t('head.logger')}}</router-link>
+                        <router-link :to="{name:'FullLogger'}"><img src="@/assets/rizhi.svg"/><span>{{$t('head.logger')}}</span></router-link>
                     </li>
                 </ul>
                 <ul class="flex" v-else>
                     <li v-if="route.name == 'FullIndex'">
-                        <router-link :to="{name:'FullIndex'}"><img src="@/assets/shouye.svg"/> {{$t('head.home')}}</router-link>
+                        <router-link :to="{name:'FullIndex'}"><img src="@/assets/shouye.svg"/><span>{{$t('head.home')}}</span></router-link>
                     </li>
                     <li v-if="hasConfig && route.name == 'FullServers'">
-                        <router-link :to="{name:'FullServers'}"><img src="@/assets/fuwuqi.svg"/> {{$t('head.server')}}</router-link>
+                        <router-link :to="{name:'FullServers'}"><img src="@/assets/fuwuqi.svg"/><span>{{$t('head.server')}}</span></router-link>
                     </li>
                     <li v-if="hasTransport && route.name == 'FullTransport'">
-                        <router-link :to="{name:'FullTransport'}"><img src="@/assets/dadong.svg"/> {{$t('head.protocol')}}</router-link>
+                        <router-link :to="{name:'FullTransport'}"><img src="@/assets/dadong.svg"/><span>{{$t('head.protocol')}}</span></router-link>
                     </li>
                     <li v-if="hasAction && route.name == 'FullAction'">
-                        <router-link :to="{name:'FullAction'}"><img src="@/assets/anquan.svg"/> {{$t('head.action')}}</router-link>
+                        <router-link :to="{name:'FullAction'}"><img src="@/assets/anquan.svg"/><span>{{$t('head.action')}}</span></router-link>
                     </li>
                     <li v-if="hasLogger && route.name == 'FullLogger'">
-                        <router-link :to="{name:'FullLogger'}"><img src="@/assets/rizhi.svg"/> {{$t('head.logger')}}</router-link>
+                        <router-link :to="{name:'FullLogger'}"><img src="@/assets/rizhi.svg"/> <span>{{$t('head.logger')}}</span></router-link>
                     </li>
                     <li>
-                        <a href="javascript:void(0);" @click="refresh"><img src="@/assets/shuaxin2.svg"/> {{$t('head.refresh')}}</a>
+                        <a href="javascript:void(0);" @click="refresh"><img src="@/assets/shuaxin2.svg"/><span>{{$t('head.refresh')}}</span></a>
                     </li>
                 </ul>
             </div>
@@ -157,7 +157,8 @@ export default {
             display:block;
             color:#333;
             padding:0 1rem;
-            line-height:4rem
+            line-height:4rem;
+            height:4rem;
             &:hover,&.router-link-active{
                 background-color:rgba(0,0,0,0.1);
                 font-weight:bold;
@@ -166,7 +167,11 @@ export default {
 
             img{
                 height:2rem
-                vertical-align:text-top;
+                margin-right:.2rem;
+                margin-top:1rem;
+            } 
+            span{
+                vertical-align:top;
             }
         }
     }

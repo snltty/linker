@@ -142,8 +142,10 @@ export default {
 
 a{
     font-weight:bold;
+    line-height:3rem;
+    display:inline-flex;
     .el-icon{
-        vertical-align:text-bottom;
+        margin-top:.8rem
     }
 
     &.download{

@@ -7,7 +7,7 @@
             <template #reference>
                 <a href="javascript:;">
                     <el-icon size="16"><Tools /></el-icon>
-                    {{$t('status.api')}}
+                    <span>{{$t('status.api')}}</span>
                 </a>
             </template>
         </el-popconfirm>
@@ -40,15 +40,14 @@ export default {
 <style lang="stylus" scoped>
 .status-api-wrap{
     padding-right:2rem;
-    a{color:#333;}
-    span{border-radius:1rem;background-color:rgba(0,0,0,0.1);padding:0 .6rem;margin-left:.2rem}
-
     &.connected {
        a{color:green;font-weight:bold;}
-       span{background-color:green;color:#fff;}
     }  
-    .el-icon{
-        vertical-align:text-top;
+    a{
+        color:#333;
+        .el-icon{
+            vertical-align:sub;
+        }
     }
 }
 

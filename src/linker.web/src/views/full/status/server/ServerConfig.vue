@@ -1,9 +1,9 @@
 <template>
     <el-dropdown>
         <span class="el-dropdown-link" :class="{connected:state.connected}">
-            <el-icon><Avatar /></el-icon>
-            {{state.groupName|| '未知'}}
-            <el-icon><ArrowDown /></el-icon>
+            <el-icon class="left"><Avatar /></el-icon>
+            <span>{{state.groupName|| '未知'}}</span>
+            <el-icon class="right"><ArrowDown /></el-icon>
         </span>
         <template #dropdown>
             <el-dropdown-menu v-if="hasGroup">
@@ -36,8 +36,6 @@ export default {
             groups:computed(()=>globalData.value.config.Client.Groups),
             showGroups:false
         });
-        console.log(globalData.value.config.Client.Groups);
-
         const handleGroupChange = (value)=>{
             const groups = globalData.value.config.Client.Groups;
             const index = groups.map((item,index)=>{
@@ -75,10 +73,15 @@ export default {
 </script>
 <style lang="stylus" scoped>
 .el-dropdown{vertical-align: inherit;margin-right:1rem}
-.connected {
-        color:green;font-weight:bold;
+
+    .el-dropdown-link{   
+        &.connected {
+            color:green;font-weight:bold;
+        }
+        .el-icon{
+            vertical-align:bottom;
+        }
     }  
-    .el-icon{
-        vertical-align:bottom;
-    }
+    
+
 </style>

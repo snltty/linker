@@ -2,7 +2,7 @@
     <div v-if="config && hasExport" class="status-export-wrap">
         <a href="javascript:;" :title="$t('status.export')" @click="state.show = true">
             <el-icon size="16"><Share /></el-icon>
-            {{$t('status.export')}}
+            <span>{{$t('status.export')}}</span>
         </a>
         <el-dialog class="options-center" :title="$t('status.export')" destroy-on-close v-model="state.show" center  width="580" top="1vh">
             <div class="port-wrap">
@@ -248,11 +248,12 @@ export default {
 <style lang="stylus" scoped>
 .status-export-wrap{
     padding-right:2rem;
-    a{color:#333;}
-    .el-icon{
-        vertical-align:text-top;
+    a{
+        color:#333;
+        .el-icon{
+            vertical-align: sub;
+        }
     }
-
     .el-col {text-align:left;}
 }
 

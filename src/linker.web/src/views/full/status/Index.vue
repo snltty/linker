@@ -1,6 +1,6 @@
 <template>
     <div class="status-wrap flex">
-        <div class="copy">
+        <div class="copy flex">
             <a href="javascript:;" class="memory" :title="$t('status.support')" @click="state.showPay = true">
                 <img src="@/assets/coin.svg" alt="memory" />
                 <span>{{$t('status.support')}}</span>
