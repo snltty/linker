@@ -1,0 +1,4 @@
+﻿<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 指向应用的私有文件目录 -->
+    <files-path name="private_files" path="." />
+</paths>

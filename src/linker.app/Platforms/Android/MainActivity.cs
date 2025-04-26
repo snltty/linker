@@ -9,7 +9,6 @@ using AndroidX.Core.App;
 using AndroidX.Core.Content;
 using AndroidX.Core.View;
 using Java.IO;
-using Java.Nio.Channels;
 using linker.app.Services;
 using linker.libs;
 using linker.libs.extends;
@@ -534,12 +533,70 @@ namespace linker.app
 
         public override async Task Install(Action<long, long> processs)
         {
-            processs(100, 100);
-            await Task.CompletedTask;
+            await MainThread.InvokeOnMainThreadAsync(async () =>
+            {
+                await RequestRequiredPermissions(Platform.CurrentActivity);
+                await InstallApk(Platform.CurrentActivity);
+                processs(100, 100);
+            });
         }
 
         public override void Clear()
         {
+        }
+
+        private async Task InstallApk(Context context)
+        {
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                var file = new Java.IO.File(Path.Join(FileSystem.Current.AppDataDirectory, "linker.apk"));
+
+                if (Build.VERSION.SdkInt >= BuildVersionCodes.N)
+                {
+                    // Android 7.0及以上版本需要使用FileProvider
+                    var apkUri = AndroidX.Core.Content.FileProvider.GetUriForFile(context,
+                        $"{context.ApplicationContext.PackageName}.fileprovider", file);
+
+                    var installIntent = new Intent(Intent.ActionInstallPackage);
+                    installIntent.SetDataAndType(apkUri, "application/vnd.android.package-archive");
+                    installIntent.AddFlags(ActivityFlags.GrantReadUriPermission);
+                    installIntent.AddFlags(ActivityFlags.NewTask);
+                    context.StartActivity(installIntent);
+                }
+                else
+                {
+                    // 传统安装方式
+                    var apkUri = Android.Net.Uri.FromFile(file);
+                    var installIntent = new Intent(Intent.ActionView);
+                    installIntent.SetDataAndType(apkUri, "application/vnd.android.package-archive");
+                    installIntent.SetFlags(ActivityFlags.NewTask);
+                    context.StartActivity(installIntent);
+                }
+            });
+        }
+        private async Task<bool> RequestRequiredPermissions(Context context)
+        {
+            return await MainThread.InvokeOnMainThreadAsync(async () =>
+            {
+                // 检查并请求存储权限
+                var status = await Permissions.CheckStatusAsync<Permissions.StorageWrite>();
+                if (status != PermissionStatus.Granted)
+                {
+                    status = await Permissions.RequestAsync<Permissions.StorageWrite>();
+                    if (status != PermissionStatus.Granted)
+                        return false;
+                }
+
+                // 检查安装未知应用权限（针对Android 8.0+）
+                if (Build.VERSION.SdkInt >= BuildVersionCodes.O && !context.PackageManager.CanRequestPackageInstalls())
+                {
+                    var intent = new Intent(Android.Provider.Settings.ActionManageUnknownAppSources)
+                        .SetData(Android.Net.Uri.Parse($"package:{context.PackageName}"));
+                    context.StartActivity(intent);
+                    return false;
+                }
+                return true;
+            });
         }
     }
 }

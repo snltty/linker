@@ -74,6 +74,13 @@ namespace linker.messenger.updater
                     return;
                 }
 
+                try
+                {
+                    File.Delete(savePath);
+                }
+                catch (Exception)
+                {
+                }
                 LoggerHelper.Instance.Warning($"updater {url}");
 
                 using HttpClient httpClient = new HttpClient();

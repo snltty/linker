@@ -153,6 +153,7 @@ namespace linker.messenger.updater
 
         public async Task Subscribe(ApiControllerParamsInfo param)
         {
+            updaterTransfer.Subscribe();
             await messengerSender.SendOnly(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,

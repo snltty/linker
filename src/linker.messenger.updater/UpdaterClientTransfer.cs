@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using linker.messenger.signin;
 using linker.libs.timer;
-using linker.libs.extends;
 
 namespace linker.messenger.updater
 {
@@ -68,16 +67,16 @@ namespace linker.messenger.updater
         }
         public void Update(UpdaterInfo info)
         {
-            UpdaterInfo170 _info = new UpdaterInfo170
+            if (string.IsNullOrWhiteSpace(info.MachineId) == false)
             {
-                Version = info.Version,
-                Status = info.Status,
-                Length = info.Length,
-                Current = info.Current,
-                MachineId = info.MachineId
-            };
-            if (string.IsNullOrWhiteSpace(_info.MachineId) == false)
-            {
+                UpdaterInfo170 _info = new UpdaterInfo170
+                {
+                    Version = info.Version,
+                    Status = info.Status,
+                    Length = info.Length,
+                    Current = info.Current,
+                    MachineId = info.MachineId
+                };
                 updateInfos.AddOrUpdate(_info.MachineId, _info, (a, b) => _info);
                 Version.Increment();
             }
@@ -104,6 +103,16 @@ namespace linker.messenger.updater
                 updateInfo.Update();
             }
         }
+        public void Subscribe()
+        {
+            if(updateInfo.Status == UpdaterStatus.Downloading || updateInfo.Status == UpdaterStatus.Extracting)
+            {
+                updateInfo.MachineId = signInClientStore.Id;
+                Update(updateInfo);
+                Version.Increment();
+            }
+        }
+
         private void UpdateTask()
         {
             TimerHelper.SetIntervalLong(async () =>
@@ -134,7 +143,7 @@ namespace linker.messenger.updater
                     }
                     Update(updateInfo);
                 }
-            }, () => lastTicksManager.DiffLessEqual(5000) ? 1000 : 15000);
+            }, () => lastTicksManager.DiffLessEqual(5000) ? 3000 : 15000);
 
         }
 
