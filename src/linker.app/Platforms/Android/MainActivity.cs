@@ -9,6 +9,7 @@ using AndroidX.Core.App;
 using AndroidX.Core.Content;
 using AndroidX.Core.View;
 using Java.IO;
+using Java.Nio.Channels;
 using linker.app.Services;
 using linker.libs;
 using linker.libs.extends;
@@ -352,8 +353,8 @@ namespace linker.app
             return true;
         }
 
-        byte[] buffer = new byte[8 * 1024];
-        byte[] bufferWrite = new byte[8 * 1024];
+        byte[] buffer = new byte[65 * 1024];
+        byte[] bufferWrite = new byte[65 * 1024];
         public byte[] Read(out int length)
         {
             length = 0;
@@ -366,28 +367,36 @@ namespace linker.app
                     {
                         length.ToBytes(buffer);
                         length += 4;
+                        
                         return buffer;
                     }
-                    WaitForTunRead();
+                    WaitForTun();
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                System.Console.WriteLine($"vpn read {ex.ToString()}");
             }
             return Helper.EmptyArray;
         }
+
+        private readonly object writeLockObj = new object();
         public bool Write(ReadOnlyMemory<byte> buffer)
         {
             if (fd == 0) return false;
             try
             {
-                buffer.CopyTo(bufferWrite);
-                vpnOutput.Write(bufferWrite, 0, buffer.Length);
-                vpnOutput.Flush();
+                lock (writeLockObj)
+                {
+                    buffer.CopyTo(bufferWrite);
+                    vpnOutput.Write(bufferWrite, 0, buffer.Length);
+                    vpnOutput.Flush();
+                }
                 return true;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                System.Console.WriteLine($"vpn write {ex.ToString()}");
             }
             return false;
         }
@@ -445,40 +454,19 @@ namespace linker.app
         }
 
 
-        private void WaitForTunRead()
-        {
-            WaitForTun(PollEvent.In);
-        }
-        private void WaitForTunWrite()
-        {
-            WaitForTun(PollEvent.Out);
-        }
-        private void WaitForTun(PollEvent pollEvent)
+        private void WaitForTun()
         {
             var pollFd = new PollFD
             {
                 fd = fd,
-                events = (short)pollEvent
+                events = 0x001,
+                revents = 0
             };
-
-            while (true)
-            {
-                var result = LinuxAPI.poll([pollFd], 1, -1);
-                if (result >= 0)
-                    break;
-                var errorCode = Marshal.GetLastWin32Error();
-                if (errorCode == LinuxAPI.EINTR)
-                    continue;
-
-                throw new Exception("fail");
-            }
+            LinuxAPI.poll([pollFd], 1, 500);
         }
 
         public static class LinuxAPI
         {
-            public const int EINTR = 4;
-            public const int EAGAIN = 11;
-
             [DllImport("libc", SetLastError = true)]
             public static extern int poll([In, Out] PollFD[] fds, int nfds, int timeout);
         }
@@ -488,11 +476,6 @@ namespace linker.app
             public int fd;
             public short events;
             public short revents;
-        }
-        public enum PollEvent : short
-        {
-            In = 0x001,
-            Out = 0x004
         }
     }
 
@@ -519,7 +502,7 @@ namespace linker.app
     /// <summary>
     /// 获取系统信息
     /// </summary>
-    public sealed class SystemInformation: ISystemInformation
+    public sealed class SystemInformation : ISystemInformation
     {
         public string Get()
         {
@@ -529,4 +512,3 @@ namespace linker.app
     }
 }
 
-    
