@@ -16,6 +16,7 @@ using linker.libs.extends;
 using linker.libs.web;
 using linker.messenger.entry;
 using linker.messenger.tuntap;
+using linker.messenger.updater;
 using linker.tun;
 using linker.tunnel.connection;
 using System.Net;
@@ -221,6 +222,8 @@ namespace linker.app
             LinkerMessengerEntry.Initialize();
             LinkerMessengerEntry.AddService<IWebServerFileReader, WebServerFileReader>();
             LinkerMessengerEntry.AddService<ISystemInformation, SystemInformation>();
+            LinkerMessengerEntry.AddService<IUpdaterInstaller, UpdaterInstaller>();
+
             LinkerMessengerEntry.Build();
             LinkerMessengerEntry.Setup(ExcludeModule.Logger, config);
             IPlatformApplication.Current.Services.GetService<InitializeService>().SendOnInitialized();
@@ -367,7 +370,7 @@ namespace linker.app
                     {
                         length.ToBytes(buffer);
                         length += 4;
-                        
+
                         return buffer;
                     }
                     WaitForTun();
@@ -375,6 +378,7 @@ namespace linker.app
             }
             catch (Exception ex)
             {
+                fd = 0;
                 System.Console.WriteLine($"vpn read {ex.ToString()}");
             }
             return Helper.EmptyArray;
@@ -396,6 +400,7 @@ namespace linker.app
             }
             catch (Exception ex)
             {
+                fd = 0;
                 System.Console.WriteLine($"vpn write {ex.ToString()}");
             }
             return false;
@@ -508,6 +513,33 @@ namespace linker.app
         {
             var deviceInfo = DeviceInfo.Current;
             return $"{deviceInfo.Manufacturer} {deviceInfo.Name} {deviceInfo.VersionString} {deviceInfo.Platform} {deviceInfo.Idiom.ToString()}";
+        }
+    }
+
+
+    /// <summary>
+    /// 更新
+    /// </summary>
+    public sealed class UpdaterInstaller : messenger.updater.UpdaterInstaller
+    {
+        private readonly IUpdaterCommonStore updaterCommonTransfer;
+        public UpdaterInstaller(IUpdaterCommonStore updaterCommonTransfer) : base(updaterCommonTransfer)
+        {
+            this.updaterCommonTransfer = updaterCommonTransfer;
+        }
+        public override (string, string) DownloadUrlAndSavePath(string version)
+        {
+            return ($"{updaterCommonTransfer.UpdateUrl}/{version}/linker.apk", Path.Join(FileSystem.Current.AppDataDirectory, "linker.apk"));
+        }
+
+        public override async Task Install(Action<long, long> processs)
+        {
+            processs(100, 100);
+            await Task.CompletedTask;
+        }
+
+        public override void Clear()
+        {
         }
     }
 }

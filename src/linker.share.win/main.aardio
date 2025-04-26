@@ -1,0 +1,21 @@
+//RUNAS//
+import win.ui;
+/*DSG{{*/
+mainForm = win.form(text="linker.share.win";right=250;bottom=291;border="thin";max=false;topmost=1)
+mainForm.add(
+mainTab={cls="tab";left=1;top=-2;right=250;bottom=254;aw=1;edge=1;z=1}
+)
+/*}}*/
+
+import win.ui.atom;
+import win.ui.atom 
+var atom,hwndConflict = mainForm.atom("CC31CBD7-B5B5-4709-A6B2-6126B611B8C2");
+if(!atom){
+	win.quitMessage();	return;
+};
+
+mainForm.mainTab.loadForm("\res\connect.aardio");
+mainForm.mainTab.loadForm("\res\share.aardio");
+
+mainForm.show();
+return win.loopMessage();

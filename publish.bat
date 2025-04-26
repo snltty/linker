@@ -34,12 +34,12 @@ for %%r in (win-x86,win-x64,win-arm64) do (
     echo F|xcopy "src\\linker\\WinDivert64-%%r.sys" "public\\extends\\%%r\\linker-%%r\\WinDivert64.sys"  /s /f /h /y
 )
 
-msbuild "src\\linker.ics\\linker.ics.csproj" -p:Configuration=Release -p:OutputPath=../../public/extends/win-x64/linker-win-x64
-del /f .\public\extends\win-x64\linker-win-x64\linker.ics.pdb
-msbuild "src\\linker.ics\\linker.ics.csproj" -p:Configuration=Release -p:OutputPath=../../public/extends/win-arm64/linker-win-arm64
-del /f .\public\extends\win-arm64\linker-win-arm64\linker.ics.pdb
-msbuild "src\\linker.ics\\linker.ics.csproj" -p:Configuration=Release -p:OutputPath=../../public/extends/win-x86/linker-win-x86
-del /f .\public\extends\win-x86\linker-win-x86\linker.ics.pdb
+rem msbuild "src\\linker.ics\\linker.ics.csproj" -p:Configuration=Release -p:OutputPath=../../public/extends/win-x64/linker-win-x64
+rem del /f .\public\extends\win-x64\linker-win-x64\linker.ics.pdb
+rem msbuild "src\\linker.ics\\linker.ics.csproj" -p:Configuration=Release -p:OutputPath=../../public/extends/win-arm64/linker-win-arm64
+rem del /f .\public\extends\win-arm64\linker-win-arm64\linker.ics.pdb
+rem msbuild "src\\linker.ics\\linker.ics.csproj" -p:Configuration=Release -p:OutputPath=../../public/extends/win-x86/linker-win-x86
+rem del /f .\public\extends\win-x86\linker-win-x86\linker.ics.pdb
 
 for %%r in (win-x86,win-x64,win-arm64,linux-x64,linux-arm,linux-arm64,linux-musl-x64,linux-musl-arm,linux-musl-arm64) do (
 	

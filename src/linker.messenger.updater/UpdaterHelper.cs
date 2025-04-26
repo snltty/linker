@@ -1,21 +1,18 @@
 ﻿using linker.libs;
 using linker.libs.timer;
-using System.Diagnostics;
-using System.IO.Compression;
-using System.Runtime.InteropServices;
-using System.Text;
 
 namespace linker.messenger.updater
 {
     public sealed class UpdaterHelper
     {
-        private string[] extractExcludeFiles = [];
-
         private readonly IUpdaterCommonStore updaterCommonTransfer;
-        public UpdaterHelper(IUpdaterCommonStore updaterCommonTransfer)
+        private readonly IUpdaterInstaller updaterInstaller;
+        public UpdaterHelper(IUpdaterCommonStore updaterCommonTransfer, IUpdaterInstaller updaterInstaller)
         {
             this.updaterCommonTransfer = updaterCommonTransfer;
-            ClearFiles();
+            this.updaterInstaller = updaterInstaller;
+
+            updaterInstaller.Clear();
         }
 
         /// <summary>
@@ -34,21 +31,17 @@ namespace linker.messenger.updater
             try
             {
                 updateInfo.Status = UpdaterStatus.Checking;
-                using HttpClientHandler handler = new HttpClientHandler();
-                handler.ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => true;
-                using HttpClient httpClient = new HttpClient(handler);
-                string str = await httpClient.GetStringAsync($"{updaterCommonTransfer.UpdateUrl}/version.txt").WaitAsync(TimeSpan.FromSeconds(15)).ConfigureAwait(false);
 
-                string[] arr = str.Split(Environment.NewLine).Select(c => c.Trim('\r').Trim('\n')).ToArray();
-
-                string datetime = DateTime.Parse(arr[1]).ToString("yyyy-MM-dd HH:mm:ss");
-                string tag = arr[0];
-                string[] msg = arr.Skip(2).ToArray();
+                (string datetime, string[] msg, string version) = await updaterInstaller.Check();
+                if (string.IsNullOrWhiteSpace(datetime))
+                {
+                    updateInfo.Status = status;
+                    return;
+                }
 
                 updateInfo.DateTime = datetime;
                 updateInfo.Msg = msg;
-                updateInfo.Version = tag;
-
+                updateInfo.Version = version;
                 updateInfo.Status = UpdaterStatus.Checked;
             }
             catch (Exception ex)
@@ -56,6 +49,7 @@ namespace linker.messenger.updater
                 LoggerHelper.Instance.Error(ex);
                 updateInfo.Status = status;
             }
+           
         }
         /// <summary>
         /// 下载更新
@@ -63,24 +57,23 @@ namespace linker.messenger.updater
         /// <param name="updateInfo"></param>
         /// <param name="version"></param>
         /// <returns></returns>
-        public async Task DownloadUpdate(UpdaterInfo updateInfo, string version)
+        public async Task Download(UpdaterInfo updateInfo, string version)
         {
             UpdaterStatus status = updateInfo.Status;
+
+            (string url, string savePath) = updaterInstaller.DownloadUrlAndSavePath(version);
             try
             {
                 updateInfo.Status = UpdaterStatus.Downloading;
                 updateInfo.Current = 0;
                 updateInfo.Length = 0;
 
-                StringBuilder sb = new StringBuilder("linker-");
-                sb.Append($"{(OperatingSystem.IsWindows() ? "win" : OperatingSystem.IsLinux() ? "linux" : "osx")}-");
-                if (OperatingSystem.IsLinux() && Directory.GetFiles("/lib", "*musl*").Length > 0)
+                if (string.IsNullOrWhiteSpace(url) )
                 {
-                    sb.Append($"musl-");
+                    updateInfo.Status = status;
+                    return;
                 }
-                sb.Append(RuntimeInformation.ProcessArchitecture.ToString().ToLower());
 
-                string url = $"{updaterCommonTransfer.UpdateUrl}/{version}/{sb.ToString()}.zip";
                 LoggerHelper.Instance.Warning($"updater {url}");
 
                 using HttpClient httpClient = new HttpClient();
@@ -90,7 +83,7 @@ namespace linker.messenger.updater
                 using Stream contentStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 
 
-                using FileStream fileStream = new FileStream("updater.zip", FileMode.OpenOrCreate, FileAccess.ReadWrite);
+                using FileStream fileStream = new FileStream(savePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
                 byte[] buffer = new byte[4096];
                 int readBytes = 0;
                 while ((readBytes = await contentStream.ReadAsync(buffer).ConfigureAwait(false)) != 0)
@@ -106,7 +99,7 @@ namespace linker.messenger.updater
                 LoggerHelper.Instance.Error(ex);
                 try
                 {
-                    File.Delete("updater.zip");
+                    File.Delete(savePath);
                 }
                 catch (Exception)
                 {
@@ -119,14 +112,13 @@ namespace linker.messenger.updater
         /// </summary>
         /// <param name="updateInfo"></param>
         /// <returns></returns>
-        public async Task ExtractUpdate(UpdaterInfo updateInfo)
+        public async Task Install(UpdaterInfo updateInfo)
         {
             //没下载完成
             if (updateInfo.Status != UpdaterStatus.Downloaded)
             {
                 return;
             }
-            string fileName = Path.GetFileName(Process.GetCurrentProcess().MainModule.FileName);
             UpdaterStatus status = updateInfo.Status;
             try
             {
@@ -134,55 +126,11 @@ namespace linker.messenger.updater
                 updateInfo.Current = 0;
                 updateInfo.Length = 0;
 
-                using ZipArchive archive = ZipFile.OpenRead("updater.zip");
-                updateInfo.Length = archive.Entries.Sum(c => c.Length);
-
-
-                foreach (ZipArchiveEntry entry in archive.Entries)
+                await updaterInstaller.Install((total, length) =>
                 {
-                    string entryPath = Path.GetFullPath(Path.Join(Helper.currentDirectory, entry.FullName.Substring(entry.FullName.IndexOf('/'))));
-                    if (entryPath.EndsWith('\\') || entryPath.EndsWith('/'))
-                    {
-                        continue;
-                    }
-                    if (extractExcludeFiles.Contains(Path.GetFileName(entryPath)))
-                    {
-                        continue;
-                    }
-
-                    if (Directory.Exists(Path.GetDirectoryName(entryPath)) == false)
-                    {
-                        Directory.CreateDirectory(Path.GetDirectoryName(entryPath));
-                    }
-                    if (File.Exists(entryPath))
-                    {
-                        try
-                        {
-                            File.Move(entryPath, $"{entryPath}.temp", true);
-                        }
-                        catch (Exception)
-                        {
-                            continue;
-                        }
-                    }
-
-                    using Stream entryStream = entry.Open();
-                    using FileStream fileStream = File.Create(entryPath);
-                    byte[] buffer = new byte[4096];
-                    int bytesRead;
-                    while ((bytesRead = await entryStream.ReadAsync(buffer).ConfigureAwait(false)) != 0)
-                    {
-                        await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead));
-                        updateInfo.Current += bytesRead;
-                    }
-
-                    entryStream.Dispose();
-                    fileStream.Flush();
-                    fileStream.Dispose();
-                }
-
-                archive.Dispose();
-                File.Delete("updater.zip");
+                    updateInfo.Length = total;
+                    updateInfo.Current += length;
+                });
 
                 updateInfo.Status = UpdaterStatus.Extracted;
             }
@@ -204,57 +152,9 @@ namespace linker.messenger.updater
 
             TimerHelper.Async(async () =>
             {
-                await DownloadUpdate(updateInfo, version).ConfigureAwait(false);
-                await ExtractUpdate(updateInfo).ConfigureAwait(false);
-
-                if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
-                {
-                    try
-                    {
-                        File.SetUnixFileMode("./linker", UnixFileMode.GroupExecute | UnixFileMode.OtherExecute | UnixFileMode.UserExecute);
-                    }
-                    catch (Exception)
-                    {
-                    }
-                }
-                try
-                {
-                    File.Delete("./linker.service.exe");
-                }
-                catch (Exception)
-                {
-                }
-                Environment.Exit(1);
+                await Download(updateInfo, version).ConfigureAwait(false);
+                await Install(updateInfo).ConfigureAwait(false);
             });
-        }
-
-        /// <summary>
-        /// 清理旧文件
-        /// </summary>
-        private void ClearFiles()
-        {
-            ClearTempFiles();
-        }
-        private void ClearTempFiles(string path = "./")
-        {
-            string fullPath = Path.Join(Helper.currentDirectory,path);
-            if (Directory.Exists(fullPath))
-            {
-                foreach (var item in Directory.GetFiles(fullPath).Where(c => c.EndsWith(".temp")))
-                {
-                    try
-                    {
-                        File.Delete(item);
-                    }
-                    catch (Exception)
-                    {
-                    }
-                }
-                foreach (var item in Directory.GetDirectories(fullPath))
-                {
-                    ClearTempFiles(item);
-                }
-            }
         }
     }
 }

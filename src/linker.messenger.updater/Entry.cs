@@ -5,6 +5,8 @@ namespace linker.messenger.updater
 {
     public static class Entry
     {
+        static bool added = false;
+        static bool used = false;
         public static ServiceCollection AddUpdaterClient(this ServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton<UpdaterApiController>();
@@ -15,6 +17,8 @@ namespace linker.messenger.updater
             serviceCollection.AddSingleton<UpdaterClientMessenger>();
 
             serviceCollection.AddSingleton<UpdaterConfigSyncSecretKey>();
+
+            serviceCollection.AddSingleton<IUpdaterInstaller, UpdaterInstaller>();
 
             return serviceCollection;
         }
@@ -40,14 +44,23 @@ namespace linker.messenger.updater
             serviceCollection.AddSingleton<UpdaterHelper>();
             serviceCollection.AddSingleton<UpdaterServerTransfer>();
             serviceCollection.AddSingleton<UpdaterServerMessenger>();
+
+            serviceCollection.AddSingleton<IUpdaterInstaller, UpdaterInstaller>();
+
             return serviceCollection;
         }
         public static ServiceProvider UseUpdaterServer(this ServiceProvider serviceProvider)
         {
-            UpdaterServerTransfer updaterServerTransfer= serviceProvider.GetService<UpdaterServerTransfer>();
+            UpdaterServerTransfer updaterServerTransfer = serviceProvider.GetService<UpdaterServerTransfer>();
 
             IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
             messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<UpdaterServerMessenger>() });
+
+            if (used == false)
+            {
+                used = true;
+                IUpdaterInstaller updaterInstaller = serviceProvider.GetService<IUpdaterInstaller>();
+            }
 
             return serviceProvider;
         }

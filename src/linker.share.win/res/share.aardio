@@ -1,0 +1,13 @@
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="发出共享";right=243;bottom=254)
+winform.add(
+button={cls="button";text="生成";left=195;top=12;right=234;bottom=35;z=3};
+edit={cls="edit";text="Edit";left=44;top=14;right=189;bottom=35;edge=1;z=1};
+static={cls="static";text="密钥";left=11;top=16;right=48;bottom=35;transparent=1;z=2}
+)
+/*}}*/
+
+winform.show();
+win.loopMessage();
+return winform;

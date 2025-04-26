@@ -1,0 +1,9 @@
+import win.ui;
+/*DSG{{*/
+var winform = win.form(text="连接共享";right=759;bottom=469)
+winform.add()
+/*}}*/
+
+winform.show();
+win.loopMessage();
+return winform;
