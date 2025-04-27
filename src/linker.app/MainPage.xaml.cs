@@ -1,5 +1,7 @@
 ﻿
 using linker.app.Services;
+using linker.messenger.api;
+using linker.messenger.entry;
 
 namespace linker.app
 {
@@ -16,9 +18,9 @@ namespace linker.app
             {
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
-                    webview.Source = new Uri($"http://127.0.0.1:1804?t={DateTime.Now.Ticks}");
+                    IApiStore apiStore = LinkerMessengerEntry.GetService<IApiStore>();
+                    webview.Source = new Uri($"http://127.0.0.1:{apiStore.Info.WebPort}?t={DateTime.Now.Ticks}/#/?api={apiStore.Info.ApiPort}&psd=snltty");
                 });
-               
             };
         }
 

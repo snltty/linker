@@ -7,6 +7,7 @@
             <Api></Api>
         </el-config-provider>
     </div>
+    <Refresh></Refresh>
 </template>
 <script>
 import { computed } from 'vue';
@@ -15,8 +16,9 @@ import Api from './views/Api.vue';
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import en from 'element-plus/dist/locale/en.mjs'
 import useLocale from './lang/provide';
+import Refresh from './views/Refresh.vue';
 export default {
-    components:{Api},
+    components:{Api,Refresh},
     setup(props) {
         const globalData = provideGlobalData();
         const configed = computed(()=>globalData.value.config.configed);

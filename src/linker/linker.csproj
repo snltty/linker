@@ -21,15 +21,15 @@
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Description>1. 一些优化
-2. 安卓APP勉强能用
-3. 如果你设备很多，请尝试升级其中一个成功重启后再升级其它</Description>
+2. 安卓APP勉强能用，支持分身，下拉刷新，在线升级
+5. 如果你设备很多，请尝试升级其中一个成功重启后再升级其它</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>1.7.5</Version>
-		<AssemblyVersion>1.7.5</AssemblyVersion>
-		<FileVersion>1.7.5</FileVersion>
+		<Version>1.7.6</Version>
+		<AssemblyVersion>1.7.6</AssemblyVersion>
+		<FileVersion>1.7.6</FileVersion>
 		<DelaySign>False</DelaySign>
 	</PropertyGroup>
 

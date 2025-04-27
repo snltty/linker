@@ -1,5 +1,5 @@
 <template>
-    <div class="app-wrap flex flex-column flex-nowrap">
+    <div class="app-wrap flex flex-column flex-nowrap" id="app-wrap">
         <div class="head">
             <Head></Head>
         </div>
@@ -62,8 +62,10 @@ export default {
         position:absolute;
         left:0;
         top:0;
-        right:0;
-        bottom:0;
+        right:auto;
+        bottom:auto;
+        height:100%;
+        width:100%;
         transform:none;
         max-width:100%;
         border:0;

@@ -19,6 +19,7 @@ using linker.messenger.updater;
 using linker.tun;
 using linker.tunnel.connection;
 using System.Net;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
@@ -240,33 +241,18 @@ namespace linker.app
         }
         private Dictionary<string, string> InitConfig()
         {
-            /*
-            try
-            {
-                System.IO.File.Delete(System.IO.Path.Combine(Helper.currentDirectory, "./configs/", "client.json"));
-                System.IO.File.Delete(System.IO.Path.Combine(Helper.currentDirectory, "./configs/", "server.json"));
-                System.IO.File.Delete(System.IO.Path.Combine(Helper.currentDirectory, "./configs/", "common.json"));
-                System.IO.File.Delete(System.IO.Path.Combine(Helper.currentDirectory, "./configs/", "db.db"));
-                System.IO.File.Delete(System.IO.Path.Combine(Helper.currentDirectory, "./configs/", "db-log.db"));
-            }
-            catch (Exception)
-            {
-            }
-            */
             object client = new
             {
-                /*
-                Servers = new messenger.signin.SignInClientServerInfo[] {
-                    new messenger.signin.SignInClientServerInfo { Host = "linker.snltty.com:1802", Name = "linker" }
-                },
-                 Groups = new messenger.signin.SignInClientGroupInfo[] { new messenger.signin.SignInClientGroupInfo { Id="linker", Password="linker" } }
-                 */
+                CApi = new
+                {
+                    ApiPassword = "snltty",
+                    ApiPort = ApplyNewPort(),
+                    WebPort = ApplyNewPort()
+                }
             };
             object common = new
             {
                 Modes = new string[] { "client" },
-                //Install = false,
-                //LoggerType = 0
             };
             return new Dictionary<string, string> {
                 {"Client",Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(client)))},
@@ -290,6 +276,14 @@ namespace linker.app
                     vpnIntent = null;
                 }
             };
+        }
+
+        private ushort ApplyNewPort()
+        {
+            using Socket socket = new Socket(AddressFamily.InterNetwork, System.Net.Sockets.SocketType.Dgram, ProtocolType.Udp);
+            socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            socket.Bind(new IPEndPoint(IPAddress.Any, 0));
+            return (ushort)(socket.LocalEndPoint as IPEndPoint).Port;
         }
     }
 
