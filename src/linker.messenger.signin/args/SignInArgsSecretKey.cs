@@ -51,12 +51,10 @@
         /// <returns></returns>
         public async Task<string> Validate(SignInfo signInfo, SignCacheInfo cache)
         {
-            if (string.IsNullOrWhiteSpace(signInServerStore.SecretKey) == false)
+            signInfo.Args.TryGetValue("signin-secretkey", out string secretkey);
+            if (signInServerStore.ValidateSecretKey(secretkey) == false)
             {
-                if (signInfo.Args.TryGetValue("signin-secretkey", out string secretkey) == false || secretkey != signInServerStore.SecretKey)
-                {
-                    return $"server secretkey validate fail";
-                }
+                return $"server secretkey validate fail";
             }
             await Task.CompletedTask.ConfigureAwait(false);
             return string.Empty;

@@ -3,10 +3,6 @@
     public interface ISForwardServerStore
     {
         /// <summary>
-        /// 穿透密钥
-        /// </summary>
-        public string SecretKey { get; }
-        /// <summary>
         /// 缓冲区大小
         /// </summary>
         public byte BufferSize { get; }
@@ -19,6 +15,7 @@
         /// </summary>
         public int[] TunnelPortRange { get; }
 
+        public bool ValidateSecretKey(string key);
         /// <summary>
         /// 穿透密钥
         /// </summary>

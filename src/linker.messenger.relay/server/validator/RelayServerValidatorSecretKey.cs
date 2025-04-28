@@ -15,7 +15,7 @@ namespace linker.messenger.relay.server.validator
        
         public async Task<string> Validate(linker.messenger.relay.client.transport.RelayInfo relayInfo, SignCacheInfo fromMachine, SignCacheInfo toMachine)
         {
-            if (relayInfo.SecretKey != relayServerStore.SecretKey)
+            if (relayServerStore.ValidateSecretKey(relayInfo.SecretKey) == false)
             {
                 return $"SecretKey validate fail";
             }

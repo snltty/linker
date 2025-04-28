@@ -1,7 +1,16 @@
 import win.ui;
 /*DSG{{*/
-var winform = win.form(text="连接共享";right=759;bottom=469)
-winform.add()
+var winform = win.form(text="连接共享";right=330;bottom=276)
+winform.add(
+button={cls="button";text="删除";left=223;top=10;right=269;bottom=31;z=3};
+button2={cls="button";text="新增";left=275;top=10;right=321;bottom=31;z=4};
+button3={cls="button";text="开启连接";left=120;top=234;right=208;bottom=269;z=8};
+checkbox={cls="checkbox";text="自动开启连接";left=10;top=242;right=105;bottom=261;z=7};
+combobox={cls="combobox";left=67;top=11;right=217;bottom=32;edge=1;items={};mode="dropdown";z=2};
+groupbox={cls="groupbox";text="在线的";left=10;top=37;right=321;bottom=228;edge=1;z=5};
+listview2={cls="listview";left=17;top=56;right=314;bottom=221;edge=1;z=6};
+static={cls="static";text="选择共享";left=10;top=12;right=67;bottom=29;transparent=1;z=1}
+)
 /*}}*/
 
 winform.show();

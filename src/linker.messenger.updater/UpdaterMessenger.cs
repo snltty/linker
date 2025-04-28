@@ -132,7 +132,7 @@ namespace linker.messenger.updater
                 MachineId = string.Empty,
                 Current = info.Current,
                 Length = info.Length,
-                Status = info.Status, 
+                Status = info.Status,
                 Version = info.Version
             };
             connection.Write(serializer.Serialize(result));
@@ -151,7 +151,7 @@ namespace linker.messenger.updater
         public void ConfirmServer(IConnection connection)
         {
             UpdaterConfirmServerInfo confirm = serializer.Deserialize<UpdaterConfirmServerInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (updaterServerStore.SecretKey == confirm.SecretKey)
+            if (updaterServerStore.ValidateSecretKey(confirm.SecretKey))
             {
                 if (string.IsNullOrWhiteSpace(confirm.Version))
                 {
@@ -172,7 +172,7 @@ namespace linker.messenger.updater
         public void ExitServer(IConnection connection)
         {
             UpdaterConfirmServerInfo confirm = serializer.Deserialize<UpdaterConfirmServerInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (updaterServerStore.SecretKey == confirm.SecretKey)
+            if (updaterServerStore.ValidateSecretKey(confirm.SecretKey))
             {
                 Environment.Exit(1);
             }
@@ -195,7 +195,7 @@ namespace linker.messenger.updater
             }
 
             //需要密钥
-            if (confirm.All && updaterServerStore.SecretKey != confirm.SecretKey)
+            if (confirm.All && updaterServerStore.ValidateSecretKey(confirm.SecretKey) == false)
             {
                 connection.Write(Helper.FalseArray);
                 return;

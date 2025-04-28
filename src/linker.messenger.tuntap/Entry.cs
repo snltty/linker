@@ -1,11 +1,17 @@
-﻿using linker.messenger.api;
+﻿using linker.libs;
+using linker.libs.extends;
+using linker.messenger.api;
 using linker.messenger.decenter;
 using linker.messenger.exroute;
+using linker.messenger.signin;
 using linker.messenger.tunnel;
 using linker.messenger.tuntap.lease;
 using linker.messenger.tuntap.messenger;
 using linker.tun;
 using Microsoft.Extensions.DependencyInjection;
+using System.Net;
+using System.Text;
+using System.Text.Json;
 namespace linker.messenger.tuntap
 {
     public static class Entry
@@ -35,7 +41,7 @@ namespace linker.messenger.tuntap
 
             return serviceCollection;
         }
-        public static ServiceProvider UseTuntapClient(this ServiceProvider serviceProvider)
+        public static ServiceProvider UseTuntapClient(this ServiceProvider serviceProvider, Dictionary<string, string> configDic)
         {
             TuntapProxy tuntapProxy = serviceProvider.GetService<TuntapProxy>();
             TuntapTransfer tuntapTransfer = serviceProvider.GetService<TuntapTransfer>();
@@ -54,14 +60,62 @@ namespace linker.messenger.tuntap
             IApiServer apiServer = serviceProvider.GetService<IApiServer>();
             apiServer.AddPlugins(new List<libs.api.IApiController> { serviceProvider.GetService<TuntapApiController>() });
 
-            ExRouteTransfer exRouteTransfer= serviceProvider.GetService<ExRouteTransfer>();
+            ExRouteTransfer exRouteTransfer = serviceProvider.GetService<ExRouteTransfer>();
             exRouteTransfer.AddExRoutes(new List<IExRoute> { serviceProvider.GetService<TuntapExRoute>() });
 
             TunnelClientExcludeIPTransfer tunnelClientExcludeIPTransfer = serviceProvider.GetService<TunnelClientExcludeIPTransfer>();
             tunnelClientExcludeIPTransfer.AddTunnelExcludeIPs(new List<ITunnelClientExcludeIP> { serviceProvider.GetService<TuntapTunnelExcludeIP>() });
 
-            DecenterClientTransfer decenterClientTransfer= serviceProvider.GetService<DecenterClientTransfer>();
+            DecenterClientTransfer decenterClientTransfer = serviceProvider.GetService<DecenterClientTransfer>();
             decenterClientTransfer.AddDecenters(new List<IDecenter> { serviceProvider.GetService<TuntapDecenter>() });
+
+            if (configDic.TryGetValue("Tuntap", out string base64))
+            {
+                ITuntapClientStore tuntapClientStore = serviceProvider.GetService<ITuntapClientStore>();
+                ILeaseClientStore leaseClientStore = serviceProvider.GetService<ILeaseClientStore>();
+                ISignInClientStore signInClientStore = serviceProvider.GetService<ISignInClientStore>();
+                try
+                {
+                    JsonElement doc = JsonDocument.Parse(Encoding.UTF8.GetString(Convert.FromBase64String(base64))).RootElement;
+                    if (doc.TryGetProperty("IP", out JsonElement ip))
+                    {
+                        tuntapClientStore.Info.IP = IPAddress.Parse(ip.GetString());
+                    }
+                    if (doc.TryGetProperty("PrefixLength", out JsonElement prefixLength))
+                    {
+                        tuntapClientStore.Info.PrefixLength = prefixLength.GetByte();
+                    }
+                    if (doc.TryGetProperty("Lans", out JsonElement lans))
+                    {
+                        tuntapClientStore.Info.Lans = lans.GetString().DeJson<List<TuntapLanInfo>>();
+                    }
+                    if (doc.TryGetProperty("Name", out JsonElement name))
+                    {
+                        tuntapClientStore.Info.Name = name.GetString();
+                    }
+                    if (doc.TryGetProperty("Running", out JsonElement running))
+                    {
+                        tuntapClientStore.Info.Running = running.GetBoolean();
+                    }
+                    if (doc.TryGetProperty("Switch", out JsonElement _switch))
+                    {
+                        tuntapClientStore.Info.Switch = (TuntapSwitch)_switch.GetInt32();
+                    }
+                    if (doc.TryGetProperty("Forwards", out JsonElement forwards))
+                    {
+                        tuntapClientStore.Info.Forwards = forwards.GetString().DeJson<List<TuntapForwardInfo>>();
+                    }
+                    if (doc.TryGetProperty("Lease", out JsonElement lease))
+                    {
+                        leaseClientStore.Set(signInClientStore.Group.Id, lease.GetString().DeJson<LeaseInfo>());
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
+                tuntapClientStore.Confirm();
+            }
 
             return serviceProvider;
         }

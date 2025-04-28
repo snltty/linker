@@ -292,7 +292,7 @@ namespace linker.messenger.relay.messenger
         public async Task UpdateNodeForward(IConnection connection)
         {
             RelayServerNodeUpdateWrapInfo info = serializer.Deserialize<RelayServerNodeUpdateWrapInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (info.SecretKey == relayServerStore.SecretKey)
+            if (relayServerStore.ValidateSecretKey(info.SecretKey))
             {
                 await relayServerTransfer.UpdateNodeReport(info.Info).ConfigureAwait(false);
                 connection.Write(Helper.TrueArray);
@@ -337,7 +337,7 @@ namespace linker.messenger.relay.messenger
         public void AccessCdkey(IConnection connection)
         {
             string secretKey = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            connection.Write(relayServerStore.SecretKey == secretKey ? Helper.TrueArray : Helper.FalseArray);
+            connection.Write(relayServerStore.ValidateSecretKey(secretKey) ? Helper.TrueArray : Helper.FalseArray);
         }
         /// <summary>
         /// 添加CDKEY
@@ -352,7 +352,7 @@ namespace linker.messenger.relay.messenger
                 connection.Write(Helper.FalseArray);
                 return;
             }
-            if (relayServerStore.SecretKey != info.SecretKey)
+            if (relayServerStore.ValidateSecretKey(info.SecretKey))
             {
                 connection.Write(Helper.FalseArray);
                 return;
@@ -376,7 +376,7 @@ namespace linker.messenger.relay.messenger
                 connection.Write(Helper.FalseArray);
                 return;
             }
-            if (relayServerStore.SecretKey == info.SecretKey)
+            if (relayServerStore.ValidateSecretKey(info.SecretKey))
             {
                 await relayServerCdkeyStore.Del(info.Id).ConfigureAwait(false);
             }
@@ -401,7 +401,7 @@ namespace linker.messenger.relay.messenger
                 connection.Write(serializer.Serialize(new RelayServerCdkeyPageResultInfo { }));
                 return;
             }
-            if (relayServerStore.SecretKey != info.SecretKey && string.IsNullOrWhiteSpace(info.UserId))
+            if (relayServerStore.ValidateSecretKey(info.SecretKey) && string.IsNullOrWhiteSpace(info.UserId))
             {
                 connection.Write(serializer.Serialize(new RelayServerCdkeyPageResultInfo { }));
                 return;
@@ -427,7 +427,7 @@ namespace linker.messenger.relay.messenger
                 connection.Write(serializer.Serialize(new RelayServerCdkeyTestResultInfo { }));
                 return;
             }
-            if (relayServerStore.SecretKey != info.SecretKey)
+            if (relayServerStore.ValidateSecretKey(info.SecretKey))
             {
                 connection.Write(serializer.Serialize(new RelayServerCdkeyTestResultInfo { }));
                 return;

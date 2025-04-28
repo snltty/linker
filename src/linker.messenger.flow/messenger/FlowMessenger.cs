@@ -73,7 +73,7 @@ namespace linker.messenger.flow.messenger
             sForwardFlow.Update();
             SForwardFlowRequestInfo info = serializer.Deserialize<SForwardFlowRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
 
-            if (sForwardServerStore.SecretKey == info.SecretKey)
+            if (sForwardServerStore.ValidateSecretKey(info.SecretKey))
             {
                 info.GroupId = string.Empty;
             }
@@ -97,7 +97,7 @@ namespace linker.messenger.flow.messenger
         {
             relayFlow.Update();
             RelayFlowRequestInfo info = serializer.Deserialize<RelayFlowRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (relayServerStore.SecretKey == info.SecretKey)
+            if (relayServerStore.ValidateSecretKey(info.SecretKey))
             {
                 info.GroupId = string.Empty;
             }
@@ -152,7 +152,7 @@ namespace linker.messenger.flow.messenger
 
         private DateTime start = DateTime.Now;
 
-        public FlowClientMessenger( MessengerFlow messengerFlow,ISerializer serializer)
+        public FlowClientMessenger(MessengerFlow messengerFlow, ISerializer serializer)
         {
             this.messengerFlow = messengerFlow;
             this.serializer = serializer;

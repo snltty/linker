@@ -2,19 +2,23 @@
 using linker.libs.extends;
 using Microsoft.Win32.SafeHandles;
 using System.Net;
-using System.Threading;
+using System.Runtime.InteropServices;
 
 namespace linker.tun
 {
+    /// <summary>
+    /// osx网卡实现，未测试
+    /// </summary>
     internal sealed class LinkerOsxTunDevice : ILinkerTunDevice
     {
 
         private string name = string.Empty;
         public string Name => name;
-        public bool Running => fs != null;
+        public bool Running => safeFileHandle != null;
         public bool AppNat => false;
 
-        private FileStream fs = null;
+        private FileStream fsRead = null;
+        private FileStream fsWrite = null;
         private IPAddress address;
         private byte prefixLength = 24;
         private SafeFileHandle safeFileHandle;
@@ -28,42 +32,79 @@ namespace linker.tun
 
         public bool Setup(string name, IPAddress address, byte prefixLength, out string error)
         {
-            this.name = name;
+            this.name = "utun0";
             error = string.Empty;
 
-            interfaceOsx = GetOsxInterfaceNum();
             this.address = address;
             this.prefixLength = prefixLength;
 
-            safeFileHandle = File.OpenHandle($"/dev/{Name}", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite, FileOptions.Asynchronous);
-            fs = new FileStream(safeFileHandle, FileAccess.ReadWrite, 1500);
+            IntPtr arg = Marshal.AllocHGlobal(4);
+            Marshal.WriteInt32(arg, 0);
+            try
+            {
+                interfaceOsx = GetOsxInterfaceNum();
+                safeFileHandle = File.OpenHandle($"/dev/utun", FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite, FileOptions.Asynchronous);
 
-            IPAddress network = NetworkHelper.ToNetworkIP(address, NetworkHelper.ToPrefixValue(prefixLength));
-            CommandHelper.Osx(string.Empty, new string[] {
-                $"route delete -net {network}/{prefixLength} {address}",
-                $"ifconfig {Name} {address} {address} up",
-                $"route add -net {network}/{prefixLength} {address}",
-            });
-            return true;
+                int ret = OsxAPI.Ioctl(safeFileHandle, arg);
+                if (ret < 0)
+                {
+                    Shutdown();
+                    error = $"open utun failed: {Marshal.GetLastWin32Error()}";
+                    return false;
+                }
+                this.name = $"utun{Marshal.ReadInt32(arg)}";
+
+                fsRead = new FileStream(safeFileHandle, FileAccess.Read, 65 * 1024, true);
+                fsWrite = new FileStream(safeFileHandle, FileAccess.Write, 65 * 1024, true);
+
+                IPAddress network = NetworkHelper.ToNetworkIP(address, NetworkHelper.ToPrefixValue(prefixLength));
+
+                CommandHelper.Osx(string.Empty, new string[] {
+                    $"route delete -net {network}/{prefixLength} {address}",
+                    $"ifconfig {Name} {address} {address} up",
+                    $"route add -net {network}/{prefixLength} {address}",
+                });
+
+               
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Shutdown();
+                error = $"open utun failed: {ex.Message}";
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(arg);
+            }
+            return false;
         }
 
         public void Shutdown()
         {
-            if (fs != null)
+            try
             {
-                safeFileHandle?.Dispose();
-
                 interfaceOsx = string.Empty;
-                fs.Close();
-                fs.Dispose();
-                fs = null;
+
+                safeFileHandle?.Dispose();
+                safeFileHandle = null;
+
+                try { fsRead?.Flush(); } catch (Exception) { }
+                try { fsRead?.Close(); fsRead?.Dispose(); } catch (Exception) { }
+                fsRead = null;
+
+                try { fsWrite?.Flush(); } catch (Exception) { }
+                try { fsWrite?.Close(); fsWrite?.Dispose(); } catch (Exception) { }
+                fsWrite = null;
+            }
+            catch (Exception)
+            {
             }
             IPAddress network = NetworkHelper.ToNetworkIP(address, NetworkHelper.ToPrefixValue(this.prefixLength));
             CommandHelper.Osx(string.Empty, new string[] { $"route delete -net {network}/{prefixLength} {address}" });
         }
         public void Refresh()
         {
-
         }
 
         public void AddRoute(LinkerTunDeviceRouteItem[] ips)
@@ -93,7 +134,7 @@ namespace linker.tun
 
         public void SetMtu(int value)
         {
-            CommandHelper.Osx(string.Empty, new string[] { $"ifconfig {Name} mtu {value}" });
+            CommandHelper.Osx(string.Empty, new string[] { $"ifconfig {Name} mtu {value} up" });
         }
 
         public void SetSystemNat(out string error)
@@ -134,34 +175,28 @@ namespace linker.tun
         }
 
 
-        private byte[] buffer = new byte[2 * 1024];
+        private byte[] buffer = new byte[65 * 1024];
+        private readonly object writeLockObj = new object();
         public byte[] Read(out int length)
         {
             length = 0;
-            try
-            {
-                length = fs.Read(buffer.AsSpan(4));
-                length.ToBytes(buffer);
-                length += 4;
-                return buffer;
-            }
-            catch (Exception)
-            {
-            }
-            return Helper.EmptyArray;
+            if (safeFileHandle == null) return Helper.EmptyArray;
+
+            length = fsRead.Read(buffer.AsSpan(4));
+            length.ToBytes(buffer);
+            length += 4;
+            return buffer;
         }
 
         public bool Write(ReadOnlyMemory<byte> buffer)
         {
-            try
+            if (safeFileHandle == null) return true;
+            lock (writeLockObj)
             {
-                fs.Write(buffer.Span);
+                fsWrite.Write(buffer.Span);
+                fsWrite.Flush();
                 return true;
             }
-            catch (Exception)
-            {
-            }
-            return false;
         }
 
         private string GetOsxInterfaceNum()
@@ -186,7 +221,6 @@ namespace linker.tun
             }
             return string.Empty;
         }
-
 
         public async Task<bool> CheckAvailable(bool order = false)
         {

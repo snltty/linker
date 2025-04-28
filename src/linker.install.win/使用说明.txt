@@ -1,4 +1,0 @@
-加载所需要的模块
-pip install -r requirements.txt
-打包
-pyinstaller .\main1.0.spec

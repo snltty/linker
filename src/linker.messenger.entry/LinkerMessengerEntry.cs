@@ -189,7 +189,7 @@ namespace linker.messenger.entry
                 if ((modules & ExcludeModule.Socks5) != ExcludeModule.Socks5)
                     serviceProvider.UseSocks5Client();
                 if ((modules & ExcludeModule.Tuntap) != ExcludeModule.Tuntap)
-                    serviceProvider.UseTuntapClient();
+                    serviceProvider.UseTuntapClient(configDic);
                 if ((modules & ExcludeModule.Updater) != ExcludeModule.Updater)
                     serviceProvider.UseUpdaterClient();
                 serviceProvider.UseExRoute().UseAccessClient().UseDecenterClient().UsePcpClient().UseRelayClient().UseSyncClient().UseTunnelClient().UseFlowClient();

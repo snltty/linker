@@ -4,8 +4,6 @@ namespace linker.messenger.store.file.sforward
 {
     public sealed class SForwardServerStore : ISForwardServerStore
     {
-        public string SecretKey => fileConfig.Data.Server.SForward.SecretKey;
-
         public byte BufferSize => fileConfig.Data.Server.SForward.BufferSize;
 
         public int WebPort => fileConfig.Data.Server.SForward.WebPort;
@@ -18,6 +16,10 @@ namespace linker.messenger.store.file.sforward
             this.fileConfig = fileConfig;
         }
 
+        public bool ValidateSecretKey(string key)
+        {
+            return string.IsNullOrWhiteSpace(fileConfig.Data.Server.SForward.SecretKey) || fileConfig.Data.Server.SForward.SecretKey == key;
+        }
         public bool SetSecretKey(string key)
         {
             fileConfig.Data.Server.SForward.SecretKey = key;

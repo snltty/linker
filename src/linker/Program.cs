@@ -88,6 +88,11 @@ namespace linker
                     configDic.Add("Common", args[i + 1]);
                     i++;
                 }
+                else if (args[i] == "--config-tuntap")
+                {
+                    configDic.Add("Tuntap", args[i + 1]);
+                    i++;
+                }
             }
             return configDic;
         }

@@ -7,12 +7,9 @@ namespace linker.messenger.signin
     /// </summary>
     public interface ISignInServerStore : IStore<SignCacheInfo>
     {
-        /// <summary>
-        /// 信标密钥
-        /// </summary>
-        public string SecretKey { get; }
-
         public int CleanDays { get; }
+
+        public bool ValidateSecretKey(string key);
         /// <summary>
         /// 设置信标密钥
         /// </summary>

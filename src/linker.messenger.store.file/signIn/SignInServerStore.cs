@@ -5,7 +5,6 @@ namespace linker.messenger.store.file.signIn
 {
     public sealed class SignInServerStore : ISignInServerStore
     {
-        public string SecretKey => fileConfig.Data.Server.SignIn.SecretKey;
         public int CleanDays => fileConfig.Data.Server.SignIn.CleanDays;
 
         private readonly Storefactory dBfactory;
@@ -16,6 +15,11 @@ namespace linker.messenger.store.file.signIn
             this.dBfactory = dBfactory;
             liteCollection = dBfactory.GetCollection<SignCacheInfo>("signs");
             this.fileConfig = fileConfig;
+        }
+
+        public bool ValidateSecretKey(string key)
+        {
+            return string.IsNullOrWhiteSpace(fileConfig.Data.Server.SignIn.SecretKey) || fileConfig.Data.Server.SignIn.SecretKey == key;
         }
         public void SetSecretKey(string secretKey)
         {

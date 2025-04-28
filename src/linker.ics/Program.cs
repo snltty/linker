@@ -26,6 +26,7 @@ namespace linker.ics
             {
                 try
                 {
+                    
                     publicCon.EnableSharing(tagSHARINGCONNECTIONTYPE.ICSSHARINGTYPE_PUBLIC);
                 }
                 catch (Exception ex)

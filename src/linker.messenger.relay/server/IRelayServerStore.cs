@@ -2,10 +2,7 @@
 {
     public interface IRelayServerStore
     {
-        /// <summary>
-        /// 中继密钥
-        /// </summary>
-        public string SecretKey { get; }
+        public bool ValidateSecretKey(string secretKey);
 
         /// <summary>
         /// 设置中继密钥

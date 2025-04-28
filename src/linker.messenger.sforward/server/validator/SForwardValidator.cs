@@ -17,7 +17,7 @@ namespace linker.messenger.sforward.server.validator
 
         public async Task<string> Validate(SignCacheInfo signCacheInfo, SForwardAddInfo sForwardAddInfo)
         {
-            if (sForwardServerStore.SecretKey != sForwardAddInfo.SecretKey)
+            if (sForwardServerStore.ValidateSecretKey(sForwardAddInfo.SecretKey))
             {
                 return $"sforward secretKey 【{sForwardAddInfo.SecretKey}】 valid fail";
             }
