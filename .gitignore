@@ -5,6 +5,6 @@ obj
 node_modules
 /public/*
 /x64/*
-linker.share.win
+/src/linker.share.win/*
 
 TestResults
