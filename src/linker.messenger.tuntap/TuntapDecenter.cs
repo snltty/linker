@@ -5,7 +5,6 @@ using linker.messenger.signin;
 using linker.messenger.exroute;
 using linker.tun;
 using System.Net;
-using linker.libs.extends;
 
 namespace linker.messenger.tuntap
 {

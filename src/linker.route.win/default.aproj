@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<project ver="10" name="linker.route.win" libEmbed="true" icon="res\favicon.ico" ui="win" output="linker.route.win.exe" CompanyName="snltty" FileDescription="linker.route.win" LegalCopyright="Copyright (C) snltty 2024" ProductName="linker.route.win" InternalName="linker.route.win" FileVersion="0.0.0.20" ProductVersion="0.0.0.20" publishDir="/dist/" dstrip="false">
+<project ver="10" name="linker.route.win" libEmbed="true" icon="res\favicon.ico" ui="win" output="linker.route.win.exe" CompanyName="snltty" FileDescription="linker.route.win" LegalCopyright="Copyright (C) snltty 2024" ProductName="linker.route.win" InternalName="linker.route.win" FileVersion="0.0.0.25" ProductVersion="0.0.0.25" publishDir="/dist/" dstrip="false">
 	<file name="main.aardio" path="main.aardio" comment="main.aardio"/>
 	<folder name="资源文件" path="res" embed="true" local="false" ignored="false">
 		<file name="Program.cs" path="res\Program.cs" comment="res\Program.cs"/>

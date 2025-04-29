@@ -36,7 +36,6 @@ mainForm.compiler = dotNet.createCompiler("C#");
 mainForm.compiler.Source = string.load("/res/Program.cs");
 mainForm.compiler.import("LinkerRoute");  
 mainForm.netObj = LinkerRoute.LinkerRoute();
-mainForm.ipv4 = mainForm.netObj.GetIPV4("linker.snltty.com");
 
 mainForm.serviceName = "linker.route.service";
 mainForm.exeName = "linker.route.win.exe";
@@ -112,13 +111,21 @@ import win.reg;
 mainForm.reg = win.reg("HKEY_CURRENT_USER\Software\linker.route.win") 
 
 mainForm.ws = web.socket.client();
-mainForm.ws.protocol = mainForm.reg.queryValue("password") || mainForm.tbPassword.text;
-mainForm.wsUrl = mainForm.reg.queryValue("url") || mainForm.tbUrl.text;
+if(mainForm.reg.queryValue("password"))
+{
+	mainForm.tbPassword.text = mainForm.reg.queryValue("password");
+}
+mainForm.ws.protocol = mainForm.tbPassword.text;
+if(mainForm.reg.queryValue("url"))
+{
+	mainForm.tbUrl.text = mainForm.reg.queryValue("url"); 
+}
+mainForm.wsUrl = mainForm.tbUrl.text;
 mainForm.wsConnected = false;
 mainForm.running = true;
 mainForm.hashCode = 0;
-mainForm.routeContent = {List={}};
-
+mainForm.routeList = {};
+mainForm.IP = mainForm.netObj.GetWsIP(mainForm.wsUrl);
 
 mainForm.ws.onOpen = function(){
 	mainForm.wsConnected = true;
@@ -138,42 +145,29 @@ mainForm.ws.onError = function(err){
 	mainForm.textStatus.text = "未连接服务";
 }
 
-
-mainForm.alreadyExists = function(ip,prefixLength){
-	for(i=1;table.len(mainForm.ipv4);1){
-		if(mainForm.netObj.GetIsSameNetwork(mainForm.ipv4[i],ip,prefixLength)){
-			return true;
-		}
-	}
-	return false;
-}
 mainForm.addRoute = function(){
-	for(i=1;table.len(mainForm.routeContent.List) ;1){
-		var item = mainForm.routeContent.List[i];
-		if(mainForm.alreadyExists(item.IP,item.PrefixLength) == false){
-			process.popen.cmd("route add "+item.Network+" mask "+item.PrefixIP+" "+mainForm.routeContent.IP);
-			//console.log("route add "+item.Network+" mask "+item.PrefixIP+" "+mainForm.routeContent.IP);	
-		}
+	for(i=1;table.len(mainForm.routeList) ;1){
+		item = mainForm.routeList[i];
+		process.popen.cmd("route add "+item.Network+" mask "+item.PrefixIP+" "+mainForm.IP);
 	}
 }
 mainForm.delRoute = function(){
-	for(i=1;table.len(mainForm.routeContent.List) ;1){
-		var item = mainForm.routeContent.List[i];
-		//console.log("route delete "+item.Network+" mask "+item.PrefixIP+" "+mainForm.routeContent.IP);
-		process.popen.cmd("route delete "+item.Network+" mask "+item.PrefixIP+" "+mainForm.routeContent.IP);
+	for(i=1;table.len(mainForm.routeList) ;1){
+		var item = mainForm.routeList[i];
+		process.popen.cmd("route delete "+item.Network+" mask "+item.PrefixIP+" "+mainForm.IP);
 	}
 }
-mainForm.sameRoute = function(content){
+mainForm.sameRoute = function(list){
 	var same = true;
-		if(content.List && table.len(content.List) > 0)
+		if(list && table.len(list) > 0)
 		{
-			same = table.len(content.List) == table.len(mainForm.routeContent.List);
+			same = table.len(list) == table.len(mainForm.routeList);
 			if(same)
 			{
-				for(i=1;table.len(content.List) ;1)
+				for(i=1;table.len(list) ;1)
 				{
-					same = content.List[i].IP == mainForm.routeContent.List[i].IP 
-					&& content.List[i].PrefixLength == mainForm.routeContent.List[i].PrefixLength;	
+					same = list[i].IP == mainForm.routeList[i].IP 
+					&& list[i].PrefixLength == mainForm.routeList[i].PrefixLength;	
 					if(!same)
 					{
 						break;	
@@ -185,19 +179,57 @@ mainForm.sameRoute = function(content){
 }
 
 mainForm.ws.onMessage = function(msg){
+	import console;
 	try{
-		var content = web.json.parse(msg.data).Content;
-		var same = mainForm.sameRoute(content);
+		content = web.json.parse(msg.data).Content;
+		result = {};
+		added = false;
+		for(k,v in content.List){
+			if(!added)
+			{
+				added = true;
+				table.push(result,{
+					IP:v.IP,
+					PrefixLength = v.PrefixLength,
+					Network:mainForm.netObj.ToNetwork(v.IP,v.PrefixLength),
+					PrefixIP:mainForm.netObj.ToPrefixIP(v.PrefixLength)
+				});
+			}
+			for(k1,v1 in v.Lans){
+				if(!v1.Disabled && !v1.Exists)
+				{
+					if(v1.MapIP && v1.MapIP != "0.0.0.0")
+					{
+						table.push(result,{
+							IP:v1.MapIP,
+							PrefixLength = v1.MapPrefixLength,
+							Network:mainForm.netObj.ToNetwork(v1.MapIP,v1.MapPrefixLength),
+							PrefixIP:mainForm.netObj.ToPrefixIP(v1.MapPrefixLength)
+						});	
+					}else
+					{
+						table.push(result,{
+							IP:v1.IP,
+							PrefixLength = v1.PrefixLength,
+							Network:mainForm.netObj.ToNetwork(v1.IP,v1.PrefixLength),
+							PrefixIP:mainForm.netObj.ToPrefixIP(v1.PrefixLength)
+						});	
+					}
+				}
+				
+			}
+		}
+		var same = mainForm.sameRoute(result);
 		if(!same){
 			mainForm.delRoute();
-			mainForm.routeContent = content;
+			mainForm.routeList = result;
+			mainForm.IP = mainForm.netObj.GetWsIP(mainForm.wsUrl);
 			mainForm.addRoute();
 		}
 	}
 	catch(e){
 	}
 }
-
 
 mainForm.failureService = function()
 {
@@ -277,7 +309,7 @@ mainForm.setInterval(
 			}else
 			{
 				mainForm.ws.send(web.json.stringify({
-					Path: "tuntapclient/routeitems",
+					Path: "tuntap/get",
                 	RequestId: 0,
                 	Content:mainForm.hashCode+""
 				}));

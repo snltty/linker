@@ -211,7 +211,7 @@ namespace linker.tun
                 {
                     return;
                 }
-                error = $"NetNat and ICS not supported,{error}";
+                error = $"NetNat not supported,{error}";
             }
             catch (Exception ex)
             {

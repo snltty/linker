@@ -84,6 +84,11 @@ namespace linker.messenger.updater
 
 
         private readonly LastTicksManager lastTicksManager = new LastTicksManager();
+
+        /// <summary>
+        /// 订阅更新信息
+        /// </summary>
+        /// <param name="machineId"></param>
         public void Subscribe(string machineId)
         {
             if (subscribes.TryGetValue(machineId, out LastTicksManager _lastTicksManager) == false)
@@ -146,7 +151,6 @@ namespace linker.messenger.updater
             }, () => lastTicksManager.DiffLessEqual(5000) ? 3000 : 15000);
 
         }
-
         public void Check()
         {
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)

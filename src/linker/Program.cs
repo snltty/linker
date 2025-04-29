@@ -2,6 +2,7 @@
 using System.ServiceProcess;
 using System.Diagnostics;
 using linker.messenger.entry;
+using linker.libs.extends;
 
 namespace linker
 {
@@ -66,33 +67,12 @@ namespace linker
         private static Dictionary<string, string> ParseArgs(string[] args)
         {
             Dictionary<string, string> configDic = new Dictionary<string, string>();
-            for (int i = 0; i < args.Length; i++)
+            try
             {
-                if (args[i] == "--config-client")
-                {
-                    configDic.Add("Client", args[i + 1]);
-                    i++;
-                }
-                else if (args[i] == "--config-server")
-                {
-                    configDic.Add("Server", args[i + 1]);
-                    i++;
-                }
-                else if (args[i] == "--config-action")
-                {
-                    configDic.Add("Action", args[i + 1]);
-                    i++;
-                }
-                else if (args[i] == "--config-common")
-                {
-                    configDic.Add("Common", args[i + 1]);
-                    i++;
-                }
-                else if (args[i] == "--config-tuntap")
-                {
-                    configDic.Add("Tuntap", args[i + 1]);
-                    i++;
-                }
+                configDic = args[0].DeJson<Dictionary<string, string>>();
+            }
+            catch (Exception)
+            {
             }
             return configDic;
         }

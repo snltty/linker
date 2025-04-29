@@ -123,8 +123,8 @@ namespace linker.messenger.store.file
                 var (client, clientObject, common, commonObject) = await GetConfig(configExportInfo).ConfigureAwait(false);
                 Dictionary<string, object> dic = new Dictionary<string, object>
                 {
-                    {"Client",Convert.ToBase64String(Encoding.UTF8.GetBytes(clientObject.ToJson()))},
-                    {"Common",Convert.ToBase64String(Encoding.UTF8.GetBytes(commonObject.ToJson()))},
+                    {"Client",clientObject.ToJson()},
+                    {"Common",commonObject.ToJson()},
                 };
 
                 return Convert.ToBase64String(Encoding.UTF8.GetBytes(dic.ToJson()));
@@ -145,8 +145,8 @@ namespace linker.messenger.store.file
                 var (client, clientObject, common, commonObject) = await GetConfig(configExportInfo).ConfigureAwait(false);
                 Dictionary<string, object> dic = new Dictionary<string, object>
                 {
-                    {"Client",Convert.ToBase64String(Encoding.UTF8.GetBytes(clientObject.ToJson()))},
-                    {"Common",Convert.ToBase64String(Encoding.UTF8.GetBytes(commonObject.ToJson()))},
+                    {"Client",clientObject.ToJson()},
+                    {"Common",commonObject.ToJson()},
                 };
                 string value = Convert.ToBase64String(Encoding.UTF8.GetBytes(dic.ToJson()));
                 return await exportResolver.Save(signInClientState.Connection.Address, value);

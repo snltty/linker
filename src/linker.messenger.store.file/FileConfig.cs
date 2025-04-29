@@ -109,10 +109,8 @@ namespace linker.messenger.store.file
                             continue;
                         }
                         string text = item.Value.PropertyMethod.Serialize(item.Value.Property.GetValue(Data));
-                        if (dic != null && dic.TryGetValue(item.Value.Property.Name, out string base64))
+                        if (dic != null && dic.TryGetValue(item.Value.Property.Name, out string text2))
                         {
-                            string text2 = Encoding.UTF8.GetString(Convert.FromBase64String(base64));
-
                             text = item.Value.PropertyMethod.Deserialize(text).ToJson();
                             text = MergeJson(text, text2);
 

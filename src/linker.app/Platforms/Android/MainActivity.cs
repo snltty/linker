@@ -255,8 +255,8 @@ namespace linker.app
                 Modes = new string[] { "client" },
             };
             return new Dictionary<string, string> {
-                {"Client",Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(client)))},
-                {"Common", Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(common)))}
+                {"Client",client.ToJson()},
+                {"Common", common.ToJson()}
             };
         }
         private void TuntapSetup()
