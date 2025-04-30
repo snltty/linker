@@ -5,7 +5,7 @@
                 <img src="@/assets/coin.svg" alt="memory" />
                 <span>{{$t('status.support')}}</span>
             </a>
-            <span>©linker {{ self.Version }}</span>
+            <a href="javascript:;">©linker {{ self.Version }}</a>
             <a v-if="globalData.isPc" href="https://github.com/snltty/linker" target="_blank">Github</a>
             <a v-if="globalData.isPc" href="https://linker.snltty.com" target="_blank">{{$t('status.website')}}</a>
             <a v-if="globalData.isPc" href="https://linker-doc.snltty.com" target="_blank">{{$t('status.doc')}}</a>

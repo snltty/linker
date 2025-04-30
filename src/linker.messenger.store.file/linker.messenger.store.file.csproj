@@ -16,9 +16,9 @@
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker messenger store file</PackageReleaseNotes>
-		<Version>1.7.6</Version>
-		<AssemblyVersion>1.7.6</AssemblyVersion>
-		<FileVersion>1.7.6</FileVersion>
+		<Version>1.7.7</Version>
+		<AssemblyVersion>1.7.7</AssemblyVersion>
+		<FileVersion>1.7.7</FileVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -37,10 +37,12 @@
 		<DebugType>embedded</DebugType>
 	</PropertyGroup>
 	<ItemGroup>
-	  <None Remove="snltty.pfx" />
+	  <None Remove="privatekey.pem" />
+	  <None Remove="publickey.pem" />
 	</ItemGroup>
 	<ItemGroup>
-	  <EmbeddedResource Include="snltty.pfx" />
+	  <EmbeddedResource Include="privatekey.pem" />
+	  <EmbeddedResource Include="publickey.pem" />
 	</ItemGroup>
 	<ItemGroup>
 	  <PackageReference Include="LiteDB" Version="5.0.17" />

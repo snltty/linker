@@ -7,7 +7,6 @@ using System.Text.Json.Serialization;
 using System.Text;
 using System.Net.Sockets;
 using System.IO.Pipelines;
-using System;
 
 namespace linker.tunnel.connection
 {

@@ -49,11 +49,12 @@ namespace linker
 
         public static void Run(string[] args)
         {
-            Dictionary<string, string> configDic = ParseArgs(args);
+           
 
             LinkerMessengerEntry.Initialize();
             LinkerMessengerEntry.Build();
 
+            Dictionary<string, string> configDic = ParseArgs(args);
             LinkerMessengerEntry.Setup(ExcludeModule.None, configDic);
 
             LoggerHelper.Instance.Warning($"current version : {VersionHelper.version}");

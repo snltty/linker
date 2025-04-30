@@ -72,7 +72,7 @@ namespace linker.tun
             string str = CommandHelper.Linux(string.Empty, new string[] { $"ifconfig" });
             if (str.Contains(Name) == false)
             {
-                error = CommandHelper.Linux(string.Empty, new string[] { $"ip tuntap add mode tun dev {Name}" });
+                CommandHelper.Linux(string.Empty, new string[] { $"ip tuntap add mode tun dev {Name}" },out error);
                 return false;
             }
 

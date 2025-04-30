@@ -92,11 +92,18 @@ LinkerMessengerEntry.Setup(ExcludeModule.None);
 <p><img src="./readme/snat.jpg"></p> 
 </div>
 
+## 计划任务
+内网穿透使用计划任务决定开启和关闭的时机
+
+<div align="center">
+<p><img src="./readme/plan.jpg"></p> 
+</div>
+
 
 ## 管理页面
 
 <div align="center">
-<p><img src="./readme/full.png"></p> 
+<p><img src="./readme/full.jpg"></p> 
 </div>
 
 ## 可怜作者

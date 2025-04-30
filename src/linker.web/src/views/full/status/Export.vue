@@ -247,7 +247,7 @@ export default {
 </script>
 <style lang="stylus" scoped>
 .status-export-wrap{
-    padding-right:2rem;
+    padding-right:1rem;
     a{
         color:#333;
         .el-icon{

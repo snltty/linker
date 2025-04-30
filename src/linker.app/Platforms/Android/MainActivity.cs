@@ -215,8 +215,7 @@ namespace linker.app
         private void RunLinker()
         {
             Helper.currentDirectory = FileSystem.Current.AppDataDirectory;
-            Dictionary<string, string> config = InitConfig();
-
+            
             InitLogger();
 
             LinkerMessengerEntry.Initialize();
@@ -225,6 +224,8 @@ namespace linker.app
             LinkerMessengerEntry.AddService<IUpdaterInstaller, UpdaterInstaller>();
 
             LinkerMessengerEntry.Build();
+
+            Dictionary<string, string> config = InitConfig();
             LinkerMessengerEntry.Setup(ExcludeModule.Logger, config);
             IPlatformApplication.Current.Services.GetService<InitializeService>().SendOnInitialized();
 

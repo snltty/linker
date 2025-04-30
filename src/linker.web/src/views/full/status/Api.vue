@@ -39,7 +39,7 @@ export default {
 </script>
 <style lang="stylus" scoped>
 .status-api-wrap{
-    padding-right:2rem;
+    padding-right:1rem;
     &.connected {
        a{color:green;font-weight:bold;}
     }  

@@ -92,11 +92,18 @@ Built-in SNAT enables you to use the point-to-site functionality even on Windows
 <p><img src="./readme/snat.jpg"></p> 
 </div>
 
+## Plan Task
+Schedule tasks to control activation and deactivation timing.
+
+<div align="center">
+<p><img src="./readme/plan.jpg"></p> 
+</div>
+
 ## Management Website
 
 <div align="center">
 
-<p><img src="./readme/full.png"></p> 
+<p><img src="./readme/full.jpg"></p> 
 </div>
 
 ## Support the Author

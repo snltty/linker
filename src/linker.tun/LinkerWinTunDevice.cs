@@ -51,17 +51,23 @@ namespace linker.tun
                 return false;
             }
             Guid guid = Guid.Parse("771EF382-8718-5BC5-EBF0-A28B86142278");
-            adapter = WinTun.WintunCreateAdapter(name, name, ref guid);
+
+            for (int i = 0; i < 5; i++)
+            {
+                if ((adapter = WinTun.WintunCreateAdapter(name, name, ref guid)) == 0 && (adapter = WinTun.WintunOpenAdapter(name)) == 0)
+                {
+                    Shutdown();
+                    Thread.Sleep(2000);
+                    continue;
+                }
+                break;
+            }
             if (adapter == 0)
             {
-                adapter = WinTun.WintunOpenAdapter(name);
-                if (adapter == 0)
-                {
-                    error = ($"Failed to create adapter {Marshal.GetLastWin32Error()}");
-                    Shutdown();
-                    return false;
-                }
+                error = ($"Failed to create adapter {Marshal.GetLastWin32Error()}");
+                return false;
             }
+
             uint version = WinTun.WintunGetRunningDriverVersion();
             session = WinTun.WintunStartSession(adapter, 0x400000);
             if (session == 0)
@@ -234,7 +240,7 @@ namespace linker.tun
             {
                 return;
             }
-           
+
             winDivertNAT.Setup(new LinkerSrcNat.SetupInfo
             {
                 Src = address,

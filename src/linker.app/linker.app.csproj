@@ -28,7 +28,7 @@
 		<ApplicationId>com.snltty.linker.app</ApplicationId>
 
 		<Title>linker.app</Title>
-		<Version>1.7.6</Version>
+		<Version>1.7.7</Version>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Copyright>snltty</Copyright>
@@ -38,7 +38,7 @@
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
 
 		<!-- Versions -->
-		<ApplicationDisplayVersion>1.7.6</ApplicationDisplayVersion>
+		<ApplicationDisplayVersion>1.7.7</ApplicationDisplayVersion>
 		<ApplicationVersion>1</ApplicationVersion>
 
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">11.0</SupportedOSPlatformVersion>
@@ -114,6 +114,7 @@
 
 	<ItemGroup>
 	  <None Remove="Platforms\Android\Resources\xml\file_paths.xml" />
+	  <None Remove="Platforms\Android\Resources\xml\network_security_config.xml" />
 	</ItemGroup>
 
 	<ItemGroup>
