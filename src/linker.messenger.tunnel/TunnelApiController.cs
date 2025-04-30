@@ -5,6 +5,8 @@ using System.Collections.Concurrent;
 using linker.messenger.signin;
 using linker.libs;
 using linker.messenger.api;
+using linker.tunnel.connection;
+using linker.tunnel;
 
 namespace linker.messenger.tunnel
 {
@@ -20,8 +22,11 @@ namespace linker.messenger.tunnel
         private readonly ITunnelClientStore tunnelClientStore;
         private readonly ISerializer serializer;
         private readonly TunnelNetworkTransfer tunnelNetworkTransfer;
+        private readonly TunnelTransfer tunnelTransfer;
 
-        public TunnelApiController(SignInClientState signInClientState, IMessengerSender messengerSender, ISignInClientStore signInClientStore, TunnelDecenter tunnelDecenter, ITunnelClientStore tunnelClientStore, ISerializer serializer, TunnelNetworkTransfer tunnelNetworkTransfer)
+        public TunnelApiController(SignInClientState signInClientState, IMessengerSender messengerSender, ISignInClientStore signInClientStore,
+            TunnelDecenter tunnelDecenter, ITunnelClientStore tunnelClientStore, ISerializer serializer, TunnelNetworkTransfer tunnelNetworkTransfer,
+            TunnelTransfer tunnelTransfer)
         {
             this.signInClientState = signInClientState;
             this.messengerSender = messengerSender;
@@ -30,6 +35,7 @@ namespace linker.messenger.tunnel
             this.tunnelClientStore = tunnelClientStore;
             this.serializer = serializer;
             this.tunnelNetworkTransfer = tunnelNetworkTransfer;
+            this.tunnelTransfer = tunnelTransfer;
         }
 
         /// <summary>
@@ -57,6 +63,28 @@ namespace linker.messenger.tunnel
         public void Refresh(ApiControllerParamsInfo param)
         {
             tunnelDecenter.Refresh();
+        }
+
+        /// <summary>
+        /// 正在操作列表
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public ConcurrentDictionary<string, bool> Operating(ApiControllerParamsInfo param)
+        {
+            return tunnelTransfer.Operating;
+        }
+        /// <summary>
+        /// 连接
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public bool Connect(ApiControllerParamsInfo param)
+        {
+            TunnelConnectInfo tunnelConnectInfo = param.Content.DeJson<TunnelConnectInfo>();
+            _ = tunnelTransfer.ConnectAsync(tunnelConnectInfo.ToMachineId, tunnelConnectInfo.TransactionId, tunnelConnectInfo.DenyProtocols);
+
+            return true;
         }
 
         /// <summary>
@@ -122,7 +150,7 @@ namespace linker.messenger.tunnel
                     MessengerId = (ushort)TunnelMessengerIds.NetworkForward,
                     Payload = serializer.Serialize(param.Content)
                 }).ConfigureAwait(false);
-                if(resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
+                if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
                 {
                     return serializer.Deserialize<TunnelLocalNetworkInfo>(resp.Data.Span);
                 }
@@ -135,6 +163,13 @@ namespace linker.messenger.tunnel
             public ConcurrentDictionary<string, TunnelRouteLevelInfo> List { get; set; }
             public ulong HashCode { get; set; }
         }
+        public sealed class TunnelConnectInfo
+        {
+            public string ToMachineId { get; set; }
+            public string TransactionId { get; set; }
+            public TunnelProtocolType DenyProtocols { get; set; }
+        }
+
     }
 
 }

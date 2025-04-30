@@ -8,6 +8,7 @@ using linker.messenger.relay.messenger;
 using linker.messenger.relay.server;
 using linker.messenger.signin;
 using linker.tunnel.connection;
+using System.Collections.Concurrent;
 
 namespace linker.messenger.relay
 {
@@ -43,13 +44,26 @@ namespace linker.messenger.relay
             relayClientStore.SetServer(info);
             return true;
         }
-
         public List<RelayServerNodeReportInfo170> Subscribe(ApiControllerParamsInfo param)
         {
             relayTestTransfer.Subscribe();
             return relayTestTransfer.Nodes;
         }
 
+        /// <summary>
+        /// 正在操作列表
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public ConcurrentDictionary<string, bool> Operating(ApiControllerParamsInfo param)
+        {
+            return relayTransfer.Operating;
+        }
+        /// <summary>
+        /// 连接
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public bool Connect(ApiControllerParamsInfo param)
         {
             RelayConnectInfo relayConnectInfo = param.Content.DeJson<RelayConnectInfo>();
@@ -129,7 +143,6 @@ namespace linker.messenger.relay
 
             return new RelayServerCdkeyPageResultInfo();
         }
-
         public async Task<RelayServerCdkeyPageResultInfo> MyCdkey(ApiControllerParamsInfo param)
         {
             RelayServerCdkeyPageRequestInfo info = param.Content.DeJson<RelayServerCdkeyPageRequestInfo>();
@@ -148,7 +161,6 @@ namespace linker.messenger.relay
 
             return new RelayServerCdkeyPageResultInfo();
         }
-
         public async Task<RelayServerCdkeyTestResultInfo> TestCdkey(ApiControllerParamsInfo param)
         {
             RelayServerCdkeyImportInfo info = param.Content.DeJson<RelayServerCdkeyImportInfo>();
@@ -209,8 +221,6 @@ namespace linker.messenger.relay
         public string TransactionId { get; set; }
         public string NodeId { get; set; }
         public TunnelProtocolType Protocol { get; set; }
-
-
     }
 
 }

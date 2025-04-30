@@ -100,7 +100,7 @@ export default {
 
         const {tuntap,_getTuntapInfo,handleTuntapEdit,handleTuntapRefresh,clearTuntapTimeout,getTuntapMachines,sortTuntapIP}  = provideTuntap();
         const {socks5,_getSocks5Info,handleSocks5Edit,handleSocks5Refresh,clearSocks5Timeout,getSocks5Machines,sortSocks5}  = provideSocks5();
-        const {tunnel,_getTunnelInfo,handleTunnelEdit,handleTunnelRefresh,clearTunnelTimeout,sortTunnel} = provideTunnel();
+        const {tunnel,_getTunnelInfo,getTunnelOperating,getRelayOperating,handleTunnelEdit,handleTunnelRefresh,clearTunnelTimeout,sortTunnel} = provideTunnel();
         const {forward,_getForwardCountInfo,handleForwardEdit,clearForwardTimeout,handleForwardRefresh} = provideForward();
         const {sforward,_getSForwardCountInfo,handleSForwardEdit,clearSForwardTimeout,handleSForwardRefresh} = provideSforward();
         const {connections,
@@ -192,6 +192,8 @@ export default {
             _getTuntapInfo();
             _getSocks5Info();
             _getTunnelInfo();
+            getTunnelOperating();
+            getRelayOperating();
             _getForwardConnections();
             _getTuntapConnections();
             _getSocks5Connections();
@@ -201,6 +203,8 @@ export default {
             _subscribeUpdater();
 
             _getAccessInfo();
+
+            
         });
         onUnmounted(() => {
             clearDevicesTimeout();

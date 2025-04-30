@@ -6,6 +6,9 @@ export const setRelayServers = (servers) => {
 export const setRelaySubscribe = () => {
     return sendWebsocketMsg('relay/Subscribe');
 }
+export const relayOperating = () => {
+    return sendWebsocketMsg('relay/Operating');
+}
 export const relayConnect = (data) => {
     return sendWebsocketMsg('relay/Connect', data);
 }

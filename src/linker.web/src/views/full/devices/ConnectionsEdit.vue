@@ -15,7 +15,7 @@
                         <span>{{ state.transactions[scope.row.TransactionId] }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column property="TransportName" label="协议">
+                <el-table-column property="TransportName" label="协议"  width="120">
                     <template #default="scope">
                         <div>
                             <p>{{ scope.row.TransportName }}({{ state.protocolTypes[scope.row.ProtocolType] }})</p>
@@ -39,8 +39,21 @@
                 <el-table-column property="relay" label="中继节点">
                     <template #default="scope">
                         <div>
-                            <a href="javascript:;" class="a-line" @click="handleNode(scope.row)">{{
+                            <p>
+                                <span>中继 : </span>
+                                <a v-if="state.relayOperatings[scope.row.RemoteMachineId]" href="javascript:;" class="a-line">
+                                    <span>操作中.</span><el-icon size="14" class="loading"><Loading /></el-icon>
+                                </a>
+                                <a v-else href="javascript:;" class="a-line" @click="handleNode(scope.row)">{{
                                 state.nodesDic[scope.row.NodeId] || '选择节点' }}</a>
+                            </p>
+                            <p>
+                                <span>打洞 : </span>
+                                <a v-if="state.p2pOperatings[scope.row.RemoteMachineId]" href="javascript:;" class="a-line">
+                                    <span>操作中.</span><el-icon size="14" class="loading"><Loading /></el-icon>
+                                </a>
+                                <a v-else href="javascript:;" class="a-line" @click="handlep2p(scope.row)">尝试打洞</a>
+                            </p>
                         </div>
                     </template>
                 </el-table-column>
@@ -128,8 +141,8 @@
                             </div>
                             <template #dropdown>
                                 <el-dropdown-menu>
-                                    <el-dropdown-item v-if="(scope.row.AllowProtocol & 1) == 1" @click="handleConnect(scope.row.Id, 1)">TCP</el-dropdown-item>
-                                    <el-dropdown-item v-if="(scope.row.AllowProtocol & 2) == 2" @click="handleConnect(scope.row.Id, 2)">UDP</el-dropdown-item>
+                                    <el-dropdown-item v-if="(scope.row.AllowProtocol & 1) == 1" @click="handleConnect(scope.row.Id, 1)">{{$t('common.relay')}}TCP</el-dropdown-item>
+                                    <el-dropdown-item v-if="(scope.row.AllowProtocol & 2) == 2" @click="handleConnect(scope.row.Id, 2)">{{$t('common.relay')}}UDP</el-dropdown-item>
                                 </el-dropdown-menu>
                             </template>
                         </el-dropdown>
@@ -143,14 +156,16 @@
 import { reactive, watch, computed, onMounted, onUnmounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import { useConnections, useForwardConnections, useSocks5Connections, useTuntapConnections } from './connections';
-import { Delete, Select, ArrowDown } from '@element-plus/icons-vue';
+import { Delete, Select, ArrowDown,Loading } from '@element-plus/icons-vue';
 import { injectGlobalData } from '@/provide';
 import { relayConnect, setRelaySubscribe } from '@/apis/relay';
 import { useI18n } from 'vue-i18n';
+import { useTunnel } from './tunnel';
+import { tunnelConnect } from '@/apis/tunnel';
 export default {
     props: ['modelValue'],
     emits: ['change', 'update:modelValue'],
-    components: { Delete, Select, ArrowDown },
+    components: { Delete, Select, ArrowDown,Loading },
     setup(props, { emit }) {
 
         const { t } = useI18n();
@@ -161,6 +176,7 @@ export default {
         const forwardConnections = useForwardConnections();
         const tuntapConnections = useTuntapConnections();
         const socks5Connections = useSocks5Connections();
+        const tunnel = useTunnel();
         const state = reactive({
             show: true,
             protocolTypes: { 1: 'tcp', 2: 'udp', 4: 'msquic' },
@@ -178,7 +194,10 @@ export default {
             showNodes: false,
             nodes: [],
             nodesDic: {},
-            timer: 0
+            timer: 0,
+
+            relayOperatings:tunnel.value.relayOperatings,
+            p2pOperatings:tunnel.value.p2pOperatings,
         });
         watch(() => state.show, (val) => {
             if (!val) {
@@ -208,6 +227,17 @@ export default {
                 state.timer = setTimeout(_setRelaySubscribe, 1000);
             });
         }
+
+        const handlep2p = (row)=>{
+            tunnelConnect({
+                ToMachineId:row.RemoteMachineId,
+                TransactionId:row.TransactionId,
+                DenyProtocols:row.TransactionId == 'tuntap' ? 4 : 2
+            }).then(()=>{
+                ElMessage.success(t('common.oper'));
+            }).catch(()=>{ElMessage.success(t('common.operFail'));})
+        }
+
         const handleNode = (row) => {
             state.currentRow = row;
             state.showNodes = true;
@@ -234,7 +264,7 @@ export default {
         })
 
         return {
-            state, handleDel, hasTunnelRemove, handleNode, handleConnect
+            state, handleDel, hasTunnelRemove,handlep2p, handleNode, handleConnect
         }
     }
 }
@@ -267,4 +297,17 @@ export default {
         
     }
 }
+
+@keyframes loading {
+    from{transform:rotate(0deg)}
+    to{transform:rotate(360deg)}
+}
+.el-icon{  
+    &.loading{
+        margin-left:.3rem
+        vertical-align:middle;font-weight:bold;
+        animation:loading 1s linear infinite;
+    }
+}
+
 </style>

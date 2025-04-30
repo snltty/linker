@@ -8,6 +8,8 @@ export default {
     'common.tips': '提示',
     'common.option': '选项',
     'common.access': '无权限',
+    'common.relay': '中继',
+    'common.p2p': '打洞',
 
     'head.home': '首页',
     'head.server': '服务器',

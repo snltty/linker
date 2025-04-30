@@ -3,8 +3,14 @@ import { sendWebsocketMsg } from './request'
 export const getTunnelInfo = (hashcode = '0') => {
     return sendWebsocketMsg('tunnel/get', hashcode);
 }
-export const refreshTunnel = () => {
+export const tunnelRefresh = () => {
     return sendWebsocketMsg('tunnel/refresh');
+}
+export const tunnelOperating = () => {
+    return sendWebsocketMsg('tunnel/Operating');
+}
+export const tunnelConnect = (data) => {
+    return sendWebsocketMsg('tunnel/connect',data);
 }
 
 export const setTunnelRouteLevel = (data) => {

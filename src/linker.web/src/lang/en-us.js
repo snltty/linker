@@ -8,6 +8,8 @@ export default {
     'common.tips': 'Tips',
     'common.option': 'Option',
     'common.access': 'No access',
+    'common.relay': 'Relay',
+    'common.p2p': 'P2P',
 
     'head.home': 'Home',
     'head.server': 'Server',

@@ -18,6 +18,7 @@ namespace linker.tunnel
         private TunnelWanPortTransfer tunnelWanPortTransfer;
         private TunnelUpnpTransfer tunnelUpnpTransfer;
 
+        public ConcurrentDictionary<string, bool> Operating => operating.StringKeyValue;
         private OperatingMultipleManager operating = new OperatingMultipleManager();
         private uint flowid = 1;
         private Dictionary<string, List<Action<ITunnelConnection>>> OnConnected { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
@@ -208,7 +209,7 @@ namespace linker.tunnel
         /// <returns></returns>
         public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId, string transactionTag, TunnelProtocolType denyProtocols)
         {
-            if (operating.StartOperation(remoteMachineId) == false) return null;
+            if (operating.StartOperation(BuildKey(remoteMachineId, transactionId)) == false) return null;
 
             try
             {
@@ -314,7 +315,7 @@ namespace linker.tunnel
             }
             finally
             {
-                operating.StopOperation(remoteMachineId);
+                operating.StopOperation(BuildKey(remoteMachineId, transactionId));
             }
             return null;
         }
@@ -324,7 +325,8 @@ namespace linker.tunnel
         /// <param name="tunnelTransportInfo"></param>
         public async Task OnBegin(TunnelTransportInfo tunnelTransportInfo)
         {
-            if (operating.StartOperation(tunnelTransportInfo.Remote.MachineId) == false)
+            
+            if (operating.StartOperation(BuildKey(tunnelTransportInfo.Remote.MachineId, tunnelTransportInfo.TransactionId)) == false)
             {
                 return;
             }
@@ -340,18 +342,18 @@ namespace linker.tunnel
                     ParseRemoteEndPoint(tunnelTransportInfo);
                     _ = transport.OnBegin(tunnelTransportInfo).ContinueWith((result) =>
                     {
-                        operating.StopOperation(tunnelTransportInfo.Remote.MachineId);
+                        operating.StopOperation(BuildKey(tunnelTransportInfo.Remote.MachineId, tunnelTransportInfo.TransactionId));
                     });
                 }
                 else
                 {
-                    operating.StopOperation(tunnelTransportInfo.Remote.MachineId);
+                    operating.StopOperation(BuildKey(tunnelTransportInfo.Remote.MachineId, tunnelTransportInfo.TransactionId));
                     _ = tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo);
                 }
             }
             catch (Exception ex)
             {
-                operating.StopOperation(tunnelTransportInfo.Remote.MachineId);
+                operating.StopOperation(BuildKey(tunnelTransportInfo.Remote.MachineId, tunnelTransportInfo.TransactionId));
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
                     LoggerHelper.Instance.Error(ex);
@@ -515,7 +517,10 @@ namespace linker.tunnel
 
             tunnelTransportInfo.RemoteEndPoints = eps;
         }
-
+        private string BuildKey(string remoteMachineId, string transactionId)
+        {
+            return $"{remoteMachineId}@{transactionId}";
+        }
 
         private ConcurrentDictionary<string, bool> backgroundDic = new ConcurrentDictionary<string, bool>();
         /// <summary>

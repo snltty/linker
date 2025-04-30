@@ -20,6 +20,8 @@ namespace linker.libs
 
     public sealed class OperatingMultipleManager
     {
+        public ConcurrentDictionary<string, bool> StringKeyValue=> dicOperating;
+
         private readonly ConcurrentDictionary<string, bool> dicOperating = new ConcurrentDictionary<string, bool>();
         private readonly ConcurrentDictionary<uint, bool> dicOperating1 = new ConcurrentDictionary<uint, bool>();
 

@@ -3,6 +3,7 @@ using linker.tunnel.connection;
 using linker.libs;
 using linker.libs.extends;
 using linker.messenger.signin;
+using System.Collections.Concurrent;
 
 namespace linker.messenger.relay.client
 {
@@ -13,6 +14,8 @@ namespace linker.messenger.relay.client
     {
         public List<IRelayClientTransport> Transports { get; private set; }
 
+
+        public ConcurrentDictionary<string, bool> Operating => operating.StringKeyValue;
         private OperatingMultipleManager operating = new OperatingMultipleManager();
 
         private Dictionary<string, List<Action<ITunnelConnection>>> OnConnected { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
@@ -73,7 +76,7 @@ namespace linker.messenger.relay.client
             if (string.IsNullOrWhiteSpace(nodeId)) nodeId = relayClientStore.DefaultNodeId;
 
 
-            if (operating.StartOperation(remoteMachineId) == false)
+            if (operating.StartOperation(BuildKey(remoteMachineId, transactionId)) == false)
             {
                 return null;
             }
@@ -138,7 +141,7 @@ namespace linker.messenger.relay.client
             }
             finally
             {
-                operating.StopOperation(remoteMachineId);
+                operating.StopOperation(BuildKey(remoteMachineId, transactionId));
             }
             return null;
         }
@@ -149,7 +152,7 @@ namespace linker.messenger.relay.client
         /// <returns></returns>
         public async Task<bool> OnBeginAsync(transport.RelayInfo170 relayInfo)
         {
-            if (operating.StartOperation(relayInfo.FromMachineId) == false)
+            if (operating.StartOperation(BuildKey(relayInfo.FromMachineId, relayInfo.TransactionId)) == false)
             {
                 return false;
             }
@@ -184,7 +187,7 @@ namespace linker.messenger.relay.client
             }
             finally
             {
-                operating.StopOperation(relayInfo.FromMachineId);
+                operating.StopOperation(BuildKey(relayInfo.FromMachineId, relayInfo.TransactionId));
             }
             return false;
         }
@@ -213,5 +216,10 @@ namespace linker.messenger.relay.client
         }
 
 
+
+        private string BuildKey(string remoteMachineId, string transactionId)
+        {
+            return $"{remoteMachineId}@{transactionId}";
+        }
     }
 }
