@@ -37,7 +37,7 @@ jobs:
           release_name: v1.7.7.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 一些累计更新\r\n2. 优化ssl证书，兼容安卓\r\n3. 打洞和中继优化，显示loading，增加手动尝试打洞\r\n5. 修改入参格式，增加虚拟网卡设置\r\n5. 如果你设备很多，请尝试升级其中一个成功重启后再升级其它"
+          body: "1. 一些累计更新\r\n2. 优化ssl证书，兼容安卓\r\n3. 打洞和中继优化，显示loading，增加手动尝试打洞\r\n5. 修改入参格式，增加虚拟网卡设置\r\n6. 修复优化了网对网路由工具\r\n7. 如果你设备很多，请尝试升级其中一个成功重启后再升级其它"
       - name: publish projects
         run: ./publish.bat "C:\\Android\\android-sdk"
       - name: upload-win-x86-oss

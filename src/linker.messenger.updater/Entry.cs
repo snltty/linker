@@ -5,8 +5,6 @@ namespace linker.messenger.updater
 {
     public static class Entry
     {
-        static bool added = false;
-        static bool used = false;
         public static ServiceCollection AddUpdaterClient(this ServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton<UpdaterApiController>();
@@ -55,12 +53,6 @@ namespace linker.messenger.updater
 
             IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
             messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<UpdaterServerMessenger>() });
-
-            if (used == false)
-            {
-                used = true;
-                IUpdaterInstaller updaterInstaller = serviceProvider.GetService<IUpdaterInstaller>();
-            }
 
             return serviceProvider;
         }

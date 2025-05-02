@@ -43,6 +43,56 @@ namespace linker.messenger.tuntap
         }
         public static ServiceProvider UseTuntapClient(this ServiceProvider serviceProvider, Dictionary<string, string> configDic)
         {
+            if (configDic.TryGetValue("Tuntap", out string value))
+            {
+                ITuntapClientStore tuntapClientStore = serviceProvider.GetService<ITuntapClientStore>();
+                ILeaseClientStore leaseClientStore = serviceProvider.GetService<ILeaseClientStore>();
+                ISignInClientStore signInClientStore = serviceProvider.GetService<ISignInClientStore>();
+
+                try
+                {
+                    JsonElement doc = JsonDocument.Parse(value).RootElement;
+                    if (doc.TryGetProperty("IP", out JsonElement ip))
+                    {
+                        tuntapClientStore.Info.IP = IPAddress.Parse(ip.GetString());
+                    }
+                    if (doc.TryGetProperty("PrefixLength", out JsonElement prefixLength))
+                    {
+                        tuntapClientStore.Info.PrefixLength = prefixLength.GetByte();
+                    }
+                    if (doc.TryGetProperty("Lans", out JsonElement lans))
+                    {
+                        tuntapClientStore.Info.Lans = lans.GetRawText().DeJson<List<TuntapLanInfo>>();
+                    }
+                    if (doc.TryGetProperty("Name", out JsonElement name))
+                    {
+                        tuntapClientStore.Info.Name = name.GetString();
+                    }
+                    if (doc.TryGetProperty("Running", out JsonElement running))
+                    {
+                        tuntapClientStore.Info.Running = running.GetBoolean();
+                    }
+                    if (doc.TryGetProperty("Switch", out JsonElement _switch))
+                    {
+                        tuntapClientStore.Info.Switch = (TuntapSwitch)_switch.GetInt32();
+                    }
+                    if (doc.TryGetProperty("Forwards", out JsonElement forwards))
+                    {
+                        tuntapClientStore.Info.Forwards = forwards.GetRawText().DeJson<List<TuntapForwardInfo>>();
+                    }
+                    if (doc.TryGetProperty("Lease", out JsonElement lease))
+                    {
+                        leaseClientStore.Set(signInClientStore.Group.Id, lease.GetRawText().DeJson<LeaseInfo>());
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
+                tuntapClientStore.Confirm();
+                leaseClientStore.Confirm();
+            }
+
             TuntapProxy tuntapProxy = serviceProvider.GetService<TuntapProxy>();
             TuntapTransfer tuntapTransfer = serviceProvider.GetService<TuntapTransfer>();
 
@@ -69,53 +119,7 @@ namespace linker.messenger.tuntap
             DecenterClientTransfer decenterClientTransfer = serviceProvider.GetService<DecenterClientTransfer>();
             decenterClientTransfer.AddDecenters(new List<IDecenter> { serviceProvider.GetService<TuntapDecenter>() });
 
-            if (configDic.TryGetValue("Tuntap", out string base64))
-            {
-                ITuntapClientStore tuntapClientStore = serviceProvider.GetService<ITuntapClientStore>();
-                ILeaseClientStore leaseClientStore = serviceProvider.GetService<ILeaseClientStore>();
-                ISignInClientStore signInClientStore = serviceProvider.GetService<ISignInClientStore>();
-                try
-                {
-                    JsonElement doc = JsonDocument.Parse(Encoding.UTF8.GetString(Convert.FromBase64String(base64))).RootElement;
-                    if (doc.TryGetProperty("IP", out JsonElement ip))
-                    {
-                        tuntapClientStore.Info.IP = IPAddress.Parse(ip.GetString());
-                    }
-                    if (doc.TryGetProperty("PrefixLength", out JsonElement prefixLength))
-                    {
-                        tuntapClientStore.Info.PrefixLength = prefixLength.GetByte();
-                    }
-                    if (doc.TryGetProperty("Lans", out JsonElement lans))
-                    {
-                        tuntapClientStore.Info.Lans = lans.GetString().DeJson<List<TuntapLanInfo>>();
-                    }
-                    if (doc.TryGetProperty("Name", out JsonElement name))
-                    {
-                        tuntapClientStore.Info.Name = name.GetString();
-                    }
-                    if (doc.TryGetProperty("Running", out JsonElement running))
-                    {
-                        tuntapClientStore.Info.Running = running.GetBoolean();
-                    }
-                    if (doc.TryGetProperty("Switch", out JsonElement _switch))
-                    {
-                        tuntapClientStore.Info.Switch = (TuntapSwitch)_switch.GetInt32();
-                    }
-                    if (doc.TryGetProperty("Forwards", out JsonElement forwards))
-                    {
-                        tuntapClientStore.Info.Forwards = forwards.GetString().DeJson<List<TuntapForwardInfo>>();
-                    }
-                    if (doc.TryGetProperty("Lease", out JsonElement lease))
-                    {
-                        leaseClientStore.Set(signInClientStore.Group.Id, lease.GetString().DeJson<LeaseInfo>());
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LoggerHelper.Instance.Error(ex);
-                }
-                tuntapClientStore.Confirm();
-            }
+            
 
             return serviceProvider;
         }

@@ -1,8 +1,10 @@
 ﻿using linker.libs;
 using linker.libs.timer;
 using linker.snat;
+using System.Linq;
 using System.Net;
 using static linker.snat.LinkerDstMapping;
+using static linker.snat.LinkerSrcNat;
 
 namespace linker.tun
 {
@@ -319,7 +321,6 @@ namespace linker.tun
             linkerDstMapping.ToRealDst(buffer, AppNat == false);
             return linkerTunDevice.Write(buffer);
         }
-
 
         /// <summary>
         /// 设置IP映射列表

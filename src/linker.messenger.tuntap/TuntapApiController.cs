@@ -81,6 +81,10 @@ namespace linker.messenger.tuntap
             }
             return new TuntabListInfo { HashCode = version };
         }
+        public TuntapStatus Status(ApiControllerParamsInfo param)
+        {
+            return tuntapTransfer.Status;
+        }
         /// <summary>
         /// 刷新网卡信息
         /// </summary>

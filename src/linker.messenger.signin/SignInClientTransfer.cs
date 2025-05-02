@@ -121,7 +121,7 @@ namespace linker.messenger.signin
 
                 clientSignInState.PushSignInSuccess();
 
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Info($"push signin success");
 
                 GCHelper.FlushMemory();

@@ -3,6 +3,7 @@ using System.ServiceProcess;
 using System.Diagnostics;
 using linker.messenger.entry;
 using linker.libs.extends;
+using System.Text;
 
 namespace linker
 {
@@ -49,7 +50,7 @@ namespace linker
 
         public static void Run(string[] args)
         {
-           
+
 
             LinkerMessengerEntry.Initialize();
             LinkerMessengerEntry.Build();
@@ -70,10 +71,11 @@ namespace linker
             Dictionary<string, string> configDic = new Dictionary<string, string>();
             try
             {
-                configDic = args[0].DeJson<Dictionary<string, string>>();
+                configDic = Encoding.UTF8.GetString(Convert.FromBase64String(args[0])).DeJson<Dictionary<string, string>>();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                LoggerHelper.Instance.Error(ex);
             }
             return configDic;
         }

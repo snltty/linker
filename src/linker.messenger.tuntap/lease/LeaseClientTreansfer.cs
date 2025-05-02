@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using linker.libs;
+using linker.libs.extends;
 using linker.libs.timer;
 using linker.messenger.signin;
 using linker.messenger.tuntap.messenger;
@@ -47,8 +48,13 @@ namespace linker.messenger.tuntap.lease
             {
                 info = serializer.Deserialize<LeaseInfo>(resp.Data.Span);
             }
-            leaseClientStore.Set(signInClientStore.Group.Id, info);
-            leaseClientStore.Confirm();
+
+            if(info.IP.Equals(IPAddress.Any) == false)
+            {
+                leaseClientStore.Set(signInClientStore.Group.Id, info);
+                leaseClientStore.Confirm();
+            }
+           
             return info;
         }
         public async Task LeaseChange()
@@ -82,27 +88,27 @@ namespace linker.messenger.tuntap.lease
 
         private void LeaseExpTask()
         {
-            signInClientState.OnSignInSuccess += async (times) =>
+            signInClientState.OnSignInSuccess += (times) =>
             {
-                try
+                TimerHelper.Async(async () =>
                 {
-                    LeaseInfo info = await GetNetwork();
-                    if (info.IP.Equals(IPAddress.Any))
+                    try
                     {
-                        info = leaseClientStore.Get(signInClientStore.Group.Id);
-                        if (info != null && info.IP.Equals(IPAddress.Any) == false)
+                        LeaseInfo info = await GetNetwork();
+                        if (info.IP.Equals(IPAddress.Any))
                         {
-                            await AddNetwork(info);
+                            info = leaseClientStore.Get(signInClientStore.Group.Id);
+                            if (info != null && info.IP.Equals(IPAddress.Any) == false)
+                            {
+                                await AddNetwork(info);
+                            }
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    catch (Exception ex)
                     {
                         LoggerHelper.Instance.Error(ex);
                     }
-                }
+                });
             };
 
             TimerHelper.SetIntervalLong(async () =>

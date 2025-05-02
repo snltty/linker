@@ -1,6 +1,7 @@
 ﻿using linker.libs;
 using linker.libs.extends;
 using linker.libs.timer;
+using System;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Net;
@@ -532,7 +533,7 @@ namespace linker.snat
         /// <summary>
         /// IPV4 包
         /// </summary>
-        unsafe struct IPV4Packet
+        public unsafe struct IPV4Packet
         {
             byte* ptr;
 
@@ -540,6 +541,9 @@ namespace linker.snat
             /// 协议版本
             /// </summary>
             public ProtocolType Version => (ProtocolType)((*ptr >> 4) & 0b1111);
+            public ProtocolType Protocol => (ProtocolType)(*(ptr + 9));
+
+
 
             /// <summary>
             /// 源地址
