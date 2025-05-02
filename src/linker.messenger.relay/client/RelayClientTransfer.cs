@@ -30,7 +30,8 @@ namespace linker.messenger.relay.client
                 new RelayClientTransportSelfHost(messengerSender,serializer,relayClientStore,signInClientState,messengerStore),
                 new RelayClientTransportSelfHostUdp(messengerSender,serializer,relayClientStore,signInClientState,messengerStore),
             };
-            LoggerHelper.Instance.Info($"load relay transport:{string.Join(",", Transports.Select(c => c.GetType().Name))}");
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Info($"load relay transport:{string.Join(",", Transports.Select(c => c.GetType().Name))}");
         }
 
         /// <summary>

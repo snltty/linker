@@ -22,7 +22,8 @@ namespace linker.messenger
         /// <param name="list"></param>
         public void AddResolvers(List<IResolver> list)
         {
-            LoggerHelper.Instance.Info($"add resolver {string.Join(",", list.Select(c => c.GetType().Name))}");
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Info($"add resolver {string.Join(",", list.Select(c => c.GetType().Name))}");
             foreach (IResolver resolver in list)
             {
                 resolvers.TryAdd((byte)resolver.Type, resolver);

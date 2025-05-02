@@ -102,7 +102,9 @@ namespace linker.tunnel
             }
 
             await tunnelMessengerAdapter.SetTunnelTransports(transportItems).ConfigureAwait(false);
-            LoggerHelper.Instance.Info($"load tunnel transport:{string.Join(",", transports.Select(c => c.GetType().Name))}");
+
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Info($"load tunnel transport:{string.Join(",", transports.Select(c => c.GetType().Name))}");
         }
 
         /// <summary>

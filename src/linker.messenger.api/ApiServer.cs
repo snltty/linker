@@ -22,7 +22,8 @@ namespace linker.messenger.api
         {
             Type voidType = typeof(void);
 
-            LoggerHelper.Instance.Info($"add api {string.Join(",", list.Select(c => c.GetType().Name))}");
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Info($"add api {string.Join(",", list.Select(c => c.GetType().Name))}");
 
             foreach (IApiController obj in list)
             {

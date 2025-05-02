@@ -21,7 +21,8 @@ namespace linker.messenger.sync
 
         public void AddSyncs(List<ISync> list)
         {
-            LoggerHelper.Instance.Info($"add sync {string.Join(",", list.Select(c => c.GetType().Name))}");
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Info($"add sync {string.Join(",", list.Select(c => c.GetType().Name))}");
             syncs = syncs.Concat(list).Distinct().ToList();
         }
 

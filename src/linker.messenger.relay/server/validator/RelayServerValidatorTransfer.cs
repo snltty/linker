@@ -24,7 +24,8 @@ namespace linker.messenger.relay.server.validator
         {
             if (list == null) return;
             validators = validators.Concat(list).Distinct(new RelayServerValidatorEqualityComparer()).ToList();
-            LoggerHelper.Instance.Info($"load relay server validator :{string.Join(",", list.Select(c => c.GetType().Name))}");
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Info($"load relay server validator :{string.Join(",", list.Select(c => c.GetType().Name))}");
         }
         /// <summary>
         /// 删除一些验证实现类

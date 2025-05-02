@@ -193,7 +193,8 @@ namespace linker.messenger
             Type voidType = typeof(void);
             Type midType = typeof(MessengerIdAttribute);
 
-            LoggerHelper.Instance.Info($"add messenger {string.Join(",", list.Select(c => c.GetType().Name))}");
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Info($"add messenger {string.Join(",", list.Select(c => c.GetType().Name))}");
 
             foreach (IMessenger messenger in list.Distinct())
             {

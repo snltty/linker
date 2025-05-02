@@ -39,7 +39,8 @@ namespace linker.messenger.decenter
         /// <param name="list"></param>
         public void AddDecenters(List<IDecenter> list)
         {
-            LoggerHelper.Instance.Info($"add decenter {string.Join(",", list.Select(c => c.GetType().Name))}");
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Info($"add decenter {string.Join(",", list.Select(c => c.GetType().Name))}");
             decenters = decenters.Concat(list).Distinct().ToList();
         }
 

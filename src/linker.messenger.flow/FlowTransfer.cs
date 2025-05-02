@@ -11,7 +11,8 @@ namespace linker.messenger.flow
 
         public void AddFlows(List<IFlow> list)
         {
-            LoggerHelper.Instance.Info($"add flow {string.Join(",", list.Select(c => c.GetType().Name))}");
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Info($"add flow {string.Join(",", list.Select(c => c.GetType().Name))}");
             this.flows = this.flows.Concat(list).Distinct().ToList();
         }
 

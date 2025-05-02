@@ -13,7 +13,8 @@ namespace linker.messenger.exroute
 
         public void AddExRoutes(List<IExRoute> list)
         {
-            LoggerHelper.Instance.Info($"add exroute {string.Join(",", list.Select(c => c.GetType().Name))}");
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Info($"add exroute {string.Join(",", list.Select(c => c.GetType().Name))}");
             excludes = excludes.Concat(list).Distinct().ToList();
            
         }
