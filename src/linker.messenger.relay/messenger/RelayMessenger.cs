@@ -352,7 +352,7 @@ namespace linker.messenger.relay.messenger
                 connection.Write(Helper.FalseArray);
                 return;
             }
-            if (relayServerStore.ValidateSecretKey(info.SecretKey))
+            if (relayServerStore.ValidateSecretKey(info.SecretKey)==false)
             {
                 connection.Write(Helper.FalseArray);
                 return;
@@ -401,7 +401,7 @@ namespace linker.messenger.relay.messenger
                 connection.Write(serializer.Serialize(new RelayServerCdkeyPageResultInfo { }));
                 return;
             }
-            if (relayServerStore.ValidateSecretKey(info.SecretKey) && string.IsNullOrWhiteSpace(info.UserId))
+            if (relayServerStore.ValidateSecretKey(info.SecretKey)==false && string.IsNullOrWhiteSpace(info.UserId))
             {
                 connection.Write(serializer.Serialize(new RelayServerCdkeyPageResultInfo { }));
                 return;
@@ -427,7 +427,7 @@ namespace linker.messenger.relay.messenger
                 connection.Write(serializer.Serialize(new RelayServerCdkeyTestResultInfo { }));
                 return;
             }
-            if (relayServerStore.ValidateSecretKey(info.SecretKey))
+            if (relayServerStore.ValidateSecretKey(info.SecretKey) == false)
             {
                 connection.Write(serializer.Serialize(new RelayServerCdkeyTestResultInfo { }));
                 return;
