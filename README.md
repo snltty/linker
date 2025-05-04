@@ -22,7 +22,7 @@
 
 [README](README.md) | [中文说明](README_zh.md)
 
-Users are responsible for complying with local laws and regulations. It must not be used for illegal or criminal purposes.
+**Users are responsible for complying with local laws and regulations. It must not be used for illegal or criminal purposes.**
 
 </div>
 
