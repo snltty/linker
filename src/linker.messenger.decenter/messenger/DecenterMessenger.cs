@@ -95,21 +95,6 @@ namespace linker.messenger.decenter
             }));
         }
 
-        private void ClearTask()
-        {
-            TimerHelper.SetIntervalLong(() =>
-            {
-                List<string> removes = decenters.Values.SelectMany(c => c.Values).Where(c => c.SignIn.Connected == false).Select(c => c.SignIn.Id).ToList();
-                foreach (ConcurrentDictionary<string, DecenterCacheInfo> dic in decenters.Values)
-                {
-                    foreach (string id in removes)
-                    {
-                        dic.TryRemove(id, out _);
-                    }
-                }
-            }, 30000);
-        }
-
         [MessengerId((ushort)DecenterMessengerIds.AddForward)]
         public void AddForward(IConnection connection)
         {
@@ -153,6 +138,32 @@ namespace linker.messenger.decenter
         }
 
 
+        [MessengerId((ushort)DecenterMessengerIds.Check)]
+        public void Check(IConnection connection)
+        {
+            string name = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            if (decenters.TryGetValue(name, out ConcurrentDictionary<string, DecenterCacheInfo> dic) && dic.ContainsKey(connection.Id))
+            {
+                connection.Write(Helper.TrueArray);
+                return;
+            }
+            connection.Write(Helper.FalseArray);
+        }
+
+        private void ClearTask()
+        {
+            TimerHelper.SetIntervalLong(() =>
+            {
+                List<string> removes = decenters.Values.SelectMany(c => c.Values).Where(c => c.SignIn.Connected == false).Select(c => c.SignIn.Id).ToList();
+                foreach (ConcurrentDictionary<string, DecenterCacheInfo> dic in decenters.Values)
+                {
+                    foreach (string id in removes)
+                    {
+                        dic.TryRemove(id, out _);
+                    }
+                }
+            }, 30000);
+        }
     }
 
     public sealed class DecenterClientMessenger : IMessenger

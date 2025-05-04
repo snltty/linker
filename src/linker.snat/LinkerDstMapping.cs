@@ -34,7 +34,7 @@ namespace linker.snat
             masks = maps.Select(x => NetworkHelper.ToPrefixValue(x.PrefixLength)).ToArray();
         }
         /// <summary>
-        /// 缓缓为假IP
+        /// 转换为假IP
         /// </summary>
         /// <param name="packet">TCP/IP</param>
         public void ToFakeDst(ReadOnlyMemory<byte> packet)
@@ -56,7 +56,7 @@ namespace linker.snat
         /// 转换为真IP
         /// </summary>
         /// <param name="packet">TCP/IP</param>
-        /// <param name="checksum">是否计算校验和</param>
+        /// <param name="checksum">是否计算校验和，如果使用了应用层NAT，可以交给应用层NAT去计算校验和</param>
         public void ToRealDst(ReadOnlyMemory<byte> packet,bool checksum = true)
         {
             //只支持映射IPV4

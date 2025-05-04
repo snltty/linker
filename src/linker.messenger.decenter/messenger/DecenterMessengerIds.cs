@@ -12,6 +12,8 @@
         Notify = 2814,
         PullPage = 2815,
 
+        Check = 2816,
+
         Max = 2899
     }
 }

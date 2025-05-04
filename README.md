@@ -22,17 +22,9 @@
 
 [README](README.md) | [中文说明](README_zh.md)
 
+Users are responsible for complying with local laws and regulations. It must not be used for illegal or criminal purposes.
+
 </div>
-
-## Platforms
-
-|  | amd64 | x86 | arm64 | arm | 
-|-------|-------|-------|-------|-------|
-| Windows | ✔ | ✔ |✔ |✔ |
-| Linux | ✔ |  |✔ |✔ |
-| Linux Musl | ✔ |  |✔ |✔ |
-| Openwrt | ✔ |  |✔ |✔ |
-| Android(soon) | ✔ |  |  | |
 
 ## Overview
 
@@ -42,41 +34,42 @@ Using P2P or server relay, connect multiple LANs to enable communication between
 <p><img src="./readme/linker.jpg"></p> 
 </div>
 
-## Legal Compliance
-The authors and contributors of this project are not liable for any direct, indirect, incidental, special, or consequential damages arising from the use, modification, copying, or distribution of this code. Under no circumstances shall the authors or contributors be held liable for any contractual, tort, or other legal responsibilities.
+## Platforms
 
-Users of this project are responsible for ensuring compliance with local laws and regulations. The authors and contributors assume no responsibility for any illegal activities or legal issues resulting from the use of this code. Users must ensure lawful usage within their jurisdiction.
+|  | amd64 | x86 | arm64 | arm | 
+|-------|-------|-------|-------|-------|
+| Windows | ✔ | ✔ |✔ | |
+| Linux | ✔ |  |✔ |✔ |
+| Linux Musl | ✔ |  |✔ |✔ |
+| Openwrt | ✔ |  |✔ |✔ |
+| Android | ✔ |  |  | |
 
-This code is strictly intended for legal, ethical, and compliant purposes. The authors prohibit any use for illegal activities, attacks, abuse, or other malicious actions, including but not limited to unauthorized access, network attacks, etc.
-
-For user convenience, this project provides **public messenger servers** and **public relay servers**. When using these services, users must comply with local laws and regulations. The authors, contributors, and server providers are not responsible for any illegal activities or legal issues arising from the use of these public servers.
 
 ## Features
-- [x] Encrypted configuration files
-- [x] Encrypted communication (SSL for all traffic)
-- [x] Hole-punching support: TCP (including IPv6) and UDP
-- [x] Hole-punching library: Use `linker.tunnel` in your projects
-- [x] Relay connections with seamless switch to direct P2P once a hole is punched
-- [x] Cross-LAN networking: Virtual NIC for building LANs between clients (P2P, point-to-network, network-to-network)
-- [x] Virtual NIC library: Use `linker.tun` in your projects
-- [x] Port forwarding: Forward local ports to remote client ports
-- [x] Server penetration: Register ports/domains on a server to access internal services
-- [x] Permission management: Master client controls permissions, exports/configures sub-client settings
-- [x] Custom authentication: Validate connections via `HTTP POST` for beacon, relay, and penetration
-- [x] Traffic statistics: Track beacon, relay, and penetration traffic on servers
-- [x] Network configuration: Master client sets up networks, auto-assigns IPs to all clients
-- [x] Distributed architecture: Multiple relay nodes for massive scalability
-- [x] SOCKS5 proxy: Dynamic port forwarding without specifying ports
-- [x] Easy integration: Use `linker.messenger.entry` to embed into your projects
-- [x] CDKEY，It can temporarily lift certain restrictions
 
-## Quick Integration
-In a .NET 8+ project, install the NuGet package `linker.messenger.entry`
-```
-LinkerMessengerEntry.Initialize();
-LinkerMessengerEntry.Build();
-LinkerMessengerEntry.Setup(ExcludeModule.None);
-```
+##### P2P & Relaying
+- [x] Hole punching connections, supporting TCP, UDP, IPv4, and IPv6
+- [x] Relay connections, with self-hosted relay nodes and support for multiple relay nodes
+
+##### Communication
+- [x] Cross-region networking: peer-to-peer, peer-to-network, network-to-network, automatic virtual IP allocation, subnet mapping (resolving multi-LAN subnet conflicts)
+- [x] Port forwarding: forwards a client's port to another client's port
+- [x] Server penetration: access internal network services via ports or domains (supports scheduled tasks for timed auto-enabling/disabling)
+- [x] SOCKS5 proxy: while port forwarding requires specifying ports, the SOCKS5 proxy can handle all ports
+
+##### Other
+- [x] Encrypted configuration files
+- [x] Permission management: the main client has full control, allowing the export and configuration of sub-client settings and delegated admin rights
+- [x] Custom authentication: via HTTP POST, you can define verification rules for allowing connection beacons, relays, and intranet penetration
+- [x] Traffic statistics: monitors traffic for beacons, relays, and intranet penetration on the server
+- [x] CD-KEY: temporarily unlocks certain restrictions, such as relays and intranet penetration
+
+## Development
+- [x] Uses the linker.tunnel library for hole punching
+- [x] Uses the linker.tun virtual NIC library, including Linux TUN and Windows Wintun adapters, NAT conversion, and subnet mapping
+- [x] Uses the linker.snat library for NAT conversion
+- [x] Uses linker.messenger.entry for full-feature integration
+
 
 ## Network Mapping
 Network mapping can help you resolve conflicts between multiple internal network.
@@ -85,7 +78,7 @@ Network mapping can help you resolve conflicts between multiple internal network
 <p><img src="./readme/mapto.jpg"></p> 
 </div>
 
-## SNAT
+## Src NAT
 Built-in SNAT enables you to use the point-to-site functionality even on Windows 7/8 and Windows Server 2008/2012 where NetNat is unavailable.
 
 <div align="center">

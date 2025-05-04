@@ -440,6 +440,10 @@ namespace linker.app
             return new List<LinkerTunDeviceForwardItem>();
         }
 
+        /// <summary>
+        /// 添加路由
+        /// </summary>
+        /// <param name="ips"></param>
         public void AddRoute(LinkerTunDeviceRouteItem[] ips)
         {
             routes = ips.Select(c => new LinkerTunDeviceRouteItem { Address = c.Address, PrefixLength = c.PrefixLength }).ToArray();

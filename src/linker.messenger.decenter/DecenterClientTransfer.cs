@@ -24,13 +24,6 @@ namespace linker.messenger.decenter
             this.signInClientStore = signInClientStore;
 
             SyncTask();
-            signInClientState.OnSignInSuccess += (times) =>
-            {
-                foreach (IDecenter item in decenters)
-                {
-                    item.PushVersion.Increment();
-                }
-            };
         }
 
         /// <summary>
@@ -103,7 +96,7 @@ namespace linker.messenger.decenter
                 {
                     if (versionMultipleManager.HasValueChange(item.Name))
                     {
-                        Task.Run(item.ProcData).ContinueWith((result) => {  operatingMultipleManager.StopOperation(item.Name); });
+                        Task.Run(item.ProcData).ContinueWith((result) => { operatingMultipleManager.StopOperation(item.Name); });
                     }
                     else
                     {
@@ -112,6 +105,23 @@ namespace linker.messenger.decenter
                 }
             }
         }
+        private async Task CheckData()
+        {
+            foreach (IDecenter item in decenters)
+            {
+                MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = signInClientState.Connection,
+                    MessengerId = (ushort)DecenterMessengerIds.Check,
+                    Payload = serializer.Serialize(item.Name),
+                });
+                if (resp.Code != MessageResponeCodes.OK || resp.Data.Span.SequenceEqual(Helper.TrueArray) == false)
+                {
+                    item.PushVersion.Increment();
+                }
+            }
+        }
+
         private async Task SyncData()
         {
             List<IDecenter> updates = decenters.Where(c => c.PushVersion.Restore()).ToList();
@@ -155,7 +165,7 @@ namespace linker.messenger.decenter
                     task.Decenter.DataVersion.Increment();
                     versionMultipleManager.Increment(task.Decenter.Name);
                 }
-                foreach (var task in pullTasks.Where(c => c.Task.Result.Code == MessageResponeCodes.TIMEOUT))
+                foreach (var task in pullTasks.Where(c => c.Task.Result.Code != MessageResponeCodes.OK || c.Task.Result.Data.Span.SequenceEqual(Helper.FalseArray)))
                 {
                     task.Decenter.PushVersion.Increment();
                 }
@@ -164,6 +174,21 @@ namespace linker.messenger.decenter
 
         private void SyncTask()
         {
+            TimerHelper.SetIntervalLong(async () =>
+            {
+                if (signInClientState.Connected == false) return;
+                try
+                {
+                    await CheckData();
+                }
+                catch (Exception ex)
+                {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Error(ex);
+                    }
+                }
+            }, 5000);
             TimerHelper.SetIntervalLong(async () =>
             {
                 if (signInClientState.Connected == false) return;
@@ -181,6 +206,14 @@ namespace linker.messenger.decenter
                     }
                 }
             }, 300);
+
+            signInClientState.OnSignInSuccess += (times) =>
+            {
+                foreach (IDecenter item in decenters)
+                {
+                    item.PushVersion.Increment();
+                }
+            };
         }
 
         class DecenterSyncTaskInfo

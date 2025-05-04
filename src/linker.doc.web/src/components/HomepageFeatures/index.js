@@ -13,20 +13,20 @@ const FeatureList = [
         ),
     },
     {
-        title: '打洞、中继、和穿透',
+        title: '打洞、中继、内网穿透',
         Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
         description: (
             <>
-                TCP+UDP打洞、服务器中继、服务器穿透，简单几步，将打洞和中继集成到你自己的项目中
+                TCP+UDP打洞、服务器中继、服务器穿透，喜欢啥就用啥
             </>
         ),
     },
     {
-        title: '组网和转发',
+        title: '异地组网',
         Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
         description: (
             <>
-                虚拟网卡组网，端口转发访问，均支持TCP+UDP及其上层协议
+                虚拟网卡组网，点对点，点对网，网对网，还有网段映射(多局域网网段冲突也不怕)
             </>
         ),
     },

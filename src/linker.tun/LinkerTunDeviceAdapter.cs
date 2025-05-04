@@ -1,10 +1,8 @@
 ﻿using linker.libs;
 using linker.libs.timer;
 using linker.snat;
-using System.Linq;
 using System.Net;
 using static linker.snat.LinkerDstMapping;
-using static linker.snat.LinkerSrcNat;
 
 namespace linker.tun
 {
@@ -93,7 +91,7 @@ namespace linker.tun
         /// <param name="deviceName">网卡IP</param>
         /// <param name="address">网卡IP</param>
         /// <param name="prefixLength">掩码。一般24即可</param>
-        /// <param name="mtu">mtu</param>
+        /// <param name="mtu">mtu，建议1420</param>
         public bool Setup(string deviceName, IPAddress address, byte prefixLength, int mtu)
         {
             if (operatingManager.StartOperation() == false)
@@ -310,7 +308,7 @@ namespace linker.tun
             });
         }
         /// <summary>
-        /// 写入网卡
+        /// 写入一个TCP/IP数据包
         /// </summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
