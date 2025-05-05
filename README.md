@@ -63,34 +63,13 @@ Using P2P or server relay, connect multiple LANs to enable communication between
 - [x] Custom authentication: via HTTP POST, you can define verification rules for allowing connection beacons, relays, and intranet penetration
 - [x] Traffic statistics: monitors traffic for beacons, relays, and intranet penetration on the server
 - [x] CD-KEY: temporarily unlocks certain restrictions, such as relays and intranet penetration
+- [x] More，<a href="https://linker-doc.snltty.com">Documentation</a>
 
 ## Development
 - [x] Uses the linker.tunnel library for hole punching
 - [x] Uses the linker.tun virtual NIC library, including Linux TUN and Windows Wintun adapters, NAT conversion, and subnet mapping
 - [x] Uses the linker.snat library for NAT conversion
 - [x] Uses linker.messenger.entry for full-feature integration
-
-
-## Network Mapping
-Network mapping can help you resolve conflicts between multiple internal network.
-
-<div align="center">
-<p><img src="./readme/mapto.jpg"></p> 
-</div>
-
-## Src NAT
-Built-in SNAT enables you to use the point-to-site functionality even on Windows 7/8 and Windows Server 2008/2012 where NetNat is unavailable.
-
-<div align="center">
-<p><img src="./readme/snat.jpg"></p> 
-</div>
-
-## Plan Task
-Schedule tasks to control activation and deactivation timing.
-
-<div align="center">
-<p><img src="./readme/plan.jpg"></p> 
-</div>
 
 ## Management Website
 
