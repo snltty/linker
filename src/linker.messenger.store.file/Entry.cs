@@ -34,6 +34,7 @@ using linker.messenger.tuntap;
 using linker.messenger.tuntap.lease;
 using linker.messenger.updater;
 using Microsoft.Extensions.DependencyInjection;
+using System.Text.Json;
 namespace linker.messenger.store.file
 {
     public static class Entry
@@ -104,12 +105,12 @@ namespace linker.messenger.store.file
 
             return serviceCollection;
         }
-        public static ServiceProvider UseStoreFile(this ServiceProvider serviceProvider,Dictionary<string,string> configDic)
+        public static ServiceProvider UseStoreFile(this ServiceProvider serviceProvider,JsonDocument config = default)
         {
             LoggerHelper.Instance.Info("use store file");
 
             FileConfig fileConfig = serviceProvider.GetService<FileConfig>();
-            fileConfig.Save(configDic);
+            fileConfig.Save(config);
             RunningConfig runningConfig = serviceProvider.GetService<RunningConfig>();
 
             IApiServer apiServer = serviceProvider.GetService<IApiServer>();

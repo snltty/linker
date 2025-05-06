@@ -6,6 +6,7 @@ using linker.messenger.signin;
 using linker.messenger.api;
 using System.Text;
 using linker.messenger.relay.client.transport;
+using System.Text.Json;
 namespace linker.messenger.store.file
 {
     public sealed class ConfigApiController : IApiController
@@ -87,8 +88,8 @@ namespace linker.messenger.store.file
         {
             try
             {
-                Dictionary<string, string> dic = Encoding.UTF8.GetString(Convert.FromBase64String(param.Content)).DeJson<Dictionary<string, string>>();
-                config.Save(dic);
+                using JsonDocument json = JsonDocument.Parse(Encoding.UTF8.GetString(Convert.FromBase64String(param.Content)));
+                config.Save(json);
                 return true;
             }
             catch (Exception)
@@ -103,8 +104,8 @@ namespace linker.messenger.store.file
                 InstallSaveInfo info = param.Content.DeJson<InstallSaveInfo>();
 
                 string value = await exportResolver.Get(info.Server, info.Value);
-                Dictionary<string, string> dic = Encoding.UTF8.GetString(Convert.FromBase64String(value)).DeJson<Dictionary<string, string>>();
-                config.Save(dic);
+                using JsonDocument json = JsonDocument.Parse(Encoding.UTF8.GetString(Convert.FromBase64String(value)));
+                config.Save(json);
                 return true;
             }
             catch (Exception)
@@ -123,8 +124,8 @@ namespace linker.messenger.store.file
                 var (client, clientObject, common, commonObject) = await GetConfig(configExportInfo).ConfigureAwait(false);
                 Dictionary<string, object> dic = new Dictionary<string, object>
                 {
-                    {"Client",clientObject.ToJson()},
-                    {"Common",commonObject.ToJson()},
+                    {"Client",clientObject},
+                    {"Common",commonObject},
                 };
 
                 return Convert.ToBase64String(Encoding.UTF8.GetBytes(dic.ToJson()));
@@ -145,8 +146,8 @@ namespace linker.messenger.store.file
                 var (client, clientObject, common, commonObject) = await GetConfig(configExportInfo).ConfigureAwait(false);
                 Dictionary<string, object> dic = new Dictionary<string, object>
                 {
-                    {"Client",clientObject.ToJson()},
-                    {"Common",commonObject.ToJson()},
+                    {"Client",clientObject},
+                    {"Common",commonObject},
                 };
                 string value = Convert.ToBase64String(Encoding.UTF8.GetBytes(dic.ToJson()));
                 return await exportResolver.Save(signInClientState.Connection.Address, value);

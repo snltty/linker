@@ -2,91 +2,43 @@
     <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap"
         :title="`设置[${state.machineName}]组网`" top="1vh" width="780">
         <div>
-            <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="8rem">
-                <el-form-item label="网卡名" prop="Name">
-                    <el-input v-model="state.ruleForm.Name" style="width:14rem" /> <span>留空则使用【本组网络】的设置</span>
-                </el-form-item>
-                <el-form-item label="网卡IP" prop="IP" class="mgb-0">
-                    <el-input v-model="state.ruleForm.IP" style="width:14rem" />
-                        <span>/</span>
-                        <el-input @change="handlePrefixLengthChange" v-model="state.ruleForm.PrefixLength" style="width:4rem" />
-                        
-                </el-form-item>
-                <el-form-item label="" class="mgb-0">
-                        <el-checkbox class="mgr-1" v-model="state.ruleForm.ShowDelay" label="显示延迟" size="large" />
-                        <el-checkbox class="mgr-1" v-model="state.ruleForm.AutoConnect" label="自动连接" size="large" />
-                        <el-checkbox class="mgr-1" v-model="state.ruleForm.Multicast" label="禁用广播" size="large" />
-                        <el-checkbox class="mgr-1" v-model="state.ruleForm.Nat" label="禁用NAT" size="large" />
-                        <el-checkbox class="mgr-1" v-model="state.ruleForm.TcpMerge" label="TCP包合并" size="large" />
-                        <el-checkbox v-model="state.ruleForm.InterfaceOrder" label="调整网卡顺序" size="large" />
-                </el-form-item>
-                <el-form-item prop="upgrade" class="mgb-0">
-                    <el-checkbox v-model="state.ruleForm.Upgrade" label="我很懂，我要使用高级功能(点对网和网对网)" size="large" />
-                </el-form-item>
-                <div class="upgrade-wrap" v-if="state.ruleForm.Upgrade">
-                    <el-form-item label="局域网IP" prop="LanIP" class="m-b-0" style="border-bottom: 1px solid #ddd;">
-                        <TuntapLan ref="lanDom"></TuntapLan>
-                    </el-form-item>
-                    <el-form-item label="端口转发" prop="forwards">
-                        <TuntapForward ref="forwardDom"></TuntapForward>
-                    </el-form-item>
-                </div>
-                <el-form-item label="" prop="Btns" label-width="0">
-                    <div class="w-100 t-c">
-                        <el-button @click="state.show = false">取消</el-button>
-                        <el-button type="primary" @click="handleSave">确认</el-button>
-                    </div>
-                </el-form-item>
-            </el-form>
+            <el-tabs type="border-card">
+                <el-tab-pane label="网卡">
+                    <TuntapIP ref="ipDom"></TuntapIP>
+                </el-tab-pane>
+                <el-tab-pane label="点/网对网">
+                    <TuntapLan ref="lanDom"></TuntapLan>
+                </el-tab-pane>
+                <el-tab-pane label="端口转发">
+                    <TuntapForward ref="forwardDom"></TuntapForward>
+                </el-tab-pane>
+            </el-tabs>
+            <div class="foot t-c">
+                <el-button @click="state.show = false" :loading="state.loading">取消</el-button>
+                <el-button type="primary" @click="handleSave" :loading="state.loading">确定保存</el-button>
+            </div>
         </div>
     </el-dialog>
 </template>
 <script>
 import { updateTuntap } from '@/apis/tuntap';
-import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import { reactive, ref, watch} from 'vue';
 import { useTuntap } from './tuntap';
 import TuntapForward from './TuntapForward.vue'
 import TuntapLan from './TuntapLan.vue'
-import { Delete, Plus, Warning, Refresh } from '@element-plus/icons-vue'
+import TuntapIP from './TuntapIP.vue'
 export default {
     props: ['modelValue'],
     emits: ['change', 'update:modelValue'],
-    components: { Delete, Plus, Warning, Refresh,TuntapForward ,TuntapLan},
+    components: { TuntapForward ,TuntapLan,TuntapIP},
     setup(props, { emit }) {
 
-        const globalData = injectGlobalData();
         const tuntap = useTuntap();
-        const ruleFormRef = ref(null);
         const state = reactive({
             show: true,
             machineName: tuntap.value.current.device.MachineName,
-            bufferSize: globalData.value.bufferSize,
-            ruleForm: {
-                IP: tuntap.value.current.IP,
-                PrefixLength: tuntap.value.current.PrefixLength || 24,
-                Gateway: tuntap.value.current.Gateway,
-                ShowDelay: tuntap.value.current.ShowDelay,
-                AutoConnect: tuntap.value.current.AutoConnect,
-                Upgrade: tuntap.value.current.Upgrade,
-                Multicast: tuntap.value.current.Multicast,
-                Nat: tuntap.value.current.Nat,
-                TcpMerge: tuntap.value.current.TcpMerge,
-                InterfaceOrder: tuntap.value.current.InterfaceOrder,
-                Forwards: tuntap.value.current.Forwards,
-                Name: tuntap.value.current.Name,
-            },
-            rules: {
-                Name: {
-                    type: 'string',
-                    pattern: /^$|^[A-Za-z][A-Za-z0-9]{0,31}$/,
-                    message:'请输入正确的网卡名',
-                    transform(value) {
-                        return value.trim();
-                    },
-                }
-            }
+            loading:false
         });
         
         watch(() => state.show, (val) => {
@@ -96,54 +48,37 @@ export default {
                 }, 300);
             }
         });
-        const handlePrefixLengthChange = () => {
-            var value = +state.ruleForm.PrefixLength;
-            if (value > 32 || value < 16 || isNaN(value)) {
-                value = 24;
-            }
-            state.ruleForm.PrefixLength = value;
-        }
 
-
+        const ipDom = ref(null);
         const lanDom = ref(null);
         const forwardDom = ref(null);
         const handleSave = () => {
-            const json = JSON.parse(JSON.stringify(tuntap.value.current));
-            json.IP = state.ruleForm.IP.replace(/\s/g, '') || '0.0.0.0';
+            state.loading = true;
+            const json = ipDom.value.getData();
             json.Lans = lanDom.value ?  lanDom.value.getData() : tuntap.value.current.Lans;
-            json.PrefixLength = +state.ruleForm.PrefixLength;
-            json.Gateway = state.ruleForm.Gateway;
-            json.ShowDelay = state.ruleForm.ShowDelay;
-            json.AutoConnect = state.ruleForm.AutoConnect;
-            json.Upgrade = state.ruleForm.Upgrade;
-            json.Multicast = state.ruleForm.Multicast;
-            json.Nat = state.ruleForm.Nat;
-            json.TcpMerge = state.ruleForm.TcpMerge;
-            json.InterfaceOrder = state.ruleForm.InterfaceOrder;
             json.Forwards = forwardDom.value ?  forwardDom.value.getData() : tuntap.value.current.Forwards;
-            json.Name = state.ruleForm.Name;
             updateTuntap(json).then(() => {
                 state.show = false;
+                state.loading = false;
                 ElMessage.success('已操作！');
-                emit('change')
+                emit('change');
             }).catch((err) => {
+                state.loading = false;
                 console.log(err);
                 ElMessage.error('操作失败！');
+                
             });
         }
 
         return {
-            state, ruleFormRef, handlePrefixLengthChange, handleSave,
-            lanDom,forwardDom
+            state, handleSave,
+            ipDom,lanDom,forwardDom
         }
     }
 }
 </script>
 <style lang="stylus" scoped>
-.el-switch.is-disabled{opacity :1;}
-
-.upgrade-wrap{
-    border:1px solid #ddd;
-    margin-bottom:2rem
+.foot{
+    padding-top:2rem;
 }
 </style>

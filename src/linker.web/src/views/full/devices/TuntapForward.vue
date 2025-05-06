@@ -5,7 +5,7 @@
             <span class="green" v-if="state.testing">、testing</span>
         </div>
         <div class="wrap">
-            <el-table stripe  :data="state.forwards" border size="small" width="100%" height="200px" @cell-dblclick="handleCellClick">
+            <el-table stripe  :data="state.forwards" border size="small" width="100%" height="400px" @cell-dblclick="handleCellClick">
                 <el-table-column prop="ListenPort" label="源端口" width="60">
                     <template #default="scope">
                         <template v-if="scope.row.ListenPortEditing">
@@ -191,9 +191,6 @@ export default {
 }
 </script>
 <style lang="stylus" scoped>
-.wrap{
-    padding:0 1rem 1rem 0;
-}
 .remark{
     white-space: nowrap; /* 文本不换行 */
     overflow: hidden; /* 超出的文本隐藏 */

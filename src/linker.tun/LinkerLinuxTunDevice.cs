@@ -14,7 +14,6 @@ namespace linker.tun
         private string name = string.Empty;
         public string Name => name;
         public bool Running => safeFileHandle != null;
-        public bool AppNat => false;
 
         private string interfaceLinux = string.Empty;
         private FileStream fsRead = null;
@@ -150,7 +149,7 @@ namespace linker.tun
         {
             return CommandHelper.Linux(string.Empty, ["ip route show default | awk '{print $5}'"]);
         }
-        public void SetSystemNat(out string error)
+        public void SetNat(out string error)
         {
             error = string.Empty;
             if (address == null || address.Equals(IPAddress.Any)) return;
@@ -183,9 +182,7 @@ namespace linker.tun
                 error = ex.Message;
             }
         }
-        public void SetAppNat(LinkerTunAppNatItemInfo[] items,ref string error)
-        {
-        }
+      
         public void RemoveNat(out string error)
         {
             error = string.Empty;

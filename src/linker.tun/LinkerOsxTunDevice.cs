@@ -15,7 +15,6 @@ namespace linker.tun
         private string name = string.Empty;
         public string Name => name;
         public bool Running => safeFileHandle != null;
-        public bool AppNat => false;
 
         private FileStream fsRead = null;
         private FileStream fsWrite = null;
@@ -137,7 +136,7 @@ namespace linker.tun
             CommandHelper.Osx(string.Empty, new string[] { $"ifconfig {Name} mtu {value} up" });
         }
 
-        public void SetSystemNat(out string error)
+        public void SetNat(out string error)
         {
             error = string.Empty;
             /*
@@ -154,9 +153,6 @@ namespace linker.tun
                 "pfctl -f /etc/pf.conf -e",
             });
             */
-        }
-        public void SetAppNat(LinkerTunAppNatItemInfo[] items, ref string error)
-        {
         }
         public void RemoveNat(out string error)
         {

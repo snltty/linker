@@ -1,6 +1,5 @@
 ﻿using linker.libs;
 using linker.libs.timer;
-using linker.snat;
 using System.Net;
 using static linker.snat.LinkerDstMapping;
 
@@ -20,9 +19,13 @@ namespace linker.tun
 
         private string natError = string.Empty;
         public string NatError => natError;
+        public bool AppNat => lanSnat.Running;
 
-        public bool AppNat => linkerTunDevice?.AppNat ?? false;
-        private readonly LinkerDstMapping linkerDstMapping = new LinkerDstMapping();
+        private IPAddress address;
+        private byte prefixLength;
+        private readonly LanMap lanMap = new LanMap();
+        private readonly LanSnat lanSnat = new LanSnat();
+
 
         private readonly OperatingManager operatingManager = new OperatingManager();
         public LinkerTunDeviceStatus Status
@@ -39,9 +42,14 @@ namespace linker.tun
             }
         }
 
+        private ILinkerTunPacketHook[] hooks = [];
+
         public LinkerTunDeviceAdapter()
         {
-
+            hooks = new ILinkerTunPacketHook[]
+            {
+               lanMap,lanSnat
+            };
         }
 
         /// <summary>
@@ -106,6 +114,8 @@ namespace linker.tun
                     setupError = $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} not support";
                     return false;
                 }
+                this.address = address;
+                this.prefixLength = prefixLength;
                 linkerTunDevice.Setup(deviceName, address, prefixLength, out setupError);
                 if (string.IsNullOrWhiteSpace(setupError) == false)
                 {
@@ -179,7 +189,7 @@ namespace linker.tun
                 return;
             }
             if (linkerTunDevice.Running)
-                linkerTunDevice.SetSystemNat(out natError);
+                linkerTunDevice.SetNat(out natError);
         }
         /// <summary>
         /// 设置应用层NAT，仅Windows，
@@ -195,7 +205,7 @@ namespace linker.tun
                 return;
             }
             if (linkerTunDevice.Running)
-                linkerTunDevice.SetAppNat(items, ref natError);
+                lanSnat.Setup(address, prefixLength, items, ref natError);
         }
         /// <summary>
         /// 移除NAT
@@ -207,6 +217,7 @@ namespace linker.tun
                 return;
             }
             linkerTunDevice.RemoveNat(out string error);
+            lanSnat.Shutdown();
         }
 
         /// <summary>
@@ -273,6 +284,14 @@ namespace linker.tun
             linkerTunDevice.RemoveRoute(ips);
         }
 
+        public void AddHooks(List<ILinkerTunPacketHook> hooks)
+        {
+            List<ILinkerTunPacketHook> list = this.hooks.ToList();
+            list.AddRange(hooks);
+
+            this.hooks = list.Distinct().ToArray();
+        }
+
         private void Read()
         {
             TimerHelper.Async(async () =>
@@ -294,7 +313,10 @@ namespace linker.tun
                         LinkerTunDevicPacket packet = new LinkerTunDevicPacket(buffer, 0, length);
                         if (packet.DistIPAddress.Length == 0) continue;
 
-                        linkerDstMapping.ToFakeDst(buffer.AsMemory(4, length - 4));
+                        for (int i = 0; i < hooks.Length; i++)
+                        {
+                            if (hooks[i].ReadAfter(buffer.AsMemory(4, length - 4)) == false) continue;
+                        }
                         await linkerTunDeviceCallback.Callback(packet).ConfigureAwait(false);
                     }
                     catch (Exception ex)
@@ -316,7 +338,10 @@ namespace linker.tun
         {
             if (linkerTunDevice == null || Status != LinkerTunDeviceStatus.Running) return false;
 
-            linkerDstMapping.ToRealDst(buffer, AppNat == false);
+            for (int i = 0; i < hooks.Length; i++)
+            {
+                if (hooks[i].WriteBefore(buffer) == false) return false;
+            }
             return linkerTunDevice.Write(buffer);
         }
 
@@ -326,7 +351,7 @@ namespace linker.tun
         /// <param name="maps"></param>
         public void SetMap(DstMapInfo[] maps)
         {
-            linkerDstMapping.SetDsts(maps);
+            lanMap.SetMap(maps);
         }
 
         public async Task<bool> CheckAvailable(bool order = false)

@@ -4,6 +4,7 @@ using System.Diagnostics;
 using linker.messenger.entry;
 using linker.libs.extends;
 using System.Text;
+using System.Text.Json;
 
 namespace linker
 {
@@ -50,13 +51,11 @@ namespace linker
 
         public static void Run(string[] args)
         {
-
-
             LinkerMessengerEntry.Initialize();
             LinkerMessengerEntry.Build();
 
-            Dictionary<string, string> configDic = ParseArgs(args);
-            LinkerMessengerEntry.Setup(ExcludeModule.None, configDic);
+            using JsonDocument json = ParseArgs(args);
+            LinkerMessengerEntry.Setup(ExcludeModule.None, json);
 
             LoggerHelper.Instance.Warning($"current version : {VersionHelper.version}");
             LoggerHelper.Instance.Warning($"linker env is docker : {Environment.GetEnvironmentVariable("SNLTTY_LINKER_IS_DOCKER")}");
@@ -66,18 +65,18 @@ namespace linker
             GCHelper.FlushMemory();
         }
 
-        private static Dictionary<string, string> ParseArgs(string[] args)
+        private static JsonDocument ParseArgs(string[] args)
         {
-            Dictionary<string, string> configDic = new Dictionary<string, string>();
+            JsonDocument json = null;
             try
             {
-                configDic = Encoding.UTF8.GetString(Convert.FromBase64String(args[0])).DeJson<Dictionary<string, string>>();
+                json = JsonDocument.Parse(Encoding.UTF8.GetString(Convert.FromBase64String(args[0])));
             }
             catch (Exception ex)
             {
-                LoggerHelper.Instance.Error(ex);
+                LoggerHelper.Instance.Error($"args parse fail {ex}");
             }
-            return configDic;
+            return json;
         }
     }
 

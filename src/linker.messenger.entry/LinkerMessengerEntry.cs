@@ -19,6 +19,7 @@ using linker.messenger.store.file;
 using linker.messenger.serializer.memorypack;
 using linker.libs;
 using linker.messenger.plan;
+using System.Text.Json;
 
 namespace linker.messenger.entry
 {
@@ -136,7 +137,7 @@ namespace linker.messenger.entry
         /// 开始运行
         /// </summary>
         /// <param name="modules">排除哪些模块，默认无</param>
-        public static void Setup(ExcludeModule modules = ExcludeModule.None, Dictionary<string, string> configDic = null)
+        public static void Setup(ExcludeModule modules = ExcludeModule.None, JsonDocument config = null)
         {
             if (setuped.StartOperation() == false) return;
 
@@ -148,7 +149,7 @@ namespace linker.messenger.entry
             serviceProvider.UseMessenger();
 
             if ((modules & ExcludeModule.StoreFile) != ExcludeModule.StoreFile)
-                serviceProvider.UseStoreFile(configDic);
+                serviceProvider.UseStoreFile(config);
             if ((modules & ExcludeModule.SerializerMemoryPack) != ExcludeModule.SerializerMemoryPack)
                 serviceProvider.UseSerializerMemoryPack();
 
@@ -189,7 +190,7 @@ namespace linker.messenger.entry
                 if ((modules & ExcludeModule.Socks5) != ExcludeModule.Socks5)
                     serviceProvider.UseSocks5Client();
                 if ((modules & ExcludeModule.Tuntap) != ExcludeModule.Tuntap)
-                    serviceProvider.UseTuntapClient(configDic);
+                    serviceProvider.UseTuntapClient(config);
                 if ((modules & ExcludeModule.Updater) != ExcludeModule.Updater)
                     serviceProvider.UseUpdaterClient();
                 serviceProvider.UseExRoute().UseAccessClient().UseDecenterClient().UsePcpClient().UseRelayClient().UseSyncClient().UseTunnelClient().UseFlowClient();

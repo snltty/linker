@@ -19,10 +19,6 @@ namespace linker.tun
         /// 是否正在运行
         /// </summary>
         public bool Running { get; }
-        /// <summary>
-        /// 是否应用层NAT
-        /// </summary>
-        public bool AppNat { get; }
 
         /// <summary>
         /// 启动
@@ -51,12 +47,7 @@ namespace linker.tun
         /// <summary>
         /// 设置系统NAT转发
         /// </summary>
-        public void SetSystemNat(out string error);
-        /// <summary>
-        /// 设置应用层NAT转发
-        /// </summary>
-        /// <param name="error"></param>
-        public void SetAppNat(LinkerTunAppNatItemInfo[] items, ref string error);
+        public void SetNat(out string error);
         /// <summary>
         /// 移除NAT转发
         /// </summary>
@@ -120,6 +111,25 @@ namespace linker.tun
         /// <param name="packet"></param>
         /// <returns></returns>
         public Task Callback(LinkerTunDevicPacket packet);
+    }
+
+    /// <summary>
+    /// 数据包钩子
+    /// </summary>
+    public interface ILinkerTunPacketHook
+    {
+        /// <summary>
+        /// 从网卡读取到数据包后
+        /// </summary>
+        /// <param name="packet"></param>
+        /// <returns></returns>
+        public bool ReadAfter(ReadOnlyMemory<byte> packet);
+        /// <summary>
+        /// 写入网卡前
+        /// </summary>
+        /// <param name="packet"></param>
+        /// <returns></returns>
+        public bool WriteBefore(ReadOnlyMemory<byte> packet);
     }
 
     /// <summary>

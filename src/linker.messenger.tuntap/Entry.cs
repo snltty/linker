@@ -9,6 +9,7 @@ using linker.messenger.tuntap.lease;
 using linker.messenger.tuntap.messenger;
 using linker.tun;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -41,57 +42,9 @@ namespace linker.messenger.tuntap
 
             return serviceCollection;
         }
-        public static ServiceProvider UseTuntapClient(this ServiceProvider serviceProvider, Dictionary<string, string> configDic)
+        public static ServiceProvider UseTuntapClient(this ServiceProvider serviceProvider, JsonDocument json = default)
         {
-            if (configDic.TryGetValue("Tuntap", out string value))
-            {
-                ITuntapClientStore tuntapClientStore = serviceProvider.GetService<ITuntapClientStore>();
-                ILeaseClientStore leaseClientStore = serviceProvider.GetService<ILeaseClientStore>();
-                ISignInClientStore signInClientStore = serviceProvider.GetService<ISignInClientStore>();
-
-                try
-                {
-                    JsonElement doc = JsonDocument.Parse(value).RootElement;
-                    if (doc.TryGetProperty("IP", out JsonElement ip))
-                    {
-                        tuntapClientStore.Info.IP = IPAddress.Parse(ip.GetString());
-                    }
-                    if (doc.TryGetProperty("PrefixLength", out JsonElement prefixLength))
-                    {
-                        tuntapClientStore.Info.PrefixLength = prefixLength.GetByte();
-                    }
-                    if (doc.TryGetProperty("Lans", out JsonElement lans))
-                    {
-                        tuntapClientStore.Info.Lans = lans.GetRawText().DeJson<List<TuntapLanInfo>>();
-                    }
-                    if (doc.TryGetProperty("Name", out JsonElement name))
-                    {
-                        tuntapClientStore.Info.Name = name.GetString();
-                    }
-                    if (doc.TryGetProperty("Running", out JsonElement running))
-                    {
-                        tuntapClientStore.Info.Running = running.GetBoolean();
-                    }
-                    if (doc.TryGetProperty("Switch", out JsonElement _switch))
-                    {
-                        tuntapClientStore.Info.Switch = (TuntapSwitch)_switch.GetInt32();
-                    }
-                    if (doc.TryGetProperty("Forwards", out JsonElement forwards))
-                    {
-                        tuntapClientStore.Info.Forwards = forwards.GetRawText().DeJson<List<TuntapForwardInfo>>();
-                    }
-                    if (doc.TryGetProperty("Lease", out JsonElement lease))
-                    {
-                        leaseClientStore.Set(signInClientStore.Group.Id, lease.GetRawText().DeJson<LeaseInfo>());
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LoggerHelper.Instance.Error(ex);
-                }
-                tuntapClientStore.Confirm();
-                leaseClientStore.Confirm();
-            }
+            InportConfig(serviceProvider, json);
 
             TuntapProxy tuntapProxy = serviceProvider.GetService<TuntapProxy>();
             TuntapTransfer tuntapTransfer = serviceProvider.GetService<TuntapTransfer>();
@@ -119,9 +72,60 @@ namespace linker.messenger.tuntap
             DecenterClientTransfer decenterClientTransfer = serviceProvider.GetService<DecenterClientTransfer>();
             decenterClientTransfer.AddDecenters(new List<IDecenter> { serviceProvider.GetService<TuntapDecenter>() });
 
-            
+
 
             return serviceProvider;
+        }
+        private static void InportConfig(ServiceProvider serviceProvider, JsonDocument json = default)
+        {
+            if (json != null && json.RootElement.TryGetProperty("Tuntap", out JsonElement tuntap))
+            {
+                ITuntapClientStore tuntapClientStore = serviceProvider.GetService<ITuntapClientStore>();
+                ILeaseClientStore leaseClientStore = serviceProvider.GetService<ILeaseClientStore>();
+                ISignInClientStore signInClientStore = serviceProvider.GetService<ISignInClientStore>();
+
+                try
+                {
+                    if (tuntap.TryGetProperty("IP", out JsonElement ip))
+                    {
+                        tuntapClientStore.Info.IP = IPAddress.Parse(ip.GetString());
+                    }
+                    if (tuntap.TryGetProperty("PrefixLength", out JsonElement prefixLength))
+                    {
+                        tuntapClientStore.Info.PrefixLength = prefixLength.GetByte();
+                    }
+                    if (tuntap.TryGetProperty("Lans", out JsonElement lans))
+                    {
+                        tuntapClientStore.Info.Lans = lans.GetRawText().DeJson<List<TuntapLanInfo>>();
+                    }
+                    if (tuntap.TryGetProperty("Name", out JsonElement name))
+                    {
+                        tuntapClientStore.Info.Name = name.GetString();
+                    }
+                    if (tuntap.TryGetProperty("Running", out JsonElement running))
+                    {
+                        tuntapClientStore.Info.Running = running.GetBoolean();
+                    }
+                    if (tuntap.TryGetProperty("Switch", out JsonElement _switch))
+                    {
+                        tuntapClientStore.Info.Switch = (TuntapSwitch)_switch.GetInt32();
+                    }
+                    if (tuntap.TryGetProperty("Forwards", out JsonElement forwards))
+                    {
+                        tuntapClientStore.Info.Forwards = forwards.GetRawText().DeJson<List<TuntapForwardInfo>>();
+                    }
+                    if (tuntap.TryGetProperty("Lease", out JsonElement lease))
+                    {
+                        leaseClientStore.Set(signInClientStore.Group.Id, lease.GetRawText().DeJson<LeaseInfo>());
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
+                tuntapClientStore.Confirm();
+                leaseClientStore.Confirm();
+            }
         }
 
 

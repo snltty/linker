@@ -296,7 +296,6 @@ namespace linker.app
         private string name = string.Empty;
         public string Name => name;
         public bool Running => fd != 0;
-        public bool AppNat => false;
 
         private IPAddress address;
         private byte prefixLength = 24;
@@ -416,12 +415,9 @@ namespace linker.app
         public void SetMtu(int value)
         {
         }
-        public void SetSystemNat(out string error)
+        public void SetNat(out string error)
         {
             error = string.Empty;
-        }
-        public void SetAppNat(LinkerTunAppNatItemInfo[] items, ref string error)
-        {
         }
         public void RemoveNat(out string error)
         {

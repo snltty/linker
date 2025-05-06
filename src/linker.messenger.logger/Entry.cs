@@ -8,11 +8,12 @@ namespace linker.messenger.logger
     {
         public static ServiceCollection AddLogger(this ServiceCollection serviceCollection)
         {
+            LoggerConsole();
             return serviceCollection;
         }
         public static ServiceProvider UseLogger(this ServiceProvider serviceProvider)
         {
-            LoggerConsole();
+            
             return serviceProvider;
         }
 

@@ -4,7 +4,7 @@
             <span class="yellow">使用系统NAT或应用层SNAT</span>
         </div>
         <div class="wrap">
-            <el-table stripe  :data="state.lans" border size="small" width="100%" height="200px" @cell-dblclick="handleCellClick">
+            <el-table stripe  :data="state.lans" border size="small" width="100%" height="400px" @cell-dblclick="handleCellClick">
                 <el-table-column prop="IP" label="路由IP" width="120">
                     <template #default="scope">
                         <template v-if="scope.row.IPEditing">
@@ -150,7 +150,4 @@ export default {
 }
 </script>
 <style lang="stylus" scoped>
-.wrap{
-    padding:0 1rem 1rem 0;
-}
 </style>

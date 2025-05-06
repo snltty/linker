@@ -1,6 +1,5 @@
 ﻿using linker.libs;
 using linker.libs.extends;
-using linker.snat;
 using System.Buffers.Binary;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -16,7 +15,6 @@ namespace linker.tun
         private string name = string.Empty;
         public string Name => name;
         public bool Running => session != 0;
-        public bool AppNat => winDivertNAT != null && winDivertNAT.Running;
 
         private IntPtr waitHandle = IntPtr.Zero, adapter = IntPtr.Zero, session = IntPtr.Zero;
         private int interfaceNumber = 0;
@@ -31,7 +29,7 @@ namespace linker.tun
 
         private CancellationTokenSource tokenSource;
 
-        private LinkerSrcNat winDivertNAT = new LinkerSrcNat();
+        
 
         public LinkerWinTunDevice()
         {
@@ -194,7 +192,7 @@ namespace linker.tun
             });
         }
 
-        public void SetSystemNat(out string error)
+        public void SetNat(out string error)
         {
             error = string.Empty;
             try
@@ -224,30 +222,7 @@ namespace linker.tun
                 error = ex.Message;
             }
         }
-        public void SetAppNat(LinkerTunAppNatItemInfo[] items, ref string error)
-        {
-            winDivertNAT.Shutdown();
-
-            if (address == null || address.Equals(IPAddress.Any) || prefixLength == 0)
-            {
-                error = "SNAT need CIDR,like 10.18.18.0/24";
-                return;
-            }
-
-            IPAddress network = NetworkHelper.ToNetworkIP(this.address, NetworkHelper.ToPrefixValue(prefixLength));
-            string result = CommandHelper.PowerShell($"Get-NetNat", [], out string e);
-            if (string.IsNullOrWhiteSpace(result) == false && result.Contains($"{network}/{prefixLength}"))
-            {
-                return;
-            }
-
-            winDivertNAT.Setup(new LinkerSrcNat.SetupInfo
-            {
-                Src = address,
-                Dsts = items.Select(c => new LinkerSrcNat.AddrInfo(c.IP, c.PrefixLength)).ToArray(),
-                InterfaceIp = defaultInterfaceIP
-            }, out error);
-        }
+       
         public void RemoveNat(out string error)
         {
             error = string.Empty;
@@ -260,14 +235,6 @@ namespace linker.tun
             catch (Exception ex)
             {
                 error = ex.Message;
-            }
-
-            try
-            {
-                winDivertNAT.Shutdown();
-            }
-            catch (Exception)
-            {
             }
         }
 
@@ -381,8 +348,6 @@ namespace linker.tun
         public unsafe bool Write(ReadOnlyMemory<byte> packet)
         {
             if (session == 0 || tokenSource.IsCancellationRequested) return false;
-
-            if (winDivertNAT.Inject(packet)) return true;
 
             IntPtr packetPtr = WinTun.WintunAllocateSendPacket(session, (uint)packet.Length);
             if (packetPtr != 0)

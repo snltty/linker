@@ -94,7 +94,7 @@ namespace linker.messenger.store.file
             }
 
         }
-        public void Save(Dictionary<string, string> dic = null)
+        public void Save(JsonDocument json = null)
         {
             slim.Wait();
             try
@@ -109,10 +109,11 @@ namespace linker.messenger.store.file
                             continue;
                         }
                         string text = item.Value.PropertyMethod.Serialize(item.Value.Property.GetValue(Data));
-                        if (dic != null && dic.TryGetValue(item.Value.Property.Name, out string text2))
+
+                        if (json != null && json.RootElement.TryGetProperty(item.Value.Property.Name, out JsonElement import))
                         {
                             text = item.Value.PropertyMethod.Deserialize(text).ToJson();
-                            text = MergeJson(text, text2);
+                            text = MergeJson(text, import.ToJson());
 
                             object value = item.Value.PropertyMethod.Deserialize(text);
                             text = item.Value.PropertyMethod.Serialize(value);
