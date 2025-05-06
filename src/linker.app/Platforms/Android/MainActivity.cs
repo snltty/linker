@@ -215,7 +215,7 @@ namespace linker.app
         private void RunLinker()
         {
             Helper.currentDirectory = FileSystem.Current.AppDataDirectory;
-            
+
             InitLogger();
 
             LinkerMessengerEntry.Initialize();
@@ -225,7 +225,7 @@ namespace linker.app
 
             LinkerMessengerEntry.Build();
 
-            Dictionary<string, string> config = InitConfig();
+            using JsonDocument config = InitConfig();
             LinkerMessengerEntry.Setup(ExcludeModule.Logger, config);
             IPlatformApplication.Current.Services.GetService<InitializeService>().SendOnInitialized();
 
@@ -240,25 +240,21 @@ namespace linker.app
                 Android.Util.Log.Debug("linker", line);
             };
         }
-        private Dictionary<string, string> InitConfig()
+        private JsonDocument InitConfig()
         {
-            object client = new
+            return JsonDocument.Parse(new
             {
-                CApi = new
+                Common = new { Modes = new string[] { "client" } },
+                Client = new
                 {
-                    ApiPassword = "snltty",
-                    ApiPort = ApplyNewPort(),
-                    WebPort = ApplyNewPort()
+                    CApi = new
+                    {
+                        ApiPassword = "snltty",
+                        ApiPort = ApplyNewPort(),
+                        WebPort = ApplyNewPort()
+                    }
                 }
-            };
-            object common = new
-            {
-                Modes = new string[] { "client" },
-            };
-            return new Dictionary<string, string> {
-                {"Client",client.ToJson()},
-                {"Common", common.ToJson()}
-            };
+            }.ToJson());
         }
         private void TuntapSetup()
         {

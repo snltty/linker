@@ -249,12 +249,6 @@ mainForm.btnWebNet.oncommand = function(id,event){
 mainForm.checkService();
 mainForm.showPopmenu();
 
-if(!_ARGV["task"])
-{
-	mainForm.show();
-	win.setTopmost(mainForm.hwnd);
-}
-
 mainForm.setInterval( 
 	function(){
 		import fsys;
@@ -285,5 +279,11 @@ mainForm.setInterval(
 	},1000
 )
 
+mainForm.show();
+win.setTopmost(mainForm.hwnd);
+if(_ARGV["task"])
+{
+	mainForm.show(false);
+}
 
 return win.loopMessage();

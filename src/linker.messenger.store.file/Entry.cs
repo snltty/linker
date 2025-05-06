@@ -41,7 +41,8 @@ namespace linker.messenger.store.file
     {
         public static ServiceCollection AddStoreFile(this ServiceCollection serviceCollection)
         {
-            LoggerHelper.Instance.Info("add store file");
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Info("add store file");
 
             serviceCollection.AddSingleton<Storefactory>();
             serviceCollection.AddSingleton<FileConfig>();
@@ -72,7 +73,7 @@ namespace linker.messenger.store.file
             serviceCollection.AddSingleton<SignInSyncSecretKey>();
             serviceCollection.AddSingleton<SignInSyncUserId>();
             serviceCollection.AddSingleton<SignInSyncServer>();
-            
+
             serviceCollection.AddSingleton<SignInSyncGroupSecretKey>();
 
 
@@ -105,9 +106,10 @@ namespace linker.messenger.store.file
 
             return serviceCollection;
         }
-        public static ServiceProvider UseStoreFile(this ServiceProvider serviceProvider,JsonDocument config = default)
+        public static ServiceProvider UseStoreFile(this ServiceProvider serviceProvider, JsonDocument config = default)
         {
-            LoggerHelper.Instance.Info("use store file");
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Info("use store file");
 
             FileConfig fileConfig = serviceProvider.GetService<FileConfig>();
             fileConfig.Save(config);
@@ -122,7 +124,7 @@ namespace linker.messenger.store.file
                 serviceProvider.GetService<SignInSyncUserId>(),
                 serviceProvider.GetService<SignInSyncGroupSecretKey>(),
                 serviceProvider.GetService<SignInSyncServer>(),
-                
+
             });
 
             ResolverTransfer resolverTransfer = serviceProvider.GetService<ResolverTransfer>();
