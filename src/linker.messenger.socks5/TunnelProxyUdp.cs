@@ -123,18 +123,15 @@ namespace linker.messenger.socks5
                 ConnectIdUdp connectId = tunnelToken.GetUdpConnectId();
                 try
                 {
-                    IPAddress ip = mapping.GetRealDst(tunnelToken.Proxy.TargetEP.Address);
-                    IPEndPoint target = new IPEndPoint(ip, tunnelToken.Proxy.TargetEP.Port);
-
                     if (udpConnections.TryGetValue(connectId, out AsyncUserUdpTokenTarget token))
                     {
                         token.Connection = tunnelToken.Connection;
-                        await token.TargetSocket.SendToAsync(tunnelToken.Proxy.Data, target).ConfigureAwait(false);
+                        await token.TargetSocket.SendToAsync(tunnelToken.Proxy.Data, token.TargetRealEP).ConfigureAwait(false);
                         token.Update();
                         return;
                     }
 
-                    _ = ConnectUdp(tunnelToken, target);
+                    _ = ConnectUdp(tunnelToken);
 
                 }
                 catch (Exception ex)
@@ -171,8 +168,11 @@ namespace linker.messenger.socks5
                 }
             }
         }
-        private async Task ConnectUdp(AsyncUserTunnelToken tunnelToken, IPEndPoint target)
+        private async Task ConnectUdp(AsyncUserTunnelToken tunnelToken)
         {
+            IPAddress ip = mapping.GetRealDst(tunnelToken.Proxy.TargetEP.Address);
+            IPEndPoint target = new IPEndPoint(ip, tunnelToken.Proxy.TargetEP.Port);
+
             Socket socket = new Socket(target.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
             socket.WindowsUdpBug();
             await socket.SendToAsync(tunnelToken.Proxy.Data, target).ConfigureAwait(false);
@@ -192,6 +192,7 @@ namespace linker.messenger.socks5
                     BufferSize = tunnelToken.Proxy.BufferSize,
                 },
                 TargetSocket = socket,
+                TargetRealEP = target,
                 ConnectId = connectId,
                 Connection = tunnelToken.Connection,
                 Buffer = new byte[(1 << tunnelToken.Proxy.BufferSize) * 1024]
@@ -350,6 +351,7 @@ namespace linker.messenger.socks5
     public sealed class AsyncUserUdpTokenTarget
     {
         public Socket TargetSocket { get; set; }
+        public IPEndPoint TargetRealEP { get; set; }
 
         public ITunnelConnection Connection { get; set; }
         public ProxyInfo Proxy { get; set; }
