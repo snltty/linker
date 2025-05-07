@@ -1,5 +1,4 @@
 ﻿using MemoryPack;
-using linker.messenger.access;
 using linker.messenger.socks5;
 using System.Net;
 
@@ -26,10 +25,17 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         string Error => info.Error;
 
+        [MemoryPackInclude, MemoryPackAllowSerialize]
+        IPAddress MapIP => info.MapIP;
+
+        [MemoryPackInclude]
+        byte MapPrefixLength => info.MapPrefixLength;
+
+
         [MemoryPackConstructor]
-        SerializableSocks5LanInfo(IPAddress ip, byte prefixLength, bool disabled, bool exists, string error)
+        SerializableSocks5LanInfo(IPAddress ip, byte prefixLength, bool disabled, bool exists, string error, IPAddress mapip, byte mapprefixLength)
         {
-            var info = new Socks5LanInfo { Disabled = disabled, Error = error, Exists = exists, IP = ip, PrefixLength = prefixLength };
+            var info = new Socks5LanInfo { Disabled = disabled, Error = error, Exists = exists, IP = ip, PrefixLength = prefixLength, MapIP = mapip, MapPrefixLength = mapprefixLength };
             this.info = info;
         }
 
@@ -87,11 +93,14 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         string SetupError => info.SetupError;
 
+        [MemoryPackInclude,MemoryPackAllowSerialize]
+        IPAddress Wan => info.Wan;
+
 
         [MemoryPackConstructor]
-        SerializableSocks5Info(string machineId, Socks5Status status, int port, List<Socks5LanInfo> lans, string setupError)
+        SerializableSocks5Info(string machineId, Socks5Status status, int port, List<Socks5LanInfo> lans, string setupError, IPAddress wan)
         {
-            var info = new Socks5Info { MachineId = machineId, Lans = lans, Port = port, SetupError = setupError, Status = status };
+            var info = new Socks5Info { MachineId = machineId, Lans = lans, Port = port, SetupError = setupError, Status = status, Wan= wan };
             this.info = info;
         }
 

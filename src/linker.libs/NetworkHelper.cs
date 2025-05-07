@@ -293,6 +293,10 @@ namespace linker.libs
         {
             return new IPAddress(BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(value)));
         }
+        public static IPAddress ToIP(ReadOnlySpan<byte> spsn)
+        {
+            return new IPAddress(spsn);
+        }
 
         public static IPAddress ToNetworkIP(IPAddress ip, uint prefixIP)
         {

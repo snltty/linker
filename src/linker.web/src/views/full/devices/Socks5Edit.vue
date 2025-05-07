@@ -1,5 +1,5 @@
 <template>
-     <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap" :title="`设置[${state.machineName}]代理`" top="1vh" width="600">
+     <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap" :title="`设置[${state.machineName}]代理`" top="1vh" width="700">
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="140">
                 <el-form-item prop="gateway" style="margin-bottom:0">
@@ -9,27 +9,10 @@
                     <el-input v-model="state.ruleForm.Port" style="width:14rem" />
                 </el-form-item>
                 <div class="upgrade-wrap">
-                    <el-form-item label="此设备局域网IP" prop="LanIP" class="lan-item">
-                        <template v-for="(item, index) in state.ruleForm.Lans" :key="index">
-                            <div class="flex" style="margin-bottom:.6rem">
-                                <div class="flex-1">
-                                    <el-input v-model="item.IP" style="width:14rem" />
-                                    <span>/</span>
-                                    <el-input @change="handleMaskChange(index)" v-model="item.PrefixLength" style="width:4rem" />
-                                </div>
-                                <div class="pdl-10">
-                                    <el-checkbox v-model="item.Disabled" label="禁用记录" size="large" />
-                                </div>
-                                <div class="pdl-10">
-                                    <el-button type="danger" @click="handleDel(index)"><el-icon><Delete /></el-icon></el-button>
-                                    <el-button type="primary" @click="handleAdd(index)"><el-icon><Plus /></el-icon></el-button>
-                                </div>
-                            </div>
-                        </template>
-                    </el-form-item>
+                    <Socks5Lan ref="socks5Dom"></Socks5Lan>
                 </div>
-                <el-form-item label="" prop="Btns">
-                    <div>
+                <el-form-item label="" prop="Btns" label-width="0">
+                    <div class="t-c w-100">
                         <el-button @click="state.show = false">取消</el-button>
                         <el-button type="primary" @click="handleSave">确认</el-button>
                     </div>
@@ -45,10 +28,11 @@ import { ElMessage } from 'element-plus';
 import { reactive, ref, watch } from 'vue';
 import { useSocks5 } from './socks5';
 import { Delete, Plus } from '@element-plus/icons-vue'
+import Socks5Lan from './Socks5Lan.vue';
 export default {
     props: ['modelValue'],
     emits: ['change','update:modelValue'],
-    components: {Delete,Plus},
+    components: {Socks5Lan},
     setup(props, { emit }) {
 
         const globalData = injectGlobalData();
@@ -60,7 +44,7 @@ export default {
             bufferSize:globalData.value.bufferSize,
             ruleForm: {
                 Port: socks5.value.current.Port,
-                Lans: socks5.value.current.Lans.slice(0)
+                Lans: []
             },
             rules: {}
         });
@@ -75,26 +59,11 @@ export default {
             }
         });
 
-        const handleMaskChange = (index)=>{
-            var value = +state.ruleForm.Lans[index].PrefixLength;
-            if(value>32 || value<16 || isNaN(value)){
-                value = 24;
-            }
-            state.ruleForm.Lans[index].PrefixLength = value;
-        }
-        const handleDel = (index) => {
-            state.ruleForm.Lans.splice(index, 1);
-            if (state.ruleForm.Lans.length == 0){
-                handleAdd(0);
-            }
-        }
-        const handleAdd = (index) => {
-            state.ruleForm.Lans.splice(index + 1, 0, {IP:'0.0.0.0',PrefixLength:24});
-        }
+        const socks5Dom = ref(null);
         const handleSave = () => {
             const json = JSON.parse(JSON.stringify(socks5.value.current));
             json.Port = +(state.ruleForm.Port || '1805');
-            json.Lans = state.ruleForm.Lans.map(c=>{ c.PrefixLength=+c.PrefixLength;return c; });
+            json.Lans = socks5Dom.value.getData();
             updateSocks5(json).then(() => {
                 state.show = false;
                 ElMessage.success('已操作！');
@@ -106,7 +75,7 @@ export default {
         }
 
         return {
-           state, ruleFormRef,handleMaskChange,  handleDel, handleAdd, handleSave
+           state, ruleFormRef,socks5Dom,  handleSave
         }
     }
 }
@@ -116,9 +85,6 @@ export default {
 .upgrade-wrap{
     border:1px solid #ddd;
     margin-bottom:2rem
-    padding:1rem 0 1rem 0;
-}
-.lan-item{
-    margin-bottom:0;
+    padding:1rem;
 }
 </style>

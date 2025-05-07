@@ -1,4 +1,6 @@
 ﻿using linker.libs;
+using linker.libs.extends;
+using System.Buffers;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
@@ -33,6 +35,43 @@ namespace linker.snat
             mapDic = maps.ToFrozenDictionary(x => NetworkHelper.ToNetworkValue(x.FakeIP, x.PrefixLength), x => NetworkHelper.ToNetworkValue(x.RealIP, x.PrefixLength));
             masks = maps.Select(x => NetworkHelper.ToPrefixValue(x.PrefixLength)).ToArray();
         }
+
+        /// <summary>
+        /// 获取真实IP
+        /// </summary>
+        /// <param name="fakeIP">假IP</param>
+        /// <returns></returns>
+        public IPAddress GetRealDst(IPAddress fakeIP)
+        {
+            //映射表不为空
+            if (masks.Length == 0 || mapDic.Count == 0) return fakeIP;
+
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(16);
+            try
+            {
+                fakeIP.TryWriteBytes(buffer, out int length);
+                uint fakeDist = NetworkHelper.ToValue(buffer.AsSpan(0, 4));
+                for (int i = 0; i < masks.Length; i++)
+                {
+                    //目标IP网络号存在映射表中，找到映射后的真实网络号，替换网络号得到最终真实的IP
+                    if (mapDic.TryGetValue(fakeDist & masks[i], out uint realNetwork))
+                    {
+                        uint realDist = realNetwork | (fakeDist & ~masks[i]);
+                        BinaryPrimitives.ReverseEndianness(realDist).ToBytes(buffer);
+                        return NetworkHelper.ToIP(buffer.AsSpan(0, 4));
+                    }
+                }
+            }
+            catch (Exception)
+            {
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
+            return fakeIP;
+        }
+
         /// <summary>
         /// 转换为假IP
         /// </summary>
@@ -57,7 +96,7 @@ namespace linker.snat
         /// </summary>
         /// <param name="packet">TCP/IP</param>
         /// <param name="checksum">是否计算校验和，如果使用了应用层NAT，可以交给应用层NAT去计算校验和</param>
-        public void ToRealDst(ReadOnlyMemory<byte> packet,bool checksum = true)
+        public void ToRealDst(ReadOnlyMemory<byte> packet, bool checksum = true)
         {
             //只支持映射IPV4
             if ((byte)(packet.Span[0] >> 4 & 0b1111) != 4) return;

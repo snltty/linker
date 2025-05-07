@@ -55,12 +55,16 @@ namespace linker.messenger.socks5
 
         public LastTicksManager LastTicks { get; set; } = new LastTicksManager();
 
+        public IPAddress Wan { get; set; } = IPAddress.Any;
+
     }
 
     public sealed partial class Socks5LanInfo
     {
-        public IPAddress IP { get; set; }
+        public IPAddress IP { get; set; } = IPAddress.Any;
         public byte PrefixLength { get; set; } = 24;
+        public IPAddress MapIP { get; set; } = IPAddress.Any;
+        public byte MapPrefixLength { get; set; } = 24;
         public bool Disabled { get; set; }
         public bool Exists { get; set; }
         public string Error { get; set; } = string.Empty;

@@ -1,7 +1,7 @@
 <template>
-    <el-table-column prop="forward" label="转发/穿透" >
+    <el-table-column prop="forward" :label="forward.show?'转发/穿透':''" >
         <template #default="scope">
-            <template v-if="scope.row.Connected">
+            <template v-if="forward.show && scope.row.Connected">
                 <template v-if="scope.row.isSelf && (hasForwardShowSelf || hasForwardSelf)">
                     <div class="nowrap">
                         <ConnectionShow :data="connections.list[scope.row.MachineId]" :row="scope.row" transitionId="forward"></ConnectionShow>

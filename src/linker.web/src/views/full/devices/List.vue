@@ -4,9 +4,9 @@
         <el-table :data="devices.page.List" stripe border style="width: 100%" :height="`${state.height}px`" size="small">
             <Device  @edit="handleDeviceEdit" @refresh="handlePageRefresh"></Device>
             <Tunnel  @edit="handleTunnelEdit" @refresh="handleTunnelRefresh" @connections="handleTunnelConnections"></Tunnel>
-            <Tuntap v-if="tuntap.show"  @edit="handleTuntapEdit" @refresh="handleTuntapRefresh"></Tuntap>
-            <Socks5 v-if="socks5.show" @edit="handleSocks5Edit" @refresh="handleSocks5Refresh"></Socks5> 
-            <Forward v-if="forward.show" @edit="handleForwardEdit" @sedit="handleSForwardEdit"></Forward> 
+            <Tuntap  @edit="handleTuntapEdit" @refresh="handleTuntapRefresh"></Tuntap>
+            <Socks5  @edit="handleSocks5Edit" @refresh="handleSocks5Refresh"></Socks5> 
+            <Forward  @edit="handleForwardEdit" @sedit="handleSForwardEdit"></Forward> 
             <Oper  @refresh="handlePageRefresh" @access="handleAccessEdit"></Oper>
         </el-table>
         <div class="page" :class="{'t-c':globalData.isPc}">

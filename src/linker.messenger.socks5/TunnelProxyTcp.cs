@@ -210,7 +210,11 @@ namespace linker.messenger.socks5
 
             ConnectState state = new ConnectState { BufferSize = token.Proxy.BufferSize, Connection = token.Connection, ConnectId = token.Proxy.ConnectId, Socket = socket, IPEndPoint = token.Proxy.TargetEP };
             state.CopyData(token.Proxy.Data);
-            socket.BeginConnect(token.Proxy.TargetEP, ConnectCallback, state);
+
+            IPAddress ip = mapping.GetRealDst(token.Proxy.TargetEP.Address);
+            IPEndPoint target = new IPEndPoint(ip, token.Proxy.TargetEP.Port);
+
+            socket.BeginConnect(target, ConnectCallback, state);
 
         }
         private async void ConnectCallback(IAsyncResult result)

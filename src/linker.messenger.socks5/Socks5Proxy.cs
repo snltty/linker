@@ -10,6 +10,8 @@ using linker.messenger.relay.client;
 using linker.messenger.channel;
 using linker.messenger.signin;
 using linker.messenger.pcp;
+using linker.snat;
+using static linker.snat.LinkerDstMapping;
 
 namespace linker.messenger.socks5
 {
@@ -19,6 +21,7 @@ namespace linker.messenger.socks5
 
         private readonly IPAddessCidrManager<string> cidrManager = new IPAddessCidrManager<string>();
         private readonly SignInClientTransfer signInClientTransfer;
+        private readonly LinkerDstMapping mapping = new LinkerDstMapping();
 
         protected override string TransactionId => "socks5";
 
@@ -46,11 +49,21 @@ namespace linker.messenger.socks5
         {
             cidrManager.Add(new CidrAddInfo<string> { IPAddress = ip, PrefixLength = 32, Value = machineId });
         }
+        /// <summary>
+        /// 清除IP
+        /// </summary>
         public void ClearIPs()
         {
             cidrManager.Clear();
         }
-
+        /// <summary>
+        /// 设置映射
+        /// </summary>
+        /// <param name="maps"></param>
+        public void SetMap(DstMapInfo[] maps)
+        {
+            mapping.SetDsts(maps);
+        }
 
         public void Start(int port)
         {

@@ -123,7 +123,9 @@ namespace linker.messenger.socks5
                 ConnectIdUdp connectId = tunnelToken.GetUdpConnectId();
                 try
                 {
-                    IPEndPoint target = new IPEndPoint(tunnelToken.Proxy.TargetEP.Address, tunnelToken.Proxy.TargetEP.Port);
+                    IPAddress ip = mapping.GetRealDst(tunnelToken.Proxy.TargetEP.Address);
+                    IPEndPoint target = new IPEndPoint(ip, tunnelToken.Proxy.TargetEP.Port);
+
                     if (udpConnections.TryGetValue(connectId, out AsyncUserUdpTokenTarget token))
                     {
                         token.Connection = tunnelToken.Connection;

@@ -1,6 +1,6 @@
 <template>
     <div>
-        <el-dialog v-model="state.show" title="初始化配置" width="600" top="2vh">
+        <el-dialog v-model="state.show" title="初始化配置" width="700" top="2vh">
             <div>
                 <el-tabs type="border-card">
                     <el-tab-pane label="手动输入">

@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using linker.messenger.signin;
 using linker.messenger.exroute;
+using static linker.snat.LinkerDstMapping;
 
 namespace linker.messenger.socks5
 {
@@ -49,6 +50,12 @@ namespace linker.messenger.socks5
         public void Refresh()
         {
             PushVersion.Increment();
+
+            DstMapInfo[] maps = socks5Store.Lans
+                .Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false && c.MapIP != null && c.MapIP.Equals(IPAddress.Any) == false)
+                .Select(c => new DstMapInfo { FakeIP = c.IP, RealIP = c.MapIP, PrefixLength = c.MapPrefixLength })
+                .ToArray();
+            tunnelProxy.SetMap(maps);
         }
         public Memory<byte> GetData()
         {
@@ -58,7 +65,8 @@ namespace linker.messenger.socks5
                 MachineId = signInClientStore.Id,
                 Status = tunnelProxy.Running ? Socks5Status.Running : Socks5Status.Normal,
                 Port = socks5Store.Port,
-                SetupError = tunnelProxy.Error
+                SetupError = tunnelProxy.Error,
+                Wan = signInClientState.WanAddress.Address
             });
         }
         public void AddData(Memory<byte> data)
@@ -106,6 +114,7 @@ namespace linker.messenger.socks5
                 .ToArray();
 
             HashSet<uint> hashSet = new HashSet<uint>();
+            IPAddress wan = signInClientState.WanAddress.Address;
 
             return infos
                 .Where(c => c.MachineId != signInClientStore.Id)
@@ -114,14 +123,17 @@ namespace linker.messenger.socks5
 
                 .Select(c =>
                 {
-                    var lans = c.Lans.Where(c => c.Disabled == false && c.IP.Equals(IPAddress.Any) == false).Where(c =>
+                    var lans = c.Lans.Where(d => d.Disabled == false && d.IP.Equals(IPAddress.Any) == false).Where(d =>
                     {
-                        uint ipInt = NetworkHelper.ToValue(c.IP);
-                        uint maskValue = NetworkHelper.ToPrefixValue(c.PrefixLength);
+                        uint ipInt = NetworkHelper.ToValue(d.IP);
+                        uint maskValue = NetworkHelper.ToPrefixValue(d.PrefixLength);
                         uint network = ipInt & maskValue;
-                        c.Exists = excludeIps.Any(d => (d & maskValue) == network) || hashSet.Contains(network);
+
+                        d.Exists = (wan.Equals(c.Wan) && IPAddress.Any.Equals(d.MapIP))
+                        || excludeIps.Any(e => (e & maskValue) == network)
+                        || hashSet.Contains(network);
                         hashSet.Add(network);
-                        return c.Exists == false;
+                        return d.Exists == false;
                     });
 
                     return new Socks5LanIPAddressList
