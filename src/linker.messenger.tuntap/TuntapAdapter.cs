@@ -144,7 +144,7 @@ namespace linker.messenger.tuntap
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Warning($"restart, stop device");
             tuntapTransfer.Shutdown();
-            await tuntapConfigTransfer.RefreshIPASync().ConfigureAwait(false);
+            await tuntapConfigTransfer.RefreshIPAsync().ConfigureAwait(false);
             tuntapTransfer.Setup(tuntapConfigTransfer.Name, tuntapConfigTransfer.Info.IP, tuntapConfigTransfer.Info.PrefixLength, tuntapConfigTransfer.Info.DisableNat == false);
         }
         /// <summary>

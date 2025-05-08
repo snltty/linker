@@ -95,13 +95,13 @@ namespace linker.messenger.tuntap
         /// </summary>
         public void RefreshIP()
         {
-            _ = RefreshIPASync();
+            _ = RefreshIPAsync();
         }
         /// <summary>
         /// 刷新IP
         /// </summary>
         /// <returns></returns>
-        public async Task RefreshIPASync()
+        public async Task RefreshIPAsync()
         {
             IPAddress oldIP = Info.IP;
             byte prefixLength = Info.PrefixLength;
@@ -117,6 +117,11 @@ namespace linker.messenger.tuntap
 
             OnUpdate();
         }
+
+        /// <summary>
+        /// 申请IP
+        /// </summary>
+        /// <returns></returns>
         private async Task LeaseIP()
         {
             LeaseInfo leaseInfo = await leaseClientTreansfer.LeaseIp(Info.IP, Info.PrefixLength).ConfigureAwait(false);
@@ -126,6 +131,9 @@ namespace linker.messenger.tuntap
             tuntapStore.Confirm();
         }
 
+        /// <summary>
+        /// 从分组加载IP配置
+        /// </summary>
         private void LoadGroupIP()
         {
             if (Info.Group2IP.TryGetValue(signInClientStore.Group.Id, out TuntapGroup2IPInfo tuntapGroup2IPInfo))
@@ -137,6 +145,9 @@ namespace linker.messenger.tuntap
                 }
             }
         }
+        /// <summary>
+        /// 把IP配置保存到分组
+        /// </summary>
         private void SetGroupIP()
         {
             TuntapGroup2IPInfo tuntapGroup2IPInfo = new TuntapGroup2IPInfo { IP = Info.IP, PrefixLength = Info.PrefixLength };
