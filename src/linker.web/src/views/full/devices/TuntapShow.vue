@@ -4,23 +4,28 @@
             <div class="flex-1">
                 <ConnectionShow :data="connections.list[item.MachineId]" :row="item" transitionId="tuntap"></ConnectionShow>         
                 <a href="javascript:;" class="a-line" @click="handleTuntapIP(tuntap.list[item.MachineId])" title="虚拟网卡IP">
-                    <template v-if="tuntap.list[item.MachineId].SetupError">
-                        <strong class="red" :title="tuntap.list[item.MachineId].SetupError">{{ tuntap.list[item.MachineId].IP }}</strong>
-                    </template>
-                    <template v-else-if="tuntap.list[item.MachineId].Exists">
-                        <strong class="red" title="IP存在冲突，请使用新IP">{{ tuntap.list[item.MachineId].IP }}</strong>
-                    </template>
-                    <template v-else-if="tuntap.list[item.MachineId].Available == false">
-                        <strong class="disable" title="IP不生效，可能是设备不在线">{{ tuntap.list[item.MachineId].IP }}</strong>
-                    </template>
-                    <template v-else-if="tuntap.list[item.MachineId].NatError">
-                        <strong class="yellow" :title="tuntap.list[item.MachineId].NatError">{{ tuntap.list[item.MachineId].IP }}</strong>
-                    </template>
-                    <template v-else-if="tuntap.list[item.MachineId].AppNat && tuntap.list[item.MachineId].running">
-                        <strong class="app-nat" :title="`虚拟网卡IP\r\n应用层SNAT\r\n如果无法使用点对网，请重启一次系统`">{{ tuntap.list[item.MachineId].IP }}</strong>
-                    </template>
-                    <template v-else-if=" item.Connected && tuntap.list[item.MachineId].running">
-                        <strong class="green gateway" :title="`虚拟网卡IP\r\n系统NAT`">{{ tuntap.list[item.MachineId].IP }}</strong>
+                    <template v-if="item.Connected">
+                        <template v-if="tuntap.list[item.MachineId].SetupError">
+                            <strong class="red" :title="tuntap.list[item.MachineId].SetupError">{{ tuntap.list[item.MachineId].IP }}</strong>
+                        </template>
+                        <template v-else-if="tuntap.list[item.MachineId].Exists">
+                            <strong class="red" title="IP存在冲突，请使用新IP">{{ tuntap.list[item.MachineId].IP }}</strong>
+                        </template>
+                        <template v-else-if="tuntap.list[item.MachineId].Available == false">
+                            <strong class="disable" title="IP不生效，可能是设备不在线">{{ tuntap.list[item.MachineId].IP }}</strong>
+                        </template>
+                        <template v-else-if="tuntap.list[item.MachineId].NatError">
+                            <strong class="yellow" :title="tuntap.list[item.MachineId].NatError">{{ tuntap.list[item.MachineId].IP }}</strong>
+                        </template>
+                        <template v-else-if="tuntap.list[item.MachineId].AppNat && tuntap.list[item.MachineId].running">
+                            <strong class="app-nat" :title="`虚拟网卡IP\r\n应用层SNAT\r\n如果无法使用点对网，请重启一次系统`">{{ tuntap.list[item.MachineId].IP }}</strong>
+                        </template>
+                        <template v-else-if="tuntap.list[item.MachineId].running">
+                            <strong class="green gateway" :title="`虚拟网卡IP\r\n系统NAT`">{{ tuntap.list[item.MachineId].IP }}</strong>
+                        </template>
+                        <template v-else>
+                            <strong>{{ tuntap.list[item.MachineId].IP }}</strong>
+                        </template>
                     </template>
                     <template v-else>
                         <strong>{{ tuntap.list[item.MachineId].IP }}</strong>
@@ -40,11 +45,14 @@
         <div>
             <div>
                 <template v-for="(item1,index) in  tuntap.list[item.MachineId].Lans" :key="index">
+                    <template v-if="tuntap.list[item.MachineId].Available == false">
+                        <div class="flex disable" title="IP不生效，可能是设备不在线">{{ item1.IP }} / {{ item1.PrefixLength }}</div>
+                    </template>
                     <template v-if="item1.Disabled">
                         <div class="flex disable" title="已禁用">{{ item1.IP }} / {{ item1.PrefixLength }}</div>
                     </template>
                     <template v-else-if="item1.Exists">
-                        <div class="flex yellow" title="与其它设备填写IP、或本机局域网IP有冲突、或与本机外网IP一致，可使用网段映射解决">{{ item1.IP }} / {{ item1.PrefixLength }}</div>
+                        <div class="flex yellow" title="与其它设备填写IP、或本机局域网IP有冲突、或与本机外网IP一致">{{ item1.IP }} / {{ item1.PrefixLength }}</div>
                     </template>
                     <template v-else>
                         <div class="flex green" title="正常使用">{{ item1.IP }} / {{ item1.PrefixLength }}</div>
