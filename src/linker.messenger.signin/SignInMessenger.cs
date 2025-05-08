@@ -271,6 +271,26 @@ namespace linker.messenger.signin
                 cache.Args.TryAdd(info.Key, info.Value);
             }
         }
+
+
+        [MessengerId((ushort)SignInMessengerIds.Offlines)]
+        public void Offlines(IConnection connection)
+        {
+            List<string> machineIds = serializer.Deserialize<List<string>>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
+            {
+                List<string> offlines = signCaching.Get(cache.GroupId).Where(c => c.Connected == false).Select(c => c.MachineId).Intersect(machineIds).ToList();
+                connection.Write(serializer.Serialize(offlines));
+                return;
+            }
+            connection.Write(serializer.Serialize(new List<string>()));
+        }
+
+        [MessengerId((ushort)SignInMessengerIds.Exp)]
+        public void Exp(IConnection connection)
+        {
+            signCaching.Exp(connection.Id);
+        }
     }
 
     /// <summary>

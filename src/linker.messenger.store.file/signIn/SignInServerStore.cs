@@ -66,7 +66,9 @@ namespace linker.messenger.store.file.signIn
         {
             return liteCollection.Update(value);
         }
-
-
+        public bool Exp(string id)
+        {
+            return liteCollection.UpdateMany(p => new SignCacheInfo { LastSignIn = DateTime.Now }, c => c.Id == id) > 0;
+        }
     }
 }

@@ -9,9 +9,7 @@ using linker.messenger.tuntap.lease;
 using linker.messenger.tuntap.messenger;
 using linker.tun;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 using System.Net;
-using System.Text;
 using System.Text.Json;
 namespace linker.messenger.tuntap
 {
@@ -72,8 +70,6 @@ namespace linker.messenger.tuntap
             DecenterClientTransfer decenterClientTransfer = serviceProvider.GetService<DecenterClientTransfer>();
             decenterClientTransfer.AddDecenters(new List<IDecenter> { serviceProvider.GetService<TuntapDecenter>() });
 
-
-
             return serviceProvider;
         }
         private static void InportConfig(ServiceProvider serviceProvider, JsonDocument json = default)
@@ -86,13 +82,13 @@ namespace linker.messenger.tuntap
 
                 try
                 {
-                    if (tuntap.TryGetProperty("IP", out JsonElement ip))
+                    if (tuntap.TryGetProperty("IP", out JsonElement ip) && tuntap.TryGetProperty("PrefixLength", out JsonElement prefixLength))
                     {
                         tuntapClientStore.Info.IP = IPAddress.Parse(ip.GetString());
-                    }
-                    if (tuntap.TryGetProperty("PrefixLength", out JsonElement prefixLength))
-                    {
                         tuntapClientStore.Info.PrefixLength = prefixLength.GetByte();
+
+                        TuntapGroup2IPInfo tuntapGroup2IPInfo = new TuntapGroup2IPInfo { IP = tuntapClientStore.Info.IP, PrefixLength= tuntapClientStore.Info.PrefixLength };
+                        tuntapClientStore.Info.Group2IP.AddOrUpdate(signInClientStore.Group.Id, tuntapGroup2IPInfo,(a,b)=> tuntapGroup2IPInfo);
                     }
                     if (tuntap.TryGetProperty("Lans", out JsonElement lans))
                     {

@@ -16,5 +16,7 @@ namespace linker.messenger.signin
         /// <param name="secretKey"></param>
         public void SetSecretKey(string secretKey);
         public void SetCleanDays(int days);
+
+        public bool Exp(string id);
     }
 }

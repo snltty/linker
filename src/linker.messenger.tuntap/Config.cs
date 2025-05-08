@@ -139,6 +139,14 @@ namespace linker.messenger.tuntap
         /// 延迟ms
         /// </summary>
         public int Delay { get; set; } = -1;
+        /// <summary>
+        /// 有效的
+        /// </summary>
+        public bool Available { get; set; } = true;
+        /// <summary>
+        /// 冲突
+        /// </summary>
+        public bool Exists { get; set; }
 
         /// <summary>
         /// 是否网关

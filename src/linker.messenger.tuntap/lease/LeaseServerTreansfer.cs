@@ -114,6 +114,7 @@ namespace linker.messenger.tuntap.lease
                     self.LastTime = DateTime.Now;
                     uint networkValue = NetworkHelper.ToNetworkValue(cache.IP, cache.PrefixValue);
                     info.IP = NetworkHelper.ToIP(self.IP & ~cache.PrefixValue | networkValue);
+                    self.IP = NetworkHelper.ToValue(info.IP);
                     return info;
                 }
                 cache.Users.Remove(self);

@@ -5,6 +5,7 @@ using linker.messenger.signin;
 using linker.messenger.exroute;
 using linker.tun;
 using System.Net;
+using linker.libs.timer;
 
 namespace linker.messenger.tuntap
 {
@@ -30,8 +31,11 @@ namespace linker.messenger.tuntap
         private readonly ExRouteTransfer exRouteTransfer;
         private readonly SignInClientState signInClientState;
         private readonly ISystemInformation systemInformation;
+        private readonly SignInClientTransfer signInClientTransfer;
 
-        public TuntapDecenter(ISignInClientStore signInClientStore, SignInClientState signInClientState, ISerializer serializer, TuntapProxy tuntapProxy, TuntapConfigTransfer tuntapConfigTransfer, TuntapTransfer tuntapTransfer, ExRouteTransfer exRouteTransfer, ISystemInformation systemInformation)
+        public TuntapDecenter(ISignInClientStore signInClientStore, SignInClientState signInClientState, ISerializer serializer, TuntapProxy tuntapProxy,
+            TuntapConfigTransfer tuntapConfigTransfer, TuntapTransfer tuntapTransfer, ExRouteTransfer exRouteTransfer, ISystemInformation systemInformation,
+            SignInClientTransfer signInClientTransfer)
         {
             this.signInClientStore = signInClientStore;
             this.serializer = serializer;
@@ -41,6 +45,9 @@ namespace linker.messenger.tuntap
             this.exRouteTransfer = exRouteTransfer;
             this.signInClientState = signInClientState;
             this.systemInformation = systemInformation;
+            this.signInClientTransfer = signInClientTransfer;
+
+            CheckAvailableTask();
         }
 
         public void Refresh()
@@ -79,6 +86,7 @@ namespace linker.messenger.tuntap
         public void AddData(Memory<byte> data)
         {
             TuntapInfo info = serializer.Deserialize<TuntapInfo>(data.Span);
+            info.Available = true;
             tuntapInfos.AddOrUpdate(info.MachineId, info, (a, b) => info);
             listVersion.Increment();
         }
@@ -87,6 +95,7 @@ namespace linker.messenger.tuntap
             List<TuntapInfo> list = data.Select(c => serializer.Deserialize<TuntapInfo>(c.Span)).ToList();
             foreach (var item in list)
             {
+                item.Available = true;
                 tuntapInfos.AddOrUpdate(item.MachineId, item, (a, b) => item);
             }
             DataVersion.Increment();
@@ -115,7 +124,7 @@ namespace linker.messenger.tuntap
             tuntapTransfer.AddRoute(_routeItems);
 
             tuntapProxy.SetIPs(ips);
-            foreach (var item in Infos.Values)
+            foreach (var item in Infos.Values.Where(c => c.Available && c.Exists == false))
             {
                 tuntapProxy.SetIP(item.MachineId, NetworkHelper.ToValue(item.IP));
             }
@@ -137,8 +146,15 @@ namespace linker.messenger.tuntap
             HashSet<uint> hashSet = new HashSet<uint>();
             IPAddress wan = signInClientState.WanAddress.Address;
 
+            foreach (var item in infos.OrderBy(c => c.IP, new IPAddressComparer()).OrderByDescending(c => c.Status))
+            {
+                item.Exists = hashSet.Contains(NetworkHelper.ToValue(item.IP));
+                hashSet.Add(NetworkHelper.ToValue(item.IP));
+            }
+
             return infos
                 .Where(c => c.MachineId != signInClientStore.Id)
+                .Where(c => c.Available && c.Exists == false)
                 .OrderBy(c => c.IP, new IPAddressComparer()).OrderByDescending(c => c.Status)
                 .Select(c =>
                 {
@@ -191,6 +207,32 @@ namespace linker.messenger.tuntap
                 OriginIPAddress = ip,
                 MachineId = machineid
             };
+        }
+
+
+        private void CheckAvailableTask()
+        {
+            ulong version = listVersion.Value;
+            TimerHelper.SetIntervalLong(async () =>
+            {
+                if (listVersion.Eq(version, out ulong _version) == false)
+                {
+                    IEnumerable<string> availables = tuntapInfos.Values.Where(c => c.Available).Select(c => c.MachineId);
+                    if (availables.Any())
+                    {
+                        List<string> offlines = await signInClientTransfer.GetOfflines(availables.ToList()).ConfigureAwait(false); ;
+                        if (offlines.Any())
+                        {
+                            foreach (var item in tuntapInfos.Values.Where(c => offlines.Contains(c.MachineId)))
+                            {
+                                item.Available = false;
+                            }
+                            ProcData();
+                        }
+                    }
+                }
+                version = _version;
+            }, 3000);
         }
 
         sealed class IPAddressComparer : IComparer<IPAddress>

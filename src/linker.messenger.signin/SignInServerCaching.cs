@@ -100,6 +100,7 @@ namespace linker.messenger.signin
             return Clients.Values.Where(c => c.Connected == true).Select(c => c.Id);
         }
 
+
         public bool GetOnline(string machineId)
         {
             return Clients.TryGetValue(machineId, out SignCacheInfo cache) && cache.Connected;
@@ -123,6 +124,12 @@ namespace linker.messenger.signin
         public string NewId()
         {
             return signInStore.NewId();
+        }
+
+
+        public bool Exp(string machineId)
+        {
+            return signInStore.Exp(machineId);
         }
 
         private void ClearTask()

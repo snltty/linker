@@ -27,6 +27,9 @@
 
         PushArg = 15,
 
+        Offlines = 16,
+        Exp = 17,
+
         None = 99
     }
 }

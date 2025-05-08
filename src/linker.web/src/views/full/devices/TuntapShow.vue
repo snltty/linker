@@ -7,7 +7,13 @@
                     <template v-if="tuntap.list[item.MachineId].SetupError">
                         <strong class="red" :title="tuntap.list[item.MachineId].SetupError">{{ tuntap.list[item.MachineId].IP }}</strong>
                     </template>
-                    <template v-else-if="tuntap.list[item.MachineId].Upgrade && tuntap.list[item.MachineId].NatError">
+                    <template v-else-if="tuntap.list[item.MachineId].Exists">
+                        <strong class="red" title="IP存在冲突，请使用新IP">{{ tuntap.list[item.MachineId].IP }}</strong>
+                    </template>
+                    <template v-else-if="tuntap.list[item.MachineId].Available == false">
+                        <strong class="disable" title="IP不生效，可能是设备不在线">{{ tuntap.list[item.MachineId].IP }}</strong>
+                    </template>
+                    <template v-else-if="tuntap.list[item.MachineId].NatError">
                         <strong class="yellow" :title="tuntap.list[item.MachineId].NatError">{{ tuntap.list[item.MachineId].IP }}</strong>
                     </template>
                     <template v-else-if="tuntap.list[item.MachineId].AppNat && tuntap.list[item.MachineId].running">

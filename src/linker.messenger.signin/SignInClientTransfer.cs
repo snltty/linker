@@ -39,18 +39,23 @@ namespace linker.messenger.signin
         {
             TimerHelper.SetIntervalLong(async () =>
             {
-                if (clientSignInState.Connected == false)
+                try
                 {
-                    try
+                    if (clientSignInState.Connected == false)
                     {
                         await SignIn().ConfigureAwait(false);
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                            LoggerHelper.Instance.Error(ex);
+                        await Exp().ConfigureAwait(false);
                     }
                 }
+                catch (Exception ex)
+                {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        LoggerHelper.Instance.Error(ex);
+                }
+               
             }, 10000);
         }
 
@@ -94,7 +99,7 @@ namespace linker.messenger.signin
                     return;
                 }
 
-                if(LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Info($"connect to signin server:{ip}");
                 if (await ConnectServer(ip).ConfigureAwait(false) == false)
                 {
@@ -255,6 +260,33 @@ namespace linker.messenger.signin
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
         /// <summary>
+        /// 获取离线列表
+        /// </summary>
+        /// <param name="machineIds"></param>
+        /// <returns></returns>
+        public async Task<List<string>> GetOfflines(List<string> machineIds)
+        {
+            if (machineIds == null || machineIds.Count == 0)
+            {
+                return new List<string>();
+            }
+
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)SignInMessengerIds.Offlines,
+                Payload = serializer.Serialize(machineIds),
+                Timeout = 3000
+            }).ConfigureAwait(false);
+
+            if (resp.Code == MessageResponeCodes.OK)
+            {
+                return serializer.Deserialize<List<string>>(resp.Data.Span);
+            }
+            return new List<string>();
+        }
+
+        /// <summary>
         /// 获取一个新的id
         /// </summary>
         /// <returns></returns>
@@ -272,6 +304,19 @@ namespace linker.messenger.signin
             }
 
             return string.Empty;
+        }
+
+        /// <summary>
+        /// 延期
+        /// </summary>
+        /// <returns></returns>
+        public async Task Exp()
+        {
+            await messengerSender.SendOnly(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)SignInMessengerIds.Exp,
+            }).ConfigureAwait(false);
         }
 
         /// <summary>
