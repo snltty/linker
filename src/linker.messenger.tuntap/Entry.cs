@@ -36,7 +36,10 @@ namespace linker.messenger.tuntap
 
             serviceCollection.AddSingleton<TuntapExRoute>();
 
-            serviceCollection.AddSingleton<ISystemInformation, SystemInformation>();
+            serviceCollection.AddSingleton<ITuntapSystemInformation, TuntapSystemInformation>();
+
+            serviceCollection.AddSingleton<TuntapFirewall>();
+            
 
             return serviceCollection;
         }
@@ -130,7 +133,7 @@ namespace linker.messenger.tuntap
             serviceCollection.AddSingleton<TuntapServerMessenger>();
             serviceCollection.AddSingleton<LeaseServerTreansfer>();
 
-            serviceCollection.AddSingleton<ISystemInformation, SystemInformation>();
+            serviceCollection.AddSingleton<ITuntapSystemInformation, TuntapSystemInformation>();
 
             return serviceCollection;
         }

@@ -1,5 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.extends;
+using System;
 using System.Buffers;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
@@ -46,28 +47,15 @@ namespace linker.snat
             //映射表不为空
             if (masks.Length == 0 || mapDic.Count == 0) return fakeIP;
 
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(16);
-            try
+            uint fakeDist = NetworkHelper.ToValue(fakeIP);
+            for (int i = 0; i < masks.Length; i++)
             {
-                fakeIP.TryWriteBytes(buffer, out int length);
-                uint fakeDist = NetworkHelper.ToValue(buffer.AsSpan(0, 4));
-                for (int i = 0; i < masks.Length; i++)
+                //目标IP网络号存在映射表中，找到映射后的真实网络号，替换网络号得到最终真实的IP
+                if (mapDic.TryGetValue(fakeDist & masks[i], out uint realNetwork))
                 {
-                    //目标IP网络号存在映射表中，找到映射后的真实网络号，替换网络号得到最终真实的IP
-                    if (mapDic.TryGetValue(fakeDist & masks[i], out uint realNetwork))
-                    {
-                        uint realDist = realNetwork | (fakeDist & ~masks[i]);
-                        BinaryPrimitives.ReverseEndianness(realDist).ToBytes(buffer);
-                        return NetworkHelper.ToIP(buffer.AsSpan(0, 4));
-                    }
+                    uint realDist = realNetwork | (fakeDist & ~masks[i]);
+                    return NetworkHelper.ToIP(BinaryPrimitives.ReverseEndianness(realDist));
                 }
-            }
-            catch (Exception)
-            {
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
             }
             return fakeIP;
         }

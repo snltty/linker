@@ -45,7 +45,7 @@ namespace linker.messenger.store.file
             {
                 LoggerHelper.Instance.Error(ex);
                 //让服务自动重启
-                Environment.Exit(1);
+                Helper.AppExit(1);
             }
 
             if (OperatingSystem.IsAndroid() == false)

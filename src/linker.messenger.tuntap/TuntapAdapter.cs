@@ -132,7 +132,7 @@ namespace linker.messenger.tuntap
         }
         public void Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer)
         {
-            tuntapTransfer.Write(buffer);
+            tuntapTransfer.Write(connection.RemoteMachineId, buffer);
         }
 
         /// <summary>

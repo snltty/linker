@@ -26,6 +26,13 @@ namespace linker.messenger.store.file
             Load();
             Save();
             SaveTask();
+
+            Helper.OnAppExit += Helper_OnAppExit;
+        }
+
+        private void Helper_OnAppExit(object sender, EventArgs e)
+        {
+            Save();
         }
 
         private void Load()

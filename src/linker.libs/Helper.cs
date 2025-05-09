@@ -15,6 +15,13 @@ namespace linker.libs
 
         public static string currentDirectory = "./";
 
+
+        public static event EventHandler OnAppExit;
+        public static void AppExit(int code)
+        {
+            OnAppExit?.Invoke(null, EventArgs.Empty);
+            Environment.Exit(code);
+        }
         public static async Task Await()
         {
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();

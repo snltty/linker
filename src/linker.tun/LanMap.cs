@@ -5,6 +5,8 @@ namespace linker.tun
 {
     internal sealed class LanMap : ILinkerTunPacketHook
     {
+        public LinkerTunPacketHookLevel Level => LinkerTunPacketHookLevel.Lowest;
+
         private readonly LinkerDstMapping linkerDstMapping = new LinkerDstMapping();
         public void SetMap(DstMapInfo[] maps)
         {
@@ -17,7 +19,7 @@ namespace linker.tun
             return true;
         }
 
-        public bool WriteBefore(ReadOnlyMemory<byte> packet)
+        public bool WriteBefore(string srcId, ReadOnlyMemory<byte> packet)
         {
             linkerDstMapping.ToRealDst(packet);
             return true;

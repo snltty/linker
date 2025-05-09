@@ -13,6 +13,8 @@ namespace linker.messenger.forward
         public Action OnChanged { get; set; } = () => { };
         public Action OnReset { get; set; } = () => { };
 
+        private readonly StringChangedManager stringChangedManager = new StringChangedManager();
+
         private readonly IForwardClientStore forwardClientStore;
         private readonly ForwardProxy forwardProxy;
         private readonly SignInClientState signInClientState;
@@ -31,18 +33,15 @@ namespace linker.messenger.forward
             signInClientState.OnSignInSuccess += Reset;
         }
 
-        string groupid = string.Empty;
         private void Reset(int times)
         {
             TimerHelper.Async(async () =>
             {
-                if (groupid != signInClientStore.Group.Id)
+                if (stringChangedManager.Input(signInClientStore.Group.Id))
                 {
                     OnReset();
                     Stop();
                 }
-                groupid = signInClientStore.Group.Id;
-
                 await Task.Delay(5000).ConfigureAwait(false);
                 Start(false);
             });

@@ -137,7 +137,7 @@ namespace linker.messenger.updater
         {
             if (string.IsNullOrWhiteSpace(param.Content) || param.Content == signInClientStore.Id)
             {
-                Environment.Exit(1);
+                Helper.AppExit(1);
             }
             else
             {

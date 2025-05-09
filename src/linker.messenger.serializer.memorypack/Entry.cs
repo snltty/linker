@@ -132,6 +132,16 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new PlanAddInfoFormatter());
             MemoryPackFormatterProvider.Register(new PlanRemoveInfoFormatter());
 
+
+            MemoryPackFormatterProvider.Register(new FirewallRuleInfoFormatter());
+            MemoryPackFormatterProvider.Register(new FirewallSearchInfoFormatter());
+            MemoryPackFormatterProvider.Register(new FirewallSearchForwardInfoFormatter());
+            MemoryPackFormatterProvider.Register(new FirewallAddForwardInfoFormatter());
+            MemoryPackFormatterProvider.Register(new FirewallRemoveForwardInfoFormatter());
+            MemoryPackFormatterProvider.Register(new FirewallStateForwardInfoFormatter());
+
+
+
             return serviceCollection;
         }
         public static ServiceProvider UseSerializerMemoryPack(this ServiceProvider serviceProvider)

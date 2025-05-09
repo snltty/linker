@@ -289,7 +289,7 @@ namespace linker.tun
             List<ILinkerTunPacketHook> list = this.hooks.ToList();
             list.AddRange(hooks);
 
-            this.hooks = list.Distinct().ToArray();
+            this.hooks = list.Distinct().OrderBy(c=>c.Level).ToArray();
         }
 
         private void Read()
@@ -334,13 +334,13 @@ namespace linker.tun
         /// </summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        public bool Write(ReadOnlyMemory<byte> buffer)
+        public bool Write(string srcId,ReadOnlyMemory<byte> buffer)
         {
             if (linkerTunDevice == null || Status != LinkerTunDeviceStatus.Running) return false;
 
             for (int i = 0; i < hooks.Length; i++)
             {
-                if (hooks[i].WriteBefore(buffer) == false) return false;
+                if (hooks[i].WriteBefore(srcId, buffer) == false) return false;
             }
             return linkerTunDevice.Write(buffer);
         }

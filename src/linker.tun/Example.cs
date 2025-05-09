@@ -84,7 +84,7 @@ namespace linker.tun
                     *(ushort*)(ptr + 20) = 0;
 
                     ChecksumHelper.Checksum(ptr, writableMemory.Length);
-                    Program.linkerTunDeviceAdapter.Write(writableMemory);
+                    Program.linkerTunDeviceAdapter.Write(string.Empty,writableMemory);
                 }
             }
         }

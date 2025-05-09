@@ -62,7 +62,7 @@ namespace linker.messenger.updater
         [MessengerId((ushort)UpdaterMessengerIds.Exit)]
         public void Exit(IConnection connection)
         {
-            Environment.Exit(1);
+            Helper.AppExit(1);
         }
 
 
@@ -174,7 +174,7 @@ namespace linker.messenger.updater
             UpdaterConfirmServerInfo confirm = serializer.Deserialize<UpdaterConfirmServerInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (updaterServerStore.ValidateSecretKey(confirm.SecretKey))
             {
-                Environment.Exit(1);
+                Helper.AppExit(1);
             }
         }
 

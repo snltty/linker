@@ -169,7 +169,7 @@ namespace linker.messenger.updater
             catch (Exception)
             {
             }
-            Environment.Exit(1);
+            Helper.AppExit(1);
         }
 
         public virtual void Clear()

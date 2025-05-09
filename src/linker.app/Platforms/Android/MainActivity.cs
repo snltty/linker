@@ -140,7 +140,7 @@ namespace linker.app
         }
         public void Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer)
         {
-            tuntapTransfer.Write(buffer);
+            tuntapTransfer.Write(connection.RemoteMachineId, buffer);
         }
 
     }
@@ -220,7 +220,7 @@ namespace linker.app
 
             LinkerMessengerEntry.Initialize();
             LinkerMessengerEntry.AddService<IWebServerFileReader, WebServerFileReader>();
-            LinkerMessengerEntry.AddService<ISystemInformation, SystemInformation>();
+            LinkerMessengerEntry.AddService<ITuntapSystemInformation, SystemInformation>();
             LinkerMessengerEntry.AddService<IUpdaterInstaller, UpdaterInstaller>();
 
             LinkerMessengerEntry.Build();
@@ -497,7 +497,7 @@ namespace linker.app
     /// <summary>
     /// 获取系统信息
     /// </summary>
-    public sealed class SystemInformation : ISystemInformation
+    public sealed class SystemInformation : ITuntapSystemInformation
     {
         public string Get()
         {

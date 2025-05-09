@@ -144,7 +144,7 @@ namespace linker.messenger.tunnel
 
                             if (Environment.UserInteractive == false && OperatingSystem.IsWindows())
                             {
-                                Environment.Exit(1);
+                                Helper.AppExit(1);
                             }
                         }
                     }

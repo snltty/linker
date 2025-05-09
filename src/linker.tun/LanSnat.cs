@@ -8,9 +8,11 @@ namespace linker.tun
 {
     internal sealed class LanSnat : ILinkerTunPacketHook
     {
-        private LinkerSrcNat linkerSrcNat = new LinkerSrcNat();
-
+        public LinkerTunPacketHookLevel Level => LinkerTunPacketHookLevel.Highest;
         public bool Running => linkerSrcNat.Running;
+
+        private LinkerSrcNat linkerSrcNat = new LinkerSrcNat();
+       
 
         public LanSnat()
         {
@@ -62,7 +64,7 @@ namespace linker.tun
         {
             return false;
         }
-        public bool WriteBefore(ReadOnlyMemory<byte> packet)
+        public bool WriteBefore(string srcId, ReadOnlyMemory<byte> packet)
         {
             if (linkerSrcNat.Running == false) return true;
 

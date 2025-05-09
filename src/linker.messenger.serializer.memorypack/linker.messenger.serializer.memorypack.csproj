@@ -43,6 +43,7 @@
 		<ProjectReference Include="..\linker.libs\linker.libs.csproj" />
 		<ProjectReference Include="..\linker.messenger.access\linker.messenger.access.csproj" />
 		<ProjectReference Include="..\linker.messenger.decenter\linker.messenger.decenter.csproj" />
+		<ProjectReference Include="..\linker.messenger.firewall\linker.messenger.firewall.csproj" />
 		<ProjectReference Include="..\linker.messenger.flow\linker.messenger.flow.csproj" />
 		<ProjectReference Include="..\linker.messenger.forward\linker.messenger.forward.csproj" />
 		<ProjectReference Include="..\linker.messenger.relay\linker.messenger.relay.csproj" />

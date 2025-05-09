@@ -1,7 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.extends;
 using linker.libs.timer;
-using System;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Net;
@@ -191,7 +190,7 @@ namespace linker.snat
 
             IPV4Packet ipv4 = new IPV4Packet(packet.Span);
             //不是 ipv4，是虚拟网卡ip，是广播，不nat
-            if (ipv4.Version != ProtocolType.IPv4 || ipv4.DstAddr == srcIp || ipv4.DstAddrSpan.GetIsBroadcastAddress())
+            if (ipv4.Version != 4 || ipv4.DstAddr == srcIp || ipv4.DstAddrSpan.GetIsBroadcastAddress())
             {
                 return false;
             }
@@ -540,7 +539,7 @@ namespace linker.snat
             /// <summary>
             /// 协议版本
             /// </summary>
-            public ProtocolType Version => (ProtocolType)((*ptr >> 4) & 0b1111);
+            public byte Version => (byte)((*ptr >> 4) & 0b1111);
             public ProtocolType Protocol => (ProtocolType)(*(ptr + 9));
 
 
@@ -550,9 +549,17 @@ namespace linker.snat
             /// </summary>
             public uint SrcAddr => BinaryPrimitives.ReverseEndianness(*(uint*)(ptr + 12));
             /// <summary>
+            /// 源端口
+            /// </summary>
+            public ushort SrcPort => BinaryPrimitives.ReverseEndianness(*(ushort*)(ptr + IPHeadLength));
+            /// <summary>
             /// 目的地址
             /// </summary>
             public uint DstAddr => BinaryPrimitives.ReverseEndianness(*(uint*)(ptr + 16));
+            /// <summary>
+            /// 目标端口
+            /// </summary>
+            public ushort DstPort => BinaryPrimitives.ReverseEndianness(*(ushort*)(ptr + IPHeadLength+2));
             /// <summary>
             /// 源地址
             /// </summary>

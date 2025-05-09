@@ -122,10 +122,10 @@ namespace linker.messenger.store.file
                 ConfigExportInfo configExportInfo = param.Content.DeJson<ConfigExportInfo>();
 
                 var (client, clientObject, common, commonObject) = await GetConfig(configExportInfo).ConfigureAwait(false);
-                Dictionary<string, object> dic = new Dictionary<string, object>
+                object dic = new
                 {
-                    {"Client",clientObject},
-                    {"Common",commonObject},
+                    Client = clientObject,
+                    Common = commonObject
                 };
 
                 return Convert.ToBase64String(Encoding.UTF8.GetBytes(dic.ToJson()));
@@ -144,10 +144,10 @@ namespace linker.messenger.store.file
                 ConfigExportInfo configExportInfo = param.Content.DeJson<ConfigExportInfo>();
 
                 var (client, clientObject, common, commonObject) = await GetConfig(configExportInfo).ConfigureAwait(false);
-                Dictionary<string, object> dic = new Dictionary<string, object>
+                object dic = new
                 {
-                    {"Client",clientObject},
-                    {"Common",commonObject},
+                    Client = clientObject,
+                    Common = commonObject
                 };
                 string value = Convert.ToBase64String(Encoding.UTF8.GetBytes(dic.ToJson()));
                 return await exportResolver.Save(signInClientState.Connection.Address, value);

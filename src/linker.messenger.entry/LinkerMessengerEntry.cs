@@ -20,6 +20,7 @@ using linker.messenger.serializer.memorypack;
 using linker.libs;
 using linker.messenger.plan;
 using System.Text.Json;
+using linker.messenger.firewall;
 
 namespace linker.messenger.entry
 {
@@ -91,7 +92,10 @@ namespace linker.messenger.entry
                 .AddSerializerMemoryPack()
                 
                 //计划任务
-                .AddPlanClient().AddPlanServer();
+                .AddPlanClient().AddPlanServer()
+                
+                //防火墙
+                .AddFirewallClient().AddFirewallServer();
         }
         /// <summary>
         /// 注入
@@ -167,6 +171,8 @@ namespace linker.messenger.entry
                     serviceProvider.UseTuntapServer();
                 if ((modules & ExcludeModule.Updater) != ExcludeModule.Updater)
                     serviceProvider.UseUpdaterServer();
+                if ((modules & ExcludeModule.Firewall) != ExcludeModule.Firewall)
+                    serviceProvider.UseFirewallServer();
 
                 serviceProvider.UseAccessServer().UseDecenterServer().UsePcpServer().UseRelayServer()
                  .UseSignInServer().UseSyncServer().UseTunnelServer().UseFlowServer();
@@ -193,6 +199,8 @@ namespace linker.messenger.entry
                     serviceProvider.UseTuntapClient(config);
                 if ((modules & ExcludeModule.Updater) != ExcludeModule.Updater)
                     serviceProvider.UseUpdaterClient();
+                if ((modules & ExcludeModule.Firewall) != ExcludeModule.Firewall)
+                    serviceProvider.UseFirewallClient();
                 serviceProvider.UseExRoute().UseAccessClient().UseDecenterClient().UsePcpClient().UseRelayClient().UseSyncClient().UseTunnelClient().UseFlowClient();
 
                 serviceProvider.UseSignInClient();
@@ -250,5 +258,7 @@ namespace linker.messenger.entry
         /// </summary>
         Action = 256,
         Logger = 512,
+
+        Firewall = 1024,
     }
 }

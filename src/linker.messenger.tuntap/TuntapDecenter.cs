@@ -30,11 +30,11 @@ namespace linker.messenger.tuntap
         private readonly TuntapTransfer tuntapTransfer;
         private readonly ExRouteTransfer exRouteTransfer;
         private readonly SignInClientState signInClientState;
-        private readonly ISystemInformation systemInformation;
+        private readonly ITuntapSystemInformation systemInformation;
         private readonly SignInClientTransfer signInClientTransfer;
 
         public TuntapDecenter(ISignInClientStore signInClientStore, SignInClientState signInClientState, ISerializer serializer, TuntapProxy tuntapProxy,
-            TuntapConfigTransfer tuntapConfigTransfer, TuntapTransfer tuntapTransfer, ExRouteTransfer exRouteTransfer, ISystemInformation systemInformation,
+            TuntapConfigTransfer tuntapConfigTransfer, TuntapTransfer tuntapTransfer, ExRouteTransfer exRouteTransfer, ITuntapSystemInformation systemInformation,
             SignInClientTransfer signInClientTransfer)
         {
             this.signInClientStore = signInClientStore;

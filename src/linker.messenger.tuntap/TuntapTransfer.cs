@@ -24,14 +24,21 @@ namespace linker.messenger.tuntap
         public Action OnShutdownAfter { get; set; } = () => { };
         public Action OnShutdownSuccess { get; set; } = () => { };
 
-        public TuntapTransfer(LinkerTunDeviceAdapter linkerTunDeviceAdapter)
+        public TuntapTransfer(LinkerTunDeviceAdapter linkerTunDeviceAdapter, TuntapFirewall tuntapFirewall)
         {
             this.linkerTunDeviceAdapter = linkerTunDeviceAdapter;
+            linkerTunDeviceAdapter.AddHooks(new List<ILinkerTunPacketHook> { tuntapFirewall });
+            Helper.OnAppExit += Helper_OnAppExit;
             if (OperatingSystem.IsAndroid() == false)
             {
                 AppDomain.CurrentDomain.ProcessExit += (s, e) => linkerTunDeviceAdapter.Shutdown();
                 Console.CancelKeyPress += (s, e) => linkerTunDeviceAdapter.Shutdown();
             }
+        }
+
+        private void Helper_OnAppExit(object sender, EventArgs e)
+        {
+            linkerTunDeviceAdapter.Shutdown();
         }
 
         public void Initialize(ILinkerTunDeviceCallback linkerTunDeviceCallback)
@@ -44,9 +51,9 @@ namespace linker.messenger.tuntap
             linkerTunDeviceAdapter.Initialize(linkerTunDevice, linkerTunDeviceCallback);
         }
 
-        public bool Write(ReadOnlyMemory<byte> buffer)
+        public bool Write(string srcId,ReadOnlyMemory<byte> buffer)
         {
-            return linkerTunDeviceAdapter.Write(buffer);
+            return linkerTunDeviceAdapter.Write(srcId, buffer);
         }
 
         /// <summary>
