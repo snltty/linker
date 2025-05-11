@@ -279,7 +279,7 @@ namespace linker.tun
                 if (ProtocolType == ProtocolType.Tcp || ProtocolType == ProtocolType.Udp)
                 {
                     SourcePort = BinaryPrimitives.ReverseEndianness(ipPacket.Slice(42, 2).ToUInt16());
-                    DistPort = BinaryPrimitives.ReverseEndianness(ipPacket.Slice(24, 2).ToUInt16());
+                    DistPort = BinaryPrimitives.ReverseEndianness(ipPacket.Slice(44, 2).ToUInt16());
                 }
             }
         }

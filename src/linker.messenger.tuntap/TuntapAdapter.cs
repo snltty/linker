@@ -35,7 +35,10 @@ namespace linker.messenger.tuntap
             this.exRouteTransfer = exRouteTransfer;
 
             //与服务器连接，刷新一下IP
-            signInClientState.OnSignInSuccess += (times) => tuntapConfigTransfer.RefreshIP();
+            signInClientState.OnSignInSuccess += (times) =>
+            {
+                _ = CheckDevice();
+            };
 
             //初始化网卡
             tuntapTransfer.Initialize(this);
@@ -70,7 +73,6 @@ namespace linker.messenger.tuntap
                 tuntapDecenter.Refresh(); DeleteForward();
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Warning("tuntap shutdown after");
-                tuntapConfigTransfer.SetRunning(false);
             };
 
             //配置有更新，去同步一下
@@ -86,6 +88,19 @@ namespace linker.messenger.tuntap
             //隧道回调
             tuntapProxy.Callback = this;
             CheckDeviceTask();
+        }
+        public async Task Callback(LinkerTunDevicPacket packet)
+        {
+            await tuntapProxy.InputPacket(packet).ConfigureAwait(false);
+        }
+        public async ValueTask Close(ITunnelConnection connection)
+        {
+            tuntapDecenter.Refresh();
+            await ValueTask.CompletedTask.ConfigureAwait(false);
+        }
+        public void Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer)
+        {
+            tuntapTransfer.Write(connection.RemoteMachineId, buffer);
         }
 
 
@@ -120,21 +135,6 @@ namespace linker.messenger.tuntap
                 checking.StopOperation();
             }
         }
-
-        public async Task Callback(LinkerTunDevicPacket packet)
-        {
-            await tuntapProxy.InputPacket(packet).ConfigureAwait(false);
-        }
-        public async ValueTask Close(ITunnelConnection connection)
-        {
-            tuntapDecenter.Refresh();
-            await ValueTask.CompletedTask.ConfigureAwait(false);
-        }
-        public void Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer)
-        {
-            tuntapTransfer.Write(connection.RemoteMachineId, buffer);
-        }
-
         /// <summary>
         /// 重启网卡
         /// </summary>
@@ -154,7 +154,10 @@ namespace linker.messenger.tuntap
         {
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Warning($"stop device");
-            tuntapTransfer.Shutdown();
+            if (tuntapTransfer.Shutdown())
+            {
+                tuntapConfigTransfer.SetRunning(false);
+            }
         }
 
         /// <summary>

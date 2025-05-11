@@ -33,11 +33,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
-          tag_name: v1.7.8
-          release_name: v1.7.8.${{ steps.date.outputs.today }}
+          tag_name: v1.7.9
+          release_name: v1.7.9.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 一些累计更新\r\n2. socks5网段映射，请更新所有设备\r\n3. 修复优化入参调用\r\n4. 增加登入在线续期\r\n5. 增加虚拟网卡在线检查，IP冲突检查，抢占IP时更新映射表\r\n6. 如果你设备很多，请尝试升级其中一个成功重启后再升级其它"
+          body: "1. 一些累计更新\r\n2. 优化安卓APP\r\n3. 新增防火墙，用于网卡、端口转发、和socks5\r\n4. 检测密钥是否正确\r\n5. 如果你设备很多，请尝试升级其中一个成功重启后再升级其它"
       - name: publish projects
         run: ./publish.bat "C:\\Android\\android-sdk"
       - name: upload-win-x86-oss
@@ -49,7 +49,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-win-x86.zip
-          target-path: /downloads/linker/v1.7.8/linker-win-x86.zip
+          target-path: /downloads/linker/v1.7.9/linker-win-x86.zip
       - name: upload-win-x86
         id: upload-win-x86
         uses: actions/upload-release-asset@master
@@ -69,7 +69,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-win-x64.zip
-          target-path: /downloads/linker/v1.7.8/linker-win-x64.zip
+          target-path: /downloads/linker/v1.7.9/linker-win-x64.zip
       - name: upload-win-x64
         id: upload-win-x64
         uses: actions/upload-release-asset@master
@@ -89,7 +89,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-win-arm64.zip
-          target-path: /downloads/linker/v1.7.8/linker-win-arm64.zip
+          target-path: /downloads/linker/v1.7.9/linker-win-arm64.zip
       - name: upload-win-arm64
         id: upload-win-arm64
         uses: actions/upload-release-asset@master
@@ -109,7 +109,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-linux-x64.zip
-          target-path: /downloads/linker/v1.7.8/linker-linux-x64.zip
+          target-path: /downloads/linker/v1.7.9/linker-linux-x64.zip
       - name: upload-linux-x64
         id: upload-linux-x64
         uses: actions/upload-release-asset@master
@@ -129,7 +129,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-linux-arm.zip
-          target-path: /downloads/linker/v1.7.8/linker-linux-arm.zip
+          target-path: /downloads/linker/v1.7.9/linker-linux-arm.zip
       - name: upload-linux-arm
         id: upload-linux-arm
         uses: actions/upload-release-asset@master
@@ -149,7 +149,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-linux-arm64.zip
-          target-path: /downloads/linker/v1.7.8/linker-linux-arm64.zip
+          target-path: /downloads/linker/v1.7.9/linker-linux-arm64.zip
       - name: upload-linux-arm64
         id: upload-linux-arm64
         uses: actions/upload-release-asset@master
@@ -169,7 +169,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-linux-musl-x64.zip
-          target-path: /downloads/linker/v1.7.8/linker-linux-musl-x64.zip
+          target-path: /downloads/linker/v1.7.9/linker-linux-musl-x64.zip
       - name: upload-linux-musl-x64
         id: upload-linux-musl-x64
         uses: actions/upload-release-asset@master
@@ -189,7 +189,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-linux-musl-arm.zip
-          target-path: /downloads/linker/v1.7.8/linker-linux-musl-arm.zip
+          target-path: /downloads/linker/v1.7.9/linker-linux-musl-arm.zip
       - name: upload-linux-musl-arm
         id: upload-linux-musl-arm
         uses: actions/upload-release-asset@master
@@ -209,7 +209,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-linux-musl-arm64.zip
-          target-path: /downloads/linker/v1.7.8/linker-linux-musl-arm64.zip
+          target-path: /downloads/linker/v1.7.9/linker-linux-musl-arm64.zip
       - name: upload-linux-musl-arm64
         id: upload-linux-musl-arm64
         uses: actions/upload-release-asset@master
@@ -259,7 +259,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker.apk
-          target-path: /downloads/linker/v1.7.8/linker.apk
+          target-path: /downloads/linker/v1.7.9/linker.apk
       - name: upload-apk
         id: upload-apk
         uses: actions/upload-release-asset@master

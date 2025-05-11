@@ -37,6 +37,8 @@
 
         SendLastBytes = 2122,
 
+        CheckKey = 2123,
+
         Max = 2199
     }
 }

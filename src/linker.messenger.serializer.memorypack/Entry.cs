@@ -136,6 +136,7 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new FirewallRuleInfoFormatter());
             MemoryPackFormatterProvider.Register(new FirewallSearchInfoFormatter());
             MemoryPackFormatterProvider.Register(new FirewallSearchForwardInfoFormatter());
+            MemoryPackFormatterProvider.Register(new FirewallListInfoFormatter());
             MemoryPackFormatterProvider.Register(new FirewallAddForwardInfoFormatter());
             MemoryPackFormatterProvider.Register(new FirewallRemoveForwardInfoFormatter());
             MemoryPackFormatterProvider.Register(new FirewallStateForwardInfoFormatter());

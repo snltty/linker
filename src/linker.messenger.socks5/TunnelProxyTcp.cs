@@ -205,14 +205,19 @@ namespace linker.messenger.socks5
         {
             if (token.Proxy.TargetEP == null) return;
 
+            IPAddress ip = mapping.GetRealDst(token.Proxy.TargetEP.Address);
+            IPEndPoint target = new IPEndPoint(ip, token.Proxy.TargetEP.Port);
+
+            if(linkerFirewall.Check(token.Connection.RemoteMachineId, target, ProtocolType.Tcp) == false)
+            {
+                return;
+            }
+
             Socket socket = new Socket(token.Proxy.TargetEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socket.KeepAlive();
 
             ConnectState state = new ConnectState { BufferSize = token.Proxy.BufferSize, Connection = token.Connection, ConnectId = token.Proxy.ConnectId, Socket = socket, IPEndPoint = token.Proxy.TargetEP };
             state.CopyData(token.Proxy.Data);
-
-            IPAddress ip = mapping.GetRealDst(token.Proxy.TargetEP.Address);
-            IPEndPoint target = new IPEndPoint(ip, token.Proxy.TargetEP.Port);
 
             socket.BeginConnect(target, ConnectCallback, state);
 

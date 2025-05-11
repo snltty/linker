@@ -453,5 +453,13 @@ namespace linker.messenger.relay.messenger
             string result = await relayServerCdkeyStore.Import(info).ConfigureAwait(false);
             connection.Write(serializer.Serialize(result));
         }
+
+
+        [MessengerId((ushort)RelayMessengerIds.CheckKey)]
+        public void CheckKey(IConnection connection)
+        {
+            string key = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            connection.Write(relayServerStore.ValidateSecretKey(key) ? Helper.TrueArray : Helper.FalseArray);
+        }
     }
 }

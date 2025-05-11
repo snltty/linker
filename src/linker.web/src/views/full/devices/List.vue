@@ -24,6 +24,7 @@
         <TunnelEdit v-if="tunnel.showEdit" v-model="tunnel.showEdit"  @change="handleTunnelRefresh"></TunnelEdit>
         <ConnectionsEdit v-if="connections.showEdit" v-model="connections.showEdit" ></ConnectionsEdit>
         <TuntapEdit v-if="tuntap.showEdit" v-model="tuntap.showEdit"  @change="handleTuntapRefresh"></TuntapEdit>
+        <TuntapRoutes v-if="tuntap.showRoutes" v-model="tuntap.showRoutes" ></TuntapRoutes>
         <Socks5Edit v-if="socks5.showEdit" v-model="socks5.showEdit"  @change="handleSocks5Refresh"></Socks5Edit>
         <TuntapLease v-if="tuntap.showLease" v-model="tuntap.showLease"  @change="handleTuntapRefresh"></TuntapLease>
         <ForwardEdit v-if="forward.showEdit" v-model="forward.showEdit" ></ForwardEdit>
@@ -51,6 +52,7 @@ import Tuntap from './Tuntap.vue'
 import TuntapEdit from './TuntapEdit.vue'
 import TuntapLease from './TuntapLease.vue'
 import { provideTuntap } from './tuntap'
+import TuntapRoutes from './TuntapRoutes.vue'
 
 import Socks5 from './Socks5.vue'
 import Socks5Edit from './Socks5Edit.vue'
@@ -76,13 +78,15 @@ import UpdaterConfirm from './UpdaterConfirm.vue'
 import { provideFlow } from './flow'
 import Stopwatch from './Stopwatch.vue'
 
+
+
 export default {
     components: {Sort,Oper,
         Device,DeviceEdit,
         AccessEdit,
         Tunnel,TunnelEdit,
         ConnectionsEdit,
-        Tuntap,TuntapEdit,TuntapLease, 
+        Tuntap,TuntapEdit,TuntapLease,TuntapRoutes, 
         Socks5, Socks5Edit,
         Forward,ForwardEdit,
         SForwardEdit ,UpdaterConfirm,

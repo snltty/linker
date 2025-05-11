@@ -1,10 +1,14 @@
 ﻿using linker.libs;
 using System.Collections.Concurrent;
+using System.Collections.Frozen;
 using System.Net;
 using System.Net.Sockets;
 using static linker.snat.LinkerSrcNat;
 namespace linker.snat
 {
+    /// <summary>
+    /// 开启后默认阻止
+    /// </summary>
     public sealed class LinkerFirewall
     {
         private ConcurrentDictionary<(string srcId, uint dst, ushort dstPort, ProtocolType pro), bool> cacheMap = new ConcurrentDictionary<(string srcId, uint dst, ushort dstPort, ProtocolType pro), bool>();
@@ -14,7 +18,6 @@ namespace linker.snat
 
         public LinkerFirewall()
         {
-
         }
 
         /// <summary>
@@ -39,6 +42,7 @@ namespace linker.snat
             }
 
             //末尾有一条默认允许所有的规则
+            /*
             rules.Add(new LinkerFirewallRuleInfo
             {
                 SrcId = string.Empty,
@@ -47,39 +51,63 @@ namespace linker.snat
                 Protocol = LinkerFirewallProtocolType.All,
                 Action = LinkerFirewallAction.Allow,
             });
+            */
 
             buildedRules = rules.Select(c =>
             {
-                string[] ports = c.DstPort.Split('-');
-                int portStart = int.Parse(ports[0]), portEnd = portStart;
-                if (ports.Length == 2)
+                try
                 {
-                    portEnd = int.Parse(ports[1]);
-                }
-                else if (portStart == 0)
-                {
-                    portEnd = 65535;
-                }
+                    int portStart = 0, portEnd = 65535;
+                    HashSet<int> ports = new HashSet<int>();
+                    if (c.DstPort != "0" && c.DstPort != "*")
+                    {
+                        if (c.DstPort.Contains('-'))
+                        {
+                            string[] arr = c.DstPort.Split('-');
+                            portStart = int.Parse(arr[0]);
+                            portEnd = int.Parse(arr[1]);
+                        }
+                        else if (c.DstPort.Contains(','))
+                        {
+                            ports = c.DstPort.Split(',').Select(c => int.Parse(c)).ToHashSet();
+                        }
+                        else
+                        {
+                            portEnd = portStart = int.Parse(c.DstPort);
+                        }
+                    }
 
-                string[] cidr = c.DstCIDR.Split('/');
-                IPAddress ip = IPAddress.Parse(cidr[0]);
-                byte prefixLength = 32;
-                if (cidr.Length == 2)
-                {
-                    prefixLength = byte.Parse(cidr[1]);
-                }
+                    IPAddress ip = IPAddress.Any;
+                    byte prefixLength = 0;
+                    if (c.DstCIDR != "0" && c.DstCIDR != "*")
+                    {
+                        string[] cidr = c.DstCIDR.Split('/');
+                        ip = IPAddress.Parse(cidr[0]);
+                        prefixLength = 32;
+                        if (cidr.Length == 2)
+                        {
+                            prefixLength = byte.Parse(cidr[1]);
+                        }
+                    }
 
-                return new LinkerFirewallRuleBuildInfo
+                    return new LinkerFirewallRuleBuildInfo
+                    {
+                        SrcId = c.SrcId,
+                        DstNetwork = NetworkHelper.ToNetworkValue(ip, prefixLength),
+                        DstPrefixLength = NetworkHelper.ToPrefixValue(prefixLength),
+                        DstPortStart = portStart,
+                        DstPortEnd = portEnd,
+                        DstPorts = ports,
+                        Protocol = c.Protocol,
+                        Action = c.Action
+                    };
+                }
+                catch (Exception)
                 {
-                    SrcId = c.SrcId,
-                    DstNetwork = NetworkHelper.ToNetworkValue(ip, prefixLength),
-                    DstPrefixLength = NetworkHelper.ToPrefixValue(prefixLength),
-                    DstPortStart = portStart,
-                    DstPortEnd = portEnd,
-                    Protocol = c.Protocol,
-                    Action = c.Action
-                };
-            }).ToList();
+                }
+                return null;
+
+            }).Where(c => c != null).ToList();
 
             cacheMap.Clear();
         }
@@ -93,9 +121,12 @@ namespace linker.snat
         /// <returns></returns>
         public bool Check(string srcId, IPEndPoint dstEP, ProtocolType protocol)
         {
+            if (this.state != LinkerFirewallState.Enabled) return true;
+            if (dstEP.AddressFamily != AddressFamily.InterNetwork) return false;
+
             uint dst = NetworkHelper.ToValue(dstEP.Address);
             ushort dstPort = (ushort)dstEP.Port;
-            return Check(srcId, dst, dstPort, (byte)(dstEP.AddressFamily == AddressFamily.InterNetwork ? 4 : 6), protocol);
+            return Check(srcId, dst, dstPort, protocol);
         }
         /// <summary>
         /// 检查数据包是否符合规则
@@ -105,7 +136,11 @@ namespace linker.snat
         /// <returns></returns>
         public bool Check(string srcId, ReadOnlyMemory<byte> packet)
         {
+            if (this.state != LinkerFirewallState.Enabled) return true;
+
             IPV4Packet ipv4 = new IPV4Packet(packet.Span);
+            if (ipv4.Version != 4) return true;
+
             uint dst = ipv4.DstAddr;
             ushort dstPort = ipv4.Protocol switch
             {
@@ -113,39 +148,18 @@ namespace linker.snat
                 ProtocolType.Tcp => ipv4.DstPort,
                 _ => 0,
             };
-            return Check(srcId, dst, dstPort, ipv4.Version, ipv4.Protocol);
+            return Check(srcId, dst, dstPort, ipv4.Protocol);
         }
 
-        private bool Check(string srcId, uint ip, ushort port, byte version, ProtocolType protocol)
+        private bool Check(string srcId, uint ip, ushort port, ProtocolType protocol)
         {
-            //防火墙未启用
-            if (this.state != LinkerFirewallState.Enabled)
-            {
-                return true;
-            }
-            //没有配置规则
-            if (buildedRules.Count == 0)
-            {
-                return true;
-            }
-            //仅IPV4
-            if (version != 4)
-            {
-                return true;
-            }
-
             LinkerFirewallProtocolType _rotocol = protocol switch
             {
-                ProtocolType.Icmp => LinkerFirewallProtocolType.ICMP,
                 ProtocolType.Tcp => LinkerFirewallProtocolType.TCP,
                 ProtocolType.Udp => LinkerFirewallProtocolType.UDP,
                 _ => LinkerFirewallProtocolType.None,
             };
-            //不在协议列表内
-            if (_rotocol == LinkerFirewallProtocolType.None)
-            {
-                return true;
-            }
+            if (_rotocol == LinkerFirewallProtocolType.None) return true; //不支持的协议
 
             //之前已经检查过
             (string srcId, uint dst, ushort dstPort, ProtocolType pro) key = (srcId, ip, port, protocol);
@@ -157,9 +171,9 @@ namespace linker.snat
             //按顺序匹配规则
             foreach (LinkerFirewallRuleBuildInfo item in buildedRules)
             {
-                bool match = (string.IsNullOrWhiteSpace(item.SrcId) || item.SrcId == srcId)
+                bool match = (item.SrcId == "*" || item.SrcId == srcId)
                     && ((ip & item.DstPrefixLength) == item.DstNetwork)
-                    && (port >= item.DstPortStart && port <= item.DstPortEnd)
+                    && ((port >= item.DstPortStart && port <= item.DstPortEnd) || item.DstPorts.Contains(port))
                     && item.Protocol.HasFlag(_rotocol);
                 if (match)
                 {
@@ -168,9 +182,8 @@ namespace linker.snat
                     return value;
                 }
             }
-            return true;
+            return false;
         }
-
 
         sealed class LinkerFirewallRuleBuildInfo
         {
@@ -180,6 +193,8 @@ namespace linker.snat
             public uint DstPrefixLength { get; set; }
             public int DstPortStart { get; set; }
             public int DstPortEnd { get; set; }
+
+            public HashSet<int> DstPorts { get; set; }
 
             public LinkerFirewallProtocolType Protocol { get; set; }
             public LinkerFirewallAction Action { get; set; }
@@ -201,9 +216,7 @@ namespace linker.snat
         None = 0,
         TCP = 1,
         UDP = 2,
-        ICMP = 4,
-
-        All = TCP | UDP | ICMP
+        All = TCP | UDP
     }
     public enum LinkerFirewallAction
     {

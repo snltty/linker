@@ -6,6 +6,7 @@ using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text.RegularExpressions;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace linker.tun
 {
@@ -29,7 +30,7 @@ namespace linker.tun
 
         private CancellationTokenSource tokenSource;
 
-        
+
 
         public LinkerWinTunDevice()
         {
@@ -202,12 +203,11 @@ namespace linker.tun
                     error = "NetNat need CIDR,like 10.18.18.0/24";
                     return;
                 }
-                CommandHelper.PowerShell($"start-service WinNat", [], out error);
-                CommandHelper.PowerShell($"Install-WindowsFeature -Name Routing -IncludeManagementTools", [], out error);
-                CommandHelper.PowerShell($"Set-ItemProperty -Path \"HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\" -Name \"IPEnableRouter\" -Value 1", [], out error);
-                CommandHelper.PowerShell($"Remove-NetNat -Name {Name} -Confirm:$false", [], out error);
 
+                SetupNat();
                 IPAddress network = NetworkHelper.ToNetworkIP(this.address, NetworkHelper.ToPrefixValue(prefixLength));
+                RemoveOldNat($"{network}/{prefixLength}");
+
                 CommandHelper.PowerShell($"New-NetNat -Name {Name} -InternalIPInterfaceAddressPrefix {network}/{prefixLength}", [], out error);
 
                 string result = CommandHelper.PowerShell($"Get-NetNat", [], out string e);
@@ -222,7 +222,41 @@ namespace linker.tun
                 error = ex.Message;
             }
         }
-       
+        private void SetupNat()
+        {
+            CommandHelper.PowerShell($"start-service WinNat", [], out string error);
+            CommandHelper.PowerShell($"Install-WindowsFeature -Name Routing -IncludeManagementTools", [], out error);
+            CommandHelper.PowerShell($"Set-ItemProperty -Path \"HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\" -Name \"IPEnableRouter\" -Value 1", [], out error);
+        }
+        private void RemoveOldNat(string addressPrefix)
+        {
+            try
+            {
+                string netnats = CommandHelper.PowerShell($"Get-NetNat", [], out string e);
+
+                IEnumerable<string> names = netnats
+                    .Split("\r\n\r\n")
+                    .Where(c => string.IsNullOrWhiteSpace(c) == false)
+                    .Select(c =>
+                         {
+                             return c.Split("\r\n")
+                             .Where(c => string.IsNullOrWhiteSpace(c) == false)
+                             .Select(c => c.Split(':')).Where(c => c.Length == 2).Select(c => { c[0] = c[0].Trim(); c[1] = c[1].Trim(); return c; })
+                             .ToDictionary(c => c[0], c => c[1]);
+                         })
+                    .Where(c => (c.TryGetValue("Name", out string name) && name == Name) || (c.TryGetValue("InternalIPInterfaceAddressPrefix", out string ip) && ip == addressPrefix))
+                    .Select(c => c["Name"]);
+                foreach (var name in names)
+                {
+                    CommandHelper.PowerShell($"Remove-NetNat -Name {name} -Confirm:$false", [], out string error);
+                }
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+
         public void RemoveNat(out string error)
         {
             error = string.Empty;

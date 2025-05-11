@@ -1,5 +1,5 @@
 <template>
-   <div class="connect-point" @click="handleShow">
+   <div class="connect-point" @click="handleShow" v-if="state.isSelf == false">
         <template v-if="state.connection && state.connection.Connected">
             <template v-if="state.connection.Type == 0">
                 <span class="connect-point p2p" title="打洞直连" v-loading="state.connecting"></span>
@@ -30,7 +30,8 @@ export default {
         const state = reactive({
             connection:props.data,
             transitionId:props.transitionId,
-            connecting:computed(()=>tunnel.value.p2pOperatings[props.row.MachineId] || tunnel.value.relayOperatings[props.row.MachineId])
+            connecting:computed(()=>tunnel.value.p2pOperatings[props.row.MachineId] || tunnel.value.relayOperatings[props.row.MachineId]),
+            isSelf:props.row.isSelf
         });
         watch(()=>props.data,()=>{
             state.connection = props.data

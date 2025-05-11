@@ -145,16 +145,16 @@ namespace linker.messenger.forward.proxy
                 ConnectIdUdp connectId = tunnelToken.GetUdpConnectId();
                 try
                 {
-                    IPEndPoint target = new IPEndPoint(tunnelToken.Proxy.TargetEP.Address, tunnelToken.Proxy.TargetEP.Port);
+
                     if (udpConnections.TryGetValue(connectId, out AsyncUserUdpTokenTarget token))
                     {
                         token.Connection = tunnelToken.Connection;
-                        await token.TargetSocket.SendToAsync(tunnelToken.Proxy.Data, target).ConfigureAwait(false);
+                        await token.TargetSocket.SendToAsync(tunnelToken.Proxy.Data, tunnelToken.Proxy.TargetEP).ConfigureAwait(false);
                         token.LastTicks.Update();
                         return;
                     }
 
-                    _ = ConnectUdp(tunnelToken, target);
+                    _ = ConnectUdp(tunnelToken);
 
                 }
                 catch (Exception ex)
@@ -188,8 +188,14 @@ namespace linker.messenger.forward.proxy
                 }
             }
         }
-        private async Task ConnectUdp(AsyncUserTunnelToken tunnelToken, IPEndPoint target)
+        private async Task ConnectUdp(AsyncUserTunnelToken tunnelToken)
         {
+            IPEndPoint target = new IPEndPoint(tunnelToken.Proxy.TargetEP.Address, tunnelToken.Proxy.TargetEP.Port);
+            if (linkerFirewall.Check(tunnelToken.Connection.RemoteMachineId, target, ProtocolType.Udp) == false)
+            {
+                return;
+            }
+
             Socket socket = new Socket(target.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
             socket.WindowsUdpBug();
             await socket.SendToAsync(tunnelToken.Proxy.Data, target).ConfigureAwait(false);
@@ -273,7 +279,7 @@ namespace linker.messenger.forward.proxy
         {
             TimerHelper.SetIntervalLong(() =>
             {
-                if(udpConnections.Count > 0)
+                if (udpConnections.Count > 0)
                 {
                     var connections = udpConnections.Where(c => c.Value.Timeout).Select(c => c.Key).ToList();
                     foreach (var item in connections)

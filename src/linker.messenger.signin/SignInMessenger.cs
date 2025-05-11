@@ -37,12 +37,14 @@ namespace linker.messenger.signin
         private readonly SignInServerCaching signCaching;
         private readonly IMessengerSender messengerSender;
         private readonly ISerializer serializer;
+        private readonly ISignInServerStore signInServerStore;
 
-        public SignInServerMessenger(IMessengerSender messengerSender, SignInServerCaching signCaching, ISerializer serializer)
+        public SignInServerMessenger(IMessengerSender messengerSender, SignInServerCaching signCaching, ISerializer serializer, ISignInServerStore signInServerStore)
         {
             this.signCaching = signCaching;
             this.messengerSender = messengerSender;
             this.serializer = serializer;
+            this.signInServerStore = signInServerStore;
         }
 
         [MessengerId((ushort)SignInMessengerIds.SignIn)]
@@ -290,6 +292,13 @@ namespace linker.messenger.signin
         public void Exp(IConnection connection)
         {
             signCaching.Exp(connection.Id);
+        }
+
+        [MessengerId((ushort)SignInMessengerIds.CheckKey)]
+        public void CheckKey(IConnection connection)
+        {
+            string key = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            connection.Write(signInServerStore.ValidateSecretKey(key) ? Helper.TrueArray : Helper.FalseArray);
         }
     }
 

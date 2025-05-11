@@ -30,6 +30,8 @@
         Offlines = 16,
         Exp = 17,
 
+        CheckKey = 18,
+
         None = 99
     }
 }

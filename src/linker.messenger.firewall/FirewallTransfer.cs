@@ -36,9 +36,13 @@ namespace linker.messenger.firewall
             return true;
         }
 
-        public IEnumerable<FirewallRuleInfo> Get(FirewallSearchInfo info)
+        public FirewallListInfo Get(FirewallSearchInfo info)
         {
-            return firewallClientStore.GetAll(info);
+            return new FirewallListInfo
+            {
+                List = firewallClientStore.GetAll(info).ToList(),
+                State = firewallClientStore.State
+            };
         }
         public bool Add(FirewallRuleInfo info)
         {

@@ -2,7 +2,7 @@
     <el-form-item :label="$t('server.relaySecretKey')">
         <div >
             <div class="flex">
-                <el-input class="flex-1" type="password" show-password v-model="state.list.SecretKey" maxlength="36" @change="handleSave" />
+                <el-input :class="{success:state.keyState,error:state.keyState==false}" class="flex-1" type="password" show-password v-model="state.list.SecretKey" maxlength="36" @change="handleSave" />
                 <Sync class="mgl-1" name="RelaySecretKey"></Sync>
             </div>
             <div class="flex">
@@ -79,7 +79,7 @@
     <EditNode v-if="state.showEdit" v-model="state.showEdit" :data="state.current"></EditNode>
 </template>
 <script>
-import { relayCdkeyAccess, setRelayServers, setRelaySubscribe } from '@/apis/relay';
+import { checkRelayKey, relayCdkeyAccess, setRelayServers, setRelaySubscribe } from '@/apis/relay';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import { onMounted, onUnmounted, reactive, watch } from 'vue'
@@ -100,7 +100,8 @@ export default {
             timer:0,
             showEdit:false,
             current:{},
-            hasRelayCdkey:false
+            hasRelayCdkey:false,
+            keyState:false,
         });
         watch(()=>globalData.value.config.Client.Relay.Server,()=>{
             state.list.Delay = globalData.value.config.Client.Relay.Server.Delay;
@@ -117,7 +118,8 @@ export default {
             }).catch((err)=>{
                 console.log(err);
                 ElMessage.error(t('common.operFail'));
-            });;
+            });
+            handleCheckKey();
         }
         const _setRelaySubscribe = ()=>{
             clearTimeout(state.timer);
@@ -128,15 +130,22 @@ export default {
                 state.timer = setTimeout(_setRelaySubscribe,1000);
             });
         }
+        const handleCheckKey = ()=>{
+            checkRelayKey(state.list.SecretKey).then((res)=>{
+                state.keyState = res;
+            }).catch(()=>{});
+        }
+
         onMounted(()=>{
             _setRelaySubscribe();
             relayCdkeyAccess().then(res=>{
                 state.hasRelayCdkey = res;
-            }).catch(()=>{})
+            }).catch(()=>{});
+            handleCheckKey();
         });
         onUnmounted(()=>{
             clearTimeout(state.timer);
-        })
+        });
 
         return {globalData,state,handleSave,handleEdit}
     }

@@ -152,7 +152,6 @@ namespace linker.messenger.tuntap
                 LoggerHelper.Instance.Debug($"tuntap cache clear");
             }
         }
-
         /// <summary>
         /// 设置IP，等下有连接进来，用IP匹配，才能知道这个连接是要连谁
         /// </summary>
@@ -199,5 +198,13 @@ namespace linker.messenger.tuntap
             }
         }
 
+        /// <summary>
+        /// 获取路由表
+        /// </summary>
+        /// <returns></returns>
+        public Dictionary<string, string> GetRoutes()
+        {
+            return cidrManager.Routes;
+        }
     }
 }

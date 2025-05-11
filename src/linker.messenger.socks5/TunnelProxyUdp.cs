@@ -173,6 +173,12 @@ namespace linker.messenger.socks5
             IPAddress ip = mapping.GetRealDst(tunnelToken.Proxy.TargetEP.Address);
             IPEndPoint target = new IPEndPoint(ip, tunnelToken.Proxy.TargetEP.Port);
 
+            if (linkerFirewall.Check(tunnelToken.Connection.RemoteMachineId, target, ProtocolType.Udp) == false)
+            {
+                return;
+            }
+
+
             Socket socket = new Socket(target.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
             socket.WindowsUdpBug();
             await socket.SendToAsync(tunnelToken.Proxy.Data, target).ConfigureAwait(false);

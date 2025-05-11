@@ -1,7 +1,7 @@
 <template>
     <el-form-item :label="$t('server.updaterSecretKey')">
         <div class="flex">
-            <el-input class="flex-1" type="password" show-password v-model="state.secretKey" maxlength="36" @blur="handleChange"/>
+            <el-input :class="{success:state.keyState,error:state.keyState==false}" class="flex-1" type="password" show-password v-model="state.secretKey" maxlength="36" @blur="handleChange"/>
             <Sync class="mgl-1" name="UpdaterSecretKey"></Sync>
             <span class="mgl-1" v-if="globalData.isPc">{{$t('server.updaterText')}}</span>
         </div>
@@ -22,7 +22,7 @@
     </el-form-item> -->
 </template>
 <script>
-import { getSecretKey,setSecretKey, setUpdateInterval } from '@/apis/updater';
+import { checkUpdaterKey, getSecretKey,setSecretKey, setUpdateInterval } from '@/apis/updater';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import { onMounted, reactive } from 'vue'
@@ -41,10 +41,12 @@ export default {
             hour:0,
             min:1,
             sec:0,
+            keyState:false,
         });
         const _getSecretKey = ()=>{
             getSecretKey().then((res)=>{
                 state.secretKey = res;
+                handleCheckKey();
             });
         }
 
@@ -72,6 +74,12 @@ export default {
 
         const handleChange = ()=>{
             _setSecretKey();
+            handleCheckKey();
+        }
+        const handleCheckKey = ()=>{
+            checkUpdaterKey(state.secretKey).then((res)=>{
+                state.keyState = res;
+            }).catch(()=>{});
         }
 
         onMounted(()=>{
@@ -101,5 +109,5 @@ export default {
 }
 </script>
 <style lang="stylus" scoped>
-    
+
 </style>

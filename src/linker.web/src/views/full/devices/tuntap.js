@@ -12,6 +12,9 @@ export const provideTuntap = () => {
         hashcode: 0,
 
         showLease: false,
+        
+        device: {id:'',name:''},
+        showRoutes:false,
     });
     provide(tuntapSymbol, tuntap);
 

@@ -27,6 +27,11 @@ const routes = [
                 component: () => import('@/views/full/action/Index.vue')
             },
             {
+                path: '/full/firewall.html',
+                name: 'FullFirewall',
+                component: () => import('@/views/full/firewall/Index.vue')
+            },
+            {
                 path: '/full/logger.html',
                 name: 'FullLogger',
                 component: () => import('@/views/full/logger/Index.vue')

@@ -36,3 +36,6 @@ export const relayCdkeyImport = (data) => {
 export const relayUpdateNode = (data) => {
     return sendWebsocketMsg('relay/UpdateNode', data);
 }
+export const checkRelayKey = (key) => {
+    return sendWebsocketMsg('relay/checkkey',key);
+}

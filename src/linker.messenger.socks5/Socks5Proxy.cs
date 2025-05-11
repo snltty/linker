@@ -25,11 +25,16 @@ namespace linker.messenger.socks5
 
         protected override string TransactionId => "socks5";
 
-        public TunnelProxy(ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer, SignInClientTransfer signInClientTransfer, IRelayClientStore relayClientStore)
+        private readonly LinkerFirewall linkerFirewall;
+
+        public TunnelProxy(ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer,
+            SignInClientTransfer signInClientTransfer, IRelayClientStore relayClientStore, LinkerFirewall linkerFirewall)
              : base(tunnelTransfer, relayTransfer, pcpTransfer, signInClientTransfer, signInClientStore, relayClientStore)
         {
             this.signInClientTransfer = signInClientTransfer;
+            this.linkerFirewall = linkerFirewall;
             TaskUdp();
+            
         }
 
         /// <summary>

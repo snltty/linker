@@ -140,9 +140,9 @@
         RelayCdkey = (ulong)1 << 43,
 
         [AccessDisplay("管理本机防火墙")]
-        FirewallSelf = 1 << 44,
+        FirewallSelf = (ulong)1 << 44,
         [AccessDisplay("管理所有设备防火墙")]
-        FirewallOther = 1 << 45,
+        FirewallOther = (ulong)1 << 45,
 
         Full = ulong.MaxValue >> 64 - 52,
     }

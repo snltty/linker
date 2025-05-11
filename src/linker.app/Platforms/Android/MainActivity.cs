@@ -6,7 +6,6 @@ using Android.Net;
 using Android.OS;
 using Android.Views;
 using AndroidX.Core.App;
-using AndroidX.Core.Content;
 using AndroidX.Core.View;
 using Java.IO;
 using linker.app.Services;
@@ -21,7 +20,6 @@ using linker.tunnel.connection;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Text.Json;
 
 namespace linker.app
@@ -29,7 +27,6 @@ namespace linker.app
     [Activity(Theme = "@style/Maui.SplashTheme", MainLauncher = true, LaunchMode = LaunchMode.SingleTop, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
     public class MainActivity : MauiAppCompatActivity
     {
-        public const int VPN_RESULT_CODE = 0x0F;
         Intent intent;
 
         protected override void OnCreate(Bundle savedInstanceState)
@@ -37,7 +34,9 @@ namespace linker.app
             SetLightStatusBar();
 
             base.OnCreate(savedInstanceState);
-            ConfigureVpn();
+
+            intent = new Intent(this, typeof(ForegroundService));
+            StartForegroundService(intent);
         }
         public void SetLightStatusBar()
         {
@@ -57,11 +56,6 @@ namespace linker.app
         protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
         {
             base.OnActivityResult(requestCode, resultCode, data);
-            if (requestCode == VPN_RESULT_CODE && resultCode == Result.Ok)
-            {
-                intent = new Intent(this, typeof(ForegroundService));
-                StartForegroundService(intent);
-            }
         }
         protected override void OnStart()
         {
@@ -71,23 +65,6 @@ namespace linker.app
         {
             base.OnDestroy();
         }
-        private void ConfigureVpn()
-        {
-            if (ContextCompat.CheckSelfPermission(this, Manifest.Permission.BindVpnService) != Permission.Granted)
-            {
-                ActivityCompat.RequestPermissions(this, new string[] { Manifest.Permission.BindVpnService }, 0);
-            }
-            var intent = VpnService.Prepare(this);
-            if (intent != null)
-            {
-                StartActivityForResult(intent, VPN_RESULT_CODE);
-            }
-            else
-            {
-                OnActivityResult(VPN_RESULT_CODE, Result.Ok, null);
-            }
-        }
-
     }
 
     /// <summary>
@@ -126,7 +103,7 @@ namespace linker.app
         public override void OnDestroy()
         {
             base.OnDestroy();
-            tuntapTransfer.Shutdown(false);
+            tuntapTransfer.Shutdown();
         }
 
         public async Task Callback(LinkerTunDevicPacket packet)
@@ -193,9 +170,7 @@ namespace linker.app
                 StartForeground(SERVICE_ID, CreateNotification());
             }
 
-
-
-            return StartCommandResult.Sticky;
+            return StartCommandResult.NotSticky;
         }
         private Notification CreateNotification()
         {
@@ -261,9 +236,30 @@ namespace linker.app
             TuntapTransfer tuntapTransfer = LinkerMessengerEntry.GetService<TuntapTransfer>();
             tuntapTransfer.OnSetupBefore += () =>
             {
-                vpnIntent = new Intent(Android.App.Application.Context, typeof(VpnServiceLinker));
-                Android.App.Application.Context.StartService(vpnIntent);
-                Task.Delay(3000).Wait();
+                try
+                {
+                    Intent intent = VpnService.Prepare(Android.App.Application.Context);
+                    if (intent != null)
+                    {
+                        intent.AddFlags(ActivityFlags.NewTask);
+                        StartActivity(intent);
+                        return;
+                    }
+                }
+                catch (Exception)
+                {
+                    return;
+                }
+
+                try
+                {
+                    vpnIntent = new Intent(Android.App.Application.Context, typeof(VpnServiceLinker));
+                    Android.App.Application.Context.StartService(vpnIntent);
+                    Task.Delay(3000).Wait();
+                }
+                catch (Exception)
+                {
+                }
             };
             tuntapTransfer.OnShutdownBefore += () =>
             {
@@ -318,6 +314,7 @@ namespace linker.app
         {
             error = string.Empty;
             if (address.Equals(IPAddress.Any)) return false;
+            if (vpnService == null) return false;
 
 
             this.name = name;
@@ -484,7 +481,7 @@ namespace linker.app
         public byte[] Read(string root, string fileName, out DateTime lastModified)
         {
             lastModified = DateTime.Now;
-            fileName = Path.Join("public/web", fileName);
+            fileName = System.IO.Path.Join("public/web", fileName);
             using Stream fileStream = FileSystem.Current.OpenAppPackageFileAsync(fileName).Result;
             using MemoryStream memoryStream = new MemoryStream();
             fileStream.CopyTo(memoryStream);
@@ -519,7 +516,7 @@ namespace linker.app
         }
         public override (string, string) DownloadUrlAndSavePath(string version)
         {
-            return ($"{updaterCommonTransfer.UpdateUrl}/{version}/linker.apk", Path.Join(FileSystem.Current.AppDataDirectory, "linker.apk"));
+            return ($"{updaterCommonTransfer.UpdateUrl}/{version}/linker.apk", System.IO.Path.Join(FileSystem.Current.AppDataDirectory, "linker.apk"));
         }
 
         public override async Task Install(Action<long, long> processs)
@@ -540,7 +537,7 @@ namespace linker.app
         {
             await MainThread.InvokeOnMainThreadAsync(() =>
             {
-                var file = new Java.IO.File(Path.Join(FileSystem.Current.AppDataDirectory, "linker.apk"));
+                var file = new Java.IO.File(System.IO.Path.Join(FileSystem.Current.AppDataDirectory, "linker.apk"));
 
                 if (Build.VERSION.SdkInt >= BuildVersionCodes.N)
                 {

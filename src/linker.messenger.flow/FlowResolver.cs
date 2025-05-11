@@ -59,6 +59,13 @@ namespace linker.messenger.flow
                 {
                     onlineFlowInfo.Nets = serializer.Deserialize<List<FlowReportNetInfo>>(memory.Slice(8).Span);
                 }
+
+                long online = (long)servers.Where(c => time - c.Value.Time < 15000).Sum(c => c.Value.Online) << 32;
+                long total = servers.Where(c => time - c.Value.Time < 15000).Sum(c => c.Value.Total);
+
+                ReceiveBytes = online | total;
+                SendtBytes = servers.Count(c => time - c.Value.Time < 15000);
+                Version.Increment();
             }
             catch (Exception)
             {
@@ -71,7 +78,7 @@ namespace linker.messenger.flow
         public string GetItems() => string.Empty;
         public void SetItems(string json) { }
         public void SetBytes(long receiveBytes, long sendtBytes) { }
-        public void Clear() {  }
+        public void Clear() { }
 
 
         public List<FlowReportNetInfo> GetCitys()
@@ -91,30 +98,12 @@ namespace linker.messenger.flow
             {
                 try
                 {
-                    Counter();
                     Report();
                 }
                 catch (Exception)
                 {
                 }
             }, 5000);
-        }
-        private void Counter()
-        {
-            long time = Environment.TickCount64;
-            List<IPAddress> keys = servers.Where(c => time - c.Value.Time > 15000).Select(c => c.Key).ToList();
-
-            foreach (IPAddress key in keys)
-            {
-                servers.TryRemove(key, out _);
-            }
-
-            long online = (long)servers.Sum(c => c.Value.Online) << 32;
-            long total = servers.Sum(c => c.Value.Total);
-
-            ReceiveBytes = online | total;
-            SendtBytes = servers.Count;
-            Version.Increment();
         }
         private void Report()
         {

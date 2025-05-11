@@ -8,6 +8,7 @@ namespace linker.messenger.updater
     {
         private readonly UpdaterClientTransfer updaterTransfer;
         private readonly ISerializer serializer;
+        
         public UpdaterClientMessenger(UpdaterClientTransfer updaterTransfer, ISerializer serializer)
         {
             this.updaterTransfer = updaterTransfer;
@@ -86,6 +87,8 @@ namespace linker.messenger.updater
         {
             updaterTransfer.Check();
         }
+
+       
     }
 
 
@@ -346,6 +349,14 @@ namespace linker.messenger.updater
                     });
                 }
             }
+        }
+
+
+        [MessengerId((ushort)UpdaterMessengerIds.CheckKey)]
+        public void CheckKey(IConnection connection)
+        {
+            string key = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            connection.Write(updaterServerStore.ValidateSecretKey(key) ? Helper.TrueArray : Helper.FalseArray);
         }
     }
 }

@@ -30,6 +30,8 @@
         Update170 = 2616,
         UpdateServer170 = 2617,
 
+        CheckKey = 2618,
+
         Max = 2299
     }
 }

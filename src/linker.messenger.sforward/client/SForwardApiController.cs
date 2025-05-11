@@ -206,6 +206,18 @@ namespace linker.messenger.sforward.client
             return true;
         }
 
+
+        public async Task<bool> CheckKey(ApiControllerParamsInfo param)
+        {
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)SForwardMessengerIds.CheckKey,
+                Payload = serializer.Serialize(param.Content)
+            }).ConfigureAwait(false);
+            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
+        }
+
     }
 
     public sealed class SForwardListInfo

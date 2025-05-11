@@ -136,6 +136,18 @@ namespace linker.messenger.signin
             }
             return new List<SignInNamesResponseItemInfo>();
         }
+
+
+        public async Task<bool> CheckKey(ApiControllerParamsInfo param)
+        {
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)SignInMessengerIds.CheckKey,
+                Payload = serializer.Serialize(param.Content)
+            }).ConfigureAwait(false);
+            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
+        }
     }
 
     public sealed class ConfigSetInfo

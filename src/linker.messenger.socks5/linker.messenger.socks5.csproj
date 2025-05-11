@@ -16,9 +16,9 @@
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker messenger socks5</PackageReleaseNotes>
-		<Version>1.7.8</Version>
-		<AssemblyVersion>1.7.8</AssemblyVersion>
-		<FileVersion>1.7.8</FileVersion>
+		<Version>1.7.9</Version>
+		<AssemblyVersion>1.7.9</AssemblyVersion>
+		<FileVersion>1.7.9</FileVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -41,6 +41,7 @@
 		<ProjectReference Include="..\linker.messenger.api\linker.messenger.api.csproj" />
 		<ProjectReference Include="..\linker.messenger.channel\linker.messenger.channel.csproj" />
 		<ProjectReference Include="..\linker.messenger.exroute\linker.messenger.exroute.csproj" />
+		<ProjectReference Include="..\linker.messenger.firewall\linker.messenger.firewall.csproj" />
 		<ProjectReference Include="..\linker.messenger.signin\linker.messenger.signin.csproj" />
 		<ProjectReference Include="..\linker.messenger\linker.messenger.csproj" />
 		<ProjectReference Include="..\linker.snat\linker.snat.csproj" />

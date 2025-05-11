@@ -218,6 +218,11 @@ namespace linker.messenger.forward.proxy
         {
             if (token.Proxy.TargetEP == null) return;
 
+            if(linkerFirewall.Check(token.Connection.RemoteMachineId, token.Proxy.TargetEP, ProtocolType.Tcp) == false)
+            {
+                return;
+            }
+
             Socket socket = new Socket(token.Proxy.TargetEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socket.KeepAlive();
 

@@ -8,6 +8,8 @@ namespace linker.messenger.store.file
     {
         public bool OnlyNode { get; set; }
 
+        public string ImportKey { get; set; } = string.Empty;
+
 
         private SignInClientServerInfo[] servers = new SignInClientServerInfo[] {
 #if DEBUG

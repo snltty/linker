@@ -8,6 +8,10 @@ export const removeTuntapConnection = (id) => {
     return sendWebsocketMsg('tuntap/removeconnection', id);
 }
 
+export const getTuntapRoutes = (machineid) => {
+    return sendWebsocketMsg('tuntap/routes', machineid);
+}
+
 export const getTuntapInfo = (hashcode = '0') => {
     return sendWebsocketMsg('tuntap/get', hashcode);
 }

@@ -21,18 +21,17 @@
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Description>1. 一些累计更新
-2. socks5网段映射，请更新所有设备
-3. 修复优化入参调用
-4. 增加登入在线续期
-5. 增加虚拟网卡在线检查，IP冲突检查，抢占IP时更新映射表
-6. 如果你设备很多，请尝试升级其中一个成功重启后再升级其它</Description>
+2. 优化安卓APP
+3. 新增防火墙，用于网卡、端口转发、和socks5
+4. 检测密钥是否正确
+5. 如果你设备很多，请尝试升级其中一个成功重启后再升级其它</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>1.7.8</Version>
-		<AssemblyVersion>1.7.8</AssemblyVersion>
-		<FileVersion>1.7.8</FileVersion>
+		<Version>1.7.9</Version>
+		<AssemblyVersion>1.7.9</AssemblyVersion>
+		<FileVersion>1.7.9</FileVersion>
 		<DelaySign>False</DelaySign>
 	</PropertyGroup>
 

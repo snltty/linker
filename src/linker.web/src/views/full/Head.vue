@@ -18,7 +18,10 @@
                         <router-link :to="{name:'FullTransport'}"><img src="@/assets/dadong.svg"/><span>{{$t('head.protocol')}}</span></router-link>
                     </li>
                     <li v-if="hasAction">
-                        <router-link :to="{name:'FullAction'}"><img src="@/assets/anquan.svg"/><span>{{$t('head.action')}}</span></router-link>
+                        <router-link :to="{name:'FullAction'}"><img src="@/assets/login.svg"/><span>{{$t('head.action')}}</span></router-link>
+                    </li>
+                     <li v-if="hasFirewall">
+                        <router-link :to="{name:'FullFirewall'}"><img src="@/assets/anquan.svg"/><span>{{$t('head.firewall')}}</span></router-link>
                     </li>
                     <li v-if="hasLogger">
                         <router-link :to="{name:'FullLogger'}"><img src="@/assets/rizhi.svg"/><span>{{$t('head.logger')}}</span></router-link>
@@ -35,7 +38,10 @@
                         <router-link :to="{name:'FullTransport'}"><img src="@/assets/dadong.svg"/><span>{{$t('head.protocol')}}</span></router-link>
                     </li>
                     <li v-if="hasAction && route.name == 'FullAction'">
-                        <router-link :to="{name:'FullAction'}"><img src="@/assets/anquan.svg"/><span>{{$t('head.action')}}</span></router-link>
+                        <router-link :to="{name:'FullAction'}"><img src="@/assets/login.svg"/><span>{{$t('head.action')}}</span></router-link>
+                    </li>
+                     <li v-if="hasFirewall && route.name == 'FullFirewall'">
+                        <router-link :to="{name:'FullFirewall'}"><img src="@/assets/anquan.svg"/><span>{{$t('head.firewall')}}</span></router-link>
                     </li>
                     <li v-if="hasLogger && route.name == 'FullLogger'">
                         <router-link :to="{name:'FullLogger'}"><img src="@/assets/rizhi.svg"/> <span>{{$t('head.logger')}}</span></router-link>
@@ -53,16 +59,19 @@
                             <el-dropdown-item>
                                 <router-link :to="{name:'FullIndex'}"><img src="@/assets/shouye.svg" height="20" style="vertical-align: text-top;"/> {{$t('head.home')}}</router-link>
                             </el-dropdown-item>
-                            <el-dropdown-item>
+                            <el-dropdown-item v-if="hasConfig">
                                 <router-link :to="{name:'FullServers'}"><img src="@/assets/fuwuqi.svg"  height="20" style="vertical-align: text-top;"/> {{$t('head.server')}}</router-link>
                             </el-dropdown-item>
-                            <el-dropdown-item>
+                            <el-dropdown-item v-if="hasTransport">
                                 <router-link :to="{name:'FullTransport'}"><img src="@/assets/dadong.svg"  height="20" style="vertical-align: text-top;"/> {{$t('head.protocol')}}</router-link>
                             </el-dropdown-item>
-                            <el-dropdown-item>
-                                <router-link :to="{name:'FullAction'}"><img src="@/assets/anquan.svg"   height="20" style="vertical-align: text-top;"/> {{$t('head.action')}}</router-link>
+                            <el-dropdown-item v-if="hasAction">
+                                <router-link :to="{name:'FullAction'}"><img src="@/assets/login.svg"   height="20" style="vertical-align: text-top;"/> {{$t('head.action')}}</router-link>
                             </el-dropdown-item>
-                            <el-dropdown-item>
+                            <el-dropdown-item v-if="hasFirewall">
+                                <router-link :to="{name:'FullFirewall'}"><img src="@/assets/anquan.svg"   height="20" style="vertical-align: text-top;"/> {{$t('head.action')}}</router-link>
+                            </el-dropdown-item>
+                            <el-dropdown-item v-if="hasLogger">
                                 <router-link :to="{name:'FullLogger'}"><img src="@/assets/rizhi.svg"  height="20" style="vertical-align: text-top;"/> {{$t('head.logger')}}</router-link>
                             </el-dropdown-item>
                         </el-dropdown-menu>
@@ -73,8 +82,8 @@
                 <el-dropdown>
                     <span class="el-dropdown-link">
                     {{localeOptions[locale]}}
-                    <el-icon class="el-icon--right">
-                        <arrow-down />
+                    <el-icon>
+                        <ArrowDown />
                     </el-icon>
                     </span>
                     <template #dropdown>
@@ -92,7 +101,7 @@
 </template>
 
 <script>
-import {Operation} from '@element-plus/icons-vue'
+import {Operation,ArrowDown} from '@element-plus/icons-vue'
 import { injectGlobalData } from '@/provide';
 import { computed, ref} from 'vue';
 import Background from './Background.vue';
@@ -100,7 +109,7 @@ import { LOCALE_OPTIONS } from '@/lang'
 import useLocale from '@/lang/provide'
 import { useRoute } from 'vue-router';
 export default {
-    components:{Background,Operation},
+    components:{Background,Operation,ArrowDown},
     setup() {
 
         const route = useRoute();
@@ -110,6 +119,8 @@ export default {
         const hasTransport = computed(()=>globalData.value.hasAccess('Transport')); 
         const hasAction = computed(()=>globalData.value.hasAccess('Action')); 
         const hasGroup = computed(()=>globalData.value.hasAccess('Group'));
+        const hasFirewall = computed(()=>globalData.value.hasAccess('FirewallSelf'));
+        
 
         const localeOptions = ref(LOCALE_OPTIONS);
         const { changeLocale, currentLocale } = useLocale()
@@ -131,7 +142,7 @@ export default {
 
         return {
             route,globalData,hasConfig,hasGroup,
-            hasLogger,hasTransport,hasAction,localeOptions,locale,handleLocale,refresh
+            hasLogger,hasTransport,hasAction,hasFirewall,localeOptions,locale,handleLocale,refresh
         }
     }
 }

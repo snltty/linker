@@ -20,6 +20,7 @@ namespace linker.messenger.firewall
         public string SrcName { get; set; }
         public bool Disabled { get; set; }
         public int OrderBy { get; set; }
+        public string Remark { get; set; }
     }
 
 
@@ -31,14 +32,16 @@ namespace linker.messenger.firewall
     public sealed partial class FirewallSearchInfo
     {
         public string GroupId { get; set; }
-        public string SrcName { get; set; }
-        public bool Disabled { get; set; }
-        public string DstCidr { get; set; }
-        public string DstPort { get; set; }
+        public string Str { get; set; }
+        public int Disabled { get; set; }
         public LinkerFirewallProtocolType Protocol { get; set; }
         public LinkerFirewallAction Action { get; set; }
     }
-
+    public sealed partial class FirewallListInfo
+    {
+        public LinkerFirewallState State { get; set; } = LinkerFirewallState.Disabled;
+        public List<FirewallRuleInfo> List { get; set; } = new List<FirewallRuleInfo>();
+    }
 
     public sealed partial class FirewallAddForwardInfo
     {

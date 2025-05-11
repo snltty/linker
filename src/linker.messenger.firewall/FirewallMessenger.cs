@@ -47,6 +47,10 @@ namespace linker.messenger.firewall
                     }
                 });
             }
+            else
+            {
+                connection.Write(serializer.Serialize(new FirewallListInfo()));
+            }
         }
         /// <summary>
         /// 添加对端的记录

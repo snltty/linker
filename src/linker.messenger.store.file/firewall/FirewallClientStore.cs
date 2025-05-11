@@ -26,21 +26,23 @@ namespace linker.messenger.store.file.firewall
         public IEnumerable<FirewallRuleInfo> GetAll(FirewallSearchInfo info)
         {
             IEnumerable<FirewallRuleInfo> list = liteCollection.FindAll()
-                .Where(c => c.GroupId == info.GroupId && c.Disabled == info.Disabled)
-                .Where(c=>(c.Protocol & info.Protocol) > 0)
-                .Where(c=>(c.Action & info.Action) > 0);
+                .Where(c => c.GroupId == info.GroupId)
+                .Where(c => (c.Protocol & info.Protocol) > 0)
+                .Where(c => (c.Action & info.Action) > 0);
 
-            if (string.IsNullOrWhiteSpace(info.SrcName) == false)
+            if (info.Disabled != -1)
             {
-                list = list.Where(c => c.SrcName.Contains(info.SrcName));
+                list = list.Where(c => c.Disabled == Convert.ToBoolean(info.Disabled));
             }
-            if (string.IsNullOrWhiteSpace(info.DstCidr) == false)
+
+            if (string.IsNullOrWhiteSpace(info.Str) == false)
             {
-                list = list.Where(c => c.DstCIDR.Contains(info.DstCidr));
-            }
-            if (string.IsNullOrWhiteSpace(info.DstPort) == false)
-            {
-                list = list.Where(c => c.DstPort.Contains(info.DstPort));
+                list = list.Where(c =>
+                (c.SrcName != null && c.SrcName.Contains(info.Str)) ||
+                (c.DstCIDR != null && c.DstCIDR.Contains(info.Str)) ||
+                (c.DstPort != null && c.DstPort.Contains(info.Str)) ||
+                (c.Remark != null && c.Remark.Contains(info.Str))
+                );
             }
 
             return list.OrderBy(c => c.OrderBy);
@@ -55,6 +57,7 @@ namespace linker.messenger.store.file.firewall
         {
             if (string.IsNullOrWhiteSpace(rule.Id))
             {
+                rule.Id = ObjectId.NewObjectId().ToString();
                 return liteCollection.Insert(rule) != null;
             }
             else
@@ -69,7 +72,8 @@ namespace linker.messenger.store.file.firewall
                     Protocol = rule.Protocol,
                     Action = rule.Action,
                     OrderBy = rule.OrderBy,
-                    Disabled = rule.Disabled
+                    Disabled = rule.Disabled,
+                    Remark = rule.Remark
                 }, c => c.Id == rule.Id) > 0;
             }
         }

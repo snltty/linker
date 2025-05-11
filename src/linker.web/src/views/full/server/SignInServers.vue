@@ -13,7 +13,7 @@
                     </el-form-item>
                     <el-form-item :label="$t('server.messengerSecretKey')">
                         <div class="flex">
-                            <el-input class="flex-1" type="password" show-password maxlength="36" v-model="state.list.SecretKey" @change="handleSave" />
+                            <el-input :class="{success:state.keyState,error:state.keyState==false}" class="flex-1" type="password" show-password maxlength="36" v-model="state.list.SecretKey" @change="handleSave" />
                             <Sync class="mgl-1" name="SignInSecretKey"></Sync>
                             <span class="mgl-1" v-if="globalData.isPc">{{$t('server.messengerSecretKeyText')}}</span>
                         </div>
@@ -39,10 +39,10 @@
     </div>
 </template>
 <script>
-import { setSignInServers } from '@/apis/signin';
+import { checkSignInKey, setSignInServers } from '@/apis/signin';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
-import { computed, reactive } from 'vue'
+import { computed, onMounted, reactive } from 'vue'
 import SForward from './SForward.vue';
 import Updater from './Updater.vue';
 import RelayServers from './RelayServers.vue';
@@ -57,6 +57,7 @@ export default {
             list:globalData.value.config.Client.Server,
             height: computed(()=>globalData.value.height-90),
             position: computed(()=>globalData.value.isPhone ? 'top':'right'),
+            keyState:false,
         });
 
         const handleSave = ()=>{
@@ -66,7 +67,17 @@ export default {
                 console.log(err);
                 ElMessage.error(t('common.operFail'));
             });
+            handleCheckKey();
         }
+        const handleCheckKey = ()=>{
+            checkSignInKey(state.list.SecretKey).then((res)=>{
+                state.keyState = res;
+            }).catch(()=>{});
+        }
+
+        onMounted(()=>{
+            handleCheckKey();
+        });
 
         return {globalData,state,handleSave}
     }

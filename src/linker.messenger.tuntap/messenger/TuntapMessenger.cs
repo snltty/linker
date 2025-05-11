@@ -90,6 +90,13 @@ namespace linker.messenger.tuntap.messenger
                 }, (ushort)TuntapMessengerIds.SubscribeForwardTest);
             });
         }
+
+
+        [MessengerId((ushort)TuntapMessengerIds.Routes)]
+        public void Routes(IConnection connection)
+        {
+            connection.Write(serializer.Serialize(tuntapProxy.GetRoutes()));
+        }
     }
 
 
@@ -285,5 +292,41 @@ namespace linker.messenger.tuntap.messenger
             }
         }
 
+
+
+        [MessengerId((ushort)TuntapMessengerIds.RoutesForward)]
+        public void RoutesForward(IConnection connection)
+        {
+            uint requestid = connection.ReceiveRequestWrap.RequestId;
+            string machineid = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(machineid, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            {
+
+                messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = cache.Connection,
+                    MessengerId = (ushort)TuntapMessengerIds.Routes,
+                }).ContinueWith((result) =>
+                {
+                    messengerSender.ReplyOnly(new MessageResponseWrap
+                    {
+                        Connection = connection,
+                        RequestId = requestid,
+                        Code = MessageResponeCodes.OK,
+                        Payload = result.Result.Data
+                    }, (ushort)TuntapMessengerIds.RoutesForward);
+                });
+            }
+            else
+            {
+                messengerSender.ReplyOnly(new MessageResponseWrap
+                {
+                    Connection = connection,
+                    RequestId = requestid,
+                    Code = MessageResponeCodes.OK,
+                    Payload = Helper.EmptyArray
+                }, (ushort)TuntapMessengerIds.RoutesForward);
+            }
+        }
     }
 }

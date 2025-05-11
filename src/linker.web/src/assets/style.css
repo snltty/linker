@@ -484,6 +484,12 @@ h3.title {
 .el-input__inner {
     font-size: 13px;
 }
+.el-input.success .el-input__wrapper{
+    box-shadow: 0 0 0 1px #008000 inset;
+}
+.el-input.error .el-input__wrapper{
+    box-shadow: 0 0 0 1px #ff6600 inset;
+}
 
 .el-dialog--center .el-dialog__body {
     padding-top: 1rem !important;

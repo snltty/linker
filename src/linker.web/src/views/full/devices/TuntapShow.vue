@@ -48,7 +48,7 @@
                     <template v-if="tuntap.list[item.MachineId].Available == false">
                         <div class="flex disable" title="IP不生效，可能是设备不在线">{{ item1.IP }} / {{ item1.PrefixLength }}</div>
                     </template>
-                    <template v-if="item1.Disabled">
+                    <template v-else-if="item1.Disabled">
                         <div class="flex disable" title="已禁用">{{ item1.IP }} / {{ item1.PrefixLength }}</div>
                     </template>
                     <template v-else-if="item1.Exists">
@@ -125,14 +125,17 @@ export default {
         }
         const handleTuntapIP = (tuntap) => {
             if(!props.config && machineId.value != tuntap.MachineId){
+                ElMessage.success('无权限1');
                 return;
             }
             if(machineId.value === tuntap.MachineId){
                 if(!hasTuntapChangeSelf.value){
+                    ElMessage.success('无权限2');
                     return;
                 }
             }else{
                 if(!hasTuntapChangeOther.value){
+                    ElMessage.success('无权限3');
                     return;
                 }
             }

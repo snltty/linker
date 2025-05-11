@@ -6,6 +6,7 @@ using linker.messenger.relay.client;
 using linker.messenger.signin;
 using linker.messenger.channel;
 using linker.messenger.pcp;
+using linker.snat;
 
 namespace linker.messenger.forward.proxy
 {
@@ -17,9 +18,13 @@ namespace linker.messenger.forward.proxy
 
         protected override string TransactionId => "forward";
 
-        public ForwardProxy(ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer, SignInClientTransfer signInClientTransfer, IRelayClientStore relayClientStore)
+        private readonly LinkerFirewall linkerFirewall;
+
+        public ForwardProxy(ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer,
+            SignInClientTransfer signInClientTransfer, IRelayClientStore relayClientStore, LinkerFirewall linkerFirewall)
             : base(tunnelTransfer, relayTransfer, pcpTransfer, signInClientTransfer, signInClientStore, relayClientStore)
         {
+            this.linkerFirewall = linkerFirewall;
             TaskUdp();
         }
 

@@ -43,6 +43,11 @@ namespace linker.messenger.tuntap
             this.serializer = serializer;
         }
 
+        /// <summary>
+        /// 连接
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public ConnectionListInfo Connections(ApiControllerParamsInfo param)
         {
             ulong hashCode = ulong.Parse(param.Content);
@@ -57,10 +62,43 @@ namespace linker.messenger.tuntap
             return new ConnectionListInfo { HashCode = version };
         }
 
+        /// <summary>
+        /// 删除连接
+        /// </summary>
+        /// <param name="param"></param>
         [Access(AccessValue.TunnelRemove)]
         public void RemoveConnection(ApiControllerParamsInfo param)
         {
             tuntapProxy.RemoveConnection(param.Content);
+        }
+
+
+        /// <summary>
+        /// 路由表
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public async Task<Dictionary<string, string>> Routes(ApiControllerParamsInfo param)
+        {
+            if (param.Content == signInClientStore.Id)
+            {
+                return tuntapProxy.GetRoutes();
+            }
+            else
+            {
+                MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = signInClientState.Connection,
+                    MessengerId = (ushort)TuntapMessengerIds.RoutesForward,
+                    Payload = serializer.Serialize(param.Content)
+                }).ConfigureAwait(false);
+
+                if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
+                {
+                    return serializer.Deserialize<Dictionary<string, string>>(resp.Data.Span);
+                }
+            }
+            return new Dictionary<string, string>();
         }
 
         /// <summary>

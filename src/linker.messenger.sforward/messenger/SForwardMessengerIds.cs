@@ -26,6 +26,8 @@
         StopClient = 2315,
         StopClientForward = 2316,
 
+        CheckKey = 2317,
+
         Max = 2399
     }
 }

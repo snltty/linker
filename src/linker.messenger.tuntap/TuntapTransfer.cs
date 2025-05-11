@@ -31,14 +31,14 @@ namespace linker.messenger.tuntap
             Helper.OnAppExit += Helper_OnAppExit;
             if (OperatingSystem.IsAndroid() == false)
             {
-                AppDomain.CurrentDomain.ProcessExit += (s, e) => linkerTunDeviceAdapter.Shutdown();
-                Console.CancelKeyPress += (s, e) => linkerTunDeviceAdapter.Shutdown();
+                AppDomain.CurrentDomain.ProcessExit += (s, e) => Shutdown();
+                Console.CancelKeyPress += (s, e) => Shutdown();
             }
         }
 
         private void Helper_OnAppExit(object sender, EventArgs e)
         {
-            linkerTunDeviceAdapter.Shutdown();
+            Shutdown();
         }
 
         public void Initialize(ILinkerTunDeviceCallback linkerTunDeviceCallback)
@@ -51,7 +51,7 @@ namespace linker.messenger.tuntap
             linkerTunDeviceAdapter.Initialize(linkerTunDevice, linkerTunDeviceCallback);
         }
 
-        public bool Write(string srcId,ReadOnlyMemory<byte> buffer)
+        public bool Write(string srcId, ReadOnlyMemory<byte> buffer)
         {
             return linkerTunDeviceAdapter.Write(srcId, buffer);
         }
@@ -110,17 +110,17 @@ namespace linker.messenger.tuntap
         /// <summary>
         /// 停止网卡
         /// </summary>
-        public void Shutdown(bool notify = true)
+        public bool Shutdown()
         {
             if (operatingManager.StartOperation() == false)
             {
-                return;
+                return false;
             }
             try
             {
-                if (notify) OnShutdownBefore();
+                OnShutdownBefore();
                 linkerTunDeviceAdapter.Shutdown();
-                if (notify) OnShutdownSuccess();
+                OnShutdownSuccess();
             }
             catch (Exception ex)
             {
@@ -131,10 +131,10 @@ namespace linker.messenger.tuntap
             }
             finally
             {
-                if (notify)
-                    OnShutdownAfter();
+                OnShutdownAfter();
                 operatingManager.StopOperation();
             }
+            return true;
         }
         /// <summary>
         /// 刷新网卡

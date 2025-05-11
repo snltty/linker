@@ -30,15 +30,16 @@ namespace linker.messenger.firewall
         /// </summary>
         /// <param name="param"></param>
         /// <returns></returns>
-        public async Task<List<FirewallRuleInfo>> Get(ApiControllerParamsInfo param)
+        public async Task<FirewallListInfo> Get(ApiControllerParamsInfo param)
         {
             FirewallSearchForwardInfo info = param.Content.DeJson<FirewallSearchForwardInfo>();
+            info.Data.GroupId = signInClientStore.Group.Id;
             if (info.MachineId == signInClientStore.Id)
             {
-                if (accessStore.HasAccess(AccessValue.FirewallSelf) == false) return new List<FirewallRuleInfo>();
-                return firewallTransfer.Get(info.Data).ToList();
+                if (accessStore.HasAccess(AccessValue.FirewallSelf) == false) return new FirewallListInfo();
+                return firewallTransfer.Get(info.Data);
             }
-            if (accessStore.HasAccess(AccessValue.FirewallOther) == false) return new List<FirewallRuleInfo>();
+            if (accessStore.HasAccess(AccessValue.FirewallOther) == false) return new FirewallListInfo ();
 
             var resp = await messengerSender.SendReply(new MessageRequestWrap
             {
@@ -48,9 +49,9 @@ namespace linker.messenger.firewall
             }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK)
             {
-                return serializer.Deserialize<List<FirewallRuleInfo>>(resp.Data.Span);
+                return serializer.Deserialize<FirewallListInfo>(resp.Data.Span);
             }
-            return new List<FirewallRuleInfo>();
+            return new FirewallListInfo();
         }
 
         /// <summary>

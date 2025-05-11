@@ -40,8 +40,12 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         int OrderBy => info.OrderBy;
 
+        [MemoryPackInclude]
+        string Remark => info.Remark;
+
         [MemoryPackConstructor]
-        SerializableFirewallRuleInfo(string id, string srcId, string srcName, string groupId, string dstCIDR, string dstPort, snat.LinkerFirewallProtocolType protocol, snat.LinkerFirewallAction action, bool disabled, int orderby)
+        SerializableFirewallRuleInfo(string id, string srcId, string srcName, string groupId, string dstCIDR, string dstPort,
+            snat.LinkerFirewallProtocolType protocol, snat.LinkerFirewallAction action, bool disabled, int orderby, string remark)
         {
             var info = new FirewallRuleInfo
             {
@@ -54,7 +58,8 @@ namespace linker.messenger.serializer.memorypack
                 Protocol = protocol,
                 Action = action,
                 Disabled = disabled,
-                OrderBy = orderby
+                OrderBy = orderby,
+                Remark = remark
             };
             this.info = info;
         }
@@ -98,17 +103,16 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackIgnore]
         public readonly FirewallSearchInfo info;
 
-        [MemoryPackInclude]
-        string SrcName => info.SrcName;
+
 
         [MemoryPackInclude]
         string GroupId => info.GroupId;
 
         [MemoryPackInclude]
-        string DstCidr => info.DstCidr;
+        string Str => info.Str;
 
         [MemoryPackInclude]
-        string DstPort => info.DstPort;
+        int Disabled => info.Disabled;
 
         [MemoryPackInclude]
         snat.LinkerFirewallProtocolType Protocol => info.Protocol;
@@ -116,18 +120,14 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         snat.LinkerFirewallAction Action => info.Action;
 
-        [MemoryPackInclude]
-        bool Disabled => info.Disabled;
-
         [MemoryPackConstructor]
-        SerializableFirewallSearchInfo(string srcName, string groupId, string dstCIDR, string dstPort, snat.LinkerFirewallProtocolType protocol, snat.LinkerFirewallAction action, bool disabled)
+        SerializableFirewallSearchInfo(string groupId, string str, snat.LinkerFirewallProtocolType protocol,
+            snat.LinkerFirewallAction action, int disabled)
         {
             var info = new FirewallSearchInfo
             {
-                SrcName = srcName,
                 GroupId = groupId,
-                DstCidr = dstCIDR,
-                DstPort = dstPort,
+                Str = str,
                 Protocol = protocol,
                 Action = action,
                 Disabled = disabled,
@@ -217,6 +217,61 @@ namespace linker.messenger.serializer.memorypack
             }
 
             var wrapped = reader.ReadPackable<SerializableFirewallSearchForwardInfo>();
+            value = wrapped.info;
+        }
+    }
+
+
+    [MemoryPackable]
+    public readonly partial struct SerializableFirewallListInfo
+    {
+        [MemoryPackIgnore]
+        public readonly FirewallListInfo info;
+
+        [MemoryPackInclude, MemoryPackAllowSerialize]
+        LinkerFirewallState State => info.State;
+
+        [MemoryPackInclude]
+        List<FirewallRuleInfo> List => info.List;
+
+        [MemoryPackConstructor]
+        SerializableFirewallListInfo(LinkerFirewallState state, List<FirewallRuleInfo> list)
+        {
+            this.info = new FirewallListInfo
+            {
+                List = list,
+                State = state
+            };
+        }
+
+        public SerializableFirewallListInfo(FirewallListInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class FirewallListInfoFormatter : MemoryPackFormatter<FirewallListInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref FirewallListInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableFirewallListInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref FirewallListInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableFirewallListInfo>();
             value = wrapped.info;
         }
     }

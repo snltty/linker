@@ -17,6 +17,7 @@
                         <el-dropdown-item v-else-if="hasApiPasswordOther" @click="handleApiPassword(scope.row)"><el-icon><HelpFilled /></el-icon> 管理接口</el-dropdown-item>
                         <el-dropdown-item @click="handleStopwatch(scope.row.MachineId,scope.row.MachineName)"><el-icon><Platform /></el-icon>它的信标</el-dropdown-item>
                         <el-dropdown-item @click="handleStopwatch('',$t('status.messenger'))"><el-icon><Platform /></el-icon>服务器信标</el-dropdown-item>
+                        <el-dropdown-item @click="handleRoutes(scope.row.MachineId,scope.row.MachineName)"><el-icon><Paperclip /></el-icon>网卡路由</el-dropdown-item>
                     </el-dropdown-menu>
                 </template>
             </el-dropdown>
@@ -29,16 +30,17 @@
 import { signInDel } from '@/apis/signin';
 import { exit } from '@/apis/updater';
 import { injectGlobalData } from '@/provide';
-import { Delete,SwitchButton,ArrowDown, Flag,HelpFilled,Platform } from '@element-plus/icons-vue'
+import { Delete,SwitchButton,ArrowDown, Flag,HelpFilled,Platform,Paperclip } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { computed } from 'vue';
 import { useAccess } from './access';
 import { setApiPassword } from '@/apis/access';
 import { useFlow } from './flow';
+import { useTuntap } from './tuntap';
 
 export default {
     emits:['refresh','access'],
-    components:{Delete,SwitchButton,ArrowDown,Flag,HelpFilled,Platform},
+    components:{Delete,SwitchButton,ArrowDown,Flag,HelpFilled,Platform,Paperclip},
     setup (props,{emit}) {
         
         const globalData = injectGlobalData();
@@ -55,6 +57,7 @@ export default {
         const hasApiPasswordOther = computed(()=>globalData.value.hasAccess('SetApiPasswordOther')); 
         
         const flow = useFlow();
+        const tuntap  = useTuntap();
         
 
         const handleDel = (machineId,machineName)=>{
@@ -113,9 +116,14 @@ export default {
             flow.value.device.name = name;
             flow.value.show = true;
         }
+        const handleRoutes = (id,name)=>{
+            tuntap.value.device.id = id;
+            tuntap.value.device.name = name;
+            tuntap.value.showRoutes = true;
+        }
 
         return {accessList,handleDel,handleExit,hasReboot,hasRemove,hasAccess,handleShowAccess,handleAccess,
-            hasApiPassword,hasApiPasswordOther,handleApiPassword,handleStopwatch
+            hasApiPassword,hasApiPasswordOther,handleApiPassword,handleStopwatch,handleRoutes
         }
     }
 }

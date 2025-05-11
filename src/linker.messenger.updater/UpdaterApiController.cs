@@ -177,6 +177,17 @@ namespace linker.messenger.updater
                 updaterTransfer.Check();
             }
         }
+
+        public async Task<bool> CheckKey(ApiControllerParamsInfo param)
+        {
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)UpdaterMessengerIds.CheckKey,
+                Payload = serializer.Serialize(param.Content)
+            }).ConfigureAwait(false);
+            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
+        }
     }
 
 
