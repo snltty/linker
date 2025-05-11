@@ -33,6 +33,7 @@ namespace linker.messenger.store.file
         private void Helper_OnAppExit(object sender, EventArgs e)
         {
             Save();
+            dBfactory.Dispose();
         }
 
         private void Load()

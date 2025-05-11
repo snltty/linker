@@ -29,11 +29,6 @@ namespace linker.messenger.tuntap
             this.linkerTunDeviceAdapter = linkerTunDeviceAdapter;
             linkerTunDeviceAdapter.AddHooks(new List<ILinkerTunPacketHook> { tuntapFirewall });
             Helper.OnAppExit += Helper_OnAppExit;
-            if (OperatingSystem.IsAndroid() == false)
-            {
-                AppDomain.CurrentDomain.ProcessExit += (s, e) => Shutdown();
-                Console.CancelKeyPress += (s, e) => Shutdown();
-            }
         }
 
         private void Helper_OnAppExit(object sender, EventArgs e)

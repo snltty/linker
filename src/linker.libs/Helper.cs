@@ -25,9 +25,18 @@ namespace linker.libs
         public static async Task Await()
         {
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-            AppDomain.CurrentDomain.ProcessExit += (sender, e) => cancellationTokenSource.Cancel();
-            Console.CancelKeyPress += (sender, e) => cancellationTokenSource.Cancel();
+
+            AppDomain.CurrentDomain.ProcessExit += (sender, e) => Exit(cancellationTokenSource);
+            Console.CancelKeyPress += (sender, e) => Exit(cancellationTokenSource);
             await Task.Delay(-1, cancellationTokenSource.Token).ConfigureAwait(false);
+        }
+        private static void Exit(CancellationTokenSource cancellationTokenSource)
+        {
+            if(cancellationTokenSource.IsCancellationRequested == false)
+            {
+                cancellationTokenSource.Cancel();
+                AppExit(0);
+            }
         }
 
         private delegate bool ConsoleCtrlDelegate(int ctrlType);

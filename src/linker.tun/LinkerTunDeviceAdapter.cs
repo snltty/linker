@@ -156,6 +156,7 @@ namespace linker.tun
                 cancellationTokenSource?.Cancel();
                 linkerTunDevice.Shutdown();
                 linkerTunDevice.RemoveNat(out string error);
+                lanSnat.Shutdown();
             }
             catch (Exception)
             {
@@ -289,7 +290,7 @@ namespace linker.tun
             List<ILinkerTunPacketHook> list = this.hooks.ToList();
             list.AddRange(hooks);
 
-            this.hooks = list.Distinct().OrderBy(c=>c.Level).ToArray();
+            this.hooks = list.Distinct().OrderBy(c => c.Level).ToArray();
         }
 
         private void Read()
@@ -334,7 +335,7 @@ namespace linker.tun
         /// </summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        public bool Write(string srcId,ReadOnlyMemory<byte> buffer)
+        public bool Write(string srcId, ReadOnlyMemory<byte> buffer)
         {
             if (linkerTunDevice == null || Status != LinkerTunDeviceStatus.Running) return false;
 

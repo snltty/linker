@@ -4,7 +4,6 @@ using linker.libs.timer;
 using linker.tunnel.connection;
 using LiteDB;
 using System.Net;
-using System.Runtime.ExceptionServices;
 
 namespace linker.messenger.store.file
 {
@@ -47,18 +46,18 @@ namespace linker.messenger.store.file
                 //让服务自动重启
                 Helper.AppExit(1);
             }
-
-            if (OperatingSystem.IsAndroid() == false)
-            {
-                AppDomain.CurrentDomain.ProcessExit += (s, e) => { database.Checkpoint(); database.Dispose(); };
-                Console.CancelKeyPress += (s, e) => { database.Checkpoint(); database.Dispose(); };
-            }
             TimerHelper.SetIntervalLong(database.Checkpoint, 3000);
         }
 
         public ILiteCollection<T> GetCollection<T>(string name)
         {
             return database.GetCollection<T>(name);
+        }
+
+        public void Dispose()
+        {
+            database.Checkpoint();
+            database.Dispose();
         }
     }
 

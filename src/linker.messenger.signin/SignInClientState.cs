@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using linker.libs;
+using System.Net;
 using System.Text.Json.Serialization;
 namespace linker.messenger.signin
 {
@@ -10,11 +11,12 @@ namespace linker.messenger.signin
 
         public SignInClientState()
         {
-            if (OperatingSystem.IsAndroid() == false)
-            {
-                AppDomain.CurrentDomain.ProcessExit += (s, e) => Disponse();
-                Console.CancelKeyPress += (s, e) => Disponse();
-            }
+            Helper.OnAppExit += Helper_OnAppExit;
+        }
+
+        private void Helper_OnAppExit(object sender, EventArgs e)
+        {
+            Disponse();
         }
 
         /// <summary>
