@@ -18,6 +18,9 @@
                         <el-dropdown-item @click="handleStopwatch(scope.row.MachineId,scope.row.MachineName)"><el-icon><Platform /></el-icon>它的信标</el-dropdown-item>
                         <el-dropdown-item @click="handleStopwatch('',$t('status.messenger'))"><el-icon><Platform /></el-icon>服务器信标</el-dropdown-item>
                         <el-dropdown-item @click="handleRoutes(scope.row.MachineId,scope.row.MachineName)"><el-icon><Paperclip /></el-icon>网卡路由</el-dropdown-item>
+                        
+                        <el-dropdown-item v-if="scope.row.isSelf && hasFirewallSelf" @click="handleFirewall(scope.row.MachineId,scope.row.MachineName)"><el-icon><CircleCheck /></el-icon>防火墙</el-dropdown-item>
+                        <el-dropdown-item v-else-if="hasFirewallOther" @click="handleFirewall(scope.row.MachineId,scope.row.MachineName)"><el-icon><CircleCheck /></el-icon>防火墙</el-dropdown-item>
                     </el-dropdown-menu>
                 </template>
             </el-dropdown>
@@ -30,7 +33,7 @@
 import { signInDel } from '@/apis/signin';
 import { exit } from '@/apis/updater';
 import { injectGlobalData } from '@/provide';
-import { Delete,SwitchButton,ArrowDown, Flag,HelpFilled,Platform,Paperclip } from '@element-plus/icons-vue'
+import { Delete,SwitchButton,ArrowDown, Flag,HelpFilled,Platform,Paperclip,CircleCheck } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { computed } from 'vue';
 import { useAccess } from './access';
@@ -40,7 +43,7 @@ import { useTuntap } from './tuntap';
 
 export default {
     emits:['refresh','access'],
-    components:{Delete,SwitchButton,ArrowDown,Flag,HelpFilled,Platform,Paperclip},
+    components:{Delete,SwitchButton,ArrowDown,Flag,HelpFilled,Platform,Paperclip,CircleCheck},
     setup (props,{emit}) {
         
         const globalData = injectGlobalData();
@@ -55,6 +58,9 @@ export default {
 
         const hasApiPassword = computed(()=>globalData.value.hasAccess('SetApiPassword')); 
         const hasApiPasswordOther = computed(()=>globalData.value.hasAccess('SetApiPasswordOther')); 
+
+        const hasFirewallSelf = computed(()=>globalData.value.hasAccess('FirewallSelf')); 
+        const hasFirewallOther = computed(()=>globalData.value.hasAccess('FirewallOther')); 
         
         const flow = useFlow();
         const tuntap  = useTuntap();
@@ -121,9 +127,15 @@ export default {
             tuntap.value.device.name = name;
             tuntap.value.showRoutes = true;
         }
+        const handleFirewall = (id,name)=>{
+            tuntap.value.device.id = id;
+            tuntap.value.device.name = name;
+            tuntap.value.showFirewall = true;
+        }
 
         return {accessList,handleDel,handleExit,hasReboot,hasRemove,hasAccess,handleShowAccess,handleAccess,
-            hasApiPassword,hasApiPasswordOther,handleApiPassword,handleStopwatch,handleRoutes
+            hasApiPassword,hasApiPasswordOther,handleApiPassword,handleStopwatch,handleRoutes,
+            hasFirewallSelf,hasFirewallOther,handleFirewall
         }
     }
 }

@@ -90,10 +90,10 @@ namespace linker.messenger.entry
                 .AddStoreFile()
                 //序列化 MemoryPack
                 .AddSerializerMemoryPack()
-                
+
                 //计划任务
                 .AddPlanClient().AddPlanServer()
-                
+
                 //防火墙
                 .AddFirewallClient().AddFirewallServer();
         }
@@ -159,6 +159,8 @@ namespace linker.messenger.entry
 
             if ((commonStore.Modes & CommonModes.Server) == CommonModes.Server)
             {
+                if ((modules & ExcludeModule.Updater) != ExcludeModule.Updater)
+                    serviceProvider.UseUpdaterServer();
                 if ((modules & ExcludeModule.Action) != ExcludeModule.Action)
                     serviceProvider.UseActionServer();
                 if ((modules & ExcludeModule.Forward) != ExcludeModule.Forward)
@@ -169,8 +171,6 @@ namespace linker.messenger.entry
                     serviceProvider.UseSocks5Server();
                 if ((modules & ExcludeModule.Tuntap) != ExcludeModule.Tuntap)
                     serviceProvider.UseTuntapServer();
-                if ((modules & ExcludeModule.Updater) != ExcludeModule.Updater)
-                    serviceProvider.UseUpdaterServer();
                 if ((modules & ExcludeModule.Firewall) != ExcludeModule.Firewall)
                     serviceProvider.UseFirewallServer();
 
@@ -184,7 +184,10 @@ namespace linker.messenger.entry
 
             if ((commonStore.Modes & CommonModes.Client) == CommonModes.Client)
             {
-                serviceProvider.UseLoggerClient();
+                if ((modules & ExcludeModule.Updater) != ExcludeModule.Updater)
+                    serviceProvider.UseUpdaterClient();
+                if ((modules & ExcludeModule.Logger) != ExcludeModule.Logger)
+                    serviceProvider.UseLoggerClient();
                 if ((modules & ExcludeModule.Api) != ExcludeModule.Api)
                     serviceProvider.UseApiClient();
                 if ((modules & ExcludeModule.Action) != ExcludeModule.Action)
@@ -197,8 +200,7 @@ namespace linker.messenger.entry
                     serviceProvider.UseSocks5Client();
                 if ((modules & ExcludeModule.Tuntap) != ExcludeModule.Tuntap)
                     serviceProvider.UseTuntapClient(config);
-                if ((modules & ExcludeModule.Updater) != ExcludeModule.Updater)
-                    serviceProvider.UseUpdaterClient();
+
                 if ((modules & ExcludeModule.Firewall) != ExcludeModule.Firewall)
                     serviceProvider.UseFirewallClient();
                 serviceProvider.UseExRoute().UseAccessClient().UseDecenterClient().UsePcpClient().UseRelayClient().UseSyncClient().UseTunnelClient().UseFlowClient();

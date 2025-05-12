@@ -139,8 +139,18 @@ export default {
             },
             rules:{
                 SrcId: [{ required: true, message: "required", trigger: "blur" }],
-                DstCIDR: [{ required: true, message: "required", trigger: "blur" }],
-                DstPort: [{ required: true, message: "required", trigger: "blur" }]
+                DstCIDR: [
+                    { 
+                        type:'string',required: true, message: "required", trigger: "blur",
+                        pattern: /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}(\/([0-9]|([1-2][0-9])|(3[0-2])))?)$|^0$|^\*$/,
+                    }
+                ],
+                DstPort: [
+                    { 
+                        type:'string',required: true, message: "required", trigger: "blur",
+                        pattern: /^((\d+)(?:,(\d+))*)$|^((\d+)(?:\-(\d+))*)$|^0$|^\*$/,
+                    }
+                ]
             },
             protocols: [
                 {label:'TCP',value:1},

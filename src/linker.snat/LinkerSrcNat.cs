@@ -92,6 +92,8 @@ namespace linker.snat
             }
             try
             {
+                Shutdown();
+
                 srcIp = NetworkHelper.ToValue(info.Src);
                 srcAddr = IPv4Addr.Parse(info.Src.ToString());
 
@@ -111,6 +113,8 @@ namespace linker.snat
             }
             return false;
         }
+        
+
         /// <summary>
         /// 过滤条件，只过滤一定的数据包
         /// </summary>

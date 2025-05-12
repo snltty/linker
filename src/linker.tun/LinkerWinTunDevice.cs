@@ -6,7 +6,6 @@ using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text.RegularExpressions;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace linker.tun
 {
@@ -20,13 +19,9 @@ namespace linker.tun
         private IntPtr waitHandle = IntPtr.Zero, adapter = IntPtr.Zero, session = IntPtr.Zero;
         private int interfaceNumber = 0;
         private IPAddress address;
-        private uint address32;
         private byte prefixLength = 24;
 
-        private string defaultInterfaceName = string.Empty;
-        private int defaultInterfaceNumber = 0;
-        private IPAddress defaultInterfaceIP;
-        private uint defaultInterfaceIP32;
+        private Guid guid = Guid.Parse("771EF382-8718-5BC5-EBF0-A28B86142278");
 
         private CancellationTokenSource tokenSource;
 
@@ -40,8 +35,8 @@ namespace linker.tun
         {
             this.name = name;
             this.address = address;
-            this.address32 = NetworkHelper.ToValue(address);
             this.prefixLength = prefixLength;
+
 
             error = string.Empty;
             if (adapter != 0)
@@ -49,11 +44,16 @@ namespace linker.tun
                 error = ($"Adapter already exists");
                 return false;
             }
-            Guid guid = Guid.Parse("771EF382-8718-5BC5-EBF0-A28B86142278");
 
             for (int i = 0; i < 5; i++)
             {
-                if ((adapter = WinTun.WintunCreateAdapter(name, name, ref guid)) == 0 && (adapter = WinTun.WintunOpenAdapter(name)) == 0)
+                if (
+                    (
+                        (adapter = WinTun.WintunCreateAdapter(name, name, ref guid)) == 0
+                        && (adapter = WinTun.WintunOpenAdapter(name)) == 0
+                    )
+                    || (session = WinTun.WintunStartSession(adapter, 0x400000)) == 0
+                )
                 {
                     Shutdown();
                     Thread.Sleep(2000);
@@ -66,33 +66,29 @@ namespace linker.tun
                 error = ($"Failed to create adapter {Marshal.GetLastWin32Error()}");
                 return false;
             }
-
-            uint version = WinTun.WintunGetRunningDriverVersion();
-            session = WinTun.WintunStartSession(adapter, 0x400000);
             if (session == 0)
             {
                 error = ($"Failed to start session");
                 Shutdown();
                 return false;
             }
-            waitHandle = WinTun.WintunGetReadWaitEvent(session);
 
-            for (int i = 0; i < 5; i++)
+            waitHandle = WinTun.WintunGetReadWaitEvent(session);
+            for (int i = 0; i < 5 && interfaceNumber == 0; i++)
             {
                 try
                 {
                     AddIPV4();
                     AddIPV6();
 
-                    GetWindowsInterfaceNum();
-                    GetDefaultInterface();
+                    interfaceNumber = GetWindowsInterfaceNum();
                     tokenSource = new CancellationTokenSource();
 
                     return true;
                 }
                 catch (Exception)
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(2000);
                 }
             }
             error = ($"Failed to set adapter ip {Marshal.GetLastWin32Error()}");
@@ -400,15 +396,15 @@ namespace linker.tun
             return false;
         }
 
-        private void GetWindowsInterfaceNum()
+        private int GetWindowsInterfaceNum()
         {
             NetworkInterface adapter = NetworkInterface.GetAllNetworkInterfaces()
                     .FirstOrDefault(c => c.Name == Name);
             if (adapter != null)
             {
-                interfaceNumber = adapter.GetIPProperties().GetIPv4Properties().Index;
+                return adapter.GetIPProperties().GetIPv4Properties().Index;
             }
-
+            return 0;
         }
         private void GetDefaultInterface()
         {
@@ -426,10 +422,12 @@ namespace linker.tun
                         {
                             if (ip.Equals(inter.GetIPProperties().UnicastAddresses.FirstOrDefault(c => c.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).Address))
                             {
+                                /*
                                 defaultInterfaceName = inter.Name;
                                 defaultInterfaceNumber = inter.GetIPProperties().GetIPv4Properties().Index;
                                 defaultInterfaceIP = ip;
                                 defaultInterfaceIP32 = NetworkHelper.ToValue(ip);
+                                */
                                 return;
                             }
                         }

@@ -25,6 +25,7 @@
         <ConnectionsEdit v-if="connections.showEdit" v-model="connections.showEdit" ></ConnectionsEdit>
         <TuntapEdit v-if="tuntap.showEdit" v-model="tuntap.showEdit"  @change="handleTuntapRefresh"></TuntapEdit>
         <TuntapRoutes v-if="tuntap.showRoutes" v-model="tuntap.showRoutes" ></TuntapRoutes>
+        <TuntapFirewall v-if="tuntap.showFirewall" v-model="tuntap.showFirewall" ></TuntapFirewall>
         <Socks5Edit v-if="socks5.showEdit" v-model="socks5.showEdit"  @change="handleSocks5Refresh"></Socks5Edit>
         <TuntapLease v-if="tuntap.showLease" v-model="tuntap.showLease"  @change="handleTuntapRefresh"></TuntapLease>
         <ForwardEdit v-if="forward.showEdit" v-model="forward.showEdit" ></ForwardEdit>
@@ -53,6 +54,7 @@ import TuntapEdit from './TuntapEdit.vue'
 import TuntapLease from './TuntapLease.vue'
 import { provideTuntap } from './tuntap'
 import TuntapRoutes from './TuntapRoutes.vue'
+import TuntapFirewall from './TuntapFirewall.vue'
 
 import Socks5 from './Socks5.vue'
 import Socks5Edit from './Socks5Edit.vue'
@@ -86,7 +88,7 @@ export default {
         AccessEdit,
         Tunnel,TunnelEdit,
         ConnectionsEdit,
-        Tuntap,TuntapEdit,TuntapLease,TuntapRoutes, 
+        Tuntap,TuntapEdit,TuntapLease,TuntapRoutes,TuntapFirewall, 
         Socks5, Socks5Edit,
         Forward,ForwardEdit,
         SForwardEdit ,UpdaterConfirm,

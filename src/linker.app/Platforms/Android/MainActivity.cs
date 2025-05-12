@@ -6,6 +6,7 @@ using Android.Net;
 using Android.OS;
 using Android.Views;
 using AndroidX.Core.App;
+using AndroidX.Core.Content;
 using AndroidX.Core.View;
 using Java.IO;
 using linker.app.Services;
@@ -34,6 +35,11 @@ namespace linker.app
             SetLightStatusBar();
 
             base.OnCreate(savedInstanceState);
+
+            if (ContextCompat.CheckSelfPermission(this, Manifest.Permission.BindVpnService) != Permission.Granted)
+            {
+                ActivityCompat.RequestPermissions(this, new string[] { Manifest.Permission.BindVpnService }, 0);
+            }
 
             intent = new Intent(this, typeof(ForegroundService));
             StartForegroundService(intent);

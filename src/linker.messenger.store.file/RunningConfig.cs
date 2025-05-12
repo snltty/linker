@@ -10,7 +10,7 @@ namespace linker.messenger.store.file
     /// </summary>
     public sealed class RunningConfig
     {
-        private readonly ILiteCollection<RunningConfigInfo> liteCollection;
+        private ILiteCollection<RunningConfigInfo> liteCollection;
 
 
         private SemaphoreSlim slim = new SemaphoreSlim(1);
@@ -117,5 +117,5 @@ namespace linker.messenger.store.file
     }
 
 
-    
+
 }

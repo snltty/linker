@@ -2,7 +2,6 @@
 using System.ServiceProcess;
 using System.Diagnostics;
 using linker.messenger.entry;
-using linker.libs.extends;
 using System.Text;
 using System.Text.Json;
 
@@ -22,6 +21,11 @@ namespace linker
             {
                 LoggerHelper.Instance.Error(b.ExceptionObject + "");
             };
+            TaskScheduler.UnobservedTaskException += (a, b) =>
+            {
+                LoggerHelper.Instance.Error(b.Exception + "");
+            };
+
 
             //线程数
             //ThreadPool.SetMinThreads(1024, 1024);
@@ -74,7 +78,8 @@ namespace linker
             }
             catch (Exception ex)
             {
-                LoggerHelper.Instance.Error($"args parse fail {ex}");
+                if (args.Length > 0)
+                    LoggerHelper.Instance.Error($"args parse fail {ex}");
             }
             return json;
         }

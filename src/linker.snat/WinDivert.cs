@@ -181,7 +181,7 @@ namespace linker.snat
         /// 注销驱动
         /// </summary>
 #pragma warning disable CA1816
-        public void Dispose() => handle.Dispose();
+        public void Dispose() => handle?.Dispose();
 #pragma warning restore CA1816
 
         /// <summary>

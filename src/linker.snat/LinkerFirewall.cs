@@ -1,6 +1,5 @@
 ﻿using linker.libs;
 using System.Collections.Concurrent;
-using System.Collections.Frozen;
 using System.Net;
 using System.Net.Sockets;
 using static linker.snat.LinkerSrcNat;
@@ -40,19 +39,6 @@ namespace linker.snat
                 buildedRules = new List<LinkerFirewallRuleBuildInfo>();
                 return;
             }
-
-            //末尾有一条默认允许所有的规则
-            /*
-            rules.Add(new LinkerFirewallRuleInfo
-            {
-                SrcId = string.Empty,
-                DstCIDR = "0.0.0.0/0",
-                DstPort = "0",
-                Protocol = LinkerFirewallProtocolType.All,
-                Action = LinkerFirewallAction.Allow,
-            });
-            */
-
             buildedRules = rules.Select(c =>
             {
                 try
@@ -88,7 +74,10 @@ namespace linker.snat
                         {
                             prefixLength = byte.Parse(cidr[1]);
                         }
+                        if (prefixLength > 32) prefixLength = 32;
                     }
+
+                   
 
                     return new LinkerFirewallRuleBuildInfo
                     {
