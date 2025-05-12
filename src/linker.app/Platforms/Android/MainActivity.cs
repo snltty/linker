@@ -36,10 +36,7 @@ namespace linker.app
 
             base.OnCreate(savedInstanceState);
 
-            if (ContextCompat.CheckSelfPermission(this, Manifest.Permission.BindVpnService) != Permission.Granted)
-            {
-                ActivityCompat.RequestPermissions(this, new string[] { Manifest.Permission.BindVpnService }, 0);
-            }
+            ConfigureVpn();
 
             intent = new Intent(this, typeof(ForegroundService));
             StartForegroundService(intent);
@@ -59,6 +56,22 @@ namespace linker.app
             }
         }
 
+        private void ConfigureVpn()
+        {
+            if (ContextCompat.CheckSelfPermission(this, Manifest.Permission.BindVpnService) != Permission.Granted)
+            {
+                ActivityCompat.RequestPermissions(this, new string[] { Manifest.Permission.BindVpnService }, 0);
+            }
+            var intent = VpnService.Prepare(this);
+            if (intent != null)
+            {
+                StartActivityForResult(intent, 0x0F);
+            }
+            else
+            {
+                OnActivityResult(0x0F, Result.Ok, null);
+            }
+        }
         protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
         {
             base.OnActivityResult(requestCode, resultCode, data);
@@ -242,21 +255,6 @@ namespace linker.app
             TuntapTransfer tuntapTransfer = LinkerMessengerEntry.GetService<TuntapTransfer>();
             tuntapTransfer.OnSetupBefore += () =>
             {
-                try
-                {
-                    Intent intent = VpnService.Prepare(Android.App.Application.Context);
-                    if (intent != null)
-                    {
-                        intent.AddFlags(ActivityFlags.NewTask);
-                        StartActivity(intent);
-                        return;
-                    }
-                }
-                catch (Exception)
-                {
-                    return;
-                }
-
                 try
                 {
                     vpnIntent = new Intent(Android.App.Application.Context, typeof(VpnServiceLinker));
@@ -594,4 +592,3 @@ namespace linker.app
         }
     }
 }
-
