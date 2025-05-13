@@ -3,28 +3,7 @@
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm.Data" :rules="state.rules" label-width="auto">
                 <el-form-item :label="$t('firewall.srcName')" prop="SrcId">
-                    <el-row class="w-100">
-                        <el-col :span="12">
-                            <el-select v-model="state.ruleForm.Data.SrcId" @change="handleMachineChange()"
-                                filterable remote :loading="state.loading" :remote-method="handleMachineSearch">
-                                <template #header>
-                                    <div class="t-c">
-                                        <div class="page-wrap">
-                                            <el-pagination small background layout="prev, pager, next" 
-                                            :page-size="state.machineIds.Request.Size" 
-                                            :total="state.machineIds.Count" 
-                                            :pager-count="5"
-                                            :current-page="state.machineIds.Request.Page" @current-change="handleMachinePageChange" />
-                                        </div>
-                                    </div>
-                                </template>
-                                <el-option v-for="(item, index) in state.machineIds.List" :key="index" :label="item.MachineName" :value="item.MachineId">
-                                </el-option>
-                            </el-select>
-                        </el-col>
-                        <el-col :span="12"></el-col>
-                    </el-row>
-                    
+                    <el-input type="textarea" v-model="state.ruleForm.Data.SrcName" @click="handleSrcId" readonly resize="none" rows="2"></el-input>
                 </el-form-item>
                 <el-form-item></el-form-item>
                 <el-form-item :label="$t('firewall.dstCidr')" prop="DstCIDR">
@@ -90,14 +69,33 @@
             </el-form>
         </div>
     </el-dialog>
+    <el-dialog class="options-center" :title="$t('firewall.srcName')" destroy-on-close v-model="state.showSrcName" width="54rem" top="2vh">
+        <div>
+            <el-transfer class="src-tranfer"
+                v-model="state.srcIdValues"
+                filterable
+                :filter-method="srcFilterMethod"
+                :data="state.srcIds"
+                :titles="[$t('firewall.unselect'), $t('firewall.selected')]"
+                :props="{
+                    key: 'MachineId',
+                    label: 'MachineName',
+                }"
+            />
+            <div class="t-c w-100 mgt-1">
+                    <el-button @click="state.showSrcName = false">{{$t('common.cancel')}}</el-button>
+                    <el-button type="primary" @click="handleSrcName">{{$t('common.confirm')}}</el-button>
+                </div>
+        </div>
+    </el-dialog>
 </template>
 
 <script>
 import { ElMessage } from 'element-plus';
-import { inject, reactive, ref, watch } from 'vue'
+import { inject, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n';
 import { addFirewall } from '@/apis/firewall';
-import { getSignInIds } from '@/apis/signin';
+import { getSignInIds, getSignInNames } from '@/apis/signin';
 export default {
     props: ['modelValue'],
     emits: ['update:modelValue','success'],
@@ -108,13 +106,6 @@ export default {
         const state = reactive({
             show:true,
             loading:false,
-            machineIds:{
-                Request: {
-                    Page: 1, Size:10, Name: ''
-                },
-                Count: 0,
-                List: []
-            },
 
             protocolChecks:[
                 (add.value.Data.Protocol & 1) ,
@@ -160,6 +151,10 @@ export default {
                 {label:t('firewall.actionAllow'),value:1},
                 {label:t('firewall.actionDeny'),value:2},
             ],
+
+            srcIds: [],
+            srcIdValues:[],
+            showSrcName:false,
         });
         watch(() => state.show, (val) => {
             if (!val) {
@@ -185,45 +180,42 @@ export default {
             });
         }
 
-        const handleMachineChange = () => {
-            const machine = state.machineIds.List.find(c=>c.MachineId == state.ruleForm.Data.SrcId);
-            if(machine){
-                state.ruleForm.Data.SrcName = machine.MachineName;
-            }
+
+        const handleSrcId = ()=>{
+            state.srcIdValues = state.ruleForm.Data.SrcId.split(',').filter(c=>c);
+            state.showSrcName = true;
         }
-        const handleMachinePageChange = (page)=>{
-            state.machineIds.Request.Page = page;
-            _getMachineIds();
+        const handleSrcName = ()=>{
+            state.ruleForm.Data.SrcId = state.srcIdValues.join(',');
+            state.ruleForm.Data.SrcName = state.srcIds.filter(c=>state.srcIdValues.includes(c.MachineId)).map(c=>c.MachineName).join(',');
+            state.showSrcName = false;
         }
-        const handleMachineSearch = (name)=>{
-            state.machineIds.Request.Name = name;
-            _getMachineIds();
-        }
-        const _getMachineIds = ()=>{
+        const _getSignInNames = ()=>{
             state.loading = true;
-            getSignInIds(state.machineIds.Request).then((res)=>{
+            getSignInNames().then((res)=>{
                 state.loading = false;
-                state.machineIds.Request = res.Request;
-                state.machineIds.Count = res.Count;
-                res.List.splice(0,0,{MachineId:'*',MachineName:'*'});
+                res.splice(0,0,{MachineId:'*',MachineName:'*'});
 
-                if(state.ruleForm.Data.SrcId){
-                    if(res.List.filter(c=>c.MachineId == state.ruleForm.Data.SrcId).length == 0){
-                        res.List.splice(1,0,{MachineId:state.ruleForm.Data.SrcId,MachineName:state.ruleForm.Data.SrcName});
-                    }
-                }
-
-                state.machineIds.List = res.List;
+                state.srcIds = res;
             }).catch((e)=>{
                 state.loading = false;
             });
         }
+        const srcFilterMethod = (query, item) => {
+             return item.MachineName.toLowerCase().includes(query.toLowerCase())
+        }
+        onMounted(()=>{
+            _getSignInNames();
+        });
 
-        return {state,ruleFormRef,handleSave,handleMachineSearch,handleMachinePageChange,handleMachineChange}
+        return {state,ruleFormRef,handleSave,srcFilterMethod,handleSrcId,handleSrcName}
     }
 }
 </script>
+<style lang="stylus">
+.el-transfer.src-tranfer .el-transfer__buttons .el-button{display:block;}
+.el-transfer.src-tranfer .el-transfer__buttons .el-button:nth-child(2){margin:1rem 0 0 0;}
+</style>
 <style lang="stylus" scoped>
 .el-form-item{margin-bottom:1rem}
-.el-input-number--small{width:10rem !important}
 </style>

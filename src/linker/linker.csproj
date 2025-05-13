@@ -21,12 +21,11 @@
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Description>1. 一些累计更新
-2. 优化安卓APP
+2. 优化安卓APP，启动网卡时申请VPN权限，有新路由时重建VPN
 3. 新增防火墙，用于网卡、端口转发、和socks5
 4. 优化重启清理数据，优化了网卡自启动问题
 5. 检测密钥是否正确
-6. 如果你设备很多，请尝试升级其中一个成功重启后再升级其它
-7. 先不要升级，先不要升级，先不要升级，等我先试试</Description>
+6. 如果你设备很多，请尝试升级其中一个成功重启后再升级其它</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>

@@ -1,38 +1,41 @@
 <template>
     <div class="head">
         <div class="flex">
-            <div>
-                <el-select v-model="state.search.Data.Action" @change="loadData" size="small" class="mgr-1" style="width: 9rem;">
-                    <el-option :value="item.value" :label="item.label" v-for="(item,index) in state.actions"></el-option>
-                </el-select>
+            <div class="flex mgt-1">
+                <div>
+                    <el-select v-model="state.search.Data.Action" @change="loadData" size="small" class="mgr-1" style="width: 9rem;">
+                        <el-option :value="item.value" :label="item.label" v-for="(item,index) in state.actions"></el-option>
+                    </el-select>
+                </div>
+                <div>
+                    <el-select v-model="state.search.Data.Protocol" @change="loadData" size="small" class="mgr-1" style="width: 9rem;">
+                        <el-option :value="item.value" :label="item.label" v-for="(item,index) in state.protocols"></el-option>
+                    </el-select>
+                </div>
+                <div>
+                    <el-select v-model="state.search.Data.Disabled" @change="loadData" size="small" class="mgr-1" style="width: 9rem;">
+                        <el-option :value="item.value" :label="item.label" v-for="(item,index) in state.states"></el-option>
+                    </el-select>
+                </div>
             </div>
-            <div>
-                <el-select v-model="state.search.Data.Protocol" @change="loadData" size="small" class="mgr-1" style="width: 9rem;">
-                    <el-option :value="item.value" :label="item.label" v-for="(item,index) in state.protocols"></el-option>
-                </el-select>
+            <div class="flex mgt-1">
+                <div>
+                    <span>{{$t('firewall.srcName')}}/{{$t('firewall.dstCidr')}}/{{$t('firewall.dstPort')}}/{{$t('firewall.remark')}}</span>
+                    <el-input v-model="state.search.Data.Str" @change="loadData" size="small" style="width:7rem"></el-input>
+                </div>
+                <div class="mgl-1">
+                    <el-button size="small" :loading="state.loading" @click="loadData">{{$t('common.refresh')}}</el-button>
+                </div>
+                <div class="mgl-1">
+                    <el-button type="success" size="small" :loading="state.loading" @click="handleAdd()">+</el-button>
+                </div>
             </div>
-            <div>
-                <el-select v-model="state.search.Data.Disabled" @change="loadData" size="small" class="mgr-1" style="width: 9rem;">
-                    <el-option :value="item.value" :label="item.label" v-for="(item,index) in state.states"></el-option>
-                </el-select>
-            </div>
-            
-            <div>
-                <span>{{$t('firewall.srcName')}}/{{$t('firewall.dstCidr')}}/{{$t('firewall.dstPort')}}/{{$t('firewall.remark')}}</span>
-                <el-input v-model="state.search.Data.Str" @change="loadData" size="small" style="width:7rem"></el-input>
-            </div>
-            <div class="mgl-1">
-                <el-button size="small" :loading="state.loading" @click="loadData">{{$t('common.refresh')}}</el-button>
-            </div>
-            <div class="mgl-1">
-                <el-button type="success" size="small" :loading="state.loading" @click="handleAdd()">+</el-button>
-            </div>
-            <div class="flex-1"></div>
+             <div class="flex-1"></div>
         </div>
     </div>
     <div class="body flex-1 relative">
-        <el-table class="firewall" stripe border :data="state.data" size="small" :height="`${state.height}px`" width="100%" :row-class-name="tableRowClassName">
-            <el-table-column prop="SrcName" :label="$t('firewall.srcName')" >
+        <el-table class="firewall" stripe border :data="state.data" size="small" :height="`${state.height}px`" :row-class-name="tableRowClassName">
+              <el-table-column prop="SrcName" :label="$t('firewall.srcName')" >
                 <template v-slot="scope">
                     <div class="ellipsis" :title="scope.row.SrcName">{{ scope.row.SrcName }}</div>
                 </template>
@@ -230,7 +233,7 @@ export default {
     margin-bottom: 1rem;
     color:#555;
     border:1px solid #eee;
-    padding: 1rem;
+    padding:0 1rem 1rem 1rem;
 }
 </style>
 <style  lang="stylus">

@@ -69,7 +69,7 @@
                                 <router-link :to="{name:'FullAction'}"><img src="@/assets/login.svg"   height="20" style="vertical-align: text-top;"/> {{$t('head.action')}}</router-link>
                             </el-dropdown-item>
                             <el-dropdown-item v-if="hasFirewall">
-                                <router-link :to="{name:'FullFirewall'}"><img src="@/assets/anquan.svg"   height="20" style="vertical-align: text-top;"/> {{$t('head.action')}}</router-link>
+                                <router-link :to="{name:'FullFirewall'}"><img src="@/assets/anquan.svg"   height="20" style="vertical-align: text-top;"/> {{$t('head.firewall')}}</router-link>
                             </el-dropdown-item>
                             <el-dropdown-item v-if="hasLogger">
                                 <router-link :to="{name:'FullLogger'}"><img src="@/assets/rizhi.svg"  height="20" style="vertical-align: text-top;"/> {{$t('head.logger')}}</router-link>

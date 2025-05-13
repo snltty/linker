@@ -37,7 +37,7 @@ jobs:
           release_name: v1.7.9.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 一些累计更新\r\n2. 优化安卓APP\r\n3. 新增防火墙，用于网卡、端口转发、和socks5\r\n4. 优化重启清理数据，优化了网卡自启动问题\r\n5. 检测密钥是否正确\r\n6. 如果你设备很多，请尝试升级其中一个成功重启后再升级其它\r\n7. 先不要升级，先不要升级，先不要升级，等我先试试"
+          body: "1. 一些累计更新\r\n2. 优化安卓APP，启动网卡时申请VPN权限，有新路由时重建VPN\r\n3. 新增防火墙，用于网卡、端口转发、和socks5\r\n4. 优化重启清理数据，优化了网卡自启动问题\r\n5. 检测密钥是否正确\r\n6. 如果你设备很多，请尝试升级其中一个成功重启后再升级其它"
       - name: publish projects
         run: ./publish.bat "C:\\Android\\android-sdk"
       - name: upload-win-x86-oss

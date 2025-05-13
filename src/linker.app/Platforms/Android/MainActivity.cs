@@ -36,8 +36,6 @@ namespace linker.app
 
             base.OnCreate(savedInstanceState);
 
-            ConfigureVpn();
-
             intent = new Intent(this, typeof(ForegroundService));
             StartForegroundService(intent);
         }
@@ -56,22 +54,6 @@ namespace linker.app
             }
         }
 
-        private void ConfigureVpn()
-        {
-            if (ContextCompat.CheckSelfPermission(this, Manifest.Permission.BindVpnService) != Permission.Granted)
-            {
-                ActivityCompat.RequestPermissions(this, new string[] { Manifest.Permission.BindVpnService }, 0);
-            }
-            var intent = VpnService.Prepare(this);
-            if (intent != null)
-            {
-                StartActivityForResult(intent, 0x0F);
-            }
-            else
-            {
-                OnActivityResult(0x0F, Result.Ok, null);
-            }
-        }
         protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
         {
             base.OnActivityResult(requestCode, resultCode, data);
@@ -140,7 +122,6 @@ namespace linker.app
         }
 
     }
-
 
     /// <summary>
     /// 前台服务，运行Linker
@@ -257,6 +238,25 @@ namespace linker.app
             {
                 try
                 {
+                    MainThread.InvokeOnMainThreadAsync(() =>
+                    {
+                        if (ContextCompat.CheckSelfPermission(this, Manifest.Permission.BindVpnService) != Permission.Granted)
+                        {
+                            ActivityCompat.RequestPermissions(Platform.CurrentActivity, new string[] { Manifest.Permission.BindVpnService }, 0);
+                        }
+                        Intent intent = VpnService.Prepare(this);
+                        if (intent != null)
+                        {
+                            //Android.Widget.Toast.MakeText(this, "请允许Linker使用VPN服务", Android.Widget.ToastLength.Short)?.Show();
+                            Platform.CurrentActivity.StartActivityForResult(intent, 0x0F);
+                        }
+                    }).Wait();
+                }
+                catch (Exception)
+                {
+                }
+                try
+                {
                     vpnIntent = new Intent(Android.App.Application.Context, typeof(VpnServiceLinker));
                     Android.App.Application.Context.StartService(vpnIntent);
                     Task.Delay(3000).Wait();
@@ -325,26 +325,36 @@ namespace linker.app
             this.address = address;
             this.prefixLength = prefixLength;
 
-            builder = new VpnService.Builder(vpnService);
-            builder.SetMtu(1420)
-                .AddAddress(address.ToString(), prefixLength)
-                .AddDnsServer("8.8.8.8").SetBlocking(false);
-
-            foreach (var item in routes)
-            {
-                builder.AddRoute(NetworkHelper.ToNetworkIP(item.Address, item.PrefixLength).ToString(), item.PrefixLength);
-            }
-
-            if (OperatingSystem.IsAndroidVersionAtLeast(29))
-                builder.SetMetered(false);
-            vpnInterface = builder.SetSession(name).Establish();
-
-            vpnInput = new FileInputStream(vpnInterface.FileDescriptor);
-            vpnOutput = new FileOutputStream(vpnInterface.FileDescriptor);
-            fd = vpnInterface.Fd;
+            Build();
 
             return true;
         }
+        private void Build()
+        {
+            try
+            {
+                builder = new VpnService.Builder(vpnService);
+                builder.SetMtu(1420)
+                    .AddAddress(address.ToString(), prefixLength)
+                    .AddDnsServer("8.8.8.8").SetBlocking(false);
+
+                foreach (var item in routes)
+                {
+                    builder.AddRoute(NetworkHelper.ToNetworkIP(item.Address, item.PrefixLength).ToString(), item.PrefixLength);
+                }
+
+                if (OperatingSystem.IsAndroidVersionAtLeast(29))
+                    builder.SetMetered(false);
+                vpnInterface = builder.SetSession(name).Establish();
+
+                vpnInput = new FileInputStream(vpnInterface.FileDescriptor);
+                vpnOutput = new FileOutputStream(vpnInterface.FileDescriptor);
+                fd = vpnInterface.Fd;
+            }
+            catch (Exception)
+            { }
+        }
+
 
         byte[] buffer = new byte[65 * 1024];
         byte[] bufferWrite = new byte[65 * 1024];
@@ -353,7 +363,7 @@ namespace linker.app
             length = 0;
             try
             {
-                while (fd > 0)
+                while (fd > 0 && vpnInput != null)
                 {
                     length = vpnInput.Read(buffer, 4, buffer.Length - 4);
                     if (length > 0)
@@ -377,7 +387,7 @@ namespace linker.app
         private readonly object writeLockObj = new object();
         public bool Write(ReadOnlyMemory<byte> buffer)
         {
-            if (fd == 0) return false;
+            if (fd == 0 || vpnOutput == null) return false;
             try
             {
                 lock (writeLockObj)
@@ -402,6 +412,12 @@ namespace linker.app
             vpnInterface?.FileDescriptor.Dispose();
             vpnInterface?.Close();
             vpnInterface = null;
+
+            vpnInput?.Dispose();
+            vpnInput = null;
+
+            vpnOutput?.Dispose();
+            vpnOutput = null;
 
             fd = 0;
         }
@@ -439,7 +455,15 @@ namespace linker.app
         /// <param name="ips"></param>
         public void AddRoute(LinkerTunDeviceRouteItem[] ips)
         {
-            routes = ips.Select(c => new LinkerTunDeviceRouteItem { Address = c.Address, PrefixLength = c.PrefixLength }).ToArray();
+            LinkerTunDeviceRouteItem[] _routes = ips.Select(c => new LinkerTunDeviceRouteItem { Address = c.Address, PrefixLength = c.PrefixLength }).ToArray();
+            bool diff = _routes.Select(c => $"{c.Address}/{c.PrefixLength}").Except(routes.Select(c => $"{c.Address}/{c.PrefixLength}")).Any();
+            routes = _routes;
+
+            if (diff)
+            {
+                Shutdown();
+                Build();
+            }
         }
         public void RemoveRoute(LinkerTunDeviceRouteItem[] ips)
         {
@@ -494,7 +518,6 @@ namespace linker.app
         }
     }
 
-
     /// <summary>
     /// 获取系统信息
     /// </summary>
@@ -506,7 +529,6 @@ namespace linker.app
             return $"{deviceInfo.Manufacturer} {deviceInfo.Name} {deviceInfo.VersionString} {deviceInfo.Platform} {deviceInfo.Idiom.ToString()}";
         }
     }
-
 
     /// <summary>
     /// 更新

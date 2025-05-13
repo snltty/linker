@@ -347,8 +347,8 @@ export default {
 
     'firewall.rule': '防火墙协议',
     'firewall.srcName': '源设备',
-    'firewall.dstCidr': 'IP',
-    'firewall.dstPort': '端口',
+    'firewall.dstCidr': '目标IP',
+    'firewall.dstPort': '目标端口',
     'firewall.protocolall': '全部协议',
     'firewall.protocol': '协议',
     'firewall.actionall': '全部操作',
@@ -366,5 +366,7 @@ export default {
     'firewall.delConfirm': '确认删除规则?',
     'firewall.switch': '防火墙开关，是否开启防火墙',
     'firewall.remark': '备注',
+    'firewall.unselect': '未选择',
+    'firewall.selected': '已选择',
     
 }

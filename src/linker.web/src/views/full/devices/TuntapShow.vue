@@ -28,7 +28,7 @@
                         </template>
                     </template>
                     <template v-else>
-                        <strong>{{ tuntap.list[item.MachineId].IP }}</strong>
+                        <strong class="disable" title="IP不生效，可能是设备不在线">{{ tuntap.list[item.MachineId].IP }}</strong>
                     </template>
                 </a>
             </div>

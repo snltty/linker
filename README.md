@@ -75,6 +75,8 @@
 
 <div align="center">
 <p><img src="./readme/full.jpg"></p> 
+<p><img src="./readme/plan.jpg"></p> 
+<p><img src="./readme/firewall.jpg"></p> 
 </div>
 
 ## 🤝支持作者

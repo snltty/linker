@@ -250,8 +250,8 @@ export default {
 
     'firewall.rule': 'Firewall rule',
     'firewall.srcName': 'Src Device',
-    'firewall.dstCidr': 'IP',
-    'firewall.dstPort': 'Port',
+    'firewall.dstCidr': 'Dst IP',
+    'firewall.dstPort': 'Dst Port',
     'firewall.protocol': 'Protocol',
     'firewall.protocolall': 'Protocol all',
     'firewall.actionall': 'Action all',
@@ -269,5 +269,7 @@ export default {
     'firewall.delConfirm': 'Are you sure to delete this rule?',
     'firewall.switch': 'Firewall switch,open or close',
     'firewall.remark': 'Remark',
+    'firewall.unselect': 'All',
+    'firewall.selected': 'Selected',
 
 }

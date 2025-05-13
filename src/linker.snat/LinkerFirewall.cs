@@ -77,11 +77,13 @@ namespace linker.snat
                         if (prefixLength > 32) prefixLength = 32;
                     }
 
-                   
+
+                    IEnumerable<string> ids = c.SrcId.Split(',').Distinct();
 
                     return new LinkerFirewallRuleBuildInfo
                     {
-                        SrcId = c.SrcId,
+                        SrcIds = ids.Count() > 1 ? ids.ToHashSet() : null,
+                        SrcId = ids.Count() <= 1 ? c.SrcId : string.Empty,
                         DstNetwork = NetworkHelper.ToNetworkValue(ip, prefixLength),
                         DstPrefixLength = NetworkHelper.ToPrefixValue(prefixLength),
                         DstPortStart = portStart,
@@ -93,6 +95,7 @@ namespace linker.snat
                 }
                 catch (Exception)
                 {
+
                 }
                 return null;
 
@@ -160,7 +163,7 @@ namespace linker.snat
             //按顺序匹配规则
             foreach (LinkerFirewallRuleBuildInfo item in buildedRules)
             {
-                bool match = (item.SrcId == "*" || item.SrcId == srcId)
+                bool match = (item.SrcIds == null ? item.SrcId == "*" || item.SrcId == srcId : item.SrcIds.Contains("*") || item.SrcIds.Contains(srcId))
                     && ((ip & item.DstPrefixLength) == item.DstNetwork)
                     && ((port >= item.DstPortStart && port <= item.DstPortEnd) || item.DstPorts.Contains(port))
                     && item.Protocol.HasFlag(_rotocol);
@@ -176,7 +179,8 @@ namespace linker.snat
 
         sealed class LinkerFirewallRuleBuildInfo
         {
-            public string SrcId { get; set; } = string.Empty;
+            public string SrcId { get; set; }
+            public HashSet<string> SrcIds { get; set; }
 
             public uint DstNetwork { get; set; }
             public uint DstPrefixLength { get; set; }
