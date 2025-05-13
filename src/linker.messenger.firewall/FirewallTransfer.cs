@@ -6,7 +6,6 @@ namespace linker.messenger.firewall
     public sealed class FirewallTransfer
     {
         private readonly IFirewallClientStore firewallClientStore;
-        private readonly SignInClientState signInClientState;
         private readonly ISignInClientStore signInClientStore;
         private readonly LinkerFirewall linkerFirewall;
 
