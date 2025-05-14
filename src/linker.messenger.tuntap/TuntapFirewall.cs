@@ -1,5 +1,7 @@
 ﻿using linker.snat;
 using linker.tun;
+using System.Net.Sockets;
+using static linker.snat.LinkerSrcNat;
 
 namespace linker.messenger.tuntap
 {
@@ -13,12 +15,14 @@ namespace linker.messenger.tuntap
             this.linkerFirewall = linkerFirewall;
         }
 
-        public bool ReadAfter(ReadOnlyMemory<byte> packet)
+        public unsafe bool ReadAfter(ReadOnlyMemory<byte> packet)
         {
+            linkerFirewall.AddAllow(packet);
+
             return true;
         }
 
-        public bool WriteBefore(string srcId, ReadOnlyMemory<byte> packet)
+        public unsafe bool WriteBefore(string srcId, ReadOnlyMemory<byte> packet)
         {
             if (linkerFirewall.Check(srcId, packet) == false)
             {

@@ -98,7 +98,8 @@ namespace linker.snat
                 srcAddr = IPv4Addr.Parse(info.Src.ToString());
 
                 interfaceAddr = IPv4Addr.Parse(info.InterfaceIp.ToString());
-                winDivert = new WinDivert(BuildFilter(info.Dsts), WinDivert.Layer.Network, 0, 0);
+                string filters = BuildFilter(info.Dsts);
+                winDivert = new WinDivert(filters, WinDivert.Layer.Network, 0, 0);
 
                 cts = new CancellationTokenSource();
 
@@ -113,7 +114,7 @@ namespace linker.snat
             }
             return false;
         }
-        
+
 
         /// <summary>
         /// 过滤条件，只过滤一定的数据包
@@ -123,6 +124,7 @@ namespace linker.snat
         {
             IEnumerable<string> ipRanges = dsts.Select(c => $"(ip.SrcAddr >= {c.NetworkIP} and ip.SrcAddr <= {c.BroadcastIP})");
             return $"inbound and ({string.Join(" or ", ipRanges)})";
+            //return $"({string.Join(" or ", ipRanges)})";
         }
         /// <summary>
         /// 开始接收数据包
@@ -169,6 +171,7 @@ namespace linker.snat
             {
                 byte ipHeaderLength = (byte)((*ptr & 0b1111) * 4);
                 ProtocolType proto = (ProtocolType)p.IPv4Hdr->Protocol;
+
                 bool result = (ProtocolType)p.IPv4Hdr->Protocol switch
                 {
                     ProtocolType.Icmp => RecvIcmp(p, ptr),
@@ -180,6 +183,7 @@ namespace linker.snat
                 {
                     WinDivert.CalcChecksums(p.Packet.Span, ref addr, 0);
                 }
+
                 return result;
             }
         }
@@ -202,17 +206,21 @@ namespace linker.snat
             {
                 foreach (var (i, p) in new WinDivertIndexedPacketParser(packet))
                 {
+                    NetworkIPv4Addr src = interfaceAddr;
                     //本机网卡IP不需要改，直接注入就可以
                     if (p.IPv4Hdr->DstAddr != interfaceAddr)
                     {
                         bool result = (ProtocolType)p.IPv4Hdr->Protocol switch
                         {
-                            ProtocolType.Icmp => InjectIcmp(p, ptr),
-                            ProtocolType.Tcp => InjectTcp(p, ptr),
-                            ProtocolType.Udp => InjectUdp(p, ptr),
+                            ProtocolType.Icmp => InjectIcmp(src, p, ptr),
+                            ProtocolType.Tcp => InjectTcp(src, p, ptr),
+                            ProtocolType.Udp => InjectUdp(src, p, ptr),
                             _ => false,
                         };
                         if (result == false) return false;
+
+                        //改写源地址为网卡地址
+                        p.IPv4Hdr->SrcAddr = src; // interfaceAddr;
                     }
                     WinDivert.CalcChecksums(p.Packet.Span, ref addr, 0);
                     winDivert.SendEx(p.Packet.Span, new ReadOnlySpan<WinDivertAddress>(ref addr));
@@ -227,7 +235,7 @@ namespace linker.snat
         /// <param name="p"></param>
         /// <param name="ptr"></param>
         /// <returns></returns>
-        private unsafe bool InjectIcmp(WinDivertParseResult p, byte* ptr)
+        private unsafe bool InjectIcmp(NetworkIPv4Addr src, WinDivertParseResult p, byte* ptr)
         {
             //只操作response 和 request
             if (p.ICMPv4Hdr->Type != 0 && p.ICMPv4Hdr->Type != 8) return false;
@@ -246,22 +254,22 @@ namespace linker.snat
             //保存，源地址。标识符0，目的地址，标识符1，ICMP
             //取值，目的地址，标识符0，源地址，标识符1，ICMP
             //因为回来的数据包，地址交换了
-            ValueTuple<uint, ushort, uint, ushort, ProtocolType> key = (interfaceAddr.Raw, identifier0, p.IPv4Hdr->DstAddr.Raw, identifier1, ProtocolType.Icmp);
-            NatMapInfo natMapInfo = new NatMapInfo
+            ValueTuple<uint, ushort, uint, ushort, ProtocolType> key = (src.Raw, identifier0, p.IPv4Hdr->DstAddr.Raw, identifier1, ProtocolType.Icmp);
+
+            if (natMap.TryGetValue(key, out NatMapInfo natMapInfo) == false)
             {
-                SrcAddr = p.IPv4Hdr->SrcAddr,
-                Identifier0 = *ptr0,
-                Identifier1 = *ptr1,
-                LastTime = Environment.TickCount64,
-                Timeout = 15 * 1000 //icmp 15秒
-            };
-            natMap.AddOrUpdate(key, natMapInfo, (a, b) => natMapInfo);
+                natMapInfo = new NatMapInfo();
+                natMap.TryAdd(key, natMapInfo);
+            }
+            natMapInfo.SrcAddr = p.IPv4Hdr->SrcAddr;
+            natMapInfo.Identifier0 = *ptr0;
+            natMapInfo.Identifier1 = *ptr1;
+            natMapInfo.LastTime = Environment.TickCount64;
+            natMapInfo.Timeout = 15 * 1000;
 
             //改写为新的标识符
             *ptr0 = identifier0;
             *ptr1 = identifier1;
-            //改写源地址为网卡地址
-            p.IPv4Hdr->SrcAddr = interfaceAddr;
 
             return true;
         }
@@ -283,7 +291,7 @@ namespace linker.snat
             byte* ptr1 = ipv4.IcmpIdentifier1;
 
             ValueTuple<uint, ushort, uint, ushort, ProtocolType> key = (p.IPv4Hdr->DstAddr.Raw, *ptr0, p.IPv4Hdr->SrcAddr.Raw, *ptr1, ProtocolType.Icmp);
-            if (natMap.TryRemove(key, out NatMapInfo natMapInfo))
+            if (natMap.TryGetValue(key, out NatMapInfo natMapInfo))
             {
                 //改回原来的标识符
                 *ptr0 = natMapInfo.Identifier0;
@@ -300,7 +308,7 @@ namespace linker.snat
         /// <param name="p"></param>
         /// <param name="ptr"></param>
         /// <returns></returns>
-        private unsafe bool InjectTcp(WinDivertParseResult p, byte* ptr)
+        private unsafe bool InjectTcp(NetworkIPv4Addr src, WinDivertParseResult p, byte* ptr)
         {
             IPV4Packet ipv4 = new IPV4Packet(ptr);
 
@@ -315,7 +323,7 @@ namespace linker.snat
             }
 
             //添加映射
-            ValueTuple<uint, ushort, uint, ushort, ProtocolType> key = (interfaceAddr.Raw, newPort, p.IPv4Hdr->DstAddr.Raw, p.TCPHdr->DstPort, ProtocolType.Tcp);
+            ValueTuple<uint, ushort, uint, ushort, ProtocolType> key = (src.Raw, newPort, p.IPv4Hdr->DstAddr.Raw, p.TCPHdr->DstPort, ProtocolType.Tcp);
             if (natMap.TryGetValue(key, out NatMapInfo natMapInfo) == false)
             {
                 natMapInfo = new NatMapInfo
@@ -333,7 +341,6 @@ namespace linker.snat
             if (ipv4.TcpFlagRst) natMapInfo.Rst = ipv4.TcpFlagRst;
             if (natMapInfo.Fin0 && ipv4.TcpFlagAck) natMapInfo.FinAck = ipv4.TcpFlagAck;
 
-            p.IPv4Hdr->SrcAddr = interfaceAddr;
             p.TCPHdr->SrcPort = newPort;
             return true;
         }
@@ -369,7 +376,7 @@ namespace linker.snat
         /// <param name="p"></param>
         /// <param name="ptr"></param>
         /// <returns></returns>
-        private unsafe bool InjectUdp(WinDivertParseResult p, byte* ptr)
+        private unsafe bool InjectUdp(NetworkIPv4Addr src, WinDivertParseResult p, byte* ptr)
         {
             //新端口
             ValueTuple<uint, ushort> portKey = (p.IPv4Hdr->SrcAddr.Raw, p.UDPHdr->SrcPort);
@@ -379,7 +386,7 @@ namespace linker.snat
                 source2portMap.TryAdd(portKey, newPort);
             }
             //映射
-            ValueTuple<uint, ushort, uint, ushort, ProtocolType> key = (interfaceAddr.Raw, newPort, p.IPv4Hdr->DstAddr.Raw, p.UDPHdr->DstPort, ProtocolType.Tcp);
+            ValueTuple<uint, ushort, uint, ushort, ProtocolType> key = (src.Raw, newPort, p.IPv4Hdr->DstAddr.Raw, p.UDPHdr->DstPort, ProtocolType.Tcp);
             if (natMap.TryGetValue(key, out NatMapInfo natMapInfo) == false)
             {
                 natMapInfo = new NatMapInfo
@@ -393,7 +400,6 @@ namespace linker.snat
             }
             natMapInfo.LastTime = Environment.TickCount64;
 
-            p.IPv4Hdr->SrcAddr = interfaceAddr;
             p.UDPHdr->SrcPort = newPort;
             return true;
         }
@@ -563,7 +569,7 @@ namespace linker.snat
             /// <summary>
             /// 目标端口
             /// </summary>
-            public ushort DstPort => BinaryPrimitives.ReverseEndianness(*(ushort*)(ptr + IPHeadLength+2));
+            public ushort DstPort => BinaryPrimitives.ReverseEndianness(*(ushort*)(ptr + IPHeadLength + 2));
             /// <summary>
             /// 源地址
             /// </summary>

@@ -102,7 +102,10 @@ namespace linker.snat
                     uint realDist = realNetwork | (fakeDist & ~masks[i]);
                     //修改目标IP
                     ReWriteIP(packet, realDist, 16, checksum);
-                    natDic.AddOrUpdate(realDist, fakeDist, (a, b) => fakeDist);
+                    if(natDic.TryGetValue(realDist,out uint value) == false || value != fakeDist)
+                    {
+                        natDic.AddOrUpdate(realDist, fakeDist, (a, b) => fakeDist);
+                    }
                     break;
                 }
             }

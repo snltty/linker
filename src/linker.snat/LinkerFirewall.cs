@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.libs.timer;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
@@ -10,13 +11,15 @@ namespace linker.snat
     /// </summary>
     public sealed class LinkerFirewall
     {
-        private ConcurrentDictionary<(string srcId, uint dst, ushort dstPort, ProtocolType pro), bool> cacheMap = new ConcurrentDictionary<(string srcId, uint dst, ushort dstPort, ProtocolType pro), bool>();
+        private ConcurrentDictionary<(string srcId, uint dst, ushort dstPort, ProtocolType pro), bool> cacheDstMap = new ConcurrentDictionary<(string srcId, uint dst, ushort dstPort, ProtocolType pro), bool>();
+        private ConcurrentDictionary<(uint src, ushort srcPort, uint dst, ushort dstPort, ProtocolType pro), SrcCacheInfo> cacheSrcMap = new ConcurrentDictionary<(uint src, ushort srcPort, uint dst, ushort dstPort, ProtocolType pro), SrcCacheInfo>();
 
         private List<LinkerFirewallRuleBuildInfo> buildedRules = new List<LinkerFirewallRuleBuildInfo>();
         private LinkerFirewallState state = LinkerFirewallState.Disabled;
 
         public LinkerFirewall()
         {
+            ClearTask();
         }
 
         /// <summary>
@@ -101,7 +104,33 @@ namespace linker.snat
 
             }).Where(c => c != null).ToList();
 
-            cacheMap.Clear();
+            cacheDstMap.Clear();
+        }
+
+        /// <summary>
+        /// 添加一个允许，比如 192.168.1.1:12345->192.168.100.100:80，等下192.168.100.100:80->192.168.1.1:12345时要允许，越过防火墙
+        /// </summary>
+        /// <param name="packet">一个TCP/IP包</param>
+        public void AddAllow(ReadOnlyMemory<byte> packet)
+        {
+            //未启用防火墙
+            if (this.state != LinkerFirewallState.Enabled) return;
+
+            IPV4Packet ipv4 = new IPV4Packet(packet.Span);
+            //不是ipv4不管
+            if (ipv4.Version != 4) return;
+
+            //只需要处理TCP/UDP
+            if (ipv4.Protocol == ProtocolType.Udp || ipv4.Protocol == ProtocolType.Tcp)
+            {
+                (uint src, ushort srcPort, uint dst, ushort dstPort, ProtocolType pro) key = (ipv4.SrcAddr, ipv4.SrcPort, ipv4.DstAddr, ipv4.DstPort, ipv4.Protocol);
+                if (cacheSrcMap.TryGetValue(key, out SrcCacheInfo cache) == false)
+                {
+                    cache = new SrcCacheInfo();
+                    cacheSrcMap.TryAdd(key, cache);
+                }
+                cache.LastTime = Environment.TickCount64;
+            }
         }
 
         /// <summary>
@@ -133,14 +162,17 @@ namespace linker.snat
             IPV4Packet ipv4 = new IPV4Packet(packet.Span);
             if (ipv4.Version != 4) return true;
 
-            uint dst = ipv4.DstAddr;
-            ushort dstPort = ipv4.Protocol switch
+            if (ipv4.Protocol == ProtocolType.Udp || ipv4.Protocol == ProtocolType.Tcp)
             {
-                ProtocolType.Udp => ipv4.DstPort,
-                ProtocolType.Tcp => ipv4.DstPort,
-                _ => 0,
-            };
-            return Check(srcId, dst, dstPort, ipv4.Protocol);
+                (uint src, ushort srcPort, uint dst, ushort dstPort, ProtocolType pro) key = (ipv4.DstAddr, ipv4.DstPort, ipv4.SrcAddr, ipv4.SrcPort, ipv4.Protocol);
+                if (cacheSrcMap.TryGetValue(key, out SrcCacheInfo cache))
+                {
+                    cache.LastTime = Environment.TickCount64;
+                    return true;
+                }
+                return Check(srcId, ipv4.DstAddr, ipv4.DstPort, ipv4.Protocol);
+            }
+            return true;
         }
 
         private bool Check(string srcId, uint ip, ushort port, ProtocolType protocol)
@@ -151,11 +183,10 @@ namespace linker.snat
                 ProtocolType.Udp => LinkerFirewallProtocolType.UDP,
                 _ => LinkerFirewallProtocolType.None,
             };
-            if (_rotocol == LinkerFirewallProtocolType.None) return true; //不支持的协议
 
             //之前已经检查过
             (string srcId, uint dst, ushort dstPort, ProtocolType pro) key = (srcId, ip, port, protocol);
-            if (cacheMap.TryGetValue(key, out bool value))
+            if (cacheDstMap.TryGetValue(key, out bool value))
             {
                 return value;
             }
@@ -170,11 +201,24 @@ namespace linker.snat
                 if (match)
                 {
                     value = item.Action == LinkerFirewallAction.Allow;
-                    cacheMap.AddOrUpdate(key, value, (a, b) => value);
+                    cacheDstMap.TryAdd(key, value);
                     return value;
                 }
             }
             return false;
+        }
+
+
+        private void ClearTask()
+        {
+            TimerHelper.SetIntervalLong(() =>
+            {
+                long now = Environment.TickCount64;
+                foreach (var item in cacheSrcMap.Where(c => now - c.Value.LastTime > 60 * 60 * 2 * 1000).Select(c => c.Key).ToList())
+                {
+                    cacheSrcMap.TryRemove(item, out _);
+                }
+            }, 5000);
         }
 
         sealed class LinkerFirewallRuleBuildInfo
@@ -221,5 +265,10 @@ namespace linker.snat
     {
         Enabled = 0,
         Disabled = 1
+    }
+
+    public sealed class SrcCacheInfo
+    {
+        public long LastTime { get; set; } = Environment.TickCount64;
     }
 }
