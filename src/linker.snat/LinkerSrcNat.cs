@@ -4,8 +4,10 @@ using linker.libs.timer;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 
 namespace linker.snat
 {
@@ -32,6 +34,7 @@ namespace linker.snat
         /// 网卡IP，用来作为源地址
         /// </summary>
         private NetworkIPv4Addr interfaceAddr;
+        private HashSet<uint> interfaceAddrs;
 
 
         private uint srcIp;
@@ -85,11 +88,14 @@ namespace linker.snat
             {
                 return false;
             }
-            if (info.InterfaceIp == null || info.InterfaceIp.Equals(IPAddress.Any))
+            IPAddress defaultInterfaceIP = GetDefaultInterface();
+            if (defaultInterfaceIP == null)
             {
-                error = "snat need default interface ipaddres";
+                error = "SNAT get default interface id fail";
                 return false;
             }
+            interfaceAddrs = GetInterfaces();
+
             try
             {
                 Shutdown();
@@ -97,7 +103,7 @@ namespace linker.snat
                 srcIp = NetworkHelper.ToValue(info.Src);
                 srcAddr = IPv4Addr.Parse(info.Src.ToString());
 
-                interfaceAddr = IPv4Addr.Parse(info.InterfaceIp.ToString());
+                interfaceAddr = IPv4Addr.Parse(defaultInterfaceIP.ToString());
                 string filters = BuildFilter(info.Dsts);
                 winDivert = new WinDivert(filters, WinDivert.Layer.Network, 0, 0);
 
@@ -113,6 +119,47 @@ namespace linker.snat
                 error = ex.Message;
             }
             return false;
+        }
+        private IPAddress GetDefaultInterface()
+        {
+            string[] lines = CommandHelper.Windows(string.Empty, new string[] { $"route print" }).Split(Environment.NewLine);
+            foreach (var item in lines)
+            {
+                if (item.Trim().StartsWith("0.0.0.0"))
+                {
+                    string[] arr = Regex.Replace(item.Trim(), @"\s+", " ").Split(' ');
+                    IPAddress ip = IPAddress.Parse(arr[arr.Length - 2]);
+
+                    foreach (var inter in NetworkInterface.GetAllNetworkInterfaces())
+                    {
+                        try
+                        {
+                            if (ip.Equals(inter.GetIPProperties().UnicastAddresses.FirstOrDefault(c => c.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).Address))
+                            {
+                                return ip;
+                            }
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+        private HashSet<uint> GetInterfaces()
+        {
+            return NetworkInterface.GetAllNetworkInterfaces().Select(c =>
+            {
+                try
+                {
+                    return c.GetIPProperties().UnicastAddresses.FirstOrDefault(c => c.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).Address;
+                }
+                catch (Exception)
+                {
+                }
+                return null;
+            }).Where(c => c != null).Select(NetworkHelper.ToValue).ToHashSet();
         }
 
 
@@ -206,21 +253,20 @@ namespace linker.snat
             {
                 foreach (var (i, p) in new WinDivertIndexedPacketParser(packet))
                 {
-                    NetworkIPv4Addr src = interfaceAddr;
                     //本机网卡IP不需要改，直接注入就可以
-                    if (p.IPv4Hdr->DstAddr != interfaceAddr)
+                    if (interfaceAddrs.Contains(ipv4.DstAddr) == false)
                     {
                         bool result = (ProtocolType)p.IPv4Hdr->Protocol switch
                         {
-                            ProtocolType.Icmp => InjectIcmp(src, p, ptr),
-                            ProtocolType.Tcp => InjectTcp(src, p, ptr),
-                            ProtocolType.Udp => InjectUdp(src, p, ptr),
+                            ProtocolType.Icmp => InjectIcmp(p, ptr),
+                            ProtocolType.Tcp => InjectTcp(p, ptr),
+                            ProtocolType.Udp => InjectUdp(p, ptr),
                             _ => false,
                         };
                         if (result == false) return false;
 
                         //改写源地址为网卡地址
-                        p.IPv4Hdr->SrcAddr = src; // interfaceAddr;
+                        p.IPv4Hdr->SrcAddr = interfaceAddr;
                     }
                     WinDivert.CalcChecksums(p.Packet.Span, ref addr, 0);
                     winDivert.SendEx(p.Packet.Span, new ReadOnlySpan<WinDivertAddress>(ref addr));
@@ -235,7 +281,7 @@ namespace linker.snat
         /// <param name="p"></param>
         /// <param name="ptr"></param>
         /// <returns></returns>
-        private unsafe bool InjectIcmp(NetworkIPv4Addr src, WinDivertParseResult p, byte* ptr)
+        private unsafe bool InjectIcmp( WinDivertParseResult p, byte* ptr)
         {
             //只操作response 和 request
             if (p.ICMPv4Hdr->Type != 0 && p.ICMPv4Hdr->Type != 8) return false;
@@ -254,7 +300,7 @@ namespace linker.snat
             //保存，源地址。标识符0，目的地址，标识符1，ICMP
             //取值，目的地址，标识符0，源地址，标识符1，ICMP
             //因为回来的数据包，地址交换了
-            ValueTuple<uint, ushort, uint, ushort, ProtocolType> key = (src.Raw, identifier0, p.IPv4Hdr->DstAddr.Raw, identifier1, ProtocolType.Icmp);
+            ValueTuple<uint, ushort, uint, ushort, ProtocolType> key = (interfaceAddr.Raw, identifier0, p.IPv4Hdr->DstAddr.Raw, identifier1, ProtocolType.Icmp);
 
             if (natMap.TryGetValue(key, out NatMapInfo natMapInfo) == false)
             {
@@ -308,7 +354,7 @@ namespace linker.snat
         /// <param name="p"></param>
         /// <param name="ptr"></param>
         /// <returns></returns>
-        private unsafe bool InjectTcp(NetworkIPv4Addr src, WinDivertParseResult p, byte* ptr)
+        private unsafe bool InjectTcp( WinDivertParseResult p, byte* ptr)
         {
             IPV4Packet ipv4 = new IPV4Packet(ptr);
 
@@ -323,7 +369,7 @@ namespace linker.snat
             }
 
             //添加映射
-            ValueTuple<uint, ushort, uint, ushort, ProtocolType> key = (src.Raw, newPort, p.IPv4Hdr->DstAddr.Raw, p.TCPHdr->DstPort, ProtocolType.Tcp);
+            ValueTuple<uint, ushort, uint, ushort, ProtocolType> key = (interfaceAddr.Raw, newPort, p.IPv4Hdr->DstAddr.Raw, p.TCPHdr->DstPort, ProtocolType.Tcp);
             if (natMap.TryGetValue(key, out NatMapInfo natMapInfo) == false)
             {
                 natMapInfo = new NatMapInfo
@@ -376,7 +422,7 @@ namespace linker.snat
         /// <param name="p"></param>
         /// <param name="ptr"></param>
         /// <returns></returns>
-        private unsafe bool InjectUdp(NetworkIPv4Addr src, WinDivertParseResult p, byte* ptr)
+        private unsafe bool InjectUdp(WinDivertParseResult p, byte* ptr)
         {
             //新端口
             ValueTuple<uint, ushort> portKey = (p.IPv4Hdr->SrcAddr.Raw, p.UDPHdr->SrcPort);
@@ -386,7 +432,7 @@ namespace linker.snat
                 source2portMap.TryAdd(portKey, newPort);
             }
             //映射
-            ValueTuple<uint, ushort, uint, ushort, ProtocolType> key = (src.Raw, newPort, p.IPv4Hdr->DstAddr.Raw, p.UDPHdr->DstPort, ProtocolType.Tcp);
+            ValueTuple<uint, ushort, uint, ushort, ProtocolType> key = (interfaceAddr.Raw, newPort, p.IPv4Hdr->DstAddr.Raw, p.UDPHdr->DstPort, ProtocolType.Tcp);
             if (natMap.TryGetValue(key, out NatMapInfo natMapInfo) == false)
             {
                 natMapInfo = new NatMapInfo
@@ -504,15 +550,6 @@ namespace linker.snat
             /// 需要NAT的IP
             /// </summary>
             public AddrInfo[] Dsts { get; init; }
-            /// <summary>
-            /// 本地网卡IP
-            /// </summary>
-            public IPAddress InterfaceIp { get; init; }
-
-            /// <summary>
-            /// 如果设置了回调，recv回来的数据就不注入虚拟网卡了，直接走回调回复给来源端，少走一次协议栈
-            /// </summary>
-            //public ILinkerSNatRecvCallback RecvCallback { get; init; }
         }
 
         /// <summary>

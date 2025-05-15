@@ -346,22 +346,30 @@ namespace linker.messenger.relay.server
         }
         public void SetLimit(uint bytes)
         {
+            //每s多少字节
             relayLimit = bytes;
+            //每ms多少字节
             relayLimitToken = relayLimit / 1000.0;
+            //桶里有多少字节
             relayLimitBucket = relayLimit;
         }
         public bool TryLimit(ref int length)
         {
+            //0不限速
             if (relayLimit == 0) return true;
 
             lock (this)
             {
                 long _relayLimitTicks = Environment.TickCount64;
+                //距离上次经过了多少ms
                 long relayLimitTicksTemp = _relayLimitTicks - relayLimitTicks;
                 relayLimitTicks = _relayLimitTicks;
+                //桶里增加多少字节
                 relayLimitBucket += relayLimitTicksTemp * relayLimitToken;
+                //桶溢出了
                 if (relayLimitBucket > relayLimit) relayLimitBucket = relayLimit;
 
+                //能全部消耗调
                 if (relayLimitBucket >= length)
                 {
                     relayLimitBucket -= length;
@@ -369,6 +377,7 @@ namespace linker.messenger.relay.server
                 }
                 else
                 {
+                    //只能消耗一部分
                     length -= (int)relayLimitBucket;
                     relayLimitBucket = 0;
                 }

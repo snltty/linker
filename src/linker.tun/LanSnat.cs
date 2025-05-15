@@ -27,31 +27,26 @@ namespace linker.tun
         {
             if (OperatingSystem.IsWindows() == false) return;
 
-            Shutdown();
+           
 
             if (address == null || address.Equals(IPAddress.Any) || prefixLength == 0)
             {
                 error = "SNAT need CIDR,like 10.18.18.0/24";
                 return;
             }
-            IPAddress defaultInterfaceIP = GetDefaultInterface();
-            if (defaultInterfaceIP == null)
-            {
-                error = "SNAT get default interface id fail";
-                return;
-            }
-
+           
             IPAddress network = NetworkHelper.ToNetworkIP(address, NetworkHelper.ToPrefixValue(prefixLength));
             string result = CommandHelper.PowerShell($"Get-NetNat", [], out string e);
             if (string.IsNullOrWhiteSpace(result) == false && result.Contains($"{network}/{prefixLength}"))
             {
                 return;
             }
+
+            Shutdown();
             linkerSrcNat.Setup(new LinkerSrcNat.SetupInfo
             {
                 Src = address,
-                Dsts = items.Select(c => new LinkerSrcNat.AddrInfo(c.IP, c.PrefixLength)).ToArray(),
-                InterfaceIp = defaultInterfaceIP
+                Dsts = items.Select(c => new LinkerSrcNat.AddrInfo(c.IP, c.PrefixLength)).ToArray()
             }, out error);
         }
         public void Shutdown()
@@ -77,32 +72,6 @@ namespace linker.tun
         }
 
 
-        private IPAddress GetDefaultInterface()
-        {
-            string[] lines = CommandHelper.Windows(string.Empty, new string[] { $"route print" }).Split(Environment.NewLine);
-            foreach (var item in lines)
-            {
-                if (item.Trim().StartsWith("0.0.0.0"))
-                {
-                    string[] arr = Regex.Replace(item.Trim(), @"\s+", " ").Split(' ');
-                    IPAddress ip = IPAddress.Parse(arr[arr.Length - 2]);
-
-                    foreach (var inter in NetworkInterface.GetAllNetworkInterfaces())
-                    {
-                        try
-                        {
-                            if (ip.Equals(inter.GetIPProperties().UnicastAddresses.FirstOrDefault(c => c.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).Address))
-                            {
-                                return ip;
-                            }
-                        }
-                        catch (Exception)
-                        {
-                        }
-                    }
-                }
-            }
-            return null;
-        }
+        
     }
 }
