@@ -12,7 +12,7 @@
             <a v-if="globalData.isPc" href="https://v.netzo123.com" target="_blank">{{$t('status.cdkey')}}</a>
         </div>
         <div class="flex-1"></div>
-        <div class="export" v-if="globalData.isPc"><Export :config="config"></Export></div>
+        <div class="export"><Export :config="config"></Export></div>
         <div class="api" v-if="globalData.isPc"><Api :config="config"></Api></div>
         <div class="server"><Server :config="config"></Server></div>
 

@@ -43,7 +43,7 @@ namespace linker.messenger.forward.proxy
         }
         private async Task ReceiveUdp(AsyncUserUdpToken token, byte buffersize)
         {
-            byte[] bytes = new byte[(1 << buffersize) * 1024];
+            byte[] bytes = new byte[65535];
             IPEndPoint tempRemoteEP = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
             while (true)
             {
@@ -217,7 +217,7 @@ namespace linker.messenger.forward.proxy
                 TargetSocket = socket,
                 ConnectId = connectId,
                 Connection = tunnelToken.Connection,
-                Buffer = new byte[(1 << tunnelToken.Proxy.BufferSize) * 1024]
+                Buffer = new byte[65535]
             };
             udpToken.Proxy.Direction = ProxyDirection.Reverse;
             udpConnections.AddOrUpdate(connectId, udpToken, (a, b) => udpToken);

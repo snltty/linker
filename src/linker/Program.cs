@@ -23,7 +23,8 @@ namespace linker
             };
             TaskScheduler.UnobservedTaskException += (a, b) =>
             {
-                LoggerHelper.Instance.Error(b.Exception + "");
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Error(b.Exception + "");
             };
 
 

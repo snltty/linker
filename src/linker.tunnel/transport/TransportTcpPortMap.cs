@@ -105,7 +105,7 @@ namespace linker.tunnel.transport
                                     if (distDic.TryRemove(key, out TaskCompletionSource<Socket> tcs))
                                     {
                                         await client.SendAsync(bytes.AsMemory(0, length)).ConfigureAwait(false);
-                                        tcs.SetResult(client);
+                                        tcs.TrySetResult(client);
                                         return;
                                     }
                                 }
@@ -287,6 +287,7 @@ namespace linker.tunnel.transport
             }
             catch (Exception)
             {
+                tcs.TrySetResult(null);
             }
             finally
             {

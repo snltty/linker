@@ -113,7 +113,7 @@ namespace linker.tunnel.transport
                                     try
                                     {
                                         State state = new State { Socket = socket, RemoteEndPoint = remoteEP };
-                                        tcs.SetResult(state);
+                                        tcs.TrySetResult(state);
                                     }
                                     catch (Exception)
                                     {
@@ -287,6 +287,7 @@ namespace linker.tunnel.transport
             }
             catch (Exception)
             {
+                tcs.TrySetResult(null);
             }
             finally
             {

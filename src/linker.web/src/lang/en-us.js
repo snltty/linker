@@ -20,7 +20,6 @@ export default {
     'head.logger': 'Logs',
     'head.refresh': 'Refresh',
 
-
     'logger.list': 'List',
     'logger.setting': 'Setting',
     'logger.clear': 'Clear',

@@ -193,7 +193,7 @@ namespace linker.messenger.relay.server
                 {
                     if (relayDic.TryRemove(relayCache.FlowId, out TaskCompletionSource<Socket> tcsAsk))
                     {
-                        tcsAsk.SetResult(socket);
+                        tcsAsk.TrySetResult(socket);
                     }
                     else
                     {
@@ -202,11 +202,12 @@ namespace linker.messenger.relay.server
                     return;
                 }
 
+                TaskCompletionSource<Socket> tcs = new TaskCompletionSource<Socket>(TaskCreationOptions.RunContinuationsAsynchronously);
                 try
                 {
                     await socket.SendAsync(new byte[] { 0 }).ConfigureAwait(false);
 
-                    TaskCompletionSource<Socket> tcs = new TaskCompletionSource<Socket>();
+                    
                     relayDic.TryAdd(relayCache.FlowId, tcs);
                     Socket answerSocket = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(15000)).ConfigureAwait(false);
 
@@ -220,6 +221,7 @@ namespace linker.messenger.relay.server
                 }
                 catch (Exception ex)
                 {
+                    tcs.TrySetResult(null);
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         LoggerHelper.Instance.Error($"{ex},flowid:{relayMessage.FlowId}");
                     relayDic.TryRemove(relayCache.FlowId, out _);

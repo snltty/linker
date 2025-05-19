@@ -247,6 +247,7 @@ namespace linker.tunnel.transport
             }
             catch (Exception ex)
             {
+                taskCompletionSource.TrySetResult(null);
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
                     LoggerHelper.Instance.Error(ex);
@@ -328,6 +329,7 @@ namespace linker.tunnel.transport
             }
             catch (Exception)
             {
+                tcs.TrySetResult(null);
             }
             finally
             {
@@ -361,7 +363,7 @@ namespace linker.tunnel.transport
                     IPEndPoint ep = result.RemoteEndPoint as IPEndPoint;
 
                     await socketUdp.SendToAsync(endBytes, ep).ConfigureAwait(false);
-                    tcs.SetResult(ep);
+                    tcs.TrySetResult(ep);
                 }
                 catch (Exception ex)
                 {
@@ -445,10 +447,10 @@ namespace linker.tunnel.transport
                 QuicEP = quicEP,
                 State = state
             };
+
+            TaskCompletionSource<AddressFamily> tcs = new TaskCompletionSource<AddressFamily>(TaskCreationOptions.RunContinuationsAsynchronously);
             try
             {
-                TaskCompletionSource<AddressFamily> tcs = new TaskCompletionSource<AddressFamily>(TaskCreationOptions.RunContinuationsAsynchronously);
-
                 udpClient.ReuseBind(local);
                 udpClient.WindowsUdpBug();
                 _ = WaitAuth(bufferSize, token, tcs);
@@ -457,6 +459,7 @@ namespace linker.tunnel.transport
             }
             catch (Exception ex)
             {
+                tcs.TrySetResult(AddressFamily.InterNetwork);
                 token.Clear();
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
@@ -486,7 +489,7 @@ namespace linker.tunnel.transport
                     if (memory.Length == endBytes.Length && memory.Span.SequenceEqual(endBytes))
                     {
                         token.RemoteEP = result.RemoteEndPoint as IPEndPoint;
-                        tcs.SetResult(result.RemoteEndPoint.AddressFamily);
+                        tcs.TrySetResult(result.RemoteEndPoint.AddressFamily);
                         _ = Connect2Quic(bufferSize, token);
                         break;
                     }
@@ -590,7 +593,7 @@ namespace linker.tunnel.transport
         {
             if (reverseDic.TryRemove(tunnelTransportInfo.Remote.MachineId, out TaskCompletionSource<ITunnelConnection> tcs))
             {
-                tcs.SetResult(null);
+                tcs.TrySetResult(null);
             }
         }
         /// <summary>
@@ -601,7 +604,7 @@ namespace linker.tunnel.transport
         {
             if (reverseDic.TryRemove(tunnelTransportInfo.Remote.MachineId, out TaskCompletionSource<ITunnelConnection> tcs))
             {
-                tcs.SetResult(null);
+                tcs.TrySetResult(null);
             }
         }
 
@@ -633,7 +636,7 @@ namespace linker.tunnel.transport
                     };
                     if (reverseDic.TryRemove(state.Remote.MachineId, out TaskCompletionSource<ITunnelConnection> tcs))
                     {
-                        tcs.SetResult(result);
+                        tcs.TrySetResult(result);
                         return;
                     }
                     OnConnected(result);

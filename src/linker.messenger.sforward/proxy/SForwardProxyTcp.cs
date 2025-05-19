@@ -115,7 +115,7 @@ namespace linker.plugins.sforward.proxy
                     ulong _id = buffer1.AsSpan(flagBytes.Length).ToUInt64();
                     if (tcpConnections.TryRemove(_id, out TaskCompletionSource<Socket> _tcs))
                     {
-                        _tcs.SetResult(token.SourceSocket);
+                        _tcs.TrySetResult(token.SourceSocket);
                     }
                     return;
                 }
@@ -149,7 +149,15 @@ namespace linker.plugins.sforward.proxy
                 //等待回复
                 TaskCompletionSource<Socket> tcs = new TaskCompletionSource<Socket>(TaskCreationOptions.RunContinuationsAsynchronously);
                 tcpConnections.TryAdd(id, tcs);
-                token.TargetSocket = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+                try
+                {
+                    token.TargetSocket = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+                }
+                catch (Exception)
+                {
+                    CloseClientSocket(token);
+                    return;
+                }
 
                 //数据
                 await token.TargetSocket.SendAsync(buffer1.AsMemory(0, length)).ConfigureAwait(false);

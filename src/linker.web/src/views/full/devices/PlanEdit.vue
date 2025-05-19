@@ -112,31 +112,31 @@ export default {
         const state = reactive({
            show: true,
            loading: false,
-           ruleCron:{
+            ruleCron:{
                 week:'*',
                 month:'*',
                 day:'*',
                 hour:'*',
                 min:'*',
                 sec:'30',
-           },
-           ruleAt:{
+            },
+            ruleAt:{
                 type:3,
                 month:'*',
                 day:'*',
                 hour:0,
                 min:0,
                 sec:0,
-           },
-           ruleTimer:{
+            },
+            ruleTimer:{
                 year:0,
                 month:0,
                 day:0,
                 hour:0,
                 min:0,
                 sec:30,
-           },
-           ruleTrigger:{
+            },
+            ruleTrigger:{
                 year:0,
                 month:0,
                 day:0,
@@ -158,11 +158,11 @@ export default {
            rules: {}
         });
         watch(() => state.show, (val) => {
-           if (!val) {
+            if (!val) {
                setTimeout(() => {
                    emit('update:modelValue', val);
                }, 300);
-           }
+            }
         });
      
         const decodeRuleJson = {

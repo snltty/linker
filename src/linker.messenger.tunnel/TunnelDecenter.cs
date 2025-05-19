@@ -12,18 +12,17 @@ namespace linker.messenger.tunnel
         public ConcurrentDictionary<string, TunnelRouteLevelInfo> Config { get; } = new ConcurrentDictionary<string, TunnelRouteLevelInfo>();
 
         private readonly ITunnelClientStore tunnelClientStore;
-        private readonly TunnelNetworkTransfer tunnelNetworkTransfer;
         private readonly ISerializer serializer;
         private readonly SignInClientState signInClientState;
 
         public TunnelDecenter(ITunnelClientStore tunnelClientStore, TunnelNetworkTransfer tunnelNetworkTransfer, ISerializer serializer, SignInClientState signInClientState)
         {
             this.tunnelClientStore = tunnelClientStore;
-            tunnelClientStore.OnChanged += Refresh;
-            this.tunnelNetworkTransfer = tunnelNetworkTransfer;
             this.serializer = serializer;
             this.signInClientState = signInClientState;
 
+            tunnelClientStore.OnChanged += Refresh;
+            tunnelNetworkTransfer.OnChange += Refresh;
         }
         public void Refresh()
         {
@@ -31,12 +30,14 @@ namespace linker.messenger.tunnel
         }
         public Memory<byte> GetData()
         {
+            TunnelRouteLevelInfo tunnelRouteLevelInfo = GetLocalRouteLevel();
+            Config.AddOrUpdate(tunnelRouteLevelInfo.MachineId, tunnelRouteLevelInfo, (a, b) => tunnelRouteLevelInfo);
             return serializer.Serialize(GetLocalRouteLevel());
         }
         public void AddData(Memory<byte> data)
         {
-            TunnelRouteLevelInfo tunnelTransportRouteLevelInfo = serializer.Deserialize<TunnelRouteLevelInfo>(data.Span);
-            Config.AddOrUpdate(tunnelTransportRouteLevelInfo.MachineId, tunnelTransportRouteLevelInfo, (a, b) => tunnelTransportRouteLevelInfo);
+            TunnelRouteLevelInfo tunnelRouteLevelInfo = serializer.Deserialize<TunnelRouteLevelInfo>(data.Span);
+            Config.AddOrUpdate(tunnelRouteLevelInfo.MachineId, tunnelRouteLevelInfo, (a, b) => tunnelRouteLevelInfo);
         }
         public void AddData(List<ReadOnlyMemory<byte>> data)
         {
@@ -65,7 +66,7 @@ namespace linker.messenger.tunnel
                 PortMapWan = tunnelClientStore.PortMapPublic,
                 RouteLevelPlus = tunnelClientStore.RouteLevelPlus,
                 Net = tunnelClientStore.Network.Net
-            };
+            }; 
         }
     }
 }

@@ -2,6 +2,8 @@
 using linker.libs.extends;
 using linker.libs.timer;
 using linker.messenger.signin;
+using linker.messenger.tunnel.stun.client;
+using linker.messenger.tunnel.stun.result;
 using linker.tunnel;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -20,6 +22,8 @@ namespace linker.messenger.tunnel
         private readonly IMessengerSender messengerSender;
         private readonly ISerializer serializer;
 
+        public Action OnChange { get; set; } = () => { };
+
         public TunnelNetworkTransfer(ISignInClientStore signInClientStore, SignInClientState signInClientState, ITunnelClientStore tunnelClientStore, IMessengerSender messengerSender, ISerializer serializer, TunnelTransfer tunnelTransfer)
         {
             this.signInClientStore = signInClientStore;
@@ -28,7 +32,7 @@ namespace linker.messenger.tunnel
             this.messengerSender = messengerSender;
             this.serializer = serializer;
 
-           
+
             signInClientState.OnSignInSuccessBefore += async () => { RefreshRouteLevel(); tunnelTransfer.Refresh(); await Task.CompletedTask; };
 
             TestQuic();
@@ -68,6 +72,8 @@ namespace linker.messenger.tunnel
                     TunnelNetInfo net = str.DeJson<TunnelNetInfo>();
                     tunnelClientStore.Network.Net.Isp = net.Isp;
                     tunnelClientStore.Network.Net.CountryCode = net.CountryCode;
+
+                    OnChange?.Invoke();
                     return true;
                 }
             }
@@ -90,6 +96,7 @@ namespace linker.messenger.tunnel
                     tunnelClientStore.Network.Net.City = json["location"]["city"].ToString();
                     tunnelClientStore.Network.Net.Lat = double.Parse(json["location"]["latitude"].ToString());
                     tunnelClientStore.Network.Net.Lon = double.Parse(json["location"]["longitude"].ToString());
+                    OnChange?.Invoke();
                     return true;
                 }
             }
@@ -99,16 +106,49 @@ namespace linker.messenger.tunnel
             }
             return false;
         }
+        private async Task<bool> TestNatTypeAsync()
+        {
+            try
+            {
+                IPEndPoint serverEP = NetworkHelper.GetEndPoint("stun.miwifi.com", 3478);
+
+                using StunClient3489 client = new(serverEP, new IPEndPoint(IPAddress.Any, 0), null);
+                await client.ConnectProxyAsync();
+                try
+                {
+                    await client.QueryAsync();
+                }
+                finally
+                {
+                    await client.CloseProxyAsync();
+                }
+
+                tunnelClientStore.Network.Net.Nat = client.State.NatType.ToString();
+
+                OnChange?.Invoke();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
+            }
+            return false;
+        }
+
         private void GetNet()
         {
             TimerHelper.Async(async () =>
             {
-                bool isp = false, city = false;
+                bool isp = false, city = false,nat = false;
                 for (int i = 0; i < 10; i++)
                 {
                     if (isp == false) isp = await GetIsp();
                     if (city == false) city = await GetPosition();
-                    if (isp && city)
+                    if (nat == false) nat = await TestNatTypeAsync();
+                    if (isp && city && nat)
                     {
                         break;
                     }
@@ -127,6 +167,30 @@ namespace linker.messenger.tunnel
                 });
             });
         }
+
+      
+        public TunnelLocalNetworkInfo GetLocalNetwork()
+        {
+            return new TunnelLocalNetworkInfo
+            {
+                MachineId = signInClientState.Connection?.Id ?? string.Empty,
+                HostName = Dns.GetHostName(),
+                Lans = GetInterfaces(),
+                Routes = tunnelClientStore.Network.RouteIPs,
+            };
+        }
+        private static byte[] ipv6LocalBytes = new byte[] { 254, 128, 0, 0, 0, 0, 0, 0 };
+        private TunnelInterfaceInfo[] GetInterfaces()
+        {
+            return NetworkInterface.GetAllNetworkInterfaces().Select(c => new TunnelInterfaceInfo
+            {
+                Name = c.Name,
+                Desc = c.Description,
+                Mac = Regex.Replace(c.GetPhysicalAddress().ToString(), @"(.{2})", $"$1-").Trim('-'),
+                Ips = c.GetIPProperties().UnicastAddresses.Select(c => c.Address).Where(c => c.AddressFamily == AddressFamily.InterNetwork || (c.AddressFamily == AddressFamily.InterNetworkV6 && c.GetAddressBytes().AsSpan(0, 8).SequenceEqual(ipv6LocalBytes) == false)).ToArray()
+            }).Where(c => c.Ips.Length > 0 && c.Ips.Any(d => d.Equals(IPAddress.Loopback)) == false).ToArray();
+        }
+
 
         private void TestQuic()
         {
@@ -168,29 +232,5 @@ namespace linker.messenger.tunnel
                 }
             }
         }
-
-
-        public TunnelLocalNetworkInfo GetLocalNetwork()
-        {
-            return new TunnelLocalNetworkInfo
-            {
-                MachineId = signInClientState.Connection?.Id ?? string.Empty,
-                HostName = Dns.GetHostName(),
-                Lans = GetInterfaces(),
-                Routes = tunnelClientStore.Network.RouteIPs,
-            };
-        }
-        private static byte[] ipv6LocalBytes = new byte[] { 254, 128, 0, 0, 0, 0, 0, 0 };
-        private TunnelInterfaceInfo[] GetInterfaces()
-        {
-            return NetworkInterface.GetAllNetworkInterfaces().Select(c => new TunnelInterfaceInfo
-            {
-                Name = c.Name,
-                Desc = c.Description,
-                Mac = Regex.Replace(c.GetPhysicalAddress().ToString(), @"(.{2})", $"$1-").Trim('-'),
-                Ips = c.GetIPProperties().UnicastAddresses.Select(c => c.Address).Where(c => c.AddressFamily == AddressFamily.InterNetwork || (c.AddressFamily == AddressFamily.InterNetworkV6 && c.GetAddressBytes().AsSpan(0, 8).SequenceEqual(ipv6LocalBytes) == false)).ToArray()
-            }).Where(c => c.Ips.Length > 0 && c.Ips.Any(d => d.Equals(IPAddress.Loopback)) == false).ToArray();
-        }
-
     }
 }

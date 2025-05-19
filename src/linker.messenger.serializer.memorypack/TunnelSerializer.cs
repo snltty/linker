@@ -509,9 +509,11 @@ namespace linker.messenger.serializer.memorypack
         double Lon => info.Lon;
         [MemoryPackInclude]
         string Isp => info.Isp;
+        [MemoryPackInclude]
+        string Nat => info.Nat;
 
         [MemoryPackConstructor]
-        SerializableTunnelNetInfo(string countryCode, string city, double lat, double lon, string isp)
+        SerializableTunnelNetInfo(string countryCode, string city, double lat, double lon, string isp, string nat)
         {
             var info = new TunnelNetInfo
             {
@@ -519,7 +521,8 @@ namespace linker.messenger.serializer.memorypack
                 CountryCode = countryCode,
                 Isp = isp,
                 Lat = lat,
-                Lon = lon
+                Lon = lon,
+                Nat = nat
             };
             this.info = info;
         }

@@ -21,7 +21,6 @@ export default {
     'head.logger': '日志',
     'head.refresh': '刷新',
 
-
     'logger.list': '列表',
     'logger.setting': '设置',
     'logger.clear': '清空',
@@ -330,8 +329,6 @@ export default {
     'server.updaterMM': '分',
     'server.updaterS': '秒',
 
-
-
     'server.asyncText': '到本组所有客户端',
     'server.asyncSelect': '请选择',
     'server.asyncCheckAll': '全选',
@@ -343,7 +340,6 @@ export default {
     'server.asyncUpdaterSecretKey': '更新密钥',
     'server.asyncTunnelTransports': '打洞协议',
     'server.asyncSignInUserId': '用户唯一标识',
-
 
     'firewall.rule': '防火墙协议',
     'firewall.srcName': '源设备',

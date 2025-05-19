@@ -75,7 +75,7 @@ namespace linker.messenger
             if (res == false)
             {
                 sends.TryRemove(msg.RequestId, out _);
-                tcs.SetResult(new MessageResponeInfo { Code = MessageResponeCodes.NOT_CONNECT });
+                tcs.TrySetResult(new MessageResponeInfo { Code = MessageResponeCodes.NOT_CONNECT });
             }
 
             try
@@ -84,6 +84,7 @@ namespace linker.messenger
             }
             catch (Exception)
             {
+                tcs.TrySetResult(new MessageResponeInfo { Code = MessageResponeCodes.NOT_CONNECT });
                 sends.TryRemove(msg.RequestId, out _);
                 return new MessageResponeInfo { Code = MessageResponeCodes.TIMEOUT };
             }
@@ -153,7 +154,7 @@ namespace linker.messenger
                 wrap.Payload.CopyTo(bytes);
 
                 AddReceive(info.MessengerId, bytes.Length);
-                info.Tcs.SetResult(new MessageResponeInfo { Code = wrap.Code, Data = bytes, Connection = wrap.Connection });
+                info.Tcs.TrySetResult(new MessageResponeInfo { Code = wrap.Code, Data = bytes, Connection = wrap.Connection });
                 return info.MessengerId;
             }
             return 0;

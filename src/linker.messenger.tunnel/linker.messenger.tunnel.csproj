@@ -16,9 +16,9 @@
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker messenger tunnel</PackageReleaseNotes>
-		<Version>1.7.9</Version>
-		<AssemblyVersion>1.7.9</AssemblyVersion>
-		<FileVersion>1.7.9</FileVersion>
+		<Version>1.8.0</Version>
+		<AssemblyVersion>1.8.0</AssemblyVersion>
+		<FileVersion>1.8.0</FileVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

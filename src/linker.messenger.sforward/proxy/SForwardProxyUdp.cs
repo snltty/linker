@@ -45,7 +45,7 @@ namespace linker.plugins.sforward.proxy
         {
             try
             {
-                byte[] buffer = new byte[(1 << bufferSize) * 1024];
+                byte[] buffer = new byte[65535];
                 IPEndPoint tempRemoteEP = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
 
                 string portStr = token.ListenPort.ToString();
@@ -78,7 +78,7 @@ namespace linker.plugins.sforward.proxy
                             ulong _id = memory.Slice(flagBytes.Length).ToUInt64();
                             if (udptcss.TryRemove(_id, out TaskCompletionSource<IPEndPoint> _tcs))
                             {
-                                _tcs.SetResult(source);
+                                _tcs.TrySetResult(source);
                             }
                             continue;
                         }
@@ -91,7 +91,7 @@ namespace linker.plugins.sforward.proxy
 
                         int length = memory.Length;
                         byte[] buf = ArrayPool<byte>.Shared.Rent(length);
-                        memory.CopyTo(buffer);
+                        memory.CopyTo(buf);
 
                         TimerHelper.Async(async () =>
                         {
@@ -103,13 +103,20 @@ namespace linker.plugins.sforward.proxy
                                     TaskCompletionSource<IPEndPoint> tcs = new TaskCompletionSource<IPEndPoint>(TaskCreationOptions.RunContinuationsAsynchronously);
                                     udptcss.TryAdd(id, tcs);
 
-                                    IPEndPoint remote = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+                                    try
+                                    {
+                                        IPEndPoint remote = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
 
-                                    udpConnections.TryRemove(source, out _);
-                                    udpConnections.TryAdd(source, new UdpTargetCache { IPEndPoint = remote });
-                                    udpConnections.TryAdd(remote, new UdpTargetCache { IPEndPoint = source });
+                                        udpConnections.TryRemove(source, out _);
+                                        udpConnections.TryAdd(source, new UdpTargetCache { IPEndPoint = remote });
+                                        udpConnections.TryAdd(remote, new UdpTargetCache { IPEndPoint = source });
 
-                                    await token.SourceSocket.SendToAsync(buf.AsMemory(0, length), remote).ConfigureAwait(false);
+                                        await token.SourceSocket.SendToAsync(buf.AsMemory(0, length), remote).ConfigureAwait(false);
+                                    }
+                                    catch (Exception)
+                                    {
+                                        tcs.TrySetResult(null);
+                                    }
                                 }
                             }
                             catch (Exception ex)
@@ -180,7 +187,7 @@ namespace linker.plugins.sforward.proxy
 
             //连接本地服务
             Socket serviceUdp = null;
-            buffer = new byte[(1 << bufferSize) * 1024];
+            buffer = new byte[65535];
             IPEndPoint tempEp = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
 
             UdpConnectedCache cache = new UdpConnectedCache { SourceSocket = serverUdp, TargetSocket = serviceUdp };
@@ -227,7 +234,7 @@ namespace linker.plugins.sforward.proxy
                 await serviceUdp.SendToAsync(memory, service).ConfigureAwait(false);
                 TimerHelper.Async(async () =>
                 {
-                    byte[] buffer = new byte[(1 << bufferSize) * 1024];
+                    byte[] buffer = new byte[65535];
                     IPEndPoint tempEp = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
                     while (true)
                     {

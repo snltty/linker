@@ -198,6 +198,7 @@ namespace linker.tunnel.transport
             }
             catch (Exception ex)
             {
+                taskCompletionSource.TrySetResult(null);
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
                     LoggerHelper.Instance.Error(ex);
@@ -228,7 +229,7 @@ namespace linker.tunnel.transport
                 SocketReceiveFromResult result = await socket.ReceiveFromAsync(buffer, new IPEndPoint(IPAddress.IPv6Any, 0)).ConfigureAwait(false);
 
                 await socket.SendToAsync(endBytes, result.RemoteEndPoint).ConfigureAwait(false);
-                tcs.SetResult(result.RemoteEndPoint as IPEndPoint);
+                tcs.TrySetResult(result.RemoteEndPoint as IPEndPoint);
             });
             return socket;
         }
@@ -256,7 +257,14 @@ namespace linker.tunnel.transport
                 };
                 _ = ListenReceiveCallback(token);
 
-                AddressFamily af = await token.Tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(30000)).ConfigureAwait(false);
+                try
+                {
+                    AddressFamily af = await token.Tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(30000)).ConfigureAwait(false);
+                }
+                catch (Exception)
+                {
+                    token.Tcs.TrySetResult(AddressFamily.InterNetwork);
+                }
             }
             catch (Exception ex)
             {
@@ -273,7 +281,7 @@ namespace linker.tunnel.transport
             {
                 byte[] buffer = new byte[8 * 1024];
                 IPEndPoint ep = new IPEndPoint(IPAddress.IPv6Any, 0);
-                while (true)
+                while (token.Tcs.Task.IsCompleted == false)
                 {
                     SocketReceiveFromResult result = await token.LocalUdp.ReceiveFromAsync(buffer, ep).ConfigureAwait(false);
                     if (result.ReceivedBytes == 0) break;
@@ -281,7 +289,7 @@ namespace linker.tunnel.transport
                     {
                         if (token.Tcs != null && token.Tcs.Task.IsCompleted == false)
                         {
-                            token.Tcs.SetResult(result.RemoteEndPoint.AddressFamily);
+                            token.Tcs.TrySetResult(result.RemoteEndPoint.AddressFamily);
                             await OnUdpConnected(token.State, token.LocalUdp, result.RemoteEndPoint as IPEndPoint).ConfigureAwait(false);
                         }
                         break;
@@ -359,6 +367,7 @@ namespace linker.tunnel.transport
             }
             catch (Exception)
             {
+                tcs.TrySetResult(null);
             }
             finally
             {
@@ -375,7 +384,7 @@ namespace linker.tunnel.transport
         {
             if (reverseDic.TryRemove(tunnelTransportInfo.Remote.MachineId, out TaskCompletionSource<ITunnelConnection> tcs))
             {
-                tcs.SetResult(null);
+                tcs.TrySetResult(null);
             }
         }
         /// <summary>
@@ -386,7 +395,7 @@ namespace linker.tunnel.transport
         {
             if (reverseDic.TryRemove(tunnelTransportInfo.Remote.MachineId, out TaskCompletionSource<ITunnelConnection> tcs))
             {
-                tcs.SetResult(null);
+                tcs.TrySetResult(null);
             }
         }
 
@@ -417,7 +426,7 @@ namespace linker.tunnel.transport
                     };
                     if (reverseDic.TryRemove(state.Remote.MachineId, out TaskCompletionSource<ITunnelConnection> tcs))
                     {
-                        tcs.SetResult(result);
+                        tcs.TrySetResult(result);
                         return;
                     }
                     OnConnected(result);

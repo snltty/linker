@@ -139,14 +139,14 @@ namespace linker.tunnel.transport
         {
             if (reverseDic.TryRemove(tunnelTransportInfo.Remote.MachineId, out TaskCompletionSource<ITunnelConnection> tcs))
             {
-                tcs.SetResult(null);
+                tcs.TrySetResult(null);
             }
         }
         public void OnSuccess(TunnelTransportInfo tunnelTransportInfo)
         {
             if (reverseDic.TryRemove(tunnelTransportInfo.Remote.MachineId, out TaskCompletionSource<ITunnelConnection> tcs))
             {
-                tcs.SetResult(null);
+                tcs.TrySetResult(null);
             }
         }
 
@@ -253,6 +253,7 @@ namespace linker.tunnel.transport
             }
             catch (Exception)
             {
+                tcs.TrySetResult(null);
             }
             finally
             {
@@ -302,7 +303,7 @@ namespace linker.tunnel.transport
                     };
                     if (reverseDic.TryRemove(_state.Remote.MachineId, out TaskCompletionSource<ITunnelConnection> tcs))
                     {
-                        tcs.SetResult(result);
+                        tcs.TrySetResult(result);
                         return;
                     }
 

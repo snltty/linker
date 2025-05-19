@@ -20,13 +20,19 @@
                     <template v-else>
                         <img title="?" class="system" src="/system.svg" />
                     </template>
+                    <template v-if="tunnel.list[scope.row.MachineId].Net.Nat">
+                        <span class="nat" :title="tunnel.list[scope.row.MachineId].Net.Nat">{{ natMap[tunnel.list[scope.row.MachineId].Net.Nat]  }}</span>
+                    </template>
+                    <template v-else>
+                        <img title="?" class="system" src="/system.svg" />
+                    </template>
                 </div> 
                 <div class="flex">
                     <a href="javascript:;" class="a-line" 
                     :class="{yellow:tunnel.list[scope.row.MachineId].NeedReboot}" 
                     :title="title(tunnel.list[scope.row.MachineId])"
                     @click="handleTunnel(tunnel.list[scope.row.MachineId],scope.row)">
-                        <span>跳点 : {{tunnel.list[scope.row.MachineId].RouteLevel}}+{{tunnel.list[scope.row.MachineId].RouteLevelPlus}}</span>
+                        <span>跳点:{{tunnel.list[scope.row.MachineId].RouteLevel}}+{{tunnel.list[scope.row.MachineId].RouteLevelPlus}}</span>
                     </a>
                 </div>
             </template>
@@ -85,6 +91,19 @@ export default {
             }
             return `./system.svg`;
         }
+
+        const natMap = {
+            "Unknown":'?',
+            "UnsupportedServer":'?',
+            "UdpBlocked":'?',
+            "OpenInternet":'?',
+            "SymmetricUdpFirewall":'?',
+            "FullCone":'1',
+            "RestrictedCone":'2',
+            "PortRestrictedCone":'3',
+            "Symmetric":'4',
+        }
+
         const connectionCount = (machineId)=>{
                 const length = [
                     forwardConnections.value.list[machineId],
@@ -116,7 +135,7 @@ export default {
        
         return {
             tunnel, handleTunnel,handleTunnelRefresh,
-            connectionCount,handleConnections,title,netImg
+            connectionCount,handleConnections,title,netImg,natMap
         }
     }
 }
@@ -127,9 +146,12 @@ export default {
 
 .green{font-weight:bold;}
 
-img.system{
+img.system,span.nat{
     height:1.4rem;
     margin-right:.4rem
     border: 1px solid #eee;
+    line-height:1.4rem;
+    vertical-align:middle;
 }
+span.nat{display:inline-block;padding:0 .2rem;margin-right:0;font-family: fantasy;}
 </style>

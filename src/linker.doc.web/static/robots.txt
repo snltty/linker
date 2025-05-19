@@ -1,0 +1,8 @@
+# START YOAST BLOCK
+# ---------------------------
+User-agent: *
+Disallow:
+
+Sitemap: https://blog.snltty.com/sitemap.xml
+# ---------------------------
+# END YOAST BLOCK
