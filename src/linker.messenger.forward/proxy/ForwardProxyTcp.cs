@@ -11,7 +11,7 @@ namespace linker.messenger.forward.proxy
     public partial class ForwardProxy
     {
         private ConcurrentDictionary<int, AsyncUserToken> tcpListens = new ConcurrentDictionary<int, AsyncUserToken>();
-        private readonly ConcurrentDictionary<ConnectId, AsyncUserToken> tcpConnections = new ConcurrentDictionary<ConnectId, AsyncUserToken>(new ConnectIdComparer());
+        private readonly ConcurrentDictionary<(ulong connectid, string remoteMachineId, string, ProxyDirection dir), AsyncUserToken> tcpConnections = new ConcurrentDictionary<(ulong connectid, string remoteMachineId, string, ProxyDirection dir), AsyncUserToken>();
         private Socket socket;
         public IPEndPoint LocalEndpoint { get; private set; }
 
@@ -286,7 +286,7 @@ namespace linker.messenger.forward.proxy
         {
             if (tunnelToken.Proxy.Protocol == ProxyProtocol.Tcp)
             {
-                ConnectId connectId = tunnelToken.GetTcpConnectId();
+                var connectId = tunnelToken.GetTcpConnectId();
                 if (tcpConnections.TryGetValue(connectId, out AsyncUserToken token))
                 {
                     _ = ProcessReceive(token);
@@ -301,7 +301,7 @@ namespace linker.messenger.forward.proxy
         {
             if (tunnelToken.Proxy.Protocol == ProxyProtocol.Tcp)
             {
-                ConnectId connectId = tunnelToken.GetTcpConnectId();
+                var connectId = tunnelToken.GetTcpConnectId();
                 if (tcpConnections.TryRemove(connectId, out AsyncUserToken token))
                 {
                     CloseClientSocket(token, 3);
@@ -316,7 +316,7 @@ namespace linker.messenger.forward.proxy
         /// <returns></returns>
         private async Task SendToSocketTcp(AsyncUserTunnelToken tunnelToken)
         {
-            ConnectId connectId = tunnelToken.GetTcpConnectId();
+            var connectId = tunnelToken.GetTcpConnectId();
             if (tunnelToken.Proxy.Step == ProxyStep.Close || tunnelToken.Proxy.Data.Length == 0)
             {
                 if (tcpConnections.TryRemove(connectId, out AsyncUserToken token))
@@ -383,33 +383,6 @@ namespace linker.messenger.forward.proxy
 
     }
 
-
-    public sealed class ConnectIdComparer : IEqualityComparer<ConnectId>
-    {
-        public bool Equals(ConnectId x, ConnectId y)
-        {
-            return x.connectId == y.connectId && x.hashcode1 == y.hashcode1 && x.hashcode2 == y.hashcode2 && x.direction == y.direction;
-        }
-        public int GetHashCode(ConnectId obj)
-        {
-            return obj.connectId.GetHashCode() ^ obj.hashcode1 ^ obj.hashcode2 ^ obj.direction;
-        }
-    }
-    public record struct ConnectId
-    {
-        public ulong connectId;
-        public int hashcode1;
-        public int hashcode2;
-        public byte direction;
-
-        public ConnectId(ulong connectId, int hashcode1, int hashcode2, byte direction)
-        {
-            this.connectId = connectId;
-            this.hashcode1 = hashcode1;
-            this.hashcode2 = hashcode2;
-            this.direction = direction;
-        }
-    }
     public sealed class AsyncUserToken
     {
         public int ListenPort { get; set; }
@@ -432,13 +405,13 @@ namespace linker.messenger.forward.proxy
             GC.Collect();
         }
 
-        public ConnectId GetConnectId()
+        public (ulong connectid, string remoteMachineId, string, ProxyDirection dir) GetConnectId()
         {
-            return new ConnectId(Proxy.ConnectId, Connection.RemoteMachineId.GetHashCode(), Connection.TransactionId.GetHashCode(), (byte)Proxy.Direction);
+            return (Proxy.ConnectId, Connection.RemoteMachineId, Connection.TransactionId, Proxy.Direction);
         }
-        public ConnectId GetConnectId(ProxyDirection proxyDirection)
+        public (ulong connectid, string remoteMachineId, string, ProxyDirection dir) GetConnectId(ProxyDirection proxyDirection)
         {
-            return new ConnectId(Proxy.ConnectId, Connection.RemoteMachineId.GetHashCode(), Connection.TransactionId.GetHashCode(), (byte)proxyDirection);
+            return (Proxy.ConnectId, Connection.RemoteMachineId, Connection.TransactionId, proxyDirection);
         }
     }
     public sealed class ConnectState

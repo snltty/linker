@@ -18,7 +18,7 @@ namespace linker.messenger.forward.proxy
             StartTcp(ep, bufferSize);
             StartUdp(new IPEndPoint(ep.Address, LocalEndpoint.Port), bufferSize);
         }
-       
+
         /// <summary>
         /// 根据不同的消息类型做不同的事情
         /// </summary>
@@ -224,13 +224,13 @@ namespace linker.messenger.forward.proxy
             GC.Collect();
         }
 
-        public ConnectId GetTcpConnectId()
+        public (ulong connectid, string remoteMachineId, string, ProxyDirection dir) GetTcpConnectId()
         {
-            return new ConnectId(Proxy.ConnectId, Connection.RemoteMachineId.GetHashCode(), Connection.TransactionId.GetHashCode(), (byte)Proxy.Direction);
+            return (Proxy.ConnectId, Connection.RemoteMachineId, Connection.TransactionId, Proxy.Direction);
         }
-        public ConnectIdUdp GetUdpConnectId()
+        public (uint srcIp, ushort srcPort, string remoteMachineId, string transactionId) GetUdpConnectId()
         {
-            return new ConnectIdUdp(Proxy.SourceEP, Connection.RemoteMachineId.GetHashCode(), Connection.TransactionId.GetHashCode());
+            return (NetworkHelper.ToValue(Proxy.SourceEP.Address), (ushort)Proxy.SourceEP.Port, Connection.RemoteMachineId, Connection.TransactionId);
         }
     }
 

@@ -11,7 +11,7 @@ namespace linker.messenger.forward.proxy
     public partial class ForwardProxy
     {
         private ConcurrentDictionary<int, AsyncUserUdpToken> udpListens = new ConcurrentDictionary<int, AsyncUserUdpToken>();
-        private ConcurrentDictionary<ConnectIdUdp, AsyncUserUdpTokenTarget> udpConnections = new(new ConnectIdUdpComparer());
+        private ConcurrentDictionary<(uint srcIp, ushort srcPort, string remoteMachineId, string transactionId), AsyncUserUdpTokenTarget> udpConnections = new();
 
         /// <summary>
         /// 监听一个端口
@@ -142,7 +142,7 @@ namespace linker.messenger.forward.proxy
 
             if (tunnelToken.Proxy.Direction == ProxyDirection.Forward)
             {
-                ConnectIdUdp connectId = tunnelToken.GetUdpConnectId();
+                var connectId = tunnelToken.GetUdpConnectId();
                 try
                 {
 
@@ -200,7 +200,7 @@ namespace linker.messenger.forward.proxy
             socket.WindowsUdpBug();
             await socket.SendToAsync(tunnelToken.Proxy.Data, target).ConfigureAwait(false);
 
-            ConnectIdUdp connectId = tunnelToken.GetUdpConnectId();
+            var connectId = tunnelToken.GetUdpConnectId();
             AsyncUserUdpTokenTarget udpToken = new AsyncUserUdpTokenTarget
             {
                 Proxy = new ProxyInfo
@@ -301,9 +301,7 @@ namespace linker.messenger.forward.proxy
 
         private void CloseClientSocketUdp(ITunnelConnection connection)
         {
-            int hashcode1 = connection.RemoteMachineId.GetHashCode();
-            int hashcode2 = connection.TransactionId.GetHashCode();
-            var tokens = udpConnections.Where(c => c.Key.hashcode1 == hashcode1 && c.Key.hashcode2 == hashcode2).ToList();
+            var tokens = udpConnections.Where(c => c.Key.remoteMachineId == connection.RemoteMachineId && c.Key.transactionId == connection.TransactionId).ToList();
             foreach (var item in tokens)
             {
                 try
@@ -389,7 +387,7 @@ namespace linker.messenger.forward.proxy
         public ITunnelConnection Connection { get; set; }
         public ProxyInfo Proxy { get; set; }
 
-        public ConnectIdUdp ConnectId { get; set; }
+        public (uint srcIp, ushort srcPort, string remoteMachineId, string transactionId) ConnectId { get; set; }
 
         public byte[] Buffer { get; set; }
 
@@ -401,31 +399,6 @@ namespace linker.messenger.forward.proxy
             TargetSocket = null;
             GC.Collect();
             GC.SuppressFinalize(this);
-        }
-    }
-    public sealed class ConnectIdUdpComparer : IEqualityComparer<ConnectIdUdp>
-    {
-        public bool Equals(ConnectIdUdp x, ConnectIdUdp y)
-        {
-            return x.source != null && x.source.Equals(y.source) && x.hashcode1 == y.hashcode1 && x.hashcode2 == y.hashcode2;
-        }
-        public int GetHashCode(ConnectIdUdp obj)
-        {
-            if (obj.source == null) return 0;
-            return obj.source.GetHashCode() ^ obj.hashcode1 ^ obj.hashcode2;
-        }
-    }
-    public readonly struct ConnectIdUdp
-    {
-        public readonly IPEndPoint source { get; }
-        public int hashcode1 { get; }
-        public int hashcode2 { get; }
-
-        public ConnectIdUdp(IPEndPoint source, int hashcode1, int hashcode2)
-        {
-            this.source = source;
-            this.hashcode1 = hashcode1;
-            this.hashcode2 = hashcode2;
         }
     }
 }

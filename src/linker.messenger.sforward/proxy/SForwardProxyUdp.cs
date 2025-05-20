@@ -13,7 +13,7 @@ namespace linker.plugins.sforward.proxy
         //服务器监听表
         private ConcurrentDictionary<int, AsyncUserUdpToken> udpListens = new ConcurrentDictionary<int, AsyncUserUdpToken>();
         //服务器映射表，服务器收到一个地址的数据包，要知道发给谁
-        private ConcurrentDictionary<IPEndPoint, UdpTargetCache> udpConnections = new ConcurrentDictionary<IPEndPoint, UdpTargetCache>(new IPEndPointComparer());
+        private ConcurrentDictionary<(uint ip,ushort port), UdpTargetCache> udpConnections = new ConcurrentDictionary<(uint ip, ushort port), UdpTargetCache>();
         //连接缓存表，a连接，保存，b连接查询，找到对应的，就成立映射关系，完成隧道
         private ConcurrentDictionary<ulong, TaskCompletionSource<IPEndPoint>> udptcss = new ConcurrentDictionary<ulong, TaskCompletionSource<IPEndPoint>>();
 
@@ -63,8 +63,10 @@ namespace linker.plugins.sforward.proxy
                     AddReceive(portStr, token.GroupId, memory.Length);
 
                     IPEndPoint source = result.RemoteEndPoint as IPEndPoint;
+                    (uint ip, ushort port) sourceKey = (NetworkHelper.ToValue(source.Address), (ushort)source.Port);
+
                     //已经连接
-                    if (udpConnections.TryGetValue(source, out UdpTargetCache cache) && cache != null)
+                    if (udpConnections.TryGetValue(sourceKey, out UdpTargetCache cache) && cache != null)
                     {
                         AddSendt(portStr, token.GroupId, memory.Length);
                         cache.LastTicks.Update();
@@ -83,11 +85,11 @@ namespace linker.plugins.sforward.proxy
                             continue;
                         }
 
-                        if (udpConnections.TryGetValue(source, out _))
+                        if (udpConnections.TryGetValue(sourceKey, out _))
                         {
                             continue;
                         }
-                        udpConnections.TryAdd(source, null);
+                        udpConnections.TryAdd(sourceKey, null);
 
                         int length = memory.Length;
                         byte[] buf = ArrayPool<byte>.Shared.Rent(length);
@@ -106,10 +108,12 @@ namespace linker.plugins.sforward.proxy
                                     try
                                     {
                                         IPEndPoint remote = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+                                        (uint ip, ushort port) remoteKey = (NetworkHelper.ToValue(remote.Address), (ushort)remote.Port);
 
-                                        udpConnections.TryRemove(source, out _);
-                                        udpConnections.TryAdd(source, new UdpTargetCache { IPEndPoint = remote });
-                                        udpConnections.TryAdd(remote, new UdpTargetCache { IPEndPoint = source });
+                                        UdpTargetCache cacheSource = new UdpTargetCache { IPEndPoint = remote };
+                                        UdpTargetCache cacheRemote = new UdpTargetCache { IPEndPoint = source };
+                                        udpConnections.AddOrUpdate(sourceKey, cacheSource,(a,b)=> cacheSource);
+                                        udpConnections.AddOrUpdate(remoteKey, cacheRemote, (a,b)=> cacheRemote);
 
                                         await token.SourceSocket.SendToAsync(buf.AsMemory(0, length), remote).ConfigureAwait(false);
                                     }
@@ -186,11 +190,10 @@ namespace linker.plugins.sforward.proxy
             await serverUdp.SendToAsync(buffer, server).ConfigureAwait(false);
 
             //连接本地服务
-            Socket serviceUdp = null;
             buffer = new byte[65535];
             IPEndPoint tempEp = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
 
-            UdpConnectedCache cache = new UdpConnectedCache { SourceSocket = serverUdp, TargetSocket = serviceUdp };
+            UdpConnectedCache cache = new UdpConnectedCache { SourceSocket = serverUdp, TargetSocket = null };
             while (true)
             {
                 try
@@ -208,14 +211,14 @@ namespace linker.plugins.sforward.proxy
                     AddReceive(portStr, string.Empty, memory.Length);
                     AddSendt(portStr, string.Empty, memory.Length);
                     //未连接本地服务的，去连接一下
-                    if (serviceUdp == null)
+                    if (cache.TargetSocket == null)
                     {
                         cache.TargetSocket = await NewServiceConnect(memory).ConfigureAwait(false);
                         udpConnecteds.TryAdd(id, cache);
                     }
                     else
                     {
-                        await serviceUdp.SendToAsync(memory, service).ConfigureAwait(false);
+                        await cache.TargetSocket.SendToAsync(memory, service).ConfigureAwait(false);
                     }
                 }
                 catch (Exception ex)
@@ -334,16 +337,4 @@ namespace linker.plugins.sforward.proxy
         }
     }
 
-    public sealed class IPEndPointComparer : IEqualityComparer<IPEndPoint>
-    {
-        public bool Equals(IPEndPoint x, IPEndPoint y)
-        {
-            return x.Equals(y);
-        }
-        public int GetHashCode(IPEndPoint obj)
-        {
-            if (obj == null) return 0;
-            return obj.GetHashCode();
-        }
-    }
 }

@@ -178,7 +178,7 @@ namespace linker.messenger.forward
                 }
                 catch (Exception ex)
                 {
-                    info.Msg = ex.Message;
+                    info.Msg = $"【TCP】{ex.Message}";
                 }
                 finally
                 {
