@@ -157,7 +157,7 @@ namespace linker.messenger.sforward.client
                 }
                 catch (Exception ex)
                 {
-                    sForwardClientStore.Update(info.Id, ex.Message);
+                    sForwardClientStore.Update(info.Id, $"【TCP】{ex.Message}");
                 }
                 finally
                 {
