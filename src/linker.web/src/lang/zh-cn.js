@@ -55,7 +55,7 @@ export default {
     'status.groupDelConfirm': '确认删除吗?',
     'status.groupValidate': '有名称或者id未设置的项',
 
-    'status.support': '赞助',
+    'status.support': '为爱发电',
     'status.website': '官网',
     'status.doc': '文档',
     'status.cdkey': 'CDKEY商城',

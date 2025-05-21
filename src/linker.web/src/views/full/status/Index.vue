@@ -1,8 +1,9 @@
 <template>
     <div class="status-wrap flex">
         <div class="copy flex">
-            <a href="javascript:;" class="memory" :title="$t('status.support')" @click="state.showPay = true">
-                <img src="@/assets/coin.svg" alt="memory" />
+            <!-- <a href="javascript:;" class="memory" :title="$t('status.support')" @click="state.showPay = true"> -->
+            <a href="https://afdian.com/a/snltty" class="memory" :title="$t('status.support')" target="_blank">
+                <img src="@/assets/dianchi.svg" alt="memory" />
                 <span>{{$t('status.support')}}</span>
             </a>
             <a href="javascript:;">©linker {{ self.Version }}</a>
@@ -67,7 +68,7 @@ export default {
     }
 
     a.memory{
-        img{height:3rem;vertical-align:bottom;margin-right:.1rem;}
+        img{height:2rem;vertical-align:sub;margin-right:.1rem;}
         margin-right:.6rem;
     }
 }
