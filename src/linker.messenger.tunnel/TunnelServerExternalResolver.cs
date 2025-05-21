@@ -4,17 +4,18 @@ using System.Buffers;
 using linker.libs.extends;
 using linker.libs;
 using System.Text;
+using linker.libs.timer;
 
 namespace linker.messenger.tunnel
 {
     /// <summary>
     /// 外网端口处理器
     /// </summary>
-    public class TunnelServerExternalResolver: IResolver
+    public class TunnelServerExternalResolver : IResolver
     {
-        public byte Type =>  (byte)ResolverType.External;
+        public byte Type => (byte)ResolverType.External;
 
-        public virtual void AddReceive( long bytes) { }
+        public virtual void AddReceive(long bytes) { }
         public virtual void AddSendt(long bytes) { }
 
         /// <summary>
@@ -29,21 +30,32 @@ namespace linker.messenger.tunnel
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{ep} get udp external port");
 
             AddReceive(memory.Length);
-            byte[] sendData = ArrayPool<byte>.Shared.Rent(1024);
-            try
+
+            TimerHelper.Async(async () =>
             {
-                var send = BuildSendData(sendData, ep);
-                AddSendt(send.Length);
-                await socket.SendToAsync(send, SocketFlags.None, ep).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Error(ex);
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(sendData);
-            }
+                byte[] sendData = ArrayPool<byte>.Shared.Rent(1024);
+                try
+                {
+                    Memory<byte> send = BuildSendData(sendData, ep);
+                   
+                    for (int i = 0; i < 5; i++)
+                    {
+                        await Task.Delay(15).ConfigureAwait(false);
+                        await socket.SendToAsync(send, SocketFlags.None, ep).ConfigureAwait(false);
+                        AddSendt(send.Length);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Error(ex);
+                }
+                finally
+                {
+                    ArrayPool<byte>.Shared.Return(sendData);
+                }
+            });
+
+            await Task.CompletedTask;
         }
         /// <summary>
         /// TCP

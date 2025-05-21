@@ -7,11 +7,11 @@
             <el-checkbox v-model="state.full" ><span class="red">满权限(顶级管理权)</span></el-checkbox>
         </el-col>
     </el-row>
-    <div class="access-wrap scrollbar">
+    <div class="access-wrap scrollbar" :style="{height:`${state.height}rem`}">
         <el-checkbox-group v-model="state.checkList" @change="handleCheckedChange">
             <el-row>
                 <template v-for="(item,index) in access" :key="index">
-                    <el-col :span="8">
+                    <el-col :xs="12" :sm="8">
                         <el-checkbox :value="item.Value" :label="item.Text" />
                     </el-col>
                 </template>
@@ -24,7 +24,7 @@ import {  computed, onMounted, reactive } from 'vue';
 import { injectGlobalData } from '@/provide';
 import { useAccess } from './access';
 export default {
-    props:['machineid'],
+    props:['machineid','height'],
     setup(props) {
 
         const globalData = injectGlobalData();
@@ -41,6 +41,7 @@ export default {
             },[]);
         });
         const state = reactive({
+            height:props.height || 50,
             checkList: [
                 globalData.value.config.Client.Accesss.Api.Value,
                 globalData.value.config.Client.Accesss.Web.Value,
@@ -91,5 +92,4 @@ export default {
 </script>
 <style lang="stylus" scoped>
  .el-col {text-align:left;}
- .access-wrap{height:40rem}
 </style>

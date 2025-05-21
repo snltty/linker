@@ -253,6 +253,8 @@ namespace linker.messenger.store.file
             {
                 client.CApi.ApiPassword = configExportInfo.ApiPassword;
             }
+            client.CApi.WebPort = configExportInfo.WebPort;
+            client.CApi.ApiPort = configExportInfo.ApiPort;
 
             client.Access = (AccessValue)((ulong)config.Data.Client.Access & configExportInfo.Access);
 
@@ -363,6 +365,8 @@ namespace linker.messenger.store.file
     {
         public string Name { get; set; }
         public string ApiPassword { get; set; }
+        public int WebPort { get; set; }
+        public int ApiPort { get; set; }
         public bool Single { get; set; }
         public ulong Access { get; set; }
 

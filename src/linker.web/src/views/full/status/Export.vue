@@ -2,7 +2,7 @@
     <div v-if="config && hasExport" class="status-export-wrap">
         <a href="javascript:;" :title="$t('status.export')" @click="state.show = true">
             <el-icon size="16"><Share /></el-icon>
-            <span>{{$t('status.export')}}</span>
+            <span v-if="globalData.isPc">{{$t('status.export')}}</span>
         </a>
         <el-dialog class="options-center" :title="$t('status.export')" destroy-on-close v-model="state.show" center  width="580" top="1vh">
             <div class="port-wrap">
@@ -13,34 +13,48 @@
                     <el-card shadow="never">
                         <template #header>
                             <div class="card-header">
-                                <div class="flex">
-                                    <div>
-                                        <el-checkbox :disabled="onlyNode" v-model="state.single" :label="$t('status.exportSingle')" />
-                                    </div>
-                                    <div style="margin-left: 2rem;">
-                                        <span>{{$t('status.exportName')}} : </span><el-input :disabled="!state.single" v-model="state.name" maxlength="32" show-word-limit style="width:15rem"></el-input>
-                                    </div>
-                                    <div>
-                                        <span>{{$t('status.exportApiPassword')}} : </span><el-input type="password" show-password :disabled="onlyNode" v-model="state.apipassword" maxlength="36" show-word-limit style="width:15rem"></el-input>
-                                    </div>
-                                </div>
                                 <div>
                                     <el-row>
-                                        <el-col :span="8"><el-checkbox v-model="state.relay" :label="$t('status.exportRelay')" /></el-col>
-                                        <el-col :span="8"><el-checkbox v-model="state.sforward" :label="$t('status.exportSForward')" /></el-col>
-                                        <el-col :span="8"><el-checkbox v-model="state.updater" :label="$t('status.exportUpdater')" /></el-col>
+                                        <el-col :span="24"><el-checkbox :disabled="onlyNode" v-model="state.single" :label="$t('status.exportSingle')" /></el-col>
                                     </el-row>
                                 </div>
                                 <div>
                                     <el-row>
-                                        <el-col :span="8"><el-checkbox v-model="state.server" :label="$t('status.exportServer')" /></el-col>
-                                        <el-col :span="8"><el-checkbox v-model="state.group" :label="$t('status.exportGroup')" /></el-col>
-                                        <el-col :span="8"><el-checkbox v-model="state.tunnel" :label="$t('status.exportTunnel')" /></el-col>
+                                        <el-col :span="12">
+                                            <div class="flex flex-nowrap">
+                                                <span style="width: 11rem;">{{$t('status.exportName')}} : </span><el-input :disabled="!state.single" v-model="state.name" maxlength="32" show-word-limit></el-input>
+                                            </div>
+                                        </el-col>
+                                        <el-col :span="12">
+                                            <div class="flex flex-nowrap">
+                                                <span style="width: 11rem;">{{$t('status.exportApiPassword')}} : </span><el-input type="password" show-password :disabled="onlyNode" v-model="state.apipassword" maxlength="36" show-word-limit></el-input>
+                                            </div>
+                                        </el-col>
+                                        <el-col :span="12">
+                                            <div class="flex flex-nowrap mgt-1">
+                                                <span style="width: 11rem;">{{$t('status.exportWebport')}} : </span><el-input :disabled="onlyNode" v-model="state.webport"></el-input>
+                                            </div>
+                                        </el-col>
+                                        <el-col :span="12">
+                                            <div class="flex flex-nowrap mgt-1">
+                                                <span style="width: 11rem;">{{$t('status.exportApiport')}} : </span><el-input :disabled="onlyNode" v-model="state.apiport"></el-input>
+                                            </div>
+                                        </el-col>
+                                    </el-row>
+                                </div>
+                                <div>
+                                    <el-row>
+                                        <el-col :xs="12" :sm="8"><el-checkbox v-model="state.relay" :label="$t('status.exportRelay')" /></el-col>
+                                        <el-col :xs="12" :sm="8"><el-checkbox v-model="state.sforward" :label="$t('status.exportSForward')" /></el-col>
+                                        <el-col :xs="12" :sm="8"><el-checkbox v-model="state.updater" :label="$t('status.exportUpdater')" /></el-col>
+                                        <el-col :xs="12" :sm="8"><el-checkbox v-model="state.server" :label="$t('status.exportServer')" /></el-col>
+                                        <el-col :xs="12" :sm="8"><el-checkbox v-model="state.group" :label="$t('status.exportGroup')" /></el-col>
+                                        <el-col :xs="12" :sm="8"><el-checkbox v-model="state.tunnel" :label="$t('status.exportTunnel')" /></el-col>
                                     </el-row>
                                 </div>
                             </div>
                         </template>
-                        <Access ref="accessDom" :machineid="machineId"></Access>
+                        <Access ref="accessDom" :machineid="machineId" :height="30"></Access>
                     </el-card>
                 </div>
             </div>
@@ -97,7 +111,9 @@ export default {
             loading:false,
             single:true,
             name:'',
-            apipassword:onlyNode.value?  globalData.value.config.Client.CApi.ApiPassword :'',
+            apipassword:onlyNode.value? globalData.value.config.Client.CApi.ApiPassword :'',
+            apiport: globalData.value.config.Client.CApi.ApiPort,
+            webport: globalData.value.config.Client.CApi.WebPort,
 
             relay:true,
             sforward:true,
@@ -125,6 +141,8 @@ export default {
                 single:state.single,
                 name:state.name,
                 apipassword:state.apipassword,
+                webport:+state.webport,
+                apiport:+state.apiport,
                 relay:state.relay,
                 sforward:state.sforward,
                 updater:state.updater,
@@ -141,8 +159,16 @@ export default {
             }else{
                 json.name = "";
             }
-            if(!state.apipassword){
+            if(!json.apipassword){
                 ElMessage.error(t('status.exportApiPasswordPlease'));
+                return;
+            }
+            if(!json.webport || isNaN(json.webport) || json.webport<=0 || json.webport>65535){
+                ElMessage.error(t('status.exportWebportPlease'));
+                return;
+            }
+            if(!json.apiport || isNaN(json.apiport) || json.apiport<=0 || json.apiport>65535){
+                ElMessage.error(t('status.exportApiportPlease'));
                 return;
             }
             return json;
@@ -241,7 +267,8 @@ export default {
             }
         }
 
-        return {config:props.config,onlyNode,hasExport,machineId, state,accessDom,handleSave,handleExport,handleCopy,copyToClipboard,copySaveToClipboard};
+        return {globalData,config:props.config,onlyNode,hasExport,machineId, state,accessDom,
+            handleSave,handleExport,handleCopy,copyToClipboard,copySaveToClipboard};
     }
 }
 </script>
