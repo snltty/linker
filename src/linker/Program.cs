@@ -21,11 +21,13 @@ namespace linker
             {
                 LoggerHelper.Instance.Error(b.ExceptionObject + "");
             };
+            /*
             TaskScheduler.UnobservedTaskException += (a, b) =>
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Error(b.Exception + "");
             };
+            */
 
 
             //线程数
@@ -68,6 +70,7 @@ namespace linker
             LoggerHelper.Instance.Debug($"linker are running....");
 
             GCHelper.FlushMemory();
+            GCHelper.EmptyWorkingSet();
         }
 
         private static JsonDocument ParseArgs(string[] args)

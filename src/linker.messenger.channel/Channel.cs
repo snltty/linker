@@ -45,6 +45,8 @@ namespace linker.messenger.channel
         }
         private void OnConnected(ITunnelConnection connection)
         {
+            if (connection == null) return;
+
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Warning($"{TransactionId} add connection {connection.GetHashCode()} {connection.ToJson()}");
 

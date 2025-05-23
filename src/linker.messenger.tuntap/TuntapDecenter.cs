@@ -87,6 +87,10 @@ namespace linker.messenger.tuntap
         {
             TuntapInfo info = serializer.Deserialize<TuntapInfo>(data.Span);
             info.Available = true;
+            if (tuntapInfos.TryGetValue(info.MachineId, out var old))
+            {
+                info.Delay = old.Delay;
+            }
             tuntapInfos.AddOrUpdate(info.MachineId, info, (a, b) => info);
             listVersion.Increment();
         }
@@ -96,6 +100,10 @@ namespace linker.messenger.tuntap
             foreach (var item in list)
             {
                 item.Available = true;
+                if (tuntapInfos.TryGetValue(item.MachineId, out var old))
+                {
+                    item.Delay = old.Delay;
+                }
                 tuntapInfos.AddOrUpdate(item.MachineId, item, (a, b) => item);
             }
             DataVersion.Increment();
@@ -128,7 +136,7 @@ namespace linker.messenger.tuntap
             {
                 tuntapProxy.SetIP(item.MachineId, NetworkHelper.ToValue(item.IP));
             }
-            foreach (var item in Infos.Values.Where(c => c.IP.Equals(IPAddress.Any)))
+            foreach (var item in Infos.Values.Where(c => c.Available==false || c.Exists || c.IP.Equals(IPAddress.Any)))
             {
                 tuntapProxy.RemoveIP(item.MachineId);
             }
@@ -146,7 +154,7 @@ namespace linker.messenger.tuntap
             HashSet<uint> hashSet = new HashSet<uint>();
             IPAddress wan = signInClientState.WanAddress.Address;
 
-            foreach (var item in infos.OrderBy(c => c.IP, new IPAddressComparer()).OrderByDescending(c => c.Status))
+            foreach (var item in infos.Where(c => c.Available == true).OrderBy(c => c.IP, new IPAddressComparer()).OrderByDescending(c => c.Status))
             {
                 item.Exists = hashSet.Contains(NetworkHelper.ToValue(item.IP));
                 hashSet.Add(NetworkHelper.ToValue(item.IP));

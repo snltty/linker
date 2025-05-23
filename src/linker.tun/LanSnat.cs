@@ -1,8 +1,6 @@
 ﻿using linker.libs;
 using linker.snat;
 using System.Net;
-using System.Net.NetworkInformation;
-using System.Text.RegularExpressions;
 
 namespace linker.tun
 {

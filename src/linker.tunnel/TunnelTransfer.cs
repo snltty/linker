@@ -445,6 +445,7 @@ namespace linker.tunnel
         /// <param name="connection"></param>
         private void _OnConnected(ITunnelConnection connection)
         {
+            if (connection == null) return;
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Debug($"tunnel connect {connection.RemoteMachineId}->{connection.RemoteMachineName} success->{connection.IPEndPoint}");
 

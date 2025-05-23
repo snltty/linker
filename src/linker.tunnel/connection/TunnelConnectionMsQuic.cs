@@ -269,7 +269,7 @@ namespace linker.tunnel.connection
 
         public bool Equals(ITunnelConnection connection)
         {
-            return connection != null && GetHashCode() == connection.GetHashCode() && IPEndPoint.Equals(connection.IPEndPoint);
+            return connection != null && GetHashCode() == connection.GetHashCode() && TransactionId == connection.TransactionId && IPEndPoint.Equals(connection.IPEndPoint);
         }
     }
 }

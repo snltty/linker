@@ -352,7 +352,7 @@ namespace linker.tun
         /// <param name="maps"></param>
         public void SetMap(DstMapInfo[] maps)
         {
-            lanMap.SetMap(maps);
+            lanMap.SetMap(maps, AppNat == false);
         }
 
         public async Task<bool> CheckAvailable(bool order = false)

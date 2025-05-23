@@ -58,8 +58,8 @@ namespace linker.messenger.tuntap
             };
             tuntapTransfer.OnSetupSuccess += () =>
             {
-                SetMaps();
                 SetAppNat();
+                SetMaps();
                 AddForward();
             };
             tuntapTransfer.OnShutdownBefore += () =>
@@ -79,8 +79,8 @@ namespace linker.messenger.tuntap
             tuntapConfigTransfer.OnUpdate += () =>
             {
                 tuntapDecenter.Refresh();
-                SetMaps();
                 SetAppNat();
+                SetMaps();
                 AddForward();
                 _ = CheckDevice();
             };

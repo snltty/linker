@@ -232,7 +232,7 @@ namespace linker.tunnel.connection
             ArrayPool<byte>.Shared.Return(heartData);
         }
 
-        private byte[] encodeBuffer = new byte[8 * 1024];
+        private byte[] encodeBuffer = new byte[65 * 1024];
         public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
             try
@@ -330,7 +330,7 @@ namespace linker.tunnel.connection
         }
         public bool Equals(ITunnelConnection connection)
         {
-            return connection != null && GetHashCode() == connection.GetHashCode() && IPEndPoint.Equals(connection.IPEndPoint);
+            return connection != null && GetHashCode() == connection.GetHashCode() && TransactionId == connection.TransactionId && IPEndPoint.Equals(connection.IPEndPoint);
         }
     }
 }

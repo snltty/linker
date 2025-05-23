@@ -7,10 +7,13 @@ namespace linker.tun
     {
         public LinkerTunPacketHookLevel Level => LinkerTunPacketHookLevel.Lowest;
 
+
         private readonly LinkerDstMapping linkerDstMapping = new LinkerDstMapping();
-        public void SetMap(DstMapInfo[] maps)
+        private bool checksum = true;
+        public void SetMap(DstMapInfo[] maps,bool checksum = true)
         {
             linkerDstMapping.SetDsts(maps);
+            this.checksum = checksum;
         }
 
         public bool ReadAfter(ReadOnlyMemory<byte> packet)
@@ -21,7 +24,7 @@ namespace linker.tun
 
         public bool WriteBefore(string srcId, ReadOnlyMemory<byte> packet)
         {
-            linkerDstMapping.ToRealDst(packet);
+            linkerDstMapping.ToRealDst(packet, checksum);
             return true;
         }
     }
