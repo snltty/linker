@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 using linker.libs.timer;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using linker.messenger.tunnel.stun.enums;
+using System.Collections.Generic;
 
 namespace linker.messenger.store.file
 {
@@ -21,6 +21,7 @@ namespace linker.messenger.store.file
         private string configPath = "./configs/";
 
         private Dictionary<string, FileReadWrite> fsDic = new Dictionary<string, FileReadWrite>();
+        private List<string[]> saveJsonIgnorePaths = new List<string[]>();
 
         public ConfigInfo Data { get; private set; } = new ConfigInfo();
 
@@ -41,45 +42,39 @@ namespace linker.messenger.store.file
 
         private void Init()
         {
-            /*
-              Type saveAttr = typeof(SaveJsonIgnore);
-              List<List<string>> saveJsonIgnores = FindPathsWithSaveJsonIgnore(Data);
-              List<List<string>> FindPathsWithSaveJsonIgnore(object obj)
-              {
-                  var paths = new List<List<string>>();
-                  FindPathsRecursive(obj, new List<string>(), paths);
-                  return paths;
-              }
-              void FindPathsRecursive(object obj, List<string> currentPath, List<List<string>> resultPaths)
-              {
-                  if (obj == null) return;
+            Type saveAttr = typeof(SaveJsonIgnore);
+            saveJsonIgnorePaths = FindPathsWithSaveJsonIgnore(Data);
+            List<string[]> FindPathsWithSaveJsonIgnore(object obj)
+            {
+                var paths = new List<string[]>();
+                FindPathsRecursive(obj, string.Empty, paths);
+                return paths;
+            }
+            void FindPathsRecursive(object obj, string currentPath, List<string[]> resultPaths)
+            {
+                if (obj == null) return;
 
-                  Type type = obj.GetType();
-                  foreach (PropertyInfo property in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
-                  {
-                      currentPath.Add(property.Name);
-                      currentPath = currentPath.ToArray().ToList();
-
-                      if (Attribute.IsDefined(property, saveAttr))
-                      {
-                          resultPaths.Add(currentPath);
-                      }
-                      else if (property.PropertyType.IsClass && property.PropertyType != typeof(string) && !property.PropertyType.IsArray && !typeof(System.Collections.IEnumerable).IsAssignableFrom(property.PropertyType))
-                      {
-                          try
-                          {
-                              object value = property.GetValue(obj);
-                              FindPathsRecursive(value, currentPath, resultPaths);
-                          }
-                          catch (Exception)
-                          {
-                          }
-                      }
-                  }
-              }
-              Console.WriteLine(saveJsonIgnores.ToJson());
-              */
-
+                Type type = obj.GetType();
+                foreach (PropertyInfo property in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+                {
+                    string propertyPath = string.IsNullOrEmpty(currentPath) ? property.Name : $"{currentPath}.{property.Name}";
+                    if (Attribute.IsDefined(property, saveAttr))
+                    {
+                        resultPaths.Add([.. propertyPath.Split('.')]);
+                    }
+                    else if (property.PropertyType.IsClass && property.PropertyType != typeof(string) && !property.PropertyType.IsArray && !typeof(System.Collections.IEnumerable).IsAssignableFrom(property.PropertyType))
+                    {
+                        try
+                        {
+                            object value = property.GetValue(obj);
+                            FindPathsRecursive(value, propertyPath, resultPaths);
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+                }
+            }
             if (Directory.Exists(Path.Combine(Helper.currentDirectory, configPath)) == false)
             {
                 Directory.CreateDirectory(Path.Combine(Helper.currentDirectory, configPath));
@@ -156,8 +151,28 @@ namespace linker.messenger.store.file
                             LoggerHelper.Instance.Error($"{item.Value.Property.Name} save not found");
                             continue;
                         }
-                        string text = item.Value.PropertyMethod.Serialize(item.Value.Property.GetValue(Data));
 
+                        JsonNode jsonNode = JsonNode.Parse(item.Value.Property.GetValue(Data).ToJson());
+                        try
+                        {
+                            foreach (string[] path in saveJsonIgnorePaths.Where(c => c.Length > 0 && c[0] == item.Value.Property.Name))
+                            {
+                                if (path.Length == 0) continue;
+
+                                JsonNode root = jsonNode;
+                                for (int i = 1; i < path.Length - 1; i++)
+                                {
+                                    if (root.AsObject().TryGetPropertyValue(path[i], out root) == false || root == null) break;
+                                    if (root == null) break;
+                                }
+                                root?.AsObject().Remove(path[^1]);
+                            }
+                        }
+                        catch (Exception)
+                        {
+                        }
+
+                        string text = item.Value.PropertyMethod.Serialize(jsonNode);
                         if (json != null && json.RootElement.TryGetProperty(item.Value.Property.Name, out JsonElement import))
                         {
                             text = item.Value.PropertyMethod.Deserialize(text).ToJson();
@@ -183,6 +198,7 @@ namespace linker.messenger.store.file
             }
             finally
             {
+                GC.Collect();
                 slim.Release();
             }
 
@@ -297,18 +313,6 @@ namespace linker.messenger.store.file
 
         public string Serialize(object obj)
         {
-            /*
-            JsonNode jsonNode = JsonNode.Parse(obj.ToJson());
-            JsonObject jsonObj = jsonNode.AsObject();
-
-            jsonObj.Remove("Accesss");
-            jsonObj.Remove("Server");
-            jsonObj.Remove("Group");
-            if (jsonObj.TryGetPropertyValue("Relay", out JsonNode relay))
-            {
-                relay.AsObject().Remove("Server");
-            }
-            */
 #if DEBUG
             return obj.ToJsonFormat();
 #else
@@ -364,7 +368,6 @@ namespace linker.messenger.store.file
     [AttributeUsage(AttributeTargets.Property)]
     public sealed class SaveJsonIgnore : Attribute
     {
-
     }
 
 }

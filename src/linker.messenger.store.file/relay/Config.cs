@@ -28,6 +28,8 @@ namespace linker.messenger.store.file
         /// 中继服务器列表
         /// </summary>
         public RelayServerInfo[] Servers { get; set; } = new RelayServerInfo[] { new RelayServerInfo { } };
+
+        [SaveJsonIgnore]
         public RelayServerInfo Server => Servers[0];
 
     }

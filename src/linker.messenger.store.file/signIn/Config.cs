@@ -18,6 +18,8 @@ namespace linker.messenger.store.file
             new SignInClientServerInfo{ Name="Linker", Host="linker.snltty.com:1802" }
 #endif
         };
+
+        [SaveJsonIgnore]
         public SignInClientServerInfo Server => Servers[0];
         public SignInClientServerInfo[] Servers
         {
@@ -43,6 +45,8 @@ namespace linker.messenger.store.file
         }
 
         private SignInClientGroupInfo[] groups = new[] { new SignInClientGroupInfo { } };
+
+        [SaveJsonIgnore]
         public SignInClientGroupInfo Group => Groups[0];
         public SignInClientGroupInfo[] Groups
         {

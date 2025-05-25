@@ -95,6 +95,7 @@ namespace linker.messenger.store.file
             }
             finally
             {
+                GC.Collect();
                 slim.Release();
             }
         }

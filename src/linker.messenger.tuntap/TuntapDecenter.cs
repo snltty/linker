@@ -136,7 +136,7 @@ namespace linker.messenger.tuntap
             {
                 tuntapProxy.SetIP(item.MachineId, NetworkHelper.ToValue(item.IP));
             }
-            foreach (var item in Infos.Values.Where(c => c.Available==false || c.Exists || c.IP.Equals(IPAddress.Any)))
+            foreach (var item in Infos.Values.Where(c => c.Available == false || c.Exists || c.IP.Equals(IPAddress.Any)))
             {
                 tuntapProxy.RemoveIP(item.MachineId);
             }
@@ -156,7 +156,7 @@ namespace linker.messenger.tuntap
 
             foreach (var item in infos.Where(c => c.Available == true).OrderBy(c => c.IP, new IPAddressComparer()).OrderByDescending(c => c.Status))
             {
-                item.Exists = hashSet.Contains(NetworkHelper.ToValue(item.IP));
+                item.Exists = item.IP.Equals(IPAddress.Any) == false && hashSet.Contains(NetworkHelper.ToValue(item.IP));
                 hashSet.Add(NetworkHelper.ToValue(item.IP));
             }
 
