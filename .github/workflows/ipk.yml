@@ -44,7 +44,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-ipk/x64/linker-x64.ipk
-          target-path: /downloads/linker/v1.8.0/linker-x64.ipk
+          target-path: /downloads/linker/v1.8.1/linker-x64.ipk
       - name: upload-x64
         id: upload-x64
         uses: actions/upload-release-asset@master
@@ -64,7 +64,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-ipk/arm/linker-arm.ipk
-          target-path: /downloads/linker/v1.8.0/linker-arm.ipk
+          target-path: /downloads/linker/v1.8.1/linker-arm.ipk
       - name: upload-arm
         id: upload-arm
         uses: actions/upload-release-asset@master
@@ -84,7 +84,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-ipk/arm64/linker-arm64.ipk
-          target-path: /downloads/linker/v1.8.0/linker-arm64.ipk
+          target-path: /downloads/linker/v1.8.1/linker-arm64.ipk
       - name: upload-arm64
         id: upload-arm64
         uses: actions/upload-release-asset@master

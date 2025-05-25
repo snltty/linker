@@ -124,6 +124,8 @@ namespace linker.tun
 
             interfaceLinux = string.Empty;
             CommandHelper.Linux(string.Empty, new string[] { $"ip link del {Name}", $"ip tuntap del mode tun dev {Name}" });
+
+            GC.Collect();
         }
 
         public void Refresh()

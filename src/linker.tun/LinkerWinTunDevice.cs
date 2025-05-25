@@ -157,6 +157,8 @@ namespace linker.tun
             session = 0;
             adapter = 0;
             interfaceNumber = 0;
+
+            GC.Collect();
         }
 
         public void Refresh()
@@ -341,7 +343,7 @@ namespace linker.tun
         }
 
 
-        private byte[] buffer = new byte[65 * 1024];
+        private readonly byte[] buffer = new byte[65 * 1024];
         public unsafe byte[] Read(out int length)
         {
             length = 0;

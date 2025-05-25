@@ -13,7 +13,7 @@ namespace linker.plugins.sforward.proxy
         //服务器监听表
         private ConcurrentDictionary<int, AsyncUserUdpToken> udpListens = new ConcurrentDictionary<int, AsyncUserUdpToken>();
         //服务器映射表，服务器收到一个地址的数据包，要知道发给谁
-        private ConcurrentDictionary<(uint ip,ushort port), UdpTargetCache> udpConnections = new ConcurrentDictionary<(uint ip, ushort port), UdpTargetCache>();
+        private ConcurrentDictionary<(uint ip, ushort port), UdpTargetCache> udpConnections = new ConcurrentDictionary<(uint ip, ushort port), UdpTargetCache>();
         //连接缓存表，a连接，保存，b连接查询，找到对应的，就成立映射关系，完成隧道
         private ConcurrentDictionary<ulong, TaskCompletionSource<IPEndPoint>> udptcss = new ConcurrentDictionary<ulong, TaskCompletionSource<IPEndPoint>>();
 
@@ -45,7 +45,7 @@ namespace linker.plugins.sforward.proxy
         {
             try
             {
-                byte[] buffer = new byte[65535];
+                byte[] buffer = new byte[65 * 1024];
                 IPEndPoint tempRemoteEP = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
 
                 string portStr = token.ListenPort.ToString();
@@ -112,8 +112,8 @@ namespace linker.plugins.sforward.proxy
 
                                         UdpTargetCache cacheSource = new UdpTargetCache { IPEndPoint = remote };
                                         UdpTargetCache cacheRemote = new UdpTargetCache { IPEndPoint = source };
-                                        udpConnections.AddOrUpdate(sourceKey, cacheSource,(a,b)=> cacheSource);
-                                        udpConnections.AddOrUpdate(remoteKey, cacheRemote, (a,b)=> cacheRemote);
+                                        udpConnections.AddOrUpdate(sourceKey, cacheSource, (a, b) => cacheSource);
+                                        udpConnections.AddOrUpdate(remoteKey, cacheRemote, (a, b) => cacheRemote);
 
                                         await token.SourceSocket.SendToAsync(buf.AsMemory(0, length), remote).ConfigureAwait(false);
                                     }
@@ -190,7 +190,7 @@ namespace linker.plugins.sforward.proxy
             await serverUdp.SendToAsync(buffer, server).ConfigureAwait(false);
 
             //连接本地服务
-            buffer = new byte[65535];
+            buffer = new byte[65 * 1024];
             IPEndPoint tempEp = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
 
             UdpConnectedCache cache = new UdpConnectedCache { SourceSocket = serverUdp, TargetSocket = null };
@@ -237,7 +237,7 @@ namespace linker.plugins.sforward.proxy
                 await serviceUdp.SendToAsync(memory, service).ConfigureAwait(false);
                 TimerHelper.Async(async () =>
                 {
-                    byte[] buffer = new byte[65535];
+                    byte[] buffer = new byte[65 * 1024];
                     IPEndPoint tempEp = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
                     while (true)
                     {

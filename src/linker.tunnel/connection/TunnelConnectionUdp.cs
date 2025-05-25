@@ -322,6 +322,8 @@ namespace linker.tunnel.connection
                 userToken = null;
 
                 Crypto?.Dispose();
+
+                GC.Collect();
             });
         }
         public override string ToString()

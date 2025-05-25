@@ -56,6 +56,7 @@ namespace linker.tun
             catch (Exception)
             {
             }
+            GC.Collect();
         }
 
         public bool ReadAfter(ReadOnlyMemory<byte> packet)

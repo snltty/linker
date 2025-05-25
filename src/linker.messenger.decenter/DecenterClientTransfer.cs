@@ -121,55 +121,54 @@ namespace linker.messenger.decenter
                 }
             }
         }
-
         private async Task SyncData()
         {
-            List<IDecenter> updates = decenters.Where(c => c.PushVersion.Restore()).ToList();
-            if (updates.Any())
-            {
-                await Task.WhenAll(updates.Select(c =>
-                {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        LoggerHelper.Instance.Debug($"decenter push {c.Name}");
+            IEnumerable<IDecenter> updates = decenters.Where(c => c.PushVersion.Restore());
+            if (updates.Any() == false) return;
 
-                    return messengerSender.SendOnly(new MessageRequestWrap
+            await Task.WhenAll(updates.Select(c =>
+            {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Debug($"decenter push {c.Name}");
+
+                return messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = signInClientState.Connection,
+                    MessengerId = (ushort)DecenterMessengerIds.Push,
+                    Payload = serializer.Serialize(new DecenterSyncInfo { Name = c.Name, Data = GetData(c) }),
+                });
+            }).ToList()).ConfigureAwait(false);
+
+            List<DecenterSyncTaskInfo> pullTasks = updates.Select(c =>
+            {
+                return new DecenterSyncTaskInfo
+                {
+                    Decenter = c,
+                    Time = Environment.TickCount64,
+                    Task = messengerSender.SendReply(new MessageRequestWrap
                     {
                         Connection = signInClientState.Connection,
-                        MessengerId = (ushort)DecenterMessengerIds.Push,
-                        Payload = serializer.Serialize(new DecenterSyncInfo { Name = c.Name, Data = GetData(c) }),
-                    });
-                }).ToList()).ConfigureAwait(false);
-
-                List<DecenterSyncTaskInfo> pullTasks = updates.Select(c =>
-                {
-                    return new DecenterSyncTaskInfo
-                    {
-                        Decenter = c,
-                        Time = Environment.TickCount64,
-                        Task = messengerSender.SendReply(new MessageRequestWrap
-                        {
-                            Connection = signInClientState.Connection,
-                            MessengerId = (ushort)DecenterMessengerIds.Pull,
-                            Payload = serializer.Serialize(c.Name),
-                            Timeout = 3000
-                        })
-                    };
-                }).ToList();
-                MessageResponeInfo[] pulls = await Task.WhenAll(pullTasks.Select(c => c.Task)).ConfigureAwait(false);
-                foreach (var task in pullTasks.Where(c => c.Task.Result.Code == MessageResponeCodes.OK && c.Task.Result.Data.Span.SequenceEqual(Helper.FalseArray) == false))
-                {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        LoggerHelper.Instance.Debug($"decenter pull {task.Decenter.Name}->{task.Task.Result.Data.Length}");
-                    List<ReadOnlyMemory<byte>> list = serializer.Deserialize<List<ReadOnlyMemory<byte>>>(task.Task.Result.Data.Span);
-                    task.Decenter.AddData(list);
-                    task.Decenter.DataVersion.Increment();
-                    versionMultipleManager.Increment(task.Decenter.Name);
-                }
-                foreach (var task in pullTasks.Where(c => c.Task.Result.Code != MessageResponeCodes.OK || c.Task.Result.Data.Span.SequenceEqual(Helper.FalseArray)))
-                {
-                    task.Decenter.PushVersion.Increment();
-                }
+                        MessengerId = (ushort)DecenterMessengerIds.Pull,
+                        Payload = serializer.Serialize(c.Name),
+                        Timeout = 3000
+                    })
+                };
+            }).ToList();
+            MessageResponeInfo[] pulls = await Task.WhenAll(pullTasks.Select(c => c.Task)).ConfigureAwait(false);
+            foreach (var task in pullTasks.Where(c => c.Task.Result.Code == MessageResponeCodes.OK && c.Task.Result.Data.Span.SequenceEqual(Helper.FalseArray) == false))
+            {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Debug($"decenter pull {task.Decenter.Name}->{task.Task.Result.Data.Length}");
+                List<ReadOnlyMemory<byte>> list = serializer.Deserialize<List<ReadOnlyMemory<byte>>>(task.Task.Result.Data.Span);
+                task.Decenter.AddData(list);
+                task.Decenter.DataVersion.Increment();
+                versionMultipleManager.Increment(task.Decenter.Name);
             }
+            foreach (var task in pullTasks.Where(c => c.Task.Result.Code != MessageResponeCodes.OK || c.Task.Result.Data.Span.SequenceEqual(Helper.FalseArray)))
+            {
+                task.Decenter.PushVersion.Increment();
+            }
+
         }
 
         private void SyncTask()
@@ -188,7 +187,8 @@ namespace linker.messenger.decenter
                         LoggerHelper.Instance.Error(ex);
                     }
                 }
-            }, 5000);
+            }, 30000);
+
             TimerHelper.SetIntervalLong(async () =>
             {
                 if (signInClientState.Connected == false) return;

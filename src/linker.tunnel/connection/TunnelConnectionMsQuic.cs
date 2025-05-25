@@ -260,6 +260,7 @@ namespace linker.tunnel.connection
             QuicUdp?.SafeClose();
             RemoteUdp?.SafeClose();
 
+            GC.Collect();
         }
 
         public override string ToString()

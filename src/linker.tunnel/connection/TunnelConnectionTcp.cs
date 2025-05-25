@@ -415,6 +415,7 @@ namespace linker.tunnel.connection
             }
             catch (Exception)
             { }
+            GC.Collect();
 
         }
         public override string ToString()

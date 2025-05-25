@@ -79,6 +79,7 @@ export default {
             'amazon':'amazon.svg',
             'aliyun':'aliyun.svg',
             'alibaba':'aliyun.svg',
+            'jdcom':'jdcom.svg',
         }
         const regex = new RegExp(Object.keys(imgMap).map(item => `\\b${item}\\b`).join("|"));
         const netImg = (item)=>{

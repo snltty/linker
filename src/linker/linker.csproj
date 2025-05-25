@@ -21,15 +21,14 @@
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Description>1. 一些累计更新
-2. 增加NAT类型检测
-3. 优化内网穿透，SNAT转换，防火墙</Description>
+2. 优化修复一些已知BUG</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>1.8.0</Version>
-		<AssemblyVersion>1.8.0</AssemblyVersion>
-		<FileVersion>1.8.0</FileVersion>
+		<Version>1.8.1</Version>
+		<AssemblyVersion>1.8.1</AssemblyVersion>
+		<FileVersion>1.8.1</FileVersion>
 		<DelaySign>False</DelaySign>
 	</PropertyGroup>
 
