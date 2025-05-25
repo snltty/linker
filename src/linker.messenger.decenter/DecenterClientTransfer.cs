@@ -123,7 +123,7 @@ namespace linker.messenger.decenter
         }
         private async Task SyncData()
         {
-            IEnumerable<IDecenter> updates = decenters.Where(c => c.PushVersion.Restore());
+            List<IDecenter> updates = decenters.Where(c => c.PushVersion.Restore()).ToList();
             if (updates.Any() == false) return;
 
             await Task.WhenAll(updates.Select(c =>

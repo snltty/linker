@@ -30,11 +30,13 @@ using linker.messenger.store.file.socks5;
 using linker.messenger.store.file.tunnel;
 using linker.messenger.store.file.tuntap;
 using linker.messenger.store.file.updater;
+using linker.messenger.store.file.wakeup;
 using linker.messenger.sync;
 using linker.messenger.tunnel;
 using linker.messenger.tuntap;
 using linker.messenger.tuntap.lease;
 using linker.messenger.updater;
+using linker.messenger.wakeup;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json;
 namespace linker.messenger.store.file
@@ -108,6 +110,10 @@ namespace linker.messenger.store.file
 
 
             serviceCollection.AddSingleton<IFirewallClientStore, FirewallClientStore>();
+
+            serviceCollection.AddSingleton<IWakeupClientStore, WakeupClientStore>();
+
+            
 
             return serviceCollection;
         }

@@ -1,5 +1,4 @@
 ﻿using linker.libs.json;
-using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Unicode;
@@ -23,7 +22,7 @@ namespace linker.libs.extends
             ReadCommentHandling = JsonCommentHandling.Skip,
             PropertyNameCaseInsensitive = true,
             WriteIndented = true,
-            Converters = { new IPAddressJsonConverter(), new IPEndpointJsonConverter(), new DateTimeConverter() }
+            Converters = { new IPAddressJsonConverter(), new IPEndpointJsonConverter(), new DateTimeConverter() },
         };
         public static void AddAOT(JsonSerializerContext[] contexts)
         {

@@ -21,6 +21,7 @@ using linker.libs;
 using linker.messenger.plan;
 using System.Text.Json;
 using linker.messenger.firewall;
+using linker.messenger.wakeup;
 
 namespace linker.messenger.entry
 {
@@ -95,7 +96,12 @@ namespace linker.messenger.entry
                 .AddPlanClient().AddPlanServer()
 
                 //防火墙
-                .AddFirewallClient().AddFirewallServer();
+                .AddFirewallClient().AddFirewallServer()
+                
+                //唤醒
+                .AddWakeupClient().AddWakeupServer();
+
+                
         }
         /// <summary>
         /// 注入
@@ -173,6 +179,8 @@ namespace linker.messenger.entry
                     serviceProvider.UseTuntapServer();
                 if ((modules & ExcludeModule.Firewall) != ExcludeModule.Firewall)
                     serviceProvider.UseFirewallServer();
+                if ((modules & ExcludeModule.Wakeup) != ExcludeModule.Wakeup)
+                    serviceProvider.UseWakeupServer();
 
                 serviceProvider.UseAccessServer().UseDecenterServer().UsePcpServer().UseRelayServer()
                  .UseSignInServer().UseSyncServer().UseTunnelServer().UseFlowServer();
@@ -200,9 +208,12 @@ namespace linker.messenger.entry
                     serviceProvider.UseSocks5Client();
                 if ((modules & ExcludeModule.Tuntap) != ExcludeModule.Tuntap)
                     serviceProvider.UseTuntapClient(config);
-
                 if ((modules & ExcludeModule.Firewall) != ExcludeModule.Firewall)
                     serviceProvider.UseFirewallClient();
+                if ((modules & ExcludeModule.Wakeup) != ExcludeModule.Wakeup)
+                    serviceProvider.UseWakeupClient();
+
+
                 serviceProvider.UseExRoute().UseAccessClient().UseDecenterClient().UsePcpClient().UseRelayClient().UseSyncClient().UseTunnelClient().UseFlowClient();
 
                 serviceProvider.UseSignInClient();
@@ -261,6 +272,13 @@ namespace linker.messenger.entry
         Action = 256,
         Logger = 512,
 
+        /// <summary>
+        /// 防火墙
+        /// </summary>
         Firewall = 1024,
+        /// <summary>
+        /// 唤醒
+        /// </summary>
+        Wakeup = 2048,
     }
 }

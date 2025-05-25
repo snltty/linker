@@ -11,6 +11,8 @@ namespace linker.messenger.store.file
         public ApiClientInfo CApi { get; set; } = new ApiClientInfo();
 
         private Dictionary<string, AccessTextInfo> accesss;
+
+        [SaveJsonIgnore]
         public Dictionary<string, AccessTextInfo> Accesss
         {
             get

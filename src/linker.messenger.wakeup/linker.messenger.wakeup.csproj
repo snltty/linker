@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net8.0</TargetFrameworks>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>disable</Nullable>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<PublishAot>false</PublishAot>
+		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+		<EnablePreviewFeatures>True</EnablePreviewFeatures>
+		<Title>linker messenger wakeup</Title>
+		<Authors>snltty</Authors>
+		<Company>snltty</Company>
+		<Description>linker messenger wakeup</Description>
+		<Copyright>snltty</Copyright>
+		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
+		<PackageReleaseNotes>linker messenger wakeup</PackageReleaseNotes>
+		<Version>1.8.1</Version>
+		<AssemblyVersion>1.8.1</AssemblyVersion>
+		<FileVersion>1.8.1</FileVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<DebugType>full</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<DebugType>full</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+		<Optimize>True</Optimize>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0|AnyCPU'">
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0|AnyCPU'">
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\linker.messenger.api\linker.messenger.api.csproj" />
+	  <ProjectReference Include="..\linker.messenger.signin\linker.messenger.signin.csproj" />
+	  <ProjectReference Include="..\linker.messenger\linker.messenger.csproj" />
+	</ItemGroup>
+
+</Project>

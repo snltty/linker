@@ -144,6 +144,11 @@
         [AccessDisplay("管理所有设备防火墙")]
         FirewallOther = (ulong)1 << 45,
 
+        [AccessDisplay("唤醒本机")]
+        WakeupSelf = (ulong)1 << 46,
+        [AccessDisplay("唤醒所有设备")]
+        WakeupOther = (ulong)1 << 47,
+
         Full = ulong.MaxValue >> 64 - 52,
     }
 
