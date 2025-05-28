@@ -333,8 +333,19 @@ namespace linker.tun
 
             lock (writeLockObj)
             {
-                fsWrite.Write(buffer.Span);
-                fsWrite.Flush();
+                try
+                {
+                    fsWrite.Write(buffer.Span);
+                    fsWrite.Flush();
+                }
+                catch (Exception ex)
+                {
+                    if(LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Error(ex.Message);
+                        LoggerHelper.Instance.Error(string.Join(",", buffer.ToArray()));
+                    }
+                }
                 return true;
             }
         }

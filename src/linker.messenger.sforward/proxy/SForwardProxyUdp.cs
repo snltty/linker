@@ -13,7 +13,7 @@ namespace linker.plugins.sforward.proxy
         //服务器监听表
         private ConcurrentDictionary<int, AsyncUserUdpToken> udpListens = new ConcurrentDictionary<int, AsyncUserUdpToken>();
         //服务器映射表，服务器收到一个地址的数据包，要知道发给谁
-        private ConcurrentDictionary<(uint ip, ushort port), UdpTargetCache> udpConnections = new ConcurrentDictionary<(uint ip, ushort port), UdpTargetCache>();
+        private ConcurrentDictionary<(IPAddress ip, ushort port), UdpTargetCache> udpConnections = new ConcurrentDictionary<(IPAddress ip, ushort port), UdpTargetCache>();
         //连接缓存表，a连接，保存，b连接查询，找到对应的，就成立映射关系，完成隧道
         private ConcurrentDictionary<ulong, TaskCompletionSource<IPEndPoint>> udptcss = new ConcurrentDictionary<ulong, TaskCompletionSource<IPEndPoint>>();
 
@@ -63,7 +63,7 @@ namespace linker.plugins.sforward.proxy
                     AddReceive(portStr, token.GroupId, memory.Length);
 
                     IPEndPoint source = result.RemoteEndPoint as IPEndPoint;
-                    (uint ip, ushort port) sourceKey = (NetworkHelper.ToValue(source.Address), (ushort)source.Port);
+                    (IPAddress ip, ushort port) sourceKey = (source.Address, (ushort)source.Port);
 
                     //已经连接
                     if (udpConnections.TryGetValue(sourceKey, out UdpTargetCache cache) && cache != null)
@@ -108,7 +108,7 @@ namespace linker.plugins.sforward.proxy
                                     try
                                     {
                                         IPEndPoint remote = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
-                                        (uint ip, ushort port) remoteKey = (NetworkHelper.ToValue(remote.Address), (ushort)remote.Port);
+                                        (IPAddress ip, ushort port) remoteKey = (remote.Address, (ushort)remote.Port);
 
                                         UdpTargetCache cacheSource = new UdpTargetCache { IPEndPoint = remote };
                                         UdpTargetCache cacheRemote = new UdpTargetCache { IPEndPoint = source };

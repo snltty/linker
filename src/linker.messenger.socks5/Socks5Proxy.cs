@@ -139,15 +139,17 @@ namespace linker.messenger.socks5
 
 
             //获取远端地址
-            uint targetIP;
+            uint targetIp;
             ReadOnlyMemory<byte> ipArray = Socks5Parser.GetRemoteEndPoint(token.Proxy.Data, out Socks5EnumAddressType addressType, out ushort port, out int index);
             token.Proxy.Data = token.Proxy.Data.Slice(index);
+            //ipv6不支持
             if (addressType == Socks5EnumAddressType.IPV6)
             {
                 byte[] response1 = Socks5Parser.MakeConnectResponse(new IPEndPoint(IPAddress.Any, 0), (byte)Socks5EnumResponseCommand.AddressNotAllow);
                 await token.Socket.SendAsync(response1.AsMemory()).ConfigureAwait(false);
                 return true;
             }
+            //解析域名
             if (addressType == Socks5EnumAddressType.Domain)
             {
                 if (IPAddress.TryParse(Encoding.UTF8.GetString(ipArray.Span), out IPAddress ip) == false)
@@ -157,18 +159,18 @@ namespace linker.messenger.socks5
                     return true;
                 }
                 token.Proxy.TargetEP = new IPEndPoint(ip, port);
-                targetIP = BinaryPrimitives.ReadUInt32BigEndian(ip.GetAddressBytes());
+                targetIp = BinaryPrimitives.ReadUInt32BigEndian(ip.GetAddressBytes());
             }
             else
             {
                 token.Proxy.TargetEP = new IPEndPoint(new IPAddress(ipArray.Span), port);
-                targetIP = BinaryPrimitives.ReadUInt32BigEndian(ipArray.Span);
+                targetIp = BinaryPrimitives.ReadUInt32BigEndian(ipArray.Span);
             }
 
+            //连接隧道
+            token.Connection = await ConnectTunnel(targetIp).ConfigureAwait(false);
 
-
-            token.Connection = await ConnectTunnel(targetIP).ConfigureAwait(false);
-
+            //如果连接失败，返回错误
             Socks5EnumResponseCommand resp = token.Connection != null && token.Connection.Connected ? Socks5EnumResponseCommand.ConnecSuccess : Socks5EnumResponseCommand.NetworkError;
             byte[] response = Socks5Parser.MakeConnectResponse(new IPEndPoint(IPAddress.Any, 0), (byte)resp);
             await token.Socket.SendAsync(response.AsMemory()).ConfigureAwait(false);

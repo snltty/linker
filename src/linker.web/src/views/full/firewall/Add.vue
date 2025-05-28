@@ -58,7 +58,7 @@
                     </div>
                 </el-form-item> 
                 <el-form-item :label="$t('firewall.remark')" prop="Remark">
-                    <el-input v-model="state.ruleForm.Data.Remark" />
+                    <el-input v-model="state.ruleForm.Data.Remark" maxlength="64" show-word-limit/>
                 </el-form-item>
                 <el-form-item label="" prop="Btns">
                     <div class="t-c w-100">

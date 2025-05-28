@@ -18,11 +18,11 @@
         /// <summary>
         /// 魔术包
         /// </summary>
-        Wol = 0,
+        Wol = 1,
         /// <summary>
         /// 开关，继电器
         /// </summary>
-        Switch = 1
+        Switch = 2
     }
 
     public sealed class WakeupInfo
@@ -48,6 +48,10 @@
         /// 描述
         /// </summary>
         public string Remark { get; set; }
+        /// <summary>
+        /// 正在运行
+        /// </summary>
+        public bool Running { get; set; }
     }
 
     public sealed partial class WakeupSearchForwardInfo
@@ -72,4 +76,19 @@
         public string Id { get; set; }
     }
 
+
+    public sealed class WakeupSendInfo
+    {
+        public string Id { get; set; }
+        public WakeupType Type { get; set; }
+        public string Value { get; set; }
+        public string Content { get; set; }
+
+        public int Ms { get; set; }
+    }
+    public sealed partial class WakeupSendForwardInfo
+    {
+        public string MachineId { get; set; }
+        public WakeupSendInfo Data { get; set; }
+    }
 }

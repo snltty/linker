@@ -1,9 +1,9 @@
-﻿using linker.libs.extends;
+﻿using linker.libs;
+using linker.libs.extends;
 using System.Buffers.Binary;
 using System.Net;
 using System.Net.Sockets;
 using System.Text.Json.Serialization;
-
 namespace linker.tun
 {
     /// <summary>
@@ -132,7 +132,7 @@ namespace linker.tun
         /// <param name="srcId"></param>
         /// <param name="packet"></param>
         /// <returns></returns>
-        public bool WriteBefore(string srcId,ReadOnlyMemory<byte> packet);
+        public bool WriteBefore(string srcId, ReadOnlyMemory<byte> packet);
     }
     /// <summary>
     /// 回调处理级别
@@ -198,55 +198,58 @@ namespace linker.tun
     /// <summary>
     /// 数据包
     /// </summary>
-    public struct LinkerTunDevicPacket
+    public sealed class LinkerTunDevicPacket
     {
-        public byte[] Buffer;
-        public int Offset;
-        public int Length;
+        public byte[] Buffer { get; private set; }
+        public int Offset { get; private set; }
+        public int Length { get; private set; }
 
         /// <summary>
         /// 协议版本，4或者6
         /// </summary>
-        public byte Version;
+        public byte Version { get; private set; }
         /// <summary>
         /// 协议
         /// </summary>
-        public ProtocolType ProtocolType;
+        public ProtocolType ProtocolType { get; private set; }
 
         /// <summary>
         /// 源IP
         /// </summary>
-        public ReadOnlyMemory<byte> SourceIPAddress;
+        public ReadOnlyMemory<byte> SourceIPAddress { get; private set; }
         /// <summary>
         /// 源端口
         /// </summary>
-        public ushort SourcePort;
+        public ushort SourcePort { get; private set; }
         /// <summary>
         /// 源
         /// </summary>
-        public readonly IPEndPoint Source => new IPEndPoint(new IPAddress(SourceIPAddress.Span), SourcePort);
+        public IPEndPoint Source => new IPEndPoint(new IPAddress(SourceIPAddress.Span), SourcePort);
 
         /// <summary>
         /// 目标IP
         /// </summary>
-        public ReadOnlyMemory<byte> DistIPAddress;
+        public ReadOnlyMemory<byte> DistIPAddress { get; private set; }
         /// <summary>
         /// 目标端口
         /// </summary>
-        public ushort DistPort;
+        public ushort DistPort { get; private set; }
         /// <summary>
         /// 目标
         /// </summary>
-        public readonly IPEndPoint Dist => new IPEndPoint(new IPAddress(DistIPAddress.Span), DistPort);
+        public IPEndPoint Dist => new IPEndPoint(new IPAddress(DistIPAddress.Span), DistPort);
 
-        public readonly bool IPV4Broadcast => Version == 4 && DistIPAddress.GetIsBroadcastAddress();
-        public readonly bool IPV6Multicast => Version == 6 && (DistIPAddress.Span[0] & 0xFF) == 0xFF;
+        public bool IPV4Broadcast => Version == 4 && DistIPAddress.GetIsBroadcastAddress();
+        public bool IPV6Multicast => Version == 6 && (DistIPAddress.Span[0] & 0xFF) == 0xFF;
 
+        public LinkerTunDevicPacket()
+        {
+        }
         public LinkerTunDevicPacket(byte[] buffer, int offset, int length)
         {
             Unpacket(buffer, offset, length);
         }
-        private void Unpacket(byte[] buffer, int offset, int length)
+        public void Unpacket(byte[] buffer, int offset, int length)
         {
             Buffer = buffer;
             Offset = offset;
@@ -256,6 +259,8 @@ namespace linker.tun
             ReadOnlyMemory<byte> ipPacket = packet.Slice(4);
             Version = (byte)(ipPacket.Span[0] >> 4 & 0b1111);
 
+            SourceIPAddress = Helper.EmptyArray;
+            DistIPAddress = Helper.EmptyArray;
 
             if (Version == 4)
             {
@@ -282,6 +287,39 @@ namespace linker.tun
                     DistPort = BinaryPrimitives.ReverseEndianness(ipPacket.Slice(44, 2).ToUInt16());
                 }
             }
+        }
+    }
+    public struct LinkerTunDevicValidatePacket
+    {
+        public bool IsValid { get; private set; }
+        public LinkerTunDevicValidatePacket(ReadOnlyMemory<byte> packet)
+        {
+            Validate(packet);
+        }
+        private void Validate(ReadOnlyMemory<byte> packet)
+        {
+            if (packet.Length < 1)
+            {
+                return;
+            }
+
+            byte version = (byte)(packet.Span[0] >> 4 & 0b1111);
+            int headLength = version == 4 ? (packet.Span[0] & 0b1111) * 4 : 40;
+            if (packet.Length < headLength) return;
+
+            ProtocolType protocolType = version switch
+            {
+                4 => (ProtocolType)packet.Span[9],
+                6 => (ProtocolType)packet.Span[6],
+                _ => ProtocolType.Unknown
+            };
+            IsValid = protocolType switch
+            {
+                ProtocolType.Tcp => packet.Length >= headLength + 20,
+                ProtocolType.Udp => packet.Length >= headLength + 8,
+                ProtocolType.Icmp => packet.Length >= headLength + 8,
+                _ => false
+            };
         }
     }
 

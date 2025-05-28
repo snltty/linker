@@ -20,8 +20,11 @@
                     <li v-if="hasAction">
                         <router-link :to="{name:'FullAction'}"><img src="@/assets/login.svg"/><span>{{$t('head.action')}}</span></router-link>
                     </li>
-                     <li v-if="hasFirewall">
+                    <li v-if="hasFirewall">
                         <router-link :to="{name:'FullFirewall'}"><img src="@/assets/anquan.svg"/><span>{{$t('head.firewall')}}</span></router-link>
+                    </li>
+                     <li v-if="hasFirewall">
+                        <router-link :to="{name:'FullWakeup'}"><img src="@/assets/qidong.svg"/><span>{{$t('head.wakeup')}}</span></router-link>
                     </li>
                     <li v-if="hasLogger">
                         <router-link :to="{name:'FullLogger'}"><img src="@/assets/rizhi.svg"/><span>{{$t('head.logger')}}</span></router-link>
@@ -163,7 +166,7 @@ export default {
     }
     .menu{
         padding-left:1rem;font-size:1.4rem;
-        li{box-sizing:border-box;padding:.5rem 0;margin-right:.5rem;}
+        li{box-sizing:border-box;padding:.5rem 0;margin-right:.2rem;}
         a{
             display:block;
             color:#333;

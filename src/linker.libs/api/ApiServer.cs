@@ -1,13 +1,9 @@
 ﻿using linker.libs.extends;
 using linker.libs.websocket;
 using System;
-using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -166,115 +162,6 @@ namespace linker.libs.api
             }
         }
 
-        public void Notify(string path, object content)
-        {
-            if (server.Connections.Any())
-            {
-                try
-                {
-                    byte[] bytes = JsonSerializer.Serialize(new ApiControllerResponseInfo
-                    {
-                        Code = ApiControllerResponseCodes.Success,
-                        Content = content,
-                        Path = path,
-                        RequestId = 0
-                    }).ToBytes();
-
-                    foreach (WebsocketConnection connection in server.Connections)
-                    {
-                        if (connection.Connected && connectionTimes.TryGetValue(connection.Id, out ConnectionTimeInfo timeInfo) && (DateTime.Now - timeInfo.DateTime).TotalMilliseconds < 1000)
-                        {
-                            try
-                            {
-                                connection.SendFrameText(bytes);
-                            }
-                            catch (Exception)
-                            {
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LoggerHelper.Instance.Error(ex);
-                }
-            }
-        }
-
-        public void Notify(string path, string name, ReadOnlyMemory<byte> content)
-        {
-            if (server.Connections.Any())
-            {
-                try
-                {
-                    Memory<byte> headMemory = JsonSerializer.Serialize(new ApiControllerResponseInfo
-                    {
-                        Code = ApiControllerResponseCodes.Success,
-                        Content = name,
-                        Path = path,
-                        RequestId = 0
-                    }).ToBytes();
-
-                    int length = 4 + headMemory.Length + content.Length;
-                    byte[] result = ArrayPool<byte>.Shared.Rent(length);
-
-                    int index = 0;
-                    headMemory.Length.ToBytes(result);
-                    index += 4;
-                    headMemory.CopyTo(result.AsMemory(index));
-                    index += headMemory.Length;
-                    content.CopyTo(result.AsMemory(index));
-                    index += content.Length;
-
-                    foreach (WebsocketConnection connection in server.Connections)
-                    {
-                        if (connection.Connected && connectionTimes.TryGetValue(connection.Id, out ConnectionTimeInfo timeInfo) && (DateTime.Now - timeInfo.DateTime).TotalMilliseconds < 1000)
-                        {
-                            try
-                            {
-                                connection.SendFrameBinary(result.AsMemory(0, length));
-                            }
-                            catch (Exception)
-                            {
-                            }
-                        }
-                    }
-                    ArrayPool<byte>.Shared.Return(result);
-                }
-                catch (Exception)
-                {
-                    //LoggerHelper.Instance.Error(ex);
-                }
-            }
-        }
-
-        public void Notify(string path, object content, WebsocketConnection connection)
-        {
-            try
-            {
-                if (connection.Connected == false) return;
-
-                byte[] bytes = JsonSerializer.Serialize(new ApiControllerResponseInfo
-                {
-                    Code = ApiControllerResponseCodes.Success,
-                    Content = content,
-                    Path = path,
-                    RequestId = 0
-                }).ToBytes();
-
-                try
-                {
-                    connection.SendFrameText(bytes);
-                }
-                catch (Exception)
-                {
-                }
-            }
-            catch (Exception)
-            {
-                //LoggerHelper.Instance.Error(ex);
-            }
-        }
     }
 
     public sealed class ConnectionTimeInfo

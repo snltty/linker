@@ -43,7 +43,7 @@ namespace linker.tunnel.transport
 
 
         private readonly ConcurrentDictionary<string, TaskCompletionSource<State>> distDic = new ConcurrentDictionary<string, TaskCompletionSource<State>>();
-        private readonly ConcurrentDictionary<(uint ip,ushort port), ConnectionCacheInfo> connectionsDic = new ();
+        private readonly ConcurrentDictionary<IPEndPoint, ConnectionCacheInfo> connectionsDic = new ConcurrentDictionary<IPEndPoint, ConnectionCacheInfo>(new IPEndPointComparer());
 
         private readonly ITunnelMessengerAdapter tunnelMessengerAdapter;
         public TransportUdpPortMap(ITunnelMessengerAdapter tunnelMessengerAdapter)
@@ -101,32 +101,29 @@ namespace linker.tunnel.transport
                         IPEndPoint remoteEP = result.RemoteEndPoint as IPEndPoint;
                         Memory<byte> memory = bytes.AsMemory(0, result.ReceivedBytes);
 
-                        (uint ip, ushort port) key = (NetworkHelper.ToValue(remoteEP.Address),(ushort)remoteEP.Port);
-                        if (connectionsDic.TryGetValue(key, out ConnectionCacheInfo cache) == false)
+                        if (connectionsDic.TryGetValue(remoteEP, out ConnectionCacheInfo cache) == false)
                         {
                             if (memory.Length > flagBytes.Length && memory.Span.Slice(0, flagBytes.Length).SequenceEqual(flagBytes))
                             {
-                                connectionsDic.TryAdd(key, new ConnectionCacheInfo { });
-                                if (distDic.TryRemove(memory.GetString(), out TaskCompletionSource<State> tcs))
+                                string key = memory.GetString();
+                                if (distDic.TryRemove(key, out TaskCompletionSource<State> tcs))
                                 {
+                                    connectionsDic.TryAdd(remoteEP, new ConnectionCacheInfo { });
                                     await socket.SendToAsync(memory, result.RemoteEndPoint).ConfigureAwait(false);
-                                    try
-                                    {
-                                        State state = new State { Socket = socket, RemoteEndPoint = remoteEP };
-                                        tcs.TrySetResult(state);
-                                    }
-                                    catch (Exception)
-                                    {
-                                    }
+                                    tcs.TrySetResult(new State { Socket = socket, RemoteEndPoint = remoteEP });
                                 }
                             }
                         }
+                        else if (memory.Length > flagBytes.Length && memory.Span.Slice(0, flagBytes.Length).SequenceEqual(flagBytes))
+                        {
+
+                        }
                         else if (cache.Connection != null)
                         {
-                            bool success = await cache.Connection.ProcessWrite(bytes,0, result.ReceivedBytes).ConfigureAwait(false);
+                            bool success = await cache.Connection.ProcessWrite(bytes, 0, result.ReceivedBytes).ConfigureAwait(false);
                             if (success == false)
                             {
-                                connectionsDic.TryRemove(key, out _);
+                                connectionsDic.TryRemove(remoteEP, out _);
                             }
                         }
                     }
@@ -279,7 +276,7 @@ namespace linker.tunnel.transport
                     SSL = tunnelTransportInfo.SSL,
                     Crypto = CryptoFactory.CreateSymmetric(tunnelTransportInfo.Local.MachineId)
                 };
-                if (connectionsDic.TryGetValue((NetworkHelper.ToValue(state.RemoteEndPoint.Address), (ushort)state.RemoteEndPoint.Port), out ConnectionCacheInfo cache))
+                if (connectionsDic.TryGetValue(state.RemoteEndPoint, out ConnectionCacheInfo cache))
                 {
                     cache.Connection = result;
                     return result;
@@ -287,7 +284,6 @@ namespace linker.tunnel.transport
             }
             catch (Exception)
             {
-                tcs.TrySetResult(null);
             }
             finally
             {
@@ -350,7 +346,7 @@ namespace linker.tunnel.transport
                         Crypto = CryptoFactory.CreateSymmetric(tunnelTransportInfo.Remote.MachineId)
                     };
                     ConnectionCacheInfo cache = new ConnectionCacheInfo { Connection = result };
-                    connectionsDic.AddOrUpdate((NetworkHelper.ToValue(ep.Address), (ushort)ep.Port), cache, (a, b) => cache);
+                    connectionsDic.AddOrUpdate(ep, cache, (a, b) => cache);
                     return result;
                 }
                 catch (Exception ex)
@@ -389,5 +385,18 @@ namespace linker.tunnel.transport
     {
         public LastTicksManager LastTicks { get; set; } = new LastTicksManager();
         public TunnelConnectionUdp Connection { get; set; }
+    }
+
+    public sealed class IPEndPointComparer : IEqualityComparer<IPEndPoint>
+    {
+        public bool Equals(IPEndPoint x, IPEndPoint y)
+        {
+            return x.Equals(y);
+        }
+        public int GetHashCode(IPEndPoint obj)
+        {
+            if (obj == null) return 0;
+            return obj.GetHashCode();
+        }
     }
 }

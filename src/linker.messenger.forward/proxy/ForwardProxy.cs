@@ -228,9 +228,9 @@ namespace linker.messenger.forward.proxy
         {
             return (Proxy.ConnectId, Connection.RemoteMachineId, Connection.TransactionId, Proxy.Direction);
         }
-        public (uint srcIp, ushort srcPort, string remoteMachineId, string transactionId) GetUdpConnectId()
+        public (IPAddress srcIp, ushort srcPort, string remoteMachineId, string transactionId) GetUdpConnectId()
         {
-            return (NetworkHelper.ToValue(Proxy.SourceEP.Address), (ushort)Proxy.SourceEP.Port, Connection.RemoteMachineId, Connection.TransactionId);
+            return (Proxy.SourceEP.Address, (ushort)Proxy.SourceEP.Port, Connection.RemoteMachineId, Connection.TransactionId);
         }
     }
 

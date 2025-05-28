@@ -298,6 +298,7 @@ namespace linker.tun
             TimerHelper.Async(async () =>
             {
                 cancellationTokenSource = new CancellationTokenSource();
+                LinkerTunDevicPacket packet = new LinkerTunDevicPacket();
                 while (cancellationTokenSource.IsCancellationRequested == false)
                 {
                     try
@@ -311,7 +312,7 @@ namespace linker.tun
                             continue;
                         }
 
-                        LinkerTunDevicPacket packet = new LinkerTunDevicPacket(buffer, 0, length);
+                        packet.Unpacket(buffer, 0, length);
                         if (packet.DistIPAddress.Length == 0) continue;
 
                         for (int i = 0; i < hooks.Length; i++)
@@ -338,6 +339,9 @@ namespace linker.tun
         public bool Write(string srcId, ReadOnlyMemory<byte> buffer)
         {
             if (linkerTunDevice == null || Status != LinkerTunDeviceStatus.Running) return false;
+
+            LinkerTunDevicValidatePacket packet = new LinkerTunDevicValidatePacket(buffer);
+            if (packet.IsValid == false) return false;
 
             for (int i = 0; i < hooks.Length; i++)
             {

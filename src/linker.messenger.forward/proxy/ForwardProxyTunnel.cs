@@ -71,9 +71,15 @@ namespace linker.messenger.forward.proxy
         /// <returns></returns>
         public async Task Receive(ITunnelConnection connection, ReadOnlyMemory<byte> memory, object userToken)
         {
-            AsyncUserTunnelToken token = userToken as AsyncUserTunnelToken;
-            token.Proxy.DeBytes(memory);
-            await ReadConnectionPack(token).ConfigureAwait(false);
+            try
+            {
+                AsyncUserTunnelToken token = userToken as AsyncUserTunnelToken;
+                token.Proxy.DeBytes(memory);
+                await ReadConnectionPack(token).ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+            }
         }
         /// <summary>
         /// 收到隧道关闭消息

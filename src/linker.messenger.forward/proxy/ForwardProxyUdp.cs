@@ -11,7 +11,7 @@ namespace linker.messenger.forward.proxy
     public partial class ForwardProxy
     {
         private ConcurrentDictionary<int, AsyncUserUdpToken> udpListens = new ConcurrentDictionary<int, AsyncUserUdpToken>();
-        private ConcurrentDictionary<(uint srcIp, ushort srcPort, string remoteMachineId, string transactionId), AsyncUserUdpTokenTarget> udpConnections = new();
+        private ConcurrentDictionary<(IPAddress srcIp, ushort srcPort, string remoteMachineId, string transactionId), AsyncUserUdpTokenTarget> udpConnections = new();
 
         /// <summary>
         /// 监听一个端口
@@ -387,7 +387,7 @@ namespace linker.messenger.forward.proxy
         public ITunnelConnection Connection { get; set; }
         public ProxyInfo Proxy { get; set; }
 
-        public (uint srcIp, ushort srcPort, string remoteMachineId, string transactionId) ConnectId { get; set; }
+        public (IPAddress srcIp, ushort srcPort, string remoteMachineId, string transactionId) ConnectId { get; set; }
 
         public byte[] Buffer { get; set; }
 

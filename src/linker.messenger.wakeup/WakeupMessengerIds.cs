@@ -11,6 +11,8 @@
         AddForward = 3404,
         Remove = 3405,
         RemoveForward = 3406,
+        Send = 3407,
+        SendForward = 3408,
 
         End = 3499
     }

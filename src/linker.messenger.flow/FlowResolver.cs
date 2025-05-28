@@ -26,7 +26,7 @@ namespace linker.messenger.flow
         public long SendtBytes { get; private set; }
 
 
-        private ConcurrentDictionary<uint, OnlineFlowInfo> servers = new ConcurrentDictionary<uint, OnlineFlowInfo>();
+        private ConcurrentDictionary<IPAddress, OnlineFlowInfo> servers = new ConcurrentDictionary<IPAddress, OnlineFlowInfo>(new IPAddressComparer());
         private readonly SignInServerCaching signCaching;
         private readonly ISerializer serializer;
         public FlowResolver(SignInServerCaching signCaching, ISerializer serializer)
@@ -46,11 +46,10 @@ namespace linker.messenger.flow
             {
                 long time = Environment.TickCount64;
 
-                uint ip = NetworkHelper.ToValue(ep.Address);
-                if (servers.TryGetValue(ip, out OnlineFlowInfo onlineFlowInfo) == false)
+                if (servers.TryGetValue(ep.Address, out OnlineFlowInfo onlineFlowInfo) == false)
                 {
                     onlineFlowInfo = new OnlineFlowInfo { Time = time };
-                    servers.TryAdd(ip, onlineFlowInfo);
+                    servers.TryAdd(ep.Address, onlineFlowInfo);
                 }
                 onlineFlowInfo.Time = time;
                 onlineFlowInfo.Online = memory.Slice(0, 4).ToInt32();
@@ -151,5 +150,17 @@ namespace linker.messenger.flow
         public int Total { get; set; }
 
         public List<FlowReportNetInfo> Nets { get; set; } = new List<FlowReportNetInfo>();
+    }
+    public sealed class IPAddressComparer : IEqualityComparer<IPAddress>
+    {
+        public bool Equals(IPAddress x, IPAddress y)
+        {
+            return x.Equals(y);
+        }
+        public int GetHashCode(IPAddress obj)
+        {
+            if (obj == null) return 0;
+            return obj.GetHashCode();
+        }
     }
 }

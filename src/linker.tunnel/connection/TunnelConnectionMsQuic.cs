@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Net.Sockets;
+using System;
 
 namespace linker.tunnel.connection
 {
@@ -163,6 +164,8 @@ namespace linker.tunnel.connection
             catch (Exception ex)
             {
                 LoggerHelper.Instance.Error(ex);
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Error(string.Join(",", packet.ToArray()));
             }
         }
 

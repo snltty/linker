@@ -141,12 +141,13 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new FirewallRemoveForwardInfoFormatter());
             MemoryPackFormatterProvider.Register(new FirewallStateForwardInfoFormatter());
 
-
             MemoryPackFormatterProvider.Register(new WakeupInfoFormatter());
             MemoryPackFormatterProvider.Register(new WakeupSearchInfoFormatter());
             MemoryPackFormatterProvider.Register(new WakeupSearchForwardInfoFormatter());
             MemoryPackFormatterProvider.Register(new WakeupAddForwardInfoFormatter());
             MemoryPackFormatterProvider.Register(new WakeupRemoveForwardInfoFormatter());
+            MemoryPackFormatterProvider.Register(new WakeupSendInfoFormatter());
+            MemoryPackFormatterProvider.Register(new WakeupSendForwardInfoFormatter());
 
             return serviceCollection;
         }

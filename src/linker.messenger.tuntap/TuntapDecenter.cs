@@ -142,6 +142,8 @@ namespace linker.messenger.tuntap
             }
 
             routeItems = _routeItems;
+
+            GC.Collect();
         }
         private List<TuntapVeaLanIPAddressList> ParseIPs(List<TuntapInfo> infos)
         {

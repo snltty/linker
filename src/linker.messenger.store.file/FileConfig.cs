@@ -328,7 +328,7 @@ namespace linker.messenger.store.file
             catch (Exception)
             {
             }
-            return Encoding.UTF8.GetString(crypto.Decode(Convert.FromBase64String(text)).ToArray()).DeJson<ConfigClientInfo>();
+            return Encoding.UTF8.GetString(crypto.Decode(Convert.FromBase64String(text)).Span).DeJson<ConfigClientInfo>();
         }
     }
     public sealed partial class ConfigServerInfo : IConfig

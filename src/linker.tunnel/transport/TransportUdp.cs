@@ -284,7 +284,11 @@ namespace linker.tunnel.transport
                 while (token.Tcs.Task.IsCompleted == false)
                 {
                     SocketReceiveFromResult result = await token.LocalUdp.ReceiveFromAsync(buffer, ep).ConfigureAwait(false);
-                    if (result.ReceivedBytes == 0) break;
+                    if (result.ReceivedBytes == 0)
+                    {
+                        token.Tcs.TrySetResult(result.RemoteEndPoint.AddressFamily);
+                        break;
+                    }
                     if (result.ReceivedBytes == endBytes.Length && buffer.AsSpan(0, result.ReceivedBytes).SequenceEqual(endBytes))
                     {
                         if (token.Tcs != null && token.Tcs.Task.IsCompleted == false)

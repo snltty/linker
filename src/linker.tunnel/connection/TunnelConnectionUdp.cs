@@ -165,10 +165,8 @@ namespace linker.tunnel.connection
                 catch (Exception ex)
                 {
                     LoggerHelper.Instance.Error(ex);
-                    LoggerHelper.Instance.Error($"udp connection error :{length}");
-                    LoggerHelper.Instance.Error($"udp connection error buffer:{Encoding.UTF8.GetString(buffer, offset, length)}");
-                    //Console.WriteLine($"receive error {length}:{string.Join(",", memory.ToArray())}");
-                    //Dispose();
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        LoggerHelper.Instance.Error(string.Join(",", memory.ToArray()));
                 }
             }
         }

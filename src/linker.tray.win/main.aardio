@@ -86,7 +86,8 @@ mainForm.showPopmenu = function(){
 	mainForm.popmenu.add(mainForm.ckAutoStart.checked ? '取消托盘自启动':'开启托盘自启动',function(id){mainForm.runAsTaskCommand()});
 	mainForm.popmenu.add(service.isRunning(mainForm.serviceName) ? '停止服务':'运行服务',function(id){mainForm.runCommand()});
 	mainForm.popmenu.add(service.isExist(mainForm.serviceName) ? '卸载服务':'安装服务',function(id){mainForm.installCommand()});
-	
+	mainForm.popmenu.add('管理(简单)',function(id){mainForm.showNetFrm();});
+	mainForm.popmenu.add('管理(专业)',function(id){mainForm.showFullFrm();});
 	mainForm.popmenu.add('退出托盘',function(id){
 		win.quitMessage();
    		mainForm.close();
@@ -237,13 +238,20 @@ mainForm.runAsTaskCommand = function(){
 	mainForm.runAsTask(!mainForm.ckAutoStart.checked);
 }
 
-mainForm.btnWebFull.oncommand = function(id,event){
+mainForm.showFullFrm = function(){
 	var fullFrm = mainForm.loadForm("/full.aardio");
 	fullFrm.show();
 }
-mainForm.btnWebNet.oncommand = function(id,event){
+
+mainForm.btnWebFull.oncommand = function(id,event){
+	mainForm.showFullFrm();
+}
+mainForm.showNetFrm = function(){
 	var netFrm = mainForm.loadForm("/net.aardio");
 	netFrm.show();
+}
+mainForm.btnWebNet.oncommand = function(id,event){
+	mainForm.showNetFrm();
 }
 
 mainForm.checkService();

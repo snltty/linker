@@ -44,6 +44,17 @@ namespace linker.messenger.wakeup
             string id = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
             wakeupTransfer.Remove(id);
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="connection"></param>
+        [MessengerId((ushort)WakeupMessengerIds.Send)]
+        public void Send(IConnection connection)
+        {
+            WakeupSendInfo info = serializer.Deserialize<WakeupSendInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            _ = wakeupTransfer.Send(info);
+        }
     }
 
     /// <summary>
@@ -135,5 +146,20 @@ namespace linker.messenger.wakeup
             }
         }
 
+        [MessengerId((ushort)WakeupMessengerIds.SendForward)]
+        public async Task SendForward(IConnection connection)
+        {
+            WakeupSendForwardInfo info = serializer.Deserialize<WakeupSendForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            {
+                uint requestid = connection.ReceiveRequestWrap.RequestId;
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = cacheTo.Connection,
+                    MessengerId = (ushort)WakeupMessengerIds.Send,
+                    Payload = serializer.Serialize(info.Data)
+                }).ConfigureAwait(false);
+            }
+        }
     }
 }

@@ -31,6 +31,11 @@ const routes = [
                 name: 'FullFirewall',
                 component: () => import('@/views/full/firewall/Index.vue')
             },
+             {
+                path: '/full/wakeup.html',
+                name: 'FullWakeup',
+                component: () => import('@/views/full/wakeup/Index.vue')
+            },
             {
                 path: '/full/logger.html',
                 name: 'FullLogger',

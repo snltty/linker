@@ -104,6 +104,8 @@ namespace linker.messenger.socks5
             Socks5LanIPAddress[] ips = ipsList.SelectMany(c => c.IPS).ToArray();
 
             tunnelProxy.SetIPs(ips);
+
+            GC.Collect();
         }
 
         private List<Socks5LanIPAddressList> ParseIPs(List<Socks5Info> infos)

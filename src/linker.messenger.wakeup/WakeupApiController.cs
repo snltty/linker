@@ -98,5 +98,30 @@ namespace linker.messenger.wakeup
                 Payload = serializer.Serialize(info)
             }).ConfigureAwait(false);
         }
+
+
+        public string[] ComNames(ApiControllerParamsInfo param)
+        {
+            return wakeupTransfer.ComNames();
+        }
+
+        public async Task<bool> Send(ApiControllerParamsInfo param)
+        {
+            WakeupSendForwardInfo info = param.Content.DeJson<WakeupSendForwardInfo>();
+            if (info.MachineId == signInClientStore.Id)
+            {
+                if (accessStore.HasAccess(AccessValue.WakeupSelf) == false) return false;
+                _ = wakeupTransfer.Send(info.Data);
+                return true;
+            }
+
+            if (accessStore.HasAccess(AccessValue.WakeupOther) == false) return false;
+            return await messengerSender.SendOnly(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)WakeupMessengerIds.SendForward,
+                Payload = serializer.Serialize(info)
+            }).ConfigureAwait(false);
+        }
     }
 }
