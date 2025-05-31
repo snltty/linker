@@ -37,7 +37,7 @@
 		<DebugType>embedded</DebugType>
 	</PropertyGroup>
 	<ItemGroup>
-	  <PackageReference Include="System.IO.Ports" Version="8.0.0" />
+	  <PackageReference Include="HidSharp" Version="2.1.0" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\linker.messenger.api\linker.messenger.api.csproj" />

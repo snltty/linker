@@ -11,7 +11,7 @@ namespace linker.messenger.socks5
     public partial class TunnelProxy
     {
         private ConcurrentDictionary<int, AsyncUserUdpToken> udpListens = new ConcurrentDictionary<int, AsyncUserUdpToken>();
-        private ConcurrentDictionary<ConnectIdUdp, AsyncUserUdpTokenTarget> udpConnections = new(new ConnectIdUdpComparer());
+        private ConcurrentDictionary<(IPAddress sip, ushort sport, string remoteId, string transId), AsyncUserUdpTokenTarget> udpConnections = new();
 
         private void StartUdp(IPEndPoint ep, byte buffersize)
         {
@@ -120,7 +120,7 @@ namespace linker.messenger.socks5
 
             if (tunnelToken.Proxy.Direction == ProxyDirection.Forward)
             {
-                ConnectIdUdp connectId = tunnelToken.GetUdpConnectId();
+                var connectId = tunnelToken.GetUdpConnectId();
                 try
                 {
                     if (udpConnections.TryGetValue(connectId, out AsyncUserUdpTokenTarget token))
@@ -183,7 +183,7 @@ namespace linker.messenger.socks5
             socket.WindowsUdpBug();
             await socket.SendToAsync(tunnelToken.Proxy.Data, target).ConfigureAwait(false);
 
-            ConnectIdUdp connectId = tunnelToken.GetUdpConnectId();
+            var connectId = tunnelToken.GetUdpConnectId();
             AsyncUserUdpTokenTarget udpToken = new AsyncUserUdpTokenTarget
             {
                 Proxy = new ProxyInfo
@@ -273,9 +273,7 @@ namespace linker.messenger.socks5
 
         private void CloseClientSocketUdp(ITunnelConnection connection)
         {
-            int hashcode1 = connection.RemoteMachineId.GetHashCode();
-            int hashcode2 = connection.TransactionId.GetHashCode();
-            var tokens = udpConnections.Where(c => c.Key.hashcode1 == hashcode1 && c.Key.hashcode2 == hashcode2).ToList();
+            var tokens = udpConnections.Where(c => c.Key.remoteId == connection.RemoteMachineId && c.Key.transId == connection.TransactionId).ToList();
             foreach (var item in tokens)
             {
                 try
@@ -362,12 +360,12 @@ namespace linker.messenger.socks5
         public ITunnelConnection Connection { get; set; }
         public ProxyInfo Proxy { get; set; }
 
-        public ConnectIdUdp ConnectId { get; set; }
+        public (IPAddress sip, ushort sport, string remoteId, string transId) ConnectId { get; set; }
 
         public byte[] Buffer { get; set; }
 
-        public long LastTime { get; set; } = Environment.TickCount64;
-        public bool Timeout => Environment.TickCount64 - LastTime > 15000;
+        public LastTicksManager LastTicks { get; set; } = new LastTicksManager();
+        public bool Timeout => LastTicks.Expired(60 * 1000);
         public void Clear()
         {
             TargetSocket?.SafeClose();
@@ -377,33 +375,8 @@ namespace linker.messenger.socks5
         }
         public void Update()
         {
-            LastTime = Environment.TickCount64;
+            LastTicks.Update();
         }
     }
 
-    public sealed class ConnectIdUdpComparer : IEqualityComparer<ConnectIdUdp>
-    {
-        public bool Equals(ConnectIdUdp x, ConnectIdUdp y)
-        {
-            return x.source != null && x.source.Equals(y.source) && x.hashcode1 == y.hashcode1 && x.hashcode2 == y.hashcode2;
-        }
-        public int GetHashCode(ConnectIdUdp obj)
-        {
-            if (obj.source == null) return 0;
-            return obj.source.GetHashCode() ^ obj.hashcode1 ^ obj.hashcode2;
-        }
-    }
-    public readonly struct ConnectIdUdp
-    {
-        public readonly IPEndPoint source { get; }
-        public int hashcode1 { get; }
-        public int hashcode2 { get; }
-
-        public ConnectIdUdp(IPEndPoint source, int hashcode1, int hashcode2)
-        {
-            this.source = source;
-            this.hashcode1 = hashcode1;
-            this.hashcode2 = hashcode2;
-        }
-    }
 }

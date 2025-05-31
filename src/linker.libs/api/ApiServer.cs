@@ -195,8 +195,8 @@ namespace linker.libs.api
         /// </summary>
         public bool IsTaskResult { get; set; }
 
-        public ulong Access { get; set; }
-        public Func<ulong, bool> HasAccess { get; set; }
+        public int Access { get; set; }
+        public Func<int, bool> HasAccess { get; set; }
     }
 
 }

@@ -11,7 +11,7 @@ namespace linker.messenger.socks5
     public partial class TunnelProxy
     {
         private ConcurrentDictionary<int, AsyncUserToken> tcpListens = new ConcurrentDictionary<int, AsyncUserToken>();
-        private readonly ConcurrentDictionary<ConnectId, AsyncUserToken> tcpConnections = new ConcurrentDictionary<ConnectId, AsyncUserToken>(new ConnectIdComparer());
+        private readonly ConcurrentDictionary<(ulong connectid, string remoteId, string transId, byte dir), AsyncUserToken> tcpConnections = new();
         private AsyncUserToken userToken;
         public IPEndPoint LocalEndpoint { get; private set; }
 
@@ -208,7 +208,7 @@ namespace linker.messenger.socks5
             IPAddress ip = mapping.GetRealDst(token.Proxy.TargetEP.Address);
             IPEndPoint target = new IPEndPoint(ip, token.Proxy.TargetEP.Port);
 
-            if(linkerFirewall.Check(token.Connection.RemoteMachineId, target, ProtocolType.Tcp) == false)
+            if (linkerFirewall.Check(token.Connection.RemoteMachineId, target, ProtocolType.Tcp) == false)
             {
                 return;
             }
@@ -272,7 +272,7 @@ namespace linker.messenger.socks5
         {
             if (tunnelToken.Proxy.Protocol == ProxyProtocol.Tcp)
             {
-                ConnectId connectId = tunnelToken.GetTcpConnectId();
+                var connectId = tunnelToken.GetTcpConnectId();
                 if (tcpConnections.TryGetValue(connectId, out AsyncUserToken token))
                 {
                     _ = ProcessReceive(token);
@@ -283,7 +283,7 @@ namespace linker.messenger.socks5
         {
             if (tunnelToken.Proxy.Protocol == ProxyProtocol.Tcp)
             {
-                ConnectId connectId = tunnelToken.GetTcpConnectId();
+                var connectId = tunnelToken.GetTcpConnectId();
                 if (tcpConnections.TryRemove(connectId, out AsyncUserToken token))
                 {
                     CloseClientSocket(token, 3);
@@ -293,7 +293,7 @@ namespace linker.messenger.socks5
 
         private async Task SendToSocketTcp(AsyncUserTunnelToken tunnelToken)
         {
-            ConnectId connectId = tunnelToken.GetTcpConnectId();
+            var connectId = tunnelToken.GetTcpConnectId();
             if (tunnelToken.Proxy.Step == ProxyStep.Close || tunnelToken.Proxy.Data.Length == 0)
             {
                 if (tcpConnections.TryRemove(connectId, out AsyncUserToken token))
@@ -332,9 +332,7 @@ namespace linker.messenger.socks5
         }
         private void CloseClientSocketTcp(ITunnelConnection connection)
         {
-            int hashcode1 = connection.RemoteMachineId.GetHashCode();
-            int hashcode2 = connection.TransactionId.GetHashCode();
-            var tokens = tcpConnections.Where(c => c.Key.hashcode1 == hashcode1 && c.Key.hashcode2 == hashcode2).ToList();
+            var tokens = tcpConnections.Where(c => c.Key.remoteId == connection.RemoteMachineId && c.Key.transId == connection.TransactionId).ToList();
             foreach (var item in tokens)
             {
                 try
@@ -381,33 +379,6 @@ namespace linker.messenger.socks5
 
     }
 
-
-    public sealed class ConnectIdComparer : IEqualityComparer<ConnectId>
-    {
-        public bool Equals(ConnectId x, ConnectId y)
-        {
-            return x.connectId == y.connectId && x.hashcode1 == y.hashcode1 && x.hashcode2 == y.hashcode2 && x.direction == y.direction;
-        }
-        public int GetHashCode(ConnectId obj)
-        {
-            return obj.connectId.GetHashCode() ^ obj.hashcode1 ^ obj.hashcode2 ^ obj.direction;
-        }
-    }
-    public record struct ConnectId
-    {
-        public ulong connectId;
-        public int hashcode1;
-        public int hashcode2;
-        public byte direction;
-
-        public ConnectId(ulong connectId, int hashcode1, int hashcode2, byte direction)
-        {
-            this.connectId = connectId;
-            this.hashcode1 = hashcode1;
-            this.hashcode2 = hashcode2;
-            this.direction = direction;
-        }
-    }
     public sealed class AsyncUserToken
     {
         public int ListenPort { get; set; }
@@ -433,13 +404,13 @@ namespace linker.messenger.socks5
             GC.Collect();
         }
 
-        public ConnectId GetConnectId()
+        public (ulong connectid, string remoteId, string transId, byte dir) GetConnectId()
         {
-            return new ConnectId(Proxy.ConnectId, Connection.RemoteMachineId.GetHashCode(), Connection.TransactionId.GetHashCode(), (byte)Proxy.Direction);
+            return (Proxy.ConnectId, Connection.RemoteMachineId, Connection.TransactionId, (byte)Proxy.Direction);
         }
-        public ConnectId GetConnectId(ProxyDirection proxyDirection)
+        public (ulong connectid, string remoteId, string transId, byte dir) GetConnectId(ProxyDirection proxyDirection)
         {
-            return new ConnectId(Proxy.ConnectId, Connection.RemoteMachineId.GetHashCode(), Connection.TransactionId.GetHashCode(), (byte)proxyDirection);
+            return (Proxy.ConnectId, Connection.RemoteMachineId, Connection.TransactionId, (byte)proxyDirection);
         }
     }
     public sealed class ConnectState

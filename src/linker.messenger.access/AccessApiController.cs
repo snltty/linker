@@ -5,6 +5,7 @@ using linker.messenger.signin;
 using linker.messenger.api;
 using IApiServer = linker.messenger.api.IApiServer;
 using System.Collections.Concurrent;
+using System.Collections;
 
 namespace linker.messenger.access
 {
@@ -53,7 +54,7 @@ namespace linker.messenger.access
         [Access(AccessValue.Access)]
         public async Task<bool> SetAccess(ApiControllerParamsInfo param)
         {
-            AccessUpdateInfo configUpdateAccessInfo = param.Content.DeJson<AccessUpdateInfo>();
+            AccessBitsUpdateInfo configUpdateAccessInfo = param.Content.DeJson<AccessBitsUpdateInfo>();
             if (configUpdateAccessInfo.ToMachineId == signInClientStore.Id)
             {
                 return false;
@@ -62,12 +63,11 @@ namespace linker.messenger.access
             MessageResponeInfo resp = await sender.SendReply(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
-                MessengerId = (ushort)AccessMessengerIds.AccessUpdateForward,
+                MessengerId = (ushort)AccessMessengerIds.AccessStrUpdateForward,
                 Payload = serializer.Serialize(configUpdateAccessInfo)
             }).ConfigureAwait(false);
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
-
         public async Task<bool> SetApiPassword(ApiControllerParamsInfo param)
         {
             ApiPasswordUpdateInfo info = param.Content.DeJson<ApiPasswordUpdateInfo>();
@@ -93,7 +93,7 @@ namespace linker.messenger.access
 
     public sealed class AccessListInfo
     {
-        public ConcurrentDictionary<string, AccessValue> List { get; set; }
+        public ConcurrentDictionary<string, BitArray> List { get; set; }
         public ulong HashCode { get; set; }
     }
 }

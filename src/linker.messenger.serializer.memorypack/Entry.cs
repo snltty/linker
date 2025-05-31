@@ -82,7 +82,9 @@ namespace linker.messenger.serializer.memorypack
 
 
             MemoryPackFormatterProvider.Register(new AccessUpdateInfoFormatter());
+            MemoryPackFormatterProvider.Register(new AccessBitsUpdateInfoFormatter());
             MemoryPackFormatterProvider.Register(new AccessInfoFormatter());
+            MemoryPackFormatterProvider.Register(new AccessBotsInfoFormatter());
             MemoryPackFormatterProvider.Register(new ApiPasswordUpdateInfoFormatter());
 
 

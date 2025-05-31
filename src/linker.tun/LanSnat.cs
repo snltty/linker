@@ -32,12 +32,18 @@ namespace linker.tun
                 error = "SNAT need CIDR,like 10.18.18.0/24";
                 return;
             }
-           
-            IPAddress network = NetworkHelper.ToNetworkIP(address, NetworkHelper.ToPrefixValue(prefixLength));
-            string result = CommandHelper.PowerShell($"Get-NetNat", [], out string e);
-            if (string.IsNullOrWhiteSpace(result) == false && result.Contains($"{network}/{prefixLength}"))
+
+            try
             {
-                return;
+                IPAddress network = NetworkHelper.ToNetworkIP(address, NetworkHelper.ToPrefixValue(prefixLength));
+                string result = CommandHelper.PowerShell($"Get-NetNat", [], out string e);
+                if (string.IsNullOrWhiteSpace(result) == false && result.Contains($"{network}/{prefixLength}"))
+                {
+                    return;
+                }
+            }
+            catch (Exception)
+            {
             }
 
             Shutdown();

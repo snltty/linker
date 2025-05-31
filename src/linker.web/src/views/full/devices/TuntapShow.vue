@@ -106,12 +106,14 @@ export default {
             }
             if(machineId.value === tuntap.MachineId){
                 if(!hasTuntapStatusSelf.value){
-                    return;
-                }
+                ElMessage.success('无权限');
+                return;
+            }
             }else{
                 if(!hasTuntapStatusOther.value){
-                    return;
-                }
+                ElMessage.success('无权限');
+                return;
+            }
             }
 
             const fn = props.item.Connected && tuntap.running ? stopTuntap (tuntap.MachineId) : runTuntap(tuntap.MachineId);
@@ -125,17 +127,17 @@ export default {
         }
         const handleTuntapIP = (tuntap) => {
             if(!props.config && machineId.value != tuntap.MachineId){
-                ElMessage.success('无权限1');
+                ElMessage.success('无权限');
                 return;
             }
             if(machineId.value === tuntap.MachineId){
                 if(!hasTuntapChangeSelf.value){
-                    ElMessage.success('无权限2');
+                    ElMessage.success('无权限');
                     return;
                 }
             }else{
                 if(!hasTuntapChangeOther.value){
-                    ElMessage.success('无权限3');
+                    ElMessage.success('无权限');
                     return;
                 }
             }

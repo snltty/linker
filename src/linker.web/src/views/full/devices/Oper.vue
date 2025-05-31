@@ -21,6 +21,9 @@
                         
                         <el-dropdown-item v-if="scope.row.isSelf && hasFirewallSelf" @click="handleFirewall(scope.row.MachineId,scope.row.MachineName)"><el-icon><CircleCheck /></el-icon>防火墙</el-dropdown-item>
                         <el-dropdown-item v-else-if="hasFirewallOther" @click="handleFirewall(scope.row.MachineId,scope.row.MachineName)"><el-icon><CircleCheck /></el-icon>防火墙</el-dropdown-item>
+
+                        <el-dropdown-item v-if="scope.row.isSelf && hasWakeupSelf" @click="handleWakeup(scope.row.MachineId,scope.row.MachineName)"><el-icon><VideoPlay /></el-icon>唤醒</el-dropdown-item>
+                        <el-dropdown-item v-else-if="hasWakeupOther" @click="handleWakeup(scope.row.MachineId,scope.row.MachineName)"><el-icon><VideoPlay /></el-icon>唤醒</el-dropdown-item>
                     </el-dropdown-menu>
                 </template>
             </el-dropdown>
@@ -33,17 +36,18 @@
 import { signInDel } from '@/apis/signin';
 import { exit } from '@/apis/updater';
 import { injectGlobalData } from '@/provide';
-import { Delete,SwitchButton,ArrowDown, Flag,HelpFilled,Platform,Paperclip,CircleCheck } from '@element-plus/icons-vue'
+import { Delete,SwitchButton,ArrowDown, Flag,HelpFilled,Platform,Paperclip,CircleCheck,VideoPlay } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { computed } from 'vue';
 import { useAccess } from './access';
 import { setApiPassword } from '@/apis/access';
 import { useFlow } from './flow';
 import { useTuntap } from './tuntap';
+import { useOper } from './oper';
 
 export default {
     emits:['refresh','access'],
-    components:{Delete,SwitchButton,ArrowDown,Flag,HelpFilled,Platform,Paperclip,CircleCheck},
+    components:{Delete,SwitchButton,ArrowDown,Flag,HelpFilled,Platform,Paperclip,CircleCheck,VideoPlay},
     setup (props,{emit}) {
         
         const globalData = injectGlobalData();
@@ -61,9 +65,12 @@ export default {
 
         const hasFirewallSelf = computed(()=>globalData.value.hasAccess('FirewallSelf')); 
         const hasFirewallOther = computed(()=>globalData.value.hasAccess('FirewallOther')); 
+
+        const hasWakeupSelf = computed(()=>globalData.value.hasAccess('WakeupSelf')); 
+        const hasWakeupOther = computed(()=>globalData.value.hasAccess('WakeupOther')); 
         
         const flow = useFlow();
-        const tuntap  = useTuntap();
+        const oper  = useOper();
         
 
         const handleDel = (machineId,machineName)=>{
@@ -123,19 +130,24 @@ export default {
             flow.value.show = true;
         }
         const handleRoutes = (id,name)=>{
-            tuntap.value.device.id = id;
-            tuntap.value.device.name = name;
-            tuntap.value.showRoutes = true;
+            oper.value.device.id = id;
+            oper.value.device.name = name;
+            oper.value.showRoutes = true;
         }
         const handleFirewall = (id,name)=>{
-            tuntap.value.device.id = id;
-            tuntap.value.device.name = name;
-            tuntap.value.showFirewall = true;
+            oper.value.device.id = id;
+            oper.value.device.name = name;
+            oper.value.showFirewall = true;
+        }
+        const handleWakeup = (id,name)=>{
+            oper.value.device.id = id;
+            oper.value.device.name = name;
+            oper.value.showWakeup = true;
         }
 
         return {accessList,handleDel,handleExit,hasReboot,hasRemove,hasAccess,handleShowAccess,handleAccess,
             hasApiPassword,hasApiPasswordOther,handleApiPassword,handleStopwatch,handleRoutes,
-            hasFirewallSelf,hasFirewallOther,handleFirewall
+            hasFirewallSelf,hasFirewallOther,handleFirewall,hasWakeupSelf,hasWakeupOther,handleWakeup
         }
     }
 }

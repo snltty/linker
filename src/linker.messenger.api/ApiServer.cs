@@ -38,11 +38,7 @@ namespace linker.messenger.api
                         bool isTaskResult = method.ReturnType.GetProperty("Result") != null;
                         
                         AccessAttribute accessAttr = method.GetCustomAttribute<AccessAttribute>();
-                        ulong access = 0;
-                        if (accessAttr != null)
-                        {
-                            access = (ulong)accessAttr.Value;
-                        }
+                        int access = (int)(accessAttr?.Value ?? 0);
                         
                         plugins.TryAdd(key, new PluginPathCacheInfo
                         {
@@ -51,14 +47,14 @@ namespace linker.messenger.api
                             Target = obj,
                             IsTask = istask,
                             IsTaskResult = isTaskResult,
-                            Access = 0,
+                            Access = access,
                             HasAccess = HasAccess,
                         });
                     }
                 }
             }
         }
-        private bool HasAccess(ulong access)
+        private bool HasAccess(int access)
         {
             return accessStore.HasAccess((AccessValue)access);
         }

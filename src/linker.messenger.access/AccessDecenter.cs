@@ -2,6 +2,7 @@
 using linker.messenger.api;
 using linker.messenger.decenter;
 using linker.messenger.signin;
+using System.Collections;
 using System.Collections.Concurrent;
 
 namespace linker.messenger.access
@@ -15,7 +16,7 @@ namespace linker.messenger.access
         /// <summary>
         /// 各个设备的权限列表
         /// </summary>
-        public ConcurrentDictionary<string, AccessValue> Accesss { get; } = new ConcurrentDictionary<string, AccessValue>();
+        public ConcurrentDictionary<string, BitArray> Accesss { get; } = new ConcurrentDictionary<string, BitArray>();
 
         private readonly ISignInClientStore signInClientStore;
         private readonly IAccessStore accessStore;
@@ -39,16 +40,16 @@ namespace linker.messenger.access
         }
         public Memory<byte> GetData()
         {
-            return serializer.Serialize(new AccessInfo { MachineId = signInClientStore.Id, Access = accessStore.Access });
+            return serializer.Serialize(new AccessBitsInfo { MachineId = signInClientStore.Id, Access = accessStore.AccessBits });
         }
         public void AddData(Memory<byte> data)
         {
-            AccessInfo access = serializer.Deserialize<AccessInfo>(data.Span);
+            AccessBitsInfo access = serializer.Deserialize<AccessBitsInfo>(data.Span);
             Accesss.AddOrUpdate(access.MachineId, access.Access, (a, b) => access.Access);
         }
         public void AddData(List<ReadOnlyMemory<byte>> data)
         {
-            List<AccessInfo> list = data.Select(c => serializer.Deserialize<AccessInfo>(c.Span)).ToList();
+            List<AccessBitsInfo> list = data.Select(c => serializer.Deserialize<AccessBitsInfo>(c.Span)).ToList();
             foreach (var item in list)
             {
                 Accesss.AddOrUpdate(item.MachineId, item.Access, (a, b) => item.Access);

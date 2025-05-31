@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -68,6 +69,7 @@ namespace linker.libs.extends
                 new Span<byte>(p, value.Length * 8).CopyTo(memory.Span);
             }
         }
+
         #endregion
 
         #region 32

@@ -19,6 +19,7 @@ import { injectGlobalData } from '@/provide';
 import { useTuntap } from './tuntap';
 import {StarFilled} from '@element-plus/icons-vue'
 import { computed } from 'vue';
+import { ElMessage } from 'element-plus';
 export default {
     props:['item','config'],
     emits:['edit','refresh'],
@@ -35,12 +36,14 @@ export default {
             }
             if(machineId.value === props.item.MachineId){
                 if(!hasRenameSelf.value){
-                    return;
-                }
+                ElMessage.success('无权限');
+                return;
+            }
             }else{
                 if(!hasRenameOther.value){
-                    return;
-                }
+                ElMessage.success('无权限');
+                return;
+            }
             }
 
             emit('edit',props.item)

@@ -44,6 +44,32 @@ namespace linker.messenger.access
                 });
             }
         }
+        [MessengerId((ushort)AccessMessengerIds.AccessStrUpdateForward)]
+        public void AccessStrUpdateForward(IConnection connection)
+        {
+            AccessBitsUpdateInfo info = serializer.Deserialize<AccessBitsUpdateInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            info.FromMachineId = connection.Id;
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) && signCaching.TryGet(info.ToMachineId, out SignCacheInfo cache1) && cache1.GroupId == cache.GroupId)
+            {
+                uint requiestid = connection.ReceiveRequestWrap.RequestId;
+
+                sender.SendReply(new MessageRequestWrap
+                {
+                    Connection = cache1.Connection,
+                    MessengerId = (ushort)AccessMessengerIds.AccessStrUpdate,
+                    Payload = serializer.Serialize(info),
+                    Timeout = 3000,
+                }).ContinueWith(async (result) =>
+                {
+                    await sender.ReplyOnly(new MessageResponseWrap
+                    {
+                        RequestId = requiestid,
+                        Connection = connection,
+                        Payload = result.Result.Data
+                    }, (ushort)AccessMessengerIds.AccessStrUpdateForward).ConfigureAwait(false);
+                });
+            }
+        }
 
         [MessengerId((ushort)AccessMessengerIds.SetApiPasswordForward)]
         public void SetApiPasswordForward(IConnection connection)
@@ -81,7 +107,12 @@ namespace linker.messenger.access
         [MessengerId((ushort)AccessMessengerIds.AccessUpdate)]
         public void AccessUpdate(IConnection connection)
         {
-            AccessUpdateInfo info = serializer.Deserialize<AccessUpdateInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            connection.Write(Helper.TrueArray);
+        }
+        [MessengerId((ushort)AccessMessengerIds.AccessStrUpdate)]
+        public void AccessStrUpdate(IConnection connection)
+        {
+            AccessBitsUpdateInfo info = serializer.Deserialize<AccessBitsUpdateInfo>(connection.ReceiveRequestWrap.Payload.Span);
             accessStore.SetAccess(info);
             connection.Write(Helper.TrueArray);
         }

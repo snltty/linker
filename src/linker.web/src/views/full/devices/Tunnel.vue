@@ -44,6 +44,7 @@ import { useTunnel } from './tunnel';
 import { useConnections,useForwardConnections,useSocks5Connections,useTuntapConnections } from './connections';
 import { injectGlobalData } from '@/provide';
 import { computed } from 'vue';
+import { ElMessage } from 'element-plus';
 
 export default {
     emits: ['edit','refresh'],
@@ -117,12 +118,14 @@ export default {
         const handleTunnel = (tunnel,row) => {
             if(machineId.value === tunnel.MachineId){
                 if(!hasTunnelChangeSelf.value){
-                    return;
-                }
+                    ElMessage.success('无权限');
+                return;
+            }
             }else{
                 if(!hasTunnelChangeOther.value){
-                    return;
-                }
+                    ElMessage.success('无权限');
+                return;
+            }
             }
             tunnel.device = row;
             emit('edit',tunnel);

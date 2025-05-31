@@ -208,7 +208,10 @@ export default {
             }
         });
         const handleDel = (row) => {
-            if (!hasTunnelRemove.value) return;
+            if (!hasTunnelRemove.value) {
+                ElMessage.success('无权限');
+                return;
+            }
             row.removeFunc(row.RemoteMachineId).then(() => {
                 ElMessage.success(t('common.oper'));
             }).catch(() => { });

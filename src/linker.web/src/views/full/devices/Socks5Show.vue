@@ -77,12 +77,14 @@ export default {
             }
             if(machineId.value === socks5.MachineId){
                 if(!hasSocks5StatusSelf.value){
-                    return;
-                }
+                ElMessage.success('无权限');
+                return;
+            }
             }else{
                 if(!hasSocks5StatusOther.value){
-                    return;
-                }
+                ElMessage.success('无权限');
+                return;
+            }
             }
             const fn = props.item.Connected && socks5.running ? stopSocks5 (socks5.MachineId) : runSocks5(socks5.MachineId);
             socks5.loading = true;
@@ -99,12 +101,14 @@ export default {
             }
             if(machineId.value === socks5.MachineId){
                 if(!hasSocks5ChangeSelf.value){
-                    return;
-                }
+                ElMessage.success('无权限');
+                return;
+            }
             }else{
                 if(!hasSocks5ChangeOther.value){
-                    return;
-                }
+                ElMessage.success('无权限');
+                return;
+            }
             }
             socks5.device = props.item;
             emit('edit',socks5);

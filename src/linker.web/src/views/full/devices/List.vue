@@ -24,14 +24,15 @@
         <TunnelEdit v-if="tunnel.showEdit" v-model="tunnel.showEdit"  @change="handleTunnelRefresh"></TunnelEdit>
         <ConnectionsEdit v-if="connections.showEdit" v-model="connections.showEdit" ></ConnectionsEdit>
         <TuntapEdit v-if="tuntap.showEdit" v-model="tuntap.showEdit"  @change="handleTuntapRefresh"></TuntapEdit>
-        <TuntapRoutes v-if="tuntap.showRoutes" v-model="tuntap.showRoutes" ></TuntapRoutes>
-        <TuntapFirewall v-if="tuntap.showFirewall" v-model="tuntap.showFirewall" ></TuntapFirewall>
-        <Socks5Edit v-if="socks5.showEdit" v-model="socks5.showEdit"  @change="handleSocks5Refresh"></Socks5Edit>
         <TuntapLease v-if="tuntap.showLease" v-model="tuntap.showLease"  @change="handleTuntapRefresh"></TuntapLease>
+        <Socks5Edit v-if="socks5.showEdit" v-model="socks5.showEdit"  @change="handleSocks5Refresh"></Socks5Edit>
         <ForwardEdit v-if="forward.showEdit" v-model="forward.showEdit" ></ForwardEdit>
         <SForwardEdit v-if="sforward.showEdit" v-model="sforward.showEdit" ></SForwardEdit>
         <UpdaterConfirm v-if="updater.show" v-model="updater.show" ></UpdaterConfirm>
         <Stopwatch v-if="flow.show" v-model="flow.show" ></Stopwatch>
+        <OperRoutes v-if="oper.showRoutes" v-model="oper.showRoutes" ></OperRoutes>
+        <OperFirewall v-if="oper.showFirewall" v-model="oper.showFirewall" ></OperFirewall>
+        <OperWakeup v-if="oper.showWakeup" v-model="oper.showFirewall" ></OperWakeup>
     </div>
 </template>
 <script>
@@ -41,7 +42,7 @@ import { ElMessage } from 'element-plus'
 
 import Sort from './Sort.vue'
 
-import Oper from './Oper.vue'
+
 import Device from './Device.vue'
 import DeviceEdit from './DeviceEdit.vue'
 import { provideDevices } from './devices'
@@ -53,8 +54,7 @@ import Tuntap from './Tuntap.vue'
 import TuntapEdit from './TuntapEdit.vue'
 import TuntapLease from './TuntapLease.vue'
 import { provideTuntap } from './tuntap'
-import TuntapRoutes from './TuntapRoutes.vue'
-import TuntapFirewall from './TuntapFirewall.vue'
+
 
 import Socks5 from './Socks5.vue'
 import Socks5Edit from './Socks5Edit.vue'
@@ -80,19 +80,25 @@ import UpdaterConfirm from './UpdaterConfirm.vue'
 import { provideFlow } from './flow'
 import Stopwatch from './Stopwatch.vue'
 
+import Oper from './Oper.vue'
+import { provideOper } from './oper'
+import OperRoutes from './OperRoutes.vue'
+import OperFirewall from './OperFirewall.vue'
+import OperWakeup from './OperWakeup.vue'
 
 
 export default {
-    components: {Sort,Oper,
+    components: {Sort,
         Device,DeviceEdit,
         AccessEdit,
         Tunnel,TunnelEdit,
         ConnectionsEdit,
-        Tuntap,TuntapEdit,TuntapLease,TuntapRoutes,TuntapFirewall, 
+        Tuntap,TuntapEdit,TuntapLease,
         Socks5, Socks5Edit,
         Forward,ForwardEdit,
         SForwardEdit ,UpdaterConfirm,
-        Stopwatch
+        Stopwatch,
+        Oper,OperRoutes,OperFirewall,OperWakeup 
     },
     setup(props) {
 
@@ -120,6 +126,8 @@ export default {
         const {flow} = provideFlow();
 
         const {_getAccessInfo,clearAccessTimeout,handleAccesssRefresh} = provideAccess();
+
+        const {oper} = provideOper();
 
         const handleSortChange = (row)=>{
 
@@ -234,7 +242,7 @@ export default {
             tunnel,connections, handleTunnelEdit, handleTunnelRefresh,handleTunnelConnections,
             forward,handleForwardEdit,
             sforward,handleSForwardEdit,
-            updater,flow
+            updater,flow,oper
         }
     }
 }

@@ -224,7 +224,7 @@ namespace linker.app
                 {
                     CApi = new
                     {
-                        ApiPassword = "snltty",
+                        ApiPassword = Helper.GlobalString,
                         ApiPort = ApplyNewPort(),
                         WebPort = ApplyNewPort()
                     }

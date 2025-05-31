@@ -7,6 +7,7 @@ using linker.messenger.api;
 using System.Text;
 using linker.messenger.relay.client.transport;
 using System.Text.Json;
+using System.Collections;
 namespace linker.messenger.store.file
 {
     public sealed class ConfigApiController : IApiController
@@ -18,8 +19,10 @@ namespace linker.messenger.store.file
         private readonly SignInClientState signInClientState;
         private readonly IApiStore apiStore;
         private readonly ExportResolver exportResolver;
+        private readonly IAccessStore accessStore;
 
-        public ConfigApiController(RunningConfig runningConfig, FileConfig config, SignInClientTransfer signInClientTransfer, IMessengerSender sender, SignInClientState signInClientState, IApiStore apiStore, ExportResolver exportResolver)
+        public ConfigApiController(RunningConfig runningConfig, FileConfig config, SignInClientTransfer signInClientTransfer, IMessengerSender sender, SignInClientState signInClientState,
+            IApiStore apiStore, ExportResolver exportResolver, IAccessStore accessStore)
         {
             this.runningConfig = runningConfig;
             this.config = config;
@@ -28,6 +31,7 @@ namespace linker.messenger.store.file
             this.signInClientState = signInClientState;
             this.apiStore = apiStore;
             this.exportResolver = exportResolver;
+            this.accessStore = accessStore;
         }
 
         public object Get(ApiControllerParamsInfo param)
@@ -256,7 +260,7 @@ namespace linker.messenger.store.file
             client.CApi.WebPort = configExportInfo.WebPort;
             client.CApi.ApiPort = configExportInfo.ApiPort;
 
-            client.Access = (AccessValue)((ulong)config.Data.Client.Access & configExportInfo.Access);
+            client.AccessBits = accessStore.AssignAccess(configExportInfo.Access);
 
 
             if (configExportInfo.Relay) client.Relay = new RelayClientInfo { Servers = new RelayServerInfo[] { client.Relay.Servers[0] } };
@@ -287,7 +291,7 @@ namespace linker.messenger.store.file
                 client.Id,
                 client.Name,
                 client.CApi,
-                client.Access,
+                client.AccessBits,
                 Groups = new SignInClientGroupInfo[] { config.Data.Client.Groups[0] },
                 Servers = new SignInClientServerInfo[] { config.Data.Client.Servers[0] },
                 client.SForward,
@@ -368,7 +372,7 @@ namespace linker.messenger.store.file
         public int WebPort { get; set; }
         public int ApiPort { get; set; }
         public bool Single { get; set; }
-        public ulong Access { get; set; }
+        public BitArray Access { get; set; }
 
         public bool Relay { get; set; }
         public bool SForward { get; set; }

@@ -20,9 +20,13 @@
         /// </summary>
         Wol = 1,
         /// <summary>
-        /// 开关，继电器
+        /// 串口
         /// </summary>
-        Switch = 2
+        Com = 2,
+        /// <summary>
+        /// 人体学输入设备
+        /// </summary>
+        Hid = 4
     }
 
     public sealed class WakeupInfo
@@ -75,7 +79,6 @@
         public string MachineId { get; set; }
         public string Id { get; set; }
     }
-
 
     public sealed class WakeupSendInfo
     {

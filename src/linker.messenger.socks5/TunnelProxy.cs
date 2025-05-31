@@ -262,13 +262,13 @@ namespace linker.messenger.socks5
             GC.Collect();
         }
 
-        public ConnectId GetTcpConnectId()
+        public (ulong connectid, string remoteId, string transId, byte dir) GetTcpConnectId()
         {
-            return new ConnectId(Proxy.ConnectId, Connection.RemoteMachineId.GetHashCode(), Connection.TransactionId.GetHashCode(), (byte)Proxy.Direction);
+            return (Proxy.ConnectId, Connection.RemoteMachineId, Connection.TransactionId, (byte)Proxy.Direction);
         }
-        public ConnectIdUdp GetUdpConnectId()
+        public (IPAddress sip, ushort sport, string remoteId, string transId) GetUdpConnectId()
         {
-            return new ConnectIdUdp(Proxy.SourceEP, Connection.RemoteMachineId.GetHashCode(), Connection.TransactionId.GetHashCode());
+            return (Proxy.SourceEP.Address, (ushort)Proxy.SourceEP.Port, Connection.RemoteMachineId, Connection.TransactionId);
         }
     }
 

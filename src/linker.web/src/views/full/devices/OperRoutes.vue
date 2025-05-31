@@ -14,19 +14,19 @@
 </template>
 <script>
 import { reactive, watch,onMounted, onUnmounted } from 'vue';
-import { useTuntap } from './tuntap';
 import { getSignInNames } from '@/apis/signin';
 import { getTuntapRoutes } from '@/apis/tuntap';
+import { useOper } from './oper';
 export default {
     props: ['modelValue'],
     emits: ['update:modelValue'],
     setup(props, { emit }) {
-        const tuntap = useTuntap();
+        const oper = useOper();
         
         const state = reactive({
             show: true,
-            machineId: tuntap.value.device.id,
-            machineName: tuntap.value.device.name,
+            machineId: oper.value.device.id,
+            machineName: oper.value.device.name,
             data:[],
             names: {},
             timer: 0

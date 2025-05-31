@@ -1,6 +1,6 @@
-﻿using linker.libs;
+﻿using HidSharp;
+using linker.libs;
 using linker.libs.extends;
-using System.IO.Ports;
 using System.Net;
 using System.Net.Sockets;
 
@@ -43,7 +43,21 @@ namespace linker.messenger.wakeup
             {
                 try
                 {
-                    return SerialPort.GetPortNames();
+                    return HidSharp.DeviceList.Local.GetSerialDevices().Select(c => c.DevicePath).ToArray();
+                }
+                catch (Exception)
+                {
+                }
+            }
+            return [];
+        }
+        public string[] HidIds()
+        {
+            if (OperatingSystem.IsWindows() || OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
+            {
+                try
+                {
+                    return HidSharp.DeviceList.Local.GetHidDevices().Select(c => c.DevicePath).ToArray();
                 }
                 catch (Exception)
                 {
@@ -64,7 +78,8 @@ namespace linker.messenger.wakeup
                 return info.Type switch
                 {
                     WakeupType.Wol => await SendWol(info),
-                    WakeupType.Switch => await SendSwitch(info),
+                    WakeupType.Com => await SendCom(info),
+                    WakeupType.Hid => await SendHid(info),
                     _ => false
                 };
             }
@@ -114,19 +129,43 @@ namespace linker.messenger.wakeup
             }
             return false;
         }
-        private async Task<bool> SendSwitch(WakeupSendInfo info)
+        private async Task<bool> SendCom(WakeupSendInfo info)
         {
             try
             {
-                using SerialPort port = new SerialPort(info.Value, 9600, Parity.None, 8, StopBits.One);
-                port.Open();
+                SerialDevice device = HidSharp.DeviceList.Local.GetSerialDevices().FirstOrDefault(c => c.DevicePath == info.Value);
+                using SerialStream stream = device.Open();
 
-                byte[] openData = info.Content.Split('|')[0].Split(',').Select(c => Convert.ToByte(c, 16)).ToArray();
-                byte[] closeData = info.Content.Split('|')[1].Split(',').Select(c => Convert.ToByte(c, 16)).ToArray();
-
-                port.Write(openData, 0, openData.Length);
+                stream.Write([0xA0, 0x01, 0x01, 0xA2]);
+                stream.Flush();
                 await Task.Delay(info.Ms);
-                port.Write(closeData, 0, closeData.Length);
+                stream.Write([0xA0, 0x01, 0x00, 0xA1]);
+                stream.Flush();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
+            }
+            return false;
+
+        }
+        private async Task<bool> SendHid(WakeupSendInfo info)
+        {
+            try
+            {
+                HidDevice device = HidSharp.DeviceList.Local.GetHidDevices().FirstOrDefault(c => c.DevicePath == info.Value);
+                using HidStream stream = device.Open();
+
+                stream.Write([0x00, 0xA0, 0x01, 0x01, 0xA2]);
+                stream.Flush();
+                await Task.Delay(info.Ms);
+                stream.Write([0x00, 0xA0, 0x01, 0x00, 0xA1]);
+                stream.Flush();
 
                 return true;
             }

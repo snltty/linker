@@ -34,6 +34,7 @@ import {Search} from '@element-plus/icons-vue'
 import UpdaterBtn from './UpdaterBtn.vue';
 import DeviceName from './DeviceName.vue';
 import { injectGlobalData } from '@/provide';
+import { ElMessage } from 'element-plus';
 
 export default {
     emits:['edit','refresh'],
@@ -45,7 +46,10 @@ export default {
         const name = ref(sessionStorage.getItem('search-name') || '');
         
         const handleExternal = (row)=>{
-            if(!hasExternal.value) return;
+            if(!hasExternal.value) {
+                ElMessage.success('无权限');
+                return;
+            }
             row.showip=!row.showip;
         }
         const handleEdit = (row)=>{

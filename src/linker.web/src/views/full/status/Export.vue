@@ -134,8 +134,9 @@ export default {
         
         const getJson = ()=>{
             if(!hasExport.value){
+                ElMessage.success('无权限');
                 return;
-            };
+            }
             const json = {
                 access:accessDom.value.getValue(),
                 single:state.single,

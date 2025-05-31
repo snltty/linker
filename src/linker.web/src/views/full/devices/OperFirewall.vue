@@ -7,8 +7,8 @@
 </template>
 <script>
 import { reactive, watch } from 'vue';
-import { useTuntap } from './tuntap';
 import Firewall from '../firewall/Firewall.vue'
+import { useOper } from './oper';
 export default {
     props: ['modelValue'],
     emits: ['update:modelValue'],
@@ -16,12 +16,12 @@ export default {
         Firewall
     },
     setup(props, { emit }) {
-        const tuntap = useTuntap();
+        const oper = useOper();
         
         const state = reactive({
             show: true,
-            machineId: tuntap.value.device.id,
-            machineName: tuntap.value.device.name
+            machineId: oper.value.device.id,
+            machineName: oper.value.device.name
         });
         watch(() => state.show, (val) => {
             if (!val) {

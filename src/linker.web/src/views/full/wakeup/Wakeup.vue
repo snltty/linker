@@ -29,16 +29,9 @@
                 <template v-slot="scope">{{$t(`wakeup.type${scope.row.Type}`)}}</template>
             </el-table-column>
             <el-table-column prop="Name" :label="$t('wakeup.name')" width="100"></el-table-column>
-            <el-table-column prop="Value" :label="$t('wakeup.value')" width="140"></el-table-column>
-            <el-table-column prop="Content" :label="$t('wakeup.content')" width="200">
-                <template v-slot="scope">
-                    <div>
-                        <template v-if="scope.row.Type == 2">
-                            <p>✔{{ scope.row.Content.split('|')[0] }}</p>
-                            <p>✘{{ scope.row.Content.split('|')[1] }}</p>
-                        </template>
-                        <template v-else>--</template>
-                    </div>
+            <el-table-column prop="Value" :label="$t('wakeup.value')">
+                 <template v-slot="scope">
+                    <div class="ellipsis" :title="scope.row.Value">{{ scope.row.Value }}</div>
                 </template>
             </el-table-column>
             <el-table-column prop="Remark" :label="$t('wakeup.remark')" >
@@ -108,9 +101,10 @@ export default {
                 }
             },
             types: [
-                {label:t('wakeup.typeall'),value:3},
+                {label:t('wakeup.typeall'),value:7},
                 {label:t('wakeup.typeWol'),value:1},
-                {label:t('wakeup.typeSwitch'),value:2},
+                {label:t('wakeup.typeCom'),value:2},
+                {label:t('wakeup.typeHid'),value:4},
             ],
 
             data:[],

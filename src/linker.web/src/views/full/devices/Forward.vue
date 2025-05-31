@@ -39,6 +39,7 @@ import { useSforward } from './sforward';
 import { computed } from 'vue';
 import { useForwardConnections } from './connections';
 import ConnectionShow from './ConnectionShow.vue';
+import { ElMessage } from 'element-plus';
 
 export default {
     emits: ['edit','sedit'],
@@ -58,24 +59,28 @@ export default {
         const handleEdit = (_machineId,_machineName)=>{
             if(machineId.value === _machineId){
                 if(!hasForwardSelf.value){
-                    return;
-                }
+                ElMessage.success('无权限');
+                return;
+            }
             }else{
                 if(!hasForwardOther.value){
-                    return;
-                }
+                ElMessage.success('无权限');
+                return;
+            }
             }
             emit('edit',[_machineId,_machineName])
         }
         const handleSEdit = (_machineId,_machineName)=>{
             if(machineId.value === _machineId){
                 if(!hasForwardSelf.value){
-                    return;
-                }
+                ElMessage.success('无权限');
+                return;
+            }
             }else{
                 if(!hasForwardOther.value){
-                    return;
-                }
+                ElMessage.success('无权限');
+                return;
+            }
             }
             emit('sedit',[_machineId,_machineName])
         }

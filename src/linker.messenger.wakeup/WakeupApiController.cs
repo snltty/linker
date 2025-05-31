@@ -104,6 +104,10 @@ namespace linker.messenger.wakeup
         {
             return wakeupTransfer.ComNames();
         }
+        public string[] HidIds(ApiControllerParamsInfo param)
+        {
+            return wakeupTransfer.HidIds();
+        }
 
         public async Task<bool> Send(ApiControllerParamsInfo param)
         {

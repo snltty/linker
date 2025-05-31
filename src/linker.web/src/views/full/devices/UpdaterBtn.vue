@@ -76,6 +76,7 @@ export default {
                 return;
             }
             if(!hasUpdateSelf.value){
+                ElMessage.success('无权限');
                 return;
             }
 

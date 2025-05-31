@@ -43,22 +43,19 @@
                         </el-row>
                     </el-form-item>
                     <el-form-item label=" ">{{ $t('wakeup.valueComText') }}</el-form-item>
-                    <el-form-item :label="$t('wakeup.contentOpen')" prop="open">
+                </template>
+                <template  v-if="state.ruleForm.Data.Type == 4">
+                    <el-form-item :label="$t('wakeup.valueHid')" prop="hid">
                         <el-row class="w-100">
                             <el-col :span="12">
-                                <el-input v-model="state.ruleForm.Data.open" />
+                                <el-select v-model="state.ruleForm.Data.hid" >
+                                    <el-option :value="item" :label="item" v-for="(item,index) in state.hids"></el-option>
+                                </el-select>
                             </el-col>
-                            <el-col :span="12">{{ $t('wakeup.contentOpenText') }}</el-col>
+                            <el-col :span="12"></el-col>
                         </el-row>
                     </el-form-item>
-                    <el-form-item :label="$t('wakeup.contentClose')" prop="close">
-                        <el-row class="w-100">
-                            <el-col :span="12">
-                                <el-input v-model="state.ruleForm.Data.close" />
-                            </el-col>
-                            <el-col :span="12">{{ $t('wakeup.contentCloseText') }}</el-col>
-                        </el-row>
-                    </el-form-item>
+                    <el-form-item label=" ">{{ $t('wakeup.valueHidText') }}</el-form-item>
                 </template>
                 <el-form-item></el-form-item>
                 <el-form-item :label="$t('wakeup.remark')" prop="Remark">
@@ -79,7 +76,7 @@
 import { ElMessage } from 'element-plus';
 import { inject, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n';
-import { addWakeup, getWakeupComs } from '@/apis/wakeup';
+import { addWakeup, getWakeupComs, getWakeupHids } from '@/apis/wakeup';
 export default {
     props: ['modelValue'],
     emits: ['update:modelValue','success'],
@@ -100,11 +97,9 @@ export default {
                     Value:add.value.Data.Value,
                     Content:add.value.Data.Content,
                     Remark:add.value.Data.Remark,
-
-                    open:(add.value.Data.Type == 2 ? add.value.Data.Content.split('|') : [])[0] || '0xA0,0x01,0x01,0xA2',
-                    close:(add.value.Data.Type == 2 ? add.value.Data.Content.split('|') : [])[1] || '0xA0,0x01,0x00,0xA1',
                     mac:add.value.Data.Type == 1 ? add.value.Data.Value : '',
-                    com:add.value.Data.Type == 2 ? add.value.Data.Value : ''
+                    com:add.value.Data.Type == 2 ? add.value.Data.Value : '',
+                    hid:add.value.Data.Type == 4 ? add.value.Data.Value : '',
                 }
             },
             rules:{
@@ -151,9 +146,11 @@ export default {
                 }, trigger: "blur" }],
             },
             coms:[],
+            hids:[],
             types: [
                 {label:t('wakeup.typeWol'),value:1},
-                {label:t('wakeup.typeSwitch'),value:2},
+                {label:t('wakeup.typeCom'),value:2},
+                {label:t('wakeup.typeHid'),value:4},
             ],
 
         });
@@ -194,6 +191,12 @@ export default {
                 state.coms = res;
                 if(!state.ruleForm.Data.com && res.length > 0){
                     state.ruleForm.Data.com = res[0];
+                }
+            }).catch(()=>{});
+            getWakeupHids ().then((res)=>{
+                state.hids = res;
+                if(!state.ruleForm.Data.hid && res.length > 0){
+                    state.ruleForm.Data.hid = res[0];
                 }
             }).catch(()=>{});
         })

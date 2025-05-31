@@ -16,6 +16,7 @@ export const provideTuntap = () => {
         device: {id:'',name:''},
         showRoutes:false,
         showFirewall:false,
+        showWakeup:false,
     });
     provide(tuntapSymbol, tuntap);
 

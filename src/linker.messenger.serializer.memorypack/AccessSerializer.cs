@@ -1,5 +1,6 @@
 ﻿using MemoryPack;
 using linker.messenger.api;
+using System.Collections;
 
 namespace linker.messenger.serializer.memorypack
 {
@@ -56,6 +57,59 @@ namespace linker.messenger.serializer.memorypack
             value = wrapped.info;
         }
     }
+    [MemoryPackable]
+    public readonly partial struct SerializableAccessBitsUpdateInfo
+    {
+        [MemoryPackIgnore]
+        public readonly AccessBitsUpdateInfo info;
+
+        [MemoryPackInclude]
+        string FromMachineId => info.FromMachineId;
+
+        [MemoryPackInclude]
+        string ToMachineId => info.ToMachineId;
+
+        [MemoryPackInclude]
+        BitArray Access => info.Access;
+
+        [MemoryPackConstructor]
+        SerializableAccessBitsUpdateInfo(string fromMachineId, string toMachineId, BitArray access)
+        {
+            var info = new AccessBitsUpdateInfo { FromMachineId = fromMachineId, ToMachineId = toMachineId, Access = access };
+            this.info = info;
+        }
+
+        public SerializableAccessBitsUpdateInfo(AccessBitsUpdateInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class AccessBitsUpdateInfoFormatter : MemoryPackFormatter<AccessBitsUpdateInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref AccessBitsUpdateInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableAccessBitsUpdateInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref AccessBitsUpdateInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableAccessBitsUpdateInfo>();
+            value = wrapped.info;
+        }
+    }
 
 
     [MemoryPackable]
@@ -108,7 +162,56 @@ namespace linker.messenger.serializer.memorypack
             value = wrapped.info;
         }
     }
+    [MemoryPackable]
+    public readonly partial struct SerializableAccessBitsInfo
+    {
+        [MemoryPackIgnore]
+        public readonly AccessBitsInfo info;
 
+        [MemoryPackInclude]
+        string MachineId => info.MachineId;
+
+        [MemoryPackInclude]
+        BitArray Access => info.Access;
+
+        [MemoryPackConstructor]
+        SerializableAccessBitsInfo(string machineId, BitArray access)
+        {
+            var info = new AccessBitsInfo { MachineId = machineId, Access = access };
+            this.info = info;
+        }
+
+        public SerializableAccessBitsInfo(AccessBitsInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class AccessBotsInfoFormatter : MemoryPackFormatter<AccessBitsInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref AccessBitsInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableAccessBitsInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref AccessBitsInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableAccessBitsInfo>();
+            value = wrapped.info;
+        }
+    }
 
     [MemoryPackable]
     public readonly partial struct SerializableApiPasswordUpdateInfo

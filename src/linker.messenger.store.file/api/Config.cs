@@ -1,4 +1,5 @@
 ﻿using linker.messenger.api;
+using System.Collections;
 using System.Reflection;
 
 namespace linker.messenger.store.file
@@ -11,7 +12,6 @@ namespace linker.messenger.store.file
         public ApiClientInfo CApi { get; set; } = new ApiClientInfo();
 
         private Dictionary<string, AccessTextInfo> accesss;
-
         [SaveJsonIgnore]
         public Dictionary<string, AccessTextInfo> Accesss
         {
@@ -29,7 +29,7 @@ namespace linker.messenger.store.file
                         var attribute = fieldInfo.GetCustomAttribute<AccessDisplayAttribute>(false);
                         if (attribute != null)
                         {
-                            accesss.TryAdd(fieldInfo.Name, new AccessTextInfo { Text = attribute.Value, Value = (ulong)value });
+                            accesss.TryAdd(fieldInfo.Name, new AccessTextInfo { Text = attribute.Value, Value = (int)value });
                         }
                     }
                 }
@@ -40,6 +40,28 @@ namespace linker.messenger.store.file
         /// <summary>
         /// 管理权限
         /// </summary>
-        public AccessValue Access { get; set; } = AccessValue.Full;
+        public long Access { get; set; } = -1;
+
+        private BitArray accessBits;
+        public BitArray AccessBits
+        {
+            get
+            {
+                if (Access != -1)
+                {
+                    accessBits = new BitArray(Convert.ToString(Access, 2).Reverse().Select(c => c == '1').ToArray());
+                    Access = -1;
+                }
+                else if (accessBits == null)
+                {
+                    accessBits = new BitArray(Accesss.Count);
+                }
+                return accessBits;
+            }
+            set
+            {
+                accessBits = value;
+            }
+        }
     }
 }

@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace linker.libs.json
 {
-    public sealed class DateTimeConverter : JsonConverter<DateTime>
+    public sealed class DateTimeJsonConverter : JsonConverter<DateTime>
     {
         public override DateTime Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
