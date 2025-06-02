@@ -38,6 +38,7 @@ do
             if [ $p = "kvm" ]
             then
                 cp -rf src/linker/linker-kvm.sh public/publish/docker/linux-${p}-${r}/${f}/linker-kvm.sh
+                cp -rf src/linker/linker-kvm-__init__.py public/publish/docker/linux-${p}-${r}/${f}/__init__.py
             fi
 		done
 		cd public/publish/docker/linux-${p}-x64/${f}

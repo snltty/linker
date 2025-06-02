@@ -16,7 +16,12 @@ RUN apt update \
     && apt-get install -y libmsquic \
     && apt-get purge -y --auto-remove wget && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+
+
 COPY . /linker/
+COPY __init__.py /kvmd/plugins/hid/ch9329/__init__.py
+
+RUN chmod +x /linker/linker-kvm.sh
 
 ENV SNLTTY_LINKER_IS_DOCKER="linker"
 ENV DOTNET_ThreadPool_UnfairSemaphoreSpinLimit=0
