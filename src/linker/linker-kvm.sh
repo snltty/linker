@@ -1,7 +1,19 @@
 #!/bin/bash
 
-if [ ! -f /etc/kvmd/.init_flag ]; then
-    cat >> /etc/kvmd/supervisord.conf << EOF
+if [ ! -f /linker/.init_flag ]; then
+    cat >> /linker/supervisord.conf << EOF
+
+[supervisord]
+logfile = /linker/supervisord.log
+logfile_maxbytes = 50MB           
+pidfile = /linker/supervisord.pid 
+nodaemon = true
+
+[unix_http_server]
+file = /linker/supervisor.sock
+
+[supervisorctl]
+serverurl = unix:///linker/supervisor.sock 
 
 [program:linker]
 command=./linker
@@ -14,6 +26,10 @@ stdout_logfile=/linker/stdout
 stdout_logfile_maxbytes = 0
 redirect_stderr=true
 EOF
+
+    touch /linker/.init_flag
 fi
+
+supervisord -c /linker/supervisord.conf
 
 /kvmd/init.sh
