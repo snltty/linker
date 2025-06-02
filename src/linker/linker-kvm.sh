@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ ! -f /linker/.init_flag ]; then
+if [ ! -f /linker/supervisord.conf ]; then
     cat >> /linker/supervisord.conf << EOF
 
 [supervisord]
@@ -16,7 +16,7 @@ file = /linker/supervisor.sock
 serverurl = unix:///linker/supervisor.sock 
 
 [program:linker]
-command=./linker
+command=/linker/linker
 directory=/linker/
 autostart=true
 autorestart=true
@@ -27,7 +27,6 @@ stdout_logfile_maxbytes = 0
 redirect_stderr=true
 EOF
 
-    touch /linker/.init_flag
 fi
 
 supervisord -c /linker/supervisord.conf
