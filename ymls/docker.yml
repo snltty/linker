@@ -72,7 +72,7 @@ jobs:
         docker manifest create snltty/linker-debian:latest snltty/linker-debian:amd64 snltty/linker-debian:arm64 snltty/linker-debian:arm && \
         docker manifest create snltty/linker-debian:v{{version}} snltty/linker-debian:amd64 snltty/linker-debian:arm64 snltty/linker-debian:arm && \
         docker manifest push snltty/linker-debian:latest &&  \
-        docker manifest push snltty/linker-debian:v{{version}} \
+        docker manifest push snltty/linker-debian:v{{version}} && \
         docker pull --platform linux/arm/v7 snltty/linker-kvm-arm:latest &&  \
         docker tag snltty/linker-kvm-arm:latest snltty/linker-kvm:arm &&  \
         docker push snltty/linker-kvm:arm &&  \
