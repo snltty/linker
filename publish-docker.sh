@@ -3,7 +3,7 @@ image="snltty/linker"
 
 
 fs=('linker')
-ps=('musl' 'debian','kvm')
+ps=('musl' 'debian' 'kvm')
 rs=('x64' 'arm64' 'arm')
 
 cd src/linker.web 
