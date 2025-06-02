@@ -3,7 +3,7 @@ image="snltty/linker"
 
 
 fs=('linker')
-ps=('musl' 'debian')
+ps=('musl' 'debian','kvm')
 rs=('x64' 'arm64' 'arm')
 
 cd src/linker.web 
@@ -22,6 +22,10 @@ do
             then
                 rr=linux-${r}
             fi
+            if [ $p = "kvm" ]
+            then
+                rr=linux-${r}
+            fi
 			dotnet publish ./src/${f} -c release -f net8.0 -o ./public/publish/docker/linux-${p}-${r}/${f} -r ${rr}  -p:PublishSingleFile=true  --self-contained true  -p:TrimMode=partial -p:TieredPGO=true  -p:DebugType=none -p:EventSourceSupport=false -p:DebugSymbols=false -p:EnableCompressionInSingleFile=true -p:DebuggerSupport=false -p:EnableUnsafeBinaryFormatterSerialization=false -p:EnableUnsafeUTF7Encoding=false -p:HttpActivityPropagationSupport=false -p:InvariantGlobalization=true  -p:MetadataUpdaterSupport=false  -p:UseSystemResourceKeys=true -p:MetricsSupport=false -p:StackTraceSupport=false -p:XmlResolverIsNetworkingEnabledByDefault=false
 			cp -rf src/linker/Dockerfile-${p} public/publish/docker/linux-${p}-${r}/${f}/Dockerfile-${p}
 			cp -rf public/extends/any/web public/publish/docker/linux-${p}-${r}/${f}/web
@@ -30,6 +34,10 @@ do
             if [ $p = "musl" ]
             then
                 cp -rf src/linker/libmsquic-musl-${r}.so public/publish/docker/linux-${p}-${r}/${f}/libmsquic.so
+            fi
+            if [ $p = "kvm" ]
+            then
+                cp -rf src/linker/linker-kvm.sh public/publish/docker/linux-${p}-${r}/${f}/linker-kvm.sh
             fi
 		done
 		cd public/publish/docker/linux-${p}-x64/${f}

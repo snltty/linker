@@ -21,14 +21,14 @@
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Description>1. 一些累计更新
-2. 优化修复一些已知BUG</Description>
+2. 测试发布，请使用1.8.2</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>1.8.1</Version>
-		<AssemblyVersion>1.8.1</AssemblyVersion>
-		<FileVersion>1.8.1</FileVersion>
+		<Version>1.8.2</Version>
+		<AssemblyVersion>1.8.2</AssemblyVersion>
+		<FileVersion>1.8.2</FileVersion>
 		<DelaySign>False</DelaySign>
 	</PropertyGroup>
 

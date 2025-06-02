@@ -12,7 +12,7 @@
                     <el-dropdown-menu>
                         <el-dropdown-item v-if="scope.row.showReboot && hasReboot" @click="handleExit(scope.row.MachineId,scope.row.MachineName)"><el-icon><SwitchButton /></el-icon> 重启</el-dropdown-item>
                         <el-dropdown-item v-if="scope.row.showDel && hasRemove" @click="handleDel(scope.row.MachineId,scope.row.MachineName)"><el-icon><Delete /></el-icon> 删除</el-dropdown-item>
-                        <el-dropdown-item v-if="handleShowAccess(scope.row,accessList[scope.row.MachineId] || 0)" @click="handleAccess(scope.row)"><el-icon><Flag /></el-icon> 权限</el-dropdown-item>
+                        <el-dropdown-item v-if="handleShowAccess(scope.row,accessList[scope.row.MachineId] || '0')" @click="handleAccess(scope.row)"><el-icon><Flag /></el-icon> 权限</el-dropdown-item>
                         <el-dropdown-item v-if="scope.row.isSelf && hasApiPassword" @click="handleApiPassword(scope.row)"><el-icon><HelpFilled /></el-icon> 管理接口</el-dropdown-item>
                         <el-dropdown-item v-else-if="hasApiPasswordOther" @click="handleApiPassword(scope.row)"><el-icon><HelpFilled /></el-icon> 管理接口</el-dropdown-item>
                         <el-dropdown-item @click="handleStopwatch(scope.row.MachineId,scope.row.MachineName)"><el-icon><Platform /></el-icon>它的信标</el-dropdown-item>
@@ -53,7 +53,7 @@ export default {
         const globalData = injectGlobalData();
 
         const allAccess = useAccess();
-        const myAccess = computed(()=>globalData.value.config.Client.Access);
+        const myAccess = computed(()=>globalData.value.config.Client.AccessBits);
         const hasAccess = computed(()=>globalData.value.hasAccess('Access')); 
         const accessList = computed(()=>allAccess.value.list);
         
@@ -97,12 +97,14 @@ export default {
         }
 
 
-        const handleShowAccess = (row,rowAccess)=>{
-            return row.showAccess 
-            && hasAccess.value 
-            && rowAccess >= 0 
-            // 它的权限删掉我的权限==0，我至少拥有它的全部权限，它是我的子集，我有权管它
-            && +(((~BigInt(myAccess.value)) & BigInt(rowAccess)).toString()) == 0;
+        const json = {'0':1,'1':0};
+        const handleShowAccess = (row,rowAccess)=>{ 
+            let maxLength = Math.max(myAccess.value.length,rowAccess.length);
+            let myValue = myAccess.value.padEnd(maxLength,'0').split('').map(c=>json[c]);
+            let rowValue = rowAccess.padEnd(maxLength,'0').split('');
+            return row.showAccess  && hasAccess.value  && rowAccess >= 0 && myValue.map((v,i)=>{
+                return v == rowValue[i] && v == '1';
+            }).filter(c=>c).length > 0;
         }
         const handleAccess = (row)=>{
             emit('access',row);

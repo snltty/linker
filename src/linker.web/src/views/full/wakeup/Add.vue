@@ -22,20 +22,20 @@
                     </el-row>
                 </el-form-item>
                 <template  v-if="state.ruleForm.Data.Type == 1">
-                    <el-form-item :label="$t('wakeup.valueMac')" prop="mac">
+                    <el-form-item :label="$t('wakeup.valueMac')" prop="value1">
                         <el-row class="w-100">
                             <el-col :span="12">
-                                <el-input v-model="state.ruleForm.Data.mac" />
+                                <el-input v-model="state.ruleForm.Data.value1" />
                             </el-col>
                             <el-col :span="12"></el-col>
                         </el-row>
                     </el-form-item>
                 </template>
                 <template  v-if="state.ruleForm.Data.Type == 2">
-                    <el-form-item :label="$t('wakeup.valueCom')" prop="com">
+                    <el-form-item :label="$t('wakeup.valueCom')" prop="value2">
                         <el-row class="w-100">
                             <el-col :span="12">
-                                <el-select v-model="state.ruleForm.Data.com" >
+                                <el-select v-model="state.ruleForm.Data.value2" >
                                     <el-option :value="item" :label="item" v-for="(item,index) in state.coms"></el-option>
                                 </el-select>
                             </el-col>
@@ -45,10 +45,10 @@
                     <el-form-item label=" ">{{ $t('wakeup.valueComText') }}</el-form-item>
                 </template>
                 <template  v-if="state.ruleForm.Data.Type == 4">
-                    <el-form-item :label="$t('wakeup.valueHid')" prop="hid">
+                    <el-form-item :label="$t('wakeup.valueHid')" prop="value4">
                         <el-row class="w-100">
                             <el-col :span="12">
-                                <el-select v-model="state.ruleForm.Data.hid" >
+                                <el-select v-model="state.ruleForm.Data.value4" filterable >
                                     <el-option :value="item" :label="item" v-for="(item,index) in state.hids"></el-option>
                                 </el-select>
                             </el-col>
@@ -95,16 +95,15 @@ export default {
                     Type:add.value.Data.Type,
                     Name:add.value.Data.Name,
                     Value:add.value.Data.Value,
-                    Content:add.value.Data.Content,
                     Remark:add.value.Data.Remark,
-                    mac:add.value.Data.Type == 1 ? add.value.Data.Value : '',
-                    com:add.value.Data.Type == 2 ? add.value.Data.Value : '',
-                    hid:add.value.Data.Type == 4 ? add.value.Data.Value : '',
+                    value1:add.value.Data.Type == 1 ? add.value.Data.Value : '',
+                    value2:add.value.Data.Type == 2 ? add.value.Data.Value : '',
+                    value4:add.value.Data.Type == 4 ? add.value.Data.Value : '',
                 }
             },
             rules:{
                 Name: [{ required: true, message: "required", trigger: "blur" }],
-                mac: [{ validator:(rule,value,callback)=>{
+                value1: [{ validator:(rule,value,callback)=>{
                     if(state.ruleForm.Data.Type == 1){
                         if (rule.pattern.test(value)) {
                             callback();
@@ -115,35 +114,21 @@ export default {
                         callback();
                     }
                 },pattern:/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/, trigger: "blur" }],
-                open: [{ validator:(rule,value,callback)=>{
-                    if(state.ruleForm.Data.Type == 2){
-                        if (rule.pattern.test(value)) {
-                            callback();
-                        } else {
-                            callback(new Error('failed'));
-                        }
-                    }else{
-                        callback();
-                    }
-                },pattern:/^(0x[0-9A-Fa-f]{1,2})(,0x[0-9A-Fa-f]{1,2})*$/, trigger: "blur" }],
-                close: [{ validator:(rule,value,callback)=>{
-                    if(state.ruleForm.Data.Type == 2){
-                        if (rule.pattern.test(value)) {
-                            callback();
-                        } else {
-                            callback(new Error('failed'));
-                        }
-                    }else{
-                        callback();
-                    }
-                },pattern:/^(0x[0-9A-Fa-f]{1,2})(,0x[0-9A-Fa-f]{1,2})*$/, trigger: "blur" }],
-                com: [{ validator:(rule,value,callback)=>{
+                value2: [{ validator:(rule,value,callback)=>{
                     if(state.ruleForm.Data.Type == 2 && !value){
                         callback(new Error('failed'));
                     }else{
                         callback();
                     }
                 }, trigger: "blur" }],
+                value4: [{ validator:(rule,value,callback)=>{
+                    if(state.ruleForm.Data.Type == 4 && !value){
+                        callback(new Error('failed'));
+                    }else{
+                        callback();
+                    }
+                }, trigger: "blur" }],
+
             },
             coms:[],
             hids:[],
@@ -171,9 +156,8 @@ export default {
                         Id:state.ruleForm.Data.Id,
                         Name:state.ruleForm.Data.Name.replace(/^\s|\s$/g,''),
                         Type:state.ruleForm.Data.Type,
-                        Value:state.ruleForm.Data.Type == 1 ? state.ruleForm.Data.mac.replace(/^\s|\s$/g,'') : state.ruleForm.Data.com.replace(/^\s|\s$/g,''),
-                        Content:state.ruleForm.Data.Type == 2 ? state.ruleForm.Data.open.replace(/^\s|\s$/g,'') + '|' + state.ruleForm.Data.close.replace(/^\s|\s$/g,'') : '',
-                        Remark:state.ruleForm.Data.Remark.replace(/^\s|\s$/g,'')
+                        Value:state.ruleForm.Data[`value${state.ruleForm.Data.Type}`].replace(/^\s|\s$/g,''),
+                        Remark:(state.ruleForm.Data.Remark || '').replace(/^\s|\s$/g,'')
                     }
                 };
                 addWakeup(json).then(()=>{
@@ -189,14 +173,14 @@ export default {
         onMounted(()=>{
             getWakeupComs().then((res)=>{
                 state.coms = res;
-                if(!state.ruleForm.Data.com && res.length > 0){
-                    state.ruleForm.Data.com = res[0];
+                if(!state.ruleForm.Data.value2 && res.length > 0){
+                    state.ruleForm.Data.value2 = res[0];
                 }
             }).catch(()=>{});
             getWakeupHids ().then((res)=>{
                 state.hids = res;
-                if(!state.ruleForm.Data.hid && res.length > 0){
-                    state.ruleForm.Data.hid = res[0];
+                if(!state.ruleForm.Data.value4 && res.length > 0){
+                    state.ruleForm.Data.value4 = res[0];
                 }
             }).catch(()=>{});
         })

@@ -99,16 +99,30 @@ namespace linker.messenger.wakeup
             }).ConfigureAwait(false);
         }
 
-
+        /// <summary>
+        /// 串口列表
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public string[] ComNames(ApiControllerParamsInfo param)
         {
             return wakeupTransfer.ComNames();
         }
+        /// <summary>
+        /// hid列表
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public string[] HidIds(ApiControllerParamsInfo param)
         {
             return wakeupTransfer.HidIds();
         }
 
+        /// <summary>
+        /// 发送命令
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<bool> Send(ApiControllerParamsInfo param)
         {
             WakeupSendForwardInfo info = param.Content.DeJson<WakeupSendForwardInfo>();

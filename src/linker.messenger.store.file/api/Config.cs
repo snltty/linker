@@ -54,7 +54,7 @@ namespace linker.messenger.store.file
                 }
                 else if (accessBits == null)
                 {
-                    accessBits = new BitArray(Accesss.Count);
+                    accessBits = new BitArray(Accesss.Count,true);
                 }
                 return accessBits;
             }

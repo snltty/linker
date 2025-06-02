@@ -1,0 +1,24 @@
+FROM silentwind0/kvmd:latest
+
+RUN ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && echo Asia/Shanghai > /etc/timezone
+RUN apt update \
+    && apt-get install -y --no-install-recommends iproute2 \
+    && apt-get install -y --no-install-recommends dmidecode \
+    && apt-get install -y --no-install-recommends net-tools \
+    && apt-get install -y --no-install-recommends curl \
+    && apt-get install -y --no-install-recommends traceroute \
+    && apt-get install -y --no-install-recommends iptables \
+    && apt-get install -y --no-install-recommends ca-certificates \
+    && curl -sSL -O https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb \
+    && dpkg -i packages-microsoft-prod.deb \
+    && rm packages-microsoft-prod.deb \
+    && apt-get update \
+    && apt-get install -y libmsquic \
+    && apt-get purge -y --auto-remove wget && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+COPY . /linker/
+
+ENV SNLTTY_LINKER_IS_DOCKER="linker"
+ENV DOTNET_ThreadPool_UnfairSemaphoreSpinLimit=0
+
+ENTRYPOINT ["/linker/linker-kvm.sh"]

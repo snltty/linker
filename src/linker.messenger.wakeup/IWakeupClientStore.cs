@@ -45,10 +45,6 @@
         /// </summary>
         public string Value { get; set; }
         /// <summary>
-        /// 内容，例如魔术包的IP地址或继电器的开关数据包内容
-        /// </summary>
-        public string Content { get; set; }
-        /// <summary>
         /// 描述
         /// </summary>
         public string Remark { get; set; }
@@ -85,7 +81,6 @@
         public string Id { get; set; }
         public WakeupType Type { get; set; }
         public string Value { get; set; }
-        public string Content { get; set; }
 
         public int Ms { get; set; }
     }

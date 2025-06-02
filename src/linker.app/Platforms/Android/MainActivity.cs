@@ -170,7 +170,7 @@ namespace linker.app
                 StartForeground(SERVICE_ID, CreateNotification());
             }
 
-            return StartCommandResult.NotSticky;
+            return StartCommandResult.Sticky;
         }
         private Notification CreateNotification()
         {

@@ -10,7 +10,7 @@
             </div>
             <div class="flex mgt-1">
                 <div>
-                    <span>{{$t('wakeup.name')}}/{{$t('wakeup.value')}}/{{$t('wakeup.content')}}/{{$t('wakeup.remark')}}</span>
+                    <span>{{$t('wakeup.name')}}/{{$t('wakeup.value')}}/{{$t('wakeup.remark')}}</span>
                     <el-input v-model="state.search.Data.Str" @change="loadData" size="small" style="width:7rem"></el-input>
                 </div>
                 <div class="mgl-1">
@@ -34,7 +34,7 @@
                     <div class="ellipsis" :title="scope.row.Value">{{ scope.row.Value }}</div>
                 </template>
             </el-table-column>
-            <el-table-column prop="Remark" :label="$t('wakeup.remark')" >
+            <el-table-column prop="Remark" :label="$t('wakeup.remark')" width="100">
                 <template v-slot="scope">
                     <div class="ellipsis" :title="scope.row.Remark">{{ scope.row.Remark }}</div>
                 </template>
@@ -69,7 +69,7 @@
     <el-dialog v-model="state.showSwitch" :title="`${$t('wakeup.runSwitchConfirm')}【${state.switchRow.Name}】？`" width="300">
         <div class="t-c">
             <div class="mgt-2"><el-button size="large" @click="handleSwitchMs(10000)">{{ $t('wakeup.runSwitchLong') }}10000ms</el-button></div>
-            <div class="mgt-2"><el-button size="large" type="success" @click="handleSwitchMs(50)">{{ $t('wakeup.runSwitchTouch') }}50ms</el-button></div>
+            <div class="mgt-2"><el-button size="large" type="success" @click="handleSwitchMs(1000)">{{ $t('wakeup.runSwitchTouch') }}1000ms</el-button></div>
             <div class="mgt-2"><el-button size="large" type="info" @click="handleSwitchCustom">{{ $t('wakeup.runSwitchCustom') }}</el-button></div>
         </div>
     </el-dialog>
@@ -97,7 +97,7 @@ export default {
                 MachineId:props.machineId || globalData.value.config.Client.Id,
                 Data:{
                     Str:'',
-                    Type:3,
+                    Type:7,
                 }
             },
             types: [
@@ -141,7 +141,7 @@ export default {
                 }).then(() => {
                     handleSend(row,0);
                 }).catch(()=>{});
-            }else if(row.Type == 2){
+            }else if(row.Type == 2 || row.Type == 4){
                 state.switchRow = row;
                 state.showSwitch = true;
             }
@@ -153,7 +153,6 @@ export default {
                     Id:  row.Id,
                     Value:  row.Value,
                     Type:  row.Type,
-                    Content:  row.Content,
                     Ms:ms
                 }
             }).then(res => {
@@ -185,7 +184,6 @@ export default {
                     Type:1,
                     Name:'',
                     Value:'',
-                    Content:'',
                     Remark:'',
                 }
             };

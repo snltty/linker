@@ -32,9 +32,9 @@ export const provideGlobalData = () => {
             if (this.config.Client.Accesss[name] == undefined) {
                 return false;
             }
-            const value = this.config.Client.Accesss[name].Value || -1;
-            const access = this.config.Client.Access || -1;
-            return access >= 0 && (access == 0 || (+(BigInt(access) & BigInt(value)).toString()) == value);
+            const value = this.config.Client.Accesss[name].Value;
+            const access = this.config.Client.AccessBits || '';
+            return access[value] == '1';
         }
     });
     subWebsocketState((state) => {

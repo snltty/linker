@@ -24,7 +24,6 @@ namespace linker.messenger.store.file.wakeup
                 list = list.Where(c =>
                 (c.Name != null && c.Name.Contains(info.Str)) ||
                 (c.Value != null && c.Value.Contains(info.Str)) ||
-                (c.Content != null && c.Content.Contains(info.Str)) ||
                 (c.Remark != null && c.Remark.Contains(info.Str))
                 );
             }
@@ -45,7 +44,6 @@ namespace linker.messenger.store.file.wakeup
                     Name = rule.Name,
                     Type = rule.Type,
                     Value = rule.Value,
-                    Content = rule.Content,
                     Remark = rule.Remark
                 }, c => c.Id == rule.Id) > 0;
             }

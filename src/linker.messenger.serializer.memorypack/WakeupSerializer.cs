@@ -22,16 +22,13 @@ namespace linker.messenger.serializer.memorypack
         string Value => info.Value;
 
         [MemoryPackInclude]
-        string Content => info.Content;
-
-        [MemoryPackInclude]
         string Remark => info.Remark;
 
         [MemoryPackInclude]
         bool Running => info.Running;
 
         [MemoryPackConstructor]
-        SerializableWakeupInfo(string id, WakeupType type, string name, string value, string content, string remark, bool running)
+        SerializableWakeupInfo(string id, WakeupType type, string name, string value, string remark, bool running)
         {
             var info = new WakeupInfo
             {
@@ -39,7 +36,6 @@ namespace linker.messenger.serializer.memorypack
                 Type = type,
                 Name = name,
                 Value = value,
-                Content = content,
                 Remark = remark,
                 Running = running
             };
@@ -315,20 +311,16 @@ namespace linker.messenger.serializer.memorypack
         string Value => info.Value;
 
         [MemoryPackInclude]
-        string Content => info.Content;
-
-        [MemoryPackInclude]
         int Sec => info.Ms;
 
         [MemoryPackConstructor]
-        SerializableWakeupSendInfo(string id, WakeupType type, string value, string content, int sec)
+        SerializableWakeupSendInfo(string id, WakeupType type, string value, int sec)
         {
             var info = new WakeupSendInfo
             {
                 Id = id,
                 Type = type,
                 Value = value,
-                Content = content,
                 Ms = sec,
             };
             this.info = info;

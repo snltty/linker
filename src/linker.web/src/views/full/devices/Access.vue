@@ -3,9 +3,6 @@
         <el-col :span="8">
             <el-checkbox v-model="state.checkAll" @change="handleCheckAllChange" label="全选" :indeterminate="state.isIndeterminate" />
         </el-col>
-        <el-col :span="8">
-            <el-checkbox v-model="state.full" ><span class="red">满权限(顶级管理权)</span></el-checkbox>
-        </el-col>
     </el-row>
     <div class="access-wrap scrollbar" :style="{height:`${state.height}rem`}">
         <el-checkbox-group v-model="state.checkList" @change="handleCheckedChange">
@@ -40,6 +37,7 @@ export default {
                 return arr;
             },[]);
         });
+
         const state = reactive({
             height:props.height || 50,
             checkList: [
@@ -63,15 +61,18 @@ export default {
                 globalData.value.config.Client.Accesss.WakeupSelf.Value,
             ],
             checkAll:false,
-            full:false,
             isIndeterminate:false
         });
 
         const getValue = ()=>{
-            if(state.full) return (+(BigInt(0xffffffffffffffff)>>BigInt(12)).toString())-1;
-            return +state.checkList.reduce((sum,item)=>{
-                return (sum | BigInt(item));
-            },BigInt(0)).toString();
+            const arr = state.checkList.reduce((arr,item)=>{
+                arr[item] = '1';
+                return arr;
+            },[]);
+            for(let i = 0; i < arr.length;i++){
+                arr[i] = arr[i] || '0';
+            }
+            return arr.join('');
         }
         const handleCheckedChange = (value)=>{
             const checkedCount = value.length;
@@ -88,7 +89,7 @@ export default {
             if(allAccess && allAccess.value.list[props.machineid]){
                 const res = allAccess.value.list[props.machineid];
                 state.checkList = access.value.reduce((arr,item)=>{
-                    if(+(( BigInt(res) & BigInt(item.Value)).toString()) == item.Value){
+                    if(res[item.Value] == '1'){
                         arr.push(item.Value);
                     }
                     return arr;
