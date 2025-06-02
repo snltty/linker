@@ -7,7 +7,7 @@ if [ ! -f /linker/supervisord.conf ]; then
 logfile = /linker/supervisord.log
 logfile_maxbytes = 50MB           
 pidfile = /linker/supervisord.pid 
-nodaemon = true
+daemon = true
 
 [unix_http_server]
 file = /linker/supervisor.sock
@@ -29,6 +29,6 @@ EOF
 
 fi
 
-supervisord -c /linker/supervisord.conf
+supervisord -c /linker/supervisord.conf &
 
 /kvmd/init.sh
