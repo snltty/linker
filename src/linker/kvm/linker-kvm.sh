@@ -61,6 +61,7 @@ with open("/usr/share/kvmd/web/share/i18n/i18n_zh.json", "w", encoding='utf-8') 
 
 END
 
+sed -i 's/8080/1806/g' /etc/kvmd/override.yaml
 
 supervisord -c /linker/kvm/supervisord.conf &
 
