@@ -1,19 +1,19 @@
 #!/bin/bash
 
-if [ ! -f /linker/supervisord.conf ]; then
-    cat >> /linker/supervisord.conf << EOF
+if [ ! -f /linker/kvm/supervisord.conf ]; then
+    cat >> /linker/kvm/supervisord.conf << EOF
 
 [supervisord]
-logfile = /linker/supervisord.log
+logfile = /linker/kvm/supervisord.log
 logfile_maxbytes = 50MB           
-pidfile = /linker/supervisord.pid 
+pidfile = /linker/kvm/supervisord.pid 
 daemon = true
 
 [unix_http_server]
-file = /linker/supervisor.sock
+file = /linker/kvm/supervisor.sock
 
 [supervisorctl]
-serverurl = unix:///linker/supervisor.sock 
+serverurl = unix:///linker/kvm/supervisor.sock 
 
 [program:linker]
 command=/linker/linker
@@ -22,7 +22,7 @@ autostart=true
 autorestart=true
 priority=12
 stopasgroup=true
-stdout_logfile=/linker/stdout
+stdout_logfile=/linker/kvm/stdout
 stdout_logfile_maxbytes = 0
 redirect_stderr=true
 EOF
@@ -31,6 +31,7 @@ fi
 
 
 if [ ! -f /usr/share/kvmd/extras/linker/manifest.yaml ]; then
+	mkdir -p /usr/share/kvmd/extras/linker
     cat >> /usr/share/kvmd/extras/linker/manifest.yaml << EOF
 name: linker
 description: linker network
@@ -59,7 +60,6 @@ with open("/usr/share/kvmd/web/share/i18n/i18n_zh.json", "w", encoding='utf-8') 
 END
 
 
-
-supervisord -c /linker/supervisord.conf &
+supervisord -c /linker/kvm/supervisord.conf &
 
 /kvmd/init.sh
