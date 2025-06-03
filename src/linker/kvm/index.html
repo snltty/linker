@@ -55,12 +55,23 @@
                 <li><div class="app"><a href="https://jq.qq.com/?_wv=1027&k=ucoIVfz4" target="_blank">📱<br>QQ群</a></div></li>
 	        </ul>
 	    </div>
+        <iframe src="#" width="810" height="740" id="iframe"></iframe>
       </div>
     </div>
     <script>
-        document.getElementById('manager').href = `http://${window.location.hostname}:1804`;
+        const url = `http://${window.location.hostname}:1804/`;
+        if (window.location.protocol == "http:")
+        {
+            document.getElementById('iframe').src = url;
+        }
+        else
+        {
+            document.getElementById('iframe').style="display:none;";
+        }
+        document.getElementById('manager').href = url;
     </script>
     <style>
+        iframe{border:0;}
         div#apps-box {
 	display: table;
 	margin: 0 auto;

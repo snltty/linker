@@ -1,8 +1,7 @@
 #!/bin/bash
 
-if [ ! -f /linker/kvm/supervisord.conf ]; then
-    cat >> /linker/kvm/supervisord.conf << EOF
-
+rm -rf /linker/kvm/supervisord.conf 2>/dev/null
+cat >> /linker/kvm/supervisord.conf << EOF
 [supervisord]
 logfile = /linker/kvm/supervisord.log
 logfile_maxbytes = 50MB           
@@ -27,17 +26,18 @@ stdout_logfile_maxbytes = 0
 redirect_stderr=true
 EOF
     
-    mkdir -p /usr/share/kvmd/extras/linker
-    cat >> /usr/share/kvmd/extras/linker/manifest.yaml << EOF
+rm -rf /usr/share/kvmd/extras/linker 2>/dev/null
+mkdir -p /usr/share/kvmd/extras/linker
+cat >> /usr/share/kvmd/extras/linker/manifest.yaml << EOF
 name: linker
 description: linker network
 icon: share/svg/logo-linker.png
 path: linker
 daemon: kvmd-linker
 place: 21
-
 EOF
-	python3 - <<END
+
+python3 - <<END
 # -*- coding: utf-8 -*-
 
 import json
@@ -53,10 +53,19 @@ with open("/usr/share/kvmd/web/share/i18n/i18n_zh.json", "w", encoding='utf-8') 
 
 END
 
-    sed -i 's/8080/1806/g' /etc/kvmd/override.yaml
-    sed -i 's/4430/1807/g' /etc/kvmd/override.yaml
-fi
 
+sed -i 's/8080/1806/g' /etc/kvmd/override.yaml
+sed -i 's/4430/1807/g' /etc/kvmd/override.yaml
+
+
+cp -rf /linker/kvm/__init__.py /kvmd/plugins/hid/ch9329/__init__.py
+cp -rf /linker/kvm/index.html /usr/share/kvmd/web/linker/index.html
+cp -rf /linker/kvm/logo-linker.png /usr/share/kvmd/web/share/svg/logo-linker.png
+cp -rf /linker/kvm/logo.svg /usr/share/kvmd/web/share/svg/logo.svg
+cp -rf /linker/kvm/favicon-16x16.png /usr/share/kvmd/web/share/favicon-16x16.png
+cp -rf /linker/kvm/favicon-32x32.png /usr/share/kvmd/web/share/favicon-32x32.png
+cp -rf /linker/kvm/apple-touch-icon.png /usr/share/kvmd/web/share/apple-touch-icon.png
+cp -rf /linker/kvm/android-chrome-192x192.png /usr/share/kvmd/web/share/android-chrome-192x192.png
 
 supervisord -c /linker/kvm/supervisord.conf &
 

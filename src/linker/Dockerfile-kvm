@@ -34,20 +34,9 @@ EXPOSE 623/tcp
 EXPOSE 623/udp
 
 
-COPY . /linker/
-COPY kvm/__init__.py /kvmd/plugins/hid/ch9329/__init__.py
-
-COPY kvm/index.html /usr/share/kvmd/web/linker/index.html
-COPY kvm/logo-linker.png /usr/share/kvmd/web/share/svg/logo-linker.png
-COPY kvm/logo.svg /usr/share/kvmd/web/share/svg/logo.svg
-COPY kvm/favicon-16x16.png /usr/share/kvmd/web/share/favicon-16x16.png
-COPY kvm/favicon-32x32.png /usr/share/kvmd/web/share/favicon-32x32.png
-COPY kvm/apple-touch-icon.png /usr/share/kvmd/web/share/apple-touch-icon.png
-COPY kvm/android-chrome-192x192.png /usr/share/kvmd/web/share/android-chrome-192x192.png
-
-RUN chmod +x /linker/kvm/linker-kvm.sh
-
 ENV SNLTTY_LINKER_IS_DOCKER="linker"
 ENV DOTNET_ThreadPool_UnfairSemaphoreSpinLimit=0
 
+COPY . /linker/
+RUN chmod +x /linker/kvm/linker-kvm.sh
 ENTRYPOINT ["/linker/kvm/linker-kvm.sh"]
