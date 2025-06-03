@@ -26,12 +26,8 @@ stdout_logfile=/linker/kvm/stdout
 stdout_logfile_maxbytes = 0
 redirect_stderr=true
 EOF
-
-fi
-
-
-if [ ! -f /usr/share/kvmd/extras/linker/manifest.yaml ]; then
-	mkdir -p /usr/share/kvmd/extras/linker
+    
+    mkdir -p /usr/share/kvmd/extras/linker
     cat >> /usr/share/kvmd/extras/linker/manifest.yaml << EOF
 name: linker
 description: linker network
@@ -41,11 +37,7 @@ daemon: kvmd-linker
 place: 21
 
 EOF
-
-fi
-
-
-python3 - <<END
+	python3 - <<END
 # -*- coding: utf-8 -*-
 
 import json
@@ -61,8 +53,10 @@ with open("/usr/share/kvmd/web/share/i18n/i18n_zh.json", "w", encoding='utf-8') 
 
 END
 
-sed -i 's/8080/1806/g' /etc/kvmd/override.yaml
-sed -i 's/4430/1807/g' /etc/kvmd/override.yaml
+    sed -i 's/8080/1806/g' /etc/kvmd/override.yaml
+    sed -i 's/4430/1807/g' /etc/kvmd/override.yaml
+fi
+
 
 supervisord -c /linker/kvm/supervisord.conf &
 
