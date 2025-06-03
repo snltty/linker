@@ -46,13 +46,15 @@ fi
 
 
 python3 - <<END
+# -*- coding: utf-8 -*-
+
 import json
 
 with open("/usr/share/kvmd/web/share/i18n/i18n_zh.json", "r", encoding='utf-8') as f:
     data = json.load(f)
 
-data["copyright"] = "°æÈ¨ËùÓÐ &copy; 2018-2024 Maxim Devaev | ÓÉ SilentWind ¶þ´Î¿ª·¢ | snltty Èý´Î°ü×°¼¯³ÉLinker×éÍø"
-data["kvm_text2"] = "//<a href=\"https://linker-doc.snltty.com/docs/14%E3%80%81%E4%B8%BA%E7%88%B1%E5%8F%91%E7%94%B5\">ÕâÐ©ÈË</a>Ïò Linker ÏîÄ¿ÔÞÖú²¢Ö§³ÖÆä¹¤×÷£¬·Ç³£¸ÐÐ»ËûÃÇµÄ°ïÖú¡£<br>//Èç¹ûÄúÒ²ÏëÖ§³Ö Linker £¬¿ÉÒÔÔÚ <a target=\"_blank\" href=\"https://afdian.com/a/snltty\"> °®·¢µç </a>ÉÏ¾è¿î</a>¡£<br><br>//<a href=\"https://one-kvm.mofeng.run/thanks/#_2\">ÕâÐ©ÈË</a>Ïò One-KVM ÏîÄ¿ÔÞÖú²¢Ö§³ÖÆä¹¤×÷£¬·Ç³£¸ÐÐ»ËûÃÇµÄ°ïÖú¡£<br>//Èç¹ûÄúÒ²ÏëÖ§³Ö One-KVM £¬¿ÉÒÔÔÚ <a target=\"_blank\" href=\"https://afdian.com/a/silentwind\"> °®·¢µç </a>ÉÏ¾è¿î</a>¡£<br><br>//<a href=\"https://github.com/pikvm/pikvm?tab=readme-ov-file#special-thanks\">ÕâÐ©ÈË</a>Ïò PiKVM ÏîÄ¿ÔÞÖú²¢Ö§³ÖÆä¹¤×÷£¬·Ç³£¸ÐÐ»ËûÃÇµÄ°ïÖú¡£<br>//Èç¹ûÄúÒ²ÏëÖ§³Ö PiKVM £¬¿ÉÒÔÔÚ <a target=\"_blank\" href=\"https://www.patreon.com/pikvm\"> Patreon</a> »ò <a target=\"_blank\" href=\"https://paypal.me/pikvm\"> PayPal ÉÏ¾è¿î</a>¡£";
+data["copyright"] = "ç‰ˆæƒæ‰€æœ‰ &copy; 2018-2024 Maxim Devaev | ç”± SilentWind äºŒæ¬¡å¼€å‘ | snltty ä¸‰æ¬¡åŒ…è£…é›†æˆLinkerç»„ç½‘"
+data["kvm_text2"] = "//<a href=\"https://linker-doc.snltty.com/docs/14%E3%80%81%E4%B8%BA%E7%88%B1%E5%8F%91%E7%94%B5\">è¿™äº›äºº</a>å‘ Linker é¡¹ç›®èµžåŠ©å¹¶æ”¯æŒå…¶å·¥ä½œï¼Œéžå¸¸æ„Ÿè°¢ä»–ä»¬çš„å¸®åŠ©ã€‚<br>//å¦‚æžœæ‚¨ä¹Ÿæƒ³æ”¯æŒ Linker ï¼Œå¯ä»¥åœ¨ <a target=\"_blank\" href=\"https://afdian.com/a/snltty\"> çˆ±å‘ç”µ </a>ä¸Šææ¬¾</a>ã€‚<br><br>//<a href=\"https://one-kvm.mofeng.run/thanks/#_2\">è¿™äº›äºº</a>å‘ One-KVM é¡¹ç›®èµžåŠ©å¹¶æ”¯æŒå…¶å·¥ä½œï¼Œéžå¸¸æ„Ÿè°¢ä»–ä»¬çš„å¸®åŠ©ã€‚<br>//å¦‚æžœæ‚¨ä¹Ÿæƒ³æ”¯æŒ One-KVM ï¼Œå¯ä»¥åœ¨ <a target=\"_blank\" href=\"https://afdian.com/a/silentwind\"> çˆ±å‘ç”µ </a>ä¸Šææ¬¾</a>ã€‚<br><br>//<a href=\"https://github.com/pikvm/pikvm?tab=readme-ov-file#special-thanks\">è¿™äº›äºº</a>å‘ PiKVM é¡¹ç›®èµžåŠ©å¹¶æ”¯æŒå…¶å·¥ä½œï¼Œéžå¸¸æ„Ÿè°¢ä»–ä»¬çš„å¸®åŠ©ã€‚<br>//å¦‚æžœæ‚¨ä¹Ÿæƒ³æ”¯æŒ PiKVM ï¼Œå¯ä»¥åœ¨ <a target=\"_blank\" href=\"https://www.patreon.com/pikvm\"> Patreon</a> æˆ– <a target=\"_blank\" href=\"https://paypal.me/pikvm\"> PayPal ä¸Šææ¬¾</a>ã€‚";
 
 with open("/usr/share/kvmd/web/share/i18n/i18n_zh.json", "w", encoding='utf-8') as f:
     json.dump(data, f, ensure_ascii=False, indent=2)
