@@ -59,6 +59,8 @@ sed -i 's/4430/1807/g' /etc/kvmd/override.yaml
 
 
 cp -rf /linker/kvm/__init__.py /kvmd/plugins/hid/ch9329/__init__.py
+rm -rf /usr/share/kvmd/web/linker 2>/dev/null
+mkdir -p /usr/share/kvmd/web/linker
 cp -rf /linker/kvm/index.html /usr/share/kvmd/web/linker/index.html
 cp -rf /linker/kvm/logo-linker.png /usr/share/kvmd/web/share/svg/logo-linker.png
 cp -rf /linker/kvm/logo.svg /usr/share/kvmd/web/share/svg/logo.svg
