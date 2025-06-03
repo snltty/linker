@@ -11,7 +11,7 @@
 <div align="center">
 <p><img src="./readme/logo.png" height="150"></p> 
 
-# .NET8.0、linker、link anywhere
+# NET8.0、linker、link anywhere
 
 [![Stars](https://img.shields.io/github/stars/snltty/linker?style=flat)](https://github.com/snltty/linker)
 [![Forks](https://img.shields.io/github/forks/snltty/linker?style=flat)](https://github.com/snltty/linker)
@@ -19,12 +19,15 @@
 [![Release](https://img.shields.io/github/v/release/snltty/linker?sort=semver)](https://github.com/snltty/linker/releases)
 [![License](https://img.shields.io/github/license/snltty/linker)](https://mit-license.org/)
 
-
 <a href="https://linker.snltty.com">官方网站</a>、<a href="https://linker-doc.snltty.com">使用说明文档</a>、<a href="https://jq.qq.com/?_wv=1027&k=ucoIVfz4" target="_blank">加入组织：1121552990</a>
 
 </div>
 
-## [😡]免责声明
+## [⭐]星星历史
+
+[![Star History Chart](https://api.star-history.com/svg?repos=snltty/linker&type=Date)](https://www.star-history.com/#snltty/linker&Date)
+
+## [🚫]免责声明
 
 本软件基于 [GPL-2.0 License](https://opensource.org/licenses/GPL-2.0) 发布，完全免费提供，旨在“按现状”供用户使用。作者及贡献者不对使用本软件所产生的任何直接或间接后果承担责任，包括但不限于性能下降、数据丢失、服务中断、或任何其他类型的损害。
 
@@ -32,7 +35,7 @@
 
 **用户责任**：使用本软件即表示您理解并同意承担由此产生的一切风险及责任，使用人员有责任和义务遵守当地法律条规，请勿用于违法犯罪。
 
-## [😇]大概意思
+## [🪂]大概意思
 
 使用p2p或者中继转发，让你的各个局域网连通起来，让各个局域网内的任意联网设备都可以相互连通
 
@@ -40,7 +43,7 @@
 <p><img src="./readme/linker.jpg"></p> 
 </div>
 
-## [🤩]主要功能
+## [🎖️]主要功能
 
 ##### 私有部署
 - **私有部署：** 私有部署服务端，信息更安全。
@@ -71,12 +74,12 @@
 - **CDKEY：** 可以临时解锁一些限制，中继，内外穿透什么的，方便你分享服务器给朋友使用。
 - **使用文档：** 更多功能请阅读<a href="https://linker-doc.snltty.com">使用说明文档</a>
 
-## [😂]管理页面
+## [🖼️]管理页面
 <p><img src="./readme/full.jpg"></p> 
 <p><img src="./readme/plan.jpg"></p> 
 <p><img src="./readme/firewall.jpg"></p> 
 
-## [😍]为爱发电
+## [🎁]为爱发电
 
 若此项目对您有用，可以考虑通过 **[🔋为爱发电](https://afdian.com/a/snltty)** 对作者稍加支持，让作者更有动力，在项目上投入更多时间和精力
 
@@ -91,7 +94,7 @@
 </div>
 </details>
 
-## [😎]特别说明
+## [👏]特别说明
 
 本项目已加入 [DotNetGuide](https://github.com/YSGStudyHards/DotNetGuide)  列表。<br/>
 本项目已加入 [dotNET China](https://gitee.com/dotnetchina)  组织。<br/>

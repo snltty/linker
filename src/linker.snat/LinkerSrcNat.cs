@@ -128,21 +128,7 @@ namespace linker.snat
                 if (item.Trim().StartsWith("0.0.0.0"))
                 {
                     string[] arr = Regex.Replace(item.Trim(), @"\s+", " ").Split(' ');
-                    IPAddress ip = IPAddress.Parse(arr[arr.Length - 2]);
-
-                    foreach (var inter in NetworkInterface.GetAllNetworkInterfaces())
-                    {
-                        try
-                        {
-                            if (ip.Equals(inter.GetIPProperties().UnicastAddresses.FirstOrDefault(c => c.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).Address))
-                            {
-                                return ip;
-                            }
-                        }
-                        catch (Exception)
-                        {
-                        }
-                    }
+                    return IPAddress.Parse(arr[arr.Length - 2]);
                 }
             }
             return null;
@@ -281,7 +267,7 @@ namespace linker.snat
         /// <param name="p"></param>
         /// <param name="ptr"></param>
         /// <returns></returns>
-        private unsafe bool InjectIcmp( WinDivertParseResult p, byte* ptr)
+        private unsafe bool InjectIcmp(WinDivertParseResult p, byte* ptr)
         {
             //只操作response 和 request
             if (p.ICMPv4Hdr->Type != 0 && p.ICMPv4Hdr->Type != 8) return false;
@@ -354,7 +340,7 @@ namespace linker.snat
         /// <param name="p"></param>
         /// <param name="ptr"></param>
         /// <returns></returns>
-        private unsafe bool InjectTcp( WinDivertParseResult p, byte* ptr)
+        private unsafe bool InjectTcp(WinDivertParseResult p, byte* ptr)
         {
             IPV4Packet ipv4 = new IPV4Packet(ptr);
 
