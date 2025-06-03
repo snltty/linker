@@ -54,8 +54,8 @@ with open("/usr/share/kvmd/web/share/i18n/i18n_zh.json", "w", encoding='utf-8') 
 END
 
 
-sed -i 's/8080/1806/g' /etc/kvmd/override.yaml
-sed -i 's/4430/1807/g' /etc/kvmd/override.yaml
+sed -i 's/8080/1806/g' /etc/kvmd_backup/override.yaml
+sed -i 's/4430/1807/g' /etc/kvmd_backup/override.yaml
 
 
 cp -rf /linker/kvm/__init__.py /kvmd/plugins/hid/ch9329/__init__.py
