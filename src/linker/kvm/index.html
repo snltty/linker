@@ -24,7 +24,7 @@
 
 -->
 <html lang="en">
-  <head>
+<head>
     <meta charset="utf-8">
     <title>One-KVM IPMI Info</title>
     <link rel="apple-touch-icon" sizes="180x180" href="/share/apple-touch-icon.png">
@@ -41,93 +41,96 @@
     <script src="/share/js/i18n/jquery-3.7.1.min.js"></script>
     <script src="/share/js/i18n/jquery.i18n.min.js"></script>
     <script src="/share/js/i18n/i18n.js"></script>
-  </head>
-  <body>
+</head>
+<body>
     <div class="start-box">
-      <div class="start" style="max-width:none;"><a style="display:inline-block; margin-top:4px; color:#5c90bc; text-decoration:none" href="/" i18n="index">&nbsp;&nbsp;&larr;&nbsp;&nbsp; [ One-KVM Index ]</a>
-        <hr>
-        <div id="apps-box">
-            <ul id="apps">
-                <li><div class="app"><a href="https://linker.snltty.com" target="_blank">🌍<br>官网</a></div></li>
-                <li><div class="app"><a href="https://linker-doc.snltty.com" target="_blank">💼<br>文档</a></div></li>
-                <li><div class="app"><a id="manager" href="#" target="_blank">💻<br>管理</a></div></li>
-                <li><div class="app"><a href="https://afdian.com/a/snltty" target="_blank">🔋<br>发电</a></div></li>
-                <li><div class="app"><a href="https://jq.qq.com/?_wv=1027&k=ucoIVfz4" target="_blank">📱<br>QQ群</a></div></li>
-	        </ul>
-	    </div>
-        <iframe src="#" width="810" height="740" id="iframe"></iframe>
-      </div>
+        <div class="start" style="max-width:none;">
+            <a style="display:inline-block; margin-top:4px; color:#5c90bc; text-decoration:none" href="/" i18n="index">&nbsp;&nbsp;&larr;&nbsp;&nbsp; [ One-KVM Index ]</a>
+            <hr>
+            <div id="apps-box">
+                <ul id="apps">
+                    <li><div class="app"><a href="https://linker.snltty.com" target="_blank">🌍<br>官网</a></div></li>
+                    <li><div class="app"><a href="https://linker-doc.snltty.com" target="_blank">💼<br>文档</a></div></li>
+                    <li><div class="app"><a id="manager" href="#" target="_blank">💻<br>管理</a></div></li>
+                    <li><div class="app"><a href="https://afdian.com/a/snltty" target="_blank">🔋<br>发电</a></div></li>
+                    <li><div class="app"><a href="https://jq.qq.com/?_wv=1027&k=ucoIVfz4" target="_blank">📱<br>QQ群</a></div></li>
+                </ul>
+            </div>
+            <iframe src="#" width="810" height="740" id="iframe"></iframe>
+        </div>
     </div>
     <script>
         const url = `http://${window.location.hostname}:1804/`;
-        if (window.location.protocol == "http:")
-        {
+        if (window.location.protocol == "http:") {
             document.getElementById('iframe').src = url;
+            document.getElementById('apps-box').style = "display:none;";
         }
-        else
-        {
-            document.getElementById('iframe').style="display:none;";
+        else {
+            document.getElementById('iframe').style = "display:none;";
         }
         document.getElementById('manager').href = url;
     </script>
     <style>
-        iframe{border:0;}
+        iframe {
+            border: 0;
+            border-radius: 8px;
+            box-shadow: var(--shadow-big);
+        }
+
         div#apps-box {
-	display: table;
-	margin: 0 auto;
-}
+            display: table;
+            margin: 0 auto;
+        }
 
-div#apps-box ul#apps {
-	list-style-type: none;
-	padding: 0;
-	margin: 0;
-}
+            div#apps-box ul#apps {
+                list-style-type: none;
+                padding: 0;
+                margin: 0;
+            }
 
-div#apps-box ul#apps li {
-	float: left;
-	margin-left: 5px;
-	margin-right: 5px;
-}
+                div#apps-box ul#apps li {
+                    float: left;
+                    margin-left: 5px;
+                    margin-right: 5px;
+                }
 
-div#apps-box ul#apps li div.app {
-	height: 100px;
-	width: 100px;
-	text-align: center;
-	background-color: var(--cs-control-default-bg);
-	box-shadow: var(--shadow-micro);
-	border: var(--border-key-thin);
-	border-radius: 8px;
-}
+                    div#apps-box ul#apps li div.app {
+                        height: 60px;
+                        width: 100px;
+                        text-align: center;
+                        background-color: var(--cs-control-default-bg);
+                        box-shadow: var(--shadow-micro);
+                        border: var(--border-key-thin);
+                        border-radius: 8px;
+                    }
 
-div#apps-box ul#apps li div:hover.app {
-	border: var(--border-intensive-thin);
-	box-shadow: none;
-}
+                    div#apps-box ul#apps li div:hover.app {
+                        border: var(--border-intensive-thin);
+                        box-shadow: none;
+                    }
 
-div#apps-box ul#apps li div:active.app {
-	color: var(--cs-control-pressed-fg) !important;
-	background-color: var(--cs-control-pressed-bg) !important;
-	border: var(--border-key-thin);
-	box-shadow: none;
-}
+                    div#apps-box ul#apps li div:active.app {
+                        color: var(--cs-control-pressed-fg) !important;
+                        background-color: var(--cs-control-pressed-bg) !important;
+                        border: var(--border-key-thin);
+                        box-shadow: none;
+                    }
 
-div#apps-box ul#apps li div.app img {
-	display: block;
-	margin: auto;
-	height: 50px;
-	padding-bottom: 5px;
-}
+                    div#apps-box ul#apps li div.app img {
+                        display: block;
+                        margin: auto;
+                        height: 50px;
+                        padding-bottom: 5px;
+                    }
 
-div#apps-box ul#apps li div.app a {
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	height: 100%;
-	text-decoration: none;
-	font-weight: bold;
-}
-
-        
+                    div#apps-box ul#apps li div.app a {
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        height: 100%;
+                        text-decoration: none;
+                        font-weight: bold;
+                    }
     </style>
-  </body>
+</body>
 </html>
