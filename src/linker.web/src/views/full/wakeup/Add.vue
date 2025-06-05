@@ -14,7 +14,7 @@
                 <el-form-item :label="$t('wakeup.type')" prop="Type">
                     <el-row class="w-100">
                         <el-col :span="12">
-                            <el-select v-model="state.ruleForm.Data.Type" >
+                            <el-select v-model="state.ruleForm.Data.Type" @change="handleTypeChange" >
                                 <el-option :value="item.value" :label="item.label" v-for="(item,index) in state.types"></el-option>
                             </el-select>
                         </el-col>
@@ -107,7 +107,7 @@ export default {
                     value1:add.value.Data.Type == 1 ? add.value.Data.Value : '',
                     value2:add.value.Data.Type == 2 ? add.value.Data.Value : '',
                     value4:add.value.Data.Type == 4 ? add.value.Data.Value : '',
-                    road: add.value.Data.Type == 2 ||  add.value.Data.Type == 4 ? add.value.Data.Content || '1' : ''
+                    road: add.value.Data.Content || '1'
                 }
             },
             rules:{
@@ -191,6 +191,10 @@ export default {
             });
         }
 
+        const handleTypeChange = ()=>{
+            state.ruleForm.Data.road = {1:'',2:'1',4:'1'}[state.ruleForm.Data.Type];
+        }
+
         onMounted(()=>{
             getWakeupComs().then((res)=>{
                 state.coms = res;
@@ -205,7 +209,7 @@ export default {
                 }
             }).catch(()=>{});
         })
-        return {state,ruleFormRef,handleSave}
+        return {state,ruleFormRef,handleSave,handleTypeChange}
     }
 }
 </script>
