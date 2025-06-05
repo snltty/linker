@@ -225,7 +225,6 @@ namespace linker.app
                     CApi = new
                     {
                         ApiPassword = Helper.GlobalString,
-                        ApiPort = ApplyNewPort(),
                         WebPort = ApplyNewPort()
                     }
                 }
