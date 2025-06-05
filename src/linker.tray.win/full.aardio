@@ -10,7 +10,7 @@ var wb = web.view(winform);
 import wsock.tcp.simpleHttpServer;
 
 wb.enableDevTools(false);
-wb.go("/web/index.html#/full/index.html",8081);
+wb.go("/web/index.html#/full/index.html?api=1804",8081);
 
 winform.show();
 win.loopMessage();

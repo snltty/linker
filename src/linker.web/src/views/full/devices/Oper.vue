@@ -56,6 +56,7 @@ export default {
         const myAccess = computed(()=>globalData.value.config.Client.AccessBits);
         const hasAccess = computed(()=>globalData.value.hasAccess('Access')); 
         const accessList = computed(()=>allAccess.value.list);
+        console.log(accessList);
         
         const hasReboot = computed(()=>globalData.value.hasAccess('Reboot')); 
         const hasRemove = computed(()=>globalData.value.hasAccess('Remove')); 
@@ -96,14 +97,13 @@ export default {
             }).catch(() => {});
         }
 
-
-        const json = {'0':1,'1':0};
         const handleShowAccess = (row,rowAccess)=>{ 
             let maxLength = Math.max(myAccess.value.length,rowAccess.length);
-            let myValue = myAccess.value.padEnd(maxLength,'0').split('').map(c=>json[c]);
+            let myValue = myAccess.value.padEnd(maxLength,'0').split('');
             let rowValue = rowAccess.padEnd(maxLength,'0').split('');
-            return row.showAccess  && hasAccess.value  && rowAccess >= 0 && myValue.map((v,i)=>{
-                return v == rowValue[i] && v == '1';
+            return row.showAccess  && hasAccess.value
+            && myValue.map((v,i)=>{
+                return (rowValue[i] == '1' && v == '1') || rowValue[i] == '0';
             }).filter(c=>c).length > 0;
         }
         const handleAccess = (row)=>{
