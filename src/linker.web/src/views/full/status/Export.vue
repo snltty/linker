@@ -15,21 +15,16 @@
                             <div class="card-header">
                                 <div>
                                     <el-row>
-                                        <el-col :span="24"><el-checkbox :disabled="onlyNode" v-model="state.single" :label="$t('status.exportSingle')" /></el-col>
-                                    </el-row>
-                                </div>
-                                <div>
-                                    <el-row>
+                                        <el-col :span="12"><el-checkbox :disabled="onlyNode" v-model="state.single" :label="$t('status.exportSingle')" /></el-col>
                                         <el-col :span="12">
                                             <div class="flex flex-nowrap">
                                                 <span style="width: 11rem;">{{$t('status.exportName')}} : </span><el-input :disabled="!state.single" v-model="state.name" maxlength="32" show-word-limit></el-input>
                                             </div>
                                         </el-col>
-                                        <el-col :span="12">
-                                            <div class="flex flex-nowrap">
-                                                <span style="width: 11rem;">{{$t('status.exportApiPassword')}} : </span><el-input type="password" show-password :disabled="onlyNode" v-model="state.apipassword" maxlength="36" show-word-limit></el-input>
-                                            </div>
-                                        </el-col>
+                                    </el-row>
+                                </div>
+                                <div>
+                                    <el-row>
                                         <el-col :span="12">
                                             <div class="flex flex-nowrap mgt-1">
                                                 <span style="width: 11rem;">{{$t('status.exportWebport')}} : </span><el-input :disabled="onlyNode" v-model="state.webport"></el-input>
@@ -37,7 +32,7 @@
                                         </el-col>
                                         <el-col :span="12">
                                             <div class="flex flex-nowrap mgt-1">
-                                                <span style="width: 11rem;">{{$t('status.exportApiport')}} : </span><el-input :disabled="onlyNode" v-model="state.apiport"></el-input>
+                                                <span style="width: 11rem;">{{$t('status.exportApiPassword')}} : </span><el-input type="password" show-password :disabled="onlyNode" v-model="state.apipassword" maxlength="36" show-word-limit></el-input>
                                             </div>
                                         </el-col>
                                     </el-row>
@@ -112,7 +107,6 @@ export default {
             single:true,
             name:'',
             apipassword:onlyNode.value? globalData.value.config.Client.CApi.ApiPassword :'',
-            apiport: globalData.value.config.Client.CApi.ApiPort,
             webport: globalData.value.config.Client.CApi.WebPort,
 
             relay:true,
@@ -143,7 +137,6 @@ export default {
                 name:state.name,
                 apipassword:state.apipassword,
                 webport:+state.webport,
-                apiport:+state.apiport,
                 relay:state.relay,
                 sforward:state.sforward,
                 updater:state.updater,
@@ -166,10 +159,6 @@ export default {
             }
             if(!json.webport || isNaN(json.webport) || json.webport<=0 || json.webport>65535){
                 ElMessage.error(t('status.exportWebportPlease'));
-                return;
-            }
-            if(!json.apiport || isNaN(json.apiport) || json.apiport<=0 || json.apiport>65535){
-                ElMessage.error(t('status.exportApiportPlease'));
                 return;
             }
             return json;

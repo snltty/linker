@@ -1,4 +1,5 @@
-﻿using linker.messenger.api;
+﻿using linker.libs.web;
+using linker.messenger.api;
 using linker.messenger.flow.messenger;
 using linker.messenger.relay.server;
 using linker.messenger.tunnel;
@@ -22,8 +23,8 @@ namespace linker.messenger.flow
         }
         public static ServiceProvider UseFlowClient(this ServiceProvider serviceProvider)
         {
-            IApiServer apiServer = serviceProvider.GetService<IApiServer>();
-            apiServer.AddPlugins(new List<libs.api.IApiController> { serviceProvider.GetService<FlowApiController>() });
+            linker.messenger.api.IWebServer apiServer = serviceProvider.GetService<linker.messenger.api.IWebServer>();
+            apiServer.AddPlugins(new List<IApiController> { serviceProvider.GetService<FlowApiController>() });
 
             FlowTransfer flowTransfer = serviceProvider.GetService<FlowTransfer>();
             flowTransfer.AddFlows(new List<IFlow> { serviceProvider.GetService<MessengerFlow>() });

@@ -1,4 +1,5 @@
-﻿using linker.messenger.api;
+﻿using linker.libs.web;
+using linker.messenger.api;
 using linker.messenger.decenter;
 using linker.messenger.exroute;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,8 +29,8 @@ namespace linker.messenger.socks5
             IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
             messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<Socks5ClientMessenger>() });
 
-            IApiServer apiServer = serviceProvider.GetService<IApiServer>();
-            apiServer.AddPlugins(new List<libs.api.IApiController> { serviceProvider.GetService<Socks5ApiController>() });
+            linker.messenger.api.IWebServer apiServer = serviceProvider.GetService<linker.messenger.api.IWebServer>();
+            apiServer.AddPlugins(new List<IApiController> { serviceProvider.GetService<Socks5ApiController>() });
 
             DecenterClientTransfer decenterClientTransfer = serviceProvider.GetService<DecenterClientTransfer>();
             decenterClientTransfer.AddDecenters(new List<IDecenter> { serviceProvider.GetService<Socks5Decenter>() });

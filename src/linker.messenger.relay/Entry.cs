@@ -1,4 +1,4 @@
-﻿using linker.messenger.api;
+﻿using linker.libs.web;
 using linker.messenger.relay.client;
 using linker.messenger.relay.messenger;
 using linker.messenger.relay.server;
@@ -31,8 +31,8 @@ namespace linker.messenger.relay
             SyncTreansfer syncTreansfer = serviceProvider.GetService<SyncTreansfer>();
             syncTreansfer.AddSyncs(new List<ISync> { serviceProvider.GetService<RelaySyncSecretKey>() });
 
-            IApiServer apiServer = serviceProvider.GetService<IApiServer>();
-            apiServer.AddPlugins(new List<libs.api.IApiController> { serviceProvider.GetService<RelayApiController>() });
+            linker.messenger.api.IWebServer apiServer = serviceProvider.GetService<linker.messenger.api.IWebServer>();
+            apiServer.AddPlugins(new List<IApiController> { serviceProvider.GetService<RelayApiController>() });
 
             RelayClientTestTransfer relayClientTestTransfer = serviceProvider.GetService<RelayClientTestTransfer>();
 

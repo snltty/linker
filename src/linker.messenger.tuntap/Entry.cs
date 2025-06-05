@@ -1,5 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.extends;
+using linker.libs.web;
 using linker.messenger.api;
 using linker.messenger.decenter;
 using linker.messenger.exroute;
@@ -61,8 +62,8 @@ namespace linker.messenger.tuntap
             IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
             messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<TuntapClientMessenger>() });
 
-            IApiServer apiServer = serviceProvider.GetService<IApiServer>();
-            apiServer.AddPlugins(new List<libs.api.IApiController> { serviceProvider.GetService<TuntapApiController>() });
+            linker.messenger.api.IWebServer apiServer = serviceProvider.GetService<linker.messenger.api.IWebServer>();
+            apiServer.AddPlugins(new List<IApiController> { serviceProvider.GetService<TuntapApiController>() });
 
             ExRouteTransfer exRouteTransfer = serviceProvider.GetService<ExRouteTransfer>();
             exRouteTransfer.AddExRoutes(new List<IExRoute> { serviceProvider.GetService<TuntapExRoute>() });

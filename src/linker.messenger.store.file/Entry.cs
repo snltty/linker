@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.libs.web;
 using linker.messenger.action;
 using linker.messenger.api;
 using linker.messenger.firewall;
@@ -126,8 +127,8 @@ namespace linker.messenger.store.file
             fileConfig.Save(config);
             RunningConfig runningConfig = serviceProvider.GetService<RunningConfig>();
 
-            IApiServer apiServer = serviceProvider.GetService<IApiServer>();
-            apiServer.AddPlugins(new List<libs.api.IApiController> { serviceProvider.GetService<ConfigApiController>() });
+            linker.messenger.api.IWebServer apiServer = serviceProvider.GetService<linker.messenger.api.IWebServer>();
+            apiServer.AddPlugins(new List<IApiController> { serviceProvider.GetService<ConfigApiController>() });
 
             SyncTreansfer syncTreansfer = serviceProvider.GetService<SyncTreansfer>();
             syncTreansfer.AddSyncs(new List<ISync> {

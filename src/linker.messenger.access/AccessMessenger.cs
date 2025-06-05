@@ -1,8 +1,6 @@
 ﻿using linker.libs;
-using linker.libs.api;
 using linker.messenger.api;
 using linker.messenger.signin;
-using IApiServer = linker.messenger.api.IApiServer;
 
 namespace linker.messenger.access
 {
@@ -96,8 +94,8 @@ namespace linker.messenger.access
         private readonly IAccessStore accessStore;
         private readonly ISerializer serializer;
         private readonly IApiStore apiStore;
-        private readonly IApiServer apiServer;
-        public AccessClientMessenger(IAccessStore accessStore, ISerializer serializer, IApiStore apiStore, IApiServer apiServer)
+        private readonly linker.messenger.api.IWebServer apiServer;
+        public AccessClientMessenger(IAccessStore accessStore, ISerializer serializer, IApiStore apiStore, linker.messenger.api.IWebServer apiServer)
         {
             this.accessStore = accessStore;
             this.serializer = serializer;

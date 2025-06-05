@@ -20,7 +20,7 @@ namespace linker.app
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
                     IApiStore apiStore = LinkerMessengerEntry.GetService<IApiStore>();
-                    webview.Source = new Uri($"http://127.0.0.1:{apiStore.Info.WebPort}?t={DateTime.Now.Ticks}/#/?api={apiStore.Info.ApiPort}&psd={Helper.GlobalString}");
+                    webview.Source = new Uri($"http://127.0.0.1:{apiStore.Info.WebPort}?t={DateTime.Now.Ticks}/#/?api={apiStore.Info.WebPort}&psd={Helper.GlobalString}");
                 });
             };
         }

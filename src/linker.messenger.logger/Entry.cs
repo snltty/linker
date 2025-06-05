@@ -1,5 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.timer;
+using linker.libs.web;
 using linker.messenger.api;
 using Microsoft.Extensions.DependencyInjection;
 namespace linker.messenger.logger
@@ -25,8 +26,8 @@ namespace linker.messenger.logger
         }
         public static ServiceProvider UseLoggerClient(this ServiceProvider serviceProvider)
         {
-            IApiServer apiServer = serviceProvider.GetService<IApiServer>();
-            apiServer.AddPlugins(new List<libs.api.IApiController> { serviceProvider.GetService<LoggerApiController>() });
+            linker.messenger.api.IWebServer apiServer = serviceProvider.GetService<linker.messenger.api.IWebServer>();
+            apiServer.AddPlugins(new List<IApiController> { serviceProvider.GetService<LoggerApiController>() });
 
             IAccessStore accessStore= serviceProvider.GetService<IAccessStore>();
             ILoggerStore loggerStore= serviceProvider.GetService<ILoggerStore>();

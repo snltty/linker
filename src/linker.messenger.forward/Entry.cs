@@ -1,4 +1,5 @@
-﻿using linker.messenger.api;
+﻿using linker.libs.web;
+using linker.messenger.api;
 using linker.messenger.decenter;
 using linker.messenger.forward.proxy;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,8 +24,8 @@ namespace linker.messenger.forward
         }
         public static ServiceProvider UseForwardClient(this ServiceProvider serviceProvider)
         {
-            IApiServer apiServer = serviceProvider.GetService<IApiServer>();
-            apiServer.AddPlugins(new List<libs.api.IApiController> { serviceProvider.GetService<ForwardApiController>() });
+            linker.messenger.api.IWebServer apiServer = serviceProvider.GetService<linker.messenger.api.IWebServer>();
+            apiServer.AddPlugins(new List<IApiController> { serviceProvider.GetService<ForwardApiController>() });
 
             ForwardTransfer forwardTransfer = serviceProvider.GetService<ForwardTransfer>();
 

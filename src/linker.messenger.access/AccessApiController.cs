@@ -1,11 +1,10 @@
-﻿using linker.libs.api;
-using linker.libs.extends;
+﻿using linker.libs.extends;
 using linker.libs;
 using linker.messenger.signin;
 using linker.messenger.api;
-using IApiServer = linker.messenger.api.IApiServer;
 using System.Collections.Concurrent;
 using System.Collections;
+using linker.libs.web;
 
 namespace linker.messenger.access
 {
@@ -18,9 +17,10 @@ namespace linker.messenger.access
         private readonly ISerializer serializer;
         private readonly IAccessStore accessStore;
         private readonly IApiStore apiStore;
-        private readonly IApiServer apiServer;
+        private readonly linker.messenger.api.IWebServer apiServer;
 
-        public AccessApiController(IMessengerSender sender, SignInClientState signInClientState, AccessDecenter accessDecenter, ISignInClientStore signInClientStore, ISerializer serializer, IAccessStore accessStore, IApiStore apiStore, IApiServer apiServer)
+        public AccessApiController(IMessengerSender sender, SignInClientState signInClientState, AccessDecenter accessDecenter,
+            ISignInClientStore signInClientStore, ISerializer serializer, IAccessStore accessStore, IApiStore apiStore, linker.messenger.api.IWebServer apiServer)
         {
             this.sender = sender;
             this.signInClientState = signInClientState;

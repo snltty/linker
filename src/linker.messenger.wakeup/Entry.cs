@@ -1,4 +1,5 @@
 ﻿
+using linker.libs.web;
 using linker.messenger.api;
 using Microsoft.Extensions.DependencyInjection;
 namespace linker.messenger.wakeup
@@ -21,8 +22,8 @@ namespace linker.messenger.wakeup
             IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
             messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<WakeupClientMessenger>() });
 
-            IApiServer apiServer = serviceProvider.GetService<IApiServer>();
-            apiServer.AddPlugins(new List<libs.api.IApiController> { serviceProvider.GetService<WakeupApiController>() });
+            linker.messenger.api.IWebServer apiServer = serviceProvider.GetService<linker.messenger.api.IWebServer>();
+            apiServer.AddPlugins(new List<IApiController> { serviceProvider.GetService<WakeupApiController>() });
 
             return serviceProvider;
         }

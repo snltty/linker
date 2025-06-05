@@ -7,35 +7,30 @@
                 </div>
             </el-form-item>
             <el-form-item label="" label-width="0">
-                <el-row>
+                <el-row class="w-100">
                     <el-col :sm="12" :xs="24">
                         <el-form-item label="机器名" prop="name">
                             <el-input v-model="state.form.name" maxlength="32" show-word-limit />
                         </el-form-item>
                     </el-col>
-                    <el-col :sm="12" :xs="24" v-if="globalData.isPc">
-                        <el-form-item label="网页端口" prop="web">
-                            <el-input  v-model="state.form.web" />
-                        </el-form-item>
-                    </el-col>
                 </el-row>
             </el-form-item>
             <el-form-item label="" label-width="0" v-if="globalData.isPc">
-                <el-row>
-                    <el-col :sm="12" :xs="24">
-                        <el-form-item label="接口端口" prop="api">
-                            <el-input v-model="state.form.api" />
+                <el-row class="w-100">
+                    <el-col :sm="12" :xs="24" v-if="globalData.isPc">
+                        <el-form-item label="管理端口" prop="web">
+                            <el-input  v-model="state.form.web" />
                         </el-form-item>
                     </el-col>
                     <el-col :sm="12" :xs="24">
-                        <el-form-item label="接口密码" prop="password">
+                        <el-form-item label="管理密码" prop="password">
                             <el-input  type="password" v-model="state.form.password" show-password maxlength="36" show-word-limit/>
                         </el-form-item>
                     </el-col>
                 </el-row>
             </el-form-item>
             <el-form-item label="" label-width="0">
-                <el-row>
+                <el-row class="w-100">
                     <el-col :sm="12" :xs="24">
                         <el-form-item label="分组名" prop="groupid">
                             <el-input v-model="state.form.groupid" maxlength="36" show-word-limit />
@@ -49,7 +44,7 @@
                 </el-row>
             </el-form-item>
             <el-form-item label="" label-width="0">
-                <el-row>   
+                <el-row class="w-100">   
                     <el-col :span="24">
                         <el-form-item label-width="8rem" prop="hasServer">
                             <el-checkbox v-model="state.form.hasServer" label="我有服务器（私有部署）" size="large" />
@@ -59,7 +54,7 @@
             </el-form-item>
 
             <el-form-item label="" label-width="0" v-if="state.form.hasServer">
-                <el-row>
+                <el-row class="w-100">
                     <el-col :sm="12" :xs="24">
                         <el-form-item label="信标服务" prop="server">
                             <el-input v-model="state.form.server"/>
@@ -74,7 +69,7 @@
             </el-form-item>
             
             <el-form-item label="" label-width="0" v-if="state.form.hasServer">
-                <el-row>
+                <el-row class="w-100">
                     <el-col :sm="12" :xs="24">
                         <el-form-item label="穿透密钥" prop="sForwardSecretKey">
                             <el-input v-model="state.form.sForwardSecretKey" maxlength="36" show-word-limit />
@@ -88,7 +83,7 @@
                 </el-row>
             </el-form-item>
             <el-form-item label="" label-width="0" v-if="state.form.hasServer">
-                <el-row>
+                <el-row class="w-100">
                     <el-col :sm="12" :xs="24">
                         <el-form-item label="更新密钥" prop="updaterSecretKey">
                             <el-input v-model="state.form.updaterSecretKey" maxlength="36" show-word-limit />
@@ -118,7 +113,6 @@ export default {
                 name:step.value.form.client.name || globalData.value.config.Client.Name,
                 groupid: step.value.form.client.groupid ||globalData.value.config.Client.Group.Id,
                 groupPassword: step.value.form.client.groupPassword ||globalData.value.config.Client.Group.Password,
-                api: step.value.form.client.api ||globalData.value.config.Client.CApi.ApiPort,
                 web: step.value.form.client.web ||globalData.value.config.Client.CApi.WebPort,
                 password:step.value.form.client.password || globalData.value.config.Client.CApi.ApiPassword,
 
@@ -134,19 +128,6 @@ export default {
                 groupid: [{ required: true, message: "必填", trigger: "blur" }],
                 groupPassword: [{ required: true, message: "必填", trigger: "blur" }],
                 password: [{ required: true, message: "必填", trigger: "blur" }],
-                api: [
-                    { required: true, message: "必填", trigger: "blur" },
-                    {
-                        type: "number",
-                        min: 0,
-                        max: 65535,
-                        message: "数字 0-65535",
-                        trigger: "blur",
-                        transform(value) {
-                            return Number(value);
-                        },
-                    },
-                ],
                 web: [
                     { required: true, message: "必填", trigger: "blur" },
                     {
@@ -173,7 +154,6 @@ export default {
                                     name: state.form.name,
                                     groupid: state.form.groupid,
                                     groupPassword: state.form.groupPassword,
-                                    api: +state.form.api,
                                     web: +state.form.web,
                                     password: state.form.password,
 

@@ -1,5 +1,5 @@
 ﻿using linker.libs;
-using linker.libs.api;
+using linker.libs.web;
 using linker.messenger.exroute;
 using linker.messenger.signin.args;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,7 +36,7 @@ namespace linker.messenger.signin
                 serviceProvider.GetService<SignInArgsVersionClient>(),
             });
 
-            linker.messenger.api.IApiServer apiServer = serviceProvider.GetService<linker.messenger.api.IApiServer>();
+            linker.messenger.api.IWebServer apiServer = serviceProvider.GetService<linker.messenger.api.IWebServer>();
             apiServer.AddPlugins(new List<IApiController> {
                 serviceProvider.GetService<SignInApiController>()
             });

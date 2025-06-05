@@ -32,8 +32,9 @@ export default {
         const globalData = injectGlobalData();
         const router = useRouter();
         const route = useRoute();
-
-        const defaultInfo = {api:`${window.location.hostname}:1803`,psd:'snltty'};
+        
+        const api = process.env.NODE_ENV == 'development' ? `${window.location.hostname}:1804` : window.location.host;
+        const defaultInfo = {api:api,psd:'snltty'};
         const queryCache = JSON.parse(sessionStorage.getItem('api-cache') || localStorage.getItem('api-cache') || JSON.stringify(defaultInfo));
         const state = reactive({
             api:queryCache.api,

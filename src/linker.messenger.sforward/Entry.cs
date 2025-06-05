@@ -1,4 +1,5 @@
-﻿using linker.messenger.api;
+﻿using linker.libs.web;
+using linker.messenger.api;
 using linker.messenger.decenter;
 using linker.messenger.plan;
 using linker.messenger.sforward.client;
@@ -33,8 +34,8 @@ namespace linker.messenger.sforward
         }
         public static ServiceProvider UseSForwardClient(this ServiceProvider serviceProvider)
         {
-            IApiServer apiServer = serviceProvider.GetService<IApiServer>();
-            apiServer.AddPlugins(new List<libs.api.IApiController> { serviceProvider.GetService<SForwardApiController>() });
+            linker.messenger.api.IWebServer apiServer = serviceProvider.GetService<linker.messenger.api.IWebServer>();
+            apiServer.AddPlugins(new List<IApiController> { serviceProvider.GetService<SForwardApiController>() });
 
             SForwardClientTransfer sForwardClientTransfer = serviceProvider.GetService<SForwardClientTransfer>();
 

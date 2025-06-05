@@ -1,7 +1,12 @@
-﻿using System;
+﻿using linker.libs.extends;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Net.WebSockets;
+using System.Reflection;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace linker.libs.web
@@ -12,6 +17,8 @@ namespace linker.libs.web
     public class WebServer : IWebServer
     {
         private string root = "";
+        private string password = Helper.GlobalString;
+        protected readonly Dictionary<string, PluginPathCacheInfo> plugins = new();
 
         private readonly IWebServerFileReader fileReader;
         public WebServer(IWebServerFileReader fileReader)
@@ -22,10 +29,11 @@ namespace linker.libs.web
         /// <summary>
         /// 开启web
         /// </summary>
-        public void Start(int port, string root)
+        public void Start(int port, string root, string password)
         {
             this.root = root;
-            Task.Factory.StartNew(() =>
+            this.password = password;
+            Task.Factory.StartNew(async () =>
             {
                 try
                 {
@@ -34,7 +42,25 @@ namespace linker.libs.web
                     http.Prefixes.Add($"http://+:{port}/");
                     http.Start();
 
-                    http.BeginGetContext(Callback, http);
+                    while (true)
+                    {
+                        try
+                        {
+                            HttpListenerContext context = await http.GetContextAsync();
+                            if (context.Request.IsWebSocketRequest)
+                            {
+                                HttpListenerWebSocketContext wsContext = await context.AcceptWebSocketAsync(null);
+                                HandleWs(wsContext.WebSocket);
+                            }
+                            else
+                            {
+                                HandleWeb(context);
+                            }
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -42,13 +68,11 @@ namespace linker.libs.web
                 }
             }, TaskCreationOptions.LongRunning);
         }
-        private void Callback(IAsyncResult result)
+
+        private void HandleWeb(HttpListenerContext context)
         {
-            HttpListener http = result.AsyncState as HttpListener;
-            HttpListenerContext context = http.EndGetContext(result);
             HttpListenerRequest request = context.Request;
             HttpListenerResponse response = context.Response;
-
             try
             {
                 response.Headers.Set("Server", Helper.GlobalString);
@@ -99,11 +123,7 @@ namespace linker.libs.web
             }
 
             response.Close();
-
-            http.BeginGetContext(Callback, http);
         }
-
-
         private Dictionary<string, string> types = new Dictionary<string, string> {
             { ".webp","image/webp"},
             { ".png","image/png"},
@@ -127,6 +147,133 @@ namespace linker.libs.web
             }
             return "application/octet-stream";
         }
+
+        public void SetPassword(string password)
+        {
+            this.password = password;
+        }
+        private async void HandleWs(WebSocket websocket)
+        {
+            byte[] buffer = new byte[8 * 1024];
+            try
+            {
+                WebSocketReceiveResult result = await websocket.ReceiveAsync(buffer, CancellationToken.None);
+                if (result.MessageType != WebSocketMessageType.Text)
+                {
+                    await websocket.CloseAsync(WebSocketCloseStatus.ProtocolError, "password fail", CancellationToken.None);
+                    return;
+                }
+                ApiControllerRequestInfo req = Encoding.UTF8.GetString(buffer.AsMemory(0, result.Count).Span).DeJson<ApiControllerRequestInfo>();
+                if (req.Path != "password" || req.Content != this.password)
+                {
+                    await websocket.CloseAsync(WebSocketCloseStatus.ProtocolError, "password fail", CancellationToken.None);
+                    return;
+                }
+                await websocket.SendAsync(new ApiControllerResponseInfo
+                {
+                    Code = ApiControllerResponseCodes.Success,
+                    Path = req.Path,
+                    RequestId = req.RequestId,
+                    Content = "password ok",
+                }.ToJson().ToBytes(), WebSocketMessageType.Text, true, CancellationToken.None);
+
+                while (websocket.State == WebSocketState.Open)
+                {
+                    result = await websocket.ReceiveAsync(buffer, CancellationToken.None);
+                    switch (result.MessageType)
+                    {
+                        case WebSocketMessageType.Text:
+                            {
+                                req = Encoding.UTF8.GetString(buffer.AsMemory(0, result.Count).Span).DeJson<ApiControllerRequestInfo>();
+                                req.Connection = websocket;
+                                ApiControllerResponseInfo resp = await OnMessage(req);
+                                await websocket.SendAsync(resp.ToJson().ToBytes(), WebSocketMessageType.Text, true, CancellationToken.None);
+                            }
+                            break;
+                        case WebSocketMessageType.Binary:
+                            break;
+                        case WebSocketMessageType.Close:
+                            await websocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed by client", CancellationToken.None);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggerHelper.Instance.Error(ex);
+            }
+        }
+        private async Task<ApiControllerResponseInfo> OnMessage(ApiControllerRequestInfo model)
+        {
+            model.Path = model.Path.ToLower();
+            if (plugins.TryGetValue(model.Path, out PluginPathCacheInfo plugin) == false)
+            {
+                return new ApiControllerResponseInfo
+                {
+                    Content = $"{model.Path} not exists",
+                    RequestId = model.RequestId,
+                    Path = model.Path,
+                    Code = ApiControllerResponseCodes.NotFound
+                };
+            }
+            if (plugin.HasAccess(plugin.Access) == false)
+            {
+                return new ApiControllerResponseInfo
+                {
+                    Content = "no permission",
+                    RequestId = model.RequestId,
+                    Path = model.Path,
+                    Code = ApiControllerResponseCodes.Error
+                };
+            }
+
+            try
+            {
+                ApiControllerParamsInfo param = new ApiControllerParamsInfo
+                {
+                    RequestId = model.RequestId,
+                    Content = model.Content,
+                    Connection = model.Connection
+                };
+                dynamic resultAsync = plugin.Method.Invoke(plugin.Target, new object[] { param });
+                object resultObject = null;
+                if (plugin.IsVoid == false)
+                {
+                    if (plugin.IsTask)
+                    {
+                        await resultAsync.ConfigureAwait(false);
+                        if (plugin.IsTaskResult)
+                        {
+                            resultObject = resultAsync.Result;
+                        }
+                    }
+                    else
+                    {
+                        resultObject = resultAsync;
+                    }
+                }
+                return new ApiControllerResponseInfo
+                {
+                    Code = param.Code,
+                    Content = param.Code != ApiControllerResponseCodes.Error ? resultObject : param.ErrorMessage,
+                    RequestId = model.RequestId,
+                    Path = model.Path,
+                };
+            }
+            catch (Exception ex)
+            {
+                LoggerHelper.Instance.Error($"{model.Path} -> {ex.Message}");
+                return new ApiControllerResponseInfo
+                {
+                    Content = ex.Message,
+                    RequestId = model.RequestId,
+                    Path = model.Path,
+                    Code = ApiControllerResponseCodes.Error
+                };
+            }
+        }
     }
 
 
@@ -142,5 +289,32 @@ namespace linker.libs.web
             lastModified = File.GetLastWriteTimeUtc(fileName);
             return File.ReadAllBytes(fileName);
         }
+    }
+
+    public struct PluginPathCacheInfo
+    {
+        /// <summary>
+        /// 对象
+        /// </summary>
+        public object Target { get; set; }
+        /// <summary>
+        /// 方法
+        /// </summary>
+        public MethodInfo Method { get; set; }
+        /// <summary>
+        /// 是否void
+        /// </summary>
+        public bool IsVoid { get; set; }
+        /// <summary>
+        /// 是否task
+        /// </summary>
+        public bool IsTask { get; set; }
+        /// <summary>
+        /// 是否task result
+        /// </summary>
+        public bool IsTaskResult { get; set; }
+
+        public int Access { get; set; }
+        public Func<int, bool> HasAccess { get; set; }
     }
 }

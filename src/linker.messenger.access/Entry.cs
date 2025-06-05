@@ -1,4 +1,5 @@
-﻿using linker.messenger.access;
+﻿using linker.libs.web;
+using linker.messenger.access;
 using linker.messenger.decenter;
 using Microsoft.Extensions.DependencyInjection;
 namespace linker.messenger.api
@@ -14,8 +15,8 @@ namespace linker.messenger.api
         }
         public static ServiceProvider UseAccessClient(this ServiceProvider serviceProvider)
         {
-            IApiServer apiServer = serviceProvider.GetService<IApiServer>();
-            apiServer.AddPlugins(new List<libs.api.IApiController> { serviceProvider.GetService<AccessApiController>() });
+            linker.messenger.api.IWebServer apiServer = serviceProvider.GetService<linker.messenger.api.IWebServer>();
+            apiServer.AddPlugins(new List<IApiController> { serviceProvider.GetService<AccessApiController>() });
 
             DecenterClientTransfer decenterClientTransfer = serviceProvider.GetService<DecenterClientTransfer>();
             decenterClientTransfer.AddDecenters(new List<IDecenter> { serviceProvider.GetService<AccessDecenter>() });

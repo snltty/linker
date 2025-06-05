@@ -1,4 +1,5 @@
-﻿using linker.messenger.action;
+﻿using linker.libs.web;
+using linker.messenger.action;
 using linker.messenger.relay.server.validator;
 using linker.messenger.sforward.server.validator;
 using linker.messenger.signin.args;
@@ -17,8 +18,8 @@ namespace linker.messenger.api
         }
         public static ServiceProvider UseActionClient(this ServiceProvider serviceProvider)
         {
-            IApiServer apiServer = serviceProvider.GetService<IApiServer>();
-            apiServer.AddPlugins(new List<libs.api.IApiController> { serviceProvider.GetService<ActionApiController>() });
+            linker.messenger.api.IWebServer apiServer = serviceProvider.GetService<linker.messenger.api.IWebServer>();
+            apiServer.AddPlugins(new List<IApiController> { serviceProvider.GetService<ActionApiController>() });
 
             SignInArgsTransfer signInArgsTransfer = serviceProvider.GetService<SignInArgsTransfer>();
             signInArgsTransfer.AddArgs(new List<ISignInArgs> { serviceProvider.GetService<SignInArgsAction>() });

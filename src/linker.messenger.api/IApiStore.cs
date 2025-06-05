@@ -4,14 +4,9 @@ namespace linker.messenger.api
     public sealed class ApiClientInfo
     {
         /// <summary>
-        /// 管理接口端口
-        /// </summary>
-        public int ApiPort { get; set; } = 1803;
-        /// <summary>
         /// 管理接口密码
         /// </summary>
         public string ApiPassword { get; set; } = Helper.GlobalString;
-
         /// <summary>
         /// 网站端口
         /// </summary>
@@ -32,12 +27,6 @@ namespace linker.messenger.api
         /// <param name="info"></param>
         /// <returns></returns>
         public bool Set(ApiClientInfo info);
-        /// <summary>
-        /// 设置接口端口
-        /// </summary>
-        /// <param name="port"></param>
-        /// <returns></returns>
-        public bool SetApiPort(int port);
         /// <summary>
         /// 设置接口密码
         /// </summary>

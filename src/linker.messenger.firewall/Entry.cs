@@ -1,5 +1,5 @@
 ﻿
-using linker.messenger.api;
+using linker.libs.web;
 using linker.snat;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -23,8 +23,8 @@ namespace linker.messenger.firewall
             IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
             messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<FirewallClientMessenger>() });
 
-            IApiServer apiServer = serviceProvider.GetService<IApiServer>();
-            apiServer.AddPlugins(new List<libs.api.IApiController> { serviceProvider.GetService<FirewallApiController>() });
+            linker.messenger.api.IWebServer apiServer = serviceProvider.GetService<linker.messenger.api.IWebServer>();
+            apiServer.AddPlugins(new List<IApiController> { serviceProvider.GetService<FirewallApiController>() });
 
             return serviceProvider;
         }

@@ -21,7 +21,10 @@
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Description>1. 一些累计更新
-2. 测试发布，请使用1.8.2</Description>
+2. 重建权限存储，ulong改为BitArray，同组所有客户端需保持版本一致
+3. 增加唤醒功能，支持WOL，COM继电器，HID继电器
+4. 基于One-KVM包装docker镜像集成linker
+5. 管理端口改为1804，一个端口托管Web+Websocket</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>

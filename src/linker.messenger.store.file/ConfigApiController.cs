@@ -1,5 +1,4 @@
-﻿using linker.libs.api;
-using linker.libs.extends;
+﻿using linker.libs.extends;
 using System.IO.Compression;
 using linker.libs;
 using linker.messenger.signin;
@@ -8,6 +7,7 @@ using System.Text;
 using linker.messenger.relay.client.transport;
 using System.Text.Json;
 using System.Collections;
+using linker.libs.web;
 namespace linker.messenger.store.file
 {
     public sealed class ConfigApiController : IApiController
@@ -48,7 +48,6 @@ namespace linker.messenger.store.file
                 config.Data.Client.Name = info.Client.Name;
                 config.Data.Client.Groups = new SignInClientGroupInfo[] { new SignInClientGroupInfo { Id = info.Client.GroupId, Name = info.Client.GroupId, Password = info.Client.GroupPassword } };
                 config.Data.Client.CApi.WebPort = info.Client.Web;
-                config.Data.Client.CApi.ApiPort = info.Client.Api;
                 config.Data.Client.CApi.ApiPassword = info.Client.Password;
 
                 if (info.Client.HasServer)
@@ -258,7 +257,6 @@ namespace linker.messenger.store.file
                 client.CApi.ApiPassword = configExportInfo.ApiPassword;
             }
             client.CApi.WebPort = configExportInfo.WebPort;
-            client.CApi.ApiPort = configExportInfo.ApiPort;
 
             client.AccessBits = accessStore.AssignAccess(configExportInfo.Access);
 
@@ -321,7 +319,6 @@ namespace linker.messenger.store.file
         public string GroupId { get; set; }
         public string GroupPassword { get; set; }
 
-        public int Api { get; set; }
         public int Web { get; set; }
         public string Password { get; set; }
 
@@ -370,7 +367,6 @@ namespace linker.messenger.store.file
         public string Name { get; set; }
         public string ApiPassword { get; set; }
         public int WebPort { get; set; }
-        public int ApiPort { get; set; }
         public bool Single { get; set; }
         public BitArray Access { get; set; }
 

@@ -8,6 +8,7 @@ using System.Text.Json;
 using linker.tunnel.connection;
 using linker.messenger.signin.args;
 using linker.messenger.sync;
+using linker.libs.web;
 namespace linker.messenger.tunnel
 {
     public static class Entry
@@ -55,8 +56,8 @@ namespace linker.messenger.tunnel
             DecenterClientTransfer decenterClientTransfer = serviceProvider.GetService<DecenterClientTransfer>();
             decenterClientTransfer.AddDecenters(new List<IDecenter> { serviceProvider.GetService<TunnelDecenter>() });
 
-            IApiServer apiServer = serviceProvider.GetService<IApiServer>();
-            apiServer.AddPlugins(new List<libs.api.IApiController> { serviceProvider.GetService<TunnelApiController>() });
+            linker.messenger.api.IWebServer apiServer = serviceProvider.GetService<linker.messenger.api.IWebServer>();
+            apiServer.AddPlugins(new List<IApiController> { serviceProvider.GetService<TunnelApiController>() });
 
 
             ExRouteTransfer exRouteTransfer = serviceProvider.GetService<ExRouteTransfer>();

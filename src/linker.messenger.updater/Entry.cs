@@ -1,4 +1,4 @@
-﻿using linker.messenger.api;
+﻿using linker.libs.web;
 using linker.messenger.sync;
 using Microsoft.Extensions.DependencyInjection;
 namespace linker.messenger.updater
@@ -30,8 +30,8 @@ namespace linker.messenger.updater
             SyncTreansfer syncTransfer = serviceProvider.GetService<SyncTreansfer>();
             syncTransfer.AddSyncs(new List<ISync> { serviceProvider.GetService<UpdaterConfigSyncSecretKey>() });
 
-            IApiServer apiServer = serviceProvider.GetService<IApiServer>();
-            apiServer.AddPlugins(new List<libs.api.IApiController> { serviceProvider.GetService<UpdaterApiController>() });
+            linker.messenger.api.IWebServer apiServer = serviceProvider.GetService<linker.messenger.api.IWebServer>();
+            apiServer.AddPlugins(new List<IApiController> { serviceProvider.GetService<UpdaterApiController>() });
 
             return serviceProvider;
         }

@@ -1,6 +1,5 @@
-﻿using linker.libs.api;
+﻿using linker.libs.web;
 using Microsoft.Extensions.DependencyInjection;
-using IApiServer = linker.messenger.api.IApiServer;
 namespace linker.messenger.sync
 {
     public static class Entry
@@ -17,7 +16,7 @@ namespace linker.messenger.sync
             IMessengerResolver messengerResolver= serviceProvider.GetService<IMessengerResolver>();
             messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<SyncClientMessenger>() });
 
-            IApiServer apiServer = serviceProvider.GetService<IApiServer>();
+            linker.messenger.api.IWebServer apiServer = serviceProvider.GetService<linker.messenger.api.IWebServer>();
             apiServer.AddPlugins(new List<IApiController> { serviceProvider.GetService<SyncApiController>() });
 
             return serviceProvider;

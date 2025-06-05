@@ -1,28 +1,15 @@
 import { ElMessage } from 'element-plus'
 
-let requestId = 0, ws = null, wsUrl = '', index = 1, apiPassword = '';
-//请求缓存，等待回调
+let requestId = 0, ws = null, wsUrl = '', index = 1, apiPassword = 'snltty';
 const requests = {};
-const queues = [];
 export const websocketState = { connected: false, connecting: false };
-
-const sendQueueMsg = () => {
-    if (queues.length > 0 && websocketState.connected && ws && ws.readyState == 1) {
-        try {
-            ws.send(queues.shift());
-        } catch (e) { }
-    }
-    setTimeout(sendQueueMsg, 1000 / 60);
-}
-//sendQueueMsg();
-
 
 const sendTimeout = () => {
     const time = Date.now();
     for (let j in requests) {
         const item = requests[j];
         if (time - item.time > item.timeout) {
-            item.reject('超时~');
+            item.reject(`超时:${JSON.stringify(item)}`);
             delete requests[j];
         }
     }
@@ -30,8 +17,6 @@ const sendTimeout = () => {
 }
 sendTimeout();
 
-
-//发布订阅
 export const pushListener = {
     subs: {
     },
@@ -59,10 +44,10 @@ export const pushListener = {
     }
 }
 
-//消息处理
 const onWebsocketOpen = () => {
     websocketState.connected = true;
     websocketState.connecting = false;
+    sendWebsocketMsg('password',apiPassword || 'snltty');
     pushListener.push(websocketStateChangeKey, websocketState.connected);
 }
 const onWebsocketClose = (e) => {
@@ -125,8 +110,7 @@ export const initWebsocket = (url = wsUrl, password = apiPassword) => {
         ws.close();
     }
     websocketState.connecting = true;
-    const protocol = password || 'snltty';
-    ws = new WebSocket(wsUrl, [protocol]);
+    ws = new WebSocket(wsUrl);
     ws.iddd = ++index;
     ws.onopen = onWebsocketOpen;
     ws.onclose = onWebsocketClose
@@ -140,8 +124,6 @@ export const closeWebsocket = () => {
         ws.close();
     }
 }
-
-//发送消息
 export const sendWebsocketMsg = (path, msg = {}, errHandle = false, timeout = 15000) => {
     return new Promise((resolve, reject) => {
         let id = ++requestId;
@@ -164,7 +146,6 @@ export const sendWebsocketMsg = (path, msg = {}, errHandle = false, timeout = 15
         }
     });
 }
-
 
 const websocketStateChangeKey = Symbol();
 export const subWebsocketState = (callback) => {

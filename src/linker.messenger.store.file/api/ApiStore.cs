@@ -24,12 +24,6 @@ namespace linker.messenger.store.file.api
             return true;
         }
 
-        public bool SetApiPort(int port)
-        {
-            fileConfig.Data.Client.CApi.ApiPort = port;
-            return true;
-        }
-
         public bool SetApiPassword(string password)
         {
             fileConfig.Data.Client.CApi.ApiPassword = password;
