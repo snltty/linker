@@ -39,7 +39,11 @@
                                     <el-option :value="item" :label="item" v-for="(item,index) in state.coms"></el-option>
                                 </el-select>
                             </el-col>
-                            <el-col :span="12"></el-col>
+                            <el-col :span="12">
+                                <el-form-item :label="$t('wakeup.road')" prop="road">
+                                    <el-input v-model="state.ruleForm.Data.road" />
+                                </el-form-item>
+                            </el-col>
                         </el-row>
                     </el-form-item>
                     <el-form-item label=" ">{{ $t('wakeup.valueComText') }}</el-form-item>
@@ -52,7 +56,11 @@
                                     <el-option :value="item" :label="item" v-for="(item,index) in state.hids"></el-option>
                                 </el-select>
                             </el-col>
-                            <el-col :span="12"></el-col>
+                            <el-col :span="12">
+                                <el-form-item :label="$t('wakeup.road')" prop="road">
+                                    <el-input v-model="state.ruleForm.Data.road" />
+                                </el-form-item>
+                            </el-col>
                         </el-row>
                     </el-form-item>
                     <el-form-item label=" ">{{ $t('wakeup.valueHidText') }}</el-form-item>
@@ -99,6 +107,7 @@ export default {
                     value1:add.value.Data.Type == 1 ? add.value.Data.Value : '',
                     value2:add.value.Data.Type == 2 ? add.value.Data.Value : '',
                     value4:add.value.Data.Type == 4 ? add.value.Data.Value : '',
+                    road: add.value.Data.Type == 2 ||  add.value.Data.Type == 4 ? add.value.Data.Content || '1' : ''
                 }
             },
             rules:{
@@ -128,6 +137,17 @@ export default {
                         callback();
                     }
                 }, trigger: "blur" }],
+                road: [{ validator:(rule,value,callback)=>{
+                    if(state.ruleForm.Data.Type == 2 || state.ruleForm.Data.Type ==4){
+                        if (rule.pattern.test(value)) {
+                            callback();
+                        } else {
+                            callback(new Error('failed'));
+                        }
+                    }else{
+                        callback();
+                    }
+                },pattern:/^[0-9]{1,}$/, trigger: "blur" }],
 
             },
             coms:[],
@@ -136,8 +156,7 @@ export default {
                 {label:t('wakeup.typeWol'),value:1},
                 {label:t('wakeup.typeCom'),value:2},
                 {label:t('wakeup.typeHid'),value:4},
-            ],
-
+            ]
         });
         watch(() => state.show, (val) => {
             if (!val) {
@@ -157,7 +176,9 @@ export default {
                         Name:state.ruleForm.Data.Name.replace(/^\s|\s$/g,''),
                         Type:state.ruleForm.Data.Type,
                         Value:state.ruleForm.Data[`value${state.ruleForm.Data.Type}`].replace(/^\s|\s$/g,''),
-                        Remark:(state.ruleForm.Data.Remark || '').replace(/^\s|\s$/g,'')
+                        Remark:(state.ruleForm.Data.Remark || '').replace(/^\s|\s$/g,''),
+                        Content:state.ruleForm.Data.Type == 2 || state.ruleForm.Data.Type == 4 
+                        ? state.ruleForm.Data.road : ''
                     }
                 };
                 addWakeup(json).then(()=>{

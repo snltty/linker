@@ -382,6 +382,7 @@ export default {
     'wakeup.type4':'🚨HID',
     'wakeup.name':'名称',
     'wakeup.value':'值',
+    'wakeup.road':'通道',
     'wakeup.valueMac':'MAC地址',
     'wakeup.valueCom':'COM',
     'wakeup.valueComText':'LCUS COM，波特率9600，数据位长度8，奇偶校验无，停止位1，',

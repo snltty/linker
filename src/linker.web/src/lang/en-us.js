@@ -287,6 +287,7 @@ export default {
     'wakeup.type4':'🚨HID',
     'wakeup.name':'Name',
     'wakeup.value':'Value',
+    'wakeup.road':'Road',
     'wakeup.valueMac':'MAC Addr',
     'wakeup.valueCom':'COM',
     'wakeup.valueComText':'LCUS COM，Baud Rate 9600，Data bits 8，Parity None，StopBits 1，',

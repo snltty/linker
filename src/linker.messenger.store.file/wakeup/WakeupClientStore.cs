@@ -44,6 +44,7 @@ namespace linker.messenger.store.file.wakeup
                     Name = rule.Name,
                     Type = rule.Type,
                     Value = rule.Value,
+                    Content = rule.Content,
                     Remark = rule.Remark
                 }, c => c.Id == rule.Id) > 0;
             }

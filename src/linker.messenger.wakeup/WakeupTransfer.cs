@@ -133,13 +133,15 @@ namespace linker.messenger.wakeup
         {
             try
             {
+                byte road = byte.Parse(info.Content);
+
                 SerialDevice device = HidSharp.DeviceList.Local.GetSerialDevices().FirstOrDefault(c => c.DevicePath == info.Value);
                 using SerialStream stream = device.Open();
 
-                stream.Write([0xA0, 0x01, 0x01, 0xA2]);
+                stream.Write([0xA0, road, 0x01, (byte)(0xA0 + road + 0x01)]);
                 stream.Flush();
                 await Task.Delay(info.Ms);
-                stream.Write([0xA0, 0x01, 0x00, 0xA1]);
+                stream.Write([0xA0, road, 0x00, (byte)(0xA0 + road + 0x00)]);
                 stream.Flush();
 
                 return true;
@@ -158,13 +160,14 @@ namespace linker.messenger.wakeup
         {
             try
             {
+                byte road = byte.Parse(info.Content);
                 HidDevice device = HidSharp.DeviceList.Local.GetHidDevices().FirstOrDefault(c => c.DevicePath == info.Value);
                 using HidStream stream = device.Open();
 
-                stream.Write([0x00, 0xA0, 0x01, 0x01, 0xA2]);
+                stream.Write([0x00, 0xA0, road, 0x01, (byte)(0xA0 + road + 0x01)]);
                 stream.Flush();
                 await Task.Delay(info.Ms);
-                stream.Write([0x00, 0xA0, 0x01, 0x00, 0xA1]);
+                stream.Write([0x00, 0xA0, road, 0x00, (byte)(0xA0 + road + 0x00)]);
                 stream.Flush();
 
                 return true;
