@@ -32,7 +32,7 @@
         <Stopwatch v-if="flow.show" v-model="flow.show" ></Stopwatch>
         <OperRoutes v-if="oper.showRoutes" v-model="oper.showRoutes" ></OperRoutes>
         <OperFirewall v-if="oper.showFirewall" v-model="oper.showFirewall" ></OperFirewall>
-        <OperWakeup v-if="oper.showWakeup" v-model="oper.showFirewall" ></OperWakeup>
+        <OperWakeup v-if="oper.showWakeup" v-model="oper.showWakeup" ></OperWakeup>
     </div>
 </template>
 <script>
