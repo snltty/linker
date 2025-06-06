@@ -25,8 +25,6 @@ namespace linker.tun
         {
             if (OperatingSystem.IsWindows() == false) return;
 
-           
-
             if (address == null || address.Equals(IPAddress.Any) || prefixLength == 0)
             {
                 error = "SNAT need CIDR,like 10.18.18.0/24";
@@ -75,8 +73,5 @@ namespace linker.tun
 
             return linkerSrcNat.Inject(packet) == false;
         }
-
-
-        
     }
 }

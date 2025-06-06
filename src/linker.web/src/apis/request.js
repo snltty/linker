@@ -78,6 +78,7 @@ export const onWebsocketMsg = (msg) => {
 }
 const pushMessage = (json) => {
     let callback = requests[json.RequestId];
+    delete requests[json.RequestId];
     if (callback) {
         if (json.Code == 0) {
             if(json.Path == 'password' && json.Content == 'password ok'){
@@ -99,7 +100,6 @@ const pushMessage = (json) => {
         } else {
             pushListener.push(json.Path, json.Content);
         }
-        delete requests[json.RequestId];
     } else {
         pushListener.push(json.Path, json.Content);
     }
@@ -132,10 +132,7 @@ export const sendWebsocketMsg = (path, msg = {}, errHandle = false, timeout = 15
     return new Promise((resolve, reject) => {
         let id = ++requestId;
         try {
-            if(websocketState.connected)
-            {
-                requests[id] = { resolve, reject, errHandle, path, time: Date.now(), timeout: timeout };
-            }
+            requests[id] = { resolve, reject, errHandle, path, time: Date.now(), timeout: timeout };
             let str = JSON.stringify({
                 Path: path,
                 RequestId: id,
