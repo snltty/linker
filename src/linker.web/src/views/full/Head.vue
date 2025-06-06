@@ -23,7 +23,7 @@
                     <li v-if="hasFirewall">
                         <router-link :to="{name:'FullFirewall'}"><img src="@/assets/anquan.svg"/><span>{{$t('head.firewall')}}</span></router-link>
                     </li>
-                     <li v-if="hasFirewall">
+                    <li v-if="hasWakeupSelf">
                         <router-link :to="{name:'FullWakeup'}"><img src="@/assets/qidong.svg"/><span>{{$t('head.wakeup')}}</span></router-link>
                     </li>
                     <li v-if="hasLogger">
@@ -45,6 +45,9 @@
                     </li>
                      <li v-if="hasFirewall && route.name == 'FullFirewall'">
                         <router-link :to="{name:'FullFirewall'}"><img src="@/assets/anquan.svg"/><span>{{$t('head.firewall')}}</span></router-link>
+                    </li>
+                      <li v-if="hasWakeupSelf && route.name == 'FullWakeup'">
+                        <router-link :to="{name:'FullWakeup'}"><img src="@/assets/qidong.svg"/><span>{{$t('head.wakeup')}}</span></router-link>
                     </li>
                     <li v-if="hasLogger && route.name == 'FullLogger'">
                         <router-link :to="{name:'FullLogger'}"><img src="@/assets/rizhi.svg"/> <span>{{$t('head.logger')}}</span></router-link>
@@ -73,6 +76,9 @@
                             </el-dropdown-item>
                             <el-dropdown-item v-if="hasFirewall">
                                 <router-link :to="{name:'FullFirewall'}"><img src="@/assets/anquan.svg"   height="20" style="vertical-align: text-top;"/> {{$t('head.firewall')}}</router-link>
+                            </el-dropdown-item>
+                            <el-dropdown-item v-if="hasWakeupSelf">
+                                <router-link :to="{name:'FullWakeup'}"><img src="@/assets/qidong.svg"   height="20" style="vertical-align: text-top;"/> {{$t('head.wakeup')}}</router-link>
                             </el-dropdown-item>
                             <el-dropdown-item v-if="hasLogger">
                                 <router-link :to="{name:'FullLogger'}"><img src="@/assets/rizhi.svg"  height="20" style="vertical-align: text-top;"/> {{$t('head.logger')}}</router-link>
@@ -123,6 +129,7 @@ export default {
         const hasAction = computed(()=>globalData.value.hasAccess('Action')); 
         const hasGroup = computed(()=>globalData.value.hasAccess('Group'));
         const hasFirewall = computed(()=>globalData.value.hasAccess('FirewallSelf'));
+        const hasWakeupSelf = computed(()=>globalData.value.hasAccess('WakeupSelf'));
         
 
         const localeOptions = ref(LOCALE_OPTIONS);
@@ -145,7 +152,7 @@ export default {
 
         return {
             route,globalData,hasConfig,hasGroup,
-            hasLogger,hasTransport,hasAction,hasFirewall,localeOptions,locale,handleLocale,refresh
+            hasLogger,hasTransport,hasAction,hasFirewall,hasWakeupSelf,localeOptions,locale,handleLocale,refresh
         }
     }
 }
