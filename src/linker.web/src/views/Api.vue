@@ -8,7 +8,7 @@
             <div class="pdt-10">
                 秘钥 : <el-input show-password type="password" v-model="state.psd" style="width:70%" @keyup.enter="handleConnect1"></el-input>
             </div>
-            <div class="pdt-10">
+            <div>
                 <el-checkbox v-model="state.save" >保存密码</el-checkbox>
             </div>
         </div>

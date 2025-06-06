@@ -45,10 +45,7 @@ export const pushListener = {
 }
 
 const onWebsocketOpen = () => {
-    websocketState.connected = true;
-    websocketState.connecting = false;
     sendWebsocketMsg('password',apiPassword || 'snltty');
-    pushListener.push(websocketStateChangeKey, websocketState.connected);
 }
 const onWebsocketClose = (e) => {
     websocketState.connected = false;
@@ -83,7 +80,14 @@ const pushMessage = (json) => {
     let callback = requests[json.RequestId];
     if (callback) {
         if (json.Code == 0) {
-            callback.resolve(json.Content);
+            if(json.Path == 'password' && json.Content == 'password ok'){
+                websocketState.connected = true;
+                websocketState.connecting = false;
+                pushListener.push(websocketStateChangeKey, websocketState.connected);
+            }
+            else{
+                callback.resolve(json.Content);
+            }
         } else if (json.Code == 1) {
             callback.reject(json.Content);
         }
@@ -128,20 +132,20 @@ export const sendWebsocketMsg = (path, msg = {}, errHandle = false, timeout = 15
     return new Promise((resolve, reject) => {
         let id = ++requestId;
         try {
-            requests[id] = { resolve, reject, errHandle, path, time: Date.now(), timeout: timeout };
+            if(websocketState.connected)
+            {
+                requests[id] = { resolve, reject, errHandle, path, time: Date.now(), timeout: timeout };
+            }
             let str = JSON.stringify({
                 Path: path,
                 RequestId: id,
                 Content: typeof msg == 'string' ? msg : JSON.stringify(msg)
             });
-            if (websocketState.connected && ws.readyState == 1) {
+            if (ws.readyState == 1) {
                 ws.send(str);
-            } else {
-                reject('网络错误~');
             }
         } catch (e) {
             console.log(e);
-            reject('网络错误~');
             delete requests[id];
         }
     });

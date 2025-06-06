@@ -92,6 +92,8 @@ namespace linker.snat
             if (defaultInterfaceIP == null)
             {
                 error = "SNAT get default interface id fail";
+                string routes = CommandHelper.Windows(string.Empty, new string[] { $"route print" });
+                LoggerHelper.Instance.Error(routes);
                 return false;
             }
             interfaceAddrs = GetInterfaces();
