@@ -18,8 +18,7 @@ namespace linker.messenger.serializer.memorypack
             }
 
             //最多 IPV6 16byte + 端口 2byte + 头部 4byte
-            Memory<byte> memory = new byte[22];
-            Span<byte> span = memory.Span;
+            Span<byte> span = stackalloc byte[22];
             int index = 1;
 
             value.Address.TryWriteBytes(span.Slice(index), out int bytesWritten);
@@ -27,7 +26,7 @@ namespace linker.messenger.serializer.memorypack
             span[0] = (byte)bytesWritten;
 
             ushort port = (ushort)value.Port;
-            port.ToBytes(memory.Slice(index));
+            port.ToBytes(span.Slice(index));
             index += 2;
 
             writer.WriteCollectionHeader(index + 4);

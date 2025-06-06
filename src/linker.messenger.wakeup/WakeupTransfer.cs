@@ -3,6 +3,8 @@ using linker.libs;
 using linker.libs.extends;
 using System.Net;
 using System.Net.Sockets;
+using static linker.libs.winapis.User32;
+using System.Text.RegularExpressions;
 
 namespace linker.messenger.wakeup
 {
@@ -77,7 +79,7 @@ namespace linker.messenger.wakeup
             {
                 return info.Type switch
                 {
-                    WakeupType.Wol => await SendWol(info),
+                    WakeupType.Wol => SendWol(info),
                     WakeupType.Com => await SendCom(info),
                     WakeupType.Hid => await SendHid(info),
                     _ => false
@@ -92,33 +94,40 @@ namespace linker.messenger.wakeup
             }
             return false;
         }
-        private async Task<bool> SendWol(WakeupSendInfo info)
+        private bool SendWol(WakeupSendInfo info)
         {
             try
             {
-                string macAddress = info.Value.Replace(":", "").Replace("-", "").Replace(" ", "").ToUpper();
+                //MAC地址格式：XX:XX:XX:XX:XX:XX 或者 XX-XX-XX-XX-XX-XX 或者 XXXXXXXXXXXX 转字节数组
+                ReadOnlySpan<char> macAddress = info.Value.AsSpan();
+                Span<byte> macBytes = stackalloc byte[6];
+                int byteIndex = 0;
+                for (int i = 0; i < macAddress.Length && byteIndex < 6; i++)
+                {
+                    char c = macAddress[i];
+                    if (char.IsAsciiHexDigit(c))
+                    {
+                        if (i + 1 < macAddress.Length && char.IsAsciiHexDigit(macAddress[i + 1]))
+                        {
+                            macBytes[byteIndex++] = (byte)((HexToNibble(c) << 4) | HexToNibble(macAddress[i + 1]));
+                            i++;
+                        }
+                    }
+                }
+
+                Span<byte> magicPacket = stackalloc byte[102];
+                //6个连续的0xFF
+                stackalloc byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }.CopyTo(magicPacket.Slice(0, 6));
+                //16个重复的MAC地址
+                for (int i = 1; i <= 16; i++)
+                {
+                    macBytes.CopyTo(magicPacket.Slice(i * 6, 6));
+                }
 
                 using UdpClient client = new UdpClient();
                 client.EnableBroadcast = true;
                 client.Client.WindowsUdpBug();
-
-                byte[] macBytes = Enumerable.Range(0, macAddress.Length)
-                    .Where(x => x % 2 == 0)
-                    .Select(x => Convert.ToByte(macAddress.Substring(x, 2), 16))
-                    .ToArray();
-
-                byte[] magicPacket = new byte[102];
-                for (int i = 0; i < 6; i++)
-                {
-                    magicPacket[i] = 0xFF;
-                }
-                for (int i = 1; i <= 16; i++)
-                {
-                    Array.Copy(macBytes, 0, magicPacket, i * 6, 6);
-                }
-
-                IPEndPoint endPoint = new IPEndPoint(IPAddress.Parse("255.255.255.255"), 9);
-                await client.SendAsync(magicPacket, magicPacket.Length, endPoint);
+                client.Send(magicPacket, new IPEndPoint(IPAddress.Parse("255.255.255.255"), 9));
             }
             catch (Exception ex)
             {
@@ -129,6 +138,16 @@ namespace linker.messenger.wakeup
             }
             return false;
         }
+        private static byte HexToNibble(char c)
+        {
+            return (byte)(char.ToUpperInvariant(c) switch
+            {
+                >= '0' and <= '9' => c - '0',
+                >= 'A' and <= 'F' => c - 'A' + 10,
+                _ => throw new FormatException($"Invalid hex character: {c}")
+            });
+        }
+
         private async Task<bool> SendCom(WakeupSendInfo info)
         {
             try

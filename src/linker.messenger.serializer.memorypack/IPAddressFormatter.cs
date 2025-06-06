@@ -17,8 +17,7 @@ namespace linker.messenger.serializer.memorypack
             }
 
             //最多是IPV6 16字节+加头部4字节
-            Memory<byte> memory = new byte[20];
-            Span<byte> span = memory.Span;
+            Span<byte> span = stackalloc byte[20];
 
             value.TryWriteBytes(span.Slice(1), out int bytesWritten);
 

@@ -140,15 +140,19 @@ namespace linker.libs.extends
         {
             return BitConverter.GetBytes(num);
         }
-        public static unsafe void ToBytes(this ushort value, Memory<byte> memory)
+        public static unsafe void ToBytes(this ushort value, Span<byte> span)
         {
             ref ushort v = ref value;
             fixed (void* p = &v)
             {
-                var span = new Span<byte>(p, sizeof(ushort));
-                memory.Span[0] = span[0];
-                memory.Span[1] = span[1];
+                var _span = new Span<byte>(p, sizeof(ushort));
+                span[0] = _span[0];
+                span[1] = _span[1];
             }
+        }
+        public static unsafe void ToBytes(this ushort value, Memory<byte> memory)
+        {
+            value.ToBytes(memory.Span);
         }
         public static unsafe void ToBytes(this ushort[] value, Memory<byte> memory)
         {

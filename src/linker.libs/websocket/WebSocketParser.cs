@@ -87,7 +87,7 @@ namespace linker.libs.websocket
         /// <returns></returns>
         public static string BuildSecWebSocketKey()
         {
-            byte[] bytes = new byte[16];
+            Span<byte> bytes = stackalloc byte[16];
             Random random = new Random(DateTime.Now.Ticks.GetHashCode());
             for (int i = 0; i < bytes.Length; i++)
             {

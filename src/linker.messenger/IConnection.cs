@@ -183,7 +183,7 @@ namespace linker.messenger
         {
             length = 2;
             responseData = ArrayPool<byte>.Shared.Rent(length);
-            num.ToBytes(responseData);
+            num.ToBytes(responseData.AsSpan());
             ResponseData = responseData.AsMemory(0, length);
         }
         public void Write(ushort[] nums)
