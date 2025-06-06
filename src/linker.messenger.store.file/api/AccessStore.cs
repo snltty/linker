@@ -1,4 +1,4 @@
-﻿using linker.libs;
+﻿using linker.libs.extends;
 using linker.messenger.api;
 using System.Collections;
 
@@ -21,14 +21,9 @@ namespace linker.messenger.store.file.api
         /// <param name="info"></param>
         public void SetAccess(AccessBitsUpdateInfo info)
         {
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                LoggerHelper.Instance.Debug($"from {info.FromMachineId} set access to {info.Access},my access {AccessBits}");
-
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                LoggerHelper.Instance.Debug($"from {info.FromMachineId} set access to {info.Access} success");
+            fileConfig.Data.Client.FullAccess = info.FullAccess;
             fileConfig.Data.Client.AccessBits = info.Access;
             fileConfig.Data.Update();
-
             OnChanged();
         }
 
@@ -39,22 +34,14 @@ namespace linker.messenger.store.file.api
         /// <returns></returns>
         public BitArray AssignAccess(BitArray access)
         {
-            if (AccessBits.Length != access.Length)
+            if (AccessBits.Count != access.Length)
             {
-                int maxLength = Math.Max(AccessBits.Length, access.Length);
-                int[] newArray = new int[maxLength];
+                int maxLength = Math.Max(AccessBits.Count, access.Length);
 
-                if (AccessBits.Length != maxLength)
-                {
-                    AccessBits.CopyTo(newArray, 0);
-                    fileConfig.Data.Client.AccessBits = new BitArray(newArray);
-                    fileConfig.Data.Update();
-                }
-                else
-                {
-                    access.CopyTo(newArray, 0);
-                    access = new BitArray(newArray);
-                }
+                fileConfig.Data.Client.AccessBits = AccessBits.PadRight(maxLength, fileConfig.Data.Client.FullAccess);
+                fileConfig.Data.Update();
+
+                access = access.PadRight(maxLength, false);
             }
 
             return access.And(AccessBits);
@@ -68,7 +55,7 @@ namespace linker.messenger.store.file.api
         public bool HasAccess(AccessValue access)
         {
             int index = (int)access;
-            return AccessBits.HasAllSet() || (AccessBits.Length > index && AccessBits.Get(index));
+            return fileConfig.Data.Client.FullAccess || (AccessBits.Count > index && AccessBits.Get(index));
         }
     }
 }

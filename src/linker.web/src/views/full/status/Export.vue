@@ -131,8 +131,10 @@ export default {
                 ElMessage.success('无权限');
                 return;
             }
+            const access = accessDom.value.getValue();
             const json = {
-                access:accessDom.value.getValue(),
+                access:access[0],
+                fullAccess:access[1],
                 single:state.single,
                 name:state.name,
                 apipassword:state.apipassword,

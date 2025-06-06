@@ -1,4 +1,5 @@
-﻿using linker.messenger.api;
+﻿using linker.libs.extends;
+using linker.messenger.api;
 using System.Collections;
 using System.Reflection;
 
@@ -37,24 +38,32 @@ namespace linker.messenger.store.file
                 return accesss;
             }
         }
+
+        [SaveJsonIgnore]
+        public long Access { get; set; } = -2;
+
         /// <summary>
         /// 管理权限
         /// </summary>
-        public long Access { get; set; } = -1;
-
+        public bool FullAccess { get; set; } = true;
         private BitArray accessBits;
         public BitArray AccessBits
         {
             get
             {
-                if (Access != -1)
+                if (Access != -2)
                 {
                     accessBits = new BitArray(Convert.ToString(Access, 2).Reverse().Select(c => c == '1').ToArray());
-                    Access = -1;
+                    FullAccess = accessBits.HasAllSet();
+                    Access = -2;
                 }
-                else if (accessBits == null)
+                if (accessBits == null)
                 {
-                    accessBits = new BitArray(Accesss.Count,true);
+                    accessBits = new BitArray(Accesss.Count, FullAccess);
+                }
+                else if (accessBits.Count < Accesss.Count)
+                {
+                    accessBits = accessBits.PadRight(Accesss.Count, FullAccess);
                 }
                 return accessBits;
             }

@@ -149,8 +149,6 @@ namespace linker.messenger.api
         WakeupSelf = 46,
         [AccessDisplay("唤醒所有设备")]
         WakeupOther = 47,
-
-        Obsolete = -1,
     }
 
     public sealed class AccessTextInfo
@@ -188,6 +186,10 @@ namespace linker.messenger.api
         /// 权限
         /// </summary>
         public BitArray Access { get; set; }
+        /// <summary>
+        /// 顶级满权限
+        /// </summary>
+        public bool FullAccess { get; set; }
     }
 
     public sealed partial class AccessInfo

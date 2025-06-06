@@ -3,6 +3,9 @@
         <el-col :span="8">
             <el-checkbox v-model="state.checkAll" @change="handleCheckAllChange" label="全选" :indeterminate="state.isIndeterminate" />
         </el-col>
+        <el-col :span="8" v-if="globalData.config.Client.FullAccess">
+            <el-checkbox v-model="state.full" ><span class="red">满权限(顶级管理权)</span></el-checkbox>
+        </el-col>
     </el-row>
     <div class="access-wrap scrollbar" :style="{height:`${state.height}rem`}">
         <el-checkbox-group v-model="state.checkList" @change="handleCheckedChange">
@@ -61,6 +64,7 @@ export default {
                 globalData.value.config.Client.Accesss.WakeupSelf.Value,
             ],
             checkAll:false,
+            full:false,
             isIndeterminate:false
         });
 
@@ -72,7 +76,7 @@ export default {
             for(let i = 0; i < arr.length;i++){
                 arr[i] = arr[i] || '0';
             }
-            return arr.join('');
+            return [arr.join(''),state.full];
         }
         const handleCheckedChange = (value)=>{
             const checkedCount = value.length;
@@ -98,7 +102,7 @@ export default {
             handleCheckedChange(state.checkList);
         })
 
-        return {state,access,getValue,handleCheckAllChange,handleCheckedChange};
+        return {globalData,state,access,getValue,handleCheckAllChange,handleCheckedChange};
     }
 }
 </script>

@@ -14,7 +14,7 @@ export const provideGlobalData = () => {
         //配置信息
         config: {
             Common: {},
-            Client: { Servers: [], Accesss: {} },
+            Client: { Servers: [], Accesss: {},AccessBits:'' },
             Server: {},
             Running: {
                 Relay: { Servers: [] },
@@ -29,12 +29,9 @@ export const provideGlobalData = () => {
         bufferSize: ['1KB', '2KB', '4KB', '8KB', '16KB', '32KB', '64KB', '128KB', '256KB', '512KB', '1024KB'],
         self: {}, //本机
         hasAccess(name) {
-            if (this.config.Client.Accesss[name] == undefined) {
-                return false;
-            }
-            const value = this.config.Client.Accesss[name].Value;
-            const access = this.config.Client.AccessBits || '';
-            return access[value] == '1';
+            if(this.config.Client.FullAccess) return true;
+            if (this.config.Client.Accesss[name] == undefined) return false;
+            return this.config.Client.AccessBits[this.config.Client.Accesss[name].Value] == '1';
         }
     });
     subWebsocketState((state) => {

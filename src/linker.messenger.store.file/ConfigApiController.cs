@@ -259,7 +259,7 @@ namespace linker.messenger.store.file
             client.CApi.WebPort = configExportInfo.WebPort;
 
             client.AccessBits = accessStore.AssignAccess(configExportInfo.Access);
-
+            client.FullAccess = configExportInfo.FullAccess && config.Data.Client.FullAccess;
 
             if (configExportInfo.Relay) client.Relay = new RelayClientInfo { Servers = new RelayServerInfo[] { client.Relay.Servers[0] } };
             else client.Relay = new RelayClientInfo { Servers = new RelayServerInfo[] { new RelayServerInfo { } } };
@@ -369,6 +369,7 @@ namespace linker.messenger.store.file
         public int WebPort { get; set; }
         public bool Single { get; set; }
         public BitArray Access { get; set; }
+        public bool FullAccess { get; set; }
 
         public bool Relay { get; set; }
         public bool SForward { get; set; }

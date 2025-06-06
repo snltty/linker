@@ -35,9 +35,11 @@ export default {
         const accessDom = ref(null);
         const handleSave = () => {
             state.loading = true;
+            const access = accessDom.value.getValue();
             setAccess({
                 ToMachineId:props.data.MachineId,
-                Access:accessDom.value.getValue()
+                Access:access[0],
+                FullAccess:access[1]
             }).then(() => {
                 state.loading = false;
                 state.show = false;
