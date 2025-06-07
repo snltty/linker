@@ -152,6 +152,7 @@ export default {
                 Data:{
                     Id:  row.Id,
                     Value:  row.Value,
+                    Content:  row.Content,
                     Type:  row.Type,
                     Ms:ms
                 }
