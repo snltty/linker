@@ -15,6 +15,6 @@ export const sendWakeup = (data) => {
 export const getWakeupComs = (data) => {
     return sendWebsocketMsg('wakeup/comnames',data);
 }
-export const getWakeupHids = () => {
+export const getWakeupHids = (data) => {
     return sendWebsocketMsg('wakeup/hidids',data);
 }

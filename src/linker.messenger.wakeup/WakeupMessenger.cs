@@ -56,11 +56,19 @@ namespace linker.messenger.wakeup
             _ = wakeupTransfer.Send(info);
         }
 
+        /// <summary>
+        /// 获取com列表
+        /// </summary>
+        /// <param name="connection"></param>
         [MessengerId((ushort)WakeupMessengerIds.Coms)]
         public void Coms(IConnection connection)
         {
             connection.Write(serializer.Serialize(wakeupTransfer.ComNames()));
         }
+        /// <summary>
+        /// 获取hid列表
+        /// </summary>
+        /// <param name="connection"></param>
         [MessengerId((ushort)WakeupMessengerIds.Hids)]
         public void Hids(IConnection connection)
         {
@@ -157,6 +165,11 @@ namespace linker.messenger.wakeup
             }
         }
 
+        /// <summary>
+        /// 命令转发
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
         [MessengerId((ushort)WakeupMessengerIds.SendForward)]
         public async Task SendForward(IConnection connection)
         {
@@ -174,7 +187,10 @@ namespace linker.messenger.wakeup
         }
 
 
-
+        /// <summary>
+        /// 获取com列表转发
+        /// </summary>
+        /// <param name="connection"></param>
         [MessengerId((ushort)WakeupMessengerIds.ComsForward)]
         public void ComsForward(IConnection connection)
         {
@@ -206,6 +222,10 @@ namespace linker.messenger.wakeup
             }
         }
 
+        /// <summary>
+        /// 获取hid列表转发
+        /// </summary>
+        /// <param name="connection"></param>
         [MessengerId((ushort)WakeupMessengerIds.HidsForward)]
         public void HidsForward(IConnection connection)
         {
