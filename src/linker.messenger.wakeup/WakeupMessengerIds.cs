@@ -14,6 +14,12 @@
         Send = 3407,
         SendForward = 3408,
 
+        Coms = 3409,
+        ComsForward = 3410,
+
+        Hids = 3411,
+        HidsForward = 3412,
+
         End = 3499
     }
 }

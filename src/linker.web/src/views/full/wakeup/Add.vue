@@ -196,13 +196,13 @@ export default {
         }
 
         onMounted(()=>{
-            getWakeupComs().then((res)=>{
+            getWakeupComs(state.ruleForm.MachineId).then((res)=>{
                 state.coms = res;
                 if(!state.ruleForm.Data.value2 && res.length > 0){
                     state.ruleForm.Data.value2 = res[0];
                 }
             }).catch(()=>{});
-            getWakeupHids ().then((res)=>{
+            getWakeupHids (state.ruleForm.MachineId).then((res)=>{
                 state.hids = res;
                 if(!state.ruleForm.Data.value4 && res.length > 0){
                     state.ruleForm.Data.value4 = res[0];

@@ -12,9 +12,9 @@ export const removeWakeup = (data) => {
 export const sendWakeup = (data) => {
     return sendWebsocketMsg('wakeup/send', data);
 }
-export const getWakeupComs = () => {
-    return sendWebsocketMsg('wakeup/comnames');
+export const getWakeupComs = (data) => {
+    return sendWebsocketMsg('wakeup/comnames',data);
 }
 export const getWakeupHids = () => {
-    return sendWebsocketMsg('wakeup/hidids');
+    return sendWebsocketMsg('wakeup/hidids',data);
 }

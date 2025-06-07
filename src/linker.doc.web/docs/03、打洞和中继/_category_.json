@@ -1,0 +1,8 @@
+{
+    "label": "3、打洞和中继",
+    "position": 3,
+    "link": {
+        "type": "generated-index",
+        "description": "在开始互相通信之前，需要配置一下打洞和中继，这是通信的前提"
+    }
+}

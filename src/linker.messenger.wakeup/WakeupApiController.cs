@@ -104,18 +104,50 @@ namespace linker.messenger.wakeup
         /// </summary>
         /// <param name="param"></param>
         /// <returns></returns>
-        public string[] ComNames(ApiControllerParamsInfo param)
+        public async Task<string[]> ComNames(ApiControllerParamsInfo param)
         {
-            return wakeupTransfer.ComNames();
+            if (param.Content == signInClientStore.Id)
+            {
+                return wakeupTransfer.ComNames();
+            }
+
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)WakeupMessengerIds.ComsForward,
+                Payload = serializer.Serialize(param.Content)
+            }).ConfigureAwait(false);
+
+            if(resp.Code == MessageResponeCodes.OK)
+            {
+                return serializer.Deserialize<string[]>(resp.Data.Span);
+            }
+            return Array.Empty<string>();
         }
         /// <summary>
         /// hid列表
         /// </summary>
         /// <param name="param"></param>
         /// <returns></returns>
-        public string[] HidIds(ApiControllerParamsInfo param)
+        public async Task<string[]> HidIds(ApiControllerParamsInfo param)
         {
-            return wakeupTransfer.HidIds();
+            if (param.Content == signInClientStore.Id)
+            {
+                return wakeupTransfer.HidIds();
+            }
+
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)WakeupMessengerIds.HidsForward,
+                Payload = serializer.Serialize(param.Content)
+            }).ConfigureAwait(false);
+
+            if (resp.Code == MessageResponeCodes.OK)
+            {
+                return serializer.Deserialize<string[]>(resp.Data.Span);
+            }
+            return Array.Empty<string>();
         }
 
         /// <summary>

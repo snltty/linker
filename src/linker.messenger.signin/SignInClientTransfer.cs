@@ -76,7 +76,7 @@ namespace linker.messenger.signin
         {
             if (string.IsNullOrWhiteSpace(signInClientStore.Group.Id))
             {
-                LoggerHelper.Instance.Error($"please configure group id");
+                LoggerHelper.Instance.Error($"group id are empty");
                 return;
             }
             if (operatingManager.StartOperation() == false)

@@ -46,7 +46,7 @@ namespace linker.messenger.wakeup
         }
 
         /// <summary>
-        /// 
+        /// 发送命令
         /// </summary>
         /// <param name="connection"></param>
         [MessengerId((ushort)WakeupMessengerIds.Send)]
@@ -54,6 +54,17 @@ namespace linker.messenger.wakeup
         {
             WakeupSendInfo info = serializer.Deserialize<WakeupSendInfo>(connection.ReceiveRequestWrap.Payload.Span);
             _ = wakeupTransfer.Send(info);
+        }
+
+        [MessengerId((ushort)WakeupMessengerIds.Coms)]
+        public void Coms(IConnection connection)
+        {
+            connection.Write(serializer.Serialize(wakeupTransfer.ComNames()));
+        }
+        [MessengerId((ushort)WakeupMessengerIds.Hids)]
+        public void Hids(IConnection connection)
+        {
+            connection.Write(serializer.Serialize(wakeupTransfer.HidIds()));
         }
     }
 
@@ -159,6 +170,70 @@ namespace linker.messenger.wakeup
                     MessengerId = (ushort)WakeupMessengerIds.Send,
                     Payload = serializer.Serialize(info.Data)
                 }).ConfigureAwait(false);
+            }
+        }
+
+
+
+        [MessengerId((ushort)WakeupMessengerIds.ComsForward)]
+        public void ComsForward(IConnection connection)
+        {
+            string machineId = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(machineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            {
+                uint requestid = connection.ReceiveRequestWrap.RequestId;
+                messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = cacheTo.Connection,
+                    MessengerId = (ushort)WakeupMessengerIds.Coms,
+                }).ContinueWith(async (result) =>
+                {
+                    if (result.Result.Code == MessageResponeCodes.OK)
+                    {
+                        await messengerSender.ReplyOnly(new MessageResponseWrap
+                        {
+                            Connection = connection,
+                            Code = MessageResponeCodes.OK,
+                            Payload = result.Result.Data,
+                            RequestId = requestid
+                        }, (ushort)WakeupMessengerIds.ComsForward).ConfigureAwait(false);
+                    }
+                });
+            }
+            else
+            {
+                connection.Write(serializer.Serialize(Array.Empty<string>()));
+            }
+        }
+
+        [MessengerId((ushort)WakeupMessengerIds.HidsForward)]
+        public void HidsForward(IConnection connection)
+        {
+            string machineId = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(machineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            {
+                uint requestid = connection.ReceiveRequestWrap.RequestId;
+                messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = cacheTo.Connection,
+                    MessengerId = (ushort)WakeupMessengerIds.Hids,
+                }).ContinueWith(async (result) =>
+                {
+                    if (result.Result.Code == MessageResponeCodes.OK)
+                    {
+                        await messengerSender.ReplyOnly(new MessageResponseWrap
+                        {
+                            Connection = connection,
+                            Code = MessageResponeCodes.OK,
+                            Payload = result.Result.Data,
+                            RequestId = requestid
+                        }, (ushort)WakeupMessengerIds.HidsForward).ConfigureAwait(false);
+                    }
+                });
+            }
+            else
+            {
+                connection.Write(serializer.Serialize(Array.Empty<string>()));
             }
         }
     }
