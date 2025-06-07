@@ -3,8 +3,6 @@ using linker.libs;
 using linker.libs.extends;
 using System.Net;
 using System.Net.Sockets;
-using static linker.libs.winapis.User32;
-using System.Text.RegularExpressions;
 
 namespace linker.messenger.wakeup
 {
