@@ -216,7 +216,7 @@ namespace linker.messenger.socks5
             Socket socket = new Socket(token.Proxy.TargetEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socket.KeepAlive();
 
-            ConnectState state = new ConnectState { BufferSize = token.Proxy.BufferSize, Connection = token.Connection, ConnectId = token.Proxy.ConnectId, Socket = socket, IPEndPoint = token.Proxy.TargetEP };
+            ConnectState state = new ConnectState { BufferSize = token.Proxy.BufferSize, Connection = token.Connection, ConnectId = token.Proxy.ConnectId, Socket = socket, IPEndPoint = token.Proxy.TargetEP, RealIPEndPoint = target };
             state.CopyData(token.Proxy.Data);
 
             socket.BeginConnect(target, ConnectCallback, state);
@@ -257,7 +257,7 @@ namespace linker.messenger.socks5
             }
             catch (Exception ex)
             {
-                LoggerHelper.Instance.Error($"connect {state.IPEndPoint} error -> {ex}");
+                LoggerHelper.Instance.Error($"connect {state.IPEndPoint}->{state.RealIPEndPoint} error -> {ex.Message}");
                 await SendToConnectionClose(token).ConfigureAwait(false);
                 CloseClientSocket(token, 4);
             }
@@ -419,6 +419,7 @@ namespace linker.messenger.socks5
         public ulong ConnectId { get; set; }
         public Socket Socket { get; set; }
         public IPEndPoint IPEndPoint { get; set; }
+        public IPEndPoint RealIPEndPoint { get; set; }
 
         public byte[] Data { get; set; } = Helper.EmptyArray;
         public int Length { get; set; }

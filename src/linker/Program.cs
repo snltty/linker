@@ -11,6 +11,7 @@ namespace linker
     {
         static async Task Main(string[] args)
         {
+
 #if DEBUG
 #else
             //添加防火墙，不添加ICMP

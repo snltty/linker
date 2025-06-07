@@ -54,7 +54,7 @@ namespace linker.snat
                 if (mapDic.TryGetValue(fakeDist & masks[i], out uint realNetwork))
                 {
                     uint realDist = realNetwork | (fakeDist & ~masks[i]);
-                    return NetworkHelper.ToIP(BinaryPrimitives.ReverseEndianness(realDist));
+                    return NetworkHelper.ToIP(realDist);
                 }
             }
             return fakeIP;
