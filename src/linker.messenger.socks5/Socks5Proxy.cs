@@ -34,7 +34,7 @@ namespace linker.messenger.socks5
             this.signInClientTransfer = signInClientTransfer;
             this.linkerFirewall = linkerFirewall;
             TaskUdp();
-            
+
         }
 
         /// <summary>
@@ -97,6 +97,9 @@ namespace linker.messenger.socks5
             });
         }
 
+
+        byte[] hostBytes = Encoding.UTF8.GetBytes("Host: ");
+        byte[] newlineBytes = Encoding.UTF8.GetBytes("\r\n");
         /// <summary>
         /// tcp连接隧道
         /// </summary>
@@ -112,7 +115,27 @@ namespace linker.messenger.socks5
             token.Proxy.Data = token.Buffer.AsMemory(0, length);
             token.Proxy.TargetEP = null;
 
+            if (token.Proxy.Data.Span.IndexOf(hostBytes) >= 0)
+            {
+                return await ProcessHttp(token).ConfigureAwait(false);
+            }
+            return await ProcessSocks5(token).ConfigureAwait(false);
+        }
+        private async Task<bool> ProcessHttp(AsyncUserToken token)
+        {
+            int start = token.Proxy.Data.Span.IndexOf(hostBytes) + hostBytes.Length;
+            int end = token.Proxy.Data.Span.Slice(start).IndexOf(newlineBytes);
+            string host = Encoding.UTF8.GetString(token.Proxy.Data.Span.Slice(start, end));
 
+            IPEndPoint target = await NetworkHelper.GetEndPointAsync(host, 80);
+            token.Proxy.TargetEP = target;
+            uint targetIp = NetworkHelper.ToValue(target.Address);
+            token.Connection = await ConnectTunnel(targetIp).ConfigureAwait(false);
+
+            return true;
+        }
+        private async Task<bool> ProcessSocks5(AsyncUserToken token)
+        {
             //步骤，request
             token.Proxy.Rsv = (byte)Socks5EnumStep.Request;
             if (await ReceiveCommandData(token).ConfigureAwait(false) == false)
@@ -120,7 +143,6 @@ namespace linker.messenger.socks5
                 return true;
             }
             await token.Socket.SendAsync(new byte[] { 0x05, 0x00 }).ConfigureAwait(false);
-
 
             //步骤，command
             token.Proxy.Data = Helper.EmptyArray;
@@ -137,7 +159,6 @@ namespace linker.messenger.socks5
                 return false;
             }
 
-
             //获取远端地址
             uint targetIp;
             ReadOnlyMemory<byte> ipArray = Socks5Parser.GetRemoteEndPoint(token.Proxy.Data, out Socks5EnumAddressType addressType, out ushort port, out int index);
@@ -152,7 +173,8 @@ namespace linker.messenger.socks5
             //解析域名
             if (addressType == Socks5EnumAddressType.Domain)
             {
-                if (IPAddress.TryParse(Encoding.UTF8.GetString(ipArray.Span), out IPAddress ip) == false)
+                IPAddress ip = NetworkHelper.GetDomainIp(Encoding.UTF8.GetString(ipArray.Span));
+                if (ip == null)
                 {
                     byte[] response1 = Socks5Parser.MakeConnectResponse(new IPEndPoint(IPAddress.Any, 0), (byte)Socks5EnumResponseCommand.AddressNotAllow);
                     await token.Socket.SendAsync(response1.AsMemory()).ConfigureAwait(false);
@@ -166,7 +188,6 @@ namespace linker.messenger.socks5
                 token.Proxy.TargetEP = new IPEndPoint(new IPAddress(ipArray.Span), port);
                 targetIp = BinaryPrimitives.ReadUInt32BigEndian(ipArray.Span);
             }
-
             //连接隧道
             token.Connection = await ConnectTunnel(targetIp).ConfigureAwait(false);
 
@@ -177,6 +198,7 @@ namespace linker.messenger.socks5
 
             return true;
         }
+
         /// <summary>
         /// udp连接隧道
         /// </summary>
@@ -252,7 +274,9 @@ namespace linker.messenger.socks5
             //太短
             while ((validate & EnumProxyValidateDataResult.TooShort) == EnumProxyValidateDataResult.TooShort)
             {
-                totalLength += await token.Socket.ReceiveAsync(token.Buffer.AsMemory(totalLength), SocketFlags.None).ConfigureAwait(false);
+                int length = await token.Socket.ReceiveAsync(token.Buffer.AsMemory(totalLength), SocketFlags.None).ConfigureAwait(false);
+                if (length == 0) return false;
+                totalLength += length;
                 token.Proxy.Data = token.Buffer.AsMemory(0, totalLength);
                 validate = ValidateData(token.Proxy);
             }

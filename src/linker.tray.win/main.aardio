@@ -83,11 +83,14 @@ mainForm.showPopmenu = function(){
 	tray.message = 0xACCF;
 	mainForm.popmenu=win.ui.popmenu(mainForm);
 	
-	mainForm.popmenu.add(mainForm.ckAutoStart.checked ? '取消托盘自启动':'开启托盘自启动',function(id){mainForm.runAsTaskCommand()});
+	mainForm.popmenu.add(mainForm.ckAutoStart.checked ? '取消自启动':'开启自启动',function(id){mainForm.runAsTaskCommand()});
+	mainForm.popmenu.add('-------------',function(id){});
 	mainForm.popmenu.add(service.isRunning(mainForm.serviceName) ? '停止服务':'运行服务',function(id){mainForm.runCommand()});
 	mainForm.popmenu.add(service.isExist(mainForm.serviceName) ? '卸载服务':'安装服务',function(id){mainForm.installCommand()});
+	mainForm.popmenu.add('-------------',function(id){});
 	mainForm.popmenu.add('管理(简单)',function(id){mainForm.showNetFrm();});
 	mainForm.popmenu.add('管理(专业)',function(id){mainForm.showFullFrm();});
+	mainForm.popmenu.add('-------------',function(id){});
 	mainForm.popmenu.add('退出托盘',function(id){
 		win.quitMessage();
    		mainForm.close();
@@ -265,14 +268,6 @@ mainForm.setInterval(
 			if(io.exist(io._exefile+".temp"))
 			{
 				mainForm.reStart();
-				/*
-				var prcs = process.popen.cmd("tasklist | findstr "+mainForm.serviceName);
-				var str = prcs.readAll();
-				if(!!!string.indexOf(str,mainForm.serviceName))
-				{
-					mainForm.reStart();
-				}
-				*/
 			}
 		}catch(e)
 		{
@@ -286,12 +281,10 @@ mainForm.setInterval(
 		return true;
 	},1000
 )
-
 mainForm.show();
 win.setTopmost(mainForm.hwnd);
 if(_ARGV["task"])
 {
 	mainForm.show(false);
 }
-
 return win.loopMessage();

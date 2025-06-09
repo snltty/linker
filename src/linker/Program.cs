@@ -80,13 +80,12 @@ namespace linker
             try
             {
                 json = JsonDocument.Parse(Encoding.UTF8.GetString(Convert.FromBase64String(args[0])));
-
             }
             catch (Exception ex)
             {
                 if (args.Length > 0)
                 {
-                    LoggerHelper.Instance.Error(Encoding.UTF8.GetString(Convert.FromBase64String(args[0])));
+                    LoggerHelper.Instance.Error(args[0]);
                     LoggerHelper.Instance.Error($"args parse fail {ex}");
                 }
             }
