@@ -16,9 +16,9 @@
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker messenger entry</PackageReleaseNotes>
-		<Version>1.8.2</Version>
-		<AssemblyVersion>1.8.2</AssemblyVersion>
-		<FileVersion>1.8.2</FileVersion>
+		<Version>1.8.3</Version>
+		<AssemblyVersion>1.8.3</AssemblyVersion>
+		<FileVersion>1.8.3</FileVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -40,6 +40,7 @@
 	  <ProjectReference Include="..\linker.messenger.access\linker.messenger.access.csproj" />
 	  <ProjectReference Include="..\linker.messenger.action\linker.messenger.action.csproj" />
 	  <ProjectReference Include="..\linker.messenger.api\linker.messenger.api.csproj" />
+	  <ProjectReference Include="..\linker.messenger.cdkey\linker.messenger.cdkey.csproj" />
 	  <ProjectReference Include="..\linker.messenger.channel\linker.messenger.channel.csproj" />
 	  <ProjectReference Include="..\linker.messenger.decenter\linker.messenger.decenter.csproj" />
 	  <ProjectReference Include="..\linker.messenger.exroute\linker.messenger.exroute.csproj" />

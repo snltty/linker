@@ -48,7 +48,9 @@ namespace linker.messenger.signin
         }
 
         [MessengerId((ushort)SignInMessengerIds.SignIn)]
+#pragma warning disable CA1822 // 将成员标记为 static
         public void SignIn(IConnection connection)
+#pragma warning restore CA1822 // 将成员标记为 static
         {
             connection.Disponse();
             return;
@@ -87,7 +89,7 @@ namespace linker.messenger.signin
             string[] ids = serializer.Deserialize<string[]>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
             {
-                IEnumerable<SignCacheInfo> list = signCaching.Get(cache.GroupId);
+                IEnumerable<SignCacheInfo> list = signCaching.Get(cache);
                 foreach (var item in list)
                 {
                     item.Order = uint.MaxValue;
@@ -111,7 +113,7 @@ namespace linker.messenger.signin
             SignInListRequestInfo request = serializer.Deserialize<SignInListRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
             {
-                IEnumerable<SignCacheInfo> list = signCaching.Get(cache.GroupId).Where(c => c.MachineId != cache.MachineId);
+                IEnumerable<SignCacheInfo> list = signCaching.Get(cache).Where(c => c.MachineId != cache.MachineId);
                 if (string.IsNullOrWhiteSpace(request.Name) == false)
                 {
                     list = list.Where(c => c.Version.Contains(request.Name) || c.IP.ToString().Contains(request.Name) || c.MachineName.Contains(request.Name) || request.Ids.Contains(c.MachineId));
@@ -164,17 +166,17 @@ namespace linker.messenger.signin
         [MessengerId((ushort)SignInMessengerIds.Delete)]
         public void Delete(IConnection connection)
         {
-            string name = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(name, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            string machineid = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, machineid, out SignCacheInfo from, out SignCacheInfo to))
             {
-                signCaching.TryRemove(name, out _);
+                signCaching.TryRemove(machineid, out _);
             }
         }
 
         [MessengerId((ushort)SignInMessengerIds.Version)]
         public void Version(IConnection connection)
         {
-            connection.Write(serializer.Serialize(VersionHelper.version));
+            connection.Write(serializer.Serialize(VersionHelper.Version));
         }
 
 
@@ -184,7 +186,7 @@ namespace linker.messenger.signin
             SignInIdsRequestInfo request = serializer.Deserialize<SignInIdsRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
             {
-                IEnumerable<SignCacheInfo> list = signCaching.Get(cache.GroupId).OrderByDescending(c => c.MachineName).OrderByDescending(c => c.LastSignIn).OrderByDescending(c => c.Version).ToList();
+                IEnumerable<SignCacheInfo> list = signCaching.Get(cache).OrderByDescending(c => c.MachineName).OrderByDescending(c => c.LastSignIn).OrderByDescending(c => c.Version).ToList();
                 if (string.IsNullOrWhiteSpace(request.Name) == false)
                 {
                     list = list.Where(c => c.MachineName.Contains(request.Name));
@@ -208,7 +210,7 @@ namespace linker.messenger.signin
         {
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
             {
-                List<SignInNamesResponseItemInfo> list = signCaching.Get(cache.GroupId).Select(c => new SignInNamesResponseItemInfo { MachineId = c.MachineId, MachineName = c.MachineName, Online = c.Connected }).ToList();
+                List<SignInNamesResponseItemInfo> list = signCaching.Get(cache).Select(c => new SignInNamesResponseItemInfo { MachineId = c.MachineId, MachineName = c.MachineName, Online = c.Connected }).ToList();
 
                 connection.Write(serializer.Serialize(list));
             }
@@ -220,7 +222,7 @@ namespace linker.messenger.signin
         {
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
             {
-                IEnumerable<string> list = signCaching.Get(cache.GroupId).Select(c => c.MachineId);
+                IEnumerable<string> list = signCaching.Get(cache).Select(c => c.MachineId);
                 connection.Write(serializer.Serialize(list));
             }
         }
@@ -230,7 +232,7 @@ namespace linker.messenger.signin
         {
             string machineId = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
 
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) && signCaching.TryGet(machineId, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId && cache1.Connected)
+            if (signCaching.TryGet(connection.Id, machineId, out SignCacheInfo from, out SignCacheInfo to) && to.Connected)
             {
                 connection.Write(Helper.TrueArray);
             }
@@ -250,13 +252,13 @@ namespace linker.messenger.signin
         public async Task SetNameForward(IConnection connection)
         {
             SignInConfigSetNameInfo info = serializer.Deserialize<SignInConfigSetNameInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(info.Id, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            if (signCaching.TryGet(connection.Id, info.Id, out SignCacheInfo from, out SignCacheInfo to))
             {
                 if (info.Id != connection.Id)
                 {
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {
-                        Connection = cache.Connection,
+                        Connection = to.Connection,
                         MessengerId = (ushort)SignInMessengerIds.SetName,
                         Payload = connection.ReceiveRequestWrap.Payload,
                     }).ConfigureAwait(false);
@@ -281,7 +283,7 @@ namespace linker.messenger.signin
             List<string> machineIds = serializer.Deserialize<List<string>>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
             {
-                List<string> offlines = signCaching.Get(cache.GroupId).Where(c => c.Connected == false).Select(c => c.MachineId).Intersect(machineIds).ToList();
+                List<string> offlines = signCaching.Get(cache).Where(c => c.Connected == false).Select(c => c.MachineId).Intersect(machineIds).ToList();
                 connection.Write(serializer.Serialize(offlines));
                 return;
             }

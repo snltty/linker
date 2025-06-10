@@ -70,12 +70,12 @@ namespace linker.messenger.plan
         public async Task GetForward(IConnection connection)
         {
             PlanGetInfo info = serializer.Deserialize<PlanGetInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
-            { 
+            if (signCaching.TryGet(connection.Id, info.MachineId, out SignCacheInfo from, out SignCacheInfo to))
+            {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
                 await messengerSender.SendReply(new MessageRequestWrap
                 {
-                    Connection = cacheTo.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)PlanMessengerIds.Get,
                     Payload = connection.ReceiveRequestWrap.Payload
                 }).ContinueWith(async (result) =>
@@ -97,12 +97,12 @@ namespace linker.messenger.plan
         public async Task AddForward(IConnection connection)
         {
             PlanAddInfo info = serializer.Deserialize<PlanAddInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            if (signCaching.TryGet(connection.Id, info.MachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
                 await messengerSender.SendReply(new MessageRequestWrap
                 {
-                    Connection = cacheTo.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)PlanMessengerIds.Add,
                     Payload = connection.ReceiveRequestWrap.Payload
                 }).ContinueWith(async (result) =>
@@ -124,12 +124,12 @@ namespace linker.messenger.plan
         public async Task RemoveForward(IConnection connection)
         {
             PlanRemoveInfo info = serializer.Deserialize<PlanRemoveInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            if (signCaching.TryGet(connection.Id, info.MachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
                 await messengerSender.SendReply(new MessageRequestWrap
                 {
-                    Connection = cacheTo.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)PlanMessengerIds.Remove,
                     Payload = connection.ReceiveRequestWrap.Payload
                 }).ContinueWith(async (result) =>

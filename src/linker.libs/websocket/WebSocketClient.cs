@@ -13,8 +13,8 @@ namespace linker.libs.websocket
     {
         private int bufferSize = 4 * 1024;
         private SocketAsyncEventArgs readEventArgs;
-        private bool connected = false;
-        private bool connecSuccess = false;
+        private bool connected ;
+        private bool connecSuccess;
 
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace linker.libs.websocket
         {
             if (connected)
             {
-                throw new Exception("connected");
+                return;
             }
 
             var socket = new Socket(ep.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
@@ -457,11 +457,11 @@ namespace linker.libs.websocket
         /// <summary>
         /// 当前帧数据
         /// </summary>
-        public WebSocketFrameInfo FrameInfo = null;
+        public WebSocketFrameInfo FrameInfo;
         /// <summary>
         /// 当前帧的数据下标
         /// </summary>
-        public int FrameIndex { get; set; } = 0;
+        public int FrameIndex { get; set; }
         /// <summary>
         /// 数据帧缓存
         /// </summary>

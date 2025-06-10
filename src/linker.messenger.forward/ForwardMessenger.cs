@@ -24,12 +24,12 @@ namespace linker.messenger.forward
         public void GetForward(IConnection connection)
         {
             string machineId = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(machineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            if (signCaching.TryGet(connection.Id,machineId, out SignCacheInfo from, out SignCacheInfo to))
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
                 sender.SendReply(new MessageRequestWrap
                 {
-                    Connection = cacheTo.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)ForwardMessengerIds.Get,
                     Payload = connection.ReceiveRequestWrap.Payload
                 }).ContinueWith(async (result) =>
@@ -55,12 +55,12 @@ namespace linker.messenger.forward
         public async Task AddForward(IConnection connection)
         {
             ForwardAddForwardInfo info = serializer.Deserialize<ForwardAddForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            if (signCaching.TryGet(connection.Id, info.MachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
                 await sender.SendOnly(new MessageRequestWrap
                 {
-                    Connection = cacheTo.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)ForwardMessengerIds.Add,
                     Payload = serializer.Serialize(info.Data)
                 }).ConfigureAwait(false);
@@ -74,12 +74,12 @@ namespace linker.messenger.forward
         public async Task RemoveForward(IConnection connection)
         {
             ForwardRemoveForwardInfo info = serializer.Deserialize<ForwardRemoveForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            if (signCaching.TryGet(connection.Id, info.MachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
                 await sender.SendOnly(new MessageRequestWrap
                 {
-                    Connection = cacheTo.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)ForwardMessengerIds.Remove,
                     Payload = serializer.Serialize(info.Id)
                 }).ConfigureAwait(false);
@@ -91,11 +91,11 @@ namespace linker.messenger.forward
         public async Task SubTestForward(IConnection connection)
         {
             string machineid = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(machineid, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            if (signCaching.TryGet(connection.Id,machineid, out SignCacheInfo from, out SignCacheInfo to))
             {
                 await sender.SendOnly(new MessageRequestWrap
                 {
-                    Connection = cacheTo.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)ForwardMessengerIds.SubTest
                 }).ConfigureAwait(false);
             }
@@ -106,20 +106,23 @@ namespace linker.messenger.forward
         {
             Dictionary<string, List<ForwardTestInfo>> tests = serializer.Deserialize<Dictionary<string, List<ForwardTestInfo>>>(connection.ReceiveRequestWrap.Payload.Span);
 
-            var from = signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom);
+            if(signCaching.TryGet(connection.Id, out SignCacheInfo from) == false)
+            {
+                return;
+            }
             uint requiestid = connection.ReceiveRequestWrap.RequestId;
 
             var tasks = new List<TaskInfo>();
             foreach (var item in tests)
             {
-                if (signCaching.TryGet(item.Key, out SignCacheInfo cacheTo) && cacheFrom.GroupId == cacheTo.GroupId)
+                if (signCaching.TryGet(item.Key, out SignCacheInfo to) && from.SameGroup(to))
                 {
                     tasks.Add(new TaskInfo
                     {
                         MachineId = item.Key,
                         Task = sender.SendReply(new MessageRequestWrap
                         {
-                            Connection = cacheTo.Connection,
+                            Connection = to.Connection,
                             MessengerId = (ushort)ForwardMessengerIds.Test,
                             Payload = serializer.Serialize(item.Value),
                             Timeout = 3000

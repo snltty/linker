@@ -3,7 +3,7 @@ using static linker.libs.winapis.User32;
 
 namespace linker.libs.winapis
 {
-    internal class MouseHelper
+    internal sealed class MouseHelper
     {
         public static bool MouseMove(int x, int y)
         {

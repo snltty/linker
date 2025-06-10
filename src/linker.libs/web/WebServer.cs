@@ -141,9 +141,9 @@ namespace linker.libs.web
         private string GetContentType(string path)
         {
             string ext = Path.GetExtension(path);
-            if (types.ContainsKey(ext))
+            if (types.TryGetValue(ext,out string value))
             {
-                return types[ext];
+                return value;
             }
             return "application/octet-stream";
         }

@@ -136,7 +136,7 @@ namespace linker.tunnel.transport
         /// <summary>
         /// 是否禁用
         /// </summary>
-        public bool Disabled { get; set; } = false;
+        public bool Disabled { get; set; }
         /// <summary>
         /// 是否反向打洞
         /// </summary>
@@ -144,7 +144,7 @@ namespace linker.tunnel.transport
         /// <summary>
         /// 禁止修改反向打洞配置
         /// </summary>
-        public bool DisableReverse { get; set; } = false;
+        public bool DisableReverse { get; set; }
         /// <summary>
         /// 是否开启ssl
         /// </summary>
@@ -152,7 +152,7 @@ namespace linker.tunnel.transport
         /// <summary>
         /// 禁止修改ssl配置
         /// </summary>
-        public bool DisableSSL { get; set; } = false;
+        public bool DisableSSL { get; set; }
         /// <summary>
         /// 缓冲区大小
         /// </summary>

@@ -21,13 +21,13 @@ namespace linker.messenger.access
         {
             AccessUpdateInfo info = serializer.Deserialize<AccessUpdateInfo>(connection.ReceiveRequestWrap.Payload.Span);
             info.FromMachineId = connection.Id;
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) && signCaching.TryGet(info.ToMachineId, out SignCacheInfo cache1) && cache1.GroupId == cache.GroupId)
+            if (signCaching.TryGet(connection.Id, info.ToMachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
                 uint requiestid = connection.ReceiveRequestWrap.RequestId;
 
                 sender.SendReply(new MessageRequestWrap
                 {
-                    Connection = cache1.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)AccessMessengerIds.AccessUpdate,
                     Payload = serializer.Serialize(info),
                     Timeout = 3000,
@@ -47,13 +47,13 @@ namespace linker.messenger.access
         {
             AccessBitsUpdateInfo info = serializer.Deserialize<AccessBitsUpdateInfo>(connection.ReceiveRequestWrap.Payload.Span);
             info.FromMachineId = connection.Id;
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) && signCaching.TryGet(info.ToMachineId, out SignCacheInfo cache1) && cache1.GroupId == cache.GroupId)
+            if (signCaching.TryGet(connection.Id, info.ToMachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
                 uint requiestid = connection.ReceiveRequestWrap.RequestId;
 
                 sender.SendReply(new MessageRequestWrap
                 {
-                    Connection = cache1.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)AccessMessengerIds.AccessStrUpdate,
                     Payload = serializer.Serialize(info),
                     Timeout = 3000,
@@ -73,11 +73,11 @@ namespace linker.messenger.access
         public void SetApiPasswordForward(IConnection connection)
         {
             ApiPasswordUpdateInfo info = serializer.Deserialize<ApiPasswordUpdateInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) && signCaching.TryGet(info.MachineId, out SignCacheInfo cache1) && cache1.GroupId == cache.GroupId)
+            if (signCaching.TryGet(connection.Id, info.MachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
                 sender.SendOnly(new MessageRequestWrap
                 {
-                    Connection = cache1.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)AccessMessengerIds.SetApiPassword,
                     Payload = serializer.Serialize(info.Password)
                 });

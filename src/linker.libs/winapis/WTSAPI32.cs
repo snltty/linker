@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using System.Security;
 
 namespace linker.libs.winapis;
 
 public static class WTSAPI32
 {
-    public static nint WTS_CURRENT_SERVER_HANDLE = nint.Zero;
+    public static nint WTS_CURRENT_SERVER_HANDLE => nint.Zero;
 
     public enum WTS_CONNECTSTATE_CLASS
     {

@@ -385,10 +385,10 @@ namespace linker.libs.websocket
     {
         public uint Id { get; set; }
         public Socket Socket { get; init; }
-        public bool Connected { get; set; } = false;
+        public bool Connected { get; set; }
         public bool SocketConnected => Socket != null && Socket.Connected;
 
-        private bool Closed = false;
+        private bool Closed;
         public int ConnectResponse(WebsocketHeaderInfo header)
         {
             var data = WebSocketParser.BuildConnectResponseData(header);
@@ -466,11 +466,11 @@ namespace linker.libs.websocket
         /// <summary>
         /// 当前帧数据
         /// </summary>
-        public WebSocketFrameInfo FrameInfo = null;
+        public WebSocketFrameInfo FrameInfo;
         /// <summary>
         /// 当前帧的数据下标
         /// </summary>
-        public int FrameIndex { get; set; } = 0;
+        public int FrameIndex { get; set; }
         /// <summary>
         /// 数据帧缓存
         /// </summary>
@@ -480,7 +480,7 @@ namespace linker.libs.websocket
         /// </summary>
         public WebSocketFrameInfo.EnumOpcode Opcode { get; set; }
         public byte[] PoolBuffer { get; set; }
-        public bool Disposabled { get; private set; } = false;
+        public bool Disposabled { get; private set; }
         public void Clear()
         {
             Disposabled = true;

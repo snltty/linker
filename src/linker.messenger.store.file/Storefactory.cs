@@ -30,7 +30,7 @@ namespace linker.messenger.store.file
             bsonMapper.RegisterType<ITunnelConnection>(serialize: (a) => string.Empty, deserialize: (a) => null);
             bsonMapper.RegisterType<IConnection>(serialize: (a) => string.Empty, deserialize: (a) => null);
 
-            string db = Path.Join(Helper.currentDirectory, "./configs/db.db");
+            string db = Path.Join(Helper.CurrentDirectory, "./configs/db.db");
             if (Directory.Exists(Path.GetDirectoryName(db)) == false)
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(db));

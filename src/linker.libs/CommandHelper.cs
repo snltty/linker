@@ -58,7 +58,7 @@ namespace linker.libs
         public static string Execute(string fileName, string arg, string[] commands, out string error)
         {
             using Process proc = new Process();
-            proc.StartInfo.WorkingDirectory = Path.GetFullPath(Path.Join(Helper.currentDirectory,"./"));
+            proc.StartInfo.WorkingDirectory = Path.GetFullPath(Path.Join(Helper.CurrentDirectory, "./"));
             proc.StartInfo.CreateNoWindow = true;
             proc.StartInfo.FileName = fileName;
             proc.StartInfo.UseShellExecute = false;

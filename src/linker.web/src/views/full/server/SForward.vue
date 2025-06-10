@@ -1,11 +1,15 @@
 <template>
     <el-form-item :label="$t('server.sforwardSecretKey')">
-        <div class="flex">
-            <el-input :class="{success:state.keyState,error:state.keyState==false}" class="flex-1" type="password" show-password v-model="state.SForwardSecretKey" maxlength="36" @blur="handleChange" />
-            <Sync class="mgl-1" name="SForwardSecretKey"></Sync>
-            <span class="mgl-1" v-if="globalData.isPc">{{$t('server.sforwardText')}}</span>
+        <div>
+            <div class="flex">
+                <el-input :class="{success:state.keyState,error:state.keyState==false}" class="flex-1" type="password" show-password v-model="state.SForwardSecretKey" maxlength="36" @blur="handleChange" />
+                <Sync class="mgl-1" name="SForwardSecretKey"></Sync>
+                <span class="mgl-1" v-if="globalData.isPc">{{$t('server.sforwardText')}}</span>
+            </div>
+            <div class="flex">
+                <Cdkey type="SForward"></Cdkey>
+            </div>
         </div>
-        
     </el-form-item>
 </template>
 <script>
@@ -15,8 +19,9 @@ import {onMounted, reactive } from 'vue'
 import { useI18n } from 'vue-i18n';
 import Sync from '../sync/Index.vue'
 import { injectGlobalData } from '@/provide';
+import Cdkey from './cdkey/Index.vue'
 export default {
-    components:{Sync},
+    components:{Sync,Cdkey},
     setup(props) {
         const {t} = useI18n();
         const globalData = injectGlobalData();

@@ -70,13 +70,11 @@ namespace linker.libs
             encryptoTransform.Dispose();
             decryptoTransform.Dispose();
         }
-        private (byte[] Key, byte[] IV) GenerateKeyAndIV(string password)
+        private static (byte[] Key, byte[] IV) GenerateKeyAndIV(string password)
         {
             byte[] key = new byte[16];
             byte[] iv = new byte[16];
-
-            using SHA384 sha = SHA384.Create();
-            byte[] hash = sha.ComputeHash(Encoding.UTF8.GetBytes(password));
+            byte[] hash = SHA384.HashData(Encoding.UTF8.GetBytes(password));
 
             Array.Copy(hash, 0, key, 0, key.Length);
             Array.Copy(hash, key.Length, iv, 0, iv.Length);

@@ -126,12 +126,12 @@ namespace linker.messenger.tunnel
         public void InfoForward(IConnection connection)
         {
             TunnelWanPortProtocolInfo info = serializer.Deserialize<TunnelWanPortProtocolInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            if (signCaching.TryGet(connection.Id, info.MachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
                 _ = messengerSender.SendReply(new MessageRequestWrap
                 {
-                    Connection = cache.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)TunnelMessengerIds.Info,
                     Payload = connection.ReceiveRequestWrap.Payload,
                 }).ContinueWith(async (result) =>
@@ -153,18 +153,18 @@ namespace linker.messenger.tunnel
         [MessengerId((ushort)TunnelMessengerIds.BeginForward)]
         public async Task BeginForward(IConnection connection)
         {
-            TunnelTransportInfo tunnelTransportInfo = serializer.Deserialize<TunnelTransportInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            TunnelTransportInfo info = serializer.Deserialize<TunnelTransportInfo>(connection.ReceiveRequestWrap.Payload.Span);
 
-            if (signCaching.TryGet(tunnelTransportInfo.Remote.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            if (signCaching.TryGet(connection.Id, info.Remote.MachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
-                tunnelTransportInfo.Local.MachineName = cacheFrom.MachineName;
-                tunnelTransportInfo.Remote.MachineName = cacheTo.MachineName;
+                info.Local.MachineName = from.MachineName;
+                info.Remote.MachineName = to.MachineName;
 
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
-                    Connection = cacheTo.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)TunnelMessengerIds.Begin,
-                    Payload = serializer.Serialize(tunnelTransportInfo)
+                    Payload = serializer.Serialize(info)
                 }).ConfigureAwait(false);
                 connection.Write(Helper.TrueArray);
             }
@@ -174,16 +174,16 @@ namespace linker.messenger.tunnel
         [MessengerId((ushort)TunnelMessengerIds.FailForward)]
         public async Task FailForward(IConnection connection)
         {
-            TunnelTransportInfo tunnelTransportInfo = serializer.Deserialize<TunnelTransportInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(tunnelTransportInfo.Remote.MachineId, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            TunnelTransportInfo info = serializer.Deserialize<TunnelTransportInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, info.Remote.MachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
-                tunnelTransportInfo.Local.MachineName = cache1.MachineName;
-                tunnelTransportInfo.Remote.MachineName = cache.MachineName;
+                info.Local.MachineName = from.MachineName;
+                info.Remote.MachineName = to.MachineName;
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
-                    Connection = cache.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)TunnelMessengerIds.Fail,
-                    Payload = serializer.Serialize(tunnelTransportInfo)
+                    Payload = serializer.Serialize(info)
                 }).ConfigureAwait(false);
             }
         }
@@ -192,16 +192,16 @@ namespace linker.messenger.tunnel
         [MessengerId((ushort)TunnelMessengerIds.SuccessForward)]
         public async Task SuccessForward(IConnection connection)
         {
-            TunnelTransportInfo tunnelTransportInfo = serializer.Deserialize<TunnelTransportInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(tunnelTransportInfo.Remote.MachineId, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            TunnelTransportInfo info = serializer.Deserialize<TunnelTransportInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, info.Remote.MachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
-                tunnelTransportInfo.Local.MachineName = cache1.MachineName;
-                tunnelTransportInfo.Remote.MachineName = cache.MachineName;
+                info.Local.MachineName = from.MachineName;
+                info.Remote.MachineName = to.MachineName;
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
-                    Connection = cache.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)TunnelMessengerIds.Success,
-                    Payload = serializer.Serialize(tunnelTransportInfo)
+                    Payload = serializer.Serialize(info)
                 }).ConfigureAwait(false);
             }
         }
@@ -210,12 +210,12 @@ namespace linker.messenger.tunnel
         [MessengerId((ushort)TunnelMessengerIds.RouteLevelForward)]
         public async Task RouteLevelForward(IConnection connection)
         {
-            TunnelSetRouteLevelInfo tunnelTransportInfo = serializer.Deserialize<TunnelSetRouteLevelInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(tunnelTransportInfo.MachineId, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            TunnelSetRouteLevelInfo info = serializer.Deserialize<TunnelSetRouteLevelInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, info.MachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
-                    Connection = cache.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)TunnelMessengerIds.RouteLevel,
                     Payload = connection.ReceiveRequestWrap.Payload
                 }).ConfigureAwait(false);
@@ -226,12 +226,12 @@ namespace linker.messenger.tunnel
         public void NetworkForward(IConnection connection)
         {
             string machineid = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(machineid, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheTo.GroupId == cacheFrom.GroupId)
+            if (signCaching.TryGet(connection.Id, machineid, out SignCacheInfo from, out SignCacheInfo to))
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
                 _ = messengerSender.SendReply(new MessageRequestWrap
                 {
-                    Connection = cacheTo.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)TunnelMessengerIds.Network
                 }).ContinueWith(async (result) =>
                 {

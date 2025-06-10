@@ -7,6 +7,7 @@ using linker.libs;
 using System;
 using System.Text;
 using linker.libs.timer;
+using linker.messenger.cdkey;
 
 namespace linker.messenger.relay.server
 {
@@ -207,7 +208,7 @@ namespace linker.messenger.relay.server
                 {
                     await socket.SendAsync(new byte[] { 0 }).ConfigureAwait(false);
 
-                    
+
                     relayDic.TryAdd(relayCache.FlowId, tcs);
                     Socket answerSocket = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(15000)).ConfigureAwait(false);
 
@@ -418,7 +419,7 @@ namespace linker.messenger.relay.server
         public string GroupId { get; set; }
         public bool Validated { get; set; }
 
-        public List<RelayServerCdkeyInfo> Cdkey { get; set; }
+        public List<CdkeyInfo> Cdkey { get; set; }
     }
     public sealed class RelayTrafficCacheInfo
     {
@@ -426,19 +427,7 @@ namespace linker.messenger.relay.server
         public long SendtCache;
         public RelaySpeedLimit Limit { get; set; }
         public RelayCacheInfo Cache { get; set; }
-        public RelayServerCdkeyInfo CurrentCdkey { get; set; }
-    }
-    public partial class RelayServerCdkeyInfo
-    {
-        public int Id { get; set; }
-        /// <summary>
-        /// 带宽Mbps
-        /// </summary>
-        public double Bandwidth { get; set; }
-        /// <summary>
-        /// 剩余流量
-        /// </summary>
-        public long LastBytes { get; set; }
+        public CdkeyInfo CurrentCdkey { get; set; }
     }
 
     public sealed partial class RelayMessageInfo

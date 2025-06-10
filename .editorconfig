@@ -6,6 +6,7 @@ dotnet_diagnostic.CA1416.severity = none
 [*.cs]
 #### 命名样式 ####
 
+
 # 命名规则
 
 dotnet_naming_rule.interface_should_be_begins_with_i.severity = suggestion
@@ -127,6 +128,7 @@ dotnet_naming_style.帕斯卡拼写法.word_separator =
 dotnet_naming_style.帕斯卡拼写法.capitalization = pascal_case
 
 [*.{cs,vb}]
+dotnet_diagnostic.CA1838.severity = none
 dotnet_style_qualification_for_field = false:silent
 dotnet_style_qualification_for_property = false:silent
 dotnet_style_qualification_for_method = false:silent

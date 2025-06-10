@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.messenger.cdkey;
 using linker.messenger.relay.client.transport;
 using linker.messenger.relay.server;
 using linker.tunnel.connection;
@@ -48,7 +49,7 @@ namespace linker.messenger.store.file
 #else
         public string SecretKey { get; set; } = Guid.NewGuid().ToString().ToUpper();
 #endif
-        public RelayServerCdkeyConfigInfo Cdkey { get; set; } = new RelayServerCdkeyConfigInfo();
+        public CdkeyConfigInfo Cdkey { get; set; } = new CdkeyConfigInfo();
 
         public DistributedInfo Distributed { get; set; } = new DistributedInfo { };
     }

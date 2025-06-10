@@ -6,16 +6,26 @@ namespace linker.libs
 {
     public static class Helper
     {
-        public static byte[] EmptyArray = Array.Empty<byte>();
-        public static byte[] TrueArray = new byte[] { 1 };
-        public static byte[] FalseArray = new byte[] { 0 };
+        static byte[] emptyArray = [];
+        public static byte[] EmptyArray => emptyArray;
+        static byte[] trueArray => [1];
+        public static byte[] TrueArray => trueArray;
+        static byte[] falseArray => [0];
+        public static byte[] FalseArray => falseArray;
 
         public const string GlobalString = "snltty";
-        public static string currentDirectory = "./";
+
+
+        private static string currentDirectory = "./";
+        public static string CurrentDirectory => currentDirectory;
+        public static void SetCurrentDirectory(string path)
+        {
+            currentDirectory = path;
+        }
 
 
         public static event EventHandler OnAppExit;
-        public static CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        static CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
         public static void AppExit(int code)
         {
             OnAppExit?.Invoke(null, EventArgs.Empty);

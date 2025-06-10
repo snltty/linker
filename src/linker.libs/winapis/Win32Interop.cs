@@ -358,7 +358,7 @@ namespace linker.libs.winapis
                         {
                             users.Add(new WindowUserInfo { LastLogon = info.LastLogon, Sid = stringSid });
                         }
-                        NetApiBufferFree(bufptr);
+                       int value = NetApiBufferFree(bufptr);
                     }
                 }
                 catch (Exception)
@@ -366,7 +366,7 @@ namespace linker.libs.winapis
                 }
                 finally
                 {
-                    NetApiBufferFree(bufPtr);
+                   int _ = NetApiBufferFree(bufPtr);
                 }
             }
 

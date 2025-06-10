@@ -1,16 +1,21 @@
 ﻿using linker.libs;
-using System.Net;
 
-namespace linker.messenger.relay.server
+namespace linker.messenger.cdkey
 {
-    public interface IRelayServerCdkeyStore
+    public interface ICdkeyServerStore
     {
+        /// <summary>
+        /// 验证密钥
+        /// </summary>
+        /// <param name="secretKey"></param>
+        /// <returns></returns>
+        public bool ValidateSecretKey(string secretKey);
         /// <summary>
         /// 添加
         /// </summary>
         /// <param name="info"></param>
         /// <returns></returns>
-        public Task<bool> Add(RelayServerCdkeyStoreInfo info);
+        public Task<bool> Add(CdkeyStoreInfo info);
         /// <summary>
         /// 删除
         /// </summary>
@@ -30,26 +35,26 @@ namespace linker.messenger.relay.server
         /// </summary>
         /// <param name="base64"></param>
         /// <returns></returns>
-        public Task<RelayServerCdkeyTestResultInfo> Test(RelayServerCdkeyImportInfo info);
+        public Task<CdkeyTestResultInfo> Test(CdkeyImportInfo info);
         /// <summary>
         /// 导入卡密
         /// </summary>
         /// <param name="base64"></param>
         /// <returns></returns>
-        public Task<string> Import(RelayServerCdkeyImportInfo info);
+        public Task<string> Import(CdkeyImportInfo info);
 
         /// <summary>
         /// 获取有效的CDKEY
         /// </summary>
         /// <param name="userid"></param>
         /// <returns></returns>
-        public Task<List<RelayServerCdkeyStoreInfo>> GetAvailable(string userid);
+        public Task<List<CdkeyStoreInfo>> GetAvailable(string userid, string type);
         /// <summary>
         /// 获取CDKEY列表
         /// </summary>
         /// <param name="ids"></param>
         /// <returns></returns>
-        public Task<List<RelayServerCdkeyStoreInfo>> Get(List<int> ids);
+        public Task<List<CdkeyStoreInfo>> Get(List<int> ids);
         /// <summary>
         /// 消耗流量
         /// </summary>
@@ -65,12 +70,12 @@ namespace linker.messenger.relay.server
         /// <summary>
         /// 分页
         /// </summary>
-        /// <param name="relayServerCdkeyPageRequestInfo"></param>
+        /// <param name="info"></param>
         /// <returns></returns>
-        public Task<RelayServerCdkeyPageResultInfo> Page(RelayServerCdkeyPageRequestInfo relayServerCdkeyPageRequestInfo);
+        public Task<CdkeyPageResultInfo> Page(CdkeyPageRequestInfo info);
     }
 
-    public sealed class RelayServerCdkeyConfigInfo
+    public sealed class CdkeyConfigInfo
     {
         /// <summary>
         /// 加解密密钥
@@ -82,7 +87,10 @@ namespace linker.messenger.relay.server
 #endif
     }
 
-    public sealed partial class RelayServerCdkeyPageRequestInfo
+    /// <summary>
+    /// 搜索CDKEY分页请求信息
+    /// </summary>
+    public sealed partial class CdkeyPageRequestInfo
     {
         public int Page { get; set; }
         public int Size { get; set; }
@@ -93,10 +101,11 @@ namespace linker.messenger.relay.server
         public string OrderId { get; set; }
         public string Contact { get; set; }
         public string SecretKey { get; set; }
-        public RelayServerCdkeyPageRequestFlag Flag { get; set; }
+        public string Type { get; set; }
+        public CdkeyPageRequestFlag Flag { get; set; }
     }
     [Flags]
-    public enum RelayServerCdkeyPageRequestFlag
+    public enum CdkeyPageRequestFlag
     {
         All = 0,
         TimeIn = 1,
@@ -107,21 +116,29 @@ namespace linker.messenger.relay.server
         Deleted = 32,
     }
 
-
-    public sealed partial class RelayServerCdkeyPageResultInfo
+    /// <summary>
+    /// 搜索结果
+    /// </summary>
+    public sealed partial class CdkeyPageResultInfo
     {
         public int Page { get; set; }
         public int Size { get; set; }
         public int Count { get; set; }
-        public List<RelayServerCdkeyStoreInfo> List { get; set; }
+        public List<CdkeyStoreInfo> List { get; set; }
     }
 
-    public sealed partial class RelayServerCdkeyAddInfo
+    /// <summary>
+    /// 添加cdkey
+    /// </summary>
+    public sealed partial class CdkeyAddInfo
     {
         public string SecretKey { get; set; }
-        public RelayServerCdkeyStoreInfo Data { get; set; }
+        public CdkeyStoreInfo Data { get; set; }
     }
-    public sealed partial class RelayServerCdkeyDelInfo
+    /// <summary>
+    /// 删除cdkey
+    /// </summary>
+    public sealed partial class CdkeyDelInfo
     {
         public string SecretKey { get; set; }
         public string UserId { get; set; }
@@ -129,10 +146,29 @@ namespace linker.messenger.relay.server
     }
 
     /// <summary>
-    /// 中继CDKEY存储
+    /// cdkey
     /// </summary>
-    public sealed partial class RelayServerCdkeyStoreInfo : RelayServerCdkeyInfo
+    public partial class CdkeyInfo
     {
+        public int Id { get; set; }
+        /// <summary>
+        /// 带宽Mbps
+        /// </summary>
+        public double Bandwidth { get; set; }
+        /// <summary>
+        /// 剩余流量
+        /// </summary>
+        public long LastBytes { get; set; }
+    }
+    /// <summary>
+    /// CDKEY存储
+    /// </summary>
+    public sealed partial class CdkeyStoreInfo : CdkeyInfo
+    {
+        /// <summary>
+        /// 类别
+        /// </summary>
+        public string Type { get; set; }
         /// <summary>
         /// 用户标识
         /// </summary>
@@ -194,25 +230,28 @@ namespace linker.messenger.relay.server
         public bool Deleted { get; set; }
     }
 
-    public sealed partial class RelayServerCdkeyTestResultInfo
+    /// <summary>
+    /// cdkey测试结果
+    /// </summary>
+    public sealed partial class CdkeyTestResultInfo
     {
-        public RelayServerCdkeyOrderInfo Order { get; set; }
+        public CdkeyOrderInfo Order { get; set; }
         public string Cdkey { get; set; }
         public List<string> Field { get; set; } = new List<string>();
     }
     /// <summary>
-    /// 导入中继cdkey
+    /// 导入cdkey
     /// </summary>
-    public sealed partial class RelayServerCdkeyImportInfo
+    public sealed partial class CdkeyImportInfo
     {
         public string SecretKey { get; set; }
         public string UserId { get; set; }
         public string Base64 { get; set; }
     }
     /// <summary>
-    /// 导入中继cdkey
+    /// cdkey订单
     /// </summary>
-    public sealed partial class RelayServerCdkeyOrderInfo
+    public sealed partial class CdkeyOrderInfo
     {
         /// <summary>
         /// 总流量

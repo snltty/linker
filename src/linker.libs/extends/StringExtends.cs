@@ -47,8 +47,7 @@ namespace linker.libs.extends
         /// <returns></returns>
         public static string Md5(this string input)
         {
-            MD5 md5Hasher = MD5.Create();
-            byte[] data = md5Hasher.ComputeHash(Encoding.Default.GetBytes(input));
+            byte[] data = SHA256.HashData(Encoding.Default.GetBytes(input));
             StringBuilder sBuilder = new();
             for (int i = 0; i < data.Length; i++)
             {
@@ -361,7 +360,7 @@ namespace linker.libs.extends
         public static string GetUTF16String(this Memory<byte> memory, int strLength)
         {
             if (memory.Length == 0)
-                return string.Empty;    
+                return string.Empty;
             return ReadUtf16(memory.Span, strLength);
         }
         /// <summary>

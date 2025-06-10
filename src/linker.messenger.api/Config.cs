@@ -137,8 +137,8 @@ namespace linker.messenger.api
         [AccessDisplay("重置所有接口密码")]
         SetApiPasswordOther = 42,
 
-        [AccessDisplay("管理中继CDKEY")]
-        RelayCdkey = 43,
+        [AccessDisplay("管理CDKEY")]
+        Cdkey = 43,
 
         [AccessDisplay("管理本机防火墙")]
         FirewallSelf = 44,

@@ -133,7 +133,7 @@ namespace linker.libs.winapis
                 }
                 MIB_TCPTABLE_OWNER_PID tcpTable = (MIB_TCPTABLE_OWNER_PID)Marshal.PtrToStructure(tcpTablePtr, typeof(MIB_TCPTABLE_OWNER_PID));
 
-                IntPtr rowPtr = (IntPtr)((long)tcpTablePtr + Marshal.SizeOf(tcpTable.dwNumEntries));
+                IntPtr rowPtr = (nint)((long)tcpTablePtr + Marshal.SizeOf(tcpTable.dwNumEntries));
                 for (int i = 0; i < tcpTable.dwNumEntries; i++)
                 {
                     MIB_TCPROW_OWNER_PID row = (MIB_TCPROW_OWNER_PID)Marshal.PtrToStructure(rowPtr, typeof(MIB_TCPROW_OWNER_PID));
@@ -148,7 +148,7 @@ namespace linker.libs.winapis
 
                     connections.Add(new ConnectionInfo { LocalEndPoint = localEndPoint, RemoteEndPoint = remoteEndPoint, Pid = row.owningPid });
 
-                    rowPtr = (IntPtr)((long)rowPtr + Marshal.SizeOf(row));
+                    rowPtr = (nint)((long)rowPtr + Marshal.SizeOf(row));
                 }
             }
             finally
@@ -165,7 +165,7 @@ namespace linker.libs.winapis
             MIB_UDPTABLE_OWNER_PID udpTable;
             uint udpTableSize = 0;
             // 获取 UDP 表格大小
-            GetExtendedUdpTable(IntPtr.Zero, ref udpTableSize, true, AF_INET, 5, 0);
+            uint value = GetExtendedUdpTable(IntPtr.Zero, ref udpTableSize, true, AF_INET, 5, 0);
             // 分配内存
             IntPtr udpTablePtr = Marshal.AllocHGlobal((int)udpTableSize);
 

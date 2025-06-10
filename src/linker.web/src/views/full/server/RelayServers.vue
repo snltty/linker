@@ -10,13 +10,13 @@
                     <el-checkbox class="mgr-1" v-model="state.list.SSL" :label="$t('server.relaySSL')" @change="handleSave" />
                     <el-checkbox v-model="state.list.Disabled" :label="$t('server.relayDisable')" @change="handleSave" />
                 </div>
-                <a href="javascript:;" @click="state.show=true" class="mgl-1 delay a-line" :class="{red:state.nodes.length==0,green:state.nodes.length>0}">
+                <a href="javascript:;" @click="state.show=true" class="mgr-1 delay a-line" :class="{red:state.nodes.length==0,green:state.nodes.length>0}">
                     {{$t('server.relayNodes')}} : {{state.nodes.length}}
                 </a>
-                <div class="mgl-1" :title="$t('server.relayUseCdkeyTitle')">
+                <div class="mgr-1" :title="$t('server.relayUseCdkeyTitle')">
                     <el-checkbox v-model="state.list.UseCdkey" :label="$t('server.relayUseCdkey')" @change="handleSave" />
                 </div>
-                <RelayCdkey></RelayCdkey>
+                <Cdkey type="Relay"></Cdkey>
             </div>
         </div>
        
@@ -28,7 +28,7 @@
                     <template #default="scope">
                         <div>
                             <a :href="scope.row.Url" class="a-line blue" target="_blank">{{ scope.row.Name }}</a>
-                            <a v-if="state.hasRelayCdkey" href="javascript:;" class="a-line a-edit" @click="handleEdit(scope.row)">
+                            <a v-if="state.keyState" href="javascript:;" class="a-line a-edit" @click="handleEdit(scope.row)">
                                 <span><el-icon><Edit /></el-icon></span>
                                 <span v-if="(scope.row.AllowProtocol & 1) == 1">,tcp</span>
                                 <span v-if="(scope.row.AllowProtocol & 2) == 2">,udp</span>
@@ -79,17 +79,17 @@
     <EditNode v-if="state.showEdit" v-model="state.showEdit" :data="state.current"></EditNode>
 </template>
 <script>
-import { checkRelayKey, relayCdkeyAccess, setRelayServers, setRelaySubscribe } from '@/apis/relay';
+import { checkRelayKey,  setRelayServers, setRelaySubscribe } from '@/apis/relay';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import { onMounted, onUnmounted, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n';
 import Sync from '../sync/Index.vue'
-import RelayCdkey from './relayCdkey/Index.vue'
+import Cdkey from './cdkey/Index.vue'
 import EditNode from './EditNode.vue';
 import { Edit } from '@element-plus/icons-vue';
 export default {
-    components:{Sync,RelayCdkey,EditNode,Edit},
+    components:{Sync,Cdkey,EditNode,Edit},
     setup(props) {
         const {t} = useI18n();
         const globalData = injectGlobalData();
@@ -100,7 +100,6 @@ export default {
             timer:0,
             showEdit:false,
             current:{},
-            hasRelayCdkey:false,
             keyState:false,
         });
         watch(()=>globalData.value.config.Client.Relay.Server,()=>{
@@ -138,9 +137,6 @@ export default {
 
         onMounted(()=>{
             _setRelaySubscribe();
-            relayCdkeyAccess().then(res=>{
-                state.hasRelayCdkey = res;
-            }).catch(()=>{});
             handleCheckKey();
         });
         onUnmounted(()=>{

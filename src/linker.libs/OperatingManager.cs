@@ -5,7 +5,7 @@ namespace linker.libs
 {
     public sealed class OperatingManager
     {
-        private uint operating = 0;
+        private uint operating;
         public bool Operating => operating == 1;
 
         public bool StartOperation()

@@ -27,9 +27,9 @@ public static unsafe class ADVAPI32
     }
     public class USEROBJECTFLAGS
     {
-        public int fInherit = 0;
-        public int fReserved = 0;
-        public int dwFlags = 0;
+        public int fInherit ;
+        public int fReserved;
+        public int dwFlags;
     }
     [StructLayout(LayoutKind.Sequential)]
     public struct SECURITY_ATTRIBUTES

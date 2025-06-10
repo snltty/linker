@@ -217,12 +217,12 @@ namespace linker.plugins.sforward.messenger
         public void GetForward(IConnection connection)
         {
             string machineId = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(machineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            if (signCaching.TryGet(connection.Id,machineId, out SignCacheInfo from, out SignCacheInfo to))
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
                 sender.SendReply(new MessageRequestWrap
                 {
-                    Connection = cacheTo.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.Get,
                     Payload = connection.ReceiveRequestWrap.Payload
                 }).ContinueWith(async (result) =>
@@ -248,12 +248,12 @@ namespace linker.plugins.sforward.messenger
         public async Task AddClientForward(IConnection connection)
         {
             SForwardAddForwardInfo info = serializer.Deserialize<SForwardAddForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            if (signCaching.TryGet(connection.Id, info.MachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
                 await sender.SendReply(new MessageRequestWrap
                 {
-                    Connection = cacheTo.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.AddClient,
                     Payload = serializer.Serialize(info.Data)
                 }).ContinueWith(async (result) =>
@@ -279,12 +279,12 @@ namespace linker.plugins.sforward.messenger
         public async Task RemoveClientForward(IConnection connection)
         {
             SForwardRemoveForwardInfo info = serializer.Deserialize<SForwardRemoveForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            if (signCaching.TryGet(connection.Id, info.MachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
                 await sender.SendReply(new MessageRequestWrap
                 {
-                    Connection = cacheTo.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.RemoveClient,
                     Payload = serializer.Serialize(info.Id)
                 }).ContinueWith(async (result) =>
@@ -307,11 +307,11 @@ namespace linker.plugins.sforward.messenger
         public async Task StartClientForward(IConnection connection)
         {
             SForwardRemoveForwardInfo info = serializer.Deserialize<SForwardRemoveForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            if (signCaching.TryGet(connection.Id, info.MachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
                 await sender.SendOnly(new MessageRequestWrap
                 {
-                    Connection = cacheTo.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.StartClient,
                     Payload = serializer.Serialize(info.Id)
                 }).ConfigureAwait(false);
@@ -321,11 +321,11 @@ namespace linker.plugins.sforward.messenger
         public async Task StopClientForward(IConnection connection)
         {
             SForwardRemoveForwardInfo info = serializer.Deserialize<SForwardRemoveForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            if (signCaching.TryGet(connection.Id, info.MachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
                 await sender.SendOnly(new MessageRequestWrap
                 {
-                    Connection = cacheTo.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.StopClient,
                     Payload = serializer.Serialize(info.Id)
                 }).ConfigureAwait(false);
@@ -340,12 +340,12 @@ namespace linker.plugins.sforward.messenger
         public async Task TestClientForward(IConnection connection)
         {
             string machineid = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(machineid, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            if (signCaching.TryGet(connection.Id, machineid, out SignCacheInfo from, out SignCacheInfo to))
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
                 await sender.SendOnly(new MessageRequestWrap
                 {
-                    Connection = cacheTo.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.TestClient
                 }).ConfigureAwait(false);
             }

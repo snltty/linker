@@ -337,7 +337,7 @@ namespace linker.tunnel.transport
                     socket.WindowsUdpBug();
                     socket.ReuseBind(local);
                     socket.Ttl = (short)(tunnelTransportInfo.Local.RouteLevel);
-                    _ = socket.SendToAsync(new byte[0], SocketFlags.None, ip);
+                    _ = socket.SendToAsync(Array.Empty<byte>(), SocketFlags.None, ip);
                     socket.SafeClose();
                 }
                 catch (Exception ex)

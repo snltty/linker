@@ -17,7 +17,7 @@ namespace linker.libs
 
         private static string GetSystemIdAndroid()
         {
-            string localAppDataPath = Path.Join(Helper.currentDirectory, "machine-id.txt");
+            string localAppDataPath = Path.Join(Helper.CurrentDirectory, "machine-id.txt");
             if (Directory.Exists(Path.GetDirectoryName(localAppDataPath)) == false)
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(localAppDataPath));

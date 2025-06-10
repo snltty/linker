@@ -21,7 +21,7 @@ namespace linker.libs
 
     public sealed class NumberSpaceUInt32
     {
-        private uint num = 0;
+        private uint num;
 
         public NumberSpaceUInt32(uint defaultVal = 0)
         {

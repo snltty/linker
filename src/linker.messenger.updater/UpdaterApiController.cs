@@ -184,7 +184,7 @@ namespace linker.messenger.updater
             {
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)UpdaterMessengerIds.CheckKey,
-                Payload = serializer.Serialize(param.Content)
+                Payload = serializer.Serialize(updaterClientStore.SecretKey)
             }).ConfigureAwait(false);
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }

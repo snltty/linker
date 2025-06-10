@@ -189,7 +189,7 @@ namespace linker.app
 
         private void RunLinker()
         {
-            Helper.currentDirectory = FileSystem.Current.AppDataDirectory;
+            Helper.SetCurrentDirectory(FileSystem.Current.AppDataDirectory);
 
             InitLogger();
 

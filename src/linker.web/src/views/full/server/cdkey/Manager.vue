@@ -1,18 +1,24 @@
 <template>
-    <el-dialog class="options-center" :title="$t('server.relayMyCdkey')" destroy-on-close v-model="state.show" width="77rem" top="2vh">
+    <el-dialog class="options-center" :title="$t('server.cdkey')" destroy-on-close v-model="state.show" width="77rem" top="2vh">
     <div class="group-wrap">
         <div class="head">
             <div class="search flex">
-                <div><span>{{$t('server.relayCdkeyOrderId')}}</span> <el-input v-model="state.page.OrderId" style="width:10rem" size="small" clearable @change="handleSearch" /></div>
-                <div><span>{{$t('server.relayCdkeyContact')}}</span> <el-input v-model="state.page.Contact" style="width:10rem" size="small" clearable @change="handleSearch" /></div>
-                <div><span>{{$t('server.relayCdkeyRemark')}}</span> <el-input v-model="state.page.Remark" style="width:10rem" size="small" clearable @change="handleSearch" /></div>
+                <div><span>{{$t('server.cdkeyUserId')}}</span> <el-input v-model="state.page.UserId" style="width:8rem" size="small" clearable @change="handleSearch" /></div>
+                <div><span>{{$t('server.cdkeyOrderId')}}</span> <el-input v-model="state.page.OrderId" style="width:8rem" size="small" clearable @change="handleSearch" /></div>
+                <div><span>{{$t('server.cdkeyContact')}}</span> <el-input v-model="state.page.Contact" style="width:8rem" size="small" clearable @change="handleSearch" /></div>
+                <div><span>{{$t('server.cdkeyRemark')}}</span> <el-input v-model="state.page.Remark" style="width:8rem" size="small" clearable @change="handleSearch" /></div>
                 <div>
                     <el-button size="small" @click="handleSearch()">
                         <el-icon><Search /></el-icon>
                     </el-button>
                 </div>
                 <div>
-                    <el-button size="small" type="success" @click="handleImport">
+                    <el-button size="small" @click="state.showTest = true">
+                        <el-icon><Warning /></el-icon>
+                    </el-button>
+                </div>
+                <div>
+                    <el-button size="small" type="success" @click="state.showAdd = true">
                         <el-icon><Plus /></el-icon>
                     </el-button>
                 </div>
@@ -20,39 +26,38 @@
             <Flags @change="handleFlagsChange"></Flags>
         </div>
         <el-table stripe  :data="state.list.List" border size="small" width="100%" @sort-change="handleSort">
-            <el-table-column prop="Bandwidth" :label="$t('server.relayCdkeyBandwidth')" width="110" sortable="custom">
+            <el-table-column prop="Bandwidth" :label="$t('server.cdkeyBandwidth')" width="110" sortable="custom">
                 <template #default="scope">{{ scope.row.Bandwidth }}Mbps</template>
             </el-table-column>
-            <el-table-column prop="LastBytes" :label="`${$t('server.relayCdkeyBytes')}`" width="80" sortable="custom">
+            <el-table-column prop="LastBytes" :label="`${$t('server.cdkeyBytes')}`" width="80" sortable="custom">
                 <template #default="scope">
                     <p><strong>{{ parseSpeed(scope.row.LastBytes) }}</strong></p>
                     <p>{{ parseSpeed(scope.row.MaxBytes) }}</p>
                 </template>
             </el-table-column>
-            <el-table-column prop="PayPrice" :label="`${$t('server.relayCdkeyPay')}`" width="120" sortable="custom">
+            <el-table-column prop="PayPrice" :label="`${$t('server.cdkeyPay')}`" width="120" sortable="custom">
                 <template #default="scope">
-                    <p><strong>{{$t('server.relayCdkeyPayPrice')}}.{{ scope.row.PayPrice }}</strong>/{{$t('server.relayCdkeyPrice')}}.{{ scope.row.Price }}</p>
-                    <p>{{$t('server.relayCdkeyUserPrice')}}.{{ scope.row.UserPrice }}/{{$t('server.relayCdkeyCostPrice')}}.{{ scope.row.CostPrice }}</p>
+                    <p><strong>{{$t('server.cdkeyPayPrice')}}.{{ scope.row.PayPrice }}</strong>/{{$t('server.cdkeyPrice')}}.{{ scope.row.Price }}</p>
+                    <p>{{$t('server.cdkeyUserPrice')}}.{{ scope.row.UserPrice }}/{{$t('server.cdkeyCostPrice')}}.{{ scope.row.CostPrice }}</p>
                 </template>
             </el-table-column>
-            <el-table-column prop="OrderId" :label="`${$t('server.relayCdkeyOrder')}`" width="180">
+            <el-table-column prop="OrderId" :label="`${$t('server.cdkeyOrder')}`" width="180">
                 <template #default="scope">
                     <p>{{ scope.row.OrderId }}</p>
                     <p>{{ scope.row.Contact }}</p>
                 </template>
             </el-table-column>
-            <el-table-column prop="Remark" :label="$t('server.relayCdkeyRemark')">
+            <el-table-column prop="Remark" :label="$t('server.cdkeyRemark')"></el-table-column>
+            <el-table-column prop="EndTime" :label="`${$t('server.cdkeyEndTime')}`" width="140" sortable="custom">
             </el-table-column>
-            <el-table-column prop="EndTime" :label="`${$t('server.relayCdkeyEndTime')}`" width="140" sortable="custom">
+            <el-table-column prop="UseTime" :label="`${$t('server.cdkeyUseTime')}`" width="140" sortable="custom">
             </el-table-column>
-            <el-table-column prop="UseTime" :label="`${$t('server.relayCdkeyUseTime')}`" width="140" sortable="custom">
+            <el-table-column prop="AddTime" :label="`${$t('server.cdkeyAddTime')}`" width="140" sortable="custom">
             </el-table-column>
-            <el-table-column prop="AddTime" :label="`${$t('server.relayCdkeyAddTime')}`" width="140" sortable="custom">
-            </el-table-column>
-            <el-table-column fixed="right" prop="Oper" :label="$t('server.relayCdkeyOper')" width="60">
+            <el-table-column fixed="right" prop="Oper" :label="$t('server.cdkeyOper')" width="60">
                 <template #default="scope">
                     <div v-if="scope.row.Deleted == false">
-                        <el-popconfirm :title="$t('server.relayCdkeyDelConfirm')" @confirm="handleDel(scope.row)">
+                        <el-popconfirm :title="$t('server.cdkeyDelConfirm')" @confirm="handleDel(scope.row)">
                             <template #reference>
                                 <el-button type="danger" size="small">
                                     <el-icon><Delete /></el-icon>
@@ -74,21 +79,23 @@
         </div>
     </div>
     </el-dialog>
-   
+    <Add :type="state.page.Type" v-if="state.showAdd" v-model="state.showAdd" @success="handleSearch"></Add>
+    <Test v-if="state.showTest" v-model="state.showTest"></Test>
 </template>
 
 <script>
 import { injectGlobalData } from '@/provide';
-import { onMounted, reactive,  watch } from 'vue'
-import { Delete,Plus,Search } from '@element-plus/icons-vue';
+import { onMounted, reactive, watch } from 'vue'
+import { Delete,Plus,Search,Warning } from '@element-plus/icons-vue';
 import { useI18n } from 'vue-i18n';
-import {relayCdkeyMy,relayCdkeyDel, relayCdkeyImport } from '@/apis/relay';
+import { cdkeyDel,cdkeyPage } from '@/apis/cdkey';
 import Flags from './Flags.vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
+import Add from './Add.vue';
+import Test from './Test.vue';
 export default {
-    props: ['modelValue'],
+    props: ['modelValue','type'],
     emits: ['update:modelValue'],
-    components:{Delete,Plus,Search,Flags },
+    components:{Delete,Plus,Search ,Flags,Add,Test,Warning},
     setup(props,{emit}) {
         const {t} = useI18n();
         const globalData = injectGlobalData();
@@ -98,9 +105,11 @@ export default {
                 Size:10,
                 Order:'',
                 Sort:'',
+                UserId:'',
                 OrderId:'',
                 Contact:'',
                 Remark:'',
+                Type:props.type,
                 Flag:0
             },
             list:{
@@ -109,7 +118,9 @@ export default {
                 Count:0,
                 List:[]
             },
-            show:true
+            show:true,
+            showAdd:false,
+            showTest:false
         });
         watch(() => state.show, (val) => {
             if (!val) {
@@ -132,7 +143,7 @@ export default {
             handleSearch();
         }
         const handleSearch = ()=>{
-            relayCdkeyMy(state.page).then((res)=>{
+            cdkeyPage(state.page).then((res)=>{
                 state.list = res;
             }).catch(()=>{})
         }
@@ -145,39 +156,18 @@ export default {
             state.page.Sort = {'ascending':'asc','descending':'desc'}[a.order];
             handleSearch();
         }
+
         const handleDel = (row)=>{
-            relayCdkeyDel(row.Id).then((res)=>{
+            cdkeyDel(row.Id).then((res)=>{
                 handleSearch();
             }).catch(()=>{})
         }
 
-        const handleImport = ()=>{
-            ElMessageBox.prompt(t('server.relayCdkeyImport'), t('common.tips'), {
-                confirmButtonText: t('common.confirm'),
-                cancelButtonText: t('common.cancel')
-            }).then(({ value }) => {
-                if(!value){
-                    handleImport();
-                    return;
-                }
-
-                relayCdkeyImport({Base64:value}).then((res)=>{
-                    if(res){
-                        ElMessage.error(t(`server.relayCdkeyImport${res}`));
-                        handleImport();
-                    }else{
-                        ElMessage.success(t('common.oper'));
-                        handleSearch();
-                    }
-                }).catch(()=>{})
-            }).catch(() => {
-            })
-        }
         onMounted(()=>{
             handleSearch();
         })
 
-        return {state,parseSpeed,handleSort,handleFlagsChange,handleSearch,handlePageChange,handleDel,handleImport}
+        return {state,parseSpeed,handleSort,handleFlagsChange,handleSearch,handlePageChange,handleDel}
     }
 }
 </script>

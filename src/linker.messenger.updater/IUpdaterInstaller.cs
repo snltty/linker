@@ -94,7 +94,7 @@ namespace linker.messenger.updater
 
             foreach (ZipArchiveEntry entry in archive.Entries)
             {
-                string entryPath = Path.GetFullPath(Path.Join(Helper.currentDirectory, entry.FullName.Substring(entry.FullName.IndexOf('/'))));
+                string entryPath = Path.GetFullPath(Path.Join(Helper.CurrentDirectory, entry.FullName.Substring(entry.FullName.IndexOf('/'))));
                 if (entryPath.EndsWith('\\') || entryPath.EndsWith('/'))
                 {
                     continue;
@@ -178,7 +178,7 @@ namespace linker.messenger.updater
         }
         private void ClearTempFiles(string path = "./")
         {
-            string fullPath = Path.Join(Helper.currentDirectory, path);
+            string fullPath = Path.Join(Helper.CurrentDirectory, path);
             if (Directory.Exists(fullPath))
             {
                 foreach (var item in Directory.GetFiles(fullPath).Where(c => c.EndsWith(".temp")))

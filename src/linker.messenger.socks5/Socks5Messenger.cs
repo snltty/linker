@@ -69,12 +69,12 @@ namespace linker.messenger.socks5
         [MessengerId((ushort)Socks5MessengerIds.RunForward)]
         public async Task RunForward(IConnection connection)
         {
-            string name = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(name, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            string machineid = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, machineid, out SignCacheInfo from, out SignCacheInfo to))
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
-                    Connection = cache.Connection,
+                    Connection = to.Connection,
                     Timeout = 3000,
                     MessengerId = (ushort)Socks5MessengerIds.Run
                 }).ConfigureAwait(false);
@@ -89,12 +89,12 @@ namespace linker.messenger.socks5
         [MessengerId((ushort)Socks5MessengerIds.StopForward)]
         public async Task StopForward(IConnection connection)
         {
-            string name = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(name, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            string machineid = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id,machineid, out SignCacheInfo from, out SignCacheInfo to))
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
-                    Connection = cache.Connection,
+                    Connection = to.Connection,
                     Timeout = 3000,
                     MessengerId = (ushort)Socks5MessengerIds.Stop
                 }).ConfigureAwait(false);
@@ -110,11 +110,11 @@ namespace linker.messenger.socks5
         public async Task UpdateForward(IConnection connection)
         {
             Socks5Info info = serializer.Deserialize<Socks5Info>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            if (signCaching.TryGet(connection.Id, info.MachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
-                    Connection = cache.Connection,
+                    Connection = to.Connection,
                     Timeout = 3000,
                     MessengerId = (ushort)Socks5MessengerIds.Update,
                     Payload = connection.ReceiveRequestWrap.Payload

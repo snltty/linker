@@ -1,19 +1,19 @@
 <template>
     <div class="wrap">
         <el-radio-group v-model="state.time" size="small" @change="handleChange">
-            <el-radio-button :label="$t('server.relayCdkeyFlagAll')" :value="0" />
-            <el-radio-button :label="$t('server.relayCdkeyFlagTimein')" :value="1" />
-            <el-radio-button :label="$t('server.relayCdkeyFlagTimeout')" :value="2"/>
+            <el-radio-button :label="$t('server.cdkeyFlagAll')" :value="0" />
+            <el-radio-button :label="$t('server.cdkeyFlagTimein')" :value="1" />
+            <el-radio-button :label="$t('server.cdkeyFlagTimeout')" :value="2"/>
         </el-radio-group>
         <el-radio-group v-model="state.bytes" size="small" @change="handleChange">
-            <el-radio-button :label="$t('server.relayCdkeyFlagAll')" :value="0" />
-            <el-radio-button :label="$t('server.relayCdkeyFlagBytesin')" :value="4" />
-            <el-radio-button :label="$t('server.relayCdkeyFlagBytesout')" :value="8"/>
+            <el-radio-button :label="$t('server.cdkeyFlagAll')" :value="0" />
+            <el-radio-button :label="$t('server.cdkeyFlagBytesin')" :value="4" />
+            <el-radio-button :label="$t('server.cdkeyFlagBytesout')" :value="8"/>
         </el-radio-group>
         <el-radio-group v-model="state.deleted" size="small" @change="handleChange">
-            <el-radio-button :label="$t('server.relayCdkeyFlagAll')" :value="0" />
-            <el-radio-button :label="$t('server.relayCdkeyFlagUnDeleted')" :value="16" />
-            <el-radio-button :label="$t('server.relayCdkeyFlagDeleted')" :value="32"/>
+            <el-radio-button :label="$t('server.cdkeyFlagAll')" :value="0" />
+            <el-radio-button :label="$t('server.cdkeyFlagUnDeleted')" :value="16" />
+            <el-radio-button :label="$t('server.cdkeyFlagDeleted')" :value="32"/>
         </el-radio-group>
     </div>
 </template>

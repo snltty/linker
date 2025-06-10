@@ -1,6 +1,7 @@
 ﻿using linker.libs;
 using linker.libs.extends;
 using linker.libs.timer;
+using linker.messenger.cdkey;
 using linker.messenger.relay.messenger;
 using linker.tunnel.connection;
 using System.Buffers;
@@ -239,7 +240,7 @@ namespace linker.messenger.relay.server
                 return;
             }
 
-            RelayServerCdkeyInfo currentCdkey = relayCache.Cache.Cdkey.Where(c => c.LastBytes > 0).OrderByDescending(c => c.Bandwidth).FirstOrDefault();
+            CdkeyInfo currentCdkey = relayCache.Cache.Cdkey.Where(c => c.LastBytes > 0).OrderByDescending(c => c.Bandwidth).FirstOrDefault();
             //有cdkey，且带宽大于节点带宽，就用cdkey的带宽
             if (currentCdkey != null && (currentCdkey.Bandwidth == 0 || currentCdkey.Bandwidth >= node.MaxBandwidth || node.MaxGbTotalLastBytes == 0))
             {
@@ -259,11 +260,11 @@ namespace linker.messenger.relay.server
         {
             if (dic.Count == 0) return;
 
-            Dictionary<int, RelayServerCdkeyInfo> cdkeys = trafficDict.Values.SelectMany(c => c.Cache.Cdkey).ToDictionary(c => c.Id, c => c);
+            Dictionary<int, CdkeyInfo> cdkeys = trafficDict.Values.SelectMany(c => c.Cache.Cdkey).ToDictionary(c => c.Id, c => c);
             //更新剩余流量
             foreach (KeyValuePair<int, long> item in dic)
             {
-                if (cdkeys.TryGetValue(item.Key, out RelayServerCdkeyInfo info))
+                if (cdkeys.TryGetValue(item.Key, out CdkeyInfo info))
                 {
                     info.LastBytes = item.Value;
                 }

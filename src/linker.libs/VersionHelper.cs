@@ -6,7 +6,8 @@ namespace linker.libs
 {
     public static class VersionHelper
     {
-        public static string version  = $"v{string.Join(".", Assembly.GetExecutingAssembly().GetName().Version.ToString().Split('.').Take(3))}";
+        static string version = $"v{string.Join(".", Assembly.GetExecutingAssembly().GetName().Version.ToString().Split('.').Take(3))}";
+        public static string Version => version;
 
         /// <summary>
         /// 比较版本，相差多少
@@ -24,7 +25,7 @@ namespace linker.libs
             if (v2Span[0] == 'v') v2Span = v2Span.Slice(1);
 
 
-            return Compare(Version.Parse(v1Span), Version.Parse(v2Span), abs);
+            return Compare(System.Version.Parse(v1Span), System.Version.Parse(v2Span), abs);
         }
         /// <summary>
         /// 比较版本，相差多少

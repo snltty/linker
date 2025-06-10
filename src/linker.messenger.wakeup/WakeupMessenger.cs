@@ -99,12 +99,12 @@ namespace linker.messenger.wakeup
         public void GetForward(IConnection connection)
         {
             WakeupSearchForwardInfo info = serializer.Deserialize<WakeupSearchForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            if (signCaching.TryGet(connection.Id, info.MachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
                 messengerSender.SendReply(new MessageRequestWrap
                 {
-                    Connection = cacheTo.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)WakeupMessengerIds.Get,
                     Payload = serializer.Serialize(info.Data)
                 }).ContinueWith(async (result) =>
@@ -134,12 +134,12 @@ namespace linker.messenger.wakeup
         public async Task AddForward(IConnection connection)
         {
             WakeupAddForwardInfo info = serializer.Deserialize<WakeupAddForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            if (signCaching.TryGet(connection.Id, info.MachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
-                    Connection = cacheTo.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)WakeupMessengerIds.Add,
                     Payload = serializer.Serialize(info.Data)
                 }).ConfigureAwait(false);
@@ -153,12 +153,12 @@ namespace linker.messenger.wakeup
         public async Task RemoveForward(IConnection connection)
         {
             WakeupRemoveForwardInfo info = serializer.Deserialize<WakeupRemoveForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            if (signCaching.TryGet(connection.Id, info.MachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
-                    Connection = cacheTo.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)WakeupMessengerIds.Remove,
                     Payload = serializer.Serialize(info.Id)
                 }).ConfigureAwait(false);
@@ -174,12 +174,12 @@ namespace linker.messenger.wakeup
         public async Task SendForward(IConnection connection)
         {
             WakeupSendForwardInfo info = serializer.Deserialize<WakeupSendForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            if (signCaching.TryGet(connection.Id, info.MachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
-                    Connection = cacheTo.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)WakeupMessengerIds.Send,
                     Payload = serializer.Serialize(info.Data)
                 }).ConfigureAwait(false);
@@ -195,12 +195,12 @@ namespace linker.messenger.wakeup
         public void ComsForward(IConnection connection)
         {
             string machineId = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(machineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            if (signCaching.TryGet(connection.Id, machineId, out SignCacheInfo from, out SignCacheInfo to))
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
                 messengerSender.SendReply(new MessageRequestWrap
                 {
-                    Connection = cacheTo.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)WakeupMessengerIds.Coms,
                 }).ContinueWith(async (result) =>
                 {
@@ -230,12 +230,12 @@ namespace linker.messenger.wakeup
         public void HidsForward(IConnection connection)
         {
             string machineId = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(machineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            if (signCaching.TryGet(connection.Id, machineId, out SignCacheInfo from, out SignCacheInfo to))
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
                 messengerSender.SendReply(new MessageRequestWrap
                 {
-                    Connection = cacheTo.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)WakeupMessengerIds.Hids,
                 }).ContinueWith(async (result) =>
                 {

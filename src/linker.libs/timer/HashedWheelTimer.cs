@@ -58,7 +58,7 @@ namespace linker.libs.timer
         
 
         private /*volatile*/ long _startTime;
-        private long _pendingTimeouts = 0;
+        private long _pendingTimeouts;
 
         private long GetCurrentMs() { return DateTime.UtcNow.Ticks / 10000 - _base; }
 
@@ -186,10 +186,7 @@ namespace linker.libs.timer
         /// <returns>a handle which is associated with the specified task</returns>
         public Timeout NewTimeout(TimerTask task, TimeSpan span)
         {
-            if (task == null)
-            {
-                throw new ArgumentNullException(nameof(task));
-            }
+            ArgumentNullException.ThrowIfNull(task);
 
             if (_workerState == WORKER_STATE_SHUTDOWN)
                 return null;
@@ -247,7 +244,7 @@ namespace linker.libs.timer
 
 
 
-        private readonly ISet<Timeout> _unprocessedTimeouts = new HashSet<Timeout>();
+        private readonly HashSet<Timeout> _unprocessedTimeouts = [];
         private long _tick;
 
         private void Run()

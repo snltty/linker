@@ -176,7 +176,7 @@ namespace linker.messenger
         {
             return true;
         }
-        private IConnection CreateConnection(SslStream stream, NetworkStream networkStream, Socket socket, IPEndPoint local, IPEndPoint remote)
+        private static TcpConnection CreateConnection(SslStream stream, NetworkStream networkStream, Socket socket, IPEndPoint local, IPEndPoint remote)
         {
             return new TcpConnection(stream, networkStream, socket, local, remote)
             {

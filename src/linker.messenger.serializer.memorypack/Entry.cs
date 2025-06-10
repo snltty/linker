@@ -66,19 +66,20 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new RelayAskResultInfo170Formatter());
             MemoryPackFormatterProvider.Register(new RelayCacheInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayMessageInfoFormatter());
-            MemoryPackFormatterProvider.Register(new RelayServerCdkeyInfoFormatter());
-            MemoryPackFormatterProvider.Register(new RelayServerCdkeyStoreInfoFormatter());
-            MemoryPackFormatterProvider.Register(new RelayServerCdkeyPageRequestInfoFormatter());
-            MemoryPackFormatterProvider.Register(new RelayServerCdkeyPageResultInfoFormatter());
-            MemoryPackFormatterProvider.Register(new RelayServerCdkeyAddInfoFormatter());
-            MemoryPackFormatterProvider.Register(new RelayServerCdkeyDelInfoFormatter());
+          
             MemoryPackFormatterProvider.Register(new RelayTrafficUpdateInfoFormatter());
-            MemoryPackFormatterProvider.Register(new RelayServerCdkeyImportInfoFormatter());
-            MemoryPackFormatterProvider.Register(new RelayServerCdkeyTestResultInfoFormatter());
-            MemoryPackFormatterProvider.Register(new RelayServerCdkeyOrderInfoFormatter());
-
             MemoryPackFormatterProvider.Register(new RelayServerNodeUpdateInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayServerNodeUpdateWrapInfoFormatter());
+
+            MemoryPackFormatterProvider.Register(new CdkeyInfoFormatter());
+            MemoryPackFormatterProvider.Register(new CdkeyStoreInfoFormatter());
+            MemoryPackFormatterProvider.Register(new CdkeyPageRequestInfoFormatter());
+            MemoryPackFormatterProvider.Register(new CdkeyPageResultInfoFormatter());
+            MemoryPackFormatterProvider.Register(new CdkeyAddInfoFormatter());
+            MemoryPackFormatterProvider.Register(new CdkeyDelInfoFormatter());
+            MemoryPackFormatterProvider.Register(new CdkeyImportInfoFormatter());
+            MemoryPackFormatterProvider.Register(new CdkeyTestResultInfoFormatter());
+            MemoryPackFormatterProvider.Register(new CdkeyOrderInfoFormatter());
 
 
             MemoryPackFormatterProvider.Register(new AccessUpdateInfoFormatter());

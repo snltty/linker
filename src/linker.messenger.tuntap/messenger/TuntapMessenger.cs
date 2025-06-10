@@ -122,12 +122,12 @@ namespace linker.messenger.tuntap.messenger
         [MessengerId((ushort)TuntapMessengerIds.RunForward)]
         public async Task RunForward(IConnection connection)
         {
-            string name = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(name, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            string machineid = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, machineid, out SignCacheInfo from, out SignCacheInfo to))
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
-                    Connection = cache.Connection,
+                    Connection = to.Connection,
                     Timeout = 3000,
                     MessengerId = (ushort)TuntapMessengerIds.Run
                 }).ConfigureAwait(false);
@@ -142,12 +142,12 @@ namespace linker.messenger.tuntap.messenger
         [MessengerId((ushort)TuntapMessengerIds.StopForward)]
         public async Task StopForward(IConnection connection)
         {
-            string name = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(name, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            string machineid = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, machineid, out SignCacheInfo from, out SignCacheInfo to))
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
-                    Connection = cache.Connection,
+                    Connection = to.Connection,
                     Timeout = 3000,
                     MessengerId = (ushort)TuntapMessengerIds.Stop
                 }).ConfigureAwait(false);
@@ -163,11 +163,11 @@ namespace linker.messenger.tuntap.messenger
         public async Task UpdateForward(IConnection connection)
         {
             TuntapInfo info = serializer.Deserialize<TuntapInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            if (signCaching.TryGet(connection.Id, info.MachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
-                    Connection = cache.Connection,
+                    Connection = to.Connection,
                     Timeout = 3000,
                     MessengerId = (ushort)TuntapMessengerIds.Update,
                     Payload = connection.ReceiveRequestWrap.Payload
@@ -228,7 +228,7 @@ namespace linker.messenger.tuntap.messenger
             {
                 uint requiestid = connection.ReceiveRequestWrap.RequestId;
 
-                List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
+                List<SignCacheInfo> caches = signCaching.Get(cache);
                 IEnumerable<Task<bool>> tasks = caches.Where(c => c.MachineId != connection.Id && c.Connected).Select(c => messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = c.Connection,
@@ -260,13 +260,13 @@ namespace linker.messenger.tuntap.messenger
         public void SubscribeForwardTestForward(IConnection connection)
         {
             uint requestid = connection.ReceiveRequestWrap.RequestId;
-            TuntapForwardTestWrapInfo tuntapForwardTestWrapInfo = serializer.Deserialize<TuntapForwardTestWrapInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(tuntapForwardTestWrapInfo.MachineId, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            TuntapForwardTestWrapInfo info = serializer.Deserialize<TuntapForwardTestWrapInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, info.MachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
 
                 messengerSender.SendReply(new MessageRequestWrap
                 {
-                    Connection = cache.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)TuntapMessengerIds.SubscribeForwardTest,
                     Payload = connection.ReceiveRequestWrap.Payload
                 }).ContinueWith((result) =>
@@ -299,12 +299,12 @@ namespace linker.messenger.tuntap.messenger
         {
             uint requestid = connection.ReceiveRequestWrap.RequestId;
             string machineid = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(machineid, out SignCacheInfo cache) && signCaching.TryGet(connection.Id, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            if (signCaching.TryGet(connection.Id, machineid, out SignCacheInfo from, out SignCacheInfo to))
             {
 
                 messengerSender.SendReply(new MessageRequestWrap
                 {
-                    Connection = cache.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)TuntapMessengerIds.Routes,
                 }).ContinueWith((result) =>
                 {

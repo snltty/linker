@@ -5,7 +5,7 @@ namespace linker.libs
     public sealed class ReceiveDataBuffer
     {
         private Memory<byte> items { get; set; }
-        private int size = 0;
+        private int size ;
         public int Size
         {
             get

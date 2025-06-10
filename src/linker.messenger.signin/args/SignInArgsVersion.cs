@@ -10,7 +10,7 @@ namespace linker.messenger.signin.args
         public string Name => "version";
         public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
-            args.TryAdd("version", VersionHelper.version);
+            args.TryAdd("version", VersionHelper.Version);
 
             await Task.CompletedTask.ConfigureAwait(false);
 

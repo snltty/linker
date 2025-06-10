@@ -43,9 +43,9 @@ namespace linker.messenger.logger
 
         private static void LoggerConsole()
         {
-            if (Directory.Exists(Path.Join(Helper.currentDirectory, "logs")) == false)
+            if (Directory.Exists(Path.Join(Helper.CurrentDirectory, "logs")) == false)
             {
-                Directory.CreateDirectory(Path.Join(Helper.currentDirectory, "logs"));
+                Directory.CreateDirectory(Path.Join(Helper.CurrentDirectory, "logs"));
             }
             LoggerHelper.Instance.OnLogger += (model) =>
             {
@@ -72,7 +72,7 @@ namespace linker.messenger.logger
                 Console.ForegroundColor = currentForeColor;
                 try
                 {
-                    using StreamWriter sw = File.AppendText(Path.Join(Helper.currentDirectory, "logs", $"{DateTime.Now:yyyy-MM-dd}.log"));
+                    using StreamWriter sw = File.AppendText(Path.Join(Helper.CurrentDirectory, "logs", $"{DateTime.Now:yyyy-MM-dd}.log"));
                     sw.WriteLine(line);
                     sw.Flush();
                     sw.Close();
@@ -84,7 +84,7 @@ namespace linker.messenger.logger
             };
             TimerHelper.SetIntervalLong(() =>
             {
-                string[] files = Directory.GetFiles(Path.Combine(Helper.currentDirectory, "logs")).OrderBy(c => c).ToArray();
+                string[] files = Directory.GetFiles(Path.Combine(Helper.CurrentDirectory, "logs")).OrderBy(c => c).ToArray();
                 for (int i = 0; i < files.Length - 180; i++)
                 {
                     try

@@ -22,6 +22,7 @@ using linker.messenger.plan;
 using System.Text.Json;
 using linker.messenger.firewall;
 using linker.messenger.wakeup;
+using linker.messenger.cdkey;
 
 namespace linker.messenger.entry
 {
@@ -67,6 +68,8 @@ namespace linker.messenger.entry
                 .AddPcpClient().AddPcpServer()
                 //中继
                 .AddRelayClient().AddRelayServer()
+                //cdkey
+                .AddCdkeyClient().AddCdkeyServer()
                 //服务器穿透
                 .AddSForwardClient().AddSForwardServer()
                 //登录
@@ -97,11 +100,11 @@ namespace linker.messenger.entry
 
                 //防火墙
                 .AddFirewallClient().AddFirewallServer()
-                
+
                 //唤醒
                 .AddWakeupClient().AddWakeupServer();
 
-                
+
         }
         /// <summary>
         /// 注入
@@ -182,7 +185,8 @@ namespace linker.messenger.entry
                 if ((modules & ExcludeModule.Wakeup) != ExcludeModule.Wakeup)
                     serviceProvider.UseWakeupServer();
 
-                serviceProvider.UseAccessServer().UseDecenterServer().UsePcpServer().UseRelayServer()
+                serviceProvider.UseAccessServer().UseDecenterServer().UsePcpServer()
+                    .UseRelayServer().UseCdkeyServer()
                  .UseSignInServer().UseSyncServer().UseTunnelServer().UseFlowServer();
 
                 serviceProvider.UseListen();
@@ -214,7 +218,9 @@ namespace linker.messenger.entry
                     serviceProvider.UseWakeupClient();
 
 
-                serviceProvider.UseExRoute().UseAccessClient().UseDecenterClient().UsePcpClient().UseRelayClient().UseSyncClient().UseTunnelClient().UseFlowClient();
+                serviceProvider.UseExRoute().UseAccessClient().UseDecenterClient().UsePcpClient()
+                    .UseRelayClient().UseCdkeyClient()
+                    .UseSyncClient().UseTunnelClient().UseFlowClient();
 
                 serviceProvider.UseSignInClient();
 

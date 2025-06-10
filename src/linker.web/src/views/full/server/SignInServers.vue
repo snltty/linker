@@ -25,8 +25,11 @@
                             <span class="mgl-1" v-if="globalData.isPc">{{$t('server.messengerUserIdText')}}</span>
                         </div>
                     </el-form-item>
+                    <el-form-item></el-form-item>
+                    <Cdkey></Cdkey>
                     <RelayServers class="mgt-2"></RelayServers>
                     <SForward></SForward>
+                    <el-form-item></el-form-item>
                     <Updater></Updater>
                 </el-form>
             </div>
@@ -45,11 +48,12 @@ import { ElMessage } from 'element-plus';
 import { computed, onMounted, reactive } from 'vue'
 import SForward from './SForward.vue';
 import Updater from './Updater.vue';
+import Cdkey from './Cdkey.vue';
 import RelayServers from './RelayServers.vue';
 import { useI18n } from 'vue-i18n';
 import Sync from '../sync/Index.vue'
 export default {
-    components:{SForward,Updater,RelayServers,Sync},
+    components:{SForward,Updater,Cdkey,RelayServers,Sync},
     setup(props) {
         const {t} = useI18n();
         const globalData = injectGlobalData();

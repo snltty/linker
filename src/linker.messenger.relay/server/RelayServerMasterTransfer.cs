@@ -1,6 +1,6 @@
 ﻿using linker.libs;
-using linker.libs.extends;
 using linker.libs.timer;
+using linker.messenger.cdkey;
 using linker.messenger.relay.messenger;
 using linker.messenger.relay.server.caching;
 using System.Collections.Concurrent;
@@ -22,11 +22,11 @@ namespace linker.messenger.relay.server
         private readonly IRelayServerCaching relayCaching;
         private readonly ISerializer serializer;
         private readonly IRelayServerMasterStore relayServerMasterStore;
-        private readonly IRelayServerCdkeyStore relayServerCdkeyStore;
+        private readonly ICdkeyServerStore relayServerCdkeyStore;
         private readonly IMessengerSender messengerSender;
 
 
-        public RelayServerMasterTransfer(IRelayServerCaching relayCaching, ISerializer serializer, IRelayServerMasterStore relayServerMasterStore, IRelayServerCdkeyStore relayServerCdkeyStore, IMessengerSender messengerSender)
+        public RelayServerMasterTransfer(IRelayServerCaching relayCaching, ISerializer serializer, IRelayServerMasterStore relayServerMasterStore, ICdkeyServerStore relayServerCdkeyStore, IMessengerSender messengerSender)
         {
             this.relayCaching = relayCaching;
             this.serializer = serializer;
@@ -37,7 +37,7 @@ namespace linker.messenger.relay.server
         }
 
 
-        public ulong AddRelay(string fromid, string fromName, string toid, string toName, string groupid, bool validated, List<RelayServerCdkeyInfo> cdkeys)
+        public ulong AddRelay(string fromid, string fromName, string toid, string toName, string groupid, bool validated, List<CdkeyInfo> cdkeys)
         {
             ulong flowingId = Interlocked.Increment(ref relayFlowingId);
 

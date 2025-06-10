@@ -165,7 +165,7 @@ namespace linker.messenger
         #region 回复数据
         public Memory<byte> ResponseData { get; private set; }
         private byte[] responseData;
-        private int length = 0;
+        private int length;
 
         public void Write(Memory<byte> data)
         {

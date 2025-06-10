@@ -18,9 +18,9 @@
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker messenger relay</PackageReleaseNotes>
-		<Version>1.8.2</Version>
-		<AssemblyVersion>1.8.2</AssemblyVersion>
-		<FileVersion>1.8.2</FileVersion>
+		<Version>1.8.3</Version>
+		<AssemblyVersion>1.8.3</AssemblyVersion>
+		<FileVersion>1.8.3</FileVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -43,6 +43,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\linker.libs\linker.libs.csproj" />
+		<ProjectReference Include="..\linker.messenger.cdkey\linker.messenger.cdkey.csproj" />
 		<ProjectReference Include="..\linker.messenger.signin\linker.messenger.signin.csproj" />
 		<ProjectReference Include="..\linker.messenger.sync\linker.messenger.sync.csproj" />
 		<ProjectReference Include="..\linker.messenger\linker.messenger.csproj" />

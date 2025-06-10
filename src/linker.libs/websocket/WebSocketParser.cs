@@ -13,7 +13,6 @@ namespace linker.libs.websocket
     /// </summary>
     public static class WebSocketParser
     {
-        private readonly static SHA1 sha1 = SHA1.Create();
         private readonly static Memory<byte> magicCode = Encoding.UTF8.GetBytes("258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
         /// <summary>
         /// 构建连接数据
@@ -124,7 +123,7 @@ namespace linker.libs.websocket
             Encoding.UTF8.GetBytes(key).AsMemory().CopyTo(acceptBytes);
             magicCode.CopyTo(acceptBytes.AsMemory(key.Length));
 
-            string acceptStr = Convert.ToBase64String(sha1.ComputeHash(acceptBytes, 0, keyLength));
+            string acceptStr = Convert.ToBase64String(SHA256.HashData(acceptBytes.AsSpan(0, keyLength)));
 
             return acceptStr;
         }
@@ -174,7 +173,7 @@ namespace linker.libs.websocket
         {
             if (remark.Mask > 0 && remark.MaskData.Length != 4)
             {
-                throw new Exception("mask data just 4byte");
+                throw new ArgumentException("mask data just 4byte");
             }
 
             length = 1 + 1 + remark.Data.Length;
@@ -634,13 +633,13 @@ namespace linker.libs.websocket
     }
     public sealed class WebsocketHeaderKey
     {
-        public static string Connection = "connection";
-        public static string Upgrade = "upgrade";
-        public static string Origin = "origin";
-        public static string SecWebSocketVersion = "sec-websocket-version";
-        public static string SecWebSocketKey = "sec-websocket-key";
-        public static string SecWebSocketExtensions = "sec-websocket-extensions";
-        public static string SecWebSocketProtocol = "sec-websocket-protocol";
-        public static string SecWebSocketAccept = "sec-websocket-accept";
+        public const string Connection = "connection";
+        public const string Upgrade = "upgrade";
+        public const string Origin = "origin";
+        public const string SecWebSocketVersion = "sec-websocket-version";
+        public const string SecWebSocketKey = "sec-websocket-key";
+        public const string SecWebSocketExtensions = "sec-websocket-extensions";
+        public const string SecWebSocketProtocol = "sec-websocket-protocol";
+        public const string SecWebSocketAccept = "sec-websocket-accept";
     }
 }

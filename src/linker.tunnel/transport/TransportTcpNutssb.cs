@@ -215,7 +215,7 @@ namespace linker.tunnel.transport
         {
             return true;
         }
-        private void BindAndTTL(TunnelTransportInfo tunnelTransportInfo)
+        private static void BindAndTTL(TunnelTransportInfo tunnelTransportInfo)
         {
             IEnumerable<Socket> sockets = tunnelTransportInfo.RemoteEndPoints.Select(ip =>
             {

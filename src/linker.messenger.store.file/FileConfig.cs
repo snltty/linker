@@ -74,9 +74,9 @@ namespace linker.messenger.store.file
                     }
                 }
             }
-            if (Directory.Exists(Path.Combine(Helper.currentDirectory, configPath)) == false)
+            if (Directory.Exists(Path.Combine(Helper.CurrentDirectory, configPath)) == false)
             {
-                Directory.CreateDirectory(Path.Combine(Helper.currentDirectory, configPath));
+                Directory.CreateDirectory(Path.Combine(Helper.CurrentDirectory, configPath));
             }
 
             Type type = Data.GetType();
@@ -86,7 +86,7 @@ namespace linker.messenger.store.file
                 object property = item.GetValue(Data);
                 fsDic.Add(item.Name.ToLower(), new FileReadWrite
                 {
-                    Path = Path.Combine(Helper.currentDirectory, configPath, $"{item.Name.ToLower()}.json"),
+                    Path = Path.Combine(Helper.CurrentDirectory, configPath, $"{item.Name.ToLower()}.json"),
                     Property = item,
                     PropertyObject = property,
                     PropertyMethod = (IConfig)property,

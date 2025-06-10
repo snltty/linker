@@ -24,7 +24,9 @@ namespace linker.libs
             GC.Collect();
             GC.Collect(2, GCCollectionMode.Aggressive);
 
+#pragma warning disable CA1816 // Dispose 方法应调用 SuppressFinalize
             GC.SuppressFinalize(true);
+#pragma warning restore CA1816 // Dispose 方法应调用 SuppressFinalize
             GC.WaitForPendingFinalizers();
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {

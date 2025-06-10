@@ -32,7 +32,7 @@ namespace linker.tunnel
 
         }
 
-        private void LoopDiscovery()
+        private static void LoopDiscovery()
         {
             TimerHelper.SetIntervalLong(() =>
             {
@@ -50,7 +50,7 @@ namespace linker.tunnel
         }
         private void AddMap()
         {
-            if (natDevices.Count == 0 || MapInfo == null) return;
+            if (natDevices.IsEmpty || MapInfo == null) return;
 
             TimerHelper.Async(async () =>
             {

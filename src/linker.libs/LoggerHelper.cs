@@ -26,7 +26,7 @@ namespace linker.libs
             {
                 while (true)
                 {
-                    while (queue.Count > 0)
+                    while (queue.IsEmpty == false)
                     {
                         if (queue.TryDequeue(out LoggerModel model))
                         {
@@ -39,7 +39,7 @@ namespace linker.libs
         }
 
 
-        public int lockNum = 0;
+        public int lockNum;
         public void Lock()
         {
             Interlocked.Increment(ref lockNum);

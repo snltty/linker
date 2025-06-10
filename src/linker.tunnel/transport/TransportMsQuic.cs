@@ -42,7 +42,7 @@ namespace linker.tunnel.transport
         private ConcurrentDictionary<int, ListenAsyncToken> stateDic = new ConcurrentDictionary<int, ListenAsyncToken>();
         private byte[] authBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.ttl");
         private byte[] endBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.end");
-        private IPEndPoint quicListenEP = null;
+        private IPEndPoint quicListenEP;
 
         private readonly ITunnelMessengerAdapter tunnelMessengerAdapter;
         public TransportMsQuic(ITunnelMessengerAdapter tunnelMessengerAdapter)
@@ -285,7 +285,7 @@ namespace linker.tunnel.transport
                         socket.WindowsUdpBug();
                         socket.ReuseBind(local);
                         socket.Ttl = (short)(tunnelTransportInfo.Local.RouteLevel);
-                        _ = socket.SendToAsync(new byte[0], SocketFlags.None, ip);
+                        _ = socket.SendToAsync(Array.Empty<byte>(), SocketFlags.None, ip);
                         socket.SafeClose();
                     }
                     else
@@ -557,7 +557,7 @@ namespace linker.tunnel.transport
         /// <param name="remote"></param>
         /// <param name="remoteEp"></param>
         /// <returns></returns>
-        private async Task CopyToAsync(byte bufferSize, Socket local, Socket remote, IPEndPoint remoteEp)
+        private static async Task CopyToAsync(byte bufferSize, Socket local, Socket remote, IPEndPoint remoteEp)
         {
             byte[] buffer = new byte[(1 << bufferSize) * 1024];
             IPEndPoint tempEp = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);

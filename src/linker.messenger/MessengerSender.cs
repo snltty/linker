@@ -40,8 +40,8 @@ namespace linker.messenger
     /// </summary>
     public class MessengerSender : IMessengerSender
     {
-        public NumberSpaceUInt32 requestIdNumberSpace = new NumberSpaceUInt32(0);
-        private ConcurrentDictionary<uint, ReplyWrapInfo> sends = new ConcurrentDictionary<uint, ReplyWrapInfo>();
+        public readonly NumberSpaceUInt32 requestIdNumberSpace = new NumberSpaceUInt32(0);
+        private readonly ConcurrentDictionary<uint, ReplyWrapInfo> sends = new ConcurrentDictionary<uint, ReplyWrapInfo>();
 
         public MessengerSender()
         {

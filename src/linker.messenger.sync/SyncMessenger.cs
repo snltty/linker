@@ -23,7 +23,7 @@ namespace linker.messenger.sync
             SyncInfo info = serializer.Deserialize<SyncInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
             {
-                List<SignCacheInfo> caches = signCaching.Get(cache.GroupId);
+                List<SignCacheInfo> caches = signCaching.Get(cache);
                 List<Task> tasks = new List<Task>();
                 foreach (SignCacheInfo item in caches.Where(c => c.MachineId != connection.Id && c.Connected))
                 {

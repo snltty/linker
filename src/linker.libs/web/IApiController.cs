@@ -22,7 +22,7 @@ namespace linker.libs.web
         /// <summary>
         /// 请求id
         /// </summary>
-        public long RequestId { get; set; } = 0;
+        public long RequestId { get; set; }
         /// <summary>
         /// 状态码
         /// </summary>
@@ -47,7 +47,7 @@ namespace linker.libs.web
         /// <summary>
         /// 请求id
         /// </summary>
-        public uint RequestId { get; set; } = 0;
+        public uint RequestId { get; set; }
         /// <summary>
         /// 数据
         /// </summary>
@@ -63,7 +63,7 @@ namespace linker.libs.web
         /// <summary>
         /// 请求id
         /// </summary>
-        public uint RequestId { get; set; } = 0;
+        public uint RequestId { get; set; }
         /// <summary>
         /// 数据
         /// </summary>

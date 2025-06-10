@@ -15,18 +15,10 @@
         NodeDelay = 2106,
         NodeDelayForward = 2107,
 
-        AddCdkey = 2108,
-        PageCdkey = 2109,
-        DelCdkey = 2110,
-        AccessCdkey = 2111,
-
 
         NodeGetCache = 2112,
         NodeReport = 2113,
         TrafficReport = 2114,
-
-        TestCdkey = 2115,
-        ImportCdkey = 2116,
 
         UpdateNode = 2117,
         UpdateNodeForward = 2118,

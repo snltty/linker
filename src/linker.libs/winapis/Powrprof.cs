@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace linker.libs.winapis
 {
-    internal class Powrprof
+    internal sealed class Powrprof
     {
 
         [DllImport("powrprof.dll")]

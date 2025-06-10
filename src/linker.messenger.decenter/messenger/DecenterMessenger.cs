@@ -48,7 +48,7 @@ namespace linker.messenger.decenter
             }
 
             Memory<byte> memory = serializer.Serialize(info);
-            List<SignCacheInfo> caches = signCaching.Get(signin.GroupId).Where(c => c.MachineId != connection.Id && c.Connected).ToList();
+            List<SignCacheInfo> caches = signCaching.Get(signin).Where(c => c.MachineId != connection.Id && c.Connected).ToList();
             List<Task<bool>> tasks = caches.Select(c => sender.SendOnly(new MessageRequestWrap
             {
                 Connection = c.Connection,
@@ -69,7 +69,7 @@ namespace linker.messenger.decenter
                 return;
             }
 
-            IEnumerable<Memory<byte>> data = dic.Where(c => c.Key != connection.Id && c.Value.SignIn.GroupId == signin.GroupId).Select(c => c.Value.Data);
+            IEnumerable<Memory<byte>> data = dic.Where(c => c.Key != connection.Id && c.Value.SignIn.SameGroup(signin)).Select(c => c.Value.Data);
             connection.Write(serializer.Serialize(data));
         }
 
@@ -85,7 +85,7 @@ namespace linker.messenger.decenter
                 return;
             }
 
-            IEnumerable<Memory<byte>> data = dic.Where(c => c.Key != connection.Id && c.Value.SignIn.GroupId == signin.GroupId).Select(c => c.Value.Data);
+            IEnumerable<Memory<byte>> data = dic.Where(c => c.Key != connection.Id && c.Value.SignIn.SameGroup(signin)).Select(c => c.Value.Data);
             connection.Write(serializer.Serialize(new DecenterPullPageResultInfo
             {
                 Count = data.Count(),
@@ -103,7 +103,7 @@ namespace linker.messenger.decenter
             {
                 uint requiestid = connection.ReceiveRequestWrap.RequestId;
 
-                List<SignCacheInfo> caches = signCaching.Get(cache.GroupId).Where(c => c.MachineId != connection.Id && c.Connected).ToList();
+                List<SignCacheInfo> caches = signCaching.Get(cache).Where(c => c.MachineId != connection.Id && c.Connected).ToList();
                 List<Task<MessageResponeInfo>> tasks = new List<Task<MessageResponeInfo>>();
                 foreach (SignCacheInfo item in caches)
                 {

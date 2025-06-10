@@ -181,7 +181,7 @@ namespace linker.messenger.signin
                 {
                     MachineName = signInClientStore.Name,
                     MachineId = signInClientStore.Id,
-                    Version = VersionHelper.version,
+                    Version = VersionHelper.Version,
                     Args = args,
                     GroupId = signInClientStore.Group.Id,
                 })

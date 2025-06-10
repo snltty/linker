@@ -6,7 +6,7 @@ namespace linker.libs
 {
     public sealed class VersionManager
     {
-        private ulong version = 0;
+        private ulong version;
 
         public ulong Value => version;
 

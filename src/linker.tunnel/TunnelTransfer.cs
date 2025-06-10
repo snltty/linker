@@ -21,7 +21,7 @@ namespace linker.tunnel
         public ConcurrentDictionary<string, bool> Operating => operating.StringKeyValue;
         private OperatingMultipleManager operating = new OperatingMultipleManager();
         private uint flowid = 1;
-        private Dictionary<string, List<Action<ITunnelConnection>>> OnConnected { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
+        private Dictionary<string, List<Action<ITunnelConnection>>> OnConnectedDic { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
 
 
         private readonly ITunnelMessengerAdapter tunnelMessengerAdapter;
@@ -44,7 +44,7 @@ namespace linker.tunnel
 
             foreach (var item in transports)
             {
-                item.OnConnected = _OnConnected;
+                item.OnConnected = OnConnected;
             }
             _ = RebuildTransports();
         }
@@ -169,10 +169,10 @@ namespace linker.tunnel
         /// <param name="callback"></param>
         public void SetConnectedCallback(string transactionId, Action<ITunnelConnection> callback)
         {
-            if (OnConnected.TryGetValue(transactionId, out List<Action<ITunnelConnection>> callbacks) == false)
+            if (OnConnectedDic.TryGetValue(transactionId, out List<Action<ITunnelConnection>> callbacks) == false)
             {
                 callbacks = new List<Action<ITunnelConnection>>();
-                OnConnected[transactionId] = callbacks;
+                OnConnectedDic[transactionId] = callbacks;
             }
             callbacks.Add(callback);
         }
@@ -183,7 +183,7 @@ namespace linker.tunnel
         /// <param name="callback"></param>
         public void RemoveConnectedCallback(string transactionId, Action<ITunnelConnection> callback)
         {
-            if (OnConnected.TryGetValue(transactionId, out List<Action<ITunnelConnection>> callbacks))
+            if (OnConnectedDic.TryGetValue(transactionId, out List<Action<ITunnelConnection>> callbacks))
             {
                 callbacks.Remove(callback);
             }
@@ -289,7 +289,7 @@ namespace linker.tunnel
                                 ITunnelConnection connection = await transport.ConnectAsync(tunnelTransportInfo).ConfigureAwait(false);
                                 if (connection != null)
                                 {
-                                    _OnConnected(connection);
+                                    OnConnected(connection);
                                     return connection;
                                 }
                             }
@@ -429,12 +429,12 @@ namespace linker.tunnel
         }
 
 
-        private void OnConnecting(TunnelTransportInfo tunnelTransportInfo)
+        private static void OnConnecting(TunnelTransportInfo tunnelTransportInfo)
         {
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Info($"tunnel connecting {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName}");
         }
-        private void OnConnectBegin(TunnelTransportInfo tunnelTransportInfo)
+        private static void OnConnectBegin(TunnelTransportInfo tunnelTransportInfo)
         {
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Info($"tunnel connecting from {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName}");
@@ -443,21 +443,21 @@ namespace linker.tunnel
         /// 连接成功
         /// </summary>
         /// <param name="connection"></param>
-        private void _OnConnected(ITunnelConnection connection)
+        private void OnConnected(ITunnelConnection connection)
         {
             if (connection == null) return;
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Debug($"tunnel connect {connection.RemoteMachineId}->{connection.RemoteMachineName} success->{connection.IPEndPoint}");
 
             //调用以下别人注册的回调
-            if (OnConnected.TryGetValue(Helper.GlobalString, out List<Action<ITunnelConnection>> callbacks))
+            if (OnConnectedDic.TryGetValue(Helper.GlobalString, out List<Action<ITunnelConnection>> callbacks))
             {
                 foreach (var item in callbacks)
                 {
                     item(connection);
                 }
             }
-            if (OnConnected.TryGetValue(connection.TransactionId, out callbacks))
+            if (OnConnectedDic.TryGetValue(connection.TransactionId, out callbacks))
             {
                 foreach (var item in callbacks)
                 {
@@ -465,7 +465,7 @@ namespace linker.tunnel
                 }
             }
         }
-        private void OnConnectFail(TunnelTransportInfo tunnelTransportInfo)
+        private static void OnConnectFail(TunnelTransportInfo tunnelTransportInfo)
         {
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Error($"tunnel connect {tunnelTransportInfo.Remote.MachineId} fail");
@@ -520,7 +520,7 @@ namespace linker.tunnel
 
             tunnelTransportInfo.RemoteEndPoints = eps;
         }
-        private string BuildKey(string remoteMachineId, string transactionId)
+        private static string BuildKey(string remoteMachineId, string transactionId)
         {
             return $"{remoteMachineId}@{transactionId}";
         }
@@ -589,7 +589,7 @@ namespace linker.tunnel
         {
             return backgroundDic.ContainsKey(GetBackgroundKey(remoteMachineId, transactionId));
         }
-        private string GetBackgroundKey(string remoteMachineId, string transactionId)
+        private static string GetBackgroundKey(string remoteMachineId, string transactionId)
         {
             return $"{remoteMachineId}@{transactionId}";
         }

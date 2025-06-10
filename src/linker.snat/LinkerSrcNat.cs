@@ -122,7 +122,7 @@ namespace linker.snat
             }
             return false;
         }
-        private IPAddress GetDefaultInterface()
+        private static IPAddress GetDefaultInterface()
         {
             string[] lines = CommandHelper.Windows(string.Empty, new string[] { $"route print" }).Split(Environment.NewLine);
             foreach (var item in lines)
@@ -135,7 +135,7 @@ namespace linker.snat
             }
             return null;
         }
-        private HashSet<uint> GetInterfaces()
+        private static HashSet<uint> GetInterfaces()
         {
             return NetworkInterface.GetAllNetworkInterfaces().Select(c =>
             {
@@ -155,7 +155,7 @@ namespace linker.snat
         /// 过滤条件，只过滤一定的数据包
         /// </summary>
         /// <returns></returns>
-        private string BuildFilter(AddrInfo[] dsts)
+        private static string BuildFilter(AddrInfo[] dsts)
         {
             IEnumerable<string> ipRanges = dsts.Select(c => $"(ip.SrcAddr >= {c.NetworkIP} and ip.SrcAddr <= {c.BroadcastIP})");
             return $"inbound and ({string.Join(" or ", ipRanges)})";
@@ -460,7 +460,7 @@ namespace linker.snat
         /// 申请一个新的端口
         /// </summary>
         /// <returns></returns>
-        private ushort ApplyNewPort()
+        private static ushort ApplyNewPort()
         {
             using Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);

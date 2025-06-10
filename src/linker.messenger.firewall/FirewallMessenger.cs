@@ -25,12 +25,12 @@ namespace linker.messenger.firewall
         public void GetForward(IConnection connection)
         {
             FirewallSearchForwardInfo info = serializer.Deserialize<FirewallSearchForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            if (signCaching.TryGet(connection.Id, info.MachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
                 sender.SendReply(new MessageRequestWrap
                 {
-                    Connection = cacheTo.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)FirewallMessengerIds.Get,
                     Payload = serializer.Serialize(info.Data)
                 }).ContinueWith(async (result) =>
@@ -60,12 +60,12 @@ namespace linker.messenger.firewall
         public async Task AddForward(IConnection connection)
         {
             FirewallAddForwardInfo info = serializer.Deserialize<FirewallAddForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            if (signCaching.TryGet(connection.Id, info.MachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
                 await sender.SendOnly(new MessageRequestWrap
                 {
-                    Connection = cacheTo.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)FirewallMessengerIds.Add,
                     Payload = serializer.Serialize(info.Data)
                 }).ConfigureAwait(false);
@@ -79,12 +79,12 @@ namespace linker.messenger.firewall
         public async Task RemoveForward(IConnection connection)
         {
             FirewallRemoveForwardInfo info = serializer.Deserialize<FirewallRemoveForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            if (signCaching.TryGet(connection.Id, info.MachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
                 await sender.SendOnly(new MessageRequestWrap
                 {
-                    Connection = cacheTo.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)FirewallMessengerIds.Remove,
                     Payload = serializer.Serialize(info.Id)
                 }).ConfigureAwait(false);
@@ -100,12 +100,12 @@ namespace linker.messenger.firewall
         public async Task StateForward(IConnection connection)
         {
             FirewallStateForwardInfo info = serializer.Deserialize<FirewallStateForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(info.MachineId, out SignCacheInfo cacheTo) && signCaching.TryGet(connection.Id, out SignCacheInfo cacheFrom) && cacheFrom.GroupId == cacheTo.GroupId)
+            if (signCaching.TryGet(connection.Id, info.MachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
                 await sender.SendOnly(new MessageRequestWrap
                 {
-                    Connection = cacheTo.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)FirewallMessengerIds.State,
                     Payload = serializer.Serialize(info.State)
                 }).ConfigureAwait(false);

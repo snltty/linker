@@ -40,7 +40,7 @@ namespace linker.libs
         }
     }
 
-    public static class NetworkHelper
+    public static partial class NetworkHelper
     {
         public static IPEndPoint TransEndpointFamily(IPEndPoint ep)
         {
@@ -132,8 +132,7 @@ namespace linker.libs
             return null;
         }
 
-
-        static List<string> starts = new() { "10.", "100.", "192.168.", "172." };
+        private readonly static List<string> starts = ["10.", "100.", "192.168.", "172."];
         public static ushort GetRouteLevel(string server, out List<IPAddress> result)
         {
             result = new List<IPAddress>();
@@ -159,7 +158,7 @@ namespace linker.libs
             string str = CommandHelper.Linux(string.Empty, new string[] { $"traceroute {server} -4 -m 5 -w 1" });
             string[] lines = str.Split(Environment.NewLine);
 
-            Regex regex = new Regex(@"(\d+\.\d+\.\d+\.\d+)");
+            Regex regex = MyRegex();
             for (ushort i = 1; i < lines.Length; i++)
             {
                 string ip = regex.Match(lines[i]).Groups[1].Value;
@@ -186,7 +185,7 @@ namespace linker.libs
                 {
                     using Ping pinger = new();
                     PingReply reply = pinger.Send(target, 100, Encoding.ASCII.GetBytes(Helper.GlobalString), new PingOptions { Ttl = i, DontFragment = true });
-                    if(reply.Status != IPStatus.Success)
+                    if (reply.Status != IPStatus.Success)
                     {
                         continue;
                     }
@@ -208,7 +207,7 @@ namespace linker.libs
         }
 
 
-        private static byte[] ipv6LocalBytes = new byte[] { 254, 128, 0, 0, 0, 0, 0, 0 };
+        private readonly static byte[] ipv6LocalBytes = [254, 128, 0, 0, 0, 0, 0, 0];
 
         private static IPAddress[] GetIP()
         {
@@ -223,7 +222,7 @@ namespace linker.libs
                 {
                 }
             }
-            
+
             try
             {
                 return NetworkInterface.GetAllNetworkInterfaces()
@@ -245,9 +244,9 @@ namespace linker.libs
                  .Where(c => c.Equals(IPAddress.IPv6Loopback) == false)
                  .Where(c =>
                  {
-                 byte[] addressBytes = c.GetAddressBytes();
+                     byte[] addressBytes = c.GetAddressBytes();
                      return (
-                     addressBytes[0] == 0xFD 
+                     addressBytes[0] == 0xFD
                      || (addressBytes[0] == 0xFE && (addressBytes[1] == 0x80 || addressBytes[1] == 0xC0))
                      ) == false;
                  })
@@ -359,7 +358,10 @@ namespace linker.libs
 #pragma warning restore 618
 #else
 
-        public static bool IPv6Support = Socket.OSSupportsIPv6;
+        public static bool IPv6Support => Socket.OSSupportsIPv6;
+
+        [GeneratedRegex(@"(\d+\.\d+\.\d+\.\d+)")]
+        private static partial Regex MyRegex();
 #endif
     }
 }

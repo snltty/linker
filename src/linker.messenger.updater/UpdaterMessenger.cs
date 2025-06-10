@@ -207,9 +207,9 @@ namespace linker.messenger.updater
             //本服务器所有
             if (confirm.All) machines = signCaching.Get().Where(c => c.MachineId != connection.Id);
             //本组所有
-            else if (confirm.GroupAll) machines = signCaching.Get(cache.GroupId).Where(c => c.MachineId != connection.Id);
+            else if (confirm.GroupAll) machines = signCaching.Get(cache).Where(c => c.MachineId != connection.Id);
             //某一个
-            else machines = signCaching.Get(cache.GroupId).Where(c => c.MachineId == confirm.MachineId && c.GroupId == cache.GroupId);
+            else machines = signCaching.Get(cache).Where(c => c.MachineId == confirm.MachineId);
 
             confirm.SecretKey = string.Empty;
             if (string.IsNullOrWhiteSpace(confirm.Version))
@@ -246,7 +246,7 @@ namespace linker.messenger.updater
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
             {
                 byte[] payload = serializer.Serialize(info.Info);
-                foreach (var item in signCaching.Get(cache.GroupId).Where(c => info.ToMachines.Contains(c.MachineId)).Where(c => c.Connected && c.MachineId != connection.Id))
+                foreach (var item in signCaching.Get(cache).Where(c => info.ToMachines.Contains(c.MachineId)).Where(c => c.Connected && c.MachineId != connection.Id))
                 {
                     _ = messengerSender.SendOnly(new MessageRequestWrap
                     {
@@ -265,7 +265,7 @@ namespace linker.messenger.updater
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
             {
                 byte[] payload = serializer.Serialize(info.Info);
-                foreach (var item in signCaching.Get(cache.GroupId).Where(c => info.ToMachines.Contains(c.MachineId)).Where(c => c.Connected && c.MachineId != connection.Id))
+                foreach (var item in signCaching.Get(cache).Where(c => info.ToMachines.Contains(c.MachineId)).Where(c => c.Connected && c.MachineId != connection.Id))
                 {
                     _ = messengerSender.SendOnly(new MessageRequestWrap
                     {
@@ -286,11 +286,11 @@ namespace linker.messenger.updater
         public async Task ExitForward(IConnection connection)
         {
             string machineId = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) && signCaching.TryGet(machineId, out SignCacheInfo cache1) && cache.GroupId == cache1.GroupId)
+            if (signCaching.TryGet(connection.Id, machineId, out SignCacheInfo from, out SignCacheInfo to))
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
-                    Connection = cache1.Connection,
+                    Connection = to.Connection,
                     MessengerId = (ushort)UpdaterMessengerIds.Exit
                 }).ConfigureAwait(false);
             }
@@ -308,7 +308,7 @@ namespace linker.messenger.updater
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
             {
                 byte[] mechineId = serializer.Serialize(connection.Id);
-                foreach (var item in signCaching.Get(cache.GroupId).Where(c => c.Connected && c.MachineId != connection.Id))
+                foreach (var item in signCaching.Get(cache).Where(c => c.Connected && c.MachineId != connection.Id))
                 {
                     _ = messengerSender.SendOnly(new MessageRequestWrap
                     {
@@ -337,8 +337,8 @@ namespace linker.messenger.updater
                 }
 
                 var clients = string.IsNullOrWhiteSpace(toMachineId)
-                    ? signCaching.Get(cache.GroupId).Where(c => c.Connected && c.MachineId != connection.Id)
-                    : signCaching.Get(cache.GroupId).Where(c => c.Connected && c.MachineId == toMachineId && c.MachineId != connection.Id);
+                    ? signCaching.Get(cache).Where(c => c.Connected && c.MachineId != connection.Id)
+                    : signCaching.Get(cache).Where(c => c.Connected && c.MachineId == toMachineId && c.MachineId != connection.Id);
 
                 foreach (var item in clients)
                 {
