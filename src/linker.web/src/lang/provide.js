@@ -10,7 +10,7 @@ export default function useLocale() {
             return
         }
         i18.locale.value = value
-        localStorage.setItem('locale-lang', value)
+        localStorage.setItem('locale-lang', value);
     }
     return {
         currentLocale,

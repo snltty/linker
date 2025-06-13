@@ -1,0 +1,12 @@
+﻿错误发生在文件---------------:
+C:\Users\snltty\Desktop\linker\src\linker.tray.win\full.aardio
+错误信息---------------:
+
+{Error}:
+{Line}:#12
+{File}:C:\Users\snltty\Desktop\linker\src\linker.tray.win\full.aardio
+{Error}:
+{Expected}:')'
+{Match for}:'('
+{Match line}:12 
+{Near}:';'

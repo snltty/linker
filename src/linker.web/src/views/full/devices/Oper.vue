@@ -56,7 +56,6 @@ export default {
         const myAccess = computed(()=>globalData.value.config.Client.AccessBits);
         const hasAccess = computed(()=>globalData.value.hasAccess('Access')); 
         const accessList = computed(()=>allAccess.value.list);
-        console.log(accessList);
         
         const hasReboot = computed(()=>globalData.value.hasAccess('Reboot')); 
         const hasRemove = computed(()=>globalData.value.hasAccess('Remove')); 

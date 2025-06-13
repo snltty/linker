@@ -37,7 +37,7 @@ jobs:
           release_name: v1.8.3.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 一些累计更新\r\n2. 修复socks5，解决CPU爆满问题，增加本地域名解析，支持HTTP代理\r\n3. 优化唤醒模块\r\n4. 优化应用NAT，根据目标IP自动选择网卡\r\n5. 分离cdkey，使其可作用于任意模块"
+          body: "1. 一些累计更新\r\n2. 修复socks5，解决CPU爆满问题，增加本地域名解析，支持HTTP代理\r\n3. 优化唤醒模块\r\n4. 优化应用层NAT，根据目标IP自动选择网卡\r\n5. 分离cdkey，使其可作用于任意模块\r\n6. 去掉托盘程序http自托管，统一使用1804"
       - name: publish projects
         run: ./publish.bat "C:\\Android\\android-sdk"
       - name: upload-win-x86-oss

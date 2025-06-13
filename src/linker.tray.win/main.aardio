@@ -257,6 +257,17 @@ mainForm.btnWebNet.oncommand = function(id,event){
 	mainForm.showNetFrm();
 }
 
+mainForm.startServer = function(){
+	import wsock.tcp.asynHttpServer;
+	mainForm.httpServer = wsock.tcp.asynHttpServer("./web");
+	mainForm.httpServer.defalutDocument = "index.html";
+	mainForm.httpServer.start('0.0.0.0',1803);	
+}
+mainForm.getUrl = function(){
+	if(mainForm.httpServer) return mainForm.httpServer.getUrl();
+	return '';
+}
+
 mainForm.checkService();
 mainForm.showPopmenu();
 
