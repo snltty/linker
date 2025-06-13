@@ -10,7 +10,7 @@ namespace linker.tun
         public bool Running => linkerSrcNat.Running;
 
         private LinkerSrcNat linkerSrcNat = new LinkerSrcNat();
-       
+
 
         public LanSnat()
         {
@@ -40,8 +40,9 @@ namespace linker.tun
                     return;
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                LoggerHelper.Instance.Error(ex);
             }
 
             Shutdown();
@@ -49,7 +50,7 @@ namespace linker.tun
             {
                 Src = address,
                 Dsts = items.Select(c => new LinkerSrcNat.AddrInfo(c.IP, c.PrefixLength)).ToArray()
-            }, out error);
+            }, ref error);
         }
         public void Shutdown()
         {

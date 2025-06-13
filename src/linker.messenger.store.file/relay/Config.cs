@@ -10,7 +10,7 @@ namespace linker.messenger.store.file
     public sealed partial class RunningConfigInfo
     {
         public RelayInfo Relay { get; set; } = new RelayInfo();
-        
+
     }
 
     public sealed class RelayInfo
@@ -49,7 +49,8 @@ namespace linker.messenger.store.file
 #else
         public string SecretKey { get; set; } = Guid.NewGuid().ToString().ToUpper();
 #endif
-        public CdkeyConfigInfo Cdkey { get; set; } = new CdkeyConfigInfo();
+        [SaveJsonIgnore]
+        public CdkeyConfigTempInfo Cdkey { get; set; } = new CdkeyConfigTempInfo();
 
         public DistributedInfo Distributed { get; set; } = new DistributedInfo { };
     }
@@ -58,5 +59,10 @@ namespace linker.messenger.store.file
     {
         public RelayServerNodeInfo Node { get; set; } = new RelayServerNodeInfo { };
         public RelayServerMasterInfo Master { get; set; } = new RelayServerMasterInfo { };
+    }
+
+    public sealed class CdkeyConfigTempInfo
+    {
+        public string SecretKey { get; set; }
     }
 }

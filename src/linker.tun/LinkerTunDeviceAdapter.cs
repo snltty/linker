@@ -206,7 +206,9 @@ namespace linker.tun
                 return;
             }
             if (linkerTunDevice.Running)
+            {
                 lanSnat.Setup(address, prefixLength, items, ref natError);
+            }
         }
         /// <summary>
         /// 移除NAT

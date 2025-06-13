@@ -20,8 +20,15 @@ namespace linker.messenger.store.file.relay
         {
             this.dBfactory = dBfactory;
             liteCollection = dBfactory.GetCollection<CdkeyStoreInfo>("relayCdkey");
-            this.crypto = CryptoFactory.CreateSymmetric(fileConfig.Data.Server.Relay.Cdkey.SecretKey, System.Security.Cryptography.PaddingMode.PKCS7);
             this.fileConfig = fileConfig;
+
+            if (string.IsNullOrWhiteSpace(fileConfig.Data.Server.Relay.Cdkey.SecretKey) == false)
+            {
+                fileConfig.Data.Server.Cdkey.SecretKey = fileConfig.Data.Server.Relay.Cdkey.SecretKey;
+                fileConfig.Data.Server.Relay.Cdkey.SecretKey = string.Empty;
+                fileConfig.Data.Update();
+            }
+            this.crypto = CryptoFactory.CreateSymmetric(fileConfig.Data.Server.Cdkey.SecretKey, System.Security.Cryptography.PaddingMode.PKCS7);
         }
 
         public bool ValidateSecretKey(string secretKey)

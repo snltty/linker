@@ -7,7 +7,6 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 
 namespace linker.snat
 {
@@ -21,7 +20,7 @@ namespace linker.snat
     /// 4，改为 192.168.56.6(局域网IP)->10.18.18.23(客户端A的虚拟网卡IP)
     /// 5，回到客户端A，就完成了NAT
     /// </summary>
-    public sealed class LinkerSrcNat
+    public sealed partial class LinkerSrcNat
     {
         public bool Running => winDivert != null;
 
@@ -29,13 +28,6 @@ namespace linker.snat
         /// 驱动
         /// </summary>
         private WinDivert winDivert;
-
-        /// <summary>
-        /// 网卡IP，用来作为源地址
-        /// </summary>
-        private NetworkIPv4Addr interfaceAddr;
-        private HashSet<uint> interfaceAddrs;
-
 
         private uint srcIp;
         private NetworkIPv4Addr srcAddr;
@@ -54,11 +46,17 @@ namespace linker.snat
         /// <summary>
         /// 五元组NAT映射表
         /// </summary>
-        private ConcurrentDictionary<(uint src, ushort srcPort, uint dst, ushort dstPort, ProtocolType pro), NatMapInfo> natMap = new ConcurrentDictionary<(uint src, ushort srcPort, uint dst, ushort dstPort, ProtocolType pro), NatMapInfo>();
+        private readonly ConcurrentDictionary<(uint src, ushort srcPort, uint dst, ushort dstPort, ProtocolType pro), NatMapInfo> natMap = new();
         /// <summary>
         /// 分配端口表
         /// </summary>
-        private ConcurrentDictionary<(uint src, ushort port), ushort> source2portMap = new ConcurrentDictionary<(uint src, ushort port), ushort>();
+        private readonly ConcurrentDictionary<(uint src, ushort port), ushort> source2portMap = new();
+
+        /// <summary>
+        /// 网络接口
+        /// </summary>
+        private readonly LinkerSrcNatInterfaceHelper interfaceHelper = new();
+
 
         public LinkerSrcNat()
         {
@@ -70,10 +68,8 @@ namespace linker.snat
         /// <param name="info">启动参数</param>
         /// <param name="error">false启动失败的时候会有报错信息</param>
         /// <returns></returns>
-        public bool Setup(SetupInfo info, out string error)
+        public bool Setup(SetupInfo info, ref string error)
         {
-            error = string.Empty;
-
             if (OperatingSystem.IsWindows() == false || (RuntimeInformation.ProcessArchitecture != Architecture.X86 && RuntimeInformation.ProcessArchitecture != Architecture.X64))
             {
                 error = "only win x64 and win x86";
@@ -88,15 +84,6 @@ namespace linker.snat
             {
                 return false;
             }
-            IPAddress defaultInterfaceIP = GetDefaultInterface();
-            if (defaultInterfaceIP == null)
-            {
-                error = "SNAT get default interface id fail";
-                string routes = CommandHelper.Windows(string.Empty, new string[] { $"route print" });
-                LoggerHelper.Instance.Error(routes);
-                return false;
-            }
-            interfaceAddrs = GetInterfaces();
 
             try
             {
@@ -105,12 +92,11 @@ namespace linker.snat
                 srcIp = NetworkHelper.ToValue(info.Src);
                 srcAddr = IPv4Addr.Parse(info.Src.ToString());
 
-                interfaceAddr = IPv4Addr.Parse(defaultInterfaceIP.ToString());
+                interfaceHelper.Setup();
                 string filters = BuildFilter(info.Dsts);
                 winDivert = new WinDivert(filters, WinDivert.Layer.Network, 0, 0);
 
                 cts = new CancellationTokenSource();
-
                 Recv(cts);
                 ClearTask(cts);
 
@@ -122,34 +108,6 @@ namespace linker.snat
             }
             return false;
         }
-        private static IPAddress GetDefaultInterface()
-        {
-            string[] lines = CommandHelper.Windows(string.Empty, new string[] { $"route print" }).Split(Environment.NewLine);
-            foreach (var item in lines)
-            {
-                if (item.Trim().StartsWith("0.0.0.0"))
-                {
-                    string[] arr = Regex.Replace(item.Trim(), @"\s+", " ").Split(' ');
-                    return IPAddress.Parse(arr[arr.Length - 2]);
-                }
-            }
-            return null;
-        }
-        private static HashSet<uint> GetInterfaces()
-        {
-            return NetworkInterface.GetAllNetworkInterfaces().Select(c =>
-            {
-                try
-                {
-                    return c.GetIPProperties().UnicastAddresses.FirstOrDefault(c => c.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).Address;
-                }
-                catch (Exception)
-                {
-                }
-                return null;
-            }).Where(c => c != null).Select(NetworkHelper.ToValue).ToHashSet();
-        }
-
 
         /// <summary>
         /// 过滤条件，只过滤一定的数据包
@@ -159,7 +117,6 @@ namespace linker.snat
         {
             IEnumerable<string> ipRanges = dsts.Select(c => $"(ip.SrcAddr >= {c.NetworkIP} and ip.SrcAddr <= {c.BroadcastIP})");
             return $"inbound and ({string.Join(" or ", ipRanges)})";
-            //return $"({string.Join(" or ", ipRanges)})";
         }
         /// <summary>
         /// 开始接收数据包
@@ -241,14 +198,14 @@ namespace linker.snat
             {
                 foreach (var (i, p) in new WinDivertIndexedPacketParser(packet))
                 {
-                    //本机网卡IP不需要改，直接注入就可以
-                    if (interfaceAddrs.Contains(ipv4.DstAddr) == false)
+                    NetworkIPv4Addr interfaceAddr = interfaceHelper.GetInterfaceAddr(ipv4.DstAddr);
+                    if (interfaceAddr.Raw != 0)
                     {
                         bool result = (ProtocolType)p.IPv4Hdr->Protocol switch
                         {
-                            ProtocolType.Icmp => InjectIcmp(p, ptr),
-                            ProtocolType.Tcp => InjectTcp(p, ptr),
-                            ProtocolType.Udp => InjectUdp(p, ptr),
+                            ProtocolType.Icmp => InjectIcmp(p, ptr, interfaceAddr),
+                            ProtocolType.Tcp => InjectTcp(p, ptr, interfaceAddr),
+                            ProtocolType.Udp => InjectUdp(p, ptr, interfaceAddr),
                             _ => false,
                         };
                         if (result == false) return false;
@@ -263,13 +220,14 @@ namespace linker.snat
             return true;
         }
 
+
         /// <summary>
         /// 注入ICMP
         /// </summary>
         /// <param name="p"></param>
         /// <param name="ptr"></param>
         /// <returns></returns>
-        private unsafe bool InjectIcmp(WinDivertParseResult p, byte* ptr)
+        private unsafe bool InjectIcmp(WinDivertParseResult p, byte* ptr, NetworkIPv4Addr interfaceAddr)
         {
             //只操作response 和 request
             if (p.ICMPv4Hdr->Type != 0 && p.ICMPv4Hdr->Type != 8) return false;
@@ -342,7 +300,7 @@ namespace linker.snat
         /// <param name="p"></param>
         /// <param name="ptr"></param>
         /// <returns></returns>
-        private unsafe bool InjectTcp(WinDivertParseResult p, byte* ptr)
+        private unsafe bool InjectTcp(WinDivertParseResult p, byte* ptr, NetworkIPv4Addr interfaceAddr)
         {
             IPV4Packet ipv4 = new IPV4Packet(ptr);
 
@@ -410,7 +368,7 @@ namespace linker.snat
         /// <param name="p"></param>
         /// <param name="ptr"></param>
         /// <returns></returns>
-        private unsafe bool InjectUdp(WinDivertParseResult p, byte* ptr)
+        private unsafe bool InjectUdp(WinDivertParseResult p, byte* ptr, NetworkIPv4Addr interfaceAddr)
         {
             //新端口
             ValueTuple<uint, ushort> portKey = (p.IPv4Hdr->SrcAddr.Raw, p.UDPHdr->SrcPort);
@@ -481,6 +439,8 @@ namespace linker.snat
 
             natMap.Clear();
             source2portMap.Clear();
+
+            interfaceHelper.Shutdown();
         }
 
         private void ClearTask(CancellationTokenSource cts)
@@ -663,16 +623,61 @@ namespace linker.snat
             }
         }
 
-        /// <summary>
-        /// SNAT回调
-        /// </summary>
-        public interface ILinkerSNatRecvCallback
+    }
+
+    public sealed class LinkerSrcNatInterfaceHelper
+    {
+        private uint[] interfaceMasks = [];
+        private readonly ConcurrentDictionary<uint, (uint, NetworkIPv4Addr)> network2ipMap = new();
+        private readonly ConcurrentDictionary<uint, NetworkIPv4Addr> ip2ipMap = new();
+
+        public void Setup()
         {
-            /// <summary>
-            /// 接收到的TCP/IP数据包
-            /// </summary>
-            /// <param name="packet"></param>
-            public void Recv(ReadOnlyMemory<byte> packet);
+            Shutdown();
+            List<(IPAddress Address, IPAddress IPv4Mask)> interfaces = NetworkInterface.GetAllNetworkInterfaces()
+                .Where(c => c.OperationalStatus == OperationalStatus.Up && c.NetworkInterfaceType != NetworkInterfaceType.Loopback && c.NetworkInterfaceType != NetworkInterfaceType.Tunnel)
+                .Select(c => c.GetIPProperties()).SelectMany(c => c.UnicastAddresses.Where(c => c.Address.AddressFamily == AddressFamily.InterNetwork).Select(c => (c.Address, c.IPv4Mask))).ToList();
+
+            interfaceMasks = interfaces.Select(c => NetworkHelper.ToValue(c.IPv4Mask)).Distinct().ToArray();
+            foreach ((IPAddress Address, IPAddress IPv4Mask) in interfaces)
+            {
+                uint value = NetworkHelper.ToValue(Address);
+                uint network = NetworkHelper.ToNetworkValue(value, NetworkHelper.ToValue(IPv4Mask));
+                network2ipMap.TryAdd(network, (value, IPv4Addr.Parse(Address.ToString())));
+            }
+        }
+
+        public NetworkIPv4Addr GetInterfaceAddr(uint dstAddr)
+        {
+            if (ip2ipMap.TryGetValue(dstAddr, out NetworkIPv4Addr interfaceAddr))
+            {
+                return interfaceAddr;
+            }
+            for (int i = 0; i < interfaceMasks.Length; i++)
+            {
+                //找到匹配的网卡
+                if (network2ipMap.TryGetValue(interfaceMasks[i] & dstAddr, out (uint, NetworkIPv4Addr) info))
+                {
+                    //目标ip与网卡ip相同，无需注入
+                    if (info.Item1 == dstAddr)
+                    {
+                        ip2ipMap.TryAdd(dstAddr, default);
+                        return default;
+                    }
+
+                    ip2ipMap.TryAdd(dstAddr, info.Item2);
+                    return info.Item2;
+                }
+            }
+
+            return default;
+        }
+
+        public void Shutdown()
+        {
+            ip2ipMap.Clear();
+            network2ipMap.Clear();
+            interfaceMasks = [];
         }
     }
 }

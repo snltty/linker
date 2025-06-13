@@ -75,10 +75,10 @@ namespace linker.libs
             byte[] key = new byte[16];
             byte[] iv = new byte[16];
             byte[] hash = SHA384.HashData(Encoding.UTF8.GetBytes(password));
-
             Array.Copy(hash, 0, key, 0, key.Length);
             Array.Copy(hash, key.Length, iv, 0, iv.Length);
             return (Key: key, IV: iv);
+
         }
 
     }
