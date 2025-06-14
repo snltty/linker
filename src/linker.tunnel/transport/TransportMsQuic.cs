@@ -89,7 +89,7 @@ namespace linker.tunnel.transport
                 {
                     return null;
                 }
-                await Task.Delay(100).ConfigureAwait(false);
+                await Task.Delay(1000).ConfigureAwait(false);
                 ITunnelConnection connection = await ConnectForward(tunnelTransportInfo).ConfigureAwait(false);
                 if (connection != null)
                 {
@@ -102,8 +102,8 @@ namespace linker.tunnel.transport
                 //反向连接
                 TunnelTransportInfo tunnelTransportInfo1 = tunnelTransportInfo.ToJsonFormat().DeJson<TunnelTransportInfo>();
                 _ = ListenRemoteConnect(tunnelTransportInfo.BufferSize, tunnelTransportInfo1.Local.Local, quicListenEP, tunnelTransportInfo1);
-                await Task.Delay(50).ConfigureAwait(false);
                 BindAndTTL(tunnelTransportInfo1);
+                await Task.Delay(1000).ConfigureAwait(false);
                 if (await tunnelMessengerAdapter.SendConnectBegin(tunnelTransportInfo1).ConfigureAwait(false) == false)
                 {
                     return null;
