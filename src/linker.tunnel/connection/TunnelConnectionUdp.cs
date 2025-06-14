@@ -101,6 +101,8 @@ namespace linker.tunnel.connection
                     SocketReceiveFromResult result = await UdpClient.ReceiveFromAsync(buffer.AsMemory(), ep, cancellationTokenSource.Token).ConfigureAwait(false);
                     if (result.ReceivedBytes == 0)
                     {
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                            LoggerHelper.Instance.Error($"tunnel connection writer offline 0");
                         break;
                     }
                     await CallbackPacket(buffer, 0, result.ReceivedBytes).ConfigureAwait(false);
@@ -115,6 +117,8 @@ namespace linker.tunnel.connection
             }
             finally
             {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Error($"tunnel connection writer offline {cancellationTokenSource.IsCancellationRequested}");
                 Dispose();
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Error($"tunnel connection writer offline {ToString()}");
@@ -300,8 +304,6 @@ namespace linker.tunnel.connection
             }
             return false;
         }
-
-       
 
         public void Dispose()
         {

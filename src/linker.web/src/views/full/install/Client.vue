@@ -2,11 +2,6 @@
     <div>
         <el-form ref="formDom" :model="state.form" :rules="state.rules" label-width="8rem">
             <el-form-item label="" label-width="0">
-                <div class="t-c w-100">
-                    <p>端口为0不监听，相同分组之间的客户端相互可见</p>
-                </div>
-            </el-form-item>
-            <el-form-item label="" label-width="0">
                 <el-row class="w-100">
                     <el-col :sm="12" :xs="24">
                         <el-form-item label="机器名" prop="name">
@@ -47,7 +42,7 @@
                 <el-row class="w-100">   
                     <el-col :span="24">
                         <el-form-item label-width="8rem" prop="hasServer">
-                            <el-checkbox v-model="state.form.hasServer" label="我有服务器（私有部署）" size="large" />
+                            <el-checkbox v-model="state.form.hasServer" label="我有服务器(自建服务器)" size="large" />
                         </el-form-item>
                     </el-col>
                 </el-row>

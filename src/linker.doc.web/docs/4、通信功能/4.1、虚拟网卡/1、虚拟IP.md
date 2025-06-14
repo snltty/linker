@@ -21,7 +21,6 @@ sidebar_position: 1
 3. 开启网卡成功后，使用对方ip 即可访问目标设备，首次访问时需要打洞或者中继操作，时间可能会比较久，耐心等待
 4. 可以勾选`显示延迟`,`自动连接`(勾选此两项，网卡启动成功后将会自动连接各个客户端)
 
-![Docusaurus Plushie](./img/tuntap1.png)
-![Docusaurus Plushie](./img/tuntap2.png)
-![Docusaurus Plushie](./img/tuntap3.png)
+![Docusaurus Plushie](./img/tuntap1.jpg)
+![Docusaurus Plushie](./img/tuntap2.jpg)
 :::

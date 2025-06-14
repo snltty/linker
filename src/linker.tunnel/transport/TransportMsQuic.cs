@@ -12,6 +12,7 @@ using System.Text;
 using linker.tunnel.wanport;
 using System.Security.Cryptography.X509Certificates;
 using linker.libs.timer;
+using System;
 
 namespace linker.tunnel.transport
 {
@@ -294,7 +295,7 @@ namespace linker.tunnel.transport
                         socket.WindowsUdpBug();
                         socket.ReuseBind(new IPEndPoint(IPAddress.IPv6Any, local.Port));
                         socket.Ttl = 2;
-                        _ = socket.SendToAsync(new byte[0], SocketFlags.None, ip);
+                        _ = socket.SendToAsync(endBytes, SocketFlags.None, ip);
                         socket.SafeClose();
                     }
                 }
@@ -488,9 +489,13 @@ namespace linker.tunnel.transport
                     //是认证结束的消息，表示双方能通信了，接下来直接跟QUIC交换数据就可以了
                     if (memory.Length == endBytes.Length && memory.Span.SequenceEqual(endBytes))
                     {
-                        token.RemoteEP = result.RemoteEndPoint as IPEndPoint;
-                        tcs.TrySetResult(result.RemoteEndPoint.AddressFamily);
-                        _ = Connect2Quic(bufferSize, token);
+                        if (tcs != null && tcs.Task.IsCompleted == false)
+                        {
+                            token.RemoteEP = result.RemoteEndPoint as IPEndPoint;
+                            tcs.TrySetResult(result.RemoteEndPoint.AddressFamily);
+                            _ = Connect2Quic(bufferSize, token);
+                        }
+
                         break;
                     }
                     else
@@ -557,7 +562,7 @@ namespace linker.tunnel.transport
         /// <param name="remote"></param>
         /// <param name="remoteEp"></param>
         /// <returns></returns>
-        private static async Task CopyToAsync(byte bufferSize, Socket local, Socket remote, IPEndPoint remoteEp)
+        private async Task CopyToAsync(byte bufferSize, Socket local, Socket remote, IPEndPoint remoteEp)
         {
             byte[] buffer = new byte[(1 << bufferSize) * 1024];
             IPEndPoint tempEp = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
@@ -567,7 +572,14 @@ namespace linker.tunnel.transport
                 {
                     SocketReceiveFromResult result = await local.ReceiveFromAsync(buffer, tempEp).ConfigureAwait(false);
                     if (result.ReceivedBytes == 0) break;
-                    await remote.SendToAsync(buffer.AsMemory(0, result.ReceivedBytes), remoteEp).ConfigureAwait(false);
+                    if (result.ReceivedBytes == endBytes.Length && buffer.AsMemory(0, result.ReceivedBytes).Span.SequenceEqual(endBytes))
+                    {
+
+                    }
+                    else
+                    {
+                        await remote.SendToAsync(buffer.AsMemory(0, result.ReceivedBytes), remoteEp).ConfigureAwait(false);
+                    }
                 }
             }
             catch (Exception ex)
