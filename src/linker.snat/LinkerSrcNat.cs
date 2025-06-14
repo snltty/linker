@@ -72,7 +72,7 @@ namespace linker.snat
         {
             if (OperatingSystem.IsWindows() == false || (RuntimeInformation.ProcessArchitecture != Architecture.X86 && RuntimeInformation.ProcessArchitecture != Architecture.X64))
             {
-                error = "only win x64 and win x86";
+                error = "snat only win x64 and win x86";
                 return false;
             }
             if (info.Src == null)
@@ -85,6 +85,7 @@ namespace linker.snat
                 return false;
             }
 
+            error = string.Empty;
             try
             {
                 Shutdown();
