@@ -44,9 +44,8 @@ namespace linker.tunnel.transport
         public Action<ITunnelConnection> OnConnected { get; set; } = (state) => { };
 
 
-
-        private byte[] authBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.ttl");
-        private byte[] endBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.end");
+        private readonly byte[] authBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.udp.ttl1");
+        private readonly byte[] endBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.udp.end1");
 
         private readonly ITunnelMessengerAdapter tunnelMessengerAdapter;
         public TransportUdp(ITunnelMessengerAdapter tunnelMessengerAdapter)
@@ -71,7 +70,7 @@ namespace linker.tunnel.transport
                 {
                     return null;
                 }
-                await Task.Delay(100).ConfigureAwait(false);
+                await Task.Delay(1000).ConfigureAwait(false);
                 ITunnelConnection connection = await ConnectForward(tunnelTransportInfo).ConfigureAwait(false);
                 if (connection != null)
                 {
@@ -84,8 +83,8 @@ namespace linker.tunnel.transport
                 //反向连接
                 TunnelTransportInfo tunnelTransportInfo1 = tunnelTransportInfo.ToJsonFormat().DeJson<TunnelTransportInfo>();
                 _ = BindListen(tunnelTransportInfo1.Local.Local, tunnelTransportInfo1);
-                await Task.Delay(50).ConfigureAwait(false);
                 BindAndTTL(tunnelTransportInfo1);
+                await Task.Delay(1000).ConfigureAwait(false);
                 if (await tunnelMessengerAdapter.SendConnectBegin(tunnelTransportInfo1).ConfigureAwait(false) == false)
                 {
                     return null;
@@ -180,7 +179,7 @@ namespace linker.tunnel.transport
                 return new TunnelConnectionUdp
                 {
                     UdpClient = remoteUdp,
-                    IPEndPoint = NetworkHelper.TransEndpointFamily( remoteEP),
+                    IPEndPoint = NetworkHelper.TransEndpointFamily(remoteEP),
                     TransactionId = tunnelTransportInfo.TransactionId,
                     TransactionTag = tunnelTransportInfo.TransactionTag,
                     RemoteMachineId = tunnelTransportInfo.Remote.MachineId,
@@ -242,11 +241,11 @@ namespace linker.tunnel.transport
         /// <returns></returns>
         private async Task BindListen(IPEndPoint local, TunnelTransportInfo state)
         {
-            local = new IPEndPoint(IPAddress.IPv6Any,local.Port);
+            local = new IPEndPoint(IPAddress.IPv6Any, local.Port);
             Socket socket = new Socket(local.AddressFamily, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
             try
             {
-                socket.IPv6Only(local.AddressFamily,false);
+                socket.IPv6Only(local.AddressFamily, false);
                 socket.ReuseBind(local);
                 socket.WindowsUdpBug();
                 ListenAsyncToken token = new ListenAsyncToken
@@ -337,7 +336,7 @@ namespace linker.tunnel.transport
                     socket.WindowsUdpBug();
                     socket.ReuseBind(local);
                     socket.Ttl = (short)(tunnelTransportInfo.Local.RouteLevel);
-                    _ = socket.SendToAsync(endBytes, SocketFlags.None, ip);
+                    _ = socket.SendToAsync(authBytes, SocketFlags.None, ip);
                     socket.SafeClose();
                 }
                 catch (Exception ex)

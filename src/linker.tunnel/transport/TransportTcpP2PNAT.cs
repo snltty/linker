@@ -40,8 +40,8 @@ namespace linker.tunnel.transport
         public Action<ITunnelConnection> OnConnected { get; set; } = (state) => { };
 
 
-        private byte[] authBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.ttl");
-        private byte[] endBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.end");
+        private readonly byte[] authBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.ttl1");
+        private readonly byte[] endBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.end1");
 
         private readonly ITunnelMessengerAdapter tunnelMessengerAdapter;
         public TransportTcpP2PNAT(ITunnelMessengerAdapter tunnelMessengerAdapter)

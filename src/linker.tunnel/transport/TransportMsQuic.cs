@@ -41,8 +41,8 @@ namespace linker.tunnel.transport
 
 
         private ConcurrentDictionary<int, ListenAsyncToken> stateDic = new ConcurrentDictionary<int, ListenAsyncToken>();
-        private byte[] authBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.ttl");
-        private byte[] endBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.end");
+        private byte[] authBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.udp.ttl1");
+        private byte[] endBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.udp.end1");
         private IPEndPoint quicListenEP;
 
         private readonly ITunnelMessengerAdapter tunnelMessengerAdapter;

@@ -60,8 +60,8 @@ namespace linker.tunnel.connection
         private readonly ReceiveDataBuffer bufferCache = new ReceiveDataBuffer();
 
         private readonly LastTicksManager pingTicks = new();
-        private readonly byte[] pingBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.ping");
-        private readonly byte[] pongBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.pong");
+        private readonly byte[] pingBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.udp.ping");
+        private readonly byte[] pongBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.udp.pong");
 
 
         /// <summary>
@@ -156,16 +156,18 @@ namespace linker.tunnel.connection
                     Delay = (int)pingTicks.Diff();
                 }
             }
-
-            try
+            else
             {
-                await callback.Receive(this, packet, this.userToken).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                LoggerHelper.Instance.Error(ex);
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Error(string.Join(",", packet.ToArray()));
+                try
+                {
+                    await callback.Receive(this, packet, this.userToken).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        LoggerHelper.Instance.Error(string.Join(",", packet.ToArray()));
+                }
             }
         }
 
