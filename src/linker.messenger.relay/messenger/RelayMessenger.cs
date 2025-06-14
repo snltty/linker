@@ -113,7 +113,7 @@ namespace linker.messenger.relay.messenger
         public async Task RelayAsk(IConnection connection)
         {
             RelayInfo info = serializer.Deserialize<RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id, info.RemoteMachineId, out SignCacheInfo from, out SignCacheInfo to))
+            if (signCaching.TryGet(connection.Id, info.RemoteMachineId, out SignCacheInfo from, out SignCacheInfo to) == false)
             {
                 connection.Write(serializer.Serialize(new RelayAskResultInfo { }));
                 return;
@@ -128,7 +128,7 @@ namespace linker.messenger.relay.messenger
             string error = await relayValidatorTransfer.Validate(info, from, to).ConfigureAwait(false);
             bool validated = string.IsNullOrWhiteSpace(error);
             result.Nodes = relayServerTransfer.GetNodes(validated).Select(c => (RelayServerNodeReportInfo)c).ToList();
-
+          
             if (result.Nodes.Count > 0)
             {
                 result.FlowingId = relayServerTransfer.AddRelay(from.MachineId, from.MachineName, to.MachineId, to.MachineName, from.GroupId, validated, []);
@@ -140,7 +140,7 @@ namespace linker.messenger.relay.messenger
         public async Task RelayAsk170(IConnection connection)
         {
             RelayInfo170 info = serializer.Deserialize<RelayInfo170>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id, info.RemoteMachineId, out SignCacheInfo from, out SignCacheInfo to))
+            if (signCaching.TryGet(connection.Id, info.RemoteMachineId, out SignCacheInfo from, out SignCacheInfo to) == false)
             {
                 connection.Write(serializer.Serialize(new RelayAskResultInfo170 { }));
                 return;
@@ -193,7 +193,7 @@ namespace linker.messenger.relay.messenger
         }
         public async Task RelayForward(IConnection connection, RelayInfo info, ushort id, Func<byte[]> data)
         {
-            if (signCaching.TryGet(connection.Id, info.RemoteMachineId, out SignCacheInfo from, out SignCacheInfo to))
+            if (signCaching.TryGet(connection.Id, info.RemoteMachineId, out SignCacheInfo from, out SignCacheInfo to) == false)
             {
                 connection.Write(Helper.FalseArray);
                 return;
