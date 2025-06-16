@@ -22,6 +22,11 @@
         Network = 2013,
         NetworkForward = 2014,
 
+        TransportGet = 2015,
+        TransportGetForward = 2016,
+        TransportSet = 2017,
+        TransportSetForward = 2018,
+
         None = 2099
     }
 }

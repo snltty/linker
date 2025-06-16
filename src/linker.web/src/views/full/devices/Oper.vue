@@ -24,6 +24,11 @@
 
                         <el-dropdown-item v-if="scope.row.isSelf && hasWakeupSelf" @click="handleWakeup(scope.row.MachineId,scope.row.MachineName)"><el-icon><VideoPlay /></el-icon>唤醒</el-dropdown-item>
                         <el-dropdown-item v-else-if="hasWakeupOther" @click="handleWakeup(scope.row.MachineId,scope.row.MachineName)"><el-icon><VideoPlay /></el-icon>唤醒</el-dropdown-item>
+                        
+                        <el-dropdown-item v-if="hasTransport" @click="handleTransport(scope.row.MachineId,scope.row.MachineName)"><el-icon><Orange /></el-icon>打洞协议</el-dropdown-item>
+
+                        <el-dropdown-item v-if="scope.row.isSelf && hasActionSelf" @click="handleAction(scope.row.MachineId,scope.row.MachineName)"><el-icon><Lock /></el-icon>验证参数</el-dropdown-item>
+                        <el-dropdown-item v-else-if="hasActionOther" @click="handleAction(scope.row.MachineId,scope.row.MachineName)"><el-icon><Lock /></el-icon>验证参数</el-dropdown-item>
                     </el-dropdown-menu>
                 </template>
             </el-dropdown>
@@ -36,18 +41,17 @@
 import { signInDel } from '@/apis/signin';
 import { exit } from '@/apis/updater';
 import { injectGlobalData } from '@/provide';
-import { Delete,SwitchButton,ArrowDown, Flag,HelpFilled,Platform,Paperclip,CircleCheck,VideoPlay } from '@element-plus/icons-vue'
+import { Delete,SwitchButton,ArrowDown, Flag,HelpFilled,Platform,Paperclip,CircleCheck,VideoPlay,Orange,Lock } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { computed } from 'vue';
 import { useAccess } from './access';
 import { setApiPassword } from '@/apis/access';
 import { useFlow } from './flow';
-import { useTuntap } from './tuntap';
 import { useOper } from './oper';
 
 export default {
     emits:['refresh','access'],
-    components:{Delete,SwitchButton,ArrowDown,Flag,HelpFilled,Platform,Paperclip,CircleCheck,VideoPlay},
+    components:{Delete,SwitchButton,ArrowDown,Flag,HelpFilled,Platform,Paperclip,CircleCheck,VideoPlay,Orange,Lock},
     setup (props,{emit}) {
         
         const globalData = injectGlobalData();
@@ -68,6 +72,10 @@ export default {
 
         const hasWakeupSelf = computed(()=>globalData.value.hasAccess('WakeupSelf')); 
         const hasWakeupOther = computed(()=>globalData.value.hasAccess('WakeupOther')); 
+        const hasTransport = computed(()=>globalData.value.hasAccess('Transport')); 
+
+        const hasActionSelf = computed(()=>globalData.value.hasAccess('Action')); 
+        const hasActionOther = computed(()=>globalData.value.hasAccess('ActionOther')); 
         
         const flow = useFlow();
         const oper  = useOper();
@@ -145,10 +153,21 @@ export default {
             oper.value.device.name = name;
             oper.value.showWakeup = true;
         }
+        const handleTransport = (id,name)=>{
+            oper.value.device.id = id;
+            oper.value.device.name = name;
+            oper.value.showTransport = true;
+        }
+        const handleAction = (id,name)=>{
+            oper.value.device.id = id;
+            oper.value.device.name = name;
+            oper.value.showAction = true;
+        }
 
         return {accessList,handleDel,handleExit,hasReboot,hasRemove,hasAccess,handleShowAccess,handleAccess,
             hasApiPassword,hasApiPasswordOther,handleApiPassword,handleStopwatch,handleRoutes,
-            hasFirewallSelf,hasFirewallOther,handleFirewall,hasWakeupSelf,hasWakeupOther,handleWakeup
+            hasFirewallSelf,hasFirewallOther,handleFirewall,hasWakeupSelf,hasWakeupOther,handleWakeup,
+            hasTransport,handleTransport,hasActionSelf,hasActionOther,handleAction
         }
     }
 }

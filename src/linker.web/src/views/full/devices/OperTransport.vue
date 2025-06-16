@@ -1,19 +1,19 @@
 <template>
-    <el-dialog v-model="state.show" append-to=".app-wrap" :title="`[${state.machineName}]上的唤醒`" top="1vh" width="98%">
+    <el-dialog v-model="state.show" append-to=".app-wrap" :title="`[${state.machineName}]上的打洞协议`" top="1vh" width="98%">
         <div>
-            <Wakeup :machineId="state.machineId"></Wakeup>
+            <Transport :machineId="state.machineId"></Transport>
         </div>
     </el-dialog>
 </template>
 <script>
 import { reactive, watch } from 'vue';
-import Wakeup from '../wakeup/Wakeup.vue'
+import Transport from '../transport/Transport.vue'
 import { useOper } from './oper';
 export default {
     props: ['modelValue'],
     emits: ['update:modelValue'],
     components: {
-        Wakeup
+        Transport
     },
     setup(props, { emit }) {
         const oper = useOper();

@@ -615,4 +615,54 @@ namespace linker.messenger.serializer.memorypack
             value = wrapped.info;
         }
     }
+    [MemoryPackable]
+    public readonly partial struct SerializableTunnelTransportItemSetInfo
+    {
+        [MemoryPackIgnore]
+        public readonly TunnelTransportItemSetInfo info;
+
+        [MemoryPackInclude]
+        string MachineId => info.MachineId;
+
+        [MemoryPackInclude]
+        List<TunnelTransportItemInfo> Data => info.Data;
+
+        [MemoryPackConstructor]
+        SerializableTunnelTransportItemSetInfo(string machineId, List<TunnelTransportItemInfo> data)
+        {
+            var info = new TunnelTransportItemSetInfo { MachineId = machineId, Data = data };
+            this.info = info;
+        }
+
+        public SerializableTunnelTransportItemSetInfo(TunnelTransportItemSetInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class TunnelTransportItemSetInfoFormatter : MemoryPackFormatter<TunnelTransportItemSetInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TunnelTransportItemSetInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableTunnelTransportItemSetInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref TunnelTransportItemSetInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableTunnelTransportItemSetInfo>();
+            value = wrapped.info;
+        }
+    }
 }

@@ -120,7 +120,24 @@ namespace linker.messenger.tunnel
         /// <returns></returns>
         public async Task<List<TunnelTransportItemInfo>> GetTransports(ApiControllerParamsInfo param)
         {
-            return await tunnelClientStore.GetTunnelTransports().ConfigureAwait(false);
+            if (param.Content == signInClientStore.Id || string.IsNullOrWhiteSpace(param.Content))
+            {
+                return await tunnelClientStore.GetTunnelTransports().ConfigureAwait(false);
+            }
+
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)TunnelMessengerIds.TransportGetForward,
+                Payload = serializer.Serialize(param.Content)
+            }).ConfigureAwait(false);
+            if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
+            {
+                return serializer.Deserialize<List<TunnelTransportItemInfo>>(resp.Data.Span);
+            }
+
+            return [];
+
         }
         /// <summary>
         /// 设置打洞协议
@@ -130,11 +147,20 @@ namespace linker.messenger.tunnel
         [Access(AccessValue.Transport)]
         public async Task<bool> SetTransports(ApiControllerParamsInfo param)
         {
-            List<TunnelTransportItemInfo> info = param.Content.DeJson<List<TunnelTransportItemInfo>>();
-            await tunnelClientStore.SetTunnelTransports(info).ConfigureAwait(false);
-            return true;
+            TunnelTransportItemSetInfo info = param.Content.DeJson<TunnelTransportItemSetInfo>();
+            if (info.MachineId == signInClientStore.Id || string.IsNullOrWhiteSpace(info.MachineId))
+            {
+                await tunnelClientStore.SetTunnelTransports(info.Data).ConfigureAwait(false);
+                return true;
+            }
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)TunnelMessengerIds.TransportSetForward,
+                Payload = serializer.Serialize(info)
+            }).ConfigureAwait(false);
+            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
-
 
         public async Task<TunnelLocalNetworkInfo> GetNetwork(ApiControllerParamsInfo param)
         {

@@ -441,4 +441,112 @@ namespace linker.messenger.serializer.memorypack
             value = wrapped.info;
         }
     }
+
+
+    [MemoryPackable]
+    public readonly partial struct SerializableFirewallCheckInfo
+    {
+        [MemoryPackIgnore]
+        public readonly FirewallCheckInfo info;
+
+        [MemoryPackInclude]
+        List<string> Ids => info.Ids;
+
+        [MemoryPackInclude, MemoryPackAllowSerialize]
+        bool IsChecked => info.IsChecked;
+
+        [MemoryPackConstructor]
+        SerializableFirewallCheckInfo(List<string> ids, bool isChecked)
+        {
+            this.info = new FirewallCheckInfo
+            {
+                Ids = ids,
+                IsChecked = isChecked
+            };
+        }
+
+        public SerializableFirewallCheckInfo(FirewallCheckInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class FirewallCheckInfoFormatter : MemoryPackFormatter<FirewallCheckInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref FirewallCheckInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableFirewallCheckInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref FirewallCheckInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableFirewallCheckInfo>();
+            value = wrapped.info;
+        }
+    }
+    [MemoryPackable]
+    public readonly partial struct SerializableFirewallCheckForwardInfo
+    {
+        [MemoryPackIgnore]
+        public readonly FirewallCheckForwardInfo info;
+
+        [MemoryPackInclude]
+        string MachineId => info.MachineId;
+
+        [MemoryPackInclude, MemoryPackAllowSerialize]
+        FirewallCheckInfo Data => info.Data;
+
+        [MemoryPackConstructor]
+        SerializableFirewallCheckForwardInfo(string machineId, FirewallCheckInfo data)
+        {
+            this.info = new FirewallCheckForwardInfo
+            {
+                MachineId = machineId,
+                Data = data
+            };
+        }
+
+        public SerializableFirewallCheckForwardInfo(FirewallCheckForwardInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class FirewallCheckForwardInfoFormatter : MemoryPackFormatter<FirewallCheckForwardInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref FirewallCheckForwardInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableFirewallCheckForwardInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref FirewallCheckForwardInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableFirewallCheckForwardInfo>();
+            value = wrapped.info;
+        }
+    }
 }

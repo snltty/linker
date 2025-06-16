@@ -254,6 +254,8 @@ export default {
     'server.asyncUpdaterSecretKey': 'Update secretKey',
     'server.asyncTunnelTransports': 'Tunnel transports',
     'server.asyncSignInUserId': 'User Id',
+    'server.asyncActionStatic': 'Action args',
+    'server.asyncFirewall': 'Firewall selected item',
 
     'firewall.rule': 'Firewall rule',
     'firewall.srcName': 'Src Device',

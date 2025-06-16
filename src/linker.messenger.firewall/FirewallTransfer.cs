@@ -34,7 +34,15 @@ namespace linker.messenger.firewall
             BuildRules();
             return true;
         }
+        public bool Check(FirewallCheckInfo info)
+        {
+            return firewallClientStore.Check(info);
+        }
 
+        public List<FirewallRuleInfo> Get()
+        {
+            return firewallClientStore.GetAll().ToList();
+        }
         public FirewallListInfo Get(FirewallSearchInfo info)
         {
             return new FirewallListInfo
@@ -50,9 +58,26 @@ namespace linker.messenger.firewall
             BuildRules();
             return true;
         }
+        public bool Add(List<FirewallRuleInfo> infos)
+        {
+            foreach (var item in infos)
+            {
+                item.GroupId = signInClientStore.Group.Id;
+            }
+
+            firewallClientStore.Add(infos);
+            BuildRules();
+            return true;
+        }
         public bool Remove(string id)
         {
             firewallClientStore.Remove(id);
+            BuildRules();
+            return true;
+        }
+        public bool Remove(List<string> ids)
+        {
+            firewallClientStore.Remove(ids);
             BuildRules();
             return true;
         }

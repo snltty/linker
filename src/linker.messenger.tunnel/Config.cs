@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using linker.tunnel.transport;
+using System.Net;
 
 namespace linker.messenger.tunnel
 {
@@ -72,4 +73,11 @@ namespace linker.messenger.tunnel
 
         public TunnelNetInfo Net { get; set; } = new TunnelNetInfo();
     }
+
+    public sealed class TunnelTransportItemSetInfo
+    {
+        public string MachineId { get; set; }
+        public List<TunnelTransportItemInfo> Data { get; set; }
+    }
+
 }

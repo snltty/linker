@@ -17,8 +17,8 @@ export const setTunnelRouteLevel = (data) => {
     return sendWebsocketMsg('tunnel/SetRouteLevel', data);
 }
 
-export const getTunnelTransports = () => {
-    return sendWebsocketMsg('tunnel/GetTransports');
+export const getTunnelTransports = (machineid) => {
+    return sendWebsocketMsg('tunnel/GetTransports',machineid);
 }
 export const setTunnelTransports = (data) => {
     return sendWebsocketMsg('tunnel/SetTransports', data);

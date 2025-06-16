@@ -1,4 +1,5 @@
-﻿using linker.messenger.action;
+﻿using linker.libs.extends;
+using linker.messenger.action;
 namespace linker.messenger.store.file.action
 {
     public sealed class ActionClientStore : IActionClientStore
@@ -11,15 +12,25 @@ namespace linker.messenger.store.file.action
             this.config = config;
         }
 
-        public void SetActionArg(string action)
+        public void SetActionDynamicArg(string value)
         {
-            config.Data.Client.Action.Arg = action;
+            config.Data.Client.Action.Arg = value;
         }
-        public void SetActionArgs(Dictionary<string, string> actions)
+
+        public void SetActionStaticArg(string key, string value)
         {
-            config.Data.Client.Action.Args = actions;
-           
+            config.Data.Client.Action.Args.AddOrUpdate(key, value, (a, b) => value);
         }
+
+        public string GetActionStaticArg(string key)
+        {
+            if (config.Data.Client.Action.Args.TryGetValue(key, out string arg))
+            {
+                return arg;
+            }
+            return string.Empty;
+        }
+
         public bool TryAddActionArg(string host, Dictionary<string, string> args)
         {
             if (string.IsNullOrWhiteSpace(config.Data.Client.Action.Arg) == false)
@@ -37,6 +48,7 @@ namespace linker.messenger.store.file.action
             config.Data.Update();
             return true;
         }
+
     }
 
 }

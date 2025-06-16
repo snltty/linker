@@ -1,5 +1,5 @@
 <template>
-    <el-dialog v-model="state.show" append-to=".app-wrap" :title="`[${state.machineName}]上的防火墙`" top="1vh" width="760">
+    <el-dialog v-model="state.show" append-to=".app-wrap" :title="`[${state.machineName}]上的防火墙`" top="1vh" width="98%">
         <div>
             <Firewall :machineId="state.machineId"></Firewall>
         </div>

@@ -1,6 +1,6 @@
 <template>
     <PlanList ref="planDom" :machineid="machineId" category="sforward" :handles="state.handles">
-        <el-dialog v-model="state.show" @open="handleOnShowList" append-to=".app-wrap" :title="`【${machineName}】的内网穿透`" top="2vh" width="760">
+        <el-dialog v-model="state.show" @open="handleOnShowList" append-to=".app-wrap" :title="`【${machineName}】的内网穿透`" top="2vh" width="98%">
             <div>
                 <div class="t-c head">
                     <el-button type="success" size="small" @click="handleAdd" :loading="state.loading">添加</el-button>

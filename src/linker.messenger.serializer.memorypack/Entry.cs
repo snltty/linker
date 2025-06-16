@@ -39,6 +39,7 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new TunnelSetRouteLevelInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelInterfaceInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelNetInfoFormatter());
+            MemoryPackFormatterProvider.Register(new TunnelTransportItemSetInfoFormatter());
 
 
             MemoryPackFormatterProvider.Register(new DecenterSyncInfoFormatter());
@@ -66,7 +67,7 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new RelayAskResultInfo170Formatter());
             MemoryPackFormatterProvider.Register(new RelayCacheInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayMessageInfoFormatter());
-          
+
             MemoryPackFormatterProvider.Register(new RelayTrafficUpdateInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayServerNodeUpdateInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayServerNodeUpdateWrapInfoFormatter());
@@ -143,6 +144,8 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new FirewallAddForwardInfoFormatter());
             MemoryPackFormatterProvider.Register(new FirewallRemoveForwardInfoFormatter());
             MemoryPackFormatterProvider.Register(new FirewallStateForwardInfoFormatter());
+            MemoryPackFormatterProvider.Register(new FirewallCheckInfoFormatter());
+            MemoryPackFormatterProvider.Register(new FirewallCheckForwardInfoFormatter());
 
             MemoryPackFormatterProvider.Register(new WakeupInfoFormatter());
             MemoryPackFormatterProvider.Register(new WakeupSearchInfoFormatter());

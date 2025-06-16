@@ -6,6 +6,8 @@ export const provideOper = () => {
         showRoutes:false,
         showFirewall:false,
         showWakeup:false,
+        showTransport:false,
+        showAction:false,
     });
     provide(operSymbol, oper);
     return {

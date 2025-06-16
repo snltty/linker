@@ -166,9 +166,13 @@ namespace linker.tunnel.connection
                 }
                 catch (Exception ex)
                 {
-                    LoggerHelper.Instance.Error(ex);
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Error(ex);
+                        LoggerHelper.Instance.Error(Encoding.UTF8.GetString(memory.Span));
                         LoggerHelper.Instance.Error(string.Join(",", memory.ToArray()));
+                    }
+                       
                 }
             }
         }

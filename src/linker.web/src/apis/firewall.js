@@ -12,3 +12,6 @@ export const removeFirewall = (data) => {
 export const stateFirewall = (data) => {
     return sendWebsocketMsg('firewall/state', data);
 }
+export const checkFirewall = (data) => {
+    return sendWebsocketMsg('firewall/check', data);
+}

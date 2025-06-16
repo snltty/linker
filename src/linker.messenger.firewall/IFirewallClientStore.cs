@@ -7,10 +7,14 @@ namespace linker.messenger.firewall
         public LinkerFirewallState State { get; }
         public void SetState(LinkerFirewallState state);
 
+        public IEnumerable<FirewallRuleInfo> GetAll();
         public IEnumerable<FirewallRuleInfo> GetAll(FirewallSearchInfo searchInfo);
         public IEnumerable<FirewallRuleInfo> GetEnabled(string groupId);
         public bool Add(FirewallRuleInfo rule);
+        public bool Add(List<FirewallRuleInfo> rules);
         public bool Remove(string id);
+        public bool Remove(List<string> ids);
+        public bool Check(FirewallCheckInfo info);
     }
 
     public sealed class FirewallRuleInfo : linker.snat.LinkerFirewallRuleInfo
@@ -21,6 +25,7 @@ namespace linker.messenger.firewall
         public bool Disabled { get; set; }
         public int OrderBy { get; set; }
         public string Remark { get; set; }
+        public bool Checked { get; set; }
     }
 
 
@@ -58,5 +63,16 @@ namespace linker.messenger.firewall
     {
         public string MachineId { get; set; }
         public LinkerFirewallState State { get; set; }
+    }
+
+    public sealed partial class FirewallCheckForwardInfo
+    {
+        public string MachineId { get; set; }
+        public FirewallCheckInfo Data { get; set; }
+    }
+    public sealed partial class FirewallCheckInfo
+    {
+        public List<string> Ids { get; set; }
+        public bool IsChecked { get; set; }
     }
 }

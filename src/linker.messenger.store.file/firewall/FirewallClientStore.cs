@@ -23,6 +23,10 @@ namespace linker.messenger.store.file.firewall
             runningConfig.Data.Update();
         }
 
+        public IEnumerable<FirewallRuleInfo> GetAll()
+        {
+            return liteCollection.FindAll();
+        }
         public IEnumerable<FirewallRuleInfo> GetAll(FirewallSearchInfo info)
         {
             IEnumerable<FirewallRuleInfo> list = liteCollection.FindAll()
@@ -77,10 +81,50 @@ namespace linker.messenger.store.file.firewall
                 }, c => c.Id == rule.Id) > 0;
             }
         }
+        public bool Add(List<FirewallRuleInfo> rules)
+        {
+            foreach (var rule in rules)
+            {
+                if (string.IsNullOrWhiteSpace(rule.Id))
+                {
+                    rule.Id = ObjectId.NewObjectId().ToString();
+                    liteCollection.Insert(rule);
+                }
+                else
+                {
+                    liteCollection.UpdateMany(p => new FirewallRuleInfo
+                    {
+                        SrcId = rule.SrcId,
+                        SrcName = rule.SrcName,
+                        GroupId = rule.GroupId,
+                        DstCIDR = rule.DstCIDR,
+                        DstPort = rule.DstPort,
+                        Protocol = rule.Protocol,
+                        Action = rule.Action,
+                        OrderBy = rule.OrderBy,
+                        Disabled = rule.Disabled,
+                        Remark = rule.Remark
+                    }, c => c.Id == rule.Id);
+                }
+            }
+            return true;
+        }
 
         public bool Remove(string id)
         {
             return liteCollection.Delete(id);
+        }
+        public bool Remove(List<string> ids)
+        {
+            return liteCollection.DeleteMany(c => ids.Contains(c.Id)) > 0;
+        }
+
+        public bool Check(FirewallCheckInfo info)
+        {
+            return liteCollection.UpdateMany(p => new FirewallRuleInfo
+            {
+                Checked = info.IsChecked
+            }, c => info.Ids.Contains(c.Id)) > 0;
         }
     }
 }

@@ -344,6 +344,8 @@ export default {
     'server.asyncUpdaterSecretKey': '更新密钥',
     'server.asyncTunnelTransports': '打洞协议',
     'server.asyncSignInUserId': '用户唯一标识',
+    'server.asyncActionStatic': '自定义验证参数',
+    'server.asyncFirewall': '防火墙选中项',
 
     'firewall.rule': '防火墙协议',
     'firewall.srcName': '源设备',

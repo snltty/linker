@@ -99,7 +99,7 @@ namespace linker.messenger.api
         [AccessDisplay("修改打洞协议")]
         Transport = 28,
 
-        [AccessDisplay("修改验证参数")]
+        [AccessDisplay("修改本机验证参数")]
         Action = 29,
 
         [AccessDisplay("查看内网穿透流量")]
@@ -149,6 +149,9 @@ namespace linker.messenger.api
         WakeupSelf = 46,
         [AccessDisplay("唤醒所有设备")]
         WakeupOther = 47,
+
+        [AccessDisplay("修改所有验证参数")]
+        ActionOther = 48,
     }
 
     public sealed class AccessTextInfo

@@ -21,7 +21,7 @@
         </div>
        
     </el-form-item>   
-    <el-dialog v-model="state.show" :title="$t('server.relayTitle')" width="760" top="2vh">
+    <el-dialog v-model="state.show" :title="$t('server.relayTitle')" width="98%" top="2vh">
         <div>
             <el-table :data="state.nodes" size="small" border height="500">
                 <el-table-column property="Name" :label="$t('server.relayName')">

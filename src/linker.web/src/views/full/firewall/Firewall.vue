@@ -30,12 +30,23 @@
                     <el-button type="success" size="small" :loading="state.loading" @click="handleAdd()">+</el-button>
                 </div>
             </div>
-             <div class="flex-1"></div>
+            <div class="flex-1"></div>
+            <div class="mgt-1" v-if="state.isSelf">
+                <Sync name="Firewall"></Sync>
+            </div>
         </div>
     </div>
     <div class="body flex-1 relative">
         <el-table class="firewall" stripe border :data="state.data" size="small" :height="`${state.height}px`" :row-class-name="tableRowClassName">
-              <el-table-column prop="SrcName" :label="$t('firewall.srcName')" >
+            <el-table-column prop="Checked" width="30" v-if="state.isSelf" >
+                <template #header>
+                    <el-checkbox size="small" v-model="state.checkAll" :indeterminate="state.checkAllIndeterminate" @change="handleCheckAllChange"></el-checkbox>
+                </template>
+                <template #default="scope">
+                    <el-checkbox v-model="scope.row.Checked" size="small" @change="handleChecked(scope.row)"></el-checkbox>
+                </template>
+            </el-table-column>
+            <el-table-column prop="SrcName" :label="$t('firewall.srcName')" >
                 <template v-slot="scope">
                     <div class="ellipsis" :title="scope.row.SrcName">{{ scope.row.SrcName }}</div>
                 </template>
@@ -45,11 +56,11 @@
             <el-table-column prop="Protocol" :label="$t('firewall.protocol')" width="70">
                 <template v-slot="scope">{{handleShowProtocol(scope.row.Protocol)}}</template>
             </el-table-column>
-            <el-table-column prop="Action" :label="$t('firewall.action')" width="50">
+            <el-table-column prop="Action" :label="$t('firewall.action')" width="56">
                 <template v-slot="scope">{{handleShowAction(scope.row.Action)}}</template>
             </el-table-column>
-            <el-table-column prop="OrderBy" :label="$t('firewall.orderby')" width="60"></el-table-column>
-            <el-table-column prop="Disabled" :label="$t('firewall.disabled')" width="70">
+            <el-table-column prop="OrderBy" :label="$t('firewall.orderby')" width="56"></el-table-column>
+            <el-table-column prop="Disabled" :label="$t('firewall.disabled')" width="66">
                 <template v-slot="scope">
                     <div>
                         <el-switch v-model="scope.row.Disabled" size="small" 
@@ -63,7 +74,7 @@
                     <div class="ellipsis" :title="scope.row.Remark">{{ scope.row.Remark }}</div>
                 </template>
             </el-table-column>
-            <el-table-column width="80" fixed="right">
+            <el-table-column width="60" fixed="right">
                 <template #header>
                     <div class="flex">
                         <el-switch v-model="state.state" size="small" :title="$t('firewall.switch')" 
@@ -73,14 +84,15 @@
                 </template>
                 <template #default="scope">
                     <div>
-                        <a href="javascript:void(0);" class="a-line mgr-1" @click="handleAdd(scope.row)">{{$t('firewall.edit')}}</a>
-                        <el-popconfirm 
-                        :confirm-button-text="$t('common.confirm')" :cancel-button-text="$t('common.cancel')"
-                            :title="$t('firewall.delConfirm')" @confirm="handleDel(scope.row)">
-                            <template #reference>
-                                <a href="javascript:void(0);" class="a-line">{{$t('firewall.del')}}</a>
+                        <el-dropdown>
+                            <span class="el-dropdown-link">{{$t('common.option')}}<el-icon><ArrowDown /></el-icon></span>
+                            <template #dropdown>
+                            <el-dropdown-menu>
+                                <el-dropdown-item @click="handleAdd(scope.row)">{{$t('firewall.edit')}}</el-dropdown-item>
+                                <el-dropdown-item @click="handleDel(scope.row)">{{$t('firewall.del')}}</el-dropdown-item>
+                            </el-dropdown-menu>
                             </template>
-                        </el-popconfirm>
+                        </el-dropdown>
                     </div>
                 </template>
             </el-table-column>
@@ -93,13 +105,15 @@
 import { reactive,computed, ref } from '@vue/reactivity'
 import {  onMounted, provide } from '@vue/runtime-core'
 import { injectGlobalData } from '@/provide'
-import { addFirewall, getFirewall, removeFirewall, stateFirewall } from '@/apis/firewall';
+import { addFirewall, checkFirewall, getFirewall, removeFirewall, stateFirewall } from '@/apis/firewall';
 import { useI18n } from 'vue-i18n';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import {ArrowDown} from'@element-plus/icons-vue'
 import Add from './Add.vue';
+import Sync from '../sync/Index.vue'
 export default {
     props: ['machineId','machineName'],
-    components:{Add},
+    components:{Add,Sync,ArrowDown},
     setup(props,{emit}) {
 
         const {t} = useI18n();
@@ -107,6 +121,8 @@ export default {
         const globalData = injectGlobalData();
         const state = reactive({
             loading: true,
+            checkAll:false,
+            checkAllIndeterminate:false,
             search:{
                 MachineId:props.machineId || globalData.value.config.Client.Id,
                 Data:{
@@ -135,7 +151,10 @@ export default {
             data:[],
             state:1,
             height:computed(()=>globalData.value.height - 140),
-            showAdd:false
+            showAdd:false,
+            isSelf:computed(()=>{
+                return state.search.MachineId == globalData.value.config.Client.Id;
+            })
         })
         const loadData = () => {
             state.loading = true;
@@ -143,10 +162,38 @@ export default {
                 state.loading = false;
                 state.data = res.List;
                 state.state = res.State;
+                checkAllStatus();
             }).catch((err) => {
                 console.log(err);
                 state.loading = false;
             });
+        }
+
+        const checkAllStatus = ()=>{
+            state.checkAll = state.data.some(item=>item.Checked);
+            state.checkAllIndeterminate = state.checkAll && state.data.every(item=>item.Checked) == false;
+        }
+        const handleCheckAllChange = (value)=>{
+            state.data.forEach(c=>{
+                c.Checked = value;
+            });
+            checkAllStatus();
+
+            const ids = state.data.map(item=>item.Id);
+            if(ids.length > 0){
+                _checkFirewall(ids,value);
+            }
+        }
+        const handleChecked = (value)=>{
+            checkAllStatus();
+            _checkFirewall([value.Id],value.Checked);
+        }
+        const _checkFirewall = (ids,value)=>{
+            state.loading = true;
+            checkFirewall({
+                Ids:ids,
+                IsChecked:value
+            }).then(()=>{state.loading = false;}).catch(()=>{state.loading = false;});
         }
 
         const handleSetState = ()=>{
@@ -164,11 +211,17 @@ export default {
             });
         }
         const handleDel = (row) => {
-            state.loading = true;
-            removeFirewall({
-                MachineId:state.search.MachineId,
-                Id:row.Id
-            }).then(()=>{loadData(); state.loading = false;}).catch(()=>{state.loading = false;});
+            ElMessageBox.confirm(t('firewall.delConfirm'), t('common.confirm'), {
+                confirmButtonText: t('common.confirm'),
+                cancelButtonText: t('common.cancel'),
+                type: 'warning',
+            }).then(() => {
+                state.loading = true;
+                removeFirewall({
+                    MachineId:state.search.MachineId,
+                    Id:row.Id
+                }).then(()=>{loadData(); state.loading = false;}).catch(()=>{state.loading = false})
+            }).catch(()=>{});
         }
         const handleDsiabled = (row)=>{
              state.loading = true;
@@ -223,7 +276,8 @@ export default {
 
         return {
             state, loadData, tableRowClassName,handleSetState,handleAdd,handleDel,
-            handleShowProtocol,handleShowAction,handleDsiabled
+            handleShowProtocol,handleShowAction,handleDsiabled,
+            handleCheckAllChange,handleChecked
         }
     }
 }
@@ -245,5 +299,9 @@ export default {
     .action-2 {
         color: #c83f08;
     }
+}
+.el-dropdown-link{
+    font-size:1.2rem;
+    padding-top:.3rem;
 }
 </style>

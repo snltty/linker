@@ -1,5 +1,6 @@
 ﻿
 using linker.libs.web;
+using linker.messenger.sync;
 using linker.snat;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,6 +14,7 @@ namespace linker.messenger.firewall
             serviceCollection.AddSingleton<FirewallClientMessenger>();
             serviceCollection.AddSingleton<FirewallTransfer>();
             serviceCollection.AddSingleton<FirewallApiController>();
+            serviceCollection.AddSingleton<FirewallSync>();
 
             return serviceCollection;
         }
@@ -25,6 +27,9 @@ namespace linker.messenger.firewall
 
             linker.messenger.api.IWebServer apiServer = serviceProvider.GetService<linker.messenger.api.IWebServer>();
             apiServer.AddPlugins(new List<IApiController> { serviceProvider.GetService<FirewallApiController>() });
+
+            SyncTreansfer syncTransfer = serviceProvider.GetService<SyncTreansfer>();
+            syncTransfer.AddSyncs(new List<ISync> { serviceProvider.GetService<FirewallSync>() });
 
             return serviceProvider;
         }

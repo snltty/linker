@@ -1,5 +1,9 @@
 import { sendWebsocketMsg } from './request'
 
-export const setArgs = (args) => {
-    return sendWebsocketMsg('action/SetServerArgs', args);
+
+export const getArgs = (machineid) => {
+    return sendWebsocketMsg('action/GetServerArgs', machineid);
+}
+export const setArgs = (keyvalue) => {
+    return sendWebsocketMsg('action/SetServerArgs', keyvalue);
 }

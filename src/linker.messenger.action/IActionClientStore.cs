@@ -1,30 +1,39 @@
-﻿namespace linker.messenger.action
+﻿using System.Collections.Concurrent;
+
+namespace linker.messenger.action
 {
     public sealed class ActionInfo
     {
         public string Arg { get; set; } = string.Empty;
-        public Dictionary<string, string> Args { get; set; } = new Dictionary<string, string>();
+        public ConcurrentDictionary<string, string> Args { get; set; } = new ConcurrentDictionary<string, string>();
     }
     public interface IActionClientStore
     {
         /// <summary>
         /// 设置动态验证参数，优先使用
         /// </summary>
-        /// <param name="action"></param>
-        public void SetActionArg(string action);
+        /// <param name="value"></param>
+        public void SetActionDynamicArg(string value);
         /// <summary>
         /// 设置静态验证参数，动态参数为空时使用
         /// </summary>
-        /// <param name="actions">action参数列表，host->arg，不同的服务器不同的参数</param>
-        public void SetActionArgs(Dictionary<string, string> actions);
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        public void SetActionStaticArg(string key,string value);
         /// <summary>
-        /// 从配置里获取验证参数，添加到args
+        /// 获取静态参数
         /// </summary>
-        /// <param name="host">当前服务器地址</param>
-        /// <param name="args">一个字典</param>
+        /// <param name="key"></param>
         /// <returns></returns>
-        public bool TryAddActionArg(string host, Dictionary<string, string> args);
+        public string GetActionStaticArg(string key);
 
+        /// <summary>
+        /// 网args里添加指定key的值
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public bool TryAddActionArg(string key, Dictionary<string, string> args);
         /// <summary>
         /// 提交更新
         /// </summary>

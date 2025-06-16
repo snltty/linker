@@ -33,6 +33,8 @@
         <OperRoutes v-if="oper.showRoutes" v-model="oper.showRoutes" ></OperRoutes>
         <OperFirewall v-if="oper.showFirewall" v-model="oper.showFirewall" ></OperFirewall>
         <OperWakeup v-if="oper.showWakeup" v-model="oper.showWakeup" ></OperWakeup>
+        <OperTransport v-if="oper.showTransport" v-model="oper.showTransport" ></OperTransport>
+        <OperAction v-if="oper.showAction" v-model="oper.showAction" ></OperAction>
     </div>
 </template>
 <script>
@@ -85,6 +87,8 @@ import { provideOper } from './oper'
 import OperRoutes from './OperRoutes.vue'
 import OperFirewall from './OperFirewall.vue'
 import OperWakeup from './OperWakeup.vue'
+import OperTransport from './OperTransport.vue'
+import OperAction from './OperAction.vue'
 
 
 export default {
@@ -98,7 +102,7 @@ export default {
         Forward,ForwardEdit,
         SForwardEdit ,UpdaterConfirm,
         Stopwatch,
-        Oper,OperRoutes,OperFirewall,OperWakeup 
+        Oper,OperRoutes,OperFirewall,OperWakeup ,OperTransport,OperAction
     },
     setup(props) {
 

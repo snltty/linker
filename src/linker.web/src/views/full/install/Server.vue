@@ -2,9 +2,6 @@
     <div>
         <el-form ref="formDom" :model="state.form" :rules="state.rules" label-width="12rem">
             <el-form-item label="" label-width="0">
-                <div class="t-c w-100">端口为0则不监听</div>
-            </el-form-item>
-            <el-form-item label="" label-width="0">
                 <el-row>
                     <el-col :span="12">
                         <el-form-item label="服务端口" prop="servicePort">

@@ -39,7 +39,7 @@ namespace linker.messenger.firewall
                 if (accessStore.HasAccess(AccessValue.FirewallSelf) == false) return new FirewallListInfo();
                 return firewallTransfer.Get(info.Data);
             }
-            if (accessStore.HasAccess(AccessValue.FirewallOther) == false) return new FirewallListInfo ();
+            if (accessStore.HasAccess(AccessValue.FirewallOther) == false) return new FirewallListInfo();
 
             var resp = await messengerSender.SendReply(new MessageRequestWrap
             {
@@ -120,6 +120,16 @@ namespace linker.messenger.firewall
                 MessengerId = (ushort)FirewallMessengerIds.StateForward,
                 Payload = serializer.Serialize(info)
             }).ConfigureAwait(false);
+        }
+        /// <summary>
+        /// 选中
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public bool Check(ApiControllerParamsInfo param)
+        {
+            FirewallCheckInfo info = param.Content.DeJson<FirewallCheckInfo>();
+            return firewallTransfer.Check(info);
         }
     }
 }

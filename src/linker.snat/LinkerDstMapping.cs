@@ -1,6 +1,4 @@
 ﻿using linker.libs;
-using linker.libs.extends;
-using System;
 using System.Buffers;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
@@ -35,6 +33,7 @@ namespace linker.snat
 
             mapDic = maps.ToFrozenDictionary(x => NetworkHelper.ToNetworkValue(x.FakeIP, x.PrefixLength), x => NetworkHelper.ToNetworkValue(x.RealIP, x.PrefixLength));
             masks = maps.Select(x => NetworkHelper.ToPrefixValue(x.PrefixLength)).ToArray();
+
         }
 
         /// <summary>
@@ -94,6 +93,7 @@ namespace linker.snat
             if (packet.Span[19] == 255) return;
 
             uint fakeDist = NetworkHelper.ToValue(packet.Span.Slice(16, 4));
+
             for (int i = 0; i < masks.Length; i++)
             {
                 //目标IP网络号存在映射表中，找到映射后的真实网络号，替换网络号得到最终真实的IP

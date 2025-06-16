@@ -88,6 +88,8 @@ namespace linker.snat
             error = string.Empty;
             try
             {
+                CommandHelper.Windows(string.Empty, ["reg add \"HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\" /v IPEnableRouter /t REG_DWORD /d 1 /f"]);
+
                 Shutdown();
 
                 srcIp = NetworkHelper.ToValue(info.Src);
@@ -117,7 +119,9 @@ namespace linker.snat
         private static string BuildFilter(AddrInfo[] dsts)
         {
             IEnumerable<string> ipRanges = dsts.Select(c => $"(ip.SrcAddr >= {c.NetworkIP} and ip.SrcAddr <= {c.BroadcastIP})");
-            return $"inbound and ({string.Join(" or ", ipRanges)})";
+            string filter = $"inbound and ({string.Join(" or ", ipRanges)})";
+            //Console.WriteLine($"filter:{filter}");
+            return filter;
         }
         /// <summary>
         /// 开始接收数据包
@@ -211,10 +215,13 @@ namespace linker.snat
                         };
                         if (result == false) return false;
 
+                        //Console.WriteLine($"snat inject :{p.IPv4Hdr->SrcAddr}->{p.IPv4Hdr->DstAddr} 替换为 {interfaceAddr}->{p.IPv4Hdr->DstAddr}");
                         //改写源地址为网卡地址
                         p.IPv4Hdr->SrcAddr = interfaceAddr;
+
                     }
                     WinDivert.CalcChecksums(p.Packet.Span, ref addr, 0);
+
                     winDivert.SendEx(p.Packet.Span, new ReadOnlySpan<WinDivertAddress>(ref addr));
                 }
             }
@@ -260,6 +267,8 @@ namespace linker.snat
             natMapInfo.LastTime = Environment.TickCount64;
             natMapInfo.Timeout = 15 * 1000;
 
+            //Console.WriteLine($"snat inject icmp:{*ptr0}->{identifier0},{*ptr1}->{identifier1}");
+
             //改写为新的标识符
             *ptr0 = identifier0;
             *ptr1 = identifier1;
@@ -286,10 +295,13 @@ namespace linker.snat
             ValueTuple<uint, ushort, uint, ushort, ProtocolType> key = (p.IPv4Hdr->DstAddr.Raw, *ptr0, p.IPv4Hdr->SrcAddr.Raw, *ptr1, ProtocolType.Icmp);
             if (natMap.TryGetValue(key, out NatMapInfo natMapInfo))
             {
+                //Console.WriteLine($"snat recv icmp:{*ptr0}->{natMapInfo.Identifier0},{*ptr1}->{natMapInfo.Identifier1}");
                 //改回原来的标识符
                 *ptr0 = natMapInfo.Identifier0;
                 *ptr1 = natMapInfo.Identifier1;
+                //Console.WriteLine($"icmp recv:{p.IPv4Hdr->SrcAddr}->{p.IPv4Hdr->DstAddr} 替换为 {p.IPv4Hdr->SrcAddr}->{natMapInfo.SrcAddr}");
                 p.IPv4Hdr->DstAddr = natMapInfo.SrcAddr;
+
                 return true;
 
             }
@@ -645,6 +657,7 @@ namespace linker.snat
                 uint value = NetworkHelper.ToValue(Address);
                 uint network = NetworkHelper.ToNetworkValue(value, NetworkHelper.ToValue(IPv4Mask));
                 network2ipMap.TryAdd(network, (value, IPv4Addr.Parse(Address.ToString())));
+
             }
         }
 
