@@ -339,4 +339,68 @@ namespace linker.messenger.serializer.memorypack
             value = wrapped.info;
         }
     }
+
+
+    [MemoryPackable]
+    public readonly partial struct SerializableUpdater184Info
+    {
+        [MemoryPackIgnore]
+        public readonly Updater184Info info;
+
+        [MemoryPackInclude]
+        string MachineId => info.MachineId;
+        [MemoryPackInclude]
+        string Version => info.Version;
+
+        [MemoryPackInclude]
+        UpdaterStatus Status => info.Status;
+
+        [MemoryPackInclude]
+        long Length => info.Length;
+
+        [MemoryPackInclude]
+        long Current => info.Current;
+
+        [MemoryPackInclude]
+        string ServerVersion => info.ServerVersion;
+
+        [MemoryPackConstructor]
+        SerializableUpdater184Info(string machineId, string version, UpdaterStatus status, long length, long current, string serverVersion)
+        {
+            this.info = new Updater184Info { MachineId = machineId, Version = version, Status = status, Length = length, Current = current, ServerVersion = serverVersion };
+        }
+
+        public SerializableUpdater184Info(Updater184Info info)
+        {
+            this.info = info;
+        }
+    }
+    public class Updater184InfoFormatter : MemoryPackFormatter<Updater184Info>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Updater184Info value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableUpdater184Info(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref Updater184Info value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableUpdater184Info>();
+            value = wrapped.info;
+        }
+    }
 }
+
+

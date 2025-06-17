@@ -8,7 +8,7 @@ namespace linker.messenger.updater
     {
         private readonly UpdaterClientTransfer updaterTransfer;
         private readonly ISerializer serializer;
-        
+
         public UpdaterClientMessenger(UpdaterClientTransfer updaterTransfer, ISerializer serializer)
         {
             this.updaterTransfer = updaterTransfer;
@@ -88,7 +88,7 @@ namespace linker.messenger.updater
             updaterTransfer.Check();
         }
 
-       
+
     }
 
 
@@ -137,6 +137,21 @@ namespace linker.messenger.updater
                 Length = info.Length,
                 Status = info.Status,
                 Version = info.Version
+            };
+            connection.Write(serializer.Serialize(result));
+        }
+        [MessengerId((ushort)UpdaterMessengerIds.UpdateServer184)]
+        public void UpdateServer184(IConnection connection)
+        {
+            var info = updaterServerTransfer.Get();
+            Updater184Info result = new Updater184Info
+            {
+                MachineId = string.Empty,
+                Current = info.Current,
+                Length = info.Length,
+                Status = info.Status,
+                Version = info.Version,
+                ServerVersion = VersionHelper.Version
             };
             connection.Write(serializer.Serialize(result));
         }

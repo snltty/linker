@@ -18,12 +18,14 @@ namespace linker.messenger.updater
         }
         public Memory<byte> GetData()
         {
-            return serializer.Serialize(updaterClientStore.SecretKey);
+            return serializer.Serialize(updaterClientStore.Info);
         }
 
         public void SetData(Memory<byte> data)
         {
-            updaterClientStore.SetSecretKey(serializer.Deserialize<string>(data.Span));
+            UpdaterConfigClientInfo info = serializer.Deserialize<UpdaterConfigClientInfo>(data.Span);
+            updaterClientStore.SetSecretKey(info.SecretKey);
+            updaterClientStore.SetSync2Server(info.Sync2Server);
         }
     }
 }

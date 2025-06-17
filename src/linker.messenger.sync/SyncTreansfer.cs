@@ -1,6 +1,7 @@
 ﻿using linker.libs;
 using linker.libs.timer;
 using linker.messenger.signin;
+using System.Xml.Linq;
 
 namespace linker.messenger.sync
 {
@@ -31,8 +32,23 @@ namespace linker.messenger.sync
             return syncs.Select(c => c.Name).ToList();
         }
 
-        public void Sync(string[] names)
+        public async Task Sync(string[] names, string[] ids)
         {
+            if (names.Length == 1)
+            {
+                var sync = syncs.FirstOrDefault(c => c.Name == names[0]);
+                if (sync != null)
+                {
+                    await messengerSender.SendOnly(new MessageRequestWrap
+                    {
+                        Connection = signInClientState.Connection,
+                        MessengerId = (ushort)ConfigMessengerIds.Sync184Forward,
+                        Payload = serializer.Serialize(new Sync184Info { Name = sync.Name, Data = sync.GetData(), Ids = ids }),
+                    }).ConfigureAwait(false);
+                }
+                return;
+            }
+
             TimerHelper.Async(async () =>
             {
                 await slim.WaitAsync().ConfigureAwait(false);
@@ -43,8 +59,8 @@ namespace linker.messenger.sync
                          return messengerSender.SendOnly(new MessageRequestWrap
                          {
                              Connection = signInClientState.Connection,
-                             MessengerId = (ushort)ConfigMessengerIds.SyncForward,
-                             Payload = serializer.Serialize(new SyncInfo { Name = c.Name, Data = c.GetData() }),
+                             MessengerId = (ushort)ConfigMessengerIds.Sync184Forward,
+                             Payload = serializer.Serialize(new Sync184Info { Name = c.Name, Data = c.GetData(), Ids = ids }),
 
                          });
                      }).ToList();
@@ -56,26 +72,10 @@ namespace linker.messenger.sync
                 slim.Release();
             });
         }
-        public async Task Sync(string name)
-        {
-            var sync = syncs.FirstOrDefault(c => c.Name == name);
-            if(sync != null)
-            {
-                await messengerSender.SendOnly(new MessageRequestWrap
-                {
-                    Connection = signInClientState.Connection,
-                    MessengerId = (ushort)ConfigMessengerIds.SyncForward,
-                    Payload = serializer.Serialize(new SyncInfo { Name = sync.Name, Data = sync.GetData() }),
-                }).ConfigureAwait(false);
-            }
-        }
         public void Sync(SyncInfo info)
         {
-            var sync = syncs.FirstOrDefault(c => c.Name == info.Name);
-            if (sync != null)
-            {
-                sync.SetData(info.Data);
-            }
+            ISync sync = syncs.FirstOrDefault(c => c.Name == info.Name);
+            sync?.SetData(info.Data);
         }
     }
 }

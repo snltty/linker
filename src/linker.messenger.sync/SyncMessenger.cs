@@ -39,6 +39,32 @@ namespace linker.messenger.sync
                 await Task.WhenAll(tasks).ConfigureAwait(false);
             }
         }
+        [MessengerId((ushort)ConfigMessengerIds.Sync184Forward)]
+        public async Task Sync184Forward(IConnection connection)
+        {
+            Sync184Info info = serializer.Deserialize<Sync184Info>(connection.ReceiveRequestWrap.Payload.Span);
+            string[] ids = info.Ids;
+            info.Ids = [];
+            Memory<byte> data = serializer.Serialize(info);
+
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
+            {
+                List<SignCacheInfo> caches = signCaching.Get(cache);
+                List<Task> tasks = [];
+                foreach (SignCacheInfo item in caches.Where(c => c.MachineId != connection.Id && c.Connected && (ids.Contains(c.Id) || ids.Length == 0)))
+                {
+                    tasks.Add(sender.SendOnly(new MessageRequestWrap
+                    {
+                        Connection = item.Connection,
+                        MessengerId = (ushort)ConfigMessengerIds.Sync184,
+                        Payload = data,
+                        Timeout = 1000,
+                    }));
+                }
+
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+            }
+        }
     }
 
     public sealed class SyncClientMessenger : IMessenger
@@ -55,6 +81,13 @@ namespace linker.messenger.sync
         public void Sync(IConnection connection)
         {
             SyncInfo info = serializer.Deserialize<SyncInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            syncTreansfer.Sync(info);
+        }
+
+        [MessengerId((ushort)ConfigMessengerIds.Sync184)]
+        public void Sync184(IConnection connection)
+        {
+            Sync184Info info = serializer.Deserialize<Sync184Info>(connection.ReceiveRequestWrap.Payload.Span);
             syncTreansfer.Sync(info);
         }
 

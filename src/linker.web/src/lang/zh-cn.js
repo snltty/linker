@@ -324,6 +324,7 @@ export default {
     'server.sforwardText': '当密钥正确是可用',
 
     'server.updaterSecretKey': '服务器更新密钥',
+    'server.updaterSync2Server': '自动更新到服务器版本',
     'server.updaterText': '当密钥正确是可用',
     'server.updaterRate': '检查更新频率',
     'server.updaterY': '年',
@@ -333,7 +334,7 @@ export default {
     'server.updaterMM': '分',
     'server.updaterS': '秒',
 
-    'server.asyncText': '到本组所有客户端',
+    'server.asyncText': '到选中的客户端，不选择表示所有客户端',
     'server.asyncSelect': '请选择',
     'server.asyncCheckAll': '全选',
     'server.asyncSignInSecretKey': '信标密钥',
@@ -341,7 +342,7 @@ export default {
     'server.asyncGroupSecretKey': '分组密钥',
     'server.asyncRelaySecretKey': '中继密钥',
     'server.asyncSForwardSecretKey': '服务器穿透密钥',
-    'server.asyncUpdaterSecretKey': '更新密钥',
+    'server.asyncUpdaterSecretKey': '更新配置',
     'server.asyncTunnelTransports': '打洞协议',
     'server.asyncSignInUserId': '用户唯一标识',
     'server.asyncActionStatic': '自定义验证参数',

@@ -32,6 +32,8 @@
 
         CheckKey = 2618,
 
+        UpdateServer184 = 2619,
+
         Max = 2299
     }
 }

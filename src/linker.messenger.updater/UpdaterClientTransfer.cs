@@ -17,10 +17,11 @@ namespace linker.messenger.updater
         private readonly ISignInClientStore signInClientStore;
         private readonly IUpdaterCommonStore updaterCommonTransfer;
         private readonly ISerializer serializer;
+        private readonly IUpdaterClientStore updaterClientStore;
 
         public VersionManager Version { get; } = new VersionManager();
 
-        public UpdaterClientTransfer(IMessengerSender messengerSender, SignInClientState signInClientState, UpdaterHelper updaterHelper, ISignInClientStore signInClientStore, IUpdaterCommonStore updaterCommonTransfer, ISerializer serializer)
+        public UpdaterClientTransfer(IMessengerSender messengerSender, SignInClientState signInClientState, UpdaterHelper updaterHelper, ISignInClientStore signInClientStore, IUpdaterCommonStore updaterCommonTransfer, ISerializer serializer, IUpdaterClientStore updaterClientStore)
         {
             this.messengerSender = messengerSender;
             this.signInClientState = signInClientState;
@@ -28,6 +29,7 @@ namespace linker.messenger.updater
             this.signInClientStore = signInClientStore;
             this.updaterCommonTransfer = updaterCommonTransfer;
             this.serializer = serializer;
+            this.updaterClientStore = updaterClientStore;
 
             signInClientState.OnSignInSuccessFirstTime += Init;
 
@@ -75,7 +77,8 @@ namespace linker.messenger.updater
                     Status = info.Status,
                     Length = info.Length,
                     Current = info.Current,
-                    MachineId = info.MachineId
+                    MachineId = info.MachineId,
+
                 };
                 updateInfos.AddOrUpdate(_info.MachineId, _info, (a, b) => _info);
                 Version.Increment();
@@ -110,7 +113,7 @@ namespace linker.messenger.updater
         }
         public void Subscribe()
         {
-            if(updateInfo.Status == UpdaterStatus.Downloading || updateInfo.Status == UpdaterStatus.Extracting)
+            if (updateInfo.Status == UpdaterStatus.Downloading || updateInfo.Status == UpdaterStatus.Extracting)
             {
                 updateInfo.MachineId = signInClientStore.Id;
                 Update(updateInfo);
@@ -164,17 +167,24 @@ namespace linker.messenger.updater
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
-                MessengerId = (ushort)UpdaterMessengerIds.UpdateServer170,
+                MessengerId = (ushort)UpdaterMessengerIds.UpdateServer184,
             }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
             {
-                UpdaterInfo170 info = serializer.Deserialize<UpdaterInfo170>(resp.Data.Span);
-               
-                if (info.Status <= UpdaterStatus.Checked && updateInfo.Status <= UpdaterStatus.Checked)
+                Updater184Info info = serializer.Deserialize<Updater184Info>(resp.Data.Span);
+
+                //服务端不是已经开始下载，本地也不是已经开始下载，就更新一下本地状态
+                if (info.Status < UpdaterStatus.Downloading && updateInfo.Status < UpdaterStatus.Downloading)
                 {
                     updateInfo.Status = info.Status;
                     updateInfo.Version = info.Version;
                     updateInfo.Update();
+                }
+
+                //本地不是已经开始下载，开启了自动更新，且版本不一样
+                if (updateInfo.Status < UpdaterStatus.Downloading && updaterClientStore.Info.Sync2Server && info.ServerVersion != VersionHelper.Version)
+                {
+                    updaterHelper.Confirm(updateInfo, info.ServerVersion);
                 }
             }
         }

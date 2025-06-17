@@ -56,4 +56,60 @@ namespace linker.messenger.serializer.memorypack
             value = wrapped.info;
         }
     }
+
+
+    [MemoryPackable]
+    public readonly partial struct SerializableSync184Info
+    {
+        [MemoryPackIgnore]
+        public readonly Sync184Info info;
+
+        [MemoryPackInclude]
+        string Name => info.Name;
+
+        [MemoryPackInclude]
+        Memory<byte> Data => info.Data;
+
+        [MemoryPackInclude]
+        string[] Ids => info.Ids;
+
+
+        [MemoryPackConstructor]
+        SerializableSync184Info(string name, Memory<byte> data, string[] ids)
+        {
+            var info = new Sync184Info { Name = name, Data = data, Ids = ids };
+            this.info = info;
+        }
+
+        public SerializableSync184Info(Sync184Info info)
+        {
+            this.info = info;
+        }
+    }
+    public class Sync184InfoFormatter : MemoryPackFormatter<Sync184Info>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Sync184Info value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableSync184Info(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref Sync184Info value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableSync184Info>();
+            value = wrapped.info;
+        }
+    }
 }

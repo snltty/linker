@@ -234,6 +234,7 @@ export default {
     'server.sforwardText': 'The server forward can be used when the key is correct',
 
     'server.updaterSecretKey': 'Server update secretKey',
+    'server.updaterSync2Server': 'Auto update to server version',
     'server.updaterText': 'The server update can be used when the key is correct',
     'server.updaterRate': 'Update check interval',
     'server.updaterY': 'Year',
@@ -243,7 +244,7 @@ export default {
     'server.updaterMM': 'Minute',
     'server.updaterS': 'Second',
 
-    'server.asyncText': 'to group all clients',
+    'server.asyncText': 'to selected clients, all clients if not selected',
     'server.asyncSelect': 'Please select',
     'server.asyncCheckAll': 'Check all',
     'server.asyncSignInSecretKey': 'Signin secretKey',
@@ -251,7 +252,7 @@ export default {
     'server.asyncGroupSecretKey': 'Group secretKey',
     'server.asyncRelaySecretKey': 'Relay secretKey',
     'server.asyncSForwardSecretKey': 'Server forward secretKey',
-    'server.asyncUpdaterSecretKey': 'Update secretKey',
+    'server.asyncUpdaterSecretKey': 'Updater config',
     'server.asyncTunnelTransports': 'Tunnel transports',
     'server.asyncSignInUserId': 'User Id',
     'server.asyncActionStatic': 'Action args',

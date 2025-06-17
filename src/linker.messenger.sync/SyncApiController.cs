@@ -20,17 +20,15 @@ namespace linker.messenger.sync
         [Access(AccessValue.Sync)]
         public async Task<bool> Sync(ApiControllerParamsInfo param)
         {
-            string[] names = param.Content.DeJson<string[]>();
-            if (names.Length == 1)
-            {
-                await syncTreansfer.Sync(names[0]).ConfigureAwait(false);
-            }
-            else
-            {
-                syncTreansfer.Sync(names);
-            }
-
+            SyncInfo info = param.Content.DeJson<SyncInfo>();
+            await syncTreansfer.Sync(info.Names, info.Ids).ConfigureAwait(false);
             return true;
+        }
+
+        public sealed class SyncInfo
+        {
+            public string[] Names { get; set; } = [];
+            public string[] Ids { get; set; } = [];
         }
     }
 

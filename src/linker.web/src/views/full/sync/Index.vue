@@ -1,15 +1,38 @@
 <template>
     <div>
-        <el-button class="btn" size="small" @click="handleSync"><el-icon><Share /></el-icon></el-button>
+        <el-button class="btn" size="small" @click="handleShowSync"><el-icon><Share /></el-icon></el-button>
+        <el-dialog class="options-center" :title="$t('server.sync')" destroy-on-close v-model="state.showNames" width="54rem" top="2vh">
+            <div>
+                <div class="t-c">
+                    {{ `${$t('server.sync')}【${$t(`server.async${state.name}`)}】${$t('server.asyncText')}` }}
+                </div>
+                <el-transfer class="src-tranfer mgt-1"
+                    v-model="state.srcIdValues"
+                    filterable
+                    :filter-method="srcFilterMethod"
+                    :data="state.srcIds"
+                    :titles="[$t('firewall.unselect'), $t('firewall.selected')]"
+                    :props="{
+                        key: 'MachineId',
+                        label: 'MachineName',
+                    }"
+                />
+                <div class="t-c w-100 mgt-1">
+                        <el-button @click="state.showNames = false">{{$t('common.cancel')}}</el-button>
+                        <el-button type="primary" @click="handleConfirm">{{$t('common.confirm')}}</el-button>
+                    </div>
+            </div>
+        </el-dialog>
     </div>
 </template>
 
 <script>
+import { getSignInNames } from '@/apis/signin';
 import { setSync } from '@/apis/sync';
 import { injectGlobalData } from '@/provide';
 import {Share} from '@element-plus/icons-vue'
-import { ElMessage, ElMessageBox } from 'element-plus';
-import { computed } from 'vue';
+import { ElMessage } from 'element-plus';
+import { computed, reactive } from 'vue';
 import { useI18n } from 'vue-i18n';
 export default {
     props:['name'],
@@ -18,28 +41,53 @@ export default {
         const { t } = useI18n();
         const globalData = injectGlobalData();
         const hasSync = computed(()=>globalData.value.hasAccess('Sync'));
-        const handleSync = ()=>{
+        const state = reactive({
+            name:props.name,
+            loading:false,
+            showNames:false,
+            srcIdValues:[],
+            srcIds:[],
+        });
+
+        const handleConfirm = ()=>{
+            setSync({
+                names:[props.name],
+                ids:state.srcIdValues
+            }).then(res => {
+                ElMessage.success(t('common.oper'));
+                state.showNames = false;
+            });
+        }
+        const handleShowSync = ()=>{
             if(!hasSync.value){
                 ElMessage.success(t('common.access'));
                 return;
             }
-            ElMessageBox.confirm(`${t('server.sync')}【${t(`server.async${props.name}`)}】${t(`server.asyncText`)}? `, t('common.tips'), {
-                confirmButtonText: t('common.confirm'),
-                cancelButtonText:t('common.cancel'),
-                type: 'warning'
-            }).then(() => {
-                setSync([props.name]).then(res => {
-                    ElMessage.success(t('common.oper'));
-                });
-            }).catch(() => {});
-
+            state.showNames = true;
+            _getSignInNames();
         }
+        const _getSignInNames = ()=>{
+            state.loading = true;
+            getSignInNames().then((res)=>{
+                state.loading = false;
+                state.srcIds = res;
+            }).catch((e)=>{
+                state.loading = false;
+            });
+        }
+        const srcFilterMethod = (query, item) => {
+            return item.MachineName.toLowerCase().includes(query.toLowerCase())
+        }
+
         return {
-            handleSync
+            state,handleShowSync,srcFilterMethod,handleConfirm
         }
     }
 }
 </script>
-
+<style lang="stylus">
+.el-transfer.src-tranfer .el-transfer__buttons .el-button{display:block;}
+.el-transfer.src-tranfer .el-transfer__buttons .el-button:nth-child(2){margin:1rem 0 0 0;}
+</style>
 <style lang="stylus" scoped>
 </style>

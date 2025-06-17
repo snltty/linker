@@ -4,7 +4,7 @@ namespace linker.messenger.store.file.updater
 {
     public sealed class UpdaterClientStore : IUpdaterClientStore
     {
-        public string SecretKey => fileConfig.Data.Client.Updater.SecretKey;
+        public UpdaterConfigClientInfo Info => fileConfig.Data.Client.Updater;
 
         private readonly FileConfig fileConfig;
         public UpdaterClientStore(FileConfig fileConfig)
@@ -14,6 +14,11 @@ namespace linker.messenger.store.file.updater
         public void SetSecretKey(string key)
         {
             fileConfig.Data.Client.Updater.SecretKey = key;
+            fileConfig.Data.Update();
+        }
+        public void SetSync2Server(bool value)
+        {
+            fileConfig.Data.Client.Updater.Sync2Server = value;
             fileConfig.Data.Update();
         }
     }

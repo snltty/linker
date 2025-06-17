@@ -28,6 +28,7 @@ namespace linker.messenger.serializer.memorypack
 
 
             MemoryPackFormatterProvider.Register(new SyncInfoFormatter());
+            MemoryPackFormatterProvider.Register(new Sync184InfoFormatter());
 
 
             MemoryPackFormatterProvider.Register(new TunnelTransportWanPortInfoFormatter());
@@ -54,6 +55,8 @@ namespace linker.messenger.serializer.memorypack
 
             MemoryPackFormatterProvider.Register(new UpdaterInfoFormatter());
             MemoryPackFormatterProvider.Register(new UpdaterInfo170Formatter());
+            MemoryPackFormatterProvider.Register(new Updater184InfoFormatter());
+            
 
 
             MemoryPackFormatterProvider.Register(new RelayTestInfoFormatter());

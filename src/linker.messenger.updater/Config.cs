@@ -23,6 +23,10 @@ namespace linker.messenger.updater
         /// 密钥
         /// </summary>
         public string SecretKey { get; set; } = Helper.GlobalString;
+        /// <summary>
+        /// 与服务器同步
+        /// </summary>
+        public bool Sync2Server { get; set; } = false;
     }
     public sealed class UpdaterConfigServerInfo
     {
@@ -80,7 +84,7 @@ namespace linker.messenger.updater
             Interlocked.Increment(ref counter);
         }
     }
-    public sealed partial class UpdaterInfo170
+    public partial class UpdaterInfo170
     {
         public string MachineId { get; set; }
         public string Version { get; set; }
@@ -88,6 +92,11 @@ namespace linker.messenger.updater
         public long Length { get; set; }
         public long Current { get; set; }
     }
+    public sealed partial class Updater184Info : UpdaterInfo170
+    {
+        public string ServerVersion { get; set; }
+    }
+
 
     public enum UpdaterStatus : byte
     {
