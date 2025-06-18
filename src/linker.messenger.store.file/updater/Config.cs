@@ -10,16 +10,10 @@ namespace linker.messenger.store.file
     }
     public partial class ConfigClientInfo
     {
-        /// <summary>
-        /// 服务器穿透配置
-        /// </summary>
         public UpdaterConfigClientInfo Updater { get; set; } = new UpdaterConfigClientInfo();
     }
     public partial class ConfigServerInfo
     {
-        /// <summary>
-        /// 服务器穿透配置
-        /// </summary>
         public UpdaterConfigServerInfo Updater { get; set; } = new UpdaterConfigServerInfo();
     }
 }

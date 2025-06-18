@@ -52,12 +52,10 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new UpdaterConfirmServerInfoFormatter());
             MemoryPackFormatterProvider.Register(new UpdaterClientInfoFormatter());
             MemoryPackFormatterProvider.Register(new UpdaterClientInfo170Formatter());
-
             MemoryPackFormatterProvider.Register(new UpdaterInfoFormatter());
             MemoryPackFormatterProvider.Register(new UpdaterInfo170Formatter());
             MemoryPackFormatterProvider.Register(new Updater184InfoFormatter());
-            
-
+            MemoryPackFormatterProvider.Register(new UpdaterSyncInfoFormatter());
 
             MemoryPackFormatterProvider.Register(new RelayTestInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayTestInfo170Formatter());

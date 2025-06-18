@@ -401,6 +401,59 @@ namespace linker.messenger.serializer.memorypack
             value = wrapped.info;
         }
     }
+
+
+
+    [MemoryPackable]
+    public readonly partial struct SerializableUpdaterSyncInfo
+    {
+        [MemoryPackIgnore]
+        public readonly UpdaterSyncInfo info;
+
+        [MemoryPackInclude]
+        string SecretKey => info.SecretKey;
+
+        [MemoryPackInclude]
+        bool Sync2Server => info.Sync2Server;
+
+        [MemoryPackConstructor]
+        SerializableUpdaterSyncInfo(string secretKey, bool sync2Server)
+        {
+            var info = new UpdaterSyncInfo { SecretKey = secretKey, Sync2Server = sync2Server };
+            this.info = info;
+        }
+
+        public SerializableUpdaterSyncInfo(UpdaterSyncInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class UpdaterSyncInfoFormatter : MemoryPackFormatter<UpdaterSyncInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref UpdaterSyncInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableUpdaterSyncInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref UpdaterSyncInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableUpdaterSyncInfo>();
+            value = wrapped.info;
+        }
+    }
 }
 
 

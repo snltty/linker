@@ -18,14 +18,30 @@ namespace linker.messenger.updater
         }
         public Memory<byte> GetData()
         {
-            return serializer.Serialize(updaterClientStore.Info);
+            return serializer.Serialize(new UpdaterSyncInfo
+            {
+                SecretKey = updaterClientStore.Info.SecretKey,
+                Sync2Server = updaterClientStore.Info.Sync2Server
+            });
         }
 
         public void SetData(Memory<byte> data)
         {
-            UpdaterConfigClientInfo info = serializer.Deserialize<UpdaterConfigClientInfo>(data.Span);
+            UpdaterSyncInfo info = serializer.Deserialize<UpdaterSyncInfo>(data.Span);
             updaterClientStore.SetSecretKey(info.SecretKey);
             updaterClientStore.SetSync2Server(info.Sync2Server);
         }
+    }
+
+    public sealed partial class UpdaterSyncInfo
+    {
+        /// <summary>
+        /// 密钥
+        /// </summary>
+        public string SecretKey { get; set; } = Helper.GlobalString;
+        /// <summary>
+        /// 与服务器同步
+        /// </summary>
+        public bool Sync2Server { get; set; } = false;
     }
 }

@@ -273,7 +273,7 @@ namespace linker.messenger.store.file
             if (configExportInfo.Group) client.Groups = new SignInClientGroupInfo[] { client.Groups[0] };
             else client.Groups = new SignInClientGroupInfo[] { };
 
-            if (configExportInfo.Updater) client.Updater = new linker.messenger.updater.UpdaterConfigClientInfo { SecretKey = client.Updater.SecretKey };
+            if (configExportInfo.Updater) client.Updater = new linker.messenger.updater.UpdaterConfigClientInfo { SecretKey = client.Updater.SecretKey, Sync2Server = client.Updater.Sync2Server };
             else client.Updater = new linker.messenger.updater.UpdaterConfigClientInfo { };
 
 
