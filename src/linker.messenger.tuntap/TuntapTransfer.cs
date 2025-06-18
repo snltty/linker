@@ -54,7 +54,7 @@ namespace linker.messenger.tuntap
         /// <summary>
         /// 运行网卡
         /// </summary>
-        public void Setup(string name, IPAddress ip, byte prefixLength, bool nat = true)
+        public void Setup(string name, IPAddress ip, byte prefixLength)
         {
             if (operatingManager.StartOperation() == false)
             {
@@ -74,14 +74,6 @@ namespace linker.messenger.tuntap
                     {
                         LoggerHelper.Instance.Error(linkerTunDeviceAdapter.SetupError);
                         return;
-                    }
-                    if (nat)
-                    {
-                        linkerTunDeviceAdapter.SetSystemNat();
-                        if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.NatError) == false)
-                        {
-                            LoggerHelper.Instance.Error(linkerTunDeviceAdapter.NatError);
-                        }
                     }
 
                     OnSetupSuccess();
@@ -159,13 +151,21 @@ namespace linker.messenger.tuntap
                 }
             });
         }
+
         /// <summary>
-        /// 设置应用层NAT
+        /// 设置NAT
         /// </summary>
         /// <param name="items"></param>
-        public void SetAppNat(LinkerTunAppNatItemInfo[] items)
+        public void SetNat(LinkerTunAppNatItemInfo[] items)
         {
-            linkerTunDeviceAdapter.SetAppNat(items);
+            linkerTunDeviceAdapter.SetNat(items);
+        }
+        /// <summary>
+        /// 移除NAT
+        /// </summary>
+        public void RemoveNat()
+        {
+            linkerTunDeviceAdapter.RemoveNat();
         }
 
         /// <summary>
@@ -209,6 +209,10 @@ namespace linker.messenger.tuntap
         public void SetDstMap(DstMapInfo[] maps)
         {
             linkerTunDeviceAdapter.SetMap(maps);
+        }
+        public void RemoveDstMap()
+        {
+            linkerTunDeviceAdapter.RemoveNat();
         }
 
         /// <summary>

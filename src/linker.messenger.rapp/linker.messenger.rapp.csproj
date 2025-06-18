@@ -8,14 +8,14 @@
 		<PublishAot>false</PublishAot>
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
 		<EnablePreviewFeatures>True</EnablePreviewFeatures>
-		<Title>linker messenger wakeup</Title>
+		<Title>linker messenger remote app</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>linker messenger wakeup</Description>
+		<Description>linker messenger remote app</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
-		<PackageReleaseNotes>linker messenger wakeup</PackageReleaseNotes>
+		<PackageReleaseNotes>linker messenger remote app</PackageReleaseNotes>
 		<Version>1.8.4</Version>
 		<AssemblyVersion>1.8.4</AssemblyVersion>
 		<FileVersion>1.8.4</FileVersion>
@@ -37,12 +37,9 @@
 		<DebugType>embedded</DebugType>
 	</PropertyGroup>
 	<ItemGroup>
-	  <PackageReference Include="HidSharp" Version="2.1.0" />
-	</ItemGroup>
-	<ItemGroup>
-	  <ProjectReference Include="..\linker.messenger.api\linker.messenger.api.csproj" />
-	  <ProjectReference Include="..\linker.messenger.signin\linker.messenger.signin.csproj" />
-	  <ProjectReference Include="..\linker.messenger\linker.messenger.csproj" />
+		<ProjectReference Include="..\linker.messenger.api\linker.messenger.api.csproj" />
+		<ProjectReference Include="..\linker.messenger.signin\linker.messenger.signin.csproj" />
+		<ProjectReference Include="..\linker.messenger\linker.messenger.csproj" />
 	</ItemGroup>
 
 </Project>

@@ -155,8 +155,6 @@ namespace linker.tun
             {
                 cancellationTokenSource?.Cancel();
                 linkerTunDevice.Shutdown();
-                linkerTunDevice.RemoveNat(out string error);
-                lanSnat.Shutdown();
             }
             catch (Exception)
             {
@@ -183,30 +181,15 @@ namespace linker.tun
         /// <summary>
         /// 设置系统层NAT
         /// </summary>
-        public void SetSystemNat()
+        public void SetNat(LinkerTunAppNatItemInfo[] items)
         {
             if (linkerTunDevice == null)
             {
                 return;
             }
             if (linkerTunDevice.Running)
+            {
                 linkerTunDevice.SetNat(out natError);
-        }
-        /// <summary>
-        /// 设置应用层NAT，仅Windows，
-        /// 目录下
-        /// 64位，放x64的WinDivert.dll和WinDivert64.sys
-        /// 32位，放x86的WinDivert.dll和WinDivert64.sys，WinDivert.sys
-        /// </summary>
-        /// <param name="items"></param>
-        public void SetAppNat(LinkerTunAppNatItemInfo[] items)
-        {
-            if (linkerTunDevice == null)
-            {
-                return;
-            }
-            if (linkerTunDevice.Running)
-            {
                 lanSnat.Setup(address, prefixLength, items, ref natError);
             }
         }
@@ -219,6 +202,7 @@ namespace linker.tun
             {
                 return;
             }
+            natError = string.Empty;
             linkerTunDevice.RemoveNat(out string error);
             lanSnat.Shutdown();
         }
@@ -359,6 +343,13 @@ namespace linker.tun
         public void SetMap(DstMapInfo[] maps)
         {
             lanMap.SetMap(maps, AppNat == false);
+        }
+        /// <summary>
+        /// 移除映射
+        /// </summary>
+        public void RemoveMap()
+        {
+            lanMap.SetMap([], AppNat == false);
         }
 
         public async Task<bool> CheckAvailable(bool order = false)

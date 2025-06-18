@@ -19,6 +19,7 @@ namespace linker.libs
 
         private static void Linux(string fileName)
         {
+            /*
             fileName = Path.GetFileNameWithoutExtension(fileName);
             CommandHelper.Linux(string.Empty, new string[] {
                 $"firewall-cmd --permanent --new-service={fileName}",
@@ -30,6 +31,7 @@ namespace linker.libs
                 $"firewall-cmd --permanent --add-service={fileName}",
                 $"firewall-cmd --reload",
             });
+            */
         }
 
         private static void Windows(string fileName)

@@ -24,8 +24,7 @@ namespace linker.messenger.tuntap
         private readonly ISignInClientStore signInClientStore;
         private readonly ExRouteTransfer exRouteTransfer;
 
-        public TuntapAdapter(TuntapTransfer tuntapTransfer, TuntapConfigTransfer tuntapConfigTransfer, TuntapDecenter tuntapDecenter, TuntapProxy tuntapProxy,
-            SignInClientState signInClientState, ISignInClientStore signInClientStore, ExRouteTransfer exRouteTransfer)
+        public TuntapAdapter(TuntapTransfer tuntapTransfer, TuntapConfigTransfer tuntapConfigTransfer, TuntapDecenter tuntapDecenter, TuntapProxy tuntapProxy, SignInClientState signInClientState, ISignInClientStore signInClientStore, ExRouteTransfer exRouteTransfer)
         {
             this.tuntapTransfer = tuntapTransfer;
             this.tuntapConfigTransfer = tuntapConfigTransfer;
@@ -34,61 +33,67 @@ namespace linker.messenger.tuntap
             this.signInClientStore = signInClientStore;
             this.exRouteTransfer = exRouteTransfer;
 
-            //与服务器连接，刷新一下IP
-            signInClientState.OnSignInSuccess += (times) =>
-            {
-                _ = CheckDevice();
-            };
-
             //初始化网卡
             tuntapTransfer.Initialize(this);
-            //网卡状态发生变化，同步一下信息
-            tuntapTransfer.OnSetupBefore += () =>
-            {
-                tuntapConfigTransfer.SetRunning(true);
-                tuntapDecenter.Refresh();
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Warning("tuntap setup before");
-            };
-            tuntapTransfer.OnSetupAfter += () =>
-            {
-                tuntapDecenter.Refresh();
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Warning("tuntap setup after");
-            };
-            tuntapTransfer.OnSetupSuccess += () =>
-            {
-                SetAppNat();
-                SetMaps();
-                AddForward();
-            };
-            tuntapTransfer.OnShutdownBefore += () =>
-            {
-                tuntapDecenter.Refresh();
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Warning("tuntap shutdown before");
-            };
-            tuntapTransfer.OnShutdownAfter += () =>
-            {
-                tuntapDecenter.Refresh(); DeleteForward();
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Warning("tuntap shutdown after");
-            };
 
+            //与服务器连接，刷新一下IP
+            signInClientState.OnSignInSuccess += SignInSuccess;
+
+            //网卡状态发生变化，同步一下信息
+            tuntapTransfer.OnSetupBefore += SetupBefore;
+            tuntapTransfer.OnSetupAfter += SetupAfter;
+            tuntapTransfer.OnSetupSuccess += SetupSuccess;
+            tuntapTransfer.OnShutdownBefore += ShutdownBefore;
+            tuntapTransfer.OnShutdownAfter += ShutdownAfter;
             //配置有更新，去同步一下
-            tuntapConfigTransfer.OnUpdate += () =>
-            {
-                tuntapDecenter.Refresh();
-                SetAppNat();
-                SetMaps();
-                AddForward();
-                _ = CheckDevice();
-            };
+            tuntapConfigTransfer.OnUpdate += Update;
 
             //隧道回调
             tuntapProxy.Callback = this;
-            CheckDeviceTask();
+            TimerHelper.SetIntervalLong(CheckDevice, 30000);
         }
+
+        private void SignInSuccess(int times)
+        {
+            _ = CheckDevice();
+        }
+        private void Update()
+        {
+            SetNat();
+            SetMaps();
+            AddForward();
+            tuntapDecenter.Refresh();
+            _ = CheckDevice();
+        }
+
+        private void SetupBefore()
+        {
+            tuntapConfigTransfer.SetRunning(true);
+            tuntapDecenter.Refresh();
+        }
+        private void SetupAfter()
+        {
+            tuntapDecenter.Refresh();
+        }
+        private void SetupSuccess()
+        {
+            SetNat();
+            SetMaps();
+            AddForward();
+        }
+        private void ShutdownBefore()
+        {
+            tuntapDecenter.Refresh();
+        }
+        private void ShutdownAfter()
+        {
+            RemoveNat();
+            RemoveMaps();
+            DeleteForward();
+            tuntapDecenter.Refresh();
+        }
+
+
         public async Task Callback(LinkerTunDevicPacket packet)
         {
             await tuntapProxy.InputPacket(packet).ConfigureAwait(false);
@@ -105,10 +110,10 @@ namespace linker.messenger.tuntap
 
 
         private OperatingManager checking = new OperatingManager();
-        private void CheckDeviceTask()
-        {
-            TimerHelper.SetIntervalLong(CheckDevice, 30000);
-        }
+        /// <summary>
+        /// 检查网卡设备
+        /// </summary>
+        /// <returns></returns>
         private async Task CheckDevice()
         {
             try
@@ -141,19 +146,15 @@ namespace linker.messenger.tuntap
         /// <returns></returns>
         public async Task RetstartDevice()
         {
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                LoggerHelper.Instance.Warning($"restart, stop device");
             tuntapTransfer.Shutdown();
             await tuntapConfigTransfer.RefreshIPAsync().ConfigureAwait(false);
-            tuntapTransfer.Setup(tuntapConfigTransfer.Name, tuntapConfigTransfer.Info.IP, tuntapConfigTransfer.Info.PrefixLength, tuntapConfigTransfer.Info.DisableNat == false);
+            tuntapTransfer.Setup(tuntapConfigTransfer.Name, tuntapConfigTransfer.Info.IP, tuntapConfigTransfer.Info.PrefixLength);
         }
         /// <summary>
         /// 关闭网卡
         /// </summary>
         public void StopDevice()
         {
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                LoggerHelper.Instance.Warning($"stop device");
             if (tuntapTransfer.Shutdown())
             {
                 tuntapConfigTransfer.SetRunning(false);
@@ -171,21 +172,40 @@ namespace linker.messenger.tuntap
             tuntapTransfer.SetDstMap(maps);
         }
         /// <summary>
-        /// 设置应用层NAT
+        /// 移除映射
         /// </summary>
-        private void SetAppNat()
+        private void RemoveMaps()
+        {
+            tuntapTransfer.RemoveDstMap();
+        }
+
+        /// <summary>
+        /// 设置NAT
+        /// </summary>
+        private void SetNat()
         {
             if (tuntapConfigTransfer.Info.DisableNat == false)
             {
-                var nats = tuntapConfigTransfer.Info.Lans
-               .Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false && c.MapIP != null && c.Disabled == false)
-               .Select(c => new LinkerTunAppNatItemInfo
-               {
-                   IP = c.MapIP.Equals(IPAddress.Any) ? c.IP : c.MapIP,
-                   PrefixLength = c.MapIP.Equals(IPAddress.Any) ? c.PrefixLength : c.MapPrefixLength,
-               }).ToArray();
-                tuntapTransfer.SetAppNat(nats);
+                List<TuntapLanInfo> lans = tuntapConfigTransfer.Info.Lans.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false && c.MapIP != null && c.Disabled == false).ToList();
+
+                if (lans.Count != 0)
+                {
+                    tuntapTransfer.SetNat(lans.Select(c => new LinkerTunAppNatItemInfo
+                    {
+                        IP = c.MapIP.Equals(IPAddress.Any) ? c.IP : c.MapIP,
+                        PrefixLength = c.MapIP.Equals(IPAddress.Any) ? c.PrefixLength : c.MapPrefixLength,
+                    }).ToArray());
+                    return;
+                }
             }
+            RemoveNat();
+        }
+        /// <summary>
+        /// 移除NAT
+        /// </summary>
+        private void RemoveNat()
+        {
+            tuntapTransfer.RemoveNat();
         }
 
         // <summary>
