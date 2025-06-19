@@ -41,6 +41,7 @@ export default {
             psd:queryCache.psd,
             showPort: false,
             save: queryCache.save || false,
+            hashcode:0
         });
         const showPort = computed(() => globalData.value.api.connected == false && state.showPort);
 
@@ -64,12 +65,18 @@ export default {
         }
 
         const _getConfig = ()=>{
-            getConfig().then((res)=>{
-                globalData.value.config.Common = res.Common;
-                globalData.value.config.Client = res.Client;
-                globalData.value.config.Server = res.Server;
-                globalData.value.config.Running = res.Running;
+            getConfig(state.hashcode).then((res)=>{
+                if(res.List.Common)
+                    globalData.value.config.Common = res.List.Common;
+                if( res.List.Client)
+                    globalData.value.config.Client = res.List.Client;
+                if( res.List.Server)
+                    globalData.value.config.Server = res.List.Server;
+
+                globalData.value.config.Running = res.List.Running;
                 globalData.value.config.configed = true;
+
+                state.hashcode = res.HashCode;
                 setTimeout(()=>{
                     _getConfig();
                 },1000);

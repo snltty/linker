@@ -110,13 +110,13 @@ namespace linker.messenger.store.file
 
         [JsonIgnore, BsonIgnore]
         public uint Updated { get; set; } = 1;
+        [JsonIgnore, BsonIgnore]
+        public VersionManager Version { get; set; } = new VersionManager();
 
         public void Update()
         {
             Updated++;
+            Version.Increment();
         }
     }
-
-
-
 }

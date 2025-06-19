@@ -11,6 +11,11 @@
                             <span class="mgl-1" v-if="globalData.isPc">{{$t('server.messengerText')}}</span>
                         </div>
                     </el-form-item>
+                    <el-form-item :label="`${$t('server.messengerAddr')}1`">
+                        <div class="flex">
+                            <el-input class="flex-1" v-model="state.list.Host1" @change="handleSave" />
+                        </div>
+                    </el-form-item>
                     <el-form-item :label="$t('server.messengerSecretKey')">
                         <div class="flex">
                             <el-input :class="{success:state.keyState,error:state.keyState==false}" class="flex-1" type="password" show-password maxlength="36" v-model="state.list.SecretKey" @change="handleSave" />

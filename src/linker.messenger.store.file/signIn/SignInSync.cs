@@ -17,14 +17,21 @@ namespace linker.messenger.store.file.signIn
         }
         public Memory<byte> GetData()
         {
-            return serializer.Serialize(signInClientStore.Server.Host);
+            return serializer.Serialize((signInClientStore.Server.Host, signInClientStore.Server.Host1));
         }
 
         public void SetData(Memory<byte> data)
         {
-            signInClientStore.SetHost(serializer.Deserialize<string>(data.Span));
+            ValueTuple<string,string> serverInfo = serializer.Deserialize<ValueTuple<string, string>>(data.Span);
+            signInClientStore.SetHost(serverInfo.Item1, serverInfo.Item2);
         }
     }
+    public sealed class SignInServerSyncInfo
+    {
+        public string Host { get; set; } = string.Empty;
+        public string Host1 { get; set; } = string.Empty;
+    }
+
     public sealed class SignInSyncSecretKey : ISync
     {
         public string Name => "SignInSecretKey";

@@ -21,6 +21,8 @@ namespace linker.messenger.signin
         private readonly ISignInClientStore signInClientStore;
         private readonly ISerializer serializer;
 
+        private string signInHost = string.Empty;
+
         public SignInClientTransfer(SignInClientState clientSignInState, IMessengerSender messengerSender, IMessengerResolver messengerResolver,
             SignInArgsTransfer signInArgsTransfer, ISignInClientStore signInClientStore, ISerializer serializer)
         {
@@ -43,11 +45,19 @@ namespace linker.messenger.signin
                 {
                     if (clientSignInState.Connected == false)
                     {
-                        await SignIn().ConfigureAwait(false);
+                        int result = await SignIn(signInClientStore.Server.Host).ConfigureAwait(false);
+                        if (result == 3)
+                        {
+                            result = await SignIn(signInClientStore.Server.Host1).ConfigureAwait(false);
+                        }
                     }
                     else
                     {
                         await Exp().ConfigureAwait(false);
+                        if (await TestHost(signInClientStore.Server.Host))
+                        {
+                            await SignIn(signInClientStore.Server.Host).ConfigureAwait(false);
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -55,8 +65,26 @@ namespace linker.messenger.signin
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         LoggerHelper.Instance.Error(ex);
                 }
-               
+
             }, 10000);
+        }
+        private async Task<bool> TestHost(string host)
+        {
+            if (signInHost == signInClientStore.Server.Host) return false;
+            try
+            {
+                IPEndPoint ip = await NetworkHelper.GetEndPointAsync(host, 1802).ConfigureAwait(false);
+                using Socket socket = new Socket(ip.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                socket.KeepAlive();
+                await socket.ConnectAsync(ip).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+
+                socket.SafeClose();
+                return true;
+            }
+            catch (Exception)
+            {
+            }
+            return false;
         }
 
         /// <summary>
@@ -65,23 +93,23 @@ namespace linker.messenger.signin
         public void ReSignIn()
         {
             SignOut();
-            _ = SignIn();
+            _ = SignIn(signInClientStore.Server.Host);
         }
 
         /// <summary>
         /// 登入
         /// </summary>
         /// <returns></returns>
-        public async Task SignIn()
+        private async Task<int> SignIn(string host)
         {
             if (string.IsNullOrWhiteSpace(signInClientStore.Group.Id))
             {
                 LoggerHelper.Instance.Error($"group id are empty");
-                return;
+                return 1;
             }
             if (operatingManager.StartOperation() == false)
             {
-                return;
+                return 2;
             }
 
             try
@@ -89,31 +117,33 @@ namespace linker.messenger.signin
                 await clientSignInState.PushSignInBefore().ConfigureAwait(false);
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Info($"connect to signin server:{signInClientStore.Server.Host}");
+                    LoggerHelper.Instance.Info($"connect to signin server:{host}");
 
-                IPEndPoint ip = await NetworkHelper.GetEndPointAsync(signInClientStore.Server.Host, 1802).ConfigureAwait(false);
+                IPEndPoint ip = await NetworkHelper.GetEndPointAsync(host, 1802).ConfigureAwait(false);
                 if (ip == null)
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        LoggerHelper.Instance.Error($"get domain ip fail:{signInClientStore.Server.Host}");
-                    return;
+                        LoggerHelper.Instance.Error($"get domain ip fail:{host}");
+                    return 3;
                 }
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Info($"connect to signin server:{ip}");
-                if (await ConnectServer(ip).ConfigureAwait(false) == false)
-                {
-                    return;
-                }
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Info($"connect to signin server success:{signInClientStore.Server.Host}");
 
-                if (await SignIn2Server().ConfigureAwait(false) == false)
+                Socket socket = await ConnectServer(ip).ConfigureAwait(false);
+                if (socket == null)
                 {
-                    return;
+                    return 3;
                 }
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Info($"signin to server success:{signInClientStore.Server.Host}");
+                    LoggerHelper.Instance.Info($"connect to signin server success:{host}");
+
+                if (await SignIn2Server(host, socket).ConfigureAwait(false) == false)
+                {
+                    return 3;
+                }
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Info($"signin to server success:{host}");
 
                 await GetServerVersion().ConfigureAwait(false);
 
@@ -130,11 +160,15 @@ namespace linker.messenger.signin
                     LoggerHelper.Instance.Info($"push signin success");
 
                 GCHelper.FlushMemory();
+
+                signInHost = host;
+                return 0;
             }
             catch (Exception ex)
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Error(ex);
+                return 4;
             }
             finally
             {
@@ -146,36 +180,43 @@ namespace linker.messenger.signin
         /// </summary>
         /// <param name="remote"></param>
         /// <returns></returns>
-        private async Task<bool> ConnectServer(IPEndPoint remote)
+        private async Task<Socket> ConnectServer(IPEndPoint remote)
         {
-            Socket socket = new Socket(remote.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            socket.KeepAlive();
-            await socket.ConnectAsync(remote).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+            try
+            {
+                Socket socket = new Socket(remote.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                socket.KeepAlive();
+                await socket.ConnectAsync(remote).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
 
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                LoggerHelper.Instance.Info($"begin recv signin connection");
-            clientSignInState.Connection = await messengerResolver.BeginReceiveClient(socket, true, (byte)ResolverType.Messenger, Helper.EmptyArray).ConfigureAwait(false);
-
-            return true;
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Info($"begin recv signin connection");
+                return socket;
+            }
+            catch (Exception)
+            {
+            }
+            return null;
         }
         /// <summary>
         /// 登入到信标服务器
         /// </summary>
         /// <returns></returns>
-        private async Task<bool> SignIn2Server()
+        private async Task<bool> SignIn2Server(string host, Socket socket)
         {
+            IConnection connection = await messengerResolver.BeginReceiveClient(socket, true, (byte)ResolverType.Messenger, Helper.EmptyArray).ConfigureAwait(false);
+
             Dictionary<string, string> args = [];
-            string argResult = await signInArgsTransfer.Invoke(signInClientStore.Server.Host, args).ConfigureAwait(false);
+            string argResult = await signInArgsTransfer.Invoke(host, args).ConfigureAwait(false);
             if (string.IsNullOrWhiteSpace(argResult) == false)
             {
                 LoggerHelper.Instance.Error(argResult);
-                clientSignInState.Connection?.Disponse(6);
+                connection?.Disponse(6);
                 return false;
             }
 
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
-                Connection = clientSignInState.Connection,
+                Connection = connection,
                 MessengerId = (ushort)SignInMessengerIds.SignIn_V_1_3_1,
                 Payload = serializer.Serialize(new SignInfo
                 {
@@ -189,7 +230,7 @@ namespace linker.messenger.signin
             if (resp.Code != MessageResponeCodes.OK)
             {
                 LoggerHelper.Instance.Error($"sign in fail : {resp.Code}");
-                clientSignInState.Connection?.Disponse(6);
+                connection?.Disponse(6);
                 return false;
             }
 
@@ -197,9 +238,10 @@ namespace linker.messenger.signin
             if (signResp.Status == false)
             {
                 LoggerHelper.Instance.Error($"sign in fail : {signResp.Msg}");
-                clientSignInState.Connection?.Disponse(6);
+                connection?.Disponse(6);
                 return false;
             }
+            clientSignInState.Connection = connection;
             clientSignInState.Connection.Id = signResp.MachineId;
             clientSignInState.Connection.Name = signInClientStore.Name;
             clientSignInState.WanAddress = signResp.IP;
@@ -268,7 +310,7 @@ namespace linker.messenger.signin
         {
             if (machineIds == null || machineIds.Count == 0)
             {
-                return new List<string>();
+                return [];
             }
 
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -283,7 +325,7 @@ namespace linker.messenger.signin
             {
                 return serializer.Deserialize<List<string>>(resp.Data.Span);
             }
-            return new List<string>();
+            return [];
         }
 
         /// <summary>

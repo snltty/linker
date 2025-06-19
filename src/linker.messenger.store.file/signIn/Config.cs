@@ -8,9 +8,6 @@ namespace linker.messenger.store.file
     {
         public bool OnlyNode { get; set; }
 
-        public string ImportKey { get; set; } = string.Empty;
-
-
         private SignInClientServerInfo[] servers = new SignInClientServerInfo[] {
 #if DEBUG
             new SignInClientServerInfo{ Name="Linker", Host=new IPEndPoint(IPAddress.Loopback, 1802).ToString() }

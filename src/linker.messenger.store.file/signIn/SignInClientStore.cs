@@ -50,9 +50,10 @@ namespace linker.messenger.store.file.signIn
             Server.UserId = userid;
             config.Data.Update();
         }
-        public void SetHost(string host)
+        public void SetHost(string host, string host1)
         {
             Server.Host = host;
+            Server.Host1 = host1;
             config.Data.Update();
         }
 

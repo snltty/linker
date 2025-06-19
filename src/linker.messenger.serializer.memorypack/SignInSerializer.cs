@@ -661,5 +661,4 @@ namespace linker.messenger.serializer.memorypack
             value = wrapped.info;
         }
     }
-
 }

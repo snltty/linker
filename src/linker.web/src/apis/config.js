@@ -1,7 +1,7 @@
 import { sendWebsocketMsg } from './request'
 
-export const getConfig = () => {
-    return sendWebsocketMsg('config/get');
+export const getConfig = (data) => {
+    return sendWebsocketMsg('config/get',data);
 }
 
 export const install = (data) => {

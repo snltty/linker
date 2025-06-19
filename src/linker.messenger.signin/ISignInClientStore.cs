@@ -54,7 +54,8 @@
         /// 信标服务器
         /// </summary>
         /// <param name="host"></param>
-        public void SetHost(string host);
+        /// <param name="host1"></param>
+        public void SetHost(string host, string host1);
         /// <summary>
         /// 设置id
         /// </summary>

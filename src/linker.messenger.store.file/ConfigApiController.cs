@@ -8,6 +8,8 @@ using linker.messenger.relay.client.transport;
 using System.Text.Json;
 using System.Collections;
 using linker.libs.web;
+using linker.messenger.access;
+using System.Collections.Concurrent;
 namespace linker.messenger.store.file
 {
     public sealed class ConfigApiController : IApiController
@@ -34,9 +36,22 @@ namespace linker.messenger.store.file
             this.accessStore = accessStore;
         }
 
-        public object Get(ApiControllerParamsInfo param)
+        public ConfigListInfo Get(ApiControllerParamsInfo param)
         {
-            return new { Common = config.Data.Common, Client = config.Data.Client, Server = config.Data.Server, Running = runningConfig.Data };
+            ulong hashCode = ulong.Parse(param.Content);
+            if (config.Data.DataVersion.Eq(hashCode, out ulong version) == false)
+            {
+                return new ConfigListInfo
+                {
+                    HashCode = version,
+                    List = new { Common = config.Data.Common, Client = config.Data.Client, Server = config.Data.Server, Running = runningConfig.Data }
+                };
+            }
+            return new ConfigListInfo
+            {
+                HashCode = version,
+                List = new { Running = runningConfig.Data }
+            };
         }
         public bool Install(ApiControllerParamsInfo param)
         {
@@ -261,17 +276,17 @@ namespace linker.messenger.store.file
             client.AccessBits = accessStore.AssignAccess(configExportInfo.Access);
             client.FullAccess = configExportInfo.FullAccess && config.Data.Client.FullAccess;
 
-            if (configExportInfo.Relay) client.Relay = new RelayClientInfo { Servers = new RelayServerInfo[] { client.Relay.Servers[0] } };
-            else client.Relay = new RelayClientInfo { Servers = new RelayServerInfo[] { new RelayServerInfo { } } };
+            if (configExportInfo.Relay) client.Relay = new RelayClientInfo { Servers = [client.Relay.Servers[0]] };
+            else client.Relay = new RelayClientInfo { Servers = [new RelayServerInfo { }] };
 
             if (configExportInfo.SForward) client.SForward = new linker.messenger.sforward.SForwardConfigClientInfo { SecretKey = client.SForward.SecretKey };
             else client.SForward = new linker.messenger.sforward.SForwardConfigClientInfo { };
 
-            if (configExportInfo.Server) client.Servers = new SignInClientServerInfo[] { client.Servers[0] };
-            else client.Servers = new SignInClientServerInfo[] { };
+            if (configExportInfo.Server) client.Servers = [client.Servers[0]];
+            else client.Servers = [];
 
-            if (configExportInfo.Group) client.Groups = new SignInClientGroupInfo[] { client.Groups[0] };
-            else client.Groups = new SignInClientGroupInfo[] { };
+            if (configExportInfo.Group) client.Groups = [client.Groups[0]];
+            else client.Groups = [];
 
             if (configExportInfo.Updater) client.Updater = new linker.messenger.updater.UpdaterConfigClientInfo { SecretKey = client.Updater.SecretKey, Sync2Server = client.Updater.Sync2Server };
             else client.Updater = new linker.messenger.updater.UpdaterConfigClientInfo { };
@@ -299,6 +314,12 @@ namespace linker.messenger.store.file
             }, common, new { Install = true, Modes = new string[] { "client" } });
         }
 
+    }
+
+    public sealed class ConfigListInfo
+    {
+        public object List { get; set; }
+        public ulong HashCode { get; set; }
     }
 
     public sealed class InstallSaveInfo

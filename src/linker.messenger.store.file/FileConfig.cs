@@ -203,7 +203,6 @@ namespace linker.messenger.store.file
 
         }
 
-
         private void SaveTask()
         {
             TimerHelper.SetIntervalLong(() =>
@@ -295,10 +294,13 @@ namespace linker.messenger.store.file
 
         [JsonIgnore, BsonIgnore]
         public uint Updated { get; set; } = 1;
+        [JsonIgnore, BsonIgnore]
+        public VersionManager DataVersion { get; set; } = new VersionManager();
 
         public void Update()
         {
             Updated++;
+            DataVersion.Increment();
         }
     }
 
