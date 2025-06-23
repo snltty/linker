@@ -22,7 +22,7 @@ namespace linker.libs.extends
             ReadCommentHandling = JsonCommentHandling.Skip,
             PropertyNameCaseInsensitive = true,
             WriteIndented = true,
-            Converters = { new IPAddressJsonConverter(), new IPEndpointJsonConverter(), new DateTimeJsonConverter(), new BitArrayJsonConverter() },
+            Converters = { new IPAddressJsonConverter(), new IPEndpointJsonConverter(), new DateTimeJsonConverter(), new BitArrayJsonConverter()},
         };
         public static void AddAOT(JsonSerializerContext[] contexts)
         {

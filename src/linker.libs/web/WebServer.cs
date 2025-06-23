@@ -179,24 +179,31 @@ namespace linker.libs.web
 
                 while (websocket.State == WebSocketState.Open)
                 {
-                    result = await websocket.ReceiveAsync(buffer, CancellationToken.None);
-                    switch (result.MessageType)
+                    try
                     {
-                        case WebSocketMessageType.Text:
-                            {
-                                req = Encoding.UTF8.GetString(buffer.AsMemory(0, result.Count).Span).DeJson<ApiControllerRequestInfo>();
-                                req.Connection = websocket;
-                                ApiControllerResponseInfo resp = await OnMessage(req);
-                                await websocket.SendAsync(resp.ToJson().ToBytes(), WebSocketMessageType.Text, true, CancellationToken.None);
-                            }
-                            break;
-                        case WebSocketMessageType.Binary:
-                            break;
-                        case WebSocketMessageType.Close:
-                            await websocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed by client", CancellationToken.None);
-                            break;
-                        default:
-                            break;
+                        result = await websocket.ReceiveAsync(buffer, CancellationToken.None);
+                        switch (result.MessageType)
+                        {
+                            case WebSocketMessageType.Text:
+                                {
+                                    req = Encoding.UTF8.GetString(buffer.AsMemory(0, result.Count).Span).DeJson<ApiControllerRequestInfo>();
+                                    req.Connection = websocket;
+                                    ApiControllerResponseInfo resp = await OnMessage(req);
+                                    await websocket.SendAsync(resp.ToJson().ToBytes(), WebSocketMessageType.Text, true, CancellationToken.None);
+                                }
+                                break;
+                            case WebSocketMessageType.Binary:
+                                break;
+                            case WebSocketMessageType.Close:
+                                await websocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed by client", CancellationToken.None);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        LoggerHelper.Instance.Error($"{req.Path}->{ex}");
                     }
                 }
             }
