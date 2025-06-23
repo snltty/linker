@@ -170,7 +170,7 @@ namespace linker.messenger.socks5
         }
         private async Task ConnectUdp(AsyncUserTunnelToken tunnelToken)
         {
-            IPAddress ip = mapping.GetRealDst(tunnelToken.Proxy.TargetEP.Address);
+            IPAddress ip = socks5CidrDecenterManager.GetMapRealDst(tunnelToken.Proxy.TargetEP.Address);
             IPEndPoint target = new IPEndPoint(ip, tunnelToken.Proxy.TargetEP.Port);
 
             if (linkerFirewall.Check(tunnelToken.Connection.RemoteMachineId, target, ProtocolType.Udp) == false)

@@ -251,6 +251,9 @@ export default {
     'server.relayUrl': 'Url',
     'server.relayOper': '操作',
     'server.relayUse': '使用',
+    'server.relayDefault': '默认',
+    'server.relaySetDefault': '设置默认中继节点',
+    'server.relaySetDefaultText': '不选择则所有客户端',
 
      'server.cdkeySecretKey': 'Cdkey密钥',
      'server.cdkeyText': '密钥正确时可管理cdkey',

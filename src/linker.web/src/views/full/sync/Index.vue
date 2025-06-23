@@ -1,6 +1,8 @@
 <template>
     <div>
-        <el-button class="btn" size="small" @click="handleShowSync"><el-icon><Share /></el-icon></el-button>
+        <slot>
+            <el-button class="btn" size="small" @click="handleShowSync"><el-icon><Share /></el-icon></el-button>
+        </slot>
         <el-dialog class="options-center" :title="$t('server.sync')" destroy-on-close v-model="state.showNames" width="54rem" top="2vh">
             <div>
                 <div class="t-c">

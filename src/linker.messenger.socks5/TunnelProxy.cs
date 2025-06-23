@@ -13,8 +13,6 @@ namespace linker.messenger.socks5
         private SemaphoreSlim semaphoreSlimForward = new SemaphoreSlim(10);
         private SemaphoreSlim semaphoreSlimReverse = new SemaphoreSlim(10);
 
-        public Action RefreshConfig = () => { };
-
         public void Start(IPEndPoint ep, byte bufferSize)
         {
             StartTcp(ep, bufferSize);

@@ -99,6 +99,10 @@ namespace linker.messenger.socks5
         /// 是否启动
         /// </summary>
         public bool Running { get;}
+        /// <summary>
+        /// 错误信息
+        /// </summary>
+        public string Error { get; }
 
         /// <summary>
         /// 设置局域网ip
@@ -114,7 +118,8 @@ namespace linker.messenger.socks5
         /// 设置启动状态
         /// </summary>
         /// <param name="running"></param>
-        public void SetRunning(bool running);
+        /// <param name="error"></param>
+        public void SetRunning(bool running,string error);
         /// <summary>
         /// 提交保存
         /// </summary>

@@ -1,5 +1,6 @@
 ﻿using linker.libs;
 using linker.messenger.signin;
+using linker.messenger.tuntap.cidr;
 using linker.messenger.tuntap.lease;
 
 namespace linker.messenger.tuntap.messenger
@@ -8,18 +9,18 @@ namespace linker.messenger.tuntap.messenger
     {
         private readonly TuntapTransfer tuntapTransfer;
         private readonly TuntapConfigTransfer tuntapConfigTransfer;
-        private readonly TuntapProxy tuntapProxy;
+        private readonly TuntapCidrDecenterManager tuntapCidrDecenterManager;
         private readonly LeaseClientTreansfer leaseClientTreansfer;
         private readonly TuntapPingTransfer pingTransfer;
         private readonly IMessengerSender messengerSender;
         private readonly TuntapAdapter tuntapAdapter;
         private readonly ISerializer serializer;
         public TuntapClientMessenger(TuntapTransfer tuntapTransfer, TuntapConfigTransfer tuntapConfigTransfer,
-            TuntapProxy tuntapProxy, LeaseClientTreansfer leaseClientTreansfer, TuntapPingTransfer pingTransfer, IMessengerSender messengerSender, TuntapAdapter tuntapAdapter, ISerializer serializer)
+            TuntapCidrDecenterManager tuntapCidrDecenterManager, LeaseClientTreansfer leaseClientTreansfer, TuntapPingTransfer pingTransfer, IMessengerSender messengerSender, TuntapAdapter tuntapAdapter, ISerializer serializer)
         {
             this.tuntapTransfer = tuntapTransfer;
             this.tuntapConfigTransfer = tuntapConfigTransfer;
-            this.tuntapProxy = tuntapProxy;
+            this.tuntapCidrDecenterManager = tuntapCidrDecenterManager;
             this.leaseClientTreansfer = leaseClientTreansfer;
             this.pingTransfer = pingTransfer;
             this.messengerSender = messengerSender;
@@ -95,7 +96,7 @@ namespace linker.messenger.tuntap.messenger
         [MessengerId((ushort)TuntapMessengerIds.Routes)]
         public void Routes(IConnection connection)
         {
-            connection.Write(serializer.Serialize(tuntapProxy.GetRoutes()));
+            connection.Write(serializer.Serialize(tuntapCidrDecenterManager.CidrRoutes));
         }
     }
 

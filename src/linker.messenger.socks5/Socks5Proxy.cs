@@ -11,64 +11,29 @@ using linker.messenger.channel;
 using linker.messenger.signin;
 using linker.messenger.pcp;
 using linker.snat;
-using static linker.snat.LinkerDstMapping;
 
 namespace linker.messenger.socks5
 {
     public sealed partial class TunnelProxy : Channel
     {
         private IPEndPoint proxyEP;
-
-        private readonly IPAddessCidrManager<string> cidrManager = new IPAddessCidrManager<string>();
-        private readonly SignInClientTransfer signInClientTransfer;
-        private readonly LinkerDstMapping mapping = new LinkerDstMapping();
-
         protected override string TransactionId => "socks5";
 
         private readonly LinkerFirewall linkerFirewall;
+        private readonly SignInClientTransfer signInClientTransfer;
+        private readonly Socks5CidrDecenterManager socks5CidrDecenterManager;
 
         public TunnelProxy(ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer,
-            SignInClientTransfer signInClientTransfer, IRelayClientStore relayClientStore, LinkerFirewall linkerFirewall)
+            SignInClientTransfer signInClientTransfer, IRelayClientStore relayClientStore, LinkerFirewall linkerFirewall, Socks5CidrDecenterManager socks5CidrDecenterManager)
              : base(tunnelTransfer, relayTransfer, pcpTransfer, signInClientTransfer, signInClientStore, relayClientStore)
         {
             this.signInClientTransfer = signInClientTransfer;
             this.linkerFirewall = linkerFirewall;
+            this.socks5CidrDecenterManager = socks5CidrDecenterManager;
             TaskUdp();
 
         }
-
-        /// <summary>
-        /// 设置IP，等下有连接进来，用IP匹配，才能知道这个连接是要连谁
-        /// </summary>
-        /// <param name="ips"></param>
-        public void SetIPs(Socks5LanIPAddress[] ips)
-        {
-            cidrManager.Add(ips.Select(c => new CidrAddInfo<string> { IPAddress = c.IPAddress, PrefixLength = c.PrefixLength, Value = c.MachineId }).ToArray());
-        }
-        /// <summary>
-        /// 设置IP，等下有连接进来，用IP匹配，才能知道这个连接是要连谁
-        /// </summary>
-        /// <param name="machineId"></param>
-        /// <param name="ip"></param>
-        public void SetIP(string machineId, uint ip)
-        {
-            cidrManager.Add(new CidrAddInfo<string> { IPAddress = ip, PrefixLength = 32, Value = machineId });
-        }
-        /// <summary>
-        /// 清除IP
-        /// </summary>
-        public void ClearIPs()
-        {
-            cidrManager.Clear();
-        }
-        /// <summary>
-        /// 设置映射
-        /// </summary>
-        /// <param name="maps"></param>
-        public void SetMap(DstMapInfo[] maps)
-        {
-            mapping.SetDsts(maps);
-        }
+        
 
         public void Start(int port)
         {
@@ -255,7 +220,7 @@ namespace linker.messenger.socks5
         /// <returns></returns>
         private async ValueTask<ITunnelConnection> ConnectTunnel(uint ip)
         {
-            if (cidrManager.FindValue(ip, out string machineId))
+            if (socks5CidrDecenterManager.FindValue(ip, out string machineId))
             {
                 return await ConnectTunnel(machineId, TunnelProtocolType.Udp).ConfigureAwait(false);
             }

@@ -5,7 +5,7 @@
         </div>
         <div class="wrap">
             <el-table stripe  :data="state.lans" border size="small" width="100%" height="400px" @cell-dblclick="handleCellClick">
-                <el-table-column prop="IP" label="路由IP" width="120">
+                <el-table-column prop="IP" label="路由IP">
                     <template #default="scope">
                         <template v-if="scope.row.IPEditing">
                             <el-input autofocus size="small" v-model="scope.row.IP"
@@ -33,7 +33,7 @@
                         </template>
                     </template>
                 </el-table-column>
-                <el-table-column prop="MapIP" label="目标IP" width="120">
+                <el-table-column prop="MapIP" label="目标IP">
                     <template #default="scope">
                         <template v-if="scope.row.MapIPEditing">
                             <el-input autofocus size="small" v-model="scope.row.MapIP"
@@ -61,7 +61,7 @@
                         </template>
                     </template>
                 </el-table-column>
-                <el-table-column prop="Disabled" label="禁用">
+                <el-table-column prop="Disabled" label="禁用" width="80">
                     <template #default="scope">
                         <el-checkbox v-model="scope.row.Disabled" label="禁用"/>
                     </template>

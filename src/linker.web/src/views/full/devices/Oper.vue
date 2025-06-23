@@ -177,7 +177,7 @@ export default {
 .dropdown{
     border:1px solid #ddd;
     padding:.4rem;
-    font-size:1.3rem;
+    font-size:1.2rem;
     border-radius:.4rem;
     position:relative;
     .el-icon{

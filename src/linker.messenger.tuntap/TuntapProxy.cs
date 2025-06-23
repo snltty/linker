@@ -1,13 +1,12 @@
 ﻿using linker.tunnel;
 using linker.tunnel.connection;
 using linker.libs;
-using System.Collections.Concurrent;
 using linker.tun;
 using System.Buffers.Binary;
-using System.Buffers;
 using linker.messenger.relay.client;
 using linker.messenger.signin;
 using linker.messenger.pcp;
+using linker.messenger.tuntap.cidr;
 
 namespace linker.messenger.tuntap
 {
@@ -20,21 +19,22 @@ namespace linker.messenger.tuntap
     public sealed class TuntapProxy : channel.Channel, ITunnelConnectionReceiveCallback
     {
         public ITuntapProxyCallback Callback { get; set; }
-
-        private readonly IPAddessCidrManager<string> cidrManager = new IPAddessCidrManager<string>();
-
-        private readonly ConcurrentDictionary<uint, ITunnelConnection> ipConnections = new ConcurrentDictionary<uint, ITunnelConnection>();
-        private readonly OperatingMultipleManager operatingMultipleManager = new OperatingMultipleManager();
         protected override string TransactionId => "tuntap";
 
-
+        private readonly OperatingMultipleManager operatingMultipleManager = new OperatingMultipleManager();
         private readonly TuntapConfigTransfer tuntapConfigTransfer;
+        private readonly TuntapCidrConnectionManager tuntapCidrConnectionManager;
+        private readonly TuntapCidrDecenterManager tuntapCidrDecenterManager;
+        private readonly TuntapCidrMapfileManager tuntapCidrMapfileManager;
         public TuntapProxy(ISignInClientStore signInClientStore,
             TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer,
-            SignInClientTransfer signInClientTransfer, IRelayClientStore relayClientStore, TuntapConfigTransfer tuntapConfigTransfer)
+            SignInClientTransfer signInClientTransfer, IRelayClientStore relayClientStore, TuntapConfigTransfer tuntapConfigTransfer, TuntapCidrConnectionManager tuntapCidrConnectionManager, TuntapCidrDecenterManager tuntapCidrDecenterManager, TuntapCidrMapfileManager tuntapCidrMapfileManager)
             : base(tunnelTransfer, relayTransfer, pcpTransfer, signInClientTransfer, signInClientStore, relayClientStore)
         {
             this.tuntapConfigTransfer = tuntapConfigTransfer;
+            this.tuntapCidrConnectionManager = tuntapCidrConnectionManager;
+            this.tuntapCidrDecenterManager = tuntapCidrDecenterManager;
+            this.tuntapCidrMapfileManager = tuntapCidrMapfileManager;
         }
 
         protected override void Connected(ITunnelConnection connection)
@@ -43,11 +43,7 @@ namespace linker.messenger.tuntap
             if (tuntapConfigTransfer.Info.TcpMerge)
                 connection.StartPacketMerge();
             //有哪些目标IP用了相同目标隧道，更新一下
-            List<uint> keys = ipConnections.Where(c => c.Value.RemoteMachineId == connection.RemoteMachineId).Select(c => c.Key).ToList();
-            foreach (uint ip in keys)
-            {
-                ipConnections.AddOrUpdate(ip, connection, (a, b) => connection);
-            };
+            tuntapCidrConnectionManager.Update(connection);
         }
 
         /// <summary>
@@ -83,7 +79,6 @@ namespace linker.messenger.tuntap
         /// <returns></returns>
         public async Task InputPacket(LinkerTunDevicPacket packet)
         {
-            //LoggerHelper.Instance.Warning($"tuntap read {new IPEndPoint(new IPAddress(packet.SourceIPAddress.Span), packet.SourcePort)}->{new IPEndPoint(new IPAddress(packet.DistIPAddress.Span), packet.DistPort)}->{packet.Length}");
             //IPV4广播组播、IPV6 多播
             if (packet.IPV4Broadcast || packet.IPV6Multicast)
             {
@@ -96,7 +91,7 @@ namespace linker.messenger.tuntap
 
             //IPV4+IPV6 单播
             uint ip = BinaryPrimitives.ReadUInt32BigEndian(packet.DistIPAddress.Span[^4..]);
-            if (ipConnections.TryGetValue(ip, out ITunnelConnection connection) == false || connection == null || connection.Connected == false)
+            if (tuntapCidrConnectionManager.TryGet(ip, out ITunnelConnection connection) == false || connection == null || connection.Connected == false)
             {
                 //开始操作，开始失败直接丢包
                 if (operatingMultipleManager.StartOperation(ip) == false)
@@ -111,7 +106,7 @@ namespace linker.messenger.tuntap
                     //连接成功就缓存隧道
                     if (result.Result != null)
                     {
-                        ipConnections.AddOrUpdate((uint)state, result.Result, (a, b) => result.Result);
+                        tuntapCidrConnectionManager.Add((uint)state, result.Result);
                     }
                 }, ip);
                 return;
@@ -126,85 +121,16 @@ namespace linker.messenger.tuntap
         /// <returns></returns>
         private async Task<ITunnelConnection> ConnectTunnel(uint ip)
         {
-            /*
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+            if (tuntapCidrDecenterManager.FindValue(ip, out string machineId))
             {
-                Console.WriteLine($"tuntap connect to {NetworkHelper.ToIP(ip)}");
+                return await ConnectTunnel(machineId, TunnelProtocolType.Quic).ConfigureAwait(false);
             }
-            */
-            if (cidrManager.FindValue(ip, out string machineId))
+            if (tuntapCidrMapfileManager.FindValue(ip, out machineId))
             {
                 return await ConnectTunnel(machineId, TunnelProtocolType.Quic).ConfigureAwait(false);
             }
             return null;
 
-        }
-
-        /// <summary>
-        /// 清除IP
-        /// </summary>
-        public void ClearIPs()
-        {
-            cidrManager.Clear();
-            ipConnections.Clear();
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            {
-                LoggerHelper.Instance.Debug($"tuntap cache clear");
-            }
-        }
-        /// <summary>
-        /// 设置IP，等下有连接进来，用IP匹配，才能知道这个连接是要连谁
-        /// </summary>
-        /// <param name="ips"></param>
-        public void SetIPs(TuntapVeaLanIPAddress[] ips)
-        {
-            foreach (var ip in ips)
-            {
-                foreach (var item in ipConnections.Where(c => (c.Key & ip.MaskValue) == ip.NetWork && c.Value.Connected && c.Value.RemoteMachineId != ip.MachineId).ToList())
-                {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    {
-                        LoggerHelper.Instance.Debug($"tuntap {NetworkHelper.ToIP(item.Key)} target machine change {item.Value.RemoteMachineId} to {ip.MachineId}");
-                    }
-                    ipConnections.TryRemove(item.Key, out _);
-                }
-            }
-            cidrManager.Add(ips.Select(c => new CidrAddInfo<string> { IPAddress = c.IPAddress, PrefixLength = c.PrefixLength, Value = c.MachineId }).ToArray());
-
-        }
-        /// <summary>
-        /// 设置IP，等下有连接进来，用IP匹配，才能知道这个连接是要连谁
-        /// </summary>
-        /// <param name="machineId"></param>
-        /// <param name="ip"></param>
-        public void SetIP(string machineId, uint ip)
-        {
-            cidrManager.Add(new CidrAddInfo<string> { IPAddress = ip, PrefixLength = 32, Value = machineId });
-            if (ipConnections.TryGetValue(ip, out ITunnelConnection connection) && machineId != connection.RemoteMachineId)
-            {
-                ipConnections.TryRemove(ip, out _);
-            }
-        }
-        /// <summary>
-        /// 移除
-        /// </summary>
-        /// <param name="machineId"></param>
-        public void RemoveIP(string machineId)
-        {
-            cidrManager.Delete(machineId, (a, b) => a == b);
-            foreach (var item in ipConnections.Where(c => c.Value.RemoteMachineId == machineId).ToList())
-            {
-                ipConnections.TryRemove(item.Key, out _);
-            }
-        }
-
-        /// <summary>
-        /// 获取路由表
-        /// </summary>
-        /// <returns></returns>
-        public Dictionary<string, string> GetRoutes()
-        {
-            return cidrManager.Routes;
         }
     }
 }

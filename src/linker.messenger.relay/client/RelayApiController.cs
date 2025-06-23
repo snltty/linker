@@ -7,6 +7,7 @@ using linker.messenger.relay.client.transport;
 using linker.messenger.relay.messenger;
 using linker.messenger.relay.server;
 using linker.messenger.signin;
+using linker.messenger.sync;
 using linker.tunnel.connection;
 using System.Collections.Concurrent;
 
@@ -24,9 +25,10 @@ namespace linker.messenger.relay
         private readonly IMessengerSender messengerSender;
         private readonly ISerializer serializer;
         private readonly ISignInClientStore signInClientStore;
+        private readonly SyncTreansfer syncTreansfer;
 
         public RelayApiController(RelayClientTestTransfer relayTestTransfer, RelayClientTransfer relayTransfer, IRelayClientStore relayClientStore,
-            SignInClientState signInClientState, IMessengerSender messengerSender, ISerializer serializer, ISignInClientStore signInClientStore)
+            SignInClientState signInClientState, IMessengerSender messengerSender, ISerializer serializer, ISignInClientStore signInClientStore, SyncTreansfer syncTreansfer)
         {
             this.relayTestTransfer = relayTestTransfer;
             this.relayTransfer = relayTransfer;
@@ -35,6 +37,7 @@ namespace linker.messenger.relay
             this.messengerSender = messengerSender;
             this.serializer = serializer;
             this.signInClientStore = signInClientStore;
+            this.syncTreansfer = syncTreansfer;
         }
 
         [Access(AccessValue.Config)]
@@ -48,6 +51,21 @@ namespace linker.messenger.relay
         {
             relayTestTransfer.Subscribe();
             return relayTestTransfer.Nodes;
+        }
+
+        public KeyValuePair<string, TunnelProtocolType> GetDefault(ApiControllerParamsInfo param)
+        {
+            return new KeyValuePair<string, TunnelProtocolType>(relayClientStore.DefaultNodeId, relayClientStore.DefaultProtocol);
+        }
+        public async Task SyncDefault(ApiControllerParamsInfo param)
+        {
+            SyncInfo info = param.Content.DeJson<SyncInfo>();
+            await syncTreansfer.Sync("RelayDefault", info.Ids, serializer.Serialize(info.Data)).ConfigureAwait(false);
+            if(info.Ids.Length == 0 || info.Ids.Contains(signInClientStore.Id))
+            {
+                relayClientStore.SetDefaultNodeId(info.Data.Key);
+                relayClientStore.SetDefaultProtocol(info.Data.Value);
+            }
         }
 
         /// <summary>
@@ -67,7 +85,7 @@ namespace linker.messenger.relay
         public bool Connect(ApiControllerParamsInfo param)
         {
             RelayConnectInfo relayConnectInfo = param.Content.DeJson<RelayConnectInfo>();
-            if(relayConnectInfo.Protocol == TunnelProtocolType.None)
+            if (relayConnectInfo.Protocol == TunnelProtocolType.None)
             {
                 relayConnectInfo.Protocol = TunnelProtocolType.Tcp;
             }
@@ -93,7 +111,6 @@ namespace linker.messenger.relay
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
 
-
         public async Task<bool> CheckKey(ApiControllerParamsInfo param)
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -105,6 +122,13 @@ namespace linker.messenger.relay
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
     }
+
+    public sealed class SyncInfo
+    {
+        public string[] Ids { get; set; } = [];
+        public KeyValuePair<string, TunnelProtocolType> Data { get; set; } = new KeyValuePair<string, TunnelProtocolType>();
+    }
+
 
     public sealed class RelayConnectInfo
     {

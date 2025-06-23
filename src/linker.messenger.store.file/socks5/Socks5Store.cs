@@ -9,6 +9,9 @@ namespace linker.messenger.store.file.socks5
         public int Port => runningConfig.Data.Socks5.Port;
 
         public bool Running => runningConfig.Data.Socks5.Running;
+        public string Error => error;
+        private string error = string.Empty;
+
 
         private readonly RunningConfig runningConfig;
         public Socks5Store(RunningConfig runningConfig)
@@ -28,9 +31,10 @@ namespace linker.messenger.store.file.socks5
             runningConfig.Data.Update();
         }
 
-        public void SetRunning(bool running)
+        public void SetRunning(bool running, string error)
         {
             runningConfig.Data.Socks5.Running = running;
+            this.error = error;
             runningConfig.Data.Update();
         }
 

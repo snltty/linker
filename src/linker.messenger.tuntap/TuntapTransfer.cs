@@ -24,7 +24,7 @@ namespace linker.messenger.tuntap
         public Action OnShutdownAfter { get; set; } = () => { };
         public Action OnShutdownSuccess { get; set; } = () => { };
 
-        public TuntapTransfer(LinkerTunDeviceAdapter linkerTunDeviceAdapter, TuntapFirewall tuntapFirewall)
+        public TuntapTransfer(LinkerTunDeviceAdapter linkerTunDeviceAdapter, TuntapFirewallHook tuntapFirewall)
         {
             this.linkerTunDeviceAdapter = linkerTunDeviceAdapter;
             linkerTunDeviceAdapter.AddHooks(new List<ILinkerTunPacketHook> { tuntapFirewall });

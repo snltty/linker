@@ -1,5 +1,11 @@
 import { sendWebsocketMsg } from './request'
 
+export const getDefault = () => {
+    return sendWebsocketMsg('relay/GetDefault');
+}
+export const syncDefault = (data) => {
+    return sendWebsocketMsg('relay/SyncDefault', data);
+}
 export const setRelayServers = (servers) => {
     return sendWebsocketMsg('relay/SetServers', servers);
 }

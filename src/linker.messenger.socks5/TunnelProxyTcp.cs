@@ -205,7 +205,7 @@ namespace linker.messenger.socks5
         {
             if (token.Proxy.TargetEP == null) return;
 
-            IPAddress ip = mapping.GetRealDst(token.Proxy.TargetEP.Address);
+            IPAddress ip = socks5CidrDecenterManager.GetMapRealDst(token.Proxy.TargetEP.Address);
             IPEndPoint target = new IPEndPoint(ip, token.Proxy.TargetEP.Port);
 
             if (linkerFirewall.Check(token.Connection.RemoteMachineId, target, ProtocolType.Tcp) == false)

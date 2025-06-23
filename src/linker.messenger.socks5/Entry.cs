@@ -19,6 +19,8 @@ namespace linker.messenger.socks5
             serviceCollection.AddSingleton<Socks5Decenter>();
             serviceCollection.AddSingleton<Socks5ExRoute>();
 
+            serviceCollection.AddSingleton<Socks5CidrDecenterManager>();
+
             return serviceCollection;
         }
         public static ServiceProvider UseSocks5Client(this ServiceProvider serviceProvider)
@@ -37,6 +39,9 @@ namespace linker.messenger.socks5
 
             ExRouteTransfer exRouteTransfer = serviceProvider.GetService<ExRouteTransfer>();
             exRouteTransfer.AddExRoutes(new List<IExRoute> { serviceProvider.GetService<Socks5ExRoute>() });
+
+
+            Socks5CidrDecenterManager socks5CidrDecenterManager = serviceProvider.GetService<Socks5CidrDecenterManager>();
 
             return serviceProvider;
         }

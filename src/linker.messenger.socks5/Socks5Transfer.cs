@@ -1,5 +1,4 @@
-﻿using linker.libs;
-using linker.libs.timer;
+﻿using linker.libs.timer;
 
 namespace linker.messenger.socks5
 {
@@ -9,15 +8,16 @@ namespace linker.messenger.socks5
 
         private readonly TunnelProxy tunnelProxy;
         private readonly ISocks5Store socks5Store;
-        private readonly SemaphoreSlim slim = new SemaphoreSlim(1);
-        public Socks5Transfer( TunnelProxy tunnelProxy, ISocks5Store socks5Store)
+        private readonly Socks5Decenter socks5Decenter;
+        public Socks5Transfer(TunnelProxy tunnelProxy, ISocks5Store socks5Store, Socks5Decenter socks5Decenter)
         {
             this.tunnelProxy = tunnelProxy;
             this.socks5Store = socks5Store;
+            this.socks5Decenter = socks5Decenter;
             if (socks5Store.Running) Retstart();
-            
+
         }
-       
+
         /// <summary>
         /// 重启
         /// </summary>
@@ -25,8 +25,8 @@ namespace linker.messenger.socks5
         public void Retstart()
         {
             tunnelProxy.Start(socks5Store.Port);
-            socks5Store.SetRunning(tunnelProxy.Running);
-            OnChanged();
+            socks5Store.SetRunning(tunnelProxy.Running, tunnelProxy.Error);
+            socks5Decenter.Refresh();
         }
         /// <summary>
         /// 网卡
@@ -34,8 +34,8 @@ namespace linker.messenger.socks5
         public void Stop()
         {
             tunnelProxy.Stop();
-            socks5Store.SetRunning(tunnelProxy.Running);
-            OnChanged();
+            socks5Store.SetRunning(tunnelProxy.Running, tunnelProxy.Error);
+            socks5Decenter.Refresh();
         }
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace linker.messenger.socks5
                 {
                     Retstart();
                 }
-                OnChanged();
+                socks5Decenter.Refresh();
             });
         }
     }

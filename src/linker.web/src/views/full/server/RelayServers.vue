@@ -27,11 +27,11 @@
                 <el-table-column property="Name" :label="$t('server.relayName')">
                     <template #default="scope">
                         <div>
-                            <a :href="scope.row.Url" class="a-line blue" target="_blank">{{ scope.row.Name }}</a>
+                            <a :href="scope.row.Url" class="a-line" :class="{green:scope.row.Public}" target="_blank" :title="scope.row.Public?$t('server.public'):''">{{ scope.row.Name }}</a>
                             <a v-if="state.keyState" href="javascript:;" class="a-line a-edit" @click="handleEdit(scope.row)">
                                 <span><el-icon><Edit /></el-icon></span>
-                                <span v-if="(scope.row.AllowProtocol & 1) == 1">,tcp</span>
-                                <span v-if="(scope.row.AllowProtocol & 2) == 2">,udp</span>
+                                <span :class="{green:state.syncData.Value == 1}" :title="state.syncData.Value == 1 ? `${$t('server.relayDefault')}TCP`:''" v-if="(scope.row.AllowProtocol & 1) == 1">,tcp</span>
+                                <span :class="{green:state.syncData.Value == 2}" :title="state.syncData.Value == 2 ? `${$t('server.relayDefault')}UDP`:''" v-if="(scope.row.AllowProtocol & 2) == 2">,udp</span>
                             </a>
                         </div>
                     </template>
@@ -68,28 +68,53 @@
                         <span>{{ scope.row.Delay }}ms</span>
                     </template>
                 </el-table-column>
-                <el-table-column property="Public" :label="$t('server.relayPublic')" width="60">
+                <el-table-column property="Public" :label="$t('server.relayDefault')" width="60">
                     <template #default="scope">
-                        <el-switch disabled v-model="scope.row.Public " size="small" />
+                        <el-dropdown size="small">
+                            <div class="dropdown">
+                                <span style="font-size: 1.2rem;">{{ $t('server.relayDefault') }}</span>
+                                <el-icon class="el-icon--right">
+                                    <ArrowDown />
+                                </el-icon>
+                            </div>
+                            <template #dropdown>
+                                <el-dropdown-menu>
+                                    <el-dropdown-item v-if="(scope.row.AllowProtocol & 1) == 1" @click="handleShowSync(scope.row.Id, 1)">{{$t('common.relay')}}TCP</el-dropdown-item>
+                                    <el-dropdown-item v-if="(scope.row.AllowProtocol & 2) == 2" @click="handleShowSync(scope.row.Id, 2)">{{$t('common.relay')}}UDP</el-dropdown-item>
+                                </el-dropdown-menu>
+                            </template>
+                        </el-dropdown>
                     </template>
                 </el-table-column>
             </el-table>
         </div>
     </el-dialog>
     <EditNode v-if="state.showEdit" v-model="state.showEdit" :data="state.current"></EditNode>
+    <el-dialog class="options-center" :title="$t('server.relaySetDefault')" destroy-on-close v-model="state.showSync" width="54rem" top="2vh">
+            <div>
+                <div class="t-c">{{ $t('server.relaySetDefaultText') }}</div>
+                <Ids ref="domIds"></Ids>
+                <div class="t-c w-100 mgt-1">
+                    <el-button @click="state.showSync = false">{{$t('common.cancel')}}</el-button>
+                    <el-button type="primary" @click="handleSync">{{$t('common.confirm')}}</el-button>
+                </div>
+            </div>
+        </el-dialog>
 </template>
 <script>
-import { checkRelayKey,  setRelayServers, setRelaySubscribe } from '@/apis/relay';
+import { checkRelayKey,  getDefault,  setRelayServers, setRelaySubscribe, syncDefault } from '@/apis/relay';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
-import { onMounted, onUnmounted, reactive, watch } from 'vue'
+import { onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n';
 import Sync from '../sync/Index.vue'
+import Ids from '../sync/Ids.vue';
 import Cdkey from './cdkey/Index.vue'
 import EditNode from './EditNode.vue';
-import { Edit } from '@element-plus/icons-vue';
+import { Edit,ArrowDown } from '@element-plus/icons-vue';
+
 export default {
-    components:{Sync,Cdkey,EditNode,Edit},
+    components:{Sync,Ids,Cdkey,EditNode,Edit,ArrowDown},
     setup(props) {
         const {t} = useI18n();
         const globalData = injectGlobalData();
@@ -101,6 +126,12 @@ export default {
             showEdit:false,
             current:{},
             keyState:false,
+
+            showSync:false,
+            syncData:{
+                Key:'',
+                Value:0
+            }
         });
         watch(()=>globalData.value.config.Client.Relay.Server,()=>{
             state.list.Delay = globalData.value.config.Client.Relay.Server.Delay;
@@ -110,7 +141,6 @@ export default {
             state.current = row;
             state.showEdit = true;
         }
-
         const handleSave = ()=>{
             setRelayServers(state.list).then(()=>{
                 ElMessage.success(t('common.oper'));
@@ -135,15 +165,37 @@ export default {
             }).catch(()=>{});
         }
 
+        const domIds = ref(null);
+        const handleShowSync = (id,proto)=>{
+            state.syncData.Key = id;
+            state.syncData.Value = proto;
+            state.showSync = true;
+        }
+        const handleSync = ()=>{
+            syncDefault({
+                Ids:domIds.value.getIds(),
+                Data:state.syncData
+            }).then((res)=>{
+                state.showSync = false;
+                ElMessage.success(t('common.oper'));
+            }).catch(()=>{
+                ElMessage.error(t('common.operFail'));
+            });
+        }
+
         onMounted(()=>{
             _setRelaySubscribe();
             handleCheckKey();
+            getDefault().then((res)=>{
+                state.syncData.Key = res.Key || '';
+                state.syncData.Value = res.Value || 0;
+            });
         });
         onUnmounted(()=>{
             clearTimeout(state.timer);
         });
 
-        return {globalData,state,handleSave,handleEdit}
+        return {globalData,state,handleSave,handleEdit,domIds,handleShowSync,handleSync}
     }
 }
 </script>

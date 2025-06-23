@@ -13,7 +13,7 @@
                     <el-checkbox class="mgr-1" v-model="state.ruleForm.ShowDelay" label="显示延迟" size="large" />
                     <el-checkbox class="mgr-1" v-model="state.ruleForm.AutoConnect" label="自动连接" size="large" />
                     <el-checkbox class="mgr-1" v-model="state.ruleForm.Multicast" label="禁用广播" size="large" />
-                    <el-checkbox class="mgr-1" v-model="state.ruleForm.Nat" label="禁用NAT" size="large" />
+                    <el-checkbox class="mgr-1" v-model="state.ruleForm.DisableNat" label="禁用NAT" size="large" />
                     <el-checkbox class="mgr-1" v-model="state.ruleForm.TcpMerge" label="TCP包合并" size="large" />
                     <el-checkbox v-model="state.ruleForm.InterfaceOrder" label="调整网卡顺序" size="large" />
             </el-form-item>
@@ -42,7 +42,7 @@ export default {
                 AutoConnect: tuntap.value.current.AutoConnect,
                 Upgrade: tuntap.value.current.Upgrade,
                 Multicast: tuntap.value.current.Multicast,
-                Nat: tuntap.value.current.Nat,
+                DisableNat: tuntap.value.current.DisableNat,
                 TcpMerge: tuntap.value.current.TcpMerge,
                 InterfaceOrder: tuntap.value.current.InterfaceOrder,
                 Forwards: tuntap.value.current.Forwards,
@@ -76,7 +76,7 @@ export default {
             json.AutoConnect = state.ruleForm.AutoConnect;
             json.Upgrade = state.ruleForm.Upgrade;
             json.Multicast = state.ruleForm.Multicast;
-            json.Nat = state.ruleForm.Nat;
+            json.DisableNat = state.ruleForm.DisableNat;
             json.TcpMerge = state.ruleForm.TcpMerge;
             json.InterfaceOrder = state.ruleForm.InterfaceOrder;
             json.Name = state.ruleForm.Name;

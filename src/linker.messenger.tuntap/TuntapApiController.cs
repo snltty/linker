@@ -8,6 +8,7 @@ using linker.messenger.tuntap.lease;
 using linker.messenger.api;
 using linker.messenger.tuntap.messenger;
 using linker.libs.web;
+using linker.messenger.tuntap.cidr;
 
 namespace linker.messenger.tuntap
 {
@@ -16,7 +17,7 @@ namespace linker.messenger.tuntap
         private readonly IMessengerSender messengerSender;
         private readonly TuntapTransfer tuntapTransfer;
         private readonly SignInClientState signInClientState;
-        private readonly TuntapProxy tuntapProxy;
+        private readonly TuntapCidrDecenterManager tuntapCidrDecenterManager;
         private readonly TuntapConfigTransfer tuntapConfigTransfer;
         private readonly LeaseClientTreansfer leaseClientTreansfer;
         private readonly TuntapPingTransfer pingTransfer;
@@ -25,14 +26,15 @@ namespace linker.messenger.tuntap
         private readonly TuntapDecenter tuntapDecenter;
         private readonly TuntapAdapter tuntapAdapter;
         private readonly ISerializer serializer;
+        private readonly TuntapProxy tuntapProxy;
         public TuntapApiController(IMessengerSender messengerSender, TuntapTransfer tuntapTransfer, SignInClientState signInClientState,
-            TuntapProxy tuntapProxy, TuntapConfigTransfer tuntapConfigTransfer, LeaseClientTreansfer leaseClientTreansfer,
-            TuntapPingTransfer pingTransfer, IAccessStore accessStore, ISignInClientStore signInClientStore, TuntapDecenter tuntapDecenter, TuntapAdapter tuntapAdapter, ISerializer serializer)
+           TuntapCidrDecenterManager tuntapCidrDecenterManager,TuntapConfigTransfer tuntapConfigTransfer, LeaseClientTreansfer leaseClientTreansfer,
+            TuntapPingTransfer pingTransfer, IAccessStore accessStore, ISignInClientStore signInClientStore, TuntapDecenter tuntapDecenter, TuntapAdapter tuntapAdapter, ISerializer serializer, TuntapProxy tuntapProxy)
         {
             this.messengerSender = messengerSender;
             this.tuntapTransfer = tuntapTransfer;
             this.signInClientState = signInClientState;
-            this.tuntapProxy = tuntapProxy;
+            this.tuntapCidrDecenterManager = tuntapCidrDecenterManager;
             this.tuntapConfigTransfer = tuntapConfigTransfer;
             this.leaseClientTreansfer = leaseClientTreansfer;
             this.pingTransfer = pingTransfer;
@@ -41,6 +43,7 @@ namespace linker.messenger.tuntap
             this.tuntapDecenter = tuntapDecenter;
             this.tuntapAdapter = tuntapAdapter;
             this.serializer = serializer;
+            this.tuntapProxy = tuntapProxy;
         }
 
         /// <summary>
@@ -82,7 +85,7 @@ namespace linker.messenger.tuntap
         {
             if (param.Content == signInClientStore.Id)
             {
-                return tuntapProxy.GetRoutes();
+                return tuntapCidrDecenterManager.CidrRoutes;
             }
             else
             {

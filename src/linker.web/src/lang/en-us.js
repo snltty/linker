@@ -156,6 +156,9 @@ export default {
     'server.relayUrl': 'Url',
     'server.relayOper': 'Oper',
     'server.relayUse': 'Use',
+    'server.relayDefault': 'Default',
+    'server.relaySetDefault': 'Set default relay',
+    'server.relaySetDefaultText': 'Not selected will be all clients',
 
     'server.cdkeySecretKey': 'Cdkey secretKey',
     'server.cdkeyText': 'The cdkey manager can be used when the key is correct',

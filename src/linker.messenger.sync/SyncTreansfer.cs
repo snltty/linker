@@ -32,6 +32,19 @@ namespace linker.messenger.sync
             return syncs.Select(c => c.Name).ToList();
         }
 
+        public async Task Sync(string name, string[] ids, Memory<byte> data)
+        {
+            var sync = syncs.FirstOrDefault(c => c.Name == name);
+            if (sync != null)
+            {
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = signInClientState.Connection,
+                    MessengerId = (ushort)ConfigMessengerIds.Sync184Forward,
+                    Payload = serializer.Serialize(new Sync184Info { Name = sync.Name, Data = data, Ids = ids }),
+                }).ConfigureAwait(false);
+            }
+        }
         public async Task Sync(string[] names, string[] ids)
         {
             if (names.Length == 1)

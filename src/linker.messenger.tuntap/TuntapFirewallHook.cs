@@ -1,16 +1,14 @@
 ﻿using linker.snat;
 using linker.tun;
-using System.Net.Sockets;
-using static linker.snat.LinkerSrcNat;
 
 namespace linker.messenger.tuntap
 {
-    public sealed class TuntapFirewall : ILinkerTunPacketHook
+    public sealed class TuntapFirewallHook : ILinkerTunPacketHook
     {
         public LinkerTunPacketHookLevel Level => LinkerTunPacketHookLevel.Normal;
 
         private readonly LinkerFirewall linkerFirewall;
-        public TuntapFirewall(LinkerFirewall linkerFirewall)
+        public TuntapFirewallHook(LinkerFirewall linkerFirewall)
         {
             this.linkerFirewall = linkerFirewall;
         }

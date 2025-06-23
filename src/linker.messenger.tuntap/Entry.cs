@@ -1,11 +1,11 @@
 ﻿using linker.libs;
 using linker.libs.extends;
 using linker.libs.web;
-using linker.messenger.api;
 using linker.messenger.decenter;
 using linker.messenger.exroute;
 using linker.messenger.signin;
 using linker.messenger.tunnel;
+using linker.messenger.tuntap.cidr;
 using linker.messenger.tuntap.lease;
 using linker.messenger.tuntap.messenger;
 using linker.tun;
@@ -26,7 +26,7 @@ namespace linker.messenger.tuntap
             serviceCollection.AddSingleton<TuntapClientMessenger>();
             serviceCollection.AddSingleton<LeaseClientTreansfer>();
 
-            serviceCollection.AddSingleton<TuntapTunnelExcludeIP>();
+            serviceCollection.AddSingleton<TuntapCidrDecenterExcludeIP>();
 
             serviceCollection.AddSingleton<TuntapConfigTransfer>();
             serviceCollection.AddSingleton<TuntapPingTransfer>();
@@ -39,8 +39,12 @@ namespace linker.messenger.tuntap
 
             serviceCollection.AddSingleton<ITuntapSystemInformation, TuntapSystemInformation>();
 
-            serviceCollection.AddSingleton<TuntapFirewall>();
-            
+            serviceCollection.AddSingleton<TuntapFirewallHook>();
+
+            serviceCollection.AddSingleton<TuntapCidrConnectionManager>();
+            serviceCollection.AddSingleton<TuntapCidrDecenterManager>();
+            serviceCollection.AddSingleton<TuntapCidrMapfileManager>();
+
 
             return serviceCollection;
         }
@@ -69,10 +73,12 @@ namespace linker.messenger.tuntap
             exRouteTransfer.AddExRoutes(new List<IExRoute> { serviceProvider.GetService<TuntapExRoute>() });
 
             TunnelClientExcludeIPTransfer tunnelClientExcludeIPTransfer = serviceProvider.GetService<TunnelClientExcludeIPTransfer>();
-            tunnelClientExcludeIPTransfer.AddTunnelExcludeIPs(new List<ITunnelClientExcludeIP> { serviceProvider.GetService<TuntapTunnelExcludeIP>() });
+            tunnelClientExcludeIPTransfer.AddTunnelExcludeIPs(new List<ITunnelClientExcludeIP> { serviceProvider.GetService<TuntapCidrDecenterExcludeIP>() });
 
             DecenterClientTransfer decenterClientTransfer = serviceProvider.GetService<DecenterClientTransfer>();
             decenterClientTransfer.AddDecenters(new List<IDecenter> { serviceProvider.GetService<TuntapDecenter>() });
+
+            TuntapCidrMapfileManager tuntapCidrMapfileManager = serviceProvider.GetService<TuntapCidrMapfileManager>();
 
             return serviceProvider;
         }

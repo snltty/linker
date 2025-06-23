@@ -6,7 +6,7 @@
         </div>
         <div class="wrap">
             <el-table stripe  :data="state.forwards" border size="small" width="100%" height="400px" @cell-dblclick="handleCellClick">
-                <el-table-column prop="ListenPort" label="源端口" width="60">
+                <el-table-column prop="ListenPort" label="源端口" width="80">
                     <template #default="scope">
                         <template v-if="scope.row.ListenPortEditing">
                             <el-input autofocus size="small" v-model="scope.row.ListenPort"
@@ -20,7 +20,7 @@
                         </template>
                     </template>
                 </el-table-column>
-                <el-table-column prop="ConnectAddr" label="目标IP" width="120">
+                <el-table-column prop="ConnectAddr" label="目标IP" width="140">
                     <template #default="scope">
                         <template v-if="scope.row.ConnectAddrEditing">
                             <el-input autofocus size="small" v-model="scope.row.ConnectAddr"

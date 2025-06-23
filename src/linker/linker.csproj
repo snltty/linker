@@ -21,15 +21,16 @@
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Description>1. 一些累计更新
-2. 优化数据同步，可选择同步到指定客户端
-3. 增加选项，客户端自动更新到服务器版本</Description>
+2. 备用信标服务器
+3. 设置默认中继节点
+4. 动态路由跳点</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>1.8.4</Version>
-		<AssemblyVersion>1.8.4</AssemblyVersion>
-		<FileVersion>1.8.4</FileVersion>
+		<Version>1.8.5</Version>
+		<AssemblyVersion>1.8.5</AssemblyVersion>
+		<FileVersion>1.8.5</FileVersion>
 		<DelaySign>False</DelaySign>
 	</PropertyGroup>
 
