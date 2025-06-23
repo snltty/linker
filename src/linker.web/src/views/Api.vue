@@ -75,8 +75,9 @@ export default {
 
                 globalData.value.config.Running = res.List.Running;
                 globalData.value.config.configed = true;
-
                 state.hashcode = res.HashCode;
+
+                document.title = `${globalData.value.config.Client.Name} - linker.web`;
                 setTimeout(()=>{
                     _getConfig();
                 },1000);
