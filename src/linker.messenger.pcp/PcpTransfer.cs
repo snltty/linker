@@ -30,15 +30,12 @@ namespace linker.messenger.pcp
         private void OnConnected(ITunnelConnection connection)
         {
             TunnelTagInfo tag = connection.TransactionTag.DeJson<TunnelTagInfo>();
-
             //我是节点
             if (tag.NodeId == signInClientStore.Id)
             {
-
                 return;
             }
 
-            //connection.RemoteMachineName
             if (OnConnectedCallbacks.TryGetValue(Helper.GlobalString, out List<Action<ITunnelConnection>> callbacks))
             {
                 foreach (var item in callbacks)

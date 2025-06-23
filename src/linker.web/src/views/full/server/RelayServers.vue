@@ -30,8 +30,13 @@
                             <a :href="scope.row.Url" class="a-line" :class="{green:scope.row.Public}" target="_blank" :title="scope.row.Public?$t('server.public'):''">{{ scope.row.Name }}</a>
                             <a v-if="state.keyState" href="javascript:;" class="a-line a-edit" @click="handleEdit(scope.row)">
                                 <span><el-icon><Edit /></el-icon></span>
-                                <span :class="{green:state.syncData.Value == 1}" :title="state.syncData.Value == 1 ? `${$t('server.relayDefault')}TCP`:''" v-if="(scope.row.AllowProtocol & 1) == 1">,tcp</span>
-                                <span :class="{green:state.syncData.Value == 2}" :title="state.syncData.Value == 2 ? `${$t('server.relayDefault')}UDP`:''" v-if="(scope.row.AllowProtocol & 2) == 2">,udp</span>
+                                <span :class="{green:state.syncData.Value == 1 && scope.row.Id==state.syncData.Key}" 
+                                :title="state.syncData.Value == 1 && scope.row.Id==state.syncData.Key ? `${$t('server.relayDefault')}TCP`:''" 
+                                v-if="(scope.row.AllowProtocol & 1) == 1">,tcp</span>
+                                <span 
+                                :class="{green:state.syncData.Value == 2 && scope.row.Id==state.syncData.Key}" 
+                                :title="state.syncData.Value == 2 && scope.row.Id==state.syncData.Key ? `${$t('server.relayDefault')}UDP`:''" 
+                                v-if="(scope.row.AllowProtocol & 2) == 2">,udp</span>
                             </a>
                         </div>
                     </template>
@@ -51,7 +56,7 @@
                 <el-table-column property="MaxBandwidthTotal" :label="`${$t('server.relaySpeed2')}/${$t('server.relaySpeed1')}`" width="120">
                     <template #default="scope">
                         <span>
-                            <span>{{scope.row.BandwidthRatio}}Mbps</span>
+                            <span>{{scope.row.BandwidthRatio}}</span>
                             <span>/</span>
                             <span v-if="scope.row.MaxBandwidthTotal == 0">--</span>
                             <span v-else>{{ scope.row.MaxBandwidthTotal }}Mbps</span>
