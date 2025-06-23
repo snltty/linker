@@ -13,6 +13,9 @@
         Success = 3105,
         SuccessForward = 3106,
 
+        Nodes = 3107,
+        NodesForward = 3108,
+
         None = 3199
     }
 }

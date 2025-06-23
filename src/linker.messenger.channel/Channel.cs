@@ -60,9 +60,11 @@ namespace linker.messenger.channel
                 connections.AddOrUpdate(connection.RemoteMachineId, connection, (a, b) => connection);
             }
             Version.Increment();
+
             Connected(connection);
 
-            pcpTransfer.AddConnection(connection);
+           
+                pcpTransfer.AddConnection(connection);
         }
 
 

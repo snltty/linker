@@ -9,11 +9,15 @@ namespace linker.messenger.pcp
     {
         private readonly TunnelTransfer tunnel;
         private readonly IMessengerSender messengerSender;
+        private readonly ISerializer serializer;
+        private readonly IPcpStore pcpStore;
 
-        public PcpClientMessenger(TunnelTransfer tunnel, IMessengerSender messengerSender)
+        public PcpClientMessenger(TunnelTransfer tunnel, IMessengerSender messengerSender, ISerializer serializer, IPcpStore pcpStore)
         {
             this.tunnel = tunnel;
             this.messengerSender = messengerSender;
+            this.serializer = serializer;
+            this.pcpStore = pcpStore;
         }
 
         [MessengerId((ushort)PcpMessengerIds.Begin)]
@@ -21,8 +25,6 @@ namespace linker.messenger.pcp
         {
             connection.Write(Helper.TrueArray);
         }
-
-      
 
         [MessengerId((ushort)PcpMessengerIds.Fail)]
         public void Fail(IConnection connection)
@@ -32,6 +34,12 @@ namespace linker.messenger.pcp
         [MessengerId((ushort)PcpMessengerIds.Success)]
         public void Success(IConnection connection)
         {
+        }
+
+        [MessengerId((ushort)PcpMessengerIds.Nodes)]
+        public void Nodes(IConnection connection)
+        {
+            connection.Write(serializer.Serialize(pcpStore.PcpHistory.History));
         }
     }
 
@@ -100,6 +108,33 @@ namespace linker.messenger.pcp
                     MessengerId = (ushort)PcpMessengerIds.Success,
                     Payload = serializer.Serialize(info)
                 }).ConfigureAwait(false);
+            }
+        }
+
+        [MessengerId((ushort)PcpMessengerIds.NodesForward)]
+        public void NodesForward(IConnection connection)
+        {
+            string machineid = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, machineid, out SignCacheInfo from, out SignCacheInfo to))
+            {
+                uint requestid = connection.ReceiveRequestWrap.RequestId;
+                _ = messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = to.Connection,
+                    MessengerId = (ushort)PcpMessengerIds.Nodes,
+                }).ContinueWith(async (result) =>
+                {
+                    if (result.Result.Code == MessageResponeCodes.OK && result.Result.Data.Length > 0)
+                    {
+                        await messengerSender.ReplyOnly(new MessageResponseWrap
+                        {
+                            Connection = connection,
+                            Payload = result.Result.Data,
+                            RequestId = requestid,
+                        }, (ushort)PcpMessengerIds.NodesForward).ConfigureAwait(false);
+                    }
+
+                });
             }
         }
     }

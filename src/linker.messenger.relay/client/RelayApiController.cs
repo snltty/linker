@@ -60,7 +60,7 @@ namespace linker.messenger.relay
         public async Task SyncDefault(ApiControllerParamsInfo param)
         {
             SyncInfo info = param.Content.DeJson<SyncInfo>();
-            await syncTreansfer.Sync("RelayDefault", info.Ids, serializer.Serialize(info.Data)).ConfigureAwait(false);
+            await syncTreansfer.Sync("RelayDefault", info.Ids, serializer.Serialize(new KeyValuePair<string, TunnelProtocolType>(info.Data.Key, info.Data.Value))).ConfigureAwait(false);
             if (info.Ids.Length == 0 || info.Ids.Contains(signInClientStore.Id))
             {
                 relayClientStore.SetDefaultNodeId(info.Data.Key);
