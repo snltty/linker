@@ -49,7 +49,7 @@ namespace linker.messenger.updater
                 LoggerHelper.Instance.Error(ex);
                 updateInfo.Status = status;
             }
-           
+
         }
         /// <summary>
         /// 下载更新
@@ -68,7 +68,7 @@ namespace linker.messenger.updater
                 updateInfo.Current = 0;
                 updateInfo.Length = 0;
 
-                if (string.IsNullOrWhiteSpace(url) )
+                if (string.IsNullOrWhiteSpace(url))
                 {
                     updateInfo.Status = status;
                     return;
@@ -87,9 +87,22 @@ namespace linker.messenger.updater
                 using HttpResponseMessage response = await httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
                 response.EnsureSuccessStatusCode();
                 updateInfo.Length = response.Content.Headers.ContentLength ?? 0;
+
+                try
+                {
+                    DriveInfo drive = new DriveInfo(Path.GetPathRoot(savePath));
+                    if (drive.AvailableFreeSpace < updateInfo.Length)
+                    {
+                        LoggerHelper.Instance.Error($"file size {updateInfo.Length}byte,device free space {drive.AvailableFreeSpace} byte");
+                        updateInfo.Status = status;
+                        return;
+                    }
+                }
+                catch (Exception)
+                {
+                }
+
                 using Stream contentStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-
-
                 using FileStream fileStream = new FileStream(savePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
                 byte[] buffer = new byte[4096];
                 int readBytes = 0;
