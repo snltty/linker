@@ -14,6 +14,11 @@ namespace linker.messenger.store.file.updater
         public UpdaterCommonStore(FileConfig fileConfig)
         {
             this.fileConfig = fileConfig;
+
+            if (fileConfig.Data.Common.UpdateUrl.Contains("qbcode.cn"))
+            {
+                fileConfig.Data.Common.UpdateUrl = fileConfig.Data.Common.UpdateUrl.Replace("qbcode.cn", "snltty.com");
+            }
         }
 
         public void SetInterval(int sec)
