@@ -194,7 +194,7 @@ namespace linker.tunnel.connection
             int length = 4 + data.Length;
 
             byte[] heartData = ArrayPool<byte>.Shared.Rent(length);
-            data.Length.ToBytes(heartData);
+            data.Length.ToBytes(heartData.AsSpan());
             data.AsMemory().CopyTo(heartData.AsMemory(4));
             SendBytes += data.Length;
 

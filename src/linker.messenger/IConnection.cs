@@ -213,7 +213,7 @@ namespace linker.messenger
             var span = str.GetUTF16Bytes();
             length = span.Length + 4;
             responseData = ArrayPool<byte>.Shared.Rent(length);
-            str.Length.ToBytes(responseData);
+            str.Length.ToBytes(responseData.AsSpan());
             span.CopyTo(responseData.AsSpan(4));
 
             ResponseData = responseData.AsMemory(0, length);
@@ -415,7 +415,7 @@ namespace linker.messenger
             int length = 4 + pingBytes.Length;
 
             byte[] heartData = ArrayPool<byte>.Shared.Rent(length);
-            data.Length.ToBytes(heartData);
+            data.Length.ToBytes(heartData.AsSpan());
             data.AsMemory().CopyTo(heartData.AsMemory(4));
 
             await semaphoreSlim.WaitAsync().ConfigureAwait(false);

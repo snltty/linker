@@ -147,7 +147,7 @@ namespace linker.libs.extends
                 bytes = new byte[8];
                 length = 8;
             }
-            utf16Length.ToBytes(bytes);
+            utf16Length.ToBytes(bytes.AsSpan());
             utf8Length.ToBytes(bytes.AsMemory(4));
 
             return bytes.AsMemory(0, length);
@@ -294,7 +294,7 @@ namespace linker.libs.extends
             {
                 bytes = new byte[4];
             }
-            str.Length.ToBytes(bytes);
+            str.Length.ToBytes(bytes.AsSpan());
 
             return bytes;
         }

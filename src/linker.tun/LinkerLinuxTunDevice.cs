@@ -322,7 +322,7 @@ namespace linker.tun
             if (safeFileHandle == null) return Helper.EmptyArray;
 
             length = fsRead.Read(buffer.AsSpan(4));
-            length.ToBytes(buffer);
+            length.ToBytes(buffer.AsSpan());
             length += 4;
             return buffer;
 
