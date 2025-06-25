@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -83,6 +82,14 @@ namespace linker.libs.extends
             fixed (void* p = &v)
             {
                 new Span<byte>(p, sizeof(int)).CopyTo(memory.Span);
+            }
+        }
+        public static unsafe void ToBytes(this int value, Span<byte> span)
+        {
+            ref int v = ref value;
+            fixed (void* p = &v)
+            {
+                new Span<byte>(p, sizeof(int)).CopyTo(span);
             }
         }
         public static unsafe void ToBytes(this int[] value, Memory<byte> memory)

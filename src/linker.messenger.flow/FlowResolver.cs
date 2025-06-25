@@ -66,9 +66,18 @@ namespace linker.messenger.flow
                 ReceiveBytes = online | total;
                 SendtBytes = servers.Count(c => time - c.Value.Time < 15000);
                 Version.Increment();
+
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Debug($"online:{online},total:{total},server:{SendtBytes}");
+                }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
             }
 
             await Task.CompletedTask.ConfigureAwait(false);
@@ -100,8 +109,12 @@ namespace linker.messenger.flow
                 {
                     Report();
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Error(ex);
+                    }
                 }
             }, 5000);
         }
@@ -115,31 +128,23 @@ namespace linker.messenger.flow
                 Lon = c.Count() == 1 ? c.First().Lon : c.Average(c => c.Lon)
             }).ToList();
             byte[] netBytes = serializer.Serialize(nets);
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(9 + netBytes.Length);
+            Span<byte> buffer = stackalloc byte[9 + netBytes.Length];
+            signCaching.GetOnline(out int total, out int onlone);
+            buffer[0] = (byte)ResolverType.FlowReport;
+            onlone.ToBytes(buffer.Slice(1));
+            total.ToBytes(buffer.Slice(5));
+            netBytes.CopyTo(buffer.Slice(9));
 
-            try
-            {
-                signCaching.GetOnline(out int total, out int onlone);
-                buffer[0] = (byte)ResolverType.FlowReport;
-                onlone.ToBytes(buffer.AsMemory(1));
-                total.ToBytes(buffer.AsMemory(5));
+            using UdpClient udpClient = new UdpClient(AddressFamily.InterNetwork);
+            udpClient.Client.WindowsUdpBug();
 
-                netBytes.CopyTo(buffer.AsMemory(9));
-
-
-                using UdpClient udpClient = new UdpClient(AddressFamily.InterNetwork);
-                udpClient.Client.WindowsUdpBug();
-
-                string domain = "linker.snltty.com";
+            string domain = "linker.snltty.com";
 #if DEBUG
-                domain = "127.0.0.1";
+            domain = "127.0.0.1";
 #endif
-                udpClient.Send(buffer.AsSpan(0, 9 + netBytes.Length), domain, 1802);
-            }
-            catch (Exception)
-            {
-            }
-            ArrayPool<byte>.Shared.Return(buffer);
+            udpClient.Send(buffer.Slice(0, 9 + netBytes.Length), domain, 1802);
+
+            udpClient.Dispose();
         }
     }
 
