@@ -1,4 +1,5 @@
-﻿using linker.libs.extends;
+﻿using linker.libs;
+using linker.libs.extends;
 using System.Net;
 using System.Net.Sockets;
 
@@ -39,18 +40,24 @@ namespace linker.messenger.listen
                 try
                 {
                     SocketReceiveFromResult result = await socketUdp.ReceiveFromAsync(buffer, SocketFlags.None, endPoint).ConfigureAwait(false);
-                    if (result.ReceivedBytes == 0) break;
+                    if (result.ReceivedBytes == 0)
+                    {
+                        LoggerHelper.Instance.Error($"udp server recv 0");
+                        continue;
+                    }
                     IPEndPoint ep = result.RemoteEndPoint as IPEndPoint;
                     try
                     {
                         await resolverTransfer.BeginReceive(socketUdp, ep, buffer.AsMemory(0, result.ReceivedBytes)).ConfigureAwait(false);
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
+                        LoggerHelper.Instance.Error($"udp server recv {ex}");
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    LoggerHelper.Instance.Error($"udp server recv {ex}");
                     break;
                 }
             }

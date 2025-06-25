@@ -346,6 +346,7 @@ namespace linker.tunnel.connection
                 ReadResult result = await pipe.Reader.ReadAsync();
                 if (result.IsCompleted && result.Buffer.IsEmpty)
                 {
+                    cancellationTokenSource.Cancel();
                     break;
                 }
 
