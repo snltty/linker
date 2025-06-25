@@ -46,6 +46,7 @@ namespace linker.messenger.socks5
                 try
                 {
                     SocketReceiveFromResult result = await token.SourceSocket.ReceiveFromAsync(bytes, tempRemoteEP).ConfigureAwait(false);
+                    if (result.ReceivedBytes == 0) break;
 
                     token.Proxy.SourceEP = result.RemoteEndPoint as IPEndPoint;
                     token.Proxy.Data = bytes.AsMemory(0, result.ReceivedBytes);
@@ -211,6 +212,7 @@ namespace linker.messenger.socks5
                 while (true)
                 {
                     SocketReceiveFromResult result = await socket.ReceiveFromAsync(udpToken.Buffer, SocketFlags.None, target).ConfigureAwait(false);
+                    if (result.ReceivedBytes == 0) break;
                     udpToken.Proxy.Data = udpToken.Buffer.AsMemory(0, result.ReceivedBytes);
                     udpToken.Update();
                     await SendToConnection(udpToken).ConfigureAwait(false);

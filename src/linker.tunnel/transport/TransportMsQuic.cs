@@ -571,7 +571,10 @@ namespace linker.tunnel.transport
                 while (true)
                 {
                     SocketReceiveFromResult result = await local.ReceiveFromAsync(buffer, tempEp).ConfigureAwait(false);
-                    if (result.ReceivedBytes == 0) break;
+                    if (result.ReceivedBytes == 0)
+                    {
+                        break;
+                    }
                     if (result.ReceivedBytes == endBytes.Length && buffer.AsMemory(0, result.ReceivedBytes).Span.SequenceEqual(endBytes))
                     {
 

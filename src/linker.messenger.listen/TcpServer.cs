@@ -43,7 +43,7 @@ namespace linker.messenger.listen
                     if (result.ReceivedBytes == 0)
                     {
                         LoggerHelper.Instance.Error($"udp server recv 0");
-                        continue;
+                        break;
                     }
                     IPEndPoint ep = result.RemoteEndPoint as IPEndPoint;
                     try
