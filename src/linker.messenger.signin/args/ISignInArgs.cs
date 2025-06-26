@@ -1,11 +1,19 @@
 ﻿namespace linker.messenger.signin.args
 {
+    public enum SignInArgsLevel
+    {
+        Low = -99,
+        Default = 0,
+        Hight = 99
+    }
+
     /// <summary>
     /// 登录参数处理
     /// </summary>
-    public interface ISignInArgs
+    public interface ISignInArgsClient
     {
         public string Name { get; }
+        public SignInArgsLevel Level { get; }
         /// <summary>
         /// 添加参数，客户端调用
         /// </summary>
@@ -13,6 +21,11 @@
         /// <param name="args"></param>
         /// <returns></returns>
         public Task<string> Invoke(string host, Dictionary<string, string> args);
+    }
+    public interface ISignInArgsServer
+    {
+        public string Name { get; }
+        public SignInArgsLevel Level { get; }
         /// <summary>
         /// 验证参数，服务端调用
         /// </summary>
@@ -21,5 +34,4 @@
         /// <returns></returns>
         public Task<string> Validate(SignInfo signInfo, SignCacheInfo cache);
     }
-
 }

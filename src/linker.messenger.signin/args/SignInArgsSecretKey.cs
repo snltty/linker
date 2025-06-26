@@ -3,9 +3,11 @@
     /// <summary>
     /// 给登录加一个唯一ID的参数
     /// </summary>
-    public sealed class SignInArgsSecretKeyClient : ISignInArgs
+    public sealed class SignInArgsSecretKeyClient : ISignInArgsClient
     {
         public string Name => "secretKey";
+
+        public SignInArgsLevel Level => SignInArgsLevel.Default;
 
         private readonly ISignInClientStore signInClientStore;
         public SignInArgsSecretKeyClient(ISignInClientStore signInClientStore)
@@ -18,31 +20,21 @@
             await Task.CompletedTask.ConfigureAwait(false);
             return string.Empty;
         }
-
-        public async Task<string> Validate(SignInfo signInfo, SignCacheInfo cache)
-        {
-            await Task.CompletedTask.ConfigureAwait(false);
-            return string.Empty;
-        }
     }
 
     /// <summary>
     /// 验证登录唯一参数
     /// </summary>
-    public sealed class SignInArgsSecretKeyServer : ISignInArgs
+    public sealed class SignInArgsSecretKeyServer : ISignInArgsServer
     {
         public string Name => "secretKey";
+        public SignInArgsLevel Level => SignInArgsLevel.Default;
+
         private readonly ISignInServerStore signInServerStore;
         public SignInArgsSecretKeyServer(ISignInServerStore signInServerStore)
         {
             this.signInServerStore = signInServerStore;
         }
-        public async Task<string> Invoke(string host, Dictionary<string, string> args)
-        {
-            await Task.CompletedTask.ConfigureAwait(false);
-            return string.Empty;
-        }
-
         /// <summary>
         /// 验证参数
         /// </summary>

@@ -5,7 +5,8 @@
     /// </summary>
     public sealed partial class SignInArgsTransfer
     {
-        private List<ISignInArgs> startups = new List<ISignInArgs>();
+        private List<ISignInArgsClient> clients = new List<ISignInArgsClient>();
+        private List<ISignInArgsServer> servers = new List<ISignInArgsServer>();
 
         public SignInArgsTransfer()
         {
@@ -15,23 +16,18 @@
         /// 加载所有登录参数实现类
         /// </summary>
         /// <param name="list"></param>
-        public void AddArgs(List<ISignInArgs> list)
+        public void AddArgs(List<ISignInArgsClient> list)
         {
-            startups = startups.Concat(list).Distinct().ToList();
+            clients = clients.Concat(list).Distinct().OrderByDescending(c=>c.Level).ToList();
         }
 
         /// <summary>
-        /// 删除实现类
+        /// 加载所有登录参数实现类
         /// </summary>
-        /// <param name="names"></param>
-        public void RemoveArgs(List<string> names)
+        /// <param name="list"></param>
+        public void AddArgs(List<ISignInArgsServer> list)
         {
-            foreach (string name in names)
-            {
-                ISignInArgs item = startups.FirstOrDefault(c => c.Name == name);
-                if (item != null)
-                    startups.Remove(item);
-            }
+            servers = servers.Concat(list).Distinct().OrderByDescending(c => c.Level).ToList();
         }
 
         /// <summary>
@@ -42,7 +38,7 @@
         /// <returns></returns>
         public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
-            foreach (var item in startups)
+            foreach (var item in clients)
             {
                 string result = await item.Invoke(host, args).ConfigureAwait(false);
                 if (string.IsNullOrWhiteSpace(result) == false)
@@ -60,7 +56,7 @@
         /// <returns></returns>
         public async Task<string> Validate(SignInfo signInfo, SignCacheInfo cache)
         {
-            foreach (var item in startups)
+            foreach (var item in servers)
             {
                 string result = await item.Validate(signInfo, cache).ConfigureAwait(false);
                 if (string.IsNullOrWhiteSpace(result) == false)

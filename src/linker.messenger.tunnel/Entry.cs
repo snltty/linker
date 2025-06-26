@@ -42,7 +42,7 @@ namespace linker.messenger.tunnel
         public static ServiceProvider UseTunnelClient(this ServiceProvider serviceProvider)
         {
             SignInArgsTransfer signInArgsTransfer = serviceProvider.GetService<SignInArgsTransfer>();
-            signInArgsTransfer.AddArgs(new List<ISignInArgs> { serviceProvider.GetService<SignInArgsNet>() });
+            signInArgsTransfer.AddArgs(new List<ISignInArgsClient> { serviceProvider.GetService<SignInArgsNet>() });
 
             TunnelNetworkTransfer tunnelNetworkTransfer = serviceProvider.GetService<TunnelNetworkTransfer>();
 

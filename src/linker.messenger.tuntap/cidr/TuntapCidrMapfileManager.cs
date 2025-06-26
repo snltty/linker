@@ -54,6 +54,8 @@ namespace linker.messenger.tuntap.cidr
         {
             try
             {
+                if (File.Exists(Path.Join(path, file)) == false) return;
+
                 maps = File.ReadAllText(Path.Join(path, file)).Split(Environment.NewLine)
                     .Where(c => string.IsNullOrWhiteSpace(c) == false)
                     .Select(c => c.Split(','))

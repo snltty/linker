@@ -5,42 +5,25 @@ namespace linker.messenger.signin.args
     /// <summary>
     /// 版本限制
     /// </summary>
-    public sealed class SignInArgsVersionClient : ISignInArgs
+    public sealed class SignInArgsVersionClient : ISignInArgsClient
     {
         public string Name => "version";
+        public SignInArgsLevel Level =>  SignInArgsLevel.Default;
+
         public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
             args.TryAdd("version", VersionHelper.Version);
-
-            await Task.CompletedTask.ConfigureAwait(false);
-
-            return string.Empty;
-        }
-
-        public async Task<string> Validate(SignInfo signInfo, SignCacheInfo cache)
-        {
-            await Task.CompletedTask.ConfigureAwait(false);
-            return string.Empty;
+            return await Task.FromResult(string.Empty);
         }
     }
 
     /// <summary>
     /// 版本限制
     /// </summary>
-    public sealed class SignInArgsVersionServer : ISignInArgs
+    public sealed class SignInArgsVersionServer : ISignInArgsServer
     {
         public string Name => "version";
-        /// <summary>
-        /// 客户端调用
-        /// </summary>
-        /// <param name="host"></param>
-        /// <param name="args"></param>
-        /// <returns></returns>
-        public async Task<string> Invoke(string host, Dictionary<string, string> args)
-        {
-            await Task.CompletedTask.ConfigureAwait(false);
-            return string.Empty;
-        }
+        public SignInArgsLevel Level => SignInArgsLevel.Default;
 
         /// <summary>
         /// 服务端调用
@@ -54,11 +37,7 @@ namespace linker.messenger.signin.args
             {
                 return "need v1.5.0+";
             }
-
-            await Task.CompletedTask.ConfigureAwait(false);
-            return string.Empty;
+            return await Task.FromResult(string.Empty);
         }
-
-
     }
 }

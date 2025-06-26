@@ -2,7 +2,7 @@
     <el-form-item :label="$t('server.sforwardSecretKey')">
         <div>
             <div class="flex">
-                <el-input :class="{success:state.keyState,error:state.keyState==false}" class="flex-1" type="password" show-password v-model="state.SForwardSecretKey" maxlength="36" @blur="handleChange" />
+                <el-input :class="{success:state.keyState,error:state.keyState==false}" style="width:20rem;" type="password" show-password v-model="state.SForwardSecretKey" maxlength="36" @blur="handleChange" />
                 <Sync class="mgl-1" name="SForwardSecretKey"></Sync>
                 <span class="mgl-1" v-if="globalData.isPc">{{$t('server.sforwardText')}}</span>
             </div>

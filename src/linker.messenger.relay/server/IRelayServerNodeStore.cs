@@ -130,7 +130,7 @@ namespace linker.messenger.relay.server
 
         public long LastTicks { get; set; }
     }
-    public sealed partial class RelayServerNodeReportInfo170 : RelayServerNodeReportInfo
+    public partial class RelayServerNodeReportInfo170 : RelayServerNodeReportInfo
     {
         public string Url { get; set; } = "https://linker-doc.snltty.com";
         public TunnelProtocolType AllowProtocol { get; set; } = TunnelProtocolType.Tcp;

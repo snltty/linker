@@ -189,6 +189,8 @@ namespace linker.messenger.store.file.relay
 
         public async Task<List<CdkeyStoreInfo>> GetAvailable(string userid, string type)
         {
+            if (string.IsNullOrWhiteSpace(userid) || string.IsNullOrWhiteSpace(type)) return [];
+
             return await Task.FromResult(liteCollection.Find(x => x.UserId == userid && x.Type == type && x.LastBytes > 0 && x.StartTime <= DateTime.Now && x.EndTime >= DateTime.Now && x.Deleted == false).ToList()).ConfigureAwait(false);
         }
         public async Task<List<CdkeyStoreInfo>> Get(List<int> ids)

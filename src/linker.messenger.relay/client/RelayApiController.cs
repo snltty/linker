@@ -95,6 +95,11 @@ namespace linker.messenger.relay
             return true;
         }
 
+        /// <summary>
+        /// 更新节点
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<bool> UpdateNode(ApiControllerParamsInfo param)
         {
             RelayServerNodeUpdateInfo info = param.Content.DeJson<RelayServerNodeUpdateInfo>();
@@ -111,6 +116,11 @@ namespace linker.messenger.relay
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
 
+        /// <summary>
+        /// 检查密钥
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<bool> CheckKey(ApiControllerParamsInfo param)
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -120,6 +130,71 @@ namespace linker.messenger.relay
                 Payload = serializer.Serialize(param.Content)
             }).ConfigureAwait(false);
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
+        }
+
+        /// <summary>
+        /// 添加用户到节点
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public async Task<bool> AddUser2Node(ApiControllerParamsInfo param)
+        {
+            RelayServerUser2NodeInfo info = param.Content.DeJson<RelayServerUser2NodeInfo>();
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)RelayMessengerIds.AddUser2Node,
+                Payload = serializer.Serialize(new RelayServerUser2NodeAddInfo
+                {
+                    Data = info,
+                    SecretKey = relayClientStore.Server.SecretKey
+                })
+            }).ConfigureAwait(false);
+
+            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
+        }
+
+        /// <summary>
+        /// 删除用户到节点
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public async Task<bool> DelUser2Node(ApiControllerParamsInfo param)
+        {
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)RelayMessengerIds.DelUser2Node,
+                Payload = serializer.Serialize(new RelayServerUser2NodeDelInfo
+                {
+                    Id = int.Parse(param.Content),
+                    SecretKey = relayClientStore.Server.SecretKey
+                })
+            }).ConfigureAwait(false);
+
+            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
+        }
+        /// <summary>
+        /// 用户到节点分页查询
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public async Task<RelayServerUser2NodePageResultInfo> PageUser2Node(ApiControllerParamsInfo param)
+        {
+            RelayServerUser2NodePageRequestInfo info = param.Content.DeJson<RelayServerUser2NodePageRequestInfo>();
+            info.SecretKey = relayClientStore.Server.SecretKey;
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)RelayMessengerIds.PageUser2Node,
+                Payload = serializer.Serialize(info)
+            }).ConfigureAwait(false);
+            if (resp.Code == MessageResponeCodes.OK)
+            {
+                return serializer.Deserialize<RelayServerUser2NodePageResultInfo>(resp.Data.Span);
+            }
+
+            return new RelayServerUser2NodePageResultInfo();
         }
     }
 

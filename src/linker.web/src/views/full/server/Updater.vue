@@ -2,7 +2,7 @@
     <el-form-item :label="$t('server.updaterSecretKey')">
         <div >
             <div class="flex">
-                <el-input :class="{success:state.keyState,error:state.keyState==false}" class="flex-1" type="password" show-password v-model="state.secretKey" maxlength="36" @blur="handleChange"/>
+                <el-input :class="{success:state.keyState,error:state.keyState==false}" style="width:20rem;" type="password" show-password v-model="state.secretKey" maxlength="36" @blur="handleChange"/>
                 <Sync class="mgl-1" name="UpdaterSecretKey"></Sync>
                 <span class="mgl-1" v-if="globalData.isPc">{{$t('server.updaterText')}}</span>
             </div>

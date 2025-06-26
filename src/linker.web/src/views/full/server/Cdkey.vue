@@ -1,7 +1,7 @@
 <template>
     <el-form-item :label="$t('server.cdkeySecretKey')">
         <div class="flex">
-            <el-input :class="{success:state.keyState,error:state.keyState==false}" class="flex-1" type="password" show-password v-model="state.secretKey" maxlength="36" @blur="handleChange"/>
+            <el-input :class="{success:state.keyState,error:state.keyState==false}" style="width:20rem;" type="password" show-password v-model="state.secretKey" maxlength="36" @blur="handleChange"/>
             <Sync class="mgl-1" name="CdkeySecretKey"></Sync>
             <span class="mgl-1" v-if="globalData.isPc">{{$t('server.cdkeyText')}}</span>
         </div>

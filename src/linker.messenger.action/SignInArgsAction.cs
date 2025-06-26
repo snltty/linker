@@ -101,9 +101,12 @@ namespace linker.messenger.action
         }
     }
 
-    public sealed class SignInArgsAction : JsonArgReplace, ISignInArgs
+
+    public sealed class SignInArgsAction : JsonArgReplace, ISignInArgsClient, ISignInArgsServer
     {
         public string Name => "action";
+        public SignInArgsLevel Level => SignInArgsLevel.Default;
+
         private readonly ActionTransfer actionTransfer;
         private readonly IActionClientStore actionStore;
         private readonly IActionServerStore actionServerStore;
@@ -153,7 +156,7 @@ namespace linker.messenger.action
         public string Name => "action";
         private readonly ActionTransfer actionTransfer;
         private readonly IActionServerStore actionServerStore;
-        public RelayValidatorAction(ActionTransfer actionTransfer,  IActionServerStore actionServerStore)
+        public RelayValidatorAction(ActionTransfer actionTransfer, IActionServerStore actionServerStore)
         {
             this.actionTransfer = actionTransfer;
             this.actionServerStore = actionServerStore;

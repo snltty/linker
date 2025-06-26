@@ -60,17 +60,15 @@ namespace linker.messenger.relay.server
 
         }
 
-
-
-        public async ValueTask<RelayCacheInfo> TryGetRelayCache(string key)
+        public async Task<RelayCacheInfo> TryGetRelayCache(string key)
         {
             try
             {
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = connection,
-                    MessengerId = (ushort)RelayMessengerIds.NodeGetCache,
-                    Payload = serializer.Serialize(key)
+                    MessengerId = (ushort)RelayMessengerIds.NodeGetCache186,
+                    Payload = serializer.Serialize(new ValueTuple<string, string>(key, node.Id))
                 }).ConfigureAwait(false);
                 if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
                 {
@@ -93,7 +91,6 @@ namespace linker.messenger.relay.server
                 relayServerNodeStore.Confirm();
             }
         }
-
 
         public bool Validate(TunnelProtocolType tunnelProtocolType)
         {
@@ -362,7 +359,7 @@ namespace linker.messenger.relay.server
                         ConnectionRatio = connectionNum,
                         EndPoint = endPoint,
                         Url = node.Url,
-                        AllowProtocol = (node.AllowTcp ? TunnelProtocolType.Tcp :TunnelProtocolType.None)
+                        AllowProtocol = (node.AllowTcp ? TunnelProtocolType.Tcp : TunnelProtocolType.None)
                          | (node.AllowUdp ? TunnelProtocolType.Udp : TunnelProtocolType.None)
                     };
                     await messengerSender.SendOnly(new MessageRequestWrap

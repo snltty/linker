@@ -1,10 +1,8 @@
 ﻿using System.Net.Sockets;
-using System.Buffers;
 using linker.libs.extends;
 using System.Collections.Concurrent;
 using System.Net;
 using linker.libs;
-using System;
 using System.Text;
 using linker.libs.timer;
 using linker.messenger.cdkey;
@@ -417,9 +415,11 @@ namespace linker.messenger.relay.server
         public string ToId { get; set; }
         public string ToName { get; set; }
         public string GroupId { get; set; }
+        public string UserId { get; set; }
         public bool Validated { get; set; }
 
-        public List<CdkeyInfo> Cdkey { get; set; }
+        public bool UseCdkey { get; set; }
+        public List<CdkeyInfo> Cdkey { get; set; } = [];
     }
     public sealed class RelayTrafficCacheInfo
     {

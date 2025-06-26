@@ -16,7 +16,6 @@ namespace linker.messenger.api
             serviceCollection.AddSingleton<ActionTransfer>();
             serviceCollection.AddSingleton<SignInArgsAction>();
 
-
             serviceCollection.AddSingleton<ActionClientMessenger>();
 
             serviceCollection.AddSingleton<ActionSync>();
@@ -28,7 +27,7 @@ namespace linker.messenger.api
             apiServer.AddPlugins(new List<IApiController> { serviceProvider.GetService<ActionApiController>() });
 
             SignInArgsTransfer signInArgsTransfer = serviceProvider.GetService<SignInArgsTransfer>();
-            signInArgsTransfer.AddArgs(new List<ISignInArgs> { serviceProvider.GetService<SignInArgsAction>() });
+            signInArgsTransfer.AddArgs(new List<ISignInArgsClient> { serviceProvider.GetService<SignInArgsAction>() });
 
             IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
             messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<ActionClientMessenger>() });
@@ -52,7 +51,8 @@ namespace linker.messenger.api
         public static ServiceProvider UseActionServer(this ServiceProvider serviceProvider)
         {
             SignInArgsTransfer signInArgsTransfer = serviceProvider.GetService<SignInArgsTransfer>();
-            signInArgsTransfer.AddArgs(new List<ISignInArgs> { serviceProvider.GetService<SignInArgsAction>() });
+            signInArgsTransfer.AddArgs(new List<ISignInArgsClient> { serviceProvider.GetService<SignInArgsAction>() });
+            signInArgsTransfer.AddArgs(new List<ISignInArgsServer> { serviceProvider.GetService<SignInArgsAction>() });
 
             RelayServerValidatorTransfer relayServerValidatorTransfer = serviceProvider.GetService<RelayServerValidatorTransfer>();
             relayServerValidatorTransfer.AddValidators(new List<IRelayServerValidator> { serviceProvider.GetService<RelayValidatorAction>() });

@@ -3,27 +3,19 @@
     /// <summary>
     /// 添加分组密码
     /// </summary>
-    public sealed class SignInArgsGroupPasswordClient : ISignInArgs
+    public sealed class SignInArgsGroupPasswordClient : ISignInArgsClient
     {
         public string Name => "group";
+        public SignInArgsLevel Level => SignInArgsLevel.Default;
 
         private readonly ISignInClientStore signInClientStore;
         public SignInArgsGroupPasswordClient(ISignInClientStore signInClientStore)
         {
             this.signInClientStore = signInClientStore;
         }
-
-      
-
         public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
             args.TryAdd("signin-gpwd", signInClientStore.Group.Password);
-            await Task.CompletedTask.ConfigureAwait(false);
-            return string.Empty;
-        }
-
-        public async Task<string> Validate(SignInfo signInfo, SignCacheInfo cache)
-        {
             await Task.CompletedTask.ConfigureAwait(false);
             return string.Empty;
         }
@@ -32,18 +24,13 @@
     /// <summary>
     /// 验证分组密码
     /// </summary>
-    public sealed class SignInArgsGroupPasswordServer : ISignInArgs
+    public sealed class SignInArgsGroupPasswordServer : ISignInArgsServer
     {
         public string Name => "group";
+        public SignInArgsLevel Level => SignInArgsLevel.Hight;
         public SignInArgsGroupPasswordServer()
         {
         }
-        public async Task<string> Invoke(string host, Dictionary<string, string> args)
-        {
-            await Task.CompletedTask.ConfigureAwait(false);
-            return string.Empty;
-        }
-
         /// <summary>
         /// 验证参数
         /// </summary>

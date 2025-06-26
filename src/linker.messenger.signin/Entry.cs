@@ -29,7 +29,7 @@ namespace linker.messenger.signin
         public static ServiceProvider UseSignInClient(this ServiceProvider serviceProvider)
         {
             SignInArgsTransfer signInArgsTransfer = serviceProvider.GetService<SignInArgsTransfer>();
-            signInArgsTransfer.AddArgs(new List<ISignInArgs> {
+            signInArgsTransfer.AddArgs(new List<ISignInArgsClient> {
                 serviceProvider.GetService<SignInArgsGroupPasswordClient>(),
                 serviceProvider.GetService<SignInArgsSecretKeyClient>(),
                   serviceProvider.GetService<SignInArgsMachineKeyClient>(),
@@ -44,7 +44,7 @@ namespace linker.messenger.signin
             IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
             messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<SignInClientMessenger>() });
 
-            ExRouteTransfer exRouteTransfer= serviceProvider.GetService<ExRouteTransfer>();
+            ExRouteTransfer exRouteTransfer = serviceProvider.GetService<ExRouteTransfer>();
             exRouteTransfer.AddExRoutes(new List<IExRoute> { serviceProvider.GetService<SignInExRoute>() });
 
             LoggerHelper.Instance.Info($"start signin");
@@ -76,7 +76,7 @@ namespace linker.messenger.signin
             SignInServerCaching signInServerCaching = serviceProvider.GetService<SignInServerCaching>();
 
             SignInArgsTransfer signInArgsTransfer = serviceProvider.GetService<SignInArgsTransfer>();
-            signInArgsTransfer.AddArgs(new List<ISignInArgs> {
+            signInArgsTransfer.AddArgs(new List<ISignInArgsServer> {
                 serviceProvider.GetService<SignInArgsGroupPasswordServer>(),
                 serviceProvider.GetService<SignInArgsSecretKeyServer>(),
                  serviceProvider.GetService<SignInArgsMachineKeyServer>(),

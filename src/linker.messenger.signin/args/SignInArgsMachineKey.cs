@@ -5,9 +5,10 @@ namespace linker.messenger.signin.args
     /// <summary>
     /// 给登录加一个唯一ID的参数
     /// </summary>
-    public sealed class SignInArgsMachineKeyClient : ISignInArgs
+    public sealed class SignInArgsMachineKeyClient : ISignInArgsClient
     {
         public string Name => "machineId";
+        public SignInArgsLevel Level => SignInArgsLevel.Default;
         public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
             string machineKey = SystemIdHelper.GetSystemId();
@@ -19,30 +20,17 @@ namespace linker.messenger.signin.args
             }
 
             args.TryAdd("machineKey", machineKey);
-
-            await Task.CompletedTask.ConfigureAwait(false);
-
-            return string.Empty;
-        }
-
-        public async Task<string> Validate(SignInfo signInfo, SignCacheInfo cache)
-        {
-            await Task.CompletedTask.ConfigureAwait(false);
-            return string.Empty;
+            return await Task.FromResult(string.Empty);
         }
     }
 
     /// <summary>
     /// 验证登录唯一参数
     /// </summary>
-    public sealed class SignInArgsMachineKeyServer : ISignInArgs
+    public sealed class SignInArgsMachineKeyServer : ISignInArgsServer
     {
         public string Name => "machineId";
-        public async Task<string> Invoke(string host, Dictionary<string, string> args)
-        {
-            await Task.CompletedTask.ConfigureAwait(false);
-            return string.Empty;
-        }
+        public SignInArgsLevel Level => SignInArgsLevel.Default;
 
         /// <summary>
         /// 验证参数

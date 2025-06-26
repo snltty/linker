@@ -1,5 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.timer;
+using linker.libs.winapis;
 using linker.messenger.cdkey;
 using linker.messenger.relay.messenger;
 using linker.messenger.relay.server.caching;
@@ -24,20 +25,23 @@ namespace linker.messenger.relay.server
         private readonly IRelayServerMasterStore relayServerMasterStore;
         private readonly ICdkeyServerStore relayServerCdkeyStore;
         private readonly IMessengerSender messengerSender;
+        private readonly IRelayServerUser2NodeStore relayServerUser2NodeStore;
+        private readonly ICdkeyServerStore cdkeyServerStore;
 
-
-        public RelayServerMasterTransfer(IRelayServerCaching relayCaching, ISerializer serializer, IRelayServerMasterStore relayServerMasterStore, ICdkeyServerStore relayServerCdkeyStore, IMessengerSender messengerSender)
+        public RelayServerMasterTransfer(IRelayServerCaching relayCaching, ISerializer serializer, IRelayServerMasterStore relayServerMasterStore, ICdkeyServerStore relayServerCdkeyStore, IMessengerSender messengerSender, IRelayServerUser2NodeStore relayServerUser2NodeStore, ICdkeyServerStore cdkeyServerStore)
         {
             this.relayCaching = relayCaching;
             this.serializer = serializer;
             this.relayServerMasterStore = relayServerMasterStore;
             this.relayServerCdkeyStore = relayServerCdkeyStore;
             this.messengerSender = messengerSender;
+            this.relayServerUser2NodeStore = relayServerUser2NodeStore;
+            this.cdkeyServerStore = cdkeyServerStore;
             TrafficTask();
         }
 
 
-        public ulong AddRelay(string fromid, string fromName, string toid, string toName, string groupid, bool validated, List<CdkeyInfo> cdkeys)
+        public ulong AddRelay(string fromid, string fromName, string toid, string toName, string groupid, string userid, bool validated, bool useCdkey)
         {
             ulong flowingId = Interlocked.Increment(ref relayFlowingId);
 
@@ -49,8 +53,9 @@ namespace linker.messenger.relay.server
                 ToId = toid,
                 ToName = toName,
                 GroupId = groupid,
+                UserId = userid,
                 Validated = validated,
-                Cdkey = cdkeys
+                UseCdkey = useCdkey,
             };
             bool added = relayCaching.TryAdd($"{fromid}->{toid}->{flowingId}", cache, 15000);
             if (added == false) return 0;
@@ -58,9 +63,16 @@ namespace linker.messenger.relay.server
             return flowingId;
         }
 
-        public bool TryGetRelayCache(string key, out RelayCacheInfo value)
+        public async Task<RelayCacheInfo> TryGetRelayCache(string key, string nodeid)
         {
-            return relayCaching.TryGetValue(key, out value);
+            if (relayCaching.TryGetValue(key, out RelayCacheInfo value))
+            {
+                value.Validated = value.Validated || (await relayServerUser2NodeStore.Get(value.UserId)).Contains(nodeid);
+                value.Cdkey = value.UseCdkey
+                    ? (await cdkeyServerStore.GetAvailable(value.UserId, "Relay").ConfigureAwait(false)).Select(c => new CdkeyInfo { Bandwidth = c.Bandwidth, Id = c.Id, LastBytes = c.LastBytes }).ToList()
+                    : [];
+            }
+            return value;
         }
         /// <summary>
         /// 设置节点
@@ -113,12 +125,17 @@ namespace linker.messenger.relay.server
         /// </summary>
         /// <param name="validated">是否已认证</param>
         /// <returns></returns>
-        public List<RelayServerNodeReportInfo170> GetNodes(bool validated)
+        public async Task<List<RelayServerNodeReportInfo170>> GetNodes(bool validated, string userid)
         {
+            var nodes = await relayServerUser2NodeStore.Get(userid);
+
             var result = reports.Values
-                .Where(c => c.Public || validated)
                 .Where(c => Environment.TickCount64 - c.LastTicks < 15000)
-                .Where(c => validated || (c.ConnectionRatio < c.MaxConnection && (c.MaxGbTotal == 0 || (c.MaxGbTotal > 0 && c.MaxGbTotalLastBytes > 0))))
+                .Where(c =>
+                {
+                    return validated || nodes.Contains(c.Id)
+                    || (c.Public && (c.ConnectionRatio < c.MaxConnection && (c.MaxGbTotal == 0 || (c.MaxGbTotal > 0 && c.MaxGbTotalLastBytes > 0))));
+                })
                 .OrderByDescending(c => c.LastTicks);
 
             return result.OrderByDescending(x => x.MaxConnection == 0 ? int.MaxValue : x.MaxConnection)
@@ -148,7 +165,6 @@ namespace linker.messenger.relay.server
         /// <returns></returns>
         public void AddTraffic(RelayTrafficUpdateInfo info)
         {
-            if (info.SecretKey != relayServerMasterStore.Master.SecretKey) return;
             if (info.Dic.Count == 0) return;
 
             trafficQueue.Enqueue(info.Dic);

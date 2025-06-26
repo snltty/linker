@@ -6,26 +6,26 @@
                 <el-form label-width="auto" :label-position="state.position">
                     <el-form-item :label="$t('server.messengerAddr')">
                         <div class="flex">
-                            <el-input class="flex-1" v-model="state.list.Host" @change="handleSave" />
+                            <el-input style="width:20rem;" v-model="state.list.Host" @blur="handleSave" />
                             <Sync class="mgl-1" name="SignInServer"></Sync>
                             <span class="mgl-1" v-if="globalData.isPc">{{$t('server.messengerText')}}</span>
                         </div>
                     </el-form-item>
                     <el-form-item :label="`${$t('server.messengerAddr')}1`">
                         <div class="flex">
-                            <el-input class="flex-1" v-model="state.list.Host1" @change="handleSave" />
+                            <el-input style="width:20rem;" v-model="state.list.Host1" @blur="handleSave" />
                         </div>
                     </el-form-item>
                     <el-form-item :label="$t('server.messengerSecretKey')">
                         <div class="flex">
-                            <el-input :class="{success:state.keyState,error:state.keyState==false}" class="flex-1" type="password" show-password maxlength="36" v-model="state.list.SecretKey" @change="handleSave" />
+                            <el-input :class="{success:state.keyState,error:state.keyState==false}" style="width:20rem;" type="password" show-password maxlength="36" v-model="state.list.SecretKey" @blur="handleSave" />
                             <Sync class="mgl-1" name="SignInSecretKey"></Sync>
                             <span class="mgl-1" v-if="globalData.isPc">{{$t('server.messengerSecretKeyText')}}</span>
                         </div>
                     </el-form-item>
                     <el-form-item :label="$t('server.messengerUserId')">
                         <div class="flex">
-                            <el-input class="flex-1" type="password" show-password maxlength="36" v-model="state.list.UserId" @change="handleSave" />
+                            <el-input style="width:20rem;" type="password" show-password maxlength="36" v-model="state.list.UserId" @blur="handleSave" />
                             <Sync class="mgl-1" name="SignInUserId"></Sync>
                             <span class="mgl-1" v-if="globalData.isPc">{{$t('server.messengerUserIdText')}}</span>
                         </div>

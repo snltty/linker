@@ -70,6 +70,7 @@ namespace linker.messenger.store.file
             serviceCollection.AddSingleton<IRelayServerStore, RelayServerStore>();
             serviceCollection.AddSingleton<IRelayServerNodeStore, RelayServerNodeStore>();
             serviceCollection.AddSingleton<IRelayServerMasterStore, RelayServerMasterStore>();
+            serviceCollection.AddSingleton<IRelayServerUser2NodeStore, RelayServerUser2NodeStore>();
 
             serviceCollection.AddSingleton<ICdkeyServerStore, CdkeyServerStore>();
             serviceCollection.AddSingleton<ICdkeyClientStore, CdkeyClientStore>();

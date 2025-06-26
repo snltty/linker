@@ -19,9 +19,7 @@ namespace linker.messenger.relay.server.validator
             {
                 return $"SecretKey validate fail";
             }
-
-            await Task.CompletedTask.ConfigureAwait(false);
-            return string.Empty;
+            return await Task.FromResult(string.Empty);
         }
     }
 }
