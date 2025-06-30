@@ -136,7 +136,7 @@ namespace linker.messenger.cdkey
         }
 
 
-        [MessengerId((ushort)CdkeyMessengerIds.AccessCdkey)]
+        [MessengerId((ushort)CdkeyMessengerIds.CheckKey)]
         public void AccessCdkey(IConnection connection)
         {
             string key = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);

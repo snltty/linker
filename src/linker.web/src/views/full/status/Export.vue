@@ -45,6 +45,8 @@
                                         <el-col :xs="12" :sm="8"><el-checkbox v-model="state.server" :label="$t('status.exportServer')" /></el-col>
                                         <el-col :xs="12" :sm="8"><el-checkbox v-model="state.group" :label="$t('status.exportGroup')" /></el-col>
                                         <el-col :xs="12" :sm="8"><el-checkbox v-model="state.tunnel" :label="$t('status.exportTunnel')" /></el-col>
+                                        <el-col :xs="12" :sm="8"><el-checkbox v-model="state.cdkey" :label="$t('status.exportCdkey')" /></el-col>
+                                        <el-col :xs="12" :sm="8"><el-checkbox v-model="state.whitelist" :label="$t('status.exportWhiteList')" /></el-col>
                                     </el-row>
                                 </div>
                             </div>
@@ -115,6 +117,8 @@ export default {
             server:true,
             group:true,
             tunnel:true,
+            cdkey:true,
+            whitelist:true,
 
             copyContent:'',
             showCopy:false,
@@ -145,6 +149,8 @@ export default {
                 server:state.server,
                 group:state.group,
                 tunnel:state.tunnel,
+                cdkey:state.cdkey,
+                whitelist:state.whitelist,
             }
             
             if(json.single){

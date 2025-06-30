@@ -1,6 +1,6 @@
 ﻿using linker.messenger.cdkey;
 
-namespace linker.messenger.store.file.cekey
+namespace linker.messenger.store.file.cdkey
 {
     public sealed class CdkeyClientStore : ICdkeyClientStore
     {

@@ -153,8 +153,8 @@ namespace linker.messenger.api
         [AccessDisplay("修改所有验证参数")]
         ActionOther = 48,
 
-        [AccessDisplay("中继白名单")]
-        User2Node = 49,
+        [AccessDisplay("白名单")]
+        WhiteList = 49,
     }
 
     public sealed class AccessTextInfo

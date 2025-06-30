@@ -4,6 +4,7 @@ using linker.libs.winapis;
 using linker.messenger.cdkey;
 using linker.messenger.relay.messenger;
 using linker.messenger.relay.server.caching;
+using linker.messenger.wlist;
 using System.Collections.Concurrent;
 using System.Net;
 
@@ -25,17 +26,17 @@ namespace linker.messenger.relay.server
         private readonly IRelayServerMasterStore relayServerMasterStore;
         private readonly ICdkeyServerStore relayServerCdkeyStore;
         private readonly IMessengerSender messengerSender;
-        private readonly IRelayServerUser2NodeStore relayServerUser2NodeStore;
+        private readonly IWhiteListServerStore whiteListServerStore;
         private readonly ICdkeyServerStore cdkeyServerStore;
 
-        public RelayServerMasterTransfer(IRelayServerCaching relayCaching, ISerializer serializer, IRelayServerMasterStore relayServerMasterStore, ICdkeyServerStore relayServerCdkeyStore, IMessengerSender messengerSender, IRelayServerUser2NodeStore relayServerUser2NodeStore, ICdkeyServerStore cdkeyServerStore)
+        public RelayServerMasterTransfer(IRelayServerCaching relayCaching, ISerializer serializer, IRelayServerMasterStore relayServerMasterStore, ICdkeyServerStore relayServerCdkeyStore, IMessengerSender messengerSender, IWhiteListServerStore whiteListServerStore, ICdkeyServerStore cdkeyServerStore)
         {
             this.relayCaching = relayCaching;
             this.serializer = serializer;
             this.relayServerMasterStore = relayServerMasterStore;
             this.relayServerCdkeyStore = relayServerCdkeyStore;
             this.messengerSender = messengerSender;
-            this.relayServerUser2NodeStore = relayServerUser2NodeStore;
+            this.whiteListServerStore = whiteListServerStore;
             this.cdkeyServerStore = cdkeyServerStore;
             TrafficTask();
         }
@@ -67,7 +68,7 @@ namespace linker.messenger.relay.server
         {
             if (relayCaching.TryGetValue(key, out RelayCacheInfo value))
             {
-                value.Validated = value.Validated || (await relayServerUser2NodeStore.Get(value.UserId)).Contains(nodeid);
+                value.Validated = value.Validated || (await whiteListServerStore.Get("Relay",value.UserId)).Contains(nodeid);
                 value.Cdkey = value.UseCdkey
                     ? (await cdkeyServerStore.GetAvailable(value.UserId, "Relay").ConfigureAwait(false)).Select(c => new CdkeyInfo { Bandwidth = c.Bandwidth, Id = c.Id, LastBytes = c.LastBytes }).ToList()
                     : [];
@@ -127,7 +128,7 @@ namespace linker.messenger.relay.server
         /// <returns></returns>
         public async Task<List<RelayServerNodeReportInfo170>> GetNodes(bool validated, string userid)
         {
-            var nodes = await relayServerUser2NodeStore.Get(userid);
+            var nodes = await whiteListServerStore.Get("Relay",userid);
 
             var result = reports.Values
                 .Where(c => Environment.TickCount64 - c.LastTicks < 15000)

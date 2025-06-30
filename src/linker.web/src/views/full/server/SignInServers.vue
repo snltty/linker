@@ -31,6 +31,7 @@
                         </div>
                     </el-form-item>
                     <el-form-item></el-form-item>
+                    <WhiteList></WhiteList>
                     <Cdkey></Cdkey>
                     <RelayServers class="mgt-2"></RelayServers>
                     <SForward></SForward>
@@ -54,11 +55,12 @@ import { computed, onMounted, reactive } from 'vue'
 import SForward from './SForward.vue';
 import Updater from './Updater.vue';
 import Cdkey from './Cdkey.vue';
+import WhiteList from './WhiteList.vue';
 import RelayServers from './RelayServers.vue';
 import { useI18n } from 'vue-i18n';
 import Sync from '../sync/Index.vue'
 export default {
-    components:{SForward,Updater,Cdkey,RelayServers,Sync},
+    components:{SForward,Updater,WhiteList,Cdkey,RelayServers,Sync},
     setup(props) {
         const {t} = useI18n();
         const globalData = injectGlobalData();

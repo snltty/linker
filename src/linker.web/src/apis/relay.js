@@ -21,16 +21,6 @@ export const relayConnect = (data) => {
 export const relayUpdateNode = (data) => {
     return sendWebsocketMsg('relay/UpdateNode', data);
 }
-export const checkRelayKey = (key) => {
-    return sendWebsocketMsg('relay/checkkey',key);
-}
-
-export const user2NodePage = (data) => {
-    return sendWebsocketMsg('relay/PageUser2Node', data);
-}
-export const user2NodeAdd = (data) => {
-    return sendWebsocketMsg('relay/AddUser2Node', data);
-}
-export const user2NodeDel = (data) => {
-    return sendWebsocketMsg('relay/DelUser2Node', data);
+export const checkRelayKey = () => {
+    return sendWebsocketMsg('relay/checkkey');
 }

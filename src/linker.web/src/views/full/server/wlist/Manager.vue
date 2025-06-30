@@ -1,11 +1,11 @@
 <template>
-    <el-dialog class="options-center" :title="$t('server.relayUser2Node')" destroy-on-close v-model="state.show" width="77rem" top="2vh">
+    <el-dialog class="options-center" :title="$t('server.wlist')" destroy-on-close v-model="state.show" width="77rem" top="2vh">
     <div class="group-wrap">
         <div class="head">
             <div class="search flex">
-                <div><span>{{$t('server.relayUser2NodeUserId')}}</span> <el-input v-model="state.page.UserId" style="width:8rem" size="small" clearable @change="handleSearch" /></div>
-                <div><span>{{$t('server.relayUser2NodeName')}}</span> <el-input v-model="state.page.Name" style="width:8rem" size="small" clearable @change="handleSearch" /></div>
-                <div><span>{{$t('server.relayUser2NodeRemark')}}</span> <el-input v-model="state.page.Remark" style="width:8rem" size="small" clearable @change="handleSearch" /></div>
+                <div><span>{{$t('server.wlistUserId')}}</span> <el-input v-model="state.page.UserId" style="width:8rem" size="small" clearable @change="handleSearch" /></div>
+                <div><span>{{$t('server.wlistName')}}</span> <el-input v-model="state.page.Name" style="width:8rem" size="small" clearable @change="handleSearch" /></div>
+                <div><span>{{$t('server.wlistRemark')}}</span> <el-input v-model="state.page.Remark" style="width:8rem" size="small" clearable @change="handleSearch" /></div>
                 <div>
                     <el-button size="small" @click="handleSearch()">
                         <el-icon><Search /></el-icon>
@@ -20,21 +20,21 @@
         </div>
         <el-table stripe :data="state.list.List" border size="small" width="100%">
             
-            <el-table-column prop="Name" :label="$t('server.relayUser2NodeName')"></el-table-column>
-            <el-table-column prop="Nodes" :label="$t('server.relayUser2NodeNodes')">
+            <el-table-column prop="Name" :label="$t('server.wlistName')"></el-table-column>
+            <el-table-column prop="Nodes" :label="$t(`server.wlistNodes${state.page.Type}`)">
                 <template #default="scope">
                     <span>{{ scope.row.Nodes.map(c=>state.nodes[c]).join(',') }}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="Remark" :label="$t('server.relayUser2NodeRemark')"></el-table-column>
-            <el-table-column prop="AddTime" :label="`${$t('server.relayUser2NodeAddTime')}`" width="140" sortable="custom">
+            <el-table-column prop="Remark" :label="$t('server.wlistRemark')"></el-table-column>
+            <el-table-column prop="AddTime" :label="`${$t('server.wlistAddTime')}`" width="140" sortable="custom">
             </el-table-column>
-            <el-table-column fixed="right" prop="Oper" :label="$t('server.relayUser2NodeOper')" width="110">
+            <el-table-column fixed="right" prop="Oper" :label="$t('server.wlistOper')" width="110">
                 <template #default="scope">
                     <el-button size="small" @click="handleEdit(scope.row)">
                         <el-icon><EditPen /></el-icon>
                     </el-button>
-                    <el-popconfirm :title="$t('server.relayUser2NodeDelConfirm')" @confirm="handleDel(scope.row)">
+                    <el-popconfirm :title="$t('server.wlistDelConfirm')" @confirm="handleDel(scope.row)">
                         <template #reference>
                             <el-button type="danger" size="small">
                                 <el-icon><Delete /></el-icon>
@@ -63,9 +63,9 @@ import { computed, inject, onMounted, provide, reactive, ref, watch } from 'vue'
 import { Delete,Plus,Search,Warning,EditPen } from '@element-plus/icons-vue';
 import { useI18n } from 'vue-i18n';
 import Add from './Add.vue';
-import { user2NodeDel, user2NodePage } from '@/apis/relay';
+import { wlistDel, wlistPage } from '@/apis/wlist';
 export default {
-    props: ['modelValue'],
+    props: ['modelValue','type'],
     emits: ['update:modelValue'],
     components:{Delete,Plus,Search ,EditPen,Add,Warning},
     setup(props,{emit}) {
@@ -76,6 +76,7 @@ export default {
             page:{
                 Page:1,
                 Size:10,
+                Type:props.type,
                 UserId:'',
                 Name:'',
                 Remark:''
@@ -103,7 +104,7 @@ export default {
         provide('edit',editState);
 
         const handleAdd = ()=>{
-            editState.value = {Id:0,Name:'',Nodes:[],Remark:'',UserId:''};
+            editState.value = {Id:0,Name:'',Nodes:[],Remark:'',UserId:'',Type:props.type};
             state.showAdd = true;
         }
         const handleEdit = (row)=>{
@@ -111,7 +112,7 @@ export default {
             state.showAdd = true;
         }
         const handleSearch = ()=>{
-            user2NodePage(state.page).then((res)=>{
+            wlistPage(state.page).then((res)=>{
                 state.list = res;
             }).catch(()=>{})
         }
@@ -120,7 +121,7 @@ export default {
             handleSearch();
         }
         const handleDel = (row)=>{
-            user2NodeDel(row.Id).then((res)=>{
+            wlistDel(row.Id).then((res)=>{
                 handleSearch();
             }).catch(()=>{})
         }

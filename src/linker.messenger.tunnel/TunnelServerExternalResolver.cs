@@ -94,7 +94,7 @@ namespace linker.messenger.tunnel
                 data[i] = (byte)(data[i] ^ byte.MaxValue);
             }
 
-            byte[] temp = Encoding.UTF8.GetBytes(Environment.TickCount64.ToString().Md5().SubStr(0, new Random().Next(16, 32)));
+            byte[] temp = Encoding.UTF8.GetBytes(Environment.TickCount64.ToString().Sha256().SubStr(0, new Random().Next(16, 32)));
             temp.AsMemory().CopyTo(data.AsMemory(1 + length + 2));
 
             return data.AsMemory(0, 1 + length + 2 + temp.Length);

@@ -81,6 +81,8 @@ export default {
     'status.exportServer': 'Messenger server',
     'status.exportGroup': 'Group',
     'status.exportTunnel': 'Tunnel config',
+    'status.exportCdkey': 'Cdkey secretKey',
+    'status.exportWhiteList': 'White list secretKey',
 
     'status.api': 'Manager api',
     'status.apiClear': 'Clear',
@@ -231,6 +233,21 @@ export default {
     'server.cdkeyImportField': 'Field invalid',
     'server.cdkeyImportNetwork': 'Network error',
     'server.cdkeyImportOrderId': 'OrderNo has exists',
+
+    'server.wlist': 'White list',
+    'server.wlistSecretKey': 'White list secretKey',
+    'server.wlistText': 'White list manager',
+    'server.wlistUserId': 'User id',
+    'server.wlistName': 'Name',
+    'server.wlistRemark': 'Remark',
+    'server.wlistAddTime': 'Add time',
+    'server.wlistNodes': 'Value',
+    'server.wlistNodesRelay': 'Nodes',
+    'server.wlistOper': 'Oper',
+    'server.wlistDelConfirm': 'Are you sure to delete？',
+    'server.wlistAdd': 'Add',
+    'server.wlistUnselect': 'Unselect',
+    'server.wlistSelected': 'Selected',
 
 
     'server.sforwardSecretKey': 'Server forward secretKey',

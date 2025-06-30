@@ -46,7 +46,7 @@ namespace linker.messenger.socks5
                 try
                 {
                     SocketReceiveFromResult result = await token.SourceSocket.ReceiveFromAsync(bytes, tempRemoteEP).ConfigureAwait(false);
-                    if (result.ReceivedBytes == 0) break;
+                    if (result.ReceivedBytes == 0) continue;
 
                     token.Proxy.SourceEP = result.RemoteEndPoint as IPEndPoint;
                     token.Proxy.Data = bytes.AsMemory(0, result.ReceivedBytes);

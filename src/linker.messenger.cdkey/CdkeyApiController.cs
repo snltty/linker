@@ -42,7 +42,7 @@ namespace linker.messenger.cdkey
             var resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
-                MessengerId = (ushort)CdkeyMessengerIds.AccessCdkey,
+                MessengerId = (ushort)CdkeyMessengerIds.CheckKey,
                 Payload = serializer.Serialize(cdkeyClientStore.SecretKey)
             }).ConfigureAwait(false);
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);

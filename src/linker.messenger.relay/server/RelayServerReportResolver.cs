@@ -46,7 +46,7 @@ namespace linker.messenger.relay.server
 
                 string key = buffer.AsMemory(0, length).GetString();
 
-                if (relayServerMasterStore.Master.SecretKey.Md5() == key)
+                if (relayServerMasterStore.Master.SecretKey.Sha256() == key)
                 {
                     await messengerResolver.BeginReceiveServer(socket, Helper.EmptyArray).ConfigureAwait(false);
                 }

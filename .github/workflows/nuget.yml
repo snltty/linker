@@ -83,6 +83,7 @@ jobs:
         dotnet pack ./src/linker.messenger.updater -c release
         dotnet pack ./src/linker.messenger.firewall -c release
         dotnet pack ./src/linker.messenger.wakeup -c release
+        dotnet pack ./src/linker.messenger.wlist -c release
         dotnet pack ./src/linker.tun -c release
         dotnet pack ./src/linker.snat -c release
         dotnet pack ./src/linker.tunnel -c release
@@ -117,6 +118,7 @@ jobs:
         dotnet nuget push ./src/linker.messenger.updater/bin/release/linker.messenger.updater.1.8.5.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{ secrets.NUGET_KEY }} --no-symbols
         dotnet nuget push ./src/linker.messenger.firewall/bin/release/linker.messenger.firewall.1.8.5.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{ secrets.NUGET_KEY }} --no-symbols
         dotnet nuget push ./src/linker.messenger.wakeup/bin/release/linker.messenger.wakeup.1.8.5.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{ secrets.NUGET_KEY }} --no-symbols
+        dotnet nuget push ./src/linker.messenger.wlist/bin/release/linker.messenger.wlist.1.8.5.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{ secrets.NUGET_KEY }} --no-symbols
         dotnet nuget push ./src/linker.tun/bin/release/linker.tun.1.8.5.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{ secrets.NUGET_KEY }} --no-symbols
         dotnet nuget push ./src/linker.snat/bin/release/linker.snat.1.8.5.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{ secrets.NUGET_KEY }} --no-symbols
         dotnet nuget push ./src/linker.tunnel/bin/release/linker.tunnel.1.8.5.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{ secrets.NUGET_KEY }} --no-symbols

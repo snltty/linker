@@ -13,7 +13,7 @@
                 <a href="javascript:;" @click="state.showModes=true" class="mgr-1 delay a-line" :class="{red:state.nodes.length==0,green:state.nodes.length>0}">
                     {{$t('server.relayNodes')}} : {{state.nodes.length}}
                 </a>
-                <User2Node :keyState="state.keyState"></User2Node>
+                <WhiteList type="Relay"></WhiteList>
                 <div class="mgr-1" :title="$t('server.relayUseCdkeyTitle')">
                     <el-checkbox v-model="state.list.UseCdkey" :label="$t('server.relayUseCdkey')" @change="handleSave" />
                 </div>
@@ -32,10 +32,10 @@ import { useI18n } from 'vue-i18n';
 import Sync from '../sync/Index.vue'
 import Cdkey from './cdkey/Index.vue'
 import Nodes from './relay/Nodes.vue';
-import User2Node from './user2node/Index.vue';
+import WhiteList from './wlist/Index.vue';
 
 export default {
-    components:{Sync,Cdkey,Nodes,User2Node},
+    components:{Sync,Cdkey,Nodes,WhiteList},
     setup(props) {
         const {t} = useI18n();
         const globalData = injectGlobalData();
@@ -69,7 +69,7 @@ export default {
             });
         }
         const handleCheckKey = ()=>{
-            checkRelayKey(state.list.SecretKey).then((res)=>{
+            checkRelayKey().then((res)=>{
                 state.keyState = res;
             }).catch(()=>{});
         }

@@ -102,7 +102,7 @@ namespace linker.tunnel.connection
                     {
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                             LoggerHelper.Instance.Error($"tunnel connection writer offline 0");
-                        break;
+                        continue;
                     }
                     await CallbackPacket(buffer, 0, result.ReceivedBytes).ConfigureAwait(false);
                 }

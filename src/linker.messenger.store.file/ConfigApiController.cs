@@ -69,6 +69,8 @@ namespace linker.messenger.store.file
                 {
                     config.Data.Client.SForward.SecretKey = info.Client.SForwardSecretKey;
                     config.Data.Client.Updater.SecretKey = info.Client.UpdaterSecretKey;
+                    config.Data.Client.Cdkey.SecretKey = info.Client.CdkeySecretKey;
+                    config.Data.Client.WhiteList.SecretKey = info.Client.WhiteListSecretKey;
                     foreach (var item in config.Data.Client.Relay.Servers)
                     {
                         item.SecretKey = info.Client.RelaySecretKey;
@@ -93,6 +95,8 @@ namespace linker.messenger.store.file
                 config.Data.Server.SForward.TunnelPortRange = info.Server.SForward.TunnelPortRange;
 
                 config.Data.Server.Updater.SecretKey = info.Server.Updater.SecretKey;
+                config.Data.Server.Cdkey.SecretKey = info.Server.Cdkey.SecretKey;
+                config.Data.Server.WhiteList.SecretKey = info.Server.WhiteList.SecretKey;
             }
 
             config.Data.Common.Modes = info.Common.Modes;
@@ -291,9 +295,14 @@ namespace linker.messenger.store.file
             if (configExportInfo.Updater) client.Updater = new linker.messenger.updater.UpdaterConfigClientInfo { SecretKey = client.Updater.SecretKey, Sync2Server = client.Updater.Sync2Server };
             else client.Updater = new linker.messenger.updater.UpdaterConfigClientInfo { };
 
-
             if (configExportInfo.Tunnel) client.Tunnel = new TunnelConfigClientInfo { Transports = client.Tunnel.Transports };
             else client.Tunnel = new TunnelConfigClientInfo { Transports = new List<linker.tunnel.transport.TunnelTransportItemInfo>() };
+
+            if (configExportInfo.Cdkey) client.Cdkey = new linker.messenger.cdkey.CdkeyConfigInfo { SecretKey = client.Cdkey.SecretKey };
+            else client.Cdkey = new linker.messenger.cdkey.CdkeyConfigInfo { };
+
+            if (configExportInfo.WhiteList) client.WhiteList = new linker.messenger.wlist.WhiteListConfigInfo { SecretKey = client.WhiteList.SecretKey };
+            else client.WhiteList = new linker.messenger.wlist.WhiteListConfigInfo { };
 
             ConfigCommonInfo common = config.Data.Common.ToJson().DeJson<ConfigCommonInfo>();
             common.Install = true;
@@ -311,6 +320,8 @@ namespace linker.messenger.store.file
                 client.Updater,
                 Relay = new { Servers = new RelayServerInfo[] { client.Relay.Servers[0] } },
                 client.Tunnel,
+                client.Cdkey,
+                client.WhiteList,
             }, common, new { Install = true, Modes = new string[] { "client" } });
         }
 
@@ -350,6 +361,8 @@ namespace linker.messenger.store.file
         public string SForwardSecretKey { get; set; }
         public string RelaySecretKey { get; set; }
         public string UpdaterSecretKey { get; set; }
+        public string CdkeySecretKey { get; set; }
+        public string WhiteListSecretKey { get; set; }
     }
     public sealed class ConfigInstallServerInfo
     {
@@ -357,6 +370,8 @@ namespace linker.messenger.store.file
         public ConfigInstallServerRelayInfo Relay { get; set; }
         public ConfigInstallServerSForwardInfo SForward { get; set; }
         public ConfigInstallServerUpdaterInfo Updater { get; set; }
+        public ConfigInstallServerCdkeyInfo Cdkey { get; set; }
+        public ConfigInstallServerWhiteListInfo WhiteList { get; set; }
         public ConfigInstallServerSignInfo SignIn { get; set; }
     }
     public sealed class ConfigInstallServerSignInfo
@@ -364,6 +379,14 @@ namespace linker.messenger.store.file
         public string SecretKey { get; set; }
     }
     public sealed class ConfigInstallServerUpdaterInfo
+    {
+        public string SecretKey { get; set; }
+    }
+    public sealed class ConfigInstallServerCdkeyInfo
+    {
+        public string SecretKey { get; set; }
+    }
+    public sealed class ConfigInstallServerWhiteListInfo
     {
         public string SecretKey { get; set; }
     }
@@ -398,6 +421,8 @@ namespace linker.messenger.store.file
         public bool Server { get; set; }
         public bool Group { get; set; }
         public bool Tunnel { get; set; }
+        public bool Cdkey { get; set; }
+        public bool WhiteList { get; set; }
 
     }
 

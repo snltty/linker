@@ -75,7 +75,7 @@ namespace linker.tunnel.wanport
         }
         private static Memory<byte> BuildSendData(byte[] buffer, byte i)
         {
-            byte[] temp = Encoding.UTF8.GetBytes(Environment.TickCount64.ToString().Md5().SubStr(0, new Random().Next(16, 32)));
+            byte[] temp = Encoding.UTF8.GetBytes(Environment.TickCount64.ToString().Sha256().SubStr(0, new Random().Next(16, 32)));
             temp.AsMemory().CopyTo(buffer);
             buffer[0] = 0;
             buffer[1] = i;
@@ -141,7 +141,7 @@ namespace linker.tunnel.wanport
 
         private static Memory<byte> BuildSendData(byte[] buffer, byte i)
         {
-            byte[] temp = Encoding.UTF8.GetBytes(Environment.TickCount64.ToString().Md5().SubStr(0, new Random().Next(16, 32)));
+            byte[] temp = Encoding.UTF8.GetBytes(Environment.TickCount64.ToString().Sha256().SubStr(0, new Random().Next(16, 32)));
             temp.AsMemory().CopyTo(buffer);
             buffer[0] = 0;
             buffer[1] = i;

@@ -5,7 +5,7 @@ using LiteDB;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace linker.messenger.store.file.relay
+namespace linker.messenger.store.file.cdkey
 {
     public sealed class CdkeyServerStore : ICdkeyServerStore
     {

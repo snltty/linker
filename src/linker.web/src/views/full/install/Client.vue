@@ -80,6 +80,20 @@
             <el-form-item label="" label-width="0" v-if="state.form.hasServer">
                 <el-row class="w-100">
                     <el-col :sm="12" :xs="24">
+                        <el-form-item label="cdkey密钥" prop="cdkeySecretKey">
+                            <el-input v-model="state.form.cdkeySecretKey" maxlength="36" show-word-limit />
+                        </el-form-item>
+                    </el-col>
+                    <el-col :sm="12" :xs="24">
+                        <el-form-item label="白名单密钥" prop="whiteListSecretKey">
+                            <el-input v-model="state.form.whiteListSecretKey" maxlength="36" show-word-limit />
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+            </el-form-item>
+            <el-form-item label="" label-width="0" v-if="state.form.hasServer">
+                <el-row class="w-100">
+                    <el-col :sm="12" :xs="24">
                         <el-form-item label="更新密钥" prop="updaterSecretKey">
                             <el-input v-model="state.form.updaterSecretKey" maxlength="36" show-word-limit />
                         </el-form-item>
@@ -117,6 +131,8 @@ export default {
                 sForwardSecretKey:step.value.form.client.sForwardSecretKey ||globalData.value.config.Client.SForward.SecretKey,
                 relaySecretKey:step.value.form.client.relaySecretKey ||(globalData.value.config.Client.Relay.Servers[0] || {SecretKey:'snltty'}).SecretKey,
                 updaterSecretKey:step.value.form.client.updaterSecretKey ||globalData.value.config.Client.Updater.SecretKey,
+                cdkeySecretKey:step.value.form.client.cdkeySecretKey ||globalData.value.config.Client.Cdkey.SecretKey,
+                whiteListSecretKey:step.value.form.client.whiteListSecretKey ||globalData.value.config.Client.WhiteList.SecretKey,
             },
             rules: {
                 name: [{ required: true, message: "必填", trigger: "blur" }],
@@ -158,6 +174,8 @@ export default {
                                     sForwardSecretKey: state.form.sForwardSecretKey,
                                     relaySecretKey: state.form.relaySecretKey,
                                     updaterSecretKey: state.form.updaterSecretKey,
+                                    cdkeySecretKey: state.form.cdkeySecretKey,
+                                    whiteListSecretKey: state.form.whiteListSecretKey,
                                 }
                             },
                             form:{

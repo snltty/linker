@@ -73,11 +73,6 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new RelayServerNodeUpdateInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayServerNodeUpdateWrapInfoFormatter());
 
-            MemoryPackFormatterProvider.Register(new RelayServerUser2NodeInfoFormatter());
-            MemoryPackFormatterProvider.Register(new RelayServerUser2NodeAddInfoFormatter());
-            MemoryPackFormatterProvider.Register(new RelayServerUser2NodeDelInfoFormatter());
-            MemoryPackFormatterProvider.Register(new RelayServerUser2NodePageRequestInfoFormatter());
-            MemoryPackFormatterProvider.Register(new RelayServerUser2NodePageResultInfoFormatter());
 
             MemoryPackFormatterProvider.Register(new CdkeyInfoFormatter());
             MemoryPackFormatterProvider.Register(new CdkeyStoreInfoFormatter());
@@ -161,6 +156,13 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new WakeupRemoveForwardInfoFormatter());
             MemoryPackFormatterProvider.Register(new WakeupSendInfoFormatter());
             MemoryPackFormatterProvider.Register(new WakeupSendForwardInfoFormatter());
+
+
+            MemoryPackFormatterProvider.Register(new WhiteListInfoFormatter());
+            MemoryPackFormatterProvider.Register(new WhiteListAddInfoFormatter());
+            MemoryPackFormatterProvider.Register(new WhiteListDelInfoFormatter());
+            MemoryPackFormatterProvider.Register(new WhiteListPageRequestInfoFormatter());
+            MemoryPackFormatterProvider.Register(new WhiteListPageResultInfoFormatter());
 
             return serviceCollection;
         }

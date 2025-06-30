@@ -95,7 +95,7 @@ namespace linker.tunnel.transport
                         SocketReceiveFromResult result = await socket.ReceiveFromAsync(bytes.AsMemory(), ep).ConfigureAwait(false);
                         if (result.ReceivedBytes == 0)
                         {
-                            break;
+                            continue;
                         }
 
                         IPEndPoint remoteEP = result.RemoteEndPoint as IPEndPoint;

@@ -41,13 +41,23 @@ namespace linker.libs.extends
             return str.Substring(start, maxLength);
         }
         /// <summary>
-        /// md5
+        /// sha256
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public static string Md5(this string input)
+        public static string Sha256(this string input)
         {
             byte[] data = SHA256.HashData(Encoding.Default.GetBytes(input));
+            StringBuilder sBuilder = new();
+            for (int i = 0; i < data.Length; i++)
+            {
+                sBuilder.Append(data[i].ToString("x2"));
+            }
+            return sBuilder.ToString();
+        }
+        public static string Md5(this string input)
+        {
+            byte[] data = MD5.HashData(Encoding.Default.GetBytes(input));
             StringBuilder sBuilder = new();
             for (int i = 0; i < data.Length; i++)
             {

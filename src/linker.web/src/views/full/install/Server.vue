@@ -32,8 +32,8 @@
             <el-form-item label="" label-width="0">
                 <el-row>
                     <el-col :span="12">
-                        <el-form-item label="穿透密钥" prop="sForwardSecretKey">
-                            <el-input v-model="state.form.sForwardSecretKey" maxlength="36" show-word-limit />
+                        <el-form-item label="信标密钥" prop="signinSecretKey">
+                            <el-input v-model="state.form.signinSecretKey" maxlength="36" show-word-limit />
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
@@ -46,13 +46,27 @@
             <el-form-item label="" label-width="0">
                 <el-row>
                     <el-col :span="12">
-                        <el-form-item label="信标密钥" prop="signinSecretKey">
-                            <el-input v-model="state.form.signinSecretKey" maxlength="36" show-word-limit />
+                        <el-form-item label="穿透密钥" prop="sForwardSecretKey">
+                            <el-input v-model="state.form.sForwardSecretKey" maxlength="36" show-word-limit />
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="更新密钥" prop="updaterSecretKey">
                             <el-input v-model="state.form.updaterSecretKey" maxlength="36" show-word-limit />
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+            </el-form-item>
+            <el-form-item label="" label-width="0">
+                <el-row>
+                    <el-col :span="12">
+                        <el-form-item label="cdkey密钥" prop="cdkeySecretKey">
+                            <el-input v-model="state.form.cdkeySecretKey" maxlength="36" show-word-limit />
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="白名单密钥" prop="whiteListSecretKey">
+                            <el-input v-model="state.form.whiteListSecretKey" maxlength="36" show-word-limit />
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -81,10 +95,15 @@ export default {
                 tunnelPort2:step.value.form.server.tunnelPort2 ||globalData.value.config.Server.SForward.TunnelPortRange[1],
 
                 updaterSecretKey:step.value.form.server.updaterSecretKey ||globalData.value.config.Server.Updater.SecretKey,
+                cdkeySecretKey:step.value.form.server.cdkeySecretKey ||globalData.value.config.Server.Cdkey.SecretKey,
+                whiteListSecretKey:step.value.form.server.whiteListSecretKey ||globalData.value.config.Server.WhiteList.SecretKey,
             },
             rules: {
                 relaySecretKey: [{ required: true, message: "必填", trigger: "blur" }],
                 sForwardSecretKey: [{ required: true, message: "必填", trigger: "blur" }],
+                updaterSecretKey: [{ required: true, message: "必填", trigger: "blur" }],
+                cdkeySecretKey: [{ required: true, message: "必填", trigger: "blur" }],
+                whiteListSecretKey: [{ required: true, message: "必填", trigger: "blur" }],
                 servicePort: [
                     { required: true, message: "必填", trigger: "blur" },
                     {
@@ -164,6 +183,12 @@ export default {
                                     },
                                     SignIn:{
                                         SecretKey: state.form.signinSecretKey
+                                    },
+                                    Cdkey:{
+                                        SecretKey: state.form.cdkeySecretKey
+                                    },
+                                    WhiteList:{
+                                        SecretKey: state.form.whiteListSecretKey
                                     }
                                 }  
                             },

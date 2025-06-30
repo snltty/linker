@@ -23,6 +23,7 @@ using System.Text.Json;
 using linker.messenger.firewall;
 using linker.messenger.wakeup;
 using linker.messenger.cdkey;
+using linker.messenger.wlist;
 
 namespace linker.messenger.entry
 {
@@ -102,8 +103,10 @@ namespace linker.messenger.entry
                 .AddFirewallClient().AddFirewallServer()
 
                 //唤醒
-                .AddWakeupClient().AddWakeupServer();
+                .AddWakeupClient().AddWakeupServer()
 
+                //白名单
+                .AddWhiteListClient().AddWhiteListServer();
 
         }
         /// <summary>
@@ -186,7 +189,7 @@ namespace linker.messenger.entry
                     serviceProvider.UseWakeupServer();
 
                 serviceProvider.UseAccessServer().UseDecenterServer().UsePcpServer()
-                    .UseRelayServer().UseCdkeyServer()
+                    .UseRelayServer().UseCdkeyServer().UseWhiteListServer()
                  .UseSignInServer().UseSyncServer().UseTunnelServer().UseFlowServer();
 
                 serviceProvider.UseListen();
@@ -219,7 +222,7 @@ namespace linker.messenger.entry
 
 
                 serviceProvider.UseExRoute().UseAccessClient().UseDecenterClient().UsePcpClient()
-                    .UseRelayClient().UseCdkeyClient()
+                    .UseRelayClient().UseCdkeyClient().UseWhiteListClient()
                     .UseSyncClient().UseTunnelClient().UseFlowClient();
 
                 serviceProvider.UseSignInClient();

@@ -55,7 +55,7 @@ namespace linker.plugins.sforward.proxy
                     SocketReceiveFromResult result = await token.SourceSocket.ReceiveFromAsync(buffer, tempRemoteEP).ConfigureAwait(false);
                     if (result.ReceivedBytes == 0)
                     {
-                        break;
+                        continue;
                     }
 
                     Memory<byte> memory = buffer.AsMemory(0, result.ReceivedBytes);
@@ -202,8 +202,7 @@ namespace linker.plugins.sforward.proxy
                     SocketReceiveFromResult result = await serverUdp.ReceiveFromAsync(buffer, tempEp).ConfigureAwait(false);
                     if (result.ReceivedBytes == 0)
                     {
-                        cache.Clear();
-                        break;
+                        continue;
                     }
                     cache.LastTicks.Update();
 
@@ -246,8 +245,7 @@ namespace linker.plugins.sforward.proxy
                             SocketReceiveFromResult result = await serviceUdp.ReceiveFromAsync(buffer, tempEp).ConfigureAwait(false);
                             if (result.ReceivedBytes == 0)
                             {
-                                cache.Clear();
-                                break;
+                                continue;
                             }
                             Memory<byte> memory = buffer.AsMemory(0, result.ReceivedBytes);
                             AddReceive(portStr, string.Empty, memory.Length);

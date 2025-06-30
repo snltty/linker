@@ -5,7 +5,6 @@ using linker.messenger.relay.client;
 using linker.messenger.relay.server;
 using linker.messenger.signin;
 using linker.messenger.relay.server.validator;
-using linker.messenger.cdkey;
 
 namespace linker.messenger.relay.messenger
 {
@@ -48,9 +47,8 @@ namespace linker.messenger.relay.messenger
         private readonly ISerializer serializer;
         private readonly IRelayServerStore relayServerStore;
         private readonly RelayServerNodeTransfer relayServerNodeTransfer;
-        private readonly IRelayServerUser2NodeStore relayServerUser2NodeStore;
 
-        public RelayServerMessenger(IMessengerSender messengerSender, SignInServerCaching signCaching, ISerializer serializer, RelayServerMasterTransfer relayServerTransfer, RelayServerValidatorTransfer relayValidatorTransfer, IRelayServerStore relayServerStore, RelayServerNodeTransfer relayServerNodeTransfer, IRelayServerUser2NodeStore relayServerUser2NodeStore)
+        public RelayServerMessenger(IMessengerSender messengerSender, SignInServerCaching signCaching, ISerializer serializer, RelayServerMasterTransfer relayServerTransfer, RelayServerValidatorTransfer relayValidatorTransfer, IRelayServerStore relayServerStore, RelayServerNodeTransfer relayServerNodeTransfer)
         {
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;
@@ -59,7 +57,6 @@ namespace linker.messenger.relay.messenger
             this.serializer = serializer;
             this.relayServerStore = relayServerStore;
             this.relayServerNodeTransfer = relayServerNodeTransfer;
-            this.relayServerUser2NodeStore = relayServerUser2NodeStore;
         }
 
         /// <summary>
@@ -354,79 +351,6 @@ namespace linker.messenger.relay.messenger
         {
             string key = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
             connection.Write(relayServerStore.ValidateSecretKey(key) ? Helper.TrueArray : Helper.FalseArray);
-        }
-
-
-
-        /// <summary>
-        /// 添加CDKEY
-        /// </summary>
-        /// <param name="connection"></param>
-        [MessengerId((ushort)RelayMessengerIds.AddUser2Node)]
-        public async Task AddUser2Node(IConnection connection)
-        {
-            RelayServerUser2NodeAddInfo info = serializer.Deserialize<RelayServerUser2NodeAddInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
-            {
-                connection.Write(Helper.FalseArray);
-                return;
-            }
-            if (relayServerStore.ValidateSecretKey(info.SecretKey) == false)
-            {
-                connection.Write(Helper.FalseArray);
-                return;
-            }
-
-            await relayServerUser2NodeStore.Add(info.Data).ConfigureAwait(false);
-            connection.Write(Helper.TrueArray);
-        }
-
-        /// <summary>
-        /// 删除Cdkey
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <returns></returns>
-        [MessengerId((ushort)RelayMessengerIds.DelUser2Node)]
-        public async Task DelUser2Node(IConnection connection)
-        {
-            RelayServerUser2NodeDelInfo info = serializer.Deserialize<RelayServerUser2NodeDelInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
-            {
-                connection.Write(Helper.FalseArray);
-                return;
-            }
-            if (relayServerStore.ValidateSecretKey(info.SecretKey) == false)
-            {
-                connection.Write(Helper.FalseArray);
-                return;
-            }
-            await relayServerUser2NodeStore.Del(info.Id).ConfigureAwait(false);
-            connection.Write(Helper.TrueArray);
-        }
-
-        /// <summary>
-        /// 查询CDKEY
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <returns></returns>
-        [MessengerId((ushort)RelayMessengerIds.PageUser2Node)]
-        public async Task PageUser2Node(IConnection connection)
-        {
-            RelayServerUser2NodePageRequestInfo info = serializer.Deserialize<RelayServerUser2NodePageRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
-            {
-                connection.Write(serializer.Serialize(new RelayServerUser2NodePageResultInfo { }));
-                return;
-            }
-            if (relayServerStore.ValidateSecretKey(info.SecretKey) == false && string.IsNullOrWhiteSpace(info.UserId))
-            {
-                connection.Write(serializer.Serialize(new RelayServerUser2NodePageResultInfo { }));
-                return;
-            }
-
-            var page = await relayServerUser2NodeStore.Page(info).ConfigureAwait(false);
-
-            connection.Write(serializer.Serialize(page));
         }
 
     }

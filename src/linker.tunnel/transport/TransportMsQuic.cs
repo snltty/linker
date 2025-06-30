@@ -482,7 +482,7 @@ namespace linker.tunnel.transport
                 while (true)
                 {
                     SocketReceiveFromResult result = await token.RemoteUdp.ReceiveFromAsync(buffer, tempEp).ConfigureAwait(false);
-                    if (result.ReceivedBytes == 0) return;
+                    if (result.ReceivedBytes == 0) continue;
 
                     Memory<byte> memory = buffer.AsMemory(0, result.ReceivedBytes);
 
@@ -573,7 +573,7 @@ namespace linker.tunnel.transport
                     SocketReceiveFromResult result = await local.ReceiveFromAsync(buffer, tempEp).ConfigureAwait(false);
                     if (result.ReceivedBytes == 0)
                     {
-                        break;
+                        continue;
                     }
                     if (result.ReceivedBytes == endBytes.Length && buffer.AsMemory(0, result.ReceivedBytes).Span.SequenceEqual(endBytes))
                     {

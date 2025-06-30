@@ -52,7 +52,7 @@ namespace linker.messenger.forward.proxy
                     SocketReceiveFromResult result = await token.SourceSocket.ReceiveFromAsync(bytes, tempRemoteEP).ConfigureAwait(false);
                     if(result.ReceivedBytes == 0)
                     {
-                        break;
+                        continue;
                     }
 
                     token.Proxy.SourceEP = result.RemoteEndPoint as IPEndPoint;

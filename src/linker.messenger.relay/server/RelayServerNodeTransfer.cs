@@ -394,7 +394,7 @@ namespace linker.messenger.relay.server
             byte[] bytes = ArrayPool<byte>.Shared.Rent(1024);
             try
             {
-                byte[] secretKeyBytes = secretKey.Md5().ToBytes();
+                byte[] secretKeyBytes = secretKey.Sha256().ToBytes();
 
                 bytes[0] = (byte)secretKeyBytes.Length;
                 secretKeyBytes.AsSpan().CopyTo(bytes.AsSpan(1));

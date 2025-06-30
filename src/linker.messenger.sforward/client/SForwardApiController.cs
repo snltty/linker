@@ -213,7 +213,7 @@ namespace linker.messenger.sforward.client
             {
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)SForwardMessengerIds.CheckKey,
-                Payload = serializer.Serialize(param.Content)
+                Payload = serializer.Serialize(sForwardClientStore.SecretKey)
             }).ConfigureAwait(false);
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }

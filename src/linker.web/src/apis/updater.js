@@ -45,6 +45,6 @@ export const subscribeUpdater = () => {
 export const checkUpdater = (data) => {
     return sendWebsocketMsg('updater/check', data);
 }
-export const checkUpdaterKey = (key) => {
-    return sendWebsocketMsg('updater/checkkey',key);
+export const checkUpdaterKey = () => {
+    return sendWebsocketMsg('updater/checkkey');
 }

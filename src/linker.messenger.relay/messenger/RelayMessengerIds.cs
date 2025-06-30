@@ -31,11 +31,7 @@
 
         CheckKey = 2123,
 
-        AddUser2Node = 2124,
-        DelUser2Node = 2125,
-        PageUser2Node = 2126,
-
-        NodeGetCache186 = 2127,
+        NodeGetCache186 = 2124,
 
         Max = 2199
     }

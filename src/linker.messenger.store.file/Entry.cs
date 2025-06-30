@@ -17,7 +17,7 @@ using linker.messenger.signin;
 using linker.messenger.socks5;
 using linker.messenger.store.file.action;
 using linker.messenger.store.file.api;
-using linker.messenger.store.file.cekey;
+using linker.messenger.store.file.cdkey;
 using linker.messenger.store.file.common;
 using linker.messenger.store.file.firewall;
 using linker.messenger.store.file.forward;
@@ -34,12 +34,14 @@ using linker.messenger.store.file.tunnel;
 using linker.messenger.store.file.tuntap;
 using linker.messenger.store.file.updater;
 using linker.messenger.store.file.wakeup;
+using linker.messenger.store.file.wlist;
 using linker.messenger.sync;
 using linker.messenger.tunnel;
 using linker.messenger.tuntap;
 using linker.messenger.tuntap.lease;
 using linker.messenger.updater;
 using linker.messenger.wakeup;
+using linker.messenger.wlist;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json;
 namespace linker.messenger.store.file
@@ -70,7 +72,6 @@ namespace linker.messenger.store.file
             serviceCollection.AddSingleton<IRelayServerStore, RelayServerStore>();
             serviceCollection.AddSingleton<IRelayServerNodeStore, RelayServerNodeStore>();
             serviceCollection.AddSingleton<IRelayServerMasterStore, RelayServerMasterStore>();
-            serviceCollection.AddSingleton<IRelayServerUser2NodeStore, RelayServerUser2NodeStore>();
 
             serviceCollection.AddSingleton<ICdkeyServerStore, CdkeyServerStore>();
             serviceCollection.AddSingleton<ICdkeyClientStore, CdkeyClientStore>();
@@ -119,6 +120,8 @@ namespace linker.messenger.store.file
 
             serviceCollection.AddSingleton<IWakeupClientStore, WakeupClientStore>();
 
+            serviceCollection.AddSingleton<IWhiteListServerStore, WhiteListServerStore>();
+            serviceCollection.AddSingleton<IWhiteListClientStore, WhiteListClientStore>();
 
 
             return serviceCollection;

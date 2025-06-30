@@ -6,9 +6,9 @@
                 <Sync class="mgl-1" name="SForwardSecretKey"></Sync>
                 <span class="mgl-1" v-if="globalData.isPc">{{$t('server.sforwardText')}}</span>
             </div>
-            <div class="flex">
+            <!-- <div class="flex">
                 <Cdkey type="SForward"></Cdkey>
-            </div>
+            </div> -->
         </div>
     </el-form-item>
 </template>
@@ -51,7 +51,7 @@ export default {
             handleCheckKey();
         }
         const handleCheckKey = ()=>{
-            checkSForwardKey(state.SForwardSecretKey).then((res)=>{
+            checkSForwardKey().then((res)=>{
                 state.keyState = res;
             });
         }
