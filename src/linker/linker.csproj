@@ -21,16 +21,15 @@
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Description>1. 一些累计更新
-2. 备用信标服务器
-3. 设置默认中继节点
-4. 动态路由跳点</Description>
+2. 白名单
+3. 一些已知的BUG</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>1.8.5</Version>
-		<AssemblyVersion>1.8.5</AssemblyVersion>
-		<FileVersion>1.8.5</FileVersion>
+		<Version>1.8.6</Version>
+		<AssemblyVersion>1.8.6</AssemblyVersion>
+		<FileVersion>1.8.6</FileVersion>
 		<DelaySign>False</DelaySign>
 	</PropertyGroup>
 

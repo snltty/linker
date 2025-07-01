@@ -3,6 +3,7 @@ using linker.libs.extends;
 using linker.libs.web;
 using linker.messenger.api;
 using linker.messenger.signin;
+using linker.tunnel.connection;
 using linker.tunnel.transport;
 
 namespace linker.messenger.action
@@ -52,7 +53,7 @@ namespace linker.messenger.action
         [Access(AccessValue.Action)]
         public async Task<bool> SetServerArgs(ApiControllerParamsInfo param)
         {
-            KeyValuePair<string, string> keyValue = param.Content.DeJson<KeyValuePair<string, string>>();
+            KeyValuePairInfo keyValue = param.Content.DeJson<KeyValuePairInfo>();
 
             if (keyValue.Key == signInClientStore.Id || string.IsNullOrWhiteSpace(keyValue.Key))
             {
@@ -62,10 +63,16 @@ namespace linker.messenger.action
             {
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)ActionMessengerIds.SetForward,
-                Payload = serializer.Serialize(keyValue)
+                Payload = serializer.Serialize(new KeyValuePair<string, string>(keyValue.Key, keyValue.Value))
             }).ConfigureAwait(false);
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
+    }
+
+    public sealed class KeyValuePairInfo
+    {
+        public string Key { get; set; } = string.Empty;
+        public string Value { get; set; } = string.Empty;
     }
 
 }
