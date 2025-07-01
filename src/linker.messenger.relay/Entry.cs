@@ -51,7 +51,6 @@ namespace linker.messenger.relay
 
             serviceCollection.AddSingleton<IRelayServerCaching, RelayServerCachingMemory>();
 
-            serviceCollection.AddSingleton<RelayServerValidatorSecretKey>();
             serviceCollection.AddSingleton<RelayServerValidatorTransfer>();
 
             return serviceCollection;
@@ -70,10 +69,6 @@ namespace linker.messenger.relay
 
             RelayServerNodeTransfer relayServerNodeTransfer = serviceProvider.GetService<RelayServerNodeTransfer>();
             RelayServerMasterTransfer relayServerMasterTransfer = serviceProvider.GetService<RelayServerMasterTransfer>();
-
-            RelayServerValidatorTransfer relayServerValidatorTransfer = serviceProvider.GetService<RelayServerValidatorTransfer>();
-            relayServerValidatorTransfer.AddValidators(new List<IRelayServerValidator> { serviceProvider.GetService<RelayServerValidatorSecretKey>() });
-
             return serviceProvider;
         }
     }

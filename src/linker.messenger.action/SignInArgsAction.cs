@@ -162,7 +162,7 @@ namespace linker.messenger.action
             this.actionServerStore = actionServerStore;
         }
 
-        public async Task<string> Validate(linker.messenger.relay.client.transport.RelayInfo relayInfo, SignCacheInfo fromMachine, SignCacheInfo toMachine)
+        public async Task<string> Validate(linker.messenger.relay.client.transport.RelayInfo170 relayInfo, SignCacheInfo fromMachine, SignCacheInfo toMachine)
         {
             if (string.IsNullOrWhiteSpace(actionServerStore.RelayActionUrl) == false)
             {

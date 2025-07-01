@@ -48,7 +48,7 @@ namespace linker.messenger.relay.server.validator
         /// <param name="cache"></param>
         /// <param name="cache1"></param>
         /// <returns></returns>
-        public async Task<string> Validate(RelayInfo relayInfo, SignCacheInfo cache, SignCacheInfo cache1)
+        public async Task<string> Validate(RelayInfo170 relayInfo, SignCacheInfo cache, SignCacheInfo cache1)
         {
             foreach (var item in validators)
             {

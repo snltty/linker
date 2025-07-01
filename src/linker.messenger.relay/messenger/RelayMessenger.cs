@@ -64,23 +64,9 @@ namespace linker.messenger.relay.messenger
         /// </summary>
         /// <param name="connection"></param>
         [MessengerId((ushort)RelayMessengerIds.RelayTest)]
-        public async Task RelayTest(IConnection connection)
+        public void RelayTest(IConnection connection)
         {
-            RelayTestInfo info = serializer.Deserialize<RelayTestInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
-            {
-                connection.Write(serializer.Serialize(new List<RelayServerNodeReportInfo> { }));
-                return;
-            }
-            (List<RelayServerNodeReportInfo170> nodes, bool validated) = await GetNodes(new client.transport.RelayInfo170
-            {
-                SecretKey = info.SecretKey,
-                FromMachineId = info.MachineId,
-                FromMachineName = cache.MachineName,
-                TransactionId = "test",
-                TransportName = "test",
-            }, cache, null);
-            connection.Write(serializer.Serialize(nodes.Select(c => (RelayServerNodeReportInfo)c).ToList()));
+            connection.Write(serializer.Serialize(new List<RelayServerNodeReportInfo> { }));
         }
         [MessengerId((ushort)RelayMessengerIds.RelayTest170)]
         public async Task RelayTest170(IConnection connection)
@@ -91,15 +77,7 @@ namespace linker.messenger.relay.messenger
                 connection.Write(serializer.Serialize(new List<RelayServerNodeReportInfo170> { }));
                 return;
             }
-            (List<RelayServerNodeReportInfo170> nodes, bool validated) = await GetNodes(new client.transport.RelayInfo170
-            {
-                SecretKey = info.SecretKey,
-                FromMachineId = info.MachineId,
-                FromMachineName = cache.MachineName,
-                UserId = info.UserId,
-                TransactionId = "test",
-                TransportName = "test",
-            }, cache, null);
+            (List<RelayServerNodeReportInfo170> nodes, bool validated) = await GetNodes(info.SecretKey, info.UserId);
             connection.Write(serializer.Serialize(nodes));
         }
 
@@ -108,28 +86,9 @@ namespace linker.messenger.relay.messenger
         /// </summary>
         /// <param name="connection"></param>
         [MessengerId((ushort)RelayMessengerIds.RelayAsk)]
-        public async Task RelayAsk(IConnection connection)
+        public void RelayAsk(IConnection connection)
         {
-            RelayInfo info = serializer.Deserialize<RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id, info.RemoteMachineId, out SignCacheInfo from, out SignCacheInfo to) == false)
-            {
-                connection.Write(serializer.Serialize(new RelayAskResultInfo { }));
-                return;
-            }
-
-            info.RemoteMachineId = to.MachineId;
-            info.FromMachineId = from.MachineId;
-            info.RemoteMachineName = to.MachineName;
-            info.FromMachineName = from.MachineName;
-
-            RelayAskResultInfo result = new RelayAskResultInfo();
-            (List<RelayServerNodeReportInfo170> nodes, bool validated) = await GetNodes(info, from, to);
-            result.Nodes = nodes.Select(c => (RelayServerNodeReportInfo)c).ToList();
-            if (result.Nodes.Count > 0)
-            {
-                result.FlowingId = relayServerTransfer.AddRelay(from.MachineId, from.MachineName, to.MachineId, to.MachineName, from.GroupId, string.Empty, validated, false);
-            }
-            connection.Write(serializer.Serialize(result));
+            connection.Write(serializer.Serialize(new RelayAskResultInfo { }));
         }
         [MessengerId((ushort)RelayMessengerIds.RelayAsk170)]
         public async Task RelayAsk170(IConnection connection)
@@ -147,7 +106,7 @@ namespace linker.messenger.relay.messenger
             info.FromMachineName = from.MachineName;
 
             RelayAskResultInfo170 result = new RelayAskResultInfo170();
-            (result.Nodes, bool validated) = await GetNodes(info, from, to).ConfigureAwait(false);
+            (result.Nodes, bool validated) = await GetNodes(info.SecretKey, info.UserId).ConfigureAwait(false);
             if (result.Nodes.Count > 0)
             {
                 result.FlowingId = relayServerTransfer.AddRelay(from.MachineId, from.MachineName, to.MachineId, to.MachineName, from.GroupId, info.UserId, validated, info.UseCdkey);
@@ -156,17 +115,10 @@ namespace linker.messenger.relay.messenger
             connection.Write(serializer.Serialize(result));
         }
 
-        private async Task<(List<RelayServerNodeReportInfo170>, bool)> GetNodes(RelayInfo relayInfo, SignCacheInfo from, SignCacheInfo to)
+        private async Task<(List<RelayServerNodeReportInfo170>, bool)> GetNodes(string secretKey, string userid)
         {
-            string error = await relayValidatorTransfer.Validate(relayInfo, from, to).ConfigureAwait(false);
-            bool validated = string.IsNullOrWhiteSpace(error);
-            return (await relayServerTransfer.GetNodes(validated, string.Empty), validated);
-        }
-        private async Task<(List<RelayServerNodeReportInfo170>, bool)> GetNodes(RelayInfo170 relayInfo, SignCacheInfo from, SignCacheInfo to)
-        {
-            string error = await relayValidatorTransfer.Validate(relayInfo, from, to).ConfigureAwait(false);
-            bool validated = string.IsNullOrWhiteSpace(error);
-            return (await relayServerTransfer.GetNodes(validated, relayInfo.UserId), validated);
+            bool validated = relayServerStore.ValidateSecretKey(secretKey);
+            return (await relayServerTransfer.GetNodes(validated, userid), validated);
         }
 
 
@@ -176,37 +128,14 @@ namespace linker.messenger.relay.messenger
         /// <param name="connection"></param>
         /// <returns></returns>
         [MessengerId((ushort)RelayMessengerIds.RelayForward)]
-        public async Task RelayForward(IConnection connection)
+        public void RelayForward(IConnection connection)
         {
-            RelayInfo info = serializer.Deserialize<RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            await RelayForward(connection, new RelayInfo170
-            {
-                FlowingId = info.FlowingId,
-                FromMachineId = info.FromMachineId,
-                FromMachineName = info.FromMachineName,
-                RemoteMachineId = info.RemoteMachineId,
-                RemoteMachineName = info.RemoteMachineName,
-                NodeId = info.NodeId,
-                UserId = string.Empty,
-                TransactionId = info.TransactionId,
-                TransportName = info.TransportName,
-                SecretKey = info.SecretKey,
-            }, (ushort)RelayMessengerIds.RelayForward, () =>
-            {
-                return serializer.Serialize(info);
-            }).ConfigureAwait(false);
+            connection.Write(Helper.FalseArray);
         }
         [MessengerId((ushort)RelayMessengerIds.RelayForward170)]
         public async Task RelayForward170(IConnection connection)
         {
             RelayInfo170 info = serializer.Deserialize<RelayInfo170>(connection.ReceiveRequestWrap.Payload.Span);
-            await RelayForward(connection, info, (ushort)RelayMessengerIds.RelayForward170, () =>
-            {
-                return serializer.Serialize(info);
-            }).ConfigureAwait(false);
-        }
-        public async Task RelayForward(IConnection connection, RelayInfo170 info, ushort id, Func<byte[]> data)
-        {
             if (signCaching.TryGet(connection.Id, info.RemoteMachineId, out SignCacheInfo from, out SignCacheInfo to) == false)
             {
                 connection.Write(Helper.FalseArray);
@@ -214,7 +143,7 @@ namespace linker.messenger.relay.messenger
             }
 
             //需要验证
-            if (await relayServerTransfer.NodeValidate(info.NodeId, info.UserId))
+            if (relayServerStore.ValidateSecretKey(info.SecretKey) == false && await relayServerTransfer.NodeValidate(info.NodeId, info.UserId))
             {
                 info.RemoteMachineId = to.MachineId;
                 info.FromMachineId = from.MachineId;
@@ -239,7 +168,7 @@ namespace linker.messenger.relay.messenger
                 {
                     Connection = to.Connection,
                     MessengerId = (ushort)RelayMessengerIds.Relay,
-                    Payload = data()
+                    Payload = connection.ReceiveRequestWrap.Payload
                 }).ContinueWith(async (result) =>
                 {
                     await messengerSender.ReplyOnly(new MessageResponseWrap
@@ -247,7 +176,7 @@ namespace linker.messenger.relay.messenger
                         RequestId = requiestid,
                         Connection = connection,
                         Payload = result.Result.Data
-                    }, id).ConfigureAwait(false);
+                    }, (ushort)RelayMessengerIds.RelayForward170).ConfigureAwait(false);
                 }).ConfigureAwait(false);
             }
             catch (Exception)
