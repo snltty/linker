@@ -6,6 +6,7 @@ using linker.messenger.relay.messenger;
 using linker.messenger.relay.server.caching;
 using linker.messenger.wlist;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Net;
 
 namespace linker.messenger.relay.server
@@ -154,9 +155,11 @@ namespace linker.messenger.relay.server
         /// </summary>
         /// <param name="nodeId"></param>
         /// <returns></returns>
-        public bool NodeValidate(string nodeId)
+        public async Task<bool> NodeValidate(string nodeId,string userid)
         {
-            return reports.TryGetValue(nodeId, out RelayServerNodeReportInfo170 relayNodeReportInfo) && relayNodeReportInfo.Public == false;
+            var nodes = await whiteListServerStore.Get("Relay", userid);
+            return reports.TryGetValue(nodeId, out RelayServerNodeReportInfo170 node) 
+                && node.Public == false && nodes.Contains(node.Id) == false;
         }
 
         /// <summary>

@@ -168,7 +168,7 @@ namespace linker.messenger.relay.messenger
             bool validated = string.IsNullOrWhiteSpace(error);
             return (await relayServerTransfer.GetNodes(validated, relayInfo.UserId), validated);
         }
-       
+
 
         /// <summary>
         /// 收到中继请求
@@ -179,7 +179,19 @@ namespace linker.messenger.relay.messenger
         public async Task RelayForward(IConnection connection)
         {
             RelayInfo info = serializer.Deserialize<RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            await RelayForward(connection, info, (ushort)RelayMessengerIds.RelayForward, () =>
+            await RelayForward(connection, new RelayInfo170
+            {
+                FlowingId = info.FlowingId,
+                FromMachineId = info.FromMachineId,
+                FromMachineName = info.FromMachineName,
+                RemoteMachineId = info.RemoteMachineId,
+                RemoteMachineName = info.RemoteMachineName,
+                NodeId = info.NodeId,
+                UserId = string.Empty,
+                TransactionId = info.TransactionId,
+                TransportName = info.TransportName,
+                SecretKey = info.SecretKey,
+            }, (ushort)RelayMessengerIds.RelayForward, () =>
             {
                 return serializer.Serialize(info);
             }).ConfigureAwait(false);
@@ -193,7 +205,7 @@ namespace linker.messenger.relay.messenger
                 return serializer.Serialize(info);
             }).ConfigureAwait(false);
         }
-        public async Task RelayForward(IConnection connection, RelayInfo info, ushort id, Func<byte[]> data)
+        public async Task RelayForward(IConnection connection, RelayInfo170 info, ushort id, Func<byte[]> data)
         {
             if (signCaching.TryGet(connection.Id, info.RemoteMachineId, out SignCacheInfo from, out SignCacheInfo to) == false)
             {
@@ -202,7 +214,7 @@ namespace linker.messenger.relay.messenger
             }
 
             //需要验证
-            if (relayServerTransfer.NodeValidate(info.NodeId))
+            if (await relayServerTransfer.NodeValidate(info.NodeId, info.UserId))
             {
                 info.RemoteMachineId = to.MachineId;
                 info.FromMachineId = from.MachineId;
