@@ -76,7 +76,11 @@ export default {
                 return;
             }
             if(!hasUpdateSelf.value){
-                ElMessage.success('无权限');
+                ElMessage.error('无权限');
+                return;
+            }
+            if(props.item.MachineId != globalData.value.self.MachineId && !hasUpdateOther.value){
+                ElMessage.error('无权限');
                 return;
             }
 
