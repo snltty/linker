@@ -11,6 +11,10 @@
         /// </summary>
         public string RelayActionUrl { get; }
         /// <summary>
+        /// 中继节点验证地址
+        /// </summary>
+        public string RelayNodeUrl { get; }
+        /// <summary>
         /// 内网穿透验证地址
         /// </summary>
         public string SForwardActionUrl { get; }
@@ -27,6 +31,7 @@
         /// <param name="url"></param>
         /// <returns></returns>
         public bool SetRelayActionUrl(string url);
+        public bool SetRelayNodeUrl(string url);
         /// <summary>
         /// 登录验证地址
         /// </summary>

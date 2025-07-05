@@ -103,7 +103,7 @@ namespace linker.messenger.flow.messenger
                 return;
             }
 
-            if (cache.Super == false)
+            if (cache.Super)
             {
                 info.GroupId = string.Empty;
             }

@@ -19,7 +19,7 @@ export default {
         const {t} = useI18n();
         const globalData = injectGlobalData();
         const state = reactive({
-            sync2Server:false
+            sync2Server:globalData.value.config.Client.Updater.Sync2Server,
         });
         const handleSync2ServerChange = ()=>{
             setSync2Server(state.sync2Server).then(()=>{

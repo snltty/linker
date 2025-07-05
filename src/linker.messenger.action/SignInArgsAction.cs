@@ -1,4 +1,6 @@
 ﻿using linker.libs.extends;
+using linker.messenger.relay.client.transport;
+using linker.messenger.relay.server;
 using linker.messenger.relay.server.validator;
 using linker.messenger.sforward;
 using linker.messenger.sforward.server.validator;
@@ -19,6 +21,10 @@ namespace linker.messenger.action
         /// 中继信息，非中继验证时为null
         /// </summary>
         public JsonArgRelayInfo Relay { get; set; }
+        /// <summary>
+        /// 中继节点验证，
+        /// </summary>
+        public JsonArgRelayNodeInfo RelayNode { get; set; }
         /// <summary>
         /// 穿透信息，非穿透验证时为null
         /// </summary>
@@ -81,6 +87,24 @@ namespace linker.messenger.action
         /// 流水id
         /// </summary>
         public ulong FlowingId { get; set; }
+    }
+    public sealed class JsonArgRelayNodeInfo
+    {
+        /// <summary>
+        /// 来源设备id
+        /// </summary>
+        public string FromMachineId { get; set; }
+        /// <summary>
+        /// 来源设备名
+        /// </summary>
+        public string FromMachineName { get; set; }
+        public List<JsonArgRelayNodeItemInfo> Nodes { get; set; } = [];
+    }
+    public sealed class JsonArgRelayNodeItemInfo
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public bool Public { get; set; }
     }
     public sealed class JsonArgSForwardInfo
     {
@@ -203,6 +227,44 @@ namespace linker.messenger.action
                 return await actionTransfer.ExcuteActions(Replace(replace, str), actionServerStore.RelayActionUrl).ConfigureAwait(false);
             }
             return string.Empty;
+        }
+        public async Task<List<RelayServerNodeReportInfo170>> Validate(string userid, SignCacheInfo fromMachine, List<RelayServerNodeReportInfo170> nodes)
+        {
+            if (string.IsNullOrWhiteSpace(actionServerStore.RelayNodeUrl) == false)
+            {
+                if (actionServerStore.TryGetActionArg(fromMachine.Args, out string str, out string machineKey) == false)
+                {
+                    return [];
+                }
+                JsonArgInfo replace = new JsonArgInfo
+                {
+                    RelayNode = new JsonArgRelayNodeInfo
+                    {
+                        FromMachineId = fromMachine.Id,
+                        FromMachineName = fromMachine.MachineName,
+                        Nodes = nodes.Select(c => new JsonArgRelayNodeItemInfo
+                        {
+                            Id = c.Id,
+                            Name = c.Name,
+                            Public = c.Public
+                        }).ToList() ?? []
+                    },
+                    Signin = new JsonArgSignInInfo
+                    {
+                        GroupId = fromMachine.GroupId,
+                        MachineId = fromMachine.MachineId,
+                        MachineName = fromMachine.MachineName,
+                        MachineKey = machineKey,
+                        IPAddress = fromMachine.Connection.Address.Address,
+                        Super = fromMachine.Super
+                    }
+                };
+                string ids = await actionTransfer.ExcuteActions(Replace(replace, str), actionServerStore.RelayNodeUrl).ConfigureAwait(false);
+                if (string.IsNullOrWhiteSpace(ids)) return [];
+
+                return nodes.Where(c => ids.Split(',').Contains(c.Id)).ToList();
+            }
+            return nodes;
         }
     }
 

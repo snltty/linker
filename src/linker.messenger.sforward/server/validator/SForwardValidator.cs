@@ -17,7 +17,7 @@ namespace linker.messenger.sforward.server.validator
 
         public async Task<string> Validate(SignCacheInfo signCacheInfo, SForwardAddInfo sForwardAddInfo)
         {
-            if (signCacheInfo.Super)
+            if (signCacheInfo.Super == false)
             {
                 return $"need super key and password";
             }

@@ -58,7 +58,6 @@ namespace linker.messenger.store.file
         public string SecretKey { get; set; } = Helper.GlobalString;
 #else
         public string SecretKey { get; set; }  = Guid.NewGuid().ToString().ToUpper();
-        public string SuperPassword { get; set; } = Guid.NewGuid().ToString().ToUpper();
 #endif
     }
 }

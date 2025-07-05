@@ -79,7 +79,7 @@ namespace linker.messenger.relay.messenger
                 connection.Write(serializer.Serialize(new List<RelayServerNodeReportInfo170> { }));
                 return;
             }
-            (List<RelayServerNodeReportInfo170> nodes, bool validated) = await GetNodes(cache.Super, info.UserId);
+            List<RelayServerNodeReportInfo170> nodes = await GetNodes(info.UserId, cache);
             connection.Write(serializer.Serialize(nodes));
         }
 
@@ -103,18 +103,18 @@ namespace linker.messenger.relay.messenger
             }
 
             RelayAskResultInfo170 result = new RelayAskResultInfo170();
-            (result.Nodes, bool validated) = await GetNodes(from.Super, info.UserId).ConfigureAwait(false);
+            result.Nodes = await GetNodes(info.UserId, from).ConfigureAwait(false);
             if (result.Nodes.Count > 0)
             {
-                result.FlowingId = relayServerTransfer.AddRelay(from.MachineId, from.MachineName, to.MachineId, to.MachineName, from.GroupId, info.UserId, validated, info.UseCdkey);
+                result.FlowingId = relayServerTransfer.AddRelay(from.MachineId, from.MachineName, to.MachineId, to.MachineName, from.GroupId, info.UserId, from.Super, info.UseCdkey);
             }
 
             connection.Write(serializer.Serialize(result));
         }
 
-        private async Task<(List<RelayServerNodeReportInfo170>, bool)> GetNodes(bool super, string userid)
+        private async Task<List<RelayServerNodeReportInfo170>> GetNodes(string userid, SignCacheInfo from)
         {
-            return (await relayServerTransfer.GetNodes(super, userid), super);
+            return await relayServerTransfer.GetNodes(from.Super, userid);
         }
 
 
@@ -248,7 +248,7 @@ namespace linker.messenger.relay.messenger
         public async Task UpdateNodeForward(IConnection connection)
         {
             RelayServerNodeUpdateWrapInfo info = serializer.Deserialize<RelayServerNodeUpdateWrapInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id,  out SignCacheInfo cache) && cache.Super)
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) && cache.Super)
             {
                 await relayServerTransfer.UpdateNodeReport(info.Info).ConfigureAwait(false);
                 connection.Write(Helper.TrueArray);

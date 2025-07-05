@@ -7,7 +7,9 @@ namespace linker.messenger.store.file.action
 
         public string SignInActionUrl => config.Data.Action.SignInActionUrl;
         public string RelayActionUrl => config.Data.Action.RelayActionUrl;
+        public string RelayNodeUrl => config.Data.Action.RelayNodeUrl;
         public string SForwardActionUrl => config.Data.Action.SForwardActionUrl;
+      
 
         private readonly FileConfig config;
         public ActionServerStore(FileConfig config)
@@ -24,6 +26,11 @@ namespace linker.messenger.store.file.action
         public bool SetRelayActionUrl(string url)
         {
             config.Data.Action.RelayActionUrl = url;
+            return true;
+        }
+        public bool SetRelayNodeUrl(string url)
+        {
+            config.Data.Action.RelayNodeUrl = url;
             return true;
         }
 
@@ -47,7 +54,7 @@ namespace linker.messenger.store.file.action
             return true;
         }
 
-      
+        
     }
 
 }

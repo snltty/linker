@@ -229,7 +229,7 @@ namespace linker.messenger.updater
             }
 
             //需要密钥
-            if (confirm.All && cache.Super)
+            if (confirm.All && cache.Super == false)
             {
                 connection.Write(Helper.FalseArray);
                 return;

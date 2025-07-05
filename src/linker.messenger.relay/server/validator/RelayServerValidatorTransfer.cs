@@ -60,6 +60,18 @@ namespace linker.messenger.relay.server.validator
             }
             return string.Empty;
         }
+        public async Task<List<RelayServerNodeReportInfo170>> Validate(string userid, SignCacheInfo fromMachine, List<RelayServerNodeReportInfo170> nodes)
+        {
+            foreach (var item in validators)
+            {
+                nodes = await item.Validate(userid, fromMachine, nodes).ConfigureAwait(false);
+                if (nodes == null || nodes.Count == 0)
+                {
+                    return [];
+                }
+            }
+            return nodes;
+        }
 
         public sealed class RelayServerValidatorEqualityComparer : IEqualityComparer<IRelayServerValidator>
         {

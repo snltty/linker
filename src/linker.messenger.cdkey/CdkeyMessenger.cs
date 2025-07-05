@@ -52,7 +52,7 @@ namespace linker.messenger.cdkey
                 connection.Write(Helper.FalseArray);
                 return;
             }
-            if (cache.Super == false)
+            if (cache.Super)
             {
                 await cdkeyStore.Del(info.Id).ConfigureAwait(false);
             }
