@@ -420,14 +420,6 @@ namespace linker.plugins.sforward.messenger
             return arr.Length == 2 && int.TryParse(arr[0], out min) && int.TryParse(arr[1], out max);
         }
 
-
-
-        [MessengerId((ushort)SForwardMessengerIds.CheckKey)]
-        public void CheckKey(IConnection connection)
-        {
-            string key = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            connection.Write(sForwardServerStore.ValidateSecretKey(key) ? Helper.TrueArray : Helper.FalseArray);
-        }
     }
 
     /// <summary>

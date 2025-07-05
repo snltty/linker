@@ -35,6 +35,6 @@ export const setSignInGroups = (data) => {
 export const getSignInNames = () => {
     return sendWebsocketMsg('signIn/names');
 }
-export const checkSignInKey = (key) => {
-    return sendWebsocketMsg('signIn/checkkey',key);
+export const checkSignInKey = () => {
+    return sendWebsocketMsg('signIn/CheckSuper');
 }

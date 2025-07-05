@@ -11,12 +11,6 @@ export const exit = (machineId) => {
     return sendWebsocketMsg('updater/exit', machineId);
 }
 
-export const getSecretKey = () => {
-    return sendWebsocketMsg('updater/GetSecretKey');
-}
-export const setSecretKey = (data) => {
-    return sendWebsocketMsg('updater/SetSecretKey', data);
-}
 export const setSync2Server = (data) => {
     return sendWebsocketMsg('updater/SetSync2Server', data);
 }
@@ -44,7 +38,4 @@ export const subscribeUpdater = () => {
 }
 export const checkUpdater = (data) => {
     return sendWebsocketMsg('updater/check', data);
-}
-export const checkUpdaterKey = () => {
-    return sendWebsocketMsg('updater/checkkey');
 }

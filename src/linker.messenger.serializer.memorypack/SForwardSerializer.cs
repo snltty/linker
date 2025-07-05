@@ -108,7 +108,7 @@ namespace linker.messenger.serializer.memorypack
         int RemotePort => info.RemotePort;
 
         [MemoryPackInclude]
-        string SecretKey => info.SecretKey;
+        string SecretKey => string.Empty;
 
         [MemoryPackConstructor]
         SerializableSForwardAddInfo(string domain, int remotePort, string secretKey)
@@ -116,8 +116,7 @@ namespace linker.messenger.serializer.memorypack
             this.info = new SForwardAddInfo
             {
                 RemotePort = remotePort,
-                Domain = domain,
-                SecretKey = secretKey
+                Domain = domain
             };
         }
 

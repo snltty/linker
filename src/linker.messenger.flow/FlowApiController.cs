@@ -17,9 +17,9 @@ namespace linker.messenger.flow
         private readonly ISForwardClientStore sForwardClientStore;
         private readonly ISerializer serializer;
         private readonly ISignInClientStore signInClientStore;
-        private readonly MessengerFlow messengerFlow;
+        private readonly FlowMessenger messengerFlow;
 
-        public FlowApiController(IMessengerSender messengerSender, SignInClientState signInClientState, IRelayClientStore relayClientStore, ISForwardClientStore sForwardClientStore, ISerializer serializer, ISignInClientStore signInClientStore, MessengerFlow messengerFlow)
+        public FlowApiController(IMessengerSender messengerSender, SignInClientState signInClientState, IRelayClientStore relayClientStore, ISForwardClientStore sForwardClientStore, ISerializer serializer, ISignInClientStore signInClientStore, FlowMessenger messengerFlow)
         {
             this.messengerSender = messengerSender;
             this.signInClientState = signInClientState;
@@ -109,8 +109,6 @@ namespace linker.messenger.flow
         public async Task<SForwardFlowResponseInfo> GetSForwardFlows(ApiControllerParamsInfo param)
         {
             SForwardFlowRequestInfo info = param.Content.DeJson<SForwardFlowRequestInfo>();
-            info.SecretKey = sForwardClientStore.SecretKey;
-
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
@@ -128,7 +126,6 @@ namespace linker.messenger.flow
         public async Task<RelayFlowResponseInfo> GetRelayFlows(ApiControllerParamsInfo param)
         {
             RelayFlowRequestInfo info = param.Content.DeJson<RelayFlowRequestInfo>();
-            info.SecretKey = relayClientStore.Server.SecretKey;
 
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {

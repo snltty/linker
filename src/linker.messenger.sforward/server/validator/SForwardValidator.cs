@@ -17,9 +17,9 @@ namespace linker.messenger.sforward.server.validator
 
         public async Task<string> Validate(SignCacheInfo signCacheInfo, SForwardAddInfo sForwardAddInfo)
         {
-            if (sForwardServerStore.ValidateSecretKey(sForwardAddInfo.SecretKey) == false)
+            if (signCacheInfo.Super)
             {
-                return $"sforward secretKey 【{sForwardAddInfo.SecretKey}】 valid fail";
+                return $"need super key and password";
             }
 
             if (sForwardAddInfo.RemotePort > 0)
@@ -29,8 +29,7 @@ namespace linker.messenger.sforward.server.validator
                     return $"sforward tunnel port range {string.Join("-", sForwardServerStore.TunnelPortRange)}";
                 }
             }
-            await Task.CompletedTask.ConfigureAwait(false);
-            return string.Empty;
+            return await Task.FromResult(string.Empty);
         }
     }
 }

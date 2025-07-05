@@ -16,7 +16,7 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         string MachineId => info.MachineId;
         [MemoryPackInclude]
-        string SecretKey => info.SecretKey;
+        string SecretKey => string.Empty;
 
         [MemoryPackInclude, MemoryPackAllowSerialize]
         IPEndPoint Server => info.Server;
@@ -24,7 +24,7 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackConstructor]
         SerializableRelayTestInfo(string machineId, string secretKey, IPEndPoint server)
         {
-            var info = new RelayTestInfo { MachineId = machineId, SecretKey = secretKey, Server = server };
+            var info = new RelayTestInfo { MachineId = machineId, Server = server };
             this.info = info;
         }
 
@@ -70,7 +70,7 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         string MachineId => info.MachineId;
         [MemoryPackInclude]
-        string SecretKey => info.SecretKey;
+        string SecretKey => string.Empty;
 
         [MemoryPackInclude, MemoryPackAllowSerialize]
         IPEndPoint Server => info.Server;
@@ -80,7 +80,7 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackConstructor]
         SerializableRelayTestInfo170(string machineId, string secretKey, IPEndPoint server, string userid)
         {
-            var info = new RelayTestInfo170 { MachineId = machineId, SecretKey = secretKey, Server = server, UserId = userid };
+            var info = new RelayTestInfo170 { MachineId = machineId, Server = server, UserId = userid };
             this.info = info;
         }
 
@@ -135,7 +135,7 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         string TransactionId => info.TransactionId;
         [MemoryPackInclude]
-        string SecretKey => info.SecretKey;
+        string SecretKey => string.Empty;
         [MemoryPackInclude]
         string TransportName => info.TransportName;
         [MemoryPackInclude]
@@ -165,7 +165,6 @@ namespace linker.messenger.serializer.memorypack
                 SSL = ssl,
                 TransactionId = transactionId,
                 TransportName = transportName,
-                SecretKey = secretKey,
                 Server = server
             };
             this.info = info;
@@ -221,7 +220,7 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         string TransactionId => info.TransactionId;
         [MemoryPackInclude]
-        string SecretKey => info.SecretKey;
+        string SecretKey => string.Empty;
         [MemoryPackInclude]
         string TransportName => info.TransportName;
         [MemoryPackInclude]
@@ -257,7 +256,6 @@ namespace linker.messenger.serializer.memorypack
                 SSL = ssl,
                 TransactionId = transactionId,
                 TransportName = transportName,
-                SecretKey = secretKey,
                 Server = server,
                 UserId = userid,
                 UseCdkey = useCdkey
@@ -388,17 +386,15 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackIgnore]
         public readonly RelayServerNodeUpdateWrapInfo info;
         [MemoryPackInclude]
-        string SecretKey => info.SecretKey;
+        string SecretKey => string.Empty;
         [MemoryPackInclude, MemoryPackAllowSerialize]
         RelayServerNodeUpdateInfo Info => info.Info;
 
         [MemoryPackConstructor]
-        SerializableRelayServerNodeUpdateWrapInfo(
-             string secretKey, RelayServerNodeUpdateInfo info)
+        SerializableRelayServerNodeUpdateWrapInfo( string secretKey, RelayServerNodeUpdateInfo info)
         {
             this.info = new RelayServerNodeUpdateWrapInfo
             {
-                SecretKey = secretKey,
                 Info = info
             };
         }

@@ -8,8 +8,6 @@ using linker.messenger.relay.client.transport;
 using System.Text.Json;
 using System.Collections;
 using linker.libs.web;
-using linker.messenger.access;
-using System.Collections.Concurrent;
 namespace linker.messenger.store.file
 {
     public sealed class ConfigApiController : IApiController
@@ -67,36 +65,23 @@ namespace linker.messenger.store.file
 
                 if (info.Client.HasServer)
                 {
-                    config.Data.Client.SForward.SecretKey = info.Client.SForwardSecretKey;
-                    config.Data.Client.Updater.SecretKey = info.Client.UpdaterSecretKey;
-                    config.Data.Client.Cdkey.SecretKey = info.Client.CdkeySecretKey;
-                    config.Data.Client.WhiteList.SecretKey = info.Client.WhiteListSecretKey;
-                    foreach (var item in config.Data.Client.Relay.Servers)
-                    {
-                        item.SecretKey = info.Client.RelaySecretKey;
-                    }
                     foreach (var item in config.Data.Client.Servers)
                     {
                         item.Host = info.Client.Server;
-                        item.SecretKey = info.Client.ServerSecretKey;
+                        item.Host1 = info.Client.Server1;
+                        item.SuperKey = info.Client.SuperKey;
+                        item.SuperPassword = info.Client.SuperPassword;
                     }
                 }
             }
             if (info.Common.Modes.Contains("server"))
             {
                 config.Data.Server.ServicePort = info.Server.ServicePort;
-
-                config.Data.Server.Relay.SecretKey = info.Server.Relay.SecretKey;
-
-                config.Data.Server.SignIn.SecretKey = info.Server.SignIn.SecretKey;
-
-                config.Data.Server.SForward.SecretKey = info.Server.SForward.SecretKey;
+                config.Data.Server.SignIn.Anonymous = info.Server.Anonymous;
+                config.Data.Server.SignIn.SuperKey = info.Server.SuperKey;
+                config.Data.Server.SignIn.SuperPassword = info.Server.SuperPassword;
                 config.Data.Server.SForward.WebPort = info.Server.SForward.WebPort;
                 config.Data.Server.SForward.TunnelPortRange = info.Server.SForward.TunnelPortRange;
-
-                config.Data.Server.Updater.SecretKey = info.Server.Updater.SecretKey;
-                config.Data.Server.Cdkey.SecretKey = info.Server.Cdkey.SecretKey;
-                config.Data.Server.WhiteList.SecretKey = info.Server.WhiteList.SecretKey;
             }
 
             config.Data.Common.Modes = info.Common.Modes;
@@ -283,26 +268,29 @@ namespace linker.messenger.store.file
             if (configExportInfo.Relay) client.Relay = new RelayClientInfo { Servers = [client.Relay.Servers[0]] };
             else client.Relay = new RelayClientInfo { Servers = [new RelayServerInfo { }] };
 
-            if (configExportInfo.SForward) client.SForward = new linker.messenger.sforward.SForwardConfigClientInfo { SecretKey = client.SForward.SecretKey };
-            else client.SForward = new linker.messenger.sforward.SForwardConfigClientInfo { };
+            if (configExportInfo.Server)
+            {
+                client.Server.Host = config.Data.Client.Server.Host;
+                client.Server.Host1 = config.Data.Client.Server.Host1;
+                client.Server.Name = config.Data.Client.Server.Name;
+                client.Server.UserId = config.Data.Client.Server.UserId;
 
-            if (configExportInfo.Server) client.Servers = [client.Servers[0]];
+                if (configExportInfo.Super)
+                {
+                    client.Server.SuperKey = config.Data.Client.Server.SuperKey;
+                    client.Server.SuperPassword = config.Data.Client.Server.SuperPassword;
+                }
+            }
             else client.Servers = [];
 
             if (configExportInfo.Group) client.Groups = [client.Groups[0]];
             else client.Groups = [];
 
-            if (configExportInfo.Updater) client.Updater = new linker.messenger.updater.UpdaterConfigClientInfo { SecretKey = client.Updater.SecretKey, Sync2Server = client.Updater.Sync2Server };
+            if (configExportInfo.Updater) client.Updater = new linker.messenger.updater.UpdaterConfigClientInfo { Sync2Server = client.Updater.Sync2Server };
             else client.Updater = new linker.messenger.updater.UpdaterConfigClientInfo { };
 
             if (configExportInfo.Tunnel) client.Tunnel = new TunnelConfigClientInfo { Transports = client.Tunnel.Transports };
             else client.Tunnel = new TunnelConfigClientInfo { Transports = new List<linker.tunnel.transport.TunnelTransportItemInfo>() };
-
-            if (configExportInfo.Cdkey) client.Cdkey = new linker.messenger.cdkey.CdkeyConfigInfo { SecretKey = client.Cdkey.SecretKey };
-            else client.Cdkey = new linker.messenger.cdkey.CdkeyConfigInfo { };
-
-            if (configExportInfo.WhiteList) client.WhiteList = new linker.messenger.wlist.WhiteListConfigInfo { SecretKey = client.WhiteList.SecretKey };
-            else client.WhiteList = new linker.messenger.wlist.WhiteListConfigInfo { };
 
             ConfigCommonInfo common = config.Data.Common.ToJson().DeJson<ConfigCommonInfo>();
             common.Install = true;
@@ -316,12 +304,9 @@ namespace linker.messenger.store.file
                 client.AccessBits,
                 Groups = new SignInClientGroupInfo[] { config.Data.Client.Groups[0] },
                 Servers = new SignInClientServerInfo[] { config.Data.Client.Servers[0] },
-                client.SForward,
                 client.Updater,
                 Relay = new { Servers = new RelayServerInfo[] { client.Relay.Servers[0] } },
                 client.Tunnel,
-                client.Cdkey,
-                client.WhiteList,
             }, common, new { Install = true, Modes = new string[] { "client" } });
         }
 
@@ -356,47 +341,25 @@ namespace linker.messenger.store.file
 
         public bool HasServer { get; set; }
         public string Server { get; set; }
-        public string ServerSecretKey { get; set; }
-
-        public string SForwardSecretKey { get; set; }
-        public string RelaySecretKey { get; set; }
-        public string UpdaterSecretKey { get; set; }
-        public string CdkeySecretKey { get; set; }
-        public string WhiteListSecretKey { get; set; }
+        public string Server1 { get; set; }
+        public string SuperKey { get; set; }
+        public string SuperPassword { get; set; }
     }
     public sealed class ConfigInstallServerInfo
     {
         public int ServicePort { get; set; }
-        public ConfigInstallServerRelayInfo Relay { get; set; }
+        public bool Anonymous { get; set; }
+        public string SuperKey { get; set; }
+        public string SuperPassword { get; set; }
         public ConfigInstallServerSForwardInfo SForward { get; set; }
-        public ConfigInstallServerUpdaterInfo Updater { get; set; }
-        public ConfigInstallServerCdkeyInfo Cdkey { get; set; }
-        public ConfigInstallServerWhiteListInfo WhiteList { get; set; }
-        public ConfigInstallServerSignInfo SignIn { get; set; }
     }
     public sealed class ConfigInstallServerSignInfo
     {
-        public string SecretKey { get; set; }
-    }
-    public sealed class ConfigInstallServerUpdaterInfo
-    {
-        public string SecretKey { get; set; }
-    }
-    public sealed class ConfigInstallServerCdkeyInfo
-    {
-        public string SecretKey { get; set; }
-    }
-    public sealed class ConfigInstallServerWhiteListInfo
-    {
-        public string SecretKey { get; set; }
-    }
-    public sealed class ConfigInstallServerRelayInfo
-    {
-        public string SecretKey { get; set; }
+        public string SuperKey { get; set; }
+        public string SuperPassword { get; set; }
     }
     public sealed class ConfigInstallServerSForwardInfo
     {
-        public string SecretKey { get; set; }
         public int WebPort { get; set; }
         public int[] TunnelPortRange { get; set; }
     }
@@ -416,13 +379,11 @@ namespace linker.messenger.store.file
         public bool FullAccess { get; set; }
 
         public bool Relay { get; set; }
-        public bool SForward { get; set; }
         public bool Updater { get; set; }
         public bool Server { get; set; }
+        public bool Super { get; set; }
         public bool Group { get; set; }
         public bool Tunnel { get; set; }
-        public bool Cdkey { get; set; }
-        public bool WhiteList { get; set; }
 
     }
 

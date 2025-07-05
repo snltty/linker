@@ -35,6 +35,10 @@ namespace linker.messenger.flow
             this.serializer = serializer;
             OnlineTask();
         }
+        public (long, long) GetDiffBytes(long recv, long sent)
+        {
+            return (ReceiveBytes, SendtBytes);
+        }
 
         public async Task Resolve(Socket socket, Memory<byte> memory)
         {

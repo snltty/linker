@@ -40,13 +40,12 @@
                                 <div>
                                     <el-row>
                                         <el-col :xs="12" :sm="8"><el-checkbox v-model="state.relay" :label="$t('status.exportRelay')" /></el-col>
-                                        <el-col :xs="12" :sm="8"><el-checkbox v-model="state.sforward" :label="$t('status.exportSForward')" /></el-col>
                                         <el-col :xs="12" :sm="8"><el-checkbox v-model="state.updater" :label="$t('status.exportUpdater')" /></el-col>
-                                        <el-col :xs="12" :sm="8"><el-checkbox v-model="state.server" :label="$t('status.exportServer')" /></el-col>
                                         <el-col :xs="12" :sm="8"><el-checkbox v-model="state.group" :label="$t('status.exportGroup')" /></el-col>
+                                        <el-col :xs="12" :sm="8"><el-checkbox v-model="state.server" :label="$t('status.exportServer')" /></el-col>
+                                        <el-col :xs="12" :sm="8"><el-checkbox v-model="state.super" :label="$t('status.exportSuper')" /></el-col>
                                         <el-col :xs="12" :sm="8"><el-checkbox v-model="state.tunnel" :label="$t('status.exportTunnel')" /></el-col>
-                                        <el-col :xs="12" :sm="8"><el-checkbox v-model="state.cdkey" :label="$t('status.exportCdkey')" /></el-col>
-                                        <el-col :xs="12" :sm="8"><el-checkbox v-model="state.whitelist" :label="$t('status.exportWhiteList')" /></el-col>
+                                        
                                     </el-row>
                                 </div>
                             </div>
@@ -115,6 +114,7 @@ export default {
             sforward:true,
             updater:true,
             server:true,
+            super:true,
             group:true,
             tunnel:true,
             cdkey:true,
@@ -147,6 +147,7 @@ export default {
                 sforward:state.sforward,
                 updater:state.updater,
                 server:state.server,
+                super:state.super,
                 group:state.group,
                 tunnel:state.tunnel,
                 cdkey:state.cdkey,

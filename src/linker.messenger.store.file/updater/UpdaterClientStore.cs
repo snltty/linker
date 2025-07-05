@@ -11,11 +11,6 @@ namespace linker.messenger.store.file.updater
         {
             this.fileConfig = fileConfig;
         }
-        public void SetSecretKey(string key)
-        {
-            fileConfig.Data.Client.Updater.SecretKey = key;
-            fileConfig.Data.Update();
-        }
         public void SetSync2Server(bool value)
         {
             fileConfig.Data.Client.Updater.Sync2Server = value;

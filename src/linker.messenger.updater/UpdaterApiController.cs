@@ -31,10 +31,6 @@ namespace linker.messenger.updater
         {
             return updaterClientStore.Info;
         }
-        public void SetSecretKey(ApiControllerParamsInfo param)
-        {
-            updaterClientStore.SetSecretKey(param.Content);
-        }
         public void SetSync2Server(ApiControllerParamsInfo param)
         {
             updaterClientStore.SetSync2Server(bool.Parse(param.Content));
@@ -77,7 +73,7 @@ namespace linker.messenger.updater
             {
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)UpdaterMessengerIds.ConfirmServer,
-                Payload = serializer.Serialize(new UpdaterConfirmServerInfo { SecretKey = updaterClientStore.Info.SecretKey, Version = param.Content })
+                Payload = serializer.Serialize(new UpdaterConfirmServerInfo {  Version = param.Content })
             }).ConfigureAwait(false);
         }
         public async Task ExitServer(ApiControllerParamsInfo param)
@@ -86,7 +82,7 @@ namespace linker.messenger.updater
             {
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)UpdaterMessengerIds.ExitServer,
-                Payload = serializer.Serialize(new UpdaterConfirmServerInfo { SecretKey = updaterClientStore.Info.SecretKey, Version = string.Empty })
+                Payload = serializer.Serialize(new UpdaterConfirmServerInfo { Version = string.Empty })
             }).ConfigureAwait(false);
         }
 
@@ -119,7 +115,6 @@ namespace linker.messenger.updater
 
             if (confirm.All || confirm.GroupAll || confirm.MachineId != signInClientStore.Id)
             {
-                confirm.SecretKey = updaterClientStore.Info.SecretKey;
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = signInClientState.Connection,
@@ -182,16 +177,6 @@ namespace linker.messenger.updater
             }
         }
 
-        public async Task<bool> CheckKey(ApiControllerParamsInfo param)
-        {
-            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
-            {
-                Connection = signInClientState.Connection,
-                MessengerId = (ushort)UpdaterMessengerIds.CheckKey,
-                Payload = serializer.Serialize(updaterClientStore.Info.SecretKey)
-            }).ConfigureAwait(false);
-            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
-        }
     }
 
 

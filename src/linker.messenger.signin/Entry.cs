@@ -11,7 +11,7 @@ namespace linker.messenger.signin
         {
             serviceCollection.AddSingleton<SignInArgsTransfer>();
             serviceCollection.AddSingleton<SignInArgsGroupPasswordClient>();
-            serviceCollection.AddSingleton<SignInArgsSecretKeyClient>();
+            serviceCollection.AddSingleton<SignInArgsSuperClient>();
             serviceCollection.AddSingleton<SignInArgsMachineKeyClient>();
             serviceCollection.AddSingleton<SignInArgsVersionClient>();
 
@@ -31,7 +31,7 @@ namespace linker.messenger.signin
             SignInArgsTransfer signInArgsTransfer = serviceProvider.GetService<SignInArgsTransfer>();
             signInArgsTransfer.AddArgs(new List<ISignInArgsClient> {
                 serviceProvider.GetService<SignInArgsGroupPasswordClient>(),
-                serviceProvider.GetService<SignInArgsSecretKeyClient>(),
+                serviceProvider.GetService<SignInArgsSuperClient>(),
                   serviceProvider.GetService<SignInArgsMachineKeyClient>(),
                 serviceProvider.GetService<SignInArgsVersionClient>(),
             });
@@ -60,7 +60,7 @@ namespace linker.messenger.signin
         {
             serviceCollection.AddSingleton<SignInArgsTransfer>();
             serviceCollection.AddSingleton<SignInArgsGroupPasswordServer>();
-            serviceCollection.AddSingleton<SignInArgsSecretKeyServer>();
+            serviceCollection.AddSingleton<SignInArgsSuperServer>();
             serviceCollection.AddSingleton<SignInArgsMachineKeyServer>();
             serviceCollection.AddSingleton<SignInArgsVersionServer>();
 
@@ -78,7 +78,7 @@ namespace linker.messenger.signin
             SignInArgsTransfer signInArgsTransfer = serviceProvider.GetService<SignInArgsTransfer>();
             signInArgsTransfer.AddArgs(new List<ISignInArgsServer> {
                 serviceProvider.GetService<SignInArgsGroupPasswordServer>(),
-                serviceProvider.GetService<SignInArgsSecretKeyServer>(),
+                serviceProvider.GetService<SignInArgsSuperServer>(),
                  serviceProvider.GetService<SignInArgsMachineKeyServer>(),
                 serviceProvider.GetService<SignInArgsVersionServer>(),
             });

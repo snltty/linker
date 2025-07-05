@@ -22,18 +22,7 @@ namespace linker.messenger.store.file.cdkey
             liteCollection = dBfactory.GetCollection<CdkeyStoreInfo>("relayCdkey");
             this.fileConfig = fileConfig;
 
-            if (string.IsNullOrWhiteSpace(fileConfig.Data.Server.Relay.Cdkey.SecretKey) == false)
-            {
-                fileConfig.Data.Server.Cdkey.SecretKey = fileConfig.Data.Server.Relay.Cdkey.SecretKey;
-                fileConfig.Data.Server.Relay.Cdkey.SecretKey = string.Empty;
-                fileConfig.Data.Update();
-            }
             this.crypto = CryptoFactory.CreateSymmetric(fileConfig.Data.Server.Cdkey.SecretKey, System.Security.Cryptography.PaddingMode.PKCS7);
-        }
-
-        public bool ValidateSecretKey(string secretKey)
-        {
-            return secretKey == fileConfig.Data.Server.Cdkey.SecretKey;
         }
 
         public async Task<bool> Add(CdkeyStoreInfo info)

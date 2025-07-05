@@ -21,8 +21,6 @@ namespace linker.messenger.sforward
 
             serviceCollection.AddSingleton<SForwardClientMessenger>();
 
-            serviceCollection.AddSingleton<SForwardSyncSecretKey>();
-
             serviceCollection.AddSingleton<SForwardDecenter>();
 
 
@@ -42,9 +40,6 @@ namespace linker.messenger.sforward
             IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
             messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<SForwardClientMessenger>() });
 
-            SyncTreansfer syncTransfer = serviceProvider.GetService<SyncTreansfer>();
-            syncTransfer.AddSyncs(new List<ISync> { serviceProvider.GetService<SForwardSyncSecretKey>() });
-
             DecenterClientTransfer decenterClientTransfer = serviceProvider.GetService<DecenterClientTransfer>();
             decenterClientTransfer.AddDecenters(new List<IDecenter> { serviceProvider.GetService<SForwardDecenter>() });
 
@@ -61,8 +56,6 @@ namespace linker.messenger.sforward
             serviceCollection.AddSingleton<ISForwardServerCahing, SForwardServerCahing>();
             serviceCollection.AddSingleton<SForwardValidatorTransfer>();
             serviceCollection.AddSingleton<SForwardValidator>();
-
-
 
             serviceCollection.AddSingleton<SForwardProxy>();
 

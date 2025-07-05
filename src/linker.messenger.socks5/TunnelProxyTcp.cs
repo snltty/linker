@@ -131,6 +131,12 @@ namespace linker.messenger.socks5
                     {
                         break;
                     }
+                    if (FirewallCheck(token) == false)
+                    {
+                        CloseClientSocket(token, 7);
+                        break;
+                    }
+
 
                     token.Proxy.Data = token.Buffer.AsMemory(0, length);
                     if (send)
@@ -143,6 +149,12 @@ namespace linker.messenger.socks5
                         {
                             break;
                         }
+                        if (FirewallCheck(token) == false)
+                        {
+                            CloseClientSocket(token, 8);
+                            break;
+                        }
+
                         token.Proxy.Data = token.Buffer.AsMemory(0, length);
                         if (send)
                             await SendToConnection(token).ConfigureAwait(false);
@@ -161,6 +173,19 @@ namespace linker.messenger.socks5
                 CloseClientSocket(token, 6);
             }
 
+        }
+
+        private bool FirewallCheck(AsyncUserToken token)
+        {
+            ulong version = token.FirewallVersion;
+            bool firewall = token.Firewall && linkerFirewall.VersionChanged(ref version);
+            token.FirewallVersion = version;
+
+            if (firewall && linkerFirewall.Check(token.Connection.RemoteMachineId, token.RealIPEndPoint, ProtocolType.Tcp) == false)
+            {
+                return false;
+            }
+            return true;
         }
 
         private async Task SendToConnection(AsyncUserToken token)
@@ -216,7 +241,7 @@ namespace linker.messenger.socks5
             Socket socket = new Socket(token.Proxy.TargetEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socket.KeepAlive();
 
-            ConnectState state = new ConnectState { BufferSize = token.Proxy.BufferSize, Connection = token.Connection, ConnectId = token.Proxy.ConnectId, Socket = socket, IPEndPoint = token.Proxy.TargetEP, RealIPEndPoint = target };
+            ConnectState state = new ConnectState { BufferSize = token.Proxy.BufferSize, Connection = token.Connection, ConnectId = token.Proxy.ConnectId, Socket = socket, IPEndPoint = token.Proxy.TargetEP, RealIPEndPoint = target, Firewall = true };
             state.CopyData(token.Proxy.Data);
 
             socket.BeginConnect(target, ConnectCallback, state);
@@ -229,6 +254,8 @@ namespace linker.messenger.socks5
             {
                 Connection = state.Connection,
                 Socket = state.Socket,
+                Firewall = state.Firewall,
+                RealIPEndPoint = state.RealIPEndPoint,
                 Buffer = new byte[(1 << state.BufferSize) * 1024],
                 Proxy = new ProxyInfo
                 {
@@ -392,6 +419,9 @@ namespace linker.messenger.socks5
 
         public byte BufferSize { get; set; } = 3;
 
+        public IPEndPoint RealIPEndPoint { get; set; }
+        public bool Firewall { get; set; }
+        public ulong FirewallVersion { get; set; }
 
         public void Clear()
         {
@@ -425,6 +455,8 @@ namespace linker.messenger.socks5
         public int Length { get; set; }
 
         public byte BufferSize { get; set; } = 3;
+
+        public bool Firewall { get; set; }
 
         public void CopyData(ReadOnlyMemory<byte> data)
         {

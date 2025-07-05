@@ -44,15 +44,6 @@ namespace linker.messenger.store.file.relay
             config.Data.Client.Relay.Servers = [server];
             config.Data.Update();
         }
-        public void SetServerSecretKey(string secretKey)
-        {
-            foreach (var item in config.Data.Client.Relay.Servers)
-            {
-                item.SecretKey = secretKey;
-            }
-            config.Data.Update();
-        }
-
         public bool Confirm()
         {
             config.Data.Update();

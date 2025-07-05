@@ -8,8 +8,6 @@ namespace linker.messenger.store.file.sforward
 {
     public sealed class SForwardClientStore : ISForwardClientStore
     {
-        public string SecretKey => fileConfig.Data.Client.SForward.SecretKey;
-
         private readonly FileConfig fileConfig;
         private readonly Storefactory dBfactory;
         private readonly ILiteCollection<SForwardInfo> liteCollection;
@@ -22,13 +20,6 @@ namespace linker.messenger.store.file.sforward
             liteCollection = dBfactory.GetCollection<SForwardInfo>("sforward");
             liteCollection.UpdateMany(c => new SForwardInfo { Started = false }, c => c.Started == true);
         }
-        public bool SetSecretKey(string key)
-        {
-            fileConfig.Data.Client.SForward.SecretKey = key;
-            fileConfig.Data.Update();
-            return true;
-        }
-
         public int Count()
         {
             return liteCollection.Count();

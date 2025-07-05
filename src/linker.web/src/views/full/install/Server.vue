@@ -32,27 +32,13 @@
             <el-form-item label="" label-width="0">
                 <el-row>
                     <el-col :span="12">
-                        <el-form-item label="信标密钥" prop="signinSecretKey">
-                            <el-input v-model="state.form.signinSecretKey" maxlength="36" show-word-limit />
+                        <el-form-item label="管理密钥" prop="superKey">
+                            <el-input v-model="state.form.superKey" type="password" show-password maxlength="36" show-word-limit />
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-                        <el-form-item label="中继密钥" prop="relaySecretKey">
-                            <el-input v-model="state.form.relaySecretKey" maxlength="36" show-word-limit />
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-            </el-form-item>
-            <el-form-item label="" label-width="0">
-                <el-row>
-                    <el-col :span="12">
-                        <el-form-item label="穿透密钥" prop="sForwardSecretKey">
-                            <el-input v-model="state.form.sForwardSecretKey" maxlength="36" show-word-limit />
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item label="更新密钥" prop="updaterSecretKey">
-                            <el-input v-model="state.form.updaterSecretKey" maxlength="36" show-word-limit />
+                        <el-form-item label="管理密码" prop="superPassword">
+                            <el-input v-model="state.form.superPassword" type="password" show-password maxlength="36" show-word-limit />
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -60,14 +46,11 @@
             <el-form-item label="" label-width="0">
                 <el-row>
                     <el-col :span="12">
-                        <el-form-item label="cdkey密钥" prop="cdkeySecretKey">
-                            <el-input v-model="state.form.cdkeySecretKey" maxlength="36" show-word-limit />
+                        <el-form-item label="匿名登录" prop="anonymous">
+                            <el-checkbox v-model="state.form.anonymous">匿名登录</el-checkbox>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-                        <el-form-item label="白名单密钥" prop="whiteListSecretKey">
-                            <el-input v-model="state.form.whiteListSecretKey" maxlength="36" show-word-limit />
-                        </el-form-item>
                     </el-col>
                 </el-row>
             </el-form-item>
@@ -86,24 +69,17 @@ export default {
         const state = reactive({
             show: false,
             form: {
-                signinSecretKey:step.value.form.server.signinSecretKey || globalData.value.config.Server.SignIn.SecretKey,
-                relaySecretKey:step.value.form.server.relaySecretKey || globalData.value.config.Server.Relay.SecretKey,
-                sForwardSecretKey:step.value.form.server.sForwardSecretKey ||globalData.value.config.Server.SForward.SecretKey,
                 servicePort:step.value.form.server.servicePort ||globalData.value.config.Server.ServicePort,
+                anonymous:step.value.form.server.anonymous ||globalData.value.config.Server.SignIn.Anonymous,
+                superKey:step.value.form.server.superKey ||globalData.value.config.Server.SignIn.SuperKey,
+                superPassword:step.value.form.server.superPassword ||globalData.value.config.Server.SignIn.SuperPassword,
                 webPort:step.value.form.server.webPort ||globalData.value.config.Server.SForward.WebPort,
                 tunnelPort1:step.value.form.server.tunnelPort1 ||globalData.value.config.Server.SForward.TunnelPortRange[0],
                 tunnelPort2:step.value.form.server.tunnelPort2 ||globalData.value.config.Server.SForward.TunnelPortRange[1],
-
-                updaterSecretKey:step.value.form.server.updaterSecretKey ||globalData.value.config.Server.Updater.SecretKey,
-                cdkeySecretKey:step.value.form.server.cdkeySecretKey ||globalData.value.config.Server.Cdkey.SecretKey,
-                whiteListSecretKey:step.value.form.server.whiteListSecretKey ||globalData.value.config.Server.WhiteList.SecretKey,
             },
             rules: {
-                relaySecretKey: [{ required: true, message: "必填", trigger: "blur" }],
-                sForwardSecretKey: [{ required: true, message: "必填", trigger: "blur" }],
-                updaterSecretKey: [{ required: true, message: "必填", trigger: "blur" }],
-                cdkeySecretKey: [{ required: true, message: "必填", trigger: "blur" }],
-                whiteListSecretKey: [{ required: true, message: "必填", trigger: "blur" }],
+                superKey: [{ required: true, message: "必填", trigger: "blur" }],
+                superPassword: [{ required: true, message: "必填", trigger: "blur" }],
                 servicePort: [
                     { required: true, message: "必填", trigger: "blur" },
                     {
@@ -170,25 +146,13 @@ export default {
                             json:{
                                 Server:{
                                     ServicePort: +state.form.servicePort,
-                                    Relay:{
-                                        SecretKey: state.form.relaySecretKey
-                                    },
+                                    Anonymous: state.form.anonymous,
+                                    SuperKey: state.form.superKey,
+                                    SuperPassword: state.form.superPassword,
+
                                     SForward:{
-                                        SecretKey: state.form.sForwardSecretKey,
                                         WebPort: +state.form.webPort,
                                         TunnelPortRange: [+state.form.tunnelPort1, +state.form.tunnelPort2]
-                                    },
-                                    Updater:{
-                                        SecretKey: state.form.updaterSecretKey
-                                    },
-                                    SignIn:{
-                                        SecretKey: state.form.signinSecretKey
-                                    },
-                                    Cdkey:{
-                                        SecretKey: state.form.cdkeySecretKey
-                                    },
-                                    WhiteList:{
-                                        SecretKey: state.form.whiteListSecretKey
                                     }
                                 }  
                             },

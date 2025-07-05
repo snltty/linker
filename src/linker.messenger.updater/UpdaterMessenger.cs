@@ -155,6 +155,22 @@ namespace linker.messenger.updater
             };
             connection.Write(serializer.Serialize(result));
         }
+        [MessengerId((ushort)UpdaterMessengerIds.UpdateServer186)]
+        public void UpdateServer186(IConnection connection)
+        {
+            var info = updaterServerTransfer.Get();
+            Updater186Info result = new Updater186Info
+            {
+                MachineId = string.Empty,
+                Current = info.Current,
+                Length = info.Length,
+                Status = info.Status,
+                Version = info.Version,
+                ServerVersion = VersionHelper.Version,
+                Sync2Server = updaterServerStore.Sync2Server
+            };
+            connection.Write(serializer.Serialize(result));
+        }
 
         [MessengerId((ushort)UpdaterMessengerIds.Msg)]
         public void Msg(IConnection connection)
@@ -169,7 +185,7 @@ namespace linker.messenger.updater
         public void ConfirmServer(IConnection connection)
         {
             UpdaterConfirmServerInfo confirm = serializer.Deserialize<UpdaterConfirmServerInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (updaterServerStore.ValidateSecretKey(confirm.SecretKey))
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) && cache.Super)
             {
                 if (string.IsNullOrWhiteSpace(confirm.Version))
                 {
@@ -190,7 +206,7 @@ namespace linker.messenger.updater
         public void ExitServer(IConnection connection)
         {
             UpdaterConfirmServerInfo confirm = serializer.Deserialize<UpdaterConfirmServerInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (updaterServerStore.ValidateSecretKey(confirm.SecretKey))
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) && cache.Super)
             {
                 Helper.AppExit(1);
             }
@@ -213,7 +229,7 @@ namespace linker.messenger.updater
             }
 
             //需要密钥
-            if (confirm.All && updaterServerStore.ValidateSecretKey(confirm.SecretKey) == false)
+            if (confirm.All && cache.Super)
             {
                 connection.Write(Helper.FalseArray);
                 return;
@@ -226,7 +242,6 @@ namespace linker.messenger.updater
             //某一个
             else machines = signCaching.Get(cache).Where(c => c.MachineId == confirm.MachineId);
 
-            confirm.SecretKey = string.Empty;
             if (string.IsNullOrWhiteSpace(confirm.Version))
             {
                 confirm.Version = updaterServerTransfer.Get().Version;
@@ -366,12 +381,5 @@ namespace linker.messenger.updater
             }
         }
 
-
-        [MessengerId((ushort)UpdaterMessengerIds.CheckKey)]
-        public void CheckKey(IConnection connection)
-        {
-            string key = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            connection.Write(updaterServerStore.ValidateSecretKey(key) ? Helper.TrueArray : Helper.FalseArray);
-        }
     }
 }

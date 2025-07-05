@@ -15,37 +15,14 @@ namespace linker.messenger.cdkey
         private readonly IMessengerSender messengerSender;
         private readonly ISerializer serializer;
         private readonly ISignInClientStore signInClientStore;
-        private readonly ICdkeyClientStore cdkeyClientStore;
 
 
-        public CdkeyApiController(SignInClientState signInClientState, IMessengerSender messengerSender, ISerializer serializer, ISignInClientStore signInClientStore, ICdkeyClientStore cdkeyClientStore)
+        public CdkeyApiController(SignInClientState signInClientState, IMessengerSender messengerSender, ISerializer serializer, ISignInClientStore signInClientStore)
         {
             this.signInClientState = signInClientState;
             this.messengerSender = messengerSender;
             this.serializer = serializer;
             this.signInClientStore = signInClientStore;
-            this.cdkeyClientStore = cdkeyClientStore;
-        }
-
-        public string GetSecretKey(ApiControllerParamsInfo param)
-        {
-            return cdkeyClientStore.SecretKey;
-        }
-        public void SetSecretKey(ApiControllerParamsInfo param)
-        {
-            cdkeyClientStore.SetSecretKey(param.Content);
-        }
-
-
-        public async Task<bool> AccessCdkey(ApiControllerParamsInfo param)
-        {
-            var resp = await messengerSender.SendReply(new MessageRequestWrap
-            {
-                Connection = signInClientState.Connection,
-                MessengerId = (ushort)CdkeyMessengerIds.CheckKey,
-                Payload = serializer.Serialize(cdkeyClientStore.SecretKey)
-            }).ConfigureAwait(false);
-            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
 
         [Access(AccessValue.Cdkey)]
@@ -59,7 +36,6 @@ namespace linker.messenger.cdkey
                 Payload = serializer.Serialize(new CdkeyAddInfo
                 {
                     Data = info,
-                    SecretKey = cdkeyClientStore.SecretKey
                 })
             }).ConfigureAwait(false);
 
@@ -76,8 +52,7 @@ namespace linker.messenger.cdkey
                 Payload = serializer.Serialize(new CdkeyDelInfo
                 {
                     Id = int.Parse(param.Content),
-                    UserId = signInClientStore.Server.UserId,
-                    SecretKey = cdkeyClientStore.SecretKey
+                    UserId = signInClientStore.Server.UserId
                 })
             }).ConfigureAwait(false);
 
@@ -88,7 +63,6 @@ namespace linker.messenger.cdkey
         public async Task<CdkeyPageResultInfo> PageCdkey(ApiControllerParamsInfo param)
         {
             CdkeyPageRequestInfo info = param.Content.DeJson<CdkeyPageRequestInfo>();
-            info.SecretKey = cdkeyClientStore.SecretKey;
             var resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
@@ -105,7 +79,6 @@ namespace linker.messenger.cdkey
         public async Task<CdkeyPageResultInfo> MyCdkey(ApiControllerParamsInfo param)
         {
             CdkeyPageRequestInfo info = param.Content.DeJson<CdkeyPageRequestInfo>();
-            info.SecretKey = cdkeyClientStore.SecretKey;
             info.UserId = signInClientStore.Server.UserId;
             var resp = await messengerSender.SendReply(new MessageRequestWrap
             {
@@ -123,7 +96,6 @@ namespace linker.messenger.cdkey
         public async Task<CdkeyTestResultInfo> TestCdkey(ApiControllerParamsInfo param)
         {
             CdkeyImportInfo info = param.Content.DeJson<CdkeyImportInfo>();
-            info.SecretKey = cdkeyClientStore.SecretKey;
             info.UserId = signInClientStore.Server.UserId;
             var resp = await messengerSender.SendReply(new MessageRequestWrap
             {
@@ -142,7 +114,6 @@ namespace linker.messenger.cdkey
         public async Task<string> ImportCdkey(ApiControllerParamsInfo param)
         {
             CdkeyImportInfo info = param.Content.DeJson<CdkeyImportInfo>();
-            info.SecretKey = cdkeyClientStore.SecretKey;
             info.UserId = signInClientStore.Server.UserId;
             var resp = await messengerSender.SendReply(new MessageRequestWrap
             {

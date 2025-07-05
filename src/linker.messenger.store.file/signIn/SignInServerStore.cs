@@ -6,6 +6,7 @@ namespace linker.messenger.store.file.signIn
     public sealed class SignInServerStore : ISignInServerStore
     {
         public int CleanDays => fileConfig.Data.Server.SignIn.CleanDays;
+        public bool Anonymous => fileConfig.Data.Server.SignIn.Anonymous;
 
         private readonly Storefactory dBfactory;
         private readonly ILiteCollection<SignCacheInfo> liteCollection;
@@ -15,20 +16,36 @@ namespace linker.messenger.store.file.signIn
             this.dBfactory = dBfactory;
             liteCollection = dBfactory.GetCollection<SignCacheInfo>("signs");
             this.fileConfig = fileConfig;
+
+            if (string.IsNullOrWhiteSpace(fileConfig.Data.Server.SignIn.SecretKey) == false)
+            {
+                fileConfig.Data.Server.SignIn.Anonymous = false;
+                fileConfig.Data.Server.SignIn.SuperKey = fileConfig.Data.Server.SignIn.SecretKey;
+                fileConfig.Data.Server.SignIn.SuperPassword = fileConfig.Data.Server.SignIn.SecretKey;
+                fileConfig.Data.Server.SignIn.SecretKey = string.Empty;
+                fileConfig.Data.Update();
+            }
         }
 
-        public bool ValidateSecretKey(string key)
+
+        public bool ValidateSuper(string key, string password)
         {
-            return string.IsNullOrWhiteSpace(fileConfig.Data.Server.SignIn.SecretKey) || fileConfig.Data.Server.SignIn.SecretKey == key;
+            return fileConfig.Data.Server.SignIn.SuperKey == key && fileConfig.Data.Server.SignIn.SuperPassword == password;
         }
-        public void SetSecretKey(string secretKey)
+        public void SetSuper(string key, string password)
         {
-            fileConfig.Data.Server.SignIn.SecretKey = secretKey;
+            fileConfig.Data.Server.SignIn.SuperKey = key;
+            fileConfig.Data.Server.SignIn.SuperPassword = password;
             fileConfig.Data.Update();
         }
         public void SetCleanDays(int days)
         {
             fileConfig.Data.Server.SignIn.CleanDays = days;
+            fileConfig.Data.Update();
+        }
+        public void SetAnonymous(bool anonymous)
+        {
+            fileConfig.Data.Server.SignIn.Anonymous = anonymous;
             fileConfig.Data.Update();
         }
 
@@ -70,5 +87,6 @@ namespace linker.messenger.store.file.signIn
         {
             return liteCollection.UpdateMany(p => new SignCacheInfo { LastSignIn = DateTime.Now }, c => c.Id == id) > 0;
         }
+
     }
 }

@@ -70,9 +70,7 @@ namespace linker.tun
         }
         public bool WriteBefore(string srcId, ReadOnlyMemory<byte> packet)
         {
-            if (linkerSrcNat.Running == false) return true;
-
-            return linkerSrcNat.Inject(packet) == false;
+            return linkerSrcNat.Running == false || linkerSrcNat.Inject(packet) == false;
         }
     }
 }

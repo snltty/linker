@@ -146,6 +146,7 @@ namespace linker.messenger.signin
                     LoggerHelper.Instance.Info($"signin to server success:{host}");
 
                 await GetServerVersion().ConfigureAwait(false);
+                await CheckSuper().ConfigureAwait(false);
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Info($"get server version:{clientSignInState.Version}");
@@ -277,6 +278,17 @@ namespace linker.messenger.signin
             {
                 clientSignInState.Version = "v1.0.0";
             }
+        }
+
+        public async Task CheckSuper()
+        {
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = clientSignInState.Connection,
+                MessengerId = (ushort)SignInMessengerIds.CheckSuper,
+                Payload = serializer.Serialize(new KeyValuePair<string, string>(signInClientStore.Server.SuperKey, signInClientStore.Server.SuperPassword))
+            }).ConfigureAwait(false);
+            clientSignInState.Super = resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
 
         /// <summary>

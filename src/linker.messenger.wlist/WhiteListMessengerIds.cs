@@ -7,7 +7,6 @@
         Add = 3701,
         Page = 3702,
         Del = 3703,
-        CheckKey = 3704,
 
         Max = 3599
     }

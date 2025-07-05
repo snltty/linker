@@ -29,8 +29,6 @@
 
         SendLastBytes = 2122,
 
-        CheckKey = 2123,
-
         NodeGetCache186 = 2124,
 
         Max = 2199

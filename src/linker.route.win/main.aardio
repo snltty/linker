@@ -13,7 +13,7 @@ static={cls="static";text="接口地址";left=13;top=23;right=77;bottom=49;align
 static2={cls="static";text="接口密钥";left=13;top=58;right=77;bottom=84;align="center";center=1;transparent=1;z=4};
 static3={cls="static";text="从linker接口获取信息添加到本机路由表";left=21;top=147;right=248;bottom=167;transparent=1;z=8};
 tbPassword={cls="edit";text="snltty";left=95;top=57;right=241;bottom=83;edge=1;multiline=1;password=1;z=2};
-tbUrl={cls="edit";text="ws://127.0.0.1:1803";left=95;top=21;right=241;bottom=47;edge=1;multiline=1;z=1};
+tbUrl={cls="edit";text="ws://127.0.0.1:1804";left=95;top=21;right=241;bottom=47;edge=1;multiline=1;z=1};
 textStatus={cls="static";left=15;top=102;right=85;bottom=118;color=255;transparent=1;z=7}
 )
 /*}}*/
@@ -128,11 +128,11 @@ mainForm.routeList = {};
 mainForm.IP = mainForm.netObj.GetWsIP(mainForm.wsUrl);
 
 mainForm.ws.onOpen = function(){
-	mainForm.wsConnected = true;
-	mainForm.textStatus.color=32768;
-	mainForm.textStatus.text = "已连接服务";
-	mainForm.reg.setValue("url",mainForm.wsUrl);
-	mainForm.reg.setValue("password",mainForm.tbPassword.text);
+	mainForm.ws.send(web.json.stringify({
+		Path: "password",
+    	RequestId: 0,
+    	Content:mainForm.tbPassword.text
+	}));
 }
 mainForm.ws.onClose = function(event){
 	mainForm.wsConnected = false;
@@ -181,7 +181,18 @@ mainForm.sameRoute = function(list){
 mainForm.ws.onMessage = function(msg){
 	import console;
 	try{
-		content = web.json.parse(msg.data).Content;
+		json = web.json.parse(msg.data);
+		if(json.Path == "password" && json.Content == "password ok")
+		{
+			mainForm.wsConnected = true;
+			mainForm.textStatus.color=32768;
+			mainForm.textStatus.text = "已连接服务";
+			mainForm.reg.setValue("url",mainForm.wsUrl);
+			mainForm.reg.setValue("password",mainForm.tbPassword.text);
+			return;
+		}
+		
+		content = json.Content;
 		result = {};
 		added = false;
 		for(k,v in content.List){
@@ -303,7 +314,6 @@ mainForm.setInterval(
 			{
 				if(mainForm.running )
 				{
-					mainForm.ws.protocol = mainForm.tbPassword.text;
 					mainForm.ws.connect(mainForm.wsUrl);
 				}
 			}else

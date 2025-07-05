@@ -30,9 +30,8 @@
         Update170 = 2616,
         UpdateServer170 = 2617,
 
-        CheckKey = 2618,
-
         UpdateServer184 = 2619,
+        UpdateServer186 = 2020,
 
         Max = 2299
     }

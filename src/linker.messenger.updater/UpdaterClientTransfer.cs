@@ -167,11 +167,11 @@ namespace linker.messenger.updater
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
-                MessengerId = (ushort)UpdaterMessengerIds.UpdateServer184,
+                MessengerId = (ushort)UpdaterMessengerIds.UpdateServer186,
             }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
             {
-                Updater184Info info = serializer.Deserialize<Updater184Info>(resp.Data.Span);
+                Updater186Info info = serializer.Deserialize<Updater186Info>(resp.Data.Span);
 
                 //服务端不是已经开始下载，本地也不是已经开始下载，就更新一下本地状态
                 if (info.Status < UpdaterStatus.Downloading && updateInfo.Status < UpdaterStatus.Downloading)
@@ -182,7 +182,7 @@ namespace linker.messenger.updater
                 }
 
                 //本地不是已经开始下载，开启了自动更新，且版本不一样
-                if (updateInfo.Status < UpdaterStatus.Downloading && updaterClientStore.Info.Sync2Server && info.ServerVersion != VersionHelper.Version)
+                if (updateInfo.Status < UpdaterStatus.Downloading && (updaterClientStore.Info.Sync2Server || info.Sync2Server) && info.ServerVersion != VersionHelper.Version)
                 {
                     updaterHelper.Confirm(updateInfo, info.ServerVersion);
                 }

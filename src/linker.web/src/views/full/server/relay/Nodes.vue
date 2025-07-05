@@ -5,9 +5,9 @@
                 <el-table :data="state.nodes" size="small" border height="500">
                     <el-table-column property="Name" :label="$t('server.relayName')">
                         <template #default="scope">
-                            <div>
+                            <div> 
                                 <a :href="scope.row.Url" class="a-line" :class="{green:scope.row.Public}" target="_blank" :title="scope.row.Public?$t('server.public'):''">{{ scope.row.Name }}</a>
-                                <a v-if="state.keyState" href="javascript:;" class="a-line a-edit" @click="handleEdit(scope.row)">
+                                <a v-if="state.super" href="javascript:;" class="a-line a-edit" @click="handleEdit(scope.row)">
                                     <span><el-icon><Edit /></el-icon></span>
                                     <span :class="{green:state.syncData.Value == 1 && scope.row.Id==state.syncData.Key}" 
                                     :title="state.syncData.Value == 1 && scope.row.Id==state.syncData.Key ? `${$t('server.relayDefault')}TCP`:''" 
@@ -90,14 +90,14 @@
 import {  getDefault,syncDefault } from '@/apis/relay';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
-import { onMounted, onUnmounted,  reactive, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted,  reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n';
 import Ids from '../../sync/Ids.vue';
 import EditNode from './EditNode.vue';
 import { Edit,ArrowDown } from '@element-plus/icons-vue';
 
 export default {
-    props: ['modelValue','data','keyState'],
+    props: ['modelValue','data'],
     emits: ['update:modelValue','success'],
     components:{Ids,EditNode,Edit,ArrowDown},
     setup(props,{emit}) {
@@ -108,13 +108,13 @@ export default {
             nodes:props.data,
             showEdit:false,
             current:{},
-            keyState:props.keyState,
 
             showSync:false,
             syncData:{
                 Key:'',
                 Value:0
-            }
+            },
+            super:computed(()=>globalData.value.signin.Super)
         });
         watch(() => state.show, (val) => {
             if (!val) {

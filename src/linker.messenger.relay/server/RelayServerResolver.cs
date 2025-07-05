@@ -28,9 +28,9 @@ namespace linker.messenger.relay.server
             ClearTask();
         }
 
-        private readonly ConcurrentDictionary<ulong, TaskCompletionSource<Socket>> relayDic = new ConcurrentDictionary<ulong, TaskCompletionSource<Socket>>();
-        private readonly ConcurrentDictionary<IPEndPoint, RelayUdpNatInfo> udpNat = new ConcurrentDictionary<IPEndPoint, RelayUdpNatInfo>();
-        private readonly ConcurrentDictionary<ulong, RelayUdpNatInfo> relayUdpDic = new ConcurrentDictionary<ulong, RelayUdpNatInfo>();
+        private readonly ConcurrentDictionary<ulong, TaskCompletionSource<Socket>> relayDic = new();
+        private readonly ConcurrentDictionary<IPEndPoint, RelayUdpNatInfo> udpNat = new();
+        private readonly ConcurrentDictionary<ulong, RelayUdpNatInfo> relayUdpDic = new();
 
         public virtual void AddReceive(string key, string from, string to, string groupid, long bytes)
         {
@@ -43,6 +43,15 @@ namespace linker.messenger.relay.server
         }
         public virtual void AddSendt(string key, long bytes)
         {
+        }
+
+        public virtual long GetReceive()
+        {
+            return 0;
+        }
+        public virtual long GetSent()
+        {
+            return 0;
         }
 
 
@@ -78,6 +87,7 @@ namespace linker.messenger.relay.server
 
             //ask 是发起端来的，那key就是 发起端->目标端， answer的，目标和来源会交换，所以转换一下
             string key = relayMessage.Type == RelayMessengerType.Ask ? $"{relayMessage.FromId}->{relayMessage.ToId}->{relayMessage.FlowId}" : $"{relayMessage.ToId}->{relayMessage.FromId}->{relayMessage.FlowId}";
+
             //获取缓存
             RelayCacheInfo relayCache = await relayServerNodeTransfer.TryGetRelayCache(key).ConfigureAwait(false);
             if (relayCache == null)
@@ -165,6 +175,7 @@ namespace linker.messenger.relay.server
 
                 //ask 是发起端来的，那key就是 发起端->目标端， answer的，目标和来源会交换，所以转换一下
                 string key = relayMessage.Type == RelayMessengerType.Ask ? $"{relayMessage.FromId}->{relayMessage.ToId}->{relayMessage.FlowId}" : $"{relayMessage.ToId}->{relayMessage.FromId}->{relayMessage.FlowId}";
+
                 //获取缓存
                 RelayCacheInfo relayCache = await relayServerNodeTransfer.TryGetRelayCache(key).ConfigureAwait(false);
                 if (relayCache == null)

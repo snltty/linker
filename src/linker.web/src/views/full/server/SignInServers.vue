@@ -16,13 +16,19 @@
                             <el-input style="width:20rem;" v-model="state.list.Host1" @blur="handleSave" />
                         </div>
                     </el-form-item>
-                    <el-form-item :label="$t('server.messengerSecretKey')">
+                    <el-form-item></el-form-item>
+                    <el-form-item :label="$t('server.messengerSuperKey')">
                         <div class="flex">
-                            <el-input :class="{success:state.keyState,error:state.keyState==false}" style="width:20rem;" type="password" show-password maxlength="36" v-model="state.list.SecretKey" @blur="handleSave" />
-                            <Sync class="mgl-1" name="SignInSecretKey"></Sync>
-                            <span class="mgl-1" v-if="globalData.isPc">{{$t('server.messengerSecretKeyText')}}</span>
+                            <el-input :class="{success:state.super,error:state.super==false}" style="width:20rem;" type="password" show-password maxlength="36" v-model="state.list.SuperKey" @blur="handleSave" />
+                            <Sync class="mgl-1" name="SignInSuperKey"></Sync>
                         </div>
                     </el-form-item>
+                    <el-form-item :label="$t('server.messengerSuperPassword')">
+                        <div class="flex">
+                            <el-input :class="{success:state.super,error:state.super==false}" style="width:20rem;" type="password" show-password maxlength="36" v-model="state.list.SuperPassword" @blur="handleSave" />
+                        </div>
+                    </el-form-item>
+                    <el-form-item></el-form-item>   
                     <el-form-item :label="$t('server.messengerUserId')">
                         <div class="flex">
                             <el-input style="width:20rem;" type="password" show-password maxlength="36" v-model="state.list.UserId" @blur="handleSave" />
@@ -31,11 +37,7 @@
                         </div>
                     </el-form-item>
                     <el-form-item></el-form-item>
-                    <WhiteList></WhiteList>
-                    <Cdkey></Cdkey>
                     <RelayServers class="mgt-2"></RelayServers>
-                    <SForward></SForward>
-                    <el-form-item></el-form-item>
                     <Updater></Updater>
                 </el-form>
             </div>
@@ -52,15 +54,12 @@ import { checkSignInKey, setSignInServers } from '@/apis/signin';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import { computed, onMounted, reactive } from 'vue'
-import SForward from './SForward.vue';
 import Updater from './Updater.vue';
-import Cdkey from './Cdkey.vue';
-import WhiteList from './WhiteList.vue';
 import RelayServers from './RelayServers.vue';
 import { useI18n } from 'vue-i18n';
 import Sync from '../sync/Index.vue'
 export default {
-    components:{SForward,Updater,WhiteList,Cdkey,RelayServers,Sync},
+    components:{Updater,RelayServers,Sync},
     setup(props) {
         const {t} = useI18n();
         const globalData = injectGlobalData();
@@ -68,7 +67,7 @@ export default {
             list:globalData.value.config.Client.Server,
             height: computed(()=>globalData.value.height-90),
             position: computed(()=>globalData.value.isPhone ? 'top':'right'),
-            keyState:false,
+            super:computed(()=>globalData.value.signin.Super),
         });
 
         const handleSave = ()=>{
@@ -81,9 +80,7 @@ export default {
             handleCheckKey();
         }
         const handleCheckKey = ()=>{
-            checkSignInKey(state.list.SecretKey).then((res)=>{
-                state.keyState = res;
-            }).catch(()=>{});
+            checkSignInKey().then((res)=>{}).catch(()=>{});
         }
 
         onMounted(()=>{

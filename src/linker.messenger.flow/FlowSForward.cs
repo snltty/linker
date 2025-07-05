@@ -9,8 +9,8 @@ namespace linker.messenger.flow
 {
     public sealed class SForwardProxyFlow : SForwardProxy
     {
-        private readonly SForwardFlow sForwardFlow;
-        public SForwardProxyFlow(SForwardFlow sForwardFlow)
+        private readonly FlowSForward sForwardFlow;
+        public SForwardProxyFlow(FlowSForward sForwardFlow)
         {
             this.sForwardFlow = sForwardFlow;
         }
@@ -24,7 +24,7 @@ namespace linker.messenger.flow
         }
     }
 
-    public sealed class SForwardFlow : IFlow
+    public sealed class FlowSForward : IFlow
     {
         public long ReceiveBytes { get; private set; }
         public long SendtBytes { get; private set; }
@@ -35,7 +35,7 @@ namespace linker.messenger.flow
 
         private ConcurrentDictionary<string, SForwardFlowItemInfo> flows = new ConcurrentDictionary<string, SForwardFlowItemInfo>();
 
-        public SForwardFlow()
+        public FlowSForward()
         {
             TimerHelper.SetIntervalLong(() =>
             {
@@ -61,6 +61,13 @@ namespace linker.messenger.flow
         public void Update()
         {
             lastTicksManager.Update();
+        }
+        public (long, long) GetDiffBytes(long recv, long sent)
+        {
+
+            long diffRecv = ReceiveBytes - recv;
+            long diffSendt = SendtBytes - sent;
+            return (diffRecv, diffSendt);
         }
 
         public void AddReceive(string key, string groupid, long bytes)

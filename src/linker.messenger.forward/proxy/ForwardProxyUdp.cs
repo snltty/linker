@@ -50,7 +50,7 @@ namespace linker.messenger.forward.proxy
                 try
                 {
                     SocketReceiveFromResult result = await token.SourceSocket.ReceiveFromAsync(bytes, tempRemoteEP).ConfigureAwait(false);
-                    if(result.ReceivedBytes == 0)
+                    if (result.ReceivedBytes == 0)
                     {
                         continue;
                     }
@@ -192,6 +192,19 @@ namespace linker.messenger.forward.proxy
                 }
             }
         }
+        private bool FirewallCheck(AsyncUserUdpTokenTarget token)
+        {
+            ulong version = token.FirewallVersion;
+            bool firewall = linkerFirewall.VersionChanged(ref version);
+            token.FirewallVersion = version;
+
+            if (firewall && linkerFirewall.Check(token.Connection.RemoteMachineId, token.TargetRealEP, ProtocolType.Udp) == false)
+            {
+                return false;
+            }
+            return true;
+        }
+
         private async Task ConnectUdp(AsyncUserTunnelToken tunnelToken)
         {
             IPEndPoint target = new IPEndPoint(tunnelToken.Proxy.TargetEP.Address, tunnelToken.Proxy.TargetEP.Port);
@@ -218,6 +231,7 @@ namespace linker.messenger.forward.proxy
                     Port = tunnelToken.Proxy.Port,
                     BufferSize = tunnelToken.Proxy.BufferSize,
                 },
+                TargetRealEP = target,
                 TargetSocket = socket,
                 ConnectId = connectId,
                 Connection = tunnelToken.Connection,
@@ -231,6 +245,14 @@ namespace linker.messenger.forward.proxy
                 while (true)
                 {
                     SocketReceiveFromResult result = await socket.ReceiveFromAsync(udpToken.Buffer, SocketFlags.None, target).ConfigureAwait(false);
+                    if (result.ReceivedBytes == 0)
+                    {
+                        continue;
+                    }
+                    if (FirewallCheck(udpToken) == false)
+                    {
+                        break;
+                    }
                     udpToken.Proxy.Data = udpToken.Buffer.AsMemory(0, result.ReceivedBytes);
                     udpToken.LastTicks.Update();
                     await SendToConnection(udpToken).ConfigureAwait(false);
@@ -387,7 +409,8 @@ namespace linker.messenger.forward.proxy
     public sealed class AsyncUserUdpTokenTarget
     {
         public Socket TargetSocket { get; set; }
-
+        public IPEndPoint TargetRealEP { get; set; }
+        public ulong FirewallVersion { get; set; }
         public ITunnelConnection Connection { get; set; }
         public ProxyInfo Proxy { get; set; }
 

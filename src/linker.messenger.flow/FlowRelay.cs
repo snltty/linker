@@ -7,44 +7,10 @@ using System.Text.Json.Serialization;
 
 namespace linker.messenger.flow
 {
-    public sealed class RelayReportFlow : IFlow
-    {
-        public long ReceiveBytes { get; private set; }
-        public long SendtBytes { get; private set; }
-        public string FlowName => "RelayReport";
-        public VersionManager Version { get; } = new VersionManager();
-        public RelayReportFlow()
-        {
-        }
-        public string GetItems() => string.Empty;
-        public void SetItems(string json) { }
-        public void SetBytes(long receiveBytes, long sendtBytes) { ReceiveBytes = receiveBytes; SendtBytes = sendtBytes; }
-        public void Clear() { ReceiveBytes = 0; SendtBytes = 0; }
-
-        public void AddReceive(long bytes) { ReceiveBytes += bytes; Version.Increment(); }
-        public void AddSendt(long bytes) { SendtBytes += bytes; Version.Increment(); }
-
-    }
-
-    public sealed class RelayReportResolverFlow : RelayServerReportResolver
-    {
-        private readonly RelayReportFlow relayReportFlow;
-        public RelayReportResolverFlow(RelayReportFlow relayReportFlow, RelayServerMasterTransfer relayServerTransfer,IRelayServerMasterStore relayServerMasterStore,IMessengerResolver messengerResolver) : base(relayServerTransfer, relayServerMasterStore, messengerResolver)
-        {
-            this.relayReportFlow = relayReportFlow;
-        }
-
-        public override void AddReceive(long bytes) { relayReportFlow.AddReceive(bytes); }
-        public override void AddSendt(long bytes) { relayReportFlow.AddSendt(bytes); }
-
-    }
-
-
-
     public sealed class RelayResolverFlow : RelayServerResolver
     {
-        private readonly RelayFlow relayFlow;
-        public RelayResolverFlow(RelayFlow relayFlow, RelayServerNodeTransfer relayServerNodeTransfer, ISerializer serializer) : base(relayServerNodeTransfer, serializer)
+        private readonly FlowRelay relayFlow;
+        public RelayResolverFlow(FlowRelay relayFlow, RelayServerNodeTransfer relayServerNodeTransfer, ISerializer serializer) : base(relayServerNodeTransfer, serializer)
         {
             this.relayFlow = relayFlow;
         }
@@ -66,9 +32,18 @@ namespace linker.messenger.flow
             relayFlow.AddSendt(key, bytes);
         }
 
+        public override long GetReceive()
+        {
+            return relayFlow.ReceiveBytes;
+        }
+        public override long GetSent()
+        {
+            return relayFlow.SendtBytes;
+        }
+
     }
 
-    public sealed class RelayFlow : IFlow
+    public sealed class FlowRelay : IFlow
     {
         public long ReceiveBytes { get; private set; }
         public long SendtBytes { get; private set; }
@@ -79,7 +54,7 @@ namespace linker.messenger.flow
 
         private ConcurrentDictionary<string, RelayFlowItemInfo> flows = new ConcurrentDictionary<string, RelayFlowItemInfo>();
 
-        public RelayFlow()
+        public FlowRelay()
         {
             TimerHelper.SetIntervalLong(() =>
             {
@@ -101,11 +76,18 @@ namespace linker.messenger.flow
         {
             lastTicksManager.Update();
         }
+        public (long, long) GetDiffBytes(long recv, long sent)
+        {
+
+            long diffRecv = ReceiveBytes - recv;
+            long diffSendt = SendtBytes - sent;
+            return (diffRecv, diffSendt);
+        }
 
         public string GetItems() => flows.ToJson();
         public void SetItems(string json) { flows = json.DeJson<ConcurrentDictionary<string, RelayFlowItemInfo>>(); }
         public void SetBytes(long receiveBytes, long sendtBytes) { ReceiveBytes = receiveBytes; SendtBytes = sendtBytes; }
-        public void Clear() { ReceiveBytes = 0; SendtBytes = 0;flows.Clear(); }
+        public void Clear() { ReceiveBytes = 0; SendtBytes = 0; flows.Clear(); }
 
         public void AddReceive(string key, string from, string to, string groupid, long bytes)
         {

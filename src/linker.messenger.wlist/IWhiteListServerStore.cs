@@ -1,10 +1,7 @@
-﻿using linker.libs;
-
-namespace linker.messenger.wlist
+﻿namespace linker.messenger.wlist
 {
     public interface IWhiteListServerStore
     {
-        public bool ValidateSecretKey(string secretKey);
         public Task<WhiteListPageResultInfo> Page(WhiteListPageRequestInfo request);
         public Task<bool> Add(WhiteListInfo info);
         public Task<bool> Del(int id);
@@ -13,12 +10,10 @@ namespace linker.messenger.wlist
     }
     public sealed partial class WhiteListDelInfo
     {
-        public string SecretKey { get; set; }
         public int Id { get; set; }
     }
     public sealed partial class WhiteListAddInfo
     {
-        public string SecretKey { get; set; }
         public WhiteListInfo Data { get; set; }
     }
     public sealed partial class WhiteListPageRequestInfo
@@ -29,7 +24,6 @@ namespace linker.messenger.wlist
         public string UserId { get; set; }
         public string Name { get; set; }
         public string Remark { get; set; }
-        public string SecretKey { get; set; }
     }
     public sealed partial class WhiteListPageResultInfo
     {
@@ -48,17 +42,5 @@ namespace linker.messenger.wlist
         public DateTime AddTime { get; set; } = DateTime.Now;
 
         public string[] Nodes { get; set; } = [];
-    }
-
-    public sealed class WhiteListConfigInfo
-    {
-        /// <summary>
-        /// 加解密密钥
-        /// </summary>
-#if DEBUG
-        public string SecretKey { get; set; } = Helper.GlobalString;
-#else
-        public string SecretKey { get; set; } = Guid.NewGuid().ToString().ToUpper();
-#endif
     }
 }

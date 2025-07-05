@@ -6,7 +6,7 @@
     public sealed class SignInArgsGroupPasswordClient : ISignInArgsClient
     {
         public string Name => "group";
-        public SignInArgsLevel Level => SignInArgsLevel.Default;
+        public SignInArgsLevel Level => SignInArgsLevel.Top;
 
         private readonly ISignInClientStore signInClientStore;
         public SignInArgsGroupPasswordClient(ISignInClientStore signInClientStore)
@@ -16,8 +16,7 @@
         public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
             args.TryAdd("signin-gpwd", signInClientStore.Group.Password);
-            await Task.CompletedTask.ConfigureAwait(false);
-            return string.Empty;
+            return await Task.FromResult(string.Empty);
         }
     }
 
@@ -27,9 +26,10 @@
     public sealed class SignInArgsGroupPasswordServer : ISignInArgsServer
     {
         public string Name => "group";
-        public SignInArgsLevel Level => SignInArgsLevel.Hight;
+        public SignInArgsLevel Level => SignInArgsLevel.Top;
         public SignInArgsGroupPasswordServer()
         {
+
         }
         /// <summary>
         /// 验证参数
@@ -43,8 +43,7 @@
             {
                 signInfo.GroupId = $"{signInfo.GroupId}->{gpwd}";
             }
-            await Task.CompletedTask.ConfigureAwait(false);
-            return string.Empty;
+            return await Task.FromResult(string.Empty);
         }
 
 

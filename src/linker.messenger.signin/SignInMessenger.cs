@@ -5,9 +5,6 @@ using System.Net;
 
 namespace linker.messenger.signin
 {
-    /// <summary>
-    /// 
-    /// </summary>
     public sealed class SignInClientMessenger : IMessenger
     {
         private readonly ISignInClientStore signInClientStore;
@@ -296,11 +293,17 @@ namespace linker.messenger.signin
             signCaching.Exp(connection.Id);
         }
 
-        [MessengerId((ushort)SignInMessengerIds.CheckKey)]
-        public void CheckKey(IConnection connection)
+        [MessengerId((ushort)SignInMessengerIds.CheckSuper)]
+        public void CheckSuper(IConnection connection)
         {
-            string key = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            connection.Write(signInServerStore.ValidateSecretKey(key) ? Helper.TrueArray : Helper.FalseArray);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
+            {
+                connection.Write(Helper.FalseArray);
+                return;
+            }
+            KeyValuePair<string, string> key = serializer.Deserialize<KeyValuePair<string, string>>(connection.ReceiveRequestWrap.Payload.Span);
+            cache.Super = signInServerStore.ValidateSuper(key.Key, key.Value);
+            connection.Write(cache.Super ? Helper.TrueArray : Helper.FalseArray);
         }
     }
 

@@ -4,6 +4,7 @@ using linker.messenger.action;
 using linker.messenger.api;
 using linker.messenger.cdkey;
 using linker.messenger.firewall;
+using linker.messenger.flow.history;
 using linker.messenger.forward;
 using linker.messenger.listen;
 using linker.messenger.logger;
@@ -20,6 +21,7 @@ using linker.messenger.store.file.api;
 using linker.messenger.store.file.cdkey;
 using linker.messenger.store.file.common;
 using linker.messenger.store.file.firewall;
+using linker.messenger.store.file.flow;
 using linker.messenger.store.file.forward;
 using linker.messenger.store.file.logger;
 using linker.messenger.store.file.messenger;
@@ -74,7 +76,6 @@ namespace linker.messenger.store.file
             serviceCollection.AddSingleton<IRelayServerMasterStore, RelayServerMasterStore>();
 
             serviceCollection.AddSingleton<ICdkeyServerStore, CdkeyServerStore>();
-            serviceCollection.AddSingleton<ICdkeyClientStore, CdkeyClientStore>();
 
 
             serviceCollection.AddSingleton<ITunnelClientStore, TunnelClientStore>();
@@ -121,7 +122,8 @@ namespace linker.messenger.store.file
             serviceCollection.AddSingleton<IWakeupClientStore, WakeupClientStore>();
 
             serviceCollection.AddSingleton<IWhiteListServerStore, WhiteListServerStore>();
-            serviceCollection.AddSingleton<IWhiteListClientStore, WhiteListClientStore>();
+
+            serviceCollection.AddSingleton<IFlowHistoryStore, FlowHistoryStore>();
 
 
             return serviceCollection;

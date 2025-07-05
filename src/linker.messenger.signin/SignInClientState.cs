@@ -37,6 +37,7 @@ namespace linker.messenger.signin
         /// </summary>
         public IPEndPoint WanAddress { get; set; } = new IPEndPoint(IPAddress.Any, 0);
 
+        public bool Super { get; set; }
 
         /// <summary>
         /// 登录之前

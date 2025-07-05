@@ -56,14 +56,6 @@ namespace linker.messenger.sforward
     public sealed class SForwardConfigServerInfo
     {
         /// <summary>
-        /// 密钥
-        /// </summary>
-#if DEBUG
-        public string SecretKey { get; set; } = Helper.GlobalString;
-#else
-        public string SecretKey { get; set; } = Guid.NewGuid().ToString().ToUpper();
-#endif
-        /// <summary>
         /// 缓冲区
         /// </summary>
         public byte BufferSize { get; set; } = 3;
@@ -91,10 +83,6 @@ namespace linker.messenger.sforward
         /// 或者端口。域名优先
         /// </summary>
         public int RemotePort { get; set; }
-        /// <summary>
-        /// 密钥
-        /// </summary>
-        public string SecretKey { get; set; }
     }
     /// <summary>
     /// 添加穿透结果
@@ -147,10 +135,6 @@ namespace linker.messenger.sforward
         /// bufsize
         /// </summary>
         public byte BufferSize { get; set; } = 3;
-    }
-    public sealed class SForwardConfigClientInfo
-    {
-        public string SecretKey { get; set; } = Helper.GlobalString;
     }
 
 

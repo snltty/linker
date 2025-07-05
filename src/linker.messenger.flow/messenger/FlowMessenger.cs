@@ -2,15 +2,16 @@
 using linker.messenger.relay.server;
 using linker.messenger.sforward.server;
 using linker.messenger.signin;
+using System.Reflection.PortableExecutable;
 
 namespace linker.messenger.flow.messenger
 {
     public sealed class FlowMessenger : IMessenger
     {
         private readonly FlowTransfer flowTransfer;
-        private readonly MessengerFlow messengerFlow;
-        private readonly SForwardFlow sForwardFlow;
-        private readonly RelayFlow relayFlow;
+        private readonly flow.FlowMessenger messengerFlow;
+        private readonly FlowSForward sForwardFlow;
+        private readonly FlowRelay relayFlow;
         private readonly SignInServerCaching signCaching;
         private readonly IRelayServerStore relayServerStore;
         private readonly ISForwardServerStore sForwardServerStore;
@@ -20,7 +21,7 @@ namespace linker.messenger.flow.messenger
 
         private DateTime start = DateTime.Now;
 
-        public FlowMessenger(FlowTransfer flowTransfer, MessengerFlow messengerFlow, SForwardFlow sForwardFlow, RelayFlow relayFlow, SignInServerCaching signCaching, IRelayServerStore relayServerStore, ISForwardServerStore sForwardServerStore, ISerializer serializer, FlowResolver flowResolver, IMessengerSender messengerSender)
+        public FlowMessenger(FlowTransfer flowTransfer, flow.FlowMessenger messengerFlow, FlowSForward sForwardFlow, FlowRelay relayFlow, SignInServerCaching signCaching, IRelayServerStore relayServerStore, ISForwardServerStore sForwardServerStore, ISerializer serializer, FlowResolver flowResolver, IMessengerSender messengerSender)
         {
             this.flowTransfer = flowTransfer;
             this.messengerFlow = messengerFlow;
@@ -72,21 +73,19 @@ namespace linker.messenger.flow.messenger
         {
             sForwardFlow.Update();
             SForwardFlowRequestInfo info = serializer.Deserialize<SForwardFlowRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
+            {
+                connection.Write(serializer.Serialize(new SForwardFlowResponseInfo { Count = 0, Data = [], PageSize = info.PageSize, Page = info.Page }));
+                return;
+            }
 
-            if (sForwardServerStore.ValidateSecretKey(info.SecretKey))
+            if (cache.Super)
             {
                 info.GroupId = string.Empty;
             }
             else
             {
-                if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
-                {
-                    info.GroupId = cache.GroupId;
-                }
-                else
-                {
-                    info.GroupId = Guid.NewGuid().ToString();
-                }
+                info.GroupId = cache.GroupId;
             }
 
             connection.Write(serializer.Serialize(sForwardFlow.GetFlows(info)));
@@ -97,20 +96,20 @@ namespace linker.messenger.flow.messenger
         {
             relayFlow.Update();
             RelayFlowRequestInfo info = serializer.Deserialize<RelayFlowRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (relayServerStore.ValidateSecretKey(info.SecretKey))
+
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
+            {
+                connection.Write(serializer.Serialize(new RelayFlowResponseInfo { Count = 0, Data = [], PageSize = info.PageSize, Page = info.Page }));
+                return;
+            }
+
+            if (cache.Super == false)
             {
                 info.GroupId = string.Empty;
             }
             else
             {
-                if (signCaching.TryGet(connection.Id, out SignCacheInfo cache))
-                {
-                    info.GroupId = cache.GroupId;
-                }
-                else
-                {
-                    info.GroupId = Guid.NewGuid().ToString();
-                }
+                info.GroupId = cache.GroupId;
             }
 
             connection.Write(serializer.Serialize(relayFlow.GetFlows(info)));
@@ -121,7 +120,7 @@ namespace linker.messenger.flow.messenger
         public void StopwatchForward(IConnection connection)
         {
             string machineid = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id,machineid, out SignCacheInfo from, out SignCacheInfo to))
+            if (signCaching.TryGet(connection.Id, machineid, out SignCacheInfo from, out SignCacheInfo to))
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
                 _ = messengerSender.SendReply(new MessageRequestWrap
@@ -147,12 +146,12 @@ namespace linker.messenger.flow.messenger
 
     public sealed class FlowClientMessenger : IMessenger
     {
-        private readonly MessengerFlow messengerFlow;
+        private readonly flow.FlowMessenger messengerFlow;
         private readonly ISerializer serializer;
 
         private DateTime start = DateTime.Now;
 
-        public FlowClientMessenger(MessengerFlow messengerFlow, ISerializer serializer)
+        public FlowClientMessenger(flow.FlowMessenger messengerFlow, ISerializer serializer)
         {
             this.messengerFlow = messengerFlow;
             this.serializer = serializer;

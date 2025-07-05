@@ -42,15 +42,34 @@ namespace linker.messenger.signin
         public string Name { get; set; } = string.Empty;
         public string Host { get; set; } = string.Empty;
         public string Host1 { get; set; } = string.Empty;
+
         public string SecretKey { get; set; } = string.Empty;
         public string UserId { get; set; } = Guid.NewGuid().ToString();
-        
+
+#if DEBUG
+        public string SuperKey { get; set; } = Helper.GlobalString;
+        public string SuperPassword { get; set; } = Helper.GlobalString;
+#else
+        public string SuperKey { get; set; } = Guid.NewGuid().ToString().ToUpper();
+        public string SuperPassword { get; set; } = Guid.NewGuid().ToString().ToUpper();
+#endif
     }
 
     public sealed class SignInConfigServerInfo
     {
-        public string SecretKey { get; set; } = string.Empty;
         public int CleanDays { get; set; } = 7;
+
+        public string SecretKey { get; set; } = string.Empty;
+
+        public bool Anonymous { get; set; } = true;
+
+#if DEBUG
+        public string SuperKey { get; set; } = Helper.GlobalString;
+        public string SuperPassword { get; set; } = Helper.GlobalString;
+#else
+        public string SuperKey { get; set; } = Guid.NewGuid().ToString().ToUpper();
+        public string SuperPassword { get; set; } = Guid.NewGuid().ToString().ToUpper();
+#endif
     }
 
     public sealed partial class SignInConfigSetNameInfo

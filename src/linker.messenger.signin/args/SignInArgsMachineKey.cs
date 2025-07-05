@@ -52,8 +52,7 @@ namespace linker.messenger.signin.args
                     return $"your id 【{signInfo.MachineId}】 is already online, online machineName {cache.MachineName}";
                 }
             }
-            await Task.CompletedTask.ConfigureAwait(false);
-            return string.Empty;
+            return await Task.FromResult(string.Empty);
         }
 
 

@@ -22,11 +22,7 @@ namespace linker.messenger.tuntap
 
         public unsafe bool WriteBefore(string srcId, ReadOnlyMemory<byte> packet)
         {
-            if (linkerFirewall.Check(srcId, packet) == false)
-            {
-                return false;
-            }
-            return true;
+            return linkerFirewall.Check(srcId, packet);
         }
     }
 }

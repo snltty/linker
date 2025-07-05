@@ -71,6 +71,7 @@ namespace linker.messenger.signin
             cache.Version = signInfo.Version;
             cache.Args = signInfo.Args;
             cache.GroupId = signInfo.GroupId;
+            cache.Super = signInfo.Super;
             signInStore.Update(cache);
             signInStore.Confirm();
             return string.Empty;
@@ -237,6 +238,10 @@ namespace linker.messenger.signin
             }
         }
 
+
+        public bool Super { get; set; }
+
+
         /// <summary>
         /// 连接对象
         /// </summary>
@@ -259,6 +264,8 @@ namespace linker.messenger.signin
         public string MachineName { get; set; } = string.Empty;
         public string GroupId { get; set; } = string.Empty;
         public string Version { get; set; } = string.Empty;
+
+        public bool Super { get; set; } = false;
 
         public Dictionary<string, string> Args { get; set; } = new Dictionary<string, string>();
 

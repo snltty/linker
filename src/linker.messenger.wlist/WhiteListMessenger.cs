@@ -4,9 +4,6 @@ using linker.messenger.signin;
 namespace linker.messenger.wlist
 {
 
-    /// <summary>
-    /// 中继服务端
-    /// </summary>
     public class WhiteListServerMessenger : IMessenger
     {
         private readonly IMessengerSender messengerSender;
@@ -30,17 +27,11 @@ namespace linker.messenger.wlist
         public async Task Add(IConnection connection)
         {
             WhiteListAddInfo info = serializer.Deserialize<WhiteListAddInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false || cache.Super == false)
             {
                 connection.Write(Helper.FalseArray);
                 return;
             }
-            if (whiteListServerStore.ValidateSecretKey(info.SecretKey) == false)
-            {
-                connection.Write(Helper.FalseArray);
-                return;
-            }
-
             await whiteListServerStore.Add(info.Data).ConfigureAwait(false);
             connection.Write(Helper.TrueArray);
         }
@@ -54,12 +45,7 @@ namespace linker.messenger.wlist
         public async Task Del(IConnection connection)
         {
             WhiteListDelInfo info = serializer.Deserialize<WhiteListDelInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
-            {
-                connection.Write(Helper.FalseArray);
-                return;
-            }
-            if (whiteListServerStore.ValidateSecretKey(info.SecretKey) == false)
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false || cache.Super == false)
             {
                 connection.Write(Helper.FalseArray);
                 return;
@@ -77,28 +63,14 @@ namespace linker.messenger.wlist
         public async Task Page(IConnection connection)
         {
             WhiteListPageRequestInfo info = serializer.Deserialize<WhiteListPageRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false || (cache.Super == false && string.IsNullOrWhiteSpace(info.UserId)))
             {
                 connection.Write(serializer.Serialize(new WhiteListPageResultInfo { }));
                 return;
             }
-            if (whiteListServerStore.ValidateSecretKey(info.SecretKey) == false && string.IsNullOrWhiteSpace(info.UserId))
-            {
-                connection.Write(serializer.Serialize(new WhiteListPageResultInfo { }));
-                return;
-            }
-
             var page = await whiteListServerStore.Page(info).ConfigureAwait(false);
 
             connection.Write(serializer.Serialize(page));
         }
-
-        [MessengerId((ushort)WhiteListMessengerIds.CheckKey)]
-        public void CheckKey(IConnection connection)
-        {
-            string key = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            connection.Write(whiteListServerStore.ValidateSecretKey(key) ? Helper.TrueArray : Helper.FalseArray);
-        }
-
     }
 }

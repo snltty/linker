@@ -39,12 +39,6 @@ namespace linker.messenger.relay.client
         public void SetServer(RelayServerInfo server);
 
         /// <summary>
-        /// 设置中继密钥
-        /// </summary>
-        /// <param name="secretKey"></param>
-        public void SetServerSecretKey(string secretKey);
-
-        /// <summary>
         /// 提交
         /// </summary>
         /// <returns></returns>

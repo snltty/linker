@@ -7,22 +7,16 @@ namespace linker.messenger.updater
     {
         public string MachineId { get; set; }
         public string Version { get; set; }
-        public string SecretKey { get; set; }
         public bool GroupAll { get; set; }
         public bool All { get; set; }
     }
     public sealed partial class UpdaterConfirmServerInfo
     {
-        public string SecretKey { get; set; }
         public string Version { get; set; }
     }
 
     public sealed class UpdaterConfigClientInfo
     {
-        /// <summary>
-        /// 密钥
-        /// </summary>
-        public string SecretKey { get; set; } = Helper.GlobalString;
         /// <summary>
         /// 与服务器同步
         /// </summary>
@@ -31,13 +25,9 @@ namespace linker.messenger.updater
     public sealed class UpdaterConfigServerInfo
     {
         /// <summary>
-        /// 密钥
+        /// 与服务器同步
         /// </summary>
-#if DEBUG
-        public string SecretKey { get; set; } = Helper.GlobalString;
-#else
-        public string SecretKey { get; set; } = Guid.NewGuid().ToString().ToUpper();
-#endif
+        public bool Sync2Server { get; set; } = false;
     }
 
 
@@ -92,9 +82,13 @@ namespace linker.messenger.updater
         public long Length { get; set; }
         public long Current { get; set; }
     }
-    public sealed partial class Updater184Info : UpdaterInfo170
+    public partial class Updater184Info : UpdaterInfo170
     {
         public string ServerVersion { get; set; }
+    }
+    public sealed partial class Updater186Info : Updater184Info
+    {
+        public bool Sync2Server { get; set; }
     }
 
 

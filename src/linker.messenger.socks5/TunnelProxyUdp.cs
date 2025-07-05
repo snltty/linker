@@ -116,6 +116,18 @@ namespace linker.messenger.socks5
             }
         }
 
+        private bool FirewallCheck(AsyncUserUdpTokenTarget token)
+        {
+            ulong version = token.FirewallVersion;
+            bool firewall = linkerFirewall.VersionChanged(ref version);
+            token.FirewallVersion = version;
+
+            if (firewall && linkerFirewall.Check(token.Connection.RemoteMachineId, token.TargetRealEP, ProtocolType.Udp) == false)
+            {
+                return false;
+            }
+            return true;
+        }
         private async Task SendToSocketUdp(AsyncUserTunnelToken tunnelToken)
         {
 
@@ -212,7 +224,15 @@ namespace linker.messenger.socks5
                 while (true)
                 {
                     SocketReceiveFromResult result = await socket.ReceiveFromAsync(udpToken.Buffer, SocketFlags.None, target).ConfigureAwait(false);
-                    if (result.ReceivedBytes == 0) break;
+                    if (result.ReceivedBytes == 0)
+                    {
+                        continue;
+                    }
+                    if (FirewallCheck(udpToken) == false)
+                    {
+                        break;
+                    }
+
                     udpToken.Proxy.Data = udpToken.Buffer.AsMemory(0, result.ReceivedBytes);
                     udpToken.Update();
                     await SendToConnection(udpToken).ConfigureAwait(false);
@@ -358,6 +378,7 @@ namespace linker.messenger.socks5
     {
         public Socket TargetSocket { get; set; }
         public IPEndPoint TargetRealEP { get; set; }
+        public ulong FirewallVersion { get; set; }
 
         public ITunnelConnection Connection { get; set; }
         public ProxyInfo Proxy { get; set; }

@@ -16,16 +16,6 @@ namespace linker.messenger.store.file.sforward
             this.fileConfig = fileConfig;
         }
 
-        public bool ValidateSecretKey(string key)
-        {
-            return string.IsNullOrWhiteSpace(fileConfig.Data.Server.SForward.SecretKey) || fileConfig.Data.Server.SForward.SecretKey == key;
-        }
-        public bool SetSecretKey(string key)
-        {
-            fileConfig.Data.Server.SForward.SecretKey = key;
-            return true;
-        }
-
         public bool SetBufferSize(byte size)
         {
             fileConfig.Data.Server.SForward.BufferSize = size;

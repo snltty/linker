@@ -69,7 +69,8 @@ namespace linker.messenger.relay.server
         {
             if (relayCaching.TryGetValue(key, out RelayCacheInfo value))
             {
-                value.Validated = value.Validated || (await whiteListServerStore.Get("Relay",value.UserId)).Contains(nodeid);
+                var nodes = await whiteListServerStore.Get("Relay", value.UserId).ConfigureAwait(false);
+                value.Validated = value.Validated || nodes.Contains(nodeid);
                 value.Cdkey = value.UseCdkey
                     ? (await cdkeyServerStore.GetAvailable(value.UserId, "Relay").ConfigureAwait(false)).Select(c => new CdkeyInfo { Bandwidth = c.Bandwidth, Id = c.Id, LastBytes = c.LastBytes }).ToList()
                     : [];
@@ -148,18 +149,6 @@ namespace linker.messenger.relay.server
                      .ThenByDescending(x => x.MaxGbTotal == 0 ? double.MaxValue : x.MaxGbTotal)
                      .ThenByDescending(x => x.MaxGbTotalLastBytes == 0 ? long.MaxValue : x.MaxGbTotalLastBytes)
                      .ToList();
-        }
-
-        /// <summary>
-        /// 是否需要认证
-        /// </summary>
-        /// <param name="nodeId"></param>
-        /// <returns></returns>
-        public async Task<bool> NodeValidate(string nodeId,string userid)
-        {
-            var nodes = await whiteListServerStore.Get("Relay", userid);
-            return reports.TryGetValue(nodeId, out RelayServerNodeReportInfo170 node) 
-                && node.Public == false && nodes.Contains(node.Id) == false;
         }
 
         /// <summary>

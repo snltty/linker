@@ -11,15 +11,24 @@ namespace linker.snat
     /// </summary>
     public sealed class LinkerFirewall
     {
-        private ConcurrentDictionary<(string srcId, uint dst, ushort dstPort, ProtocolType pro), bool> cacheDstMap = new ConcurrentDictionary<(string srcId, uint dst, ushort dstPort, ProtocolType pro), bool>();
-        private ConcurrentDictionary<(uint src, ushort srcPort, uint dst, ushort dstPort, ProtocolType pro), SrcCacheInfo> cacheSrcMap = new ConcurrentDictionary<(uint src, ushort srcPort, uint dst, ushort dstPort, ProtocolType pro), SrcCacheInfo>();
+        private readonly ConcurrentDictionary<(string srcId, uint dst, ushort dstPort, ProtocolType pro), bool> cacheDstMap = new();
+        private readonly ConcurrentDictionary<(uint src, ushort srcPort, uint dst, ushort dstPort, ProtocolType pro), SrcCacheInfo> cacheSrcMap = new();
 
-        private List<LinkerFirewallRuleBuildInfo> buildedRules = new List<LinkerFirewallRuleBuildInfo>();
+        private List<LinkerFirewallRuleBuildInfo> buildedRules = [];
         private LinkerFirewallState state = LinkerFirewallState.Disabled;
+
+        public VersionManager Version { get; private set; } = new VersionManager();
 
         public LinkerFirewall()
         {
             ClearTask();
+        }
+
+        public bool VersionChanged(ref ulong version)
+        {
+            bool result = Version.Eq(version, out ulong _version);
+            version = _version;
+            return result;
         }
 
         /// <summary>
@@ -29,6 +38,7 @@ namespace linker.snat
         public void SetState(LinkerFirewallState state)
         {
             this.state = state;
+            Version.Increment();
         }
 
         /// <summary>
@@ -105,6 +115,8 @@ namespace linker.snat
             }).Where(c => c != null).ToList();
 
             cacheDstMap.Clear();
+            cacheSrcMap.Clear();
+            Version.Increment();
         }
 
         /// <summary>
@@ -113,20 +125,15 @@ namespace linker.snat
         /// <param name="packet">一个TCP/IP包</param>
         public void AddAllow(ReadOnlyMemory<byte> packet)
         {
-            //未启用防火墙
-            if (this.state != LinkerFirewallState.Enabled) return;
+            if (state != LinkerFirewallState.Enabled) return;
 
             IPV4Packet ipv4 = new IPV4Packet(packet.Span);
-            //不是ipv4不管
-            if (ipv4.Version != 4) return;
-
-            //只需要处理TCP/UDP
-            if (ipv4.Protocol == ProtocolType.Udp || ipv4.Protocol == ProtocolType.Tcp)
+            if (ipv4.Version == 4 && (ipv4.Protocol == ProtocolType.Udp || ipv4.Protocol == ProtocolType.Tcp))
             {
                 (uint src, ushort srcPort, uint dst, ushort dstPort, ProtocolType pro) key = (ipv4.SrcAddr, ipv4.SrcPort, ipv4.DstAddr, ipv4.DstPort, ipv4.Protocol);
                 if (cacheSrcMap.TryGetValue(key, out SrcCacheInfo cache) == false)
                 {
-                    cache = new SrcCacheInfo();
+                    cache = new SrcCacheInfo { Type = SrcCacheType.Out };
                     cacheSrcMap.TryAdd(key, cache);
                 }
                 cache.LastTime = Environment.TickCount64;
@@ -157,21 +164,26 @@ namespace linker.snat
         /// <returns></returns>
         public bool Check(string srcId, ReadOnlyMemory<byte> packet)
         {
-            if (this.state != LinkerFirewallState.Enabled) return true;
+            if (state != LinkerFirewallState.Enabled) return true;
 
             IPV4Packet ipv4 = new IPV4Packet(packet.Span);
-            if (ipv4.Version != 4) return true;
-
-            if (ipv4.Protocol == ProtocolType.Udp || ipv4.Protocol == ProtocolType.Tcp)
+            //IPV4 TCP 和 UDP
+            if (ipv4.Version == 4 && (ipv4.Protocol == ProtocolType.Udp || ipv4.Protocol == ProtocolType.Tcp))
             {
+                //连接状态
                 (uint src, ushort srcPort, uint dst, ushort dstPort, ProtocolType pro) key = (ipv4.DstAddr, ipv4.DstPort, ipv4.SrcAddr, ipv4.SrcPort, ipv4.Protocol);
-                if (cacheSrcMap.TryGetValue(key, out SrcCacheInfo cache))
+                if (cacheSrcMap.TryGetValue(key, out SrcCacheInfo cache) == false)
                 {
-                    cache.LastTime = Environment.TickCount64;
-                    return true;
+                    cache = new SrcCacheInfo { Type = SrcCacheType.In };
+                    cacheSrcMap.TryAdd(key, cache);
                 }
-                return Check(srcId, ipv4.DstAddr, ipv4.DstPort, ipv4.Protocol);
+                cache.LastTime = Environment.TickCount64;
+
+                //有出站标记 或 通过检查
+                return cache.Type == SrcCacheType.Out
+                    || Check(srcId, ipv4.SrcAddr, ipv4.SrcPort, ipv4.Protocol);
             }
+
             return true;
         }
 
@@ -194,7 +206,7 @@ namespace linker.snat
             //按顺序匹配规则
             foreach (LinkerFirewallRuleBuildInfo item in buildedRules)
             {
-                bool match = (item.SrcIds == null ? item.SrcId == "*" || item.SrcId == srcId : item.SrcIds.Contains("*") || item.SrcIds.Contains(srcId))
+                bool match = (item.SrcIds == null ? (item.SrcId == "*" || item.SrcId == srcId) : item.SrcIds.Contains("*") || item.SrcIds.Contains(srcId))
                     && ((ip & item.DstPrefixLength) == item.DstNetwork)
                     && ((port >= item.DstPortStart && port <= item.DstPortEnd) || item.DstPorts.Contains(port))
                     && item.Protocol.HasFlag(_rotocol);
@@ -207,7 +219,6 @@ namespace linker.snat
             }
             return false;
         }
-
 
         private void ClearTask()
         {
@@ -270,5 +281,12 @@ namespace linker.snat
     public sealed class SrcCacheInfo
     {
         public long LastTime { get; set; } = Environment.TickCount64;
+        public SrcCacheType Type { get; set; }
     }
+    public enum SrcCacheType
+    {
+        In = 0,
+        Out = 1
+    }
+
 }

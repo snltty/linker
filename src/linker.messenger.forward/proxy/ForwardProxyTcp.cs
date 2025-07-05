@@ -129,6 +129,11 @@ namespace linker.messenger.forward.proxy
                     {
                         break;
                     }
+                    if(FirewallCheck(token) == false)
+                    {
+                        CloseClientSocket(token, 7);
+                        break;
+                    }
 
                     token.Proxy.Data = token.Buffer.AsMemory(0, length);
                     if (send)
@@ -139,6 +144,11 @@ namespace linker.messenger.forward.proxy
                         length = token.Socket.Receive(token.Buffer);
                         if (length == 0)
                         {
+                            break;
+                        }
+                        if (FirewallCheck(token) == false)
+                        {
+                            CloseClientSocket(token, 8);
                             break;
                         }
                         token.Proxy.Data = token.Buffer.AsMemory(0, length);
@@ -159,6 +169,18 @@ namespace linker.messenger.forward.proxy
                 CloseClientSocket(token, 6);
             }
 
+        }
+        private bool FirewallCheck(AsyncUserToken token)
+        {
+            ulong version = token.FirewallVersion;
+            bool firewall = token.Firewall && linkerFirewall.VersionChanged(ref version);
+            token.FirewallVersion = version;
+
+            if (firewall && linkerFirewall.Check(token.Connection.RemoteMachineId, token.IPEndPoint, ProtocolType.Tcp) == false)
+            {
+                return false;
+            }
+            return true;
         }
 
         /// <summary>
@@ -218,7 +240,7 @@ namespace linker.messenger.forward.proxy
         {
             if (token.Proxy.TargetEP == null) return;
 
-            if(linkerFirewall.Check(token.Connection.RemoteMachineId, token.Proxy.TargetEP, ProtocolType.Tcp) == false)
+            if (linkerFirewall.Check(token.Connection.RemoteMachineId, token.Proxy.TargetEP, ProtocolType.Tcp) == false)
             {
                 return;
             }
@@ -226,7 +248,7 @@ namespace linker.messenger.forward.proxy
             Socket socket = new Socket(token.Proxy.TargetEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socket.KeepAlive();
 
-            ConnectState state = new ConnectState { BufferSize = token.Proxy.BufferSize, Connection = token.Connection, ConnectId = token.Proxy.ConnectId, Socket = socket, IPEndPoint = token.Proxy.TargetEP };
+            ConnectState state = new ConnectState { BufferSize = token.Proxy.BufferSize, Connection = token.Connection, ConnectId = token.Proxy.ConnectId, Socket = socket, IPEndPoint = token.Proxy.TargetEP, Firewall = true };
             state.CopyData(token.Proxy.Data);
             socket.BeginConnect(token.Proxy.TargetEP, ConnectCallback, state);
 
@@ -238,6 +260,8 @@ namespace linker.messenger.forward.proxy
             {
                 Connection = state.Connection,
                 Socket = state.Socket,
+                Firewall = state.Firewall,
+                IPEndPoint = state.IPEndPoint,
                 Buffer = new byte[(1 << state.BufferSize) * 1024],
 
                 Proxy = new ProxyInfo
@@ -395,6 +419,9 @@ namespace linker.messenger.forward.proxy
         public byte[] Buffer { get; set; }
 
         public byte BufferSize { get; set; } = 3;
+        public bool Firewall { get; set; }
+        public ulong FirewallVersion { get; set; }
+        public IPEndPoint IPEndPoint { get; set; }
 
         public void Clear()
         {
@@ -420,6 +447,7 @@ namespace linker.messenger.forward.proxy
         public ulong ConnectId { get; set; }
         public Socket Socket { get; set; }
         public IPEndPoint IPEndPoint { get; set; }
+        public bool Firewall { get; set; }
 
         public byte[] Data { get; set; } = Helper.EmptyArray;
         public int Length { get; set; }

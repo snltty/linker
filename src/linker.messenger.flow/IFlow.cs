@@ -14,6 +14,8 @@ namespace linker.messenger.flow
         public void SetItems(string json);
         public void SetBytes(long receiveBytes,long sendtBytes);
         public void Clear();
+
+        public (long, long) GetDiffBytes(long recv, long sent);
     }
 
     public partial class FlowItemInfo

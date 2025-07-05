@@ -83,7 +83,7 @@ namespace linker.messenger.serializer.memorypack
         public readonly WhiteListAddInfo info;
 
         [MemoryPackInclude]
-        string SecretKey => info.SecretKey;
+        string SecretKey => string.Empty;
         [MemoryPackInclude, MemoryPackAllowSerialize]
         WhiteListInfo Data => info.Data;
 
@@ -92,7 +92,6 @@ namespace linker.messenger.serializer.memorypack
         {
             var info = new WhiteListAddInfo
             {
-                SecretKey = secretKey,
                 Data = data
             };
             this.info = info;
@@ -137,7 +136,7 @@ namespace linker.messenger.serializer.memorypack
         public readonly WhiteListDelInfo info;
 
         [MemoryPackInclude]
-        string SecretKey => info.SecretKey;
+        string SecretKey => string.Empty;
         [MemoryPackInclude]
         int Id => info.Id;
 
@@ -146,7 +145,6 @@ namespace linker.messenger.serializer.memorypack
         {
             var info = new WhiteListDelInfo
             {
-                SecretKey = secretKey,
                 Id = id
             };
             this.info = info;
@@ -204,7 +202,7 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         string Remark => info.Remark;
         [MemoryPackInclude]
-        string SecretKey => info.SecretKey;
+        string SecretKey => string.Empty;
 
         [MemoryPackConstructor]
         SerializableWhiteListPageRequestInfo(int page, int size, string type, string userid, string name, string remark, string secretKey)
@@ -216,7 +214,6 @@ namespace linker.messenger.serializer.memorypack
                 Type = type,
                 UserId = userid,
                 Remark = remark,
-                SecretKey = secretKey,
                 Name = name,
             };
             this.info = info;

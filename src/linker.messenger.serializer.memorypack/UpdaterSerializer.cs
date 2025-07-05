@@ -16,7 +16,7 @@ namespace linker.messenger.serializer.memorypack
         string Version => info.Version;
 
         [MemoryPackInclude]
-        string SecretKey => info.SecretKey;
+        string SecretKey => string.Empty;
 
         [MemoryPackInclude]
         bool GroupAll => info.GroupAll;
@@ -27,7 +27,7 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackConstructor]
         SerializableUpdaterConfirmInfo(string machineId, string version, string secretKey, bool groupAll, bool all)
         {
-            var info = new UpdaterConfirmInfo { MachineId = machineId, SecretKey = secretKey, All = all, GroupAll = groupAll, Version = version };
+            var info = new UpdaterConfirmInfo { MachineId = machineId, All = all, GroupAll = groupAll, Version = version };
             this.info = info;
         }
 
@@ -71,7 +71,7 @@ namespace linker.messenger.serializer.memorypack
         public readonly UpdaterConfirmServerInfo info;
 
         [MemoryPackInclude]
-        string SecretKey => info.SecretKey;
+        string SecretKey => string.Empty;
 
         [MemoryPackInclude]
         string Version => info.Version;
@@ -79,7 +79,7 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackConstructor]
         SerializableUpdaterConfirmServerInfo(string version, string secretKey)
         {
-            var info = new UpdaterConfirmServerInfo { SecretKey = secretKey, Version = version };
+            var info = new UpdaterConfirmServerInfo { Version = version };
             this.info = info;
         }
 
@@ -403,6 +403,71 @@ namespace linker.messenger.serializer.memorypack
     }
 
 
+    [MemoryPackable]
+    public readonly partial struct SerializableUpdater186Info
+    {
+        [MemoryPackIgnore]
+        public readonly Updater186Info info;
+
+        [MemoryPackInclude]
+        string MachineId => info.MachineId;
+        [MemoryPackInclude]
+        string Version => info.Version;
+
+        [MemoryPackInclude]
+        UpdaterStatus Status => info.Status;
+
+        [MemoryPackInclude]
+        long Length => info.Length;
+
+        [MemoryPackInclude]
+        long Current => info.Current;
+
+        [MemoryPackInclude]
+        string ServerVersion => info.ServerVersion;
+
+        [MemoryPackInclude]
+        bool Sync2Server => info.Sync2Server;
+
+        [MemoryPackConstructor]
+        SerializableUpdater186Info(string machineId, string version, UpdaterStatus status, long length, long current, string serverVersion, bool sync2Server)
+        {
+            this.info = new Updater186Info { MachineId = machineId, Version = version, Status = status, Length = length, Current = current, ServerVersion = serverVersion, Sync2Server = sync2Server };
+        }
+
+        public SerializableUpdater186Info(Updater186Info info)
+        {
+            this.info = info;
+        }
+    }
+    public class Updater186InfoFormatter : MemoryPackFormatter<Updater186Info>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Updater186Info value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableUpdater186Info(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref Updater186Info value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableUpdater186Info>();
+            value = wrapped.info;
+        }
+    }
+
+
 
     [MemoryPackable]
     public readonly partial struct SerializableUpdaterSyncInfo
@@ -411,7 +476,7 @@ namespace linker.messenger.serializer.memorypack
         public readonly UpdaterSyncInfo info;
 
         [MemoryPackInclude]
-        string SecretKey => info.SecretKey;
+        string SecretKey => string.Empty;
 
         [MemoryPackInclude]
         bool Sync2Server => info.Sync2Server;
@@ -419,7 +484,7 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackConstructor]
         SerializableUpdaterSyncInfo(string secretKey, bool sync2Server)
         {
-            var info = new UpdaterSyncInfo { SecretKey = secretKey, Sync2Server = sync2Server };
+            var info = new UpdaterSyncInfo { Sync2Server = sync2Server };
             this.info = info;
         }
 

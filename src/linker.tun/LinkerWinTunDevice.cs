@@ -79,7 +79,7 @@ namespace linker.tun
                 try
                 {
                     AddIPV4();
-                    AddIPV6();
+                    //AddIPV6();
 
                     interfaceNumber = GetWindowsInterfaceNum();
                     tokenSource = new CancellationTokenSource();
@@ -173,7 +173,7 @@ namespace linker.tun
                 session = WinTun.WintunStartSession(adapter, 0x400000);
                 waitHandle = WinTun.WintunGetReadWaitEvent(session);
                 AddIPV4();
-                AddIPV6();
+                //AddIPV6();
 
                 WinTun.SetEvent(oldWaitHandle);
                 WinTun.WintunEndSession(oldSession);

@@ -3,18 +3,6 @@
     public interface ISForwardClientStore
     {
         /// <summary>
-        /// 穿透密钥
-        /// </summary>
-        public string SecretKey { get;  }
-
-        /// <summary>
-        /// 设置穿透密钥
-        /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public bool SetSecretKey(string key);
-
-        /// <summary>
         /// 穿透数量
         /// </summary>
         /// <returns></returns>

@@ -12,10 +12,6 @@ namespace linker.messenger.store.file.wlist
             liteCollection = dBfactory.GetCollection<WhiteListInfo>("whiteList");
             this.fileConfig = fileConfig;
         }
-        public bool ValidateSecretKey(string secretKey)
-        {
-            return secretKey == fileConfig.Data.Server.WhiteList.SecretKey;
-        }
 
         public async Task<bool> Add(WhiteListInfo info)
         {

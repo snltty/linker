@@ -56,7 +56,6 @@ namespace linker.messenger.relay.client.transport
     public partial class RelayTestInfo
     {
         public string MachineId { get; set; }
-        public string SecretKey { get; set; }
         public IPEndPoint Server { get; set; }
     }
     public sealed partial class RelayTestInfo170: RelayTestInfo
@@ -102,10 +101,6 @@ namespace linker.messenger.relay.client.transport
         /// </summary>
         public string TransactionId { get; set; }
         /// <summary>
-        /// 密钥
-        /// </summary>
-        public string SecretKey { get; set; }
-        /// <summary>
         /// 协议名
         /// </summary>
         public string TransportName { get; set; }
@@ -136,10 +131,6 @@ namespace linker.messenger.relay.client.transport
     public sealed partial class RelayServerInfo
     {
         public RelayServerInfo() { }
-        /// <summary>
-        /// 密钥
-        /// </summary>
-        public string SecretKey { get; set; } = Helper.GlobalString;
         /// <summary>
         /// 禁用
         /// </summary>

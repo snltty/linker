@@ -88,7 +88,6 @@ namespace linker.messenger.relay.server
 
     public sealed partial class RelayServerNodeUpdateWrapInfo
     {
-        public string SecretKey { get; set; }
         public RelayServerNodeUpdateInfo Info { get; set; }
     }
     public sealed partial class RelayServerNodeUpdateInfo

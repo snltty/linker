@@ -110,28 +110,10 @@ namespace linker.messenger.relay
                 Payload = serializer.Serialize(new RelayServerNodeUpdateWrapInfo
                 {
                     Info = info,
-                    SecretKey = relayClientStore.Server.SecretKey
                 })
             }).ConfigureAwait(false);
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
-
-        /// <summary>
-        /// 检查密钥
-        /// </summary>
-        /// <param name="param"></param>
-        /// <returns></returns>
-        public async Task<bool> CheckKey(ApiControllerParamsInfo param)
-        {
-            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
-            {
-                Connection = signInClientState.Connection,
-                MessengerId = (ushort)RelayMessengerIds.CheckKey,
-                Payload = serializer.Serialize(relayClientStore.Server.SecretKey)
-            }).ConfigureAwait(false);
-            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
-        }
-
     }
 
     public sealed class SyncInfo

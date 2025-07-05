@@ -1,10 +1,6 @@
 <template>
-    <el-form-item :label="$t('server.relaySecretKey')">
+    <el-form-item :label="$t('server.relay')">
         <div >
-            <div class="flex">
-                <el-input :class="{success:state.keyState,error:state.keyState==false}" style="width:20rem;" type="password" show-password v-model="state.list.SecretKey" maxlength="36" @blur="handleSave" />
-                <Sync class="mgl-1" name="RelaySecretKey"></Sync>
-            </div>
             <div class="flex">
                 <div class="mgr-1">
                     <el-checkbox class="mgr-1" v-model="state.list.SSL" :label="$t('server.relaySSL')" @change="handleSave" />
@@ -18,13 +14,14 @@
                     <el-checkbox v-model="state.list.UseCdkey" :label="$t('server.relayUseCdkey')" @change="handleSave" />
                 </div>
                 <Cdkey type="Relay"></Cdkey>
-                <Nodes v-if="state.showModes" v-model="state.showModes" :data="state.nodes" :keyState="state.keyState"></Nodes>
+                <Nodes v-if="state.showModes" v-model="state.showModes" :data="state.nodes"></Nodes>
+                <Sync class="mgl-1" name="RelaySecretKey"></Sync>
             </div>
         </div>
     </el-form-item>
 </template>
 <script>
-import { checkRelayKey,   setRelayServers, setRelaySubscribe } from '@/apis/relay';
+import {  setRelayServers, setRelaySubscribe } from '@/apis/relay';
 import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
 import { onMounted, onUnmounted, provide, reactive, ref } from 'vue'
@@ -43,8 +40,7 @@ export default {
             list:globalData.value.config.Client.Relay.Server,
             showModes:false,
             nodes:[],
-            timer:0,
-            keyState:false,
+            timer:0
         });
         const handleSave = ()=>{
             setRelayServers(state.list).then(()=>{
@@ -53,7 +49,6 @@ export default {
                 console.log(err);
                 ElMessage.error(t('common.operFail'));
             });
-            handleCheckKey();
         }
 
         const nodes = ref([]);
@@ -68,15 +63,9 @@ export default {
                 state.timer = setTimeout(_setRelaySubscribe,1000);
             });
         }
-        const handleCheckKey = ()=>{
-            checkRelayKey().then((res)=>{
-                state.keyState = res;
-            }).catch(()=>{});
-        }
 
         onMounted(()=>{
             _setRelaySubscribe();
-            handleCheckKey();
         });
         onUnmounted(()=>{
             clearTimeout(state.timer);

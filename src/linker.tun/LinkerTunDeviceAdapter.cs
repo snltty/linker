@@ -1,5 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.timer;
+using System.Diagnostics;
 using System.Net;
 using static linker.snat.LinkerDstMapping;
 
@@ -333,6 +334,7 @@ namespace linker.tun
             {
                 if (hooks[i].WriteBefore(srcId, buffer) == false) return false;
             }
+
             return linkerTunDevice.Write(buffer);
         }
 

@@ -33,26 +33,6 @@ namespace linker.messenger.sforward.client
             this.sForwardPlanHandle = sForwardPlanHandle;
         }
 
-        /// <summary>
-        /// 获取密钥
-        /// </summary>
-        /// <param name="param"></param>
-        /// <returns></returns>
-        public string GetSecretKey(ApiControllerParamsInfo param)
-        {
-            return sForwardClientStore.SecretKey;
-        }
-        /// <summary>
-        /// 设置密钥
-        /// </summary>
-        /// <param name="param"></param>
-        [Access(AccessValue.Config)]
-        public void SetSecretKey(ApiControllerParamsInfo param)
-        {
-            sForwardClientStore.SetSecretKey(param.Content);
-        }
-
-
         public void Refresh(ApiControllerParamsInfo param)
         {
             sForwardDecenter.Refresh();
@@ -204,18 +184,6 @@ namespace linker.messenger.sforward.client
                 Payload = serializer.Serialize(param.Content)
             }).ConfigureAwait(false);
             return true;
-        }
-
-
-        public async Task<bool> CheckKey(ApiControllerParamsInfo param)
-        {
-            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
-            {
-                Connection = signInClientState.Connection,
-                MessengerId = (ushort)SForwardMessengerIds.CheckKey,
-                Payload = serializer.Serialize(sForwardClientStore.SecretKey)
-            }).ConfigureAwait(false);
-            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
 
     }

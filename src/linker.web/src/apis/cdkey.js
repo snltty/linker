@@ -6,9 +6,6 @@ export const getSecretKey = () => {
 export const setSecretKey = (data) => {
     return sendWebsocketMsg('cdkey/SetSecretKey', data);
 }
-export const cdkeyAccess = () => {
-    return sendWebsocketMsg('cdkey/AccessCdkey');
-}
 export const cdkeyPage = (data) => {
     return sendWebsocketMsg('cdkey/PageCdkey', data);
 }

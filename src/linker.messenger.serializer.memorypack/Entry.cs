@@ -55,6 +55,7 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new UpdaterInfoFormatter());
             MemoryPackFormatterProvider.Register(new UpdaterInfo170Formatter());
             MemoryPackFormatterProvider.Register(new Updater184InfoFormatter());
+            MemoryPackFormatterProvider.Register(new Updater186InfoFormatter());
             MemoryPackFormatterProvider.Register(new UpdaterSyncInfoFormatter());
 
             MemoryPackFormatterProvider.Register(new RelayTestInfoFormatter());

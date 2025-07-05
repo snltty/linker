@@ -5,12 +5,6 @@ namespace linker.messenger.cdkey
     public interface ICdkeyServerStore
     {
         /// <summary>
-        /// 验证密钥
-        /// </summary>
-        /// <param name="secretKey"></param>
-        /// <returns></returns>
-        public bool ValidateSecretKey(string secretKey);
-        /// <summary>
         /// 添加
         /// </summary>
         /// <param name="info"></param>
@@ -100,7 +94,6 @@ namespace linker.messenger.cdkey
         public string Remark { get; set; }
         public string OrderId { get; set; }
         public string Contact { get; set; }
-        public string SecretKey { get; set; }
         public string Type { get; set; }
         public CdkeyPageRequestFlag Flag { get; set; }
     }
@@ -132,7 +125,6 @@ namespace linker.messenger.cdkey
     /// </summary>
     public sealed partial class CdkeyAddInfo
     {
-        public string SecretKey { get; set; }
         public CdkeyStoreInfo Data { get; set; }
     }
     /// <summary>
@@ -140,7 +132,6 @@ namespace linker.messenger.cdkey
     /// </summary>
     public sealed partial class CdkeyDelInfo
     {
-        public string SecretKey { get; set; }
         public string UserId { get; set; }
         public int Id { get; set; }
     }
@@ -244,7 +235,6 @@ namespace linker.messenger.cdkey
     /// </summary>
     public sealed partial class CdkeyImportInfo
     {
-        public string SecretKey { get; set; }
         public string UserId { get; set; }
         public string Base64 { get; set; }
     }

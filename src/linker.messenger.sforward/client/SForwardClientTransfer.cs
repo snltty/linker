@@ -61,7 +61,7 @@ namespace linker.messenger.sforward.client
                 {
                     Connection = signInClientState.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.Add,
-                    Payload = serializer.Serialize(new SForwardAddInfo { Domain = forwardInfo.Domain, RemotePort = forwardInfo.RemotePort, SecretKey = sForwardClientStore.SecretKey })
+                    Payload = serializer.Serialize(new SForwardAddInfo { Domain = forwardInfo.Domain, RemotePort = forwardInfo.RemotePort })
                 }).ContinueWith((result) =>
                 {
                     if (result.Result.Code == MessageResponeCodes.OK)
@@ -103,7 +103,7 @@ namespace linker.messenger.sforward.client
                 {
                     Connection = signInClientState.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.Remove,
-                    Payload = serializer.Serialize(new SForwardAddInfo { Domain = forwardInfo.Domain, RemotePort = forwardInfo.RemotePort, SecretKey = sForwardClientStore.SecretKey })
+                    Payload = serializer.Serialize(new SForwardAddInfo { Domain = forwardInfo.Domain, RemotePort = forwardInfo.RemotePort })
                 }).ContinueWith((result) =>
                 {
                     OnClose(forwardInfo.Id, flag);

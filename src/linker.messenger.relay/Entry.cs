@@ -15,7 +15,6 @@ namespace linker.messenger.relay
             serviceCollection.AddSingleton<RelayClientTransfer>();
             serviceCollection.AddSingleton<RelayClientMessenger>();
 
-            serviceCollection.AddSingleton<RelaySyncSecretKey>();
             serviceCollection.AddSingleton<RelaySyncDefault>();
 
             serviceCollection.AddSingleton<RelayApiController>();
@@ -30,7 +29,7 @@ namespace linker.messenger.relay
             messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<RelayClientMessenger>() });
 
             SyncTreansfer syncTreansfer = serviceProvider.GetService<SyncTreansfer>();
-            syncTreansfer.AddSyncs(new List<ISync> { serviceProvider.GetService<RelaySyncSecretKey>(), serviceProvider.GetService<RelaySyncDefault>() });
+            syncTreansfer.AddSyncs(new List<ISync> {  serviceProvider.GetService<RelaySyncDefault>() });
 
             linker.messenger.api.IWebServer apiServer = serviceProvider.GetService<linker.messenger.api.IWebServer>();
             apiServer.AddPlugins(new List<IApiController> { serviceProvider.GetService<RelayApiController>() });

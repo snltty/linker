@@ -14,14 +14,6 @@
         /// 端口隧道范围
         /// </summary>
         public int[] TunnelPortRange { get; }
-
-        public bool ValidateSecretKey(string key);
-        /// <summary>
-        /// 穿透密钥
-        /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public bool SetSecretKey(string key);
         /// <summary>
         /// 缓冲区大小
         /// </summary>

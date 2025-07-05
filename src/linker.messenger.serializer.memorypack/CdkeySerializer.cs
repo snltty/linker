@@ -179,7 +179,7 @@ namespace linker.messenger.serializer.memorypack
         public readonly CdkeyAddInfo info;
 
         [MemoryPackInclude]
-        string SecretKey => info.SecretKey;
+        string SecretKey => string.Empty;
         [MemoryPackInclude, MemoryPackAllowSerialize]
         CdkeyStoreInfo Data => info.Data;
 
@@ -188,7 +188,6 @@ namespace linker.messenger.serializer.memorypack
         {
             var info = new CdkeyAddInfo
             {
-                SecretKey = secretKey,
                 Data = data
             };
             this.info = info;
@@ -234,7 +233,7 @@ namespace linker.messenger.serializer.memorypack
         public readonly CdkeyDelInfo info;
 
         [MemoryPackInclude]
-        string SecretKey => info.SecretKey;
+        string SecretKey => string.Empty;
         [MemoryPackInclude]
         string UserId => info.UserId;
         [MemoryPackInclude]
@@ -245,7 +244,6 @@ namespace linker.messenger.serializer.memorypack
         {
             var info = new CdkeyDelInfo
             {
-                SecretKey = secretKey,
                 UserId = userid,
                 Id = id
             };
@@ -309,7 +307,7 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         string Contact => info.Contact;
         [MemoryPackInclude]
-        string SecretKey => info.SecretKey;
+        string SecretKey => string.Empty;
         [MemoryPackInclude]
         CdkeyPageRequestFlag Flag => info.Flag;
 
@@ -329,7 +327,6 @@ namespace linker.messenger.serializer.memorypack
                 Remark = remark,
                 OrderId = orderid,
                 Contact = contact,
-                SecretKey = secretKey,
                 Flag = flag,
                 Type = type
             };
@@ -439,7 +436,7 @@ namespace linker.messenger.serializer.memorypack
         public readonly CdkeyImportInfo info;
 
         [MemoryPackInclude]
-        string SecretKey => info.SecretKey;
+        string SecretKey => string.Empty;
         [MemoryPackInclude]
         string UserId => info.UserId;
         [MemoryPackInclude]
@@ -450,7 +447,6 @@ namespace linker.messenger.serializer.memorypack
         {
             var info = new CdkeyImportInfo
             {
-                SecretKey = secretKey,
                 UserId = userid,
                 Base64 = base64
             };

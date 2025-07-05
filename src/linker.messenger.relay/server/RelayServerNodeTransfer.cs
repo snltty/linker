@@ -23,6 +23,7 @@ namespace linker.messenger.relay.server
 
         private uint connectionNum = 0;
         private IConnection connection;
+        public IConnection Connection => connection;
 
         private long bytes = 0;
         private long lastBytes = 0;

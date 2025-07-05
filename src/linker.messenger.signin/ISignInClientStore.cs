@@ -43,8 +43,9 @@
         /// <summary>
         /// 设置信标密钥
         /// </summary>
-        /// <param name="secretKey"></param>
-        public void SetSecretKey(string secretKey);
+        /// <param name="key"></param>
+        /// <param name="password"></param>
+        public void SetSuper(string key,string password);
         /// <summary>
         /// 设置用户id
         /// </summary>

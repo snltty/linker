@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.libs.extends;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -46,9 +47,7 @@ namespace linker.messenger.updater
                 handler.ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => true;
                 using HttpClient httpClient = new HttpClient(handler);
                 string str = await httpClient.GetStringAsync($"{updaterCommonTransfer.UpdateUrl}/version.txt").WaitAsync(TimeSpan.FromSeconds(15)).ConfigureAwait(false);
-
                 string[] arr = str.Split(Environment.NewLine).Select(c => c.Trim('\r').Trim('\n')).ToArray();
-
                 string version = arr[0];
                 string datetime = DateTime.Parse(arr[1]).ToString("yyyy-MM-dd HH:mm:ss");
                 string[] msg = arr.Skip(2).ToArray();

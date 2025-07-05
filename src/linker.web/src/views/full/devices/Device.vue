@@ -15,14 +15,19 @@
                 <DeviceName @edit="handleEdit" :config="true" :item="scope.row"></DeviceName>
             </p>
             <p class="flex">
-                <template v-if="scope.row.showip">
-                    <span title="此设备的外网IP" class="ipaddress" @click="handleExternal(scope.row)"><span>😀{{ scope.row.IP }}</span></span>
+                <template v-if="scope.row.Connected">
+                    <template v-if="scope.row.showip">
+                        <span title="此设备的外网IP" class="ipaddress" @click="handleExternal(scope.row)"><span>😀{{ scope.row.IP }}</span></span>
+                    </template>
+                    <template v-else>
+                        <span title="此设备的外网IP" class="ipaddress" @click="handleExternal(scope.row)"><span>😴㊙.㊙.㊙.㊙</span></span>
+                    </template>
+                    <span class="flex-1"></span>
+                    <UpdaterBtn v-if="scope.row.showip == false" :config="true" :item="scope.row"></UpdaterBtn>
                 </template>
                 <template v-else>
-                    <span title="此设备的外网IP" class="ipaddress" @click="handleExternal(scope.row)"><span>😴㊙.㊙.㊙.㊙</span></span>
+                    <span>{{ scope.row.LastSignIn }}</span>
                 </template>
-                <span class="flex-1"></span>
-                <UpdaterBtn v-if="scope.row.showip == false" :config="true" :item="scope.row"></UpdaterBtn>
             </p>
         </div>
     </template>

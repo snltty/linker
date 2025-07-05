@@ -12,7 +12,6 @@ namespace linker.messenger.store.file
     }
     public sealed partial class ConfigClientInfo
     {
-        public SForwardConfigClientInfo SForward { get; set; } = new SForwardConfigClientInfo();
     }
     public partial class ConfigServerInfo
     {

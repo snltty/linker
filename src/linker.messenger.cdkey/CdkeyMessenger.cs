@@ -28,12 +28,7 @@ namespace linker.messenger.cdkey
         public async Task AddCdkey(IConnection connection)
         {
             CdkeyAddInfo info = serializer.Deserialize<CdkeyAddInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
-            {
-                connection.Write(Helper.FalseArray);
-                return;
-            }
-            if (cdkeyStore.ValidateSecretKey(info.SecretKey) == false)
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false || cache.Super == false)
             {
                 connection.Write(Helper.FalseArray);
                 return;
@@ -57,7 +52,7 @@ namespace linker.messenger.cdkey
                 connection.Write(Helper.FalseArray);
                 return;
             }
-            if (cdkeyStore.ValidateSecretKey(info.SecretKey))
+            if (cache.Super == false)
             {
                 await cdkeyStore.Del(info.Id).ConfigureAwait(false);
             }
@@ -82,7 +77,7 @@ namespace linker.messenger.cdkey
                 connection.Write(serializer.Serialize(new CdkeyPageResultInfo { }));
                 return;
             }
-            if (cdkeyStore.ValidateSecretKey(info.SecretKey) == false && string.IsNullOrWhiteSpace(info.UserId))
+            if (cache.Super == false && string.IsNullOrWhiteSpace(info.UserId))
             {
                 connection.Write(serializer.Serialize(new CdkeyPageResultInfo { }));
                 return;
@@ -103,12 +98,7 @@ namespace linker.messenger.cdkey
         public async Task TestCdkey(IConnection connection)
         {
             CdkeyImportInfo info = serializer.Deserialize<CdkeyImportInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
-            {
-                connection.Write(serializer.Serialize(new CdkeyTestResultInfo { }));
-                return;
-            }
-            if (cdkeyStore.ValidateSecretKey(info.SecretKey) == false)
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false || cache.Super == false)
             {
                 connection.Write(serializer.Serialize(new CdkeyTestResultInfo { }));
                 return;
@@ -133,14 +123,6 @@ namespace linker.messenger.cdkey
             }
             string result = await cdkeyStore.Import(info).ConfigureAwait(false);
             connection.Write(serializer.Serialize(result));
-        }
-
-
-        [MessengerId((ushort)CdkeyMessengerIds.CheckKey)]
-        public void AccessCdkey(IConnection connection)
-        {
-            string key = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            connection.Write(cdkeyStore.ValidateSecretKey(key) ? Helper.TrueArray : Helper.FalseArray);
         }
     }
 }

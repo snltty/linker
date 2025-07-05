@@ -20,7 +20,6 @@ namespace linker.messenger.updater
         {
             return serializer.Serialize(new UpdaterSyncInfo
             {
-                SecretKey = updaterClientStore.Info.SecretKey,
                 Sync2Server = updaterClientStore.Info.Sync2Server
             });
         }
@@ -28,17 +27,12 @@ namespace linker.messenger.updater
         public void SetData(Memory<byte> data)
         {
             UpdaterSyncInfo info = serializer.Deserialize<UpdaterSyncInfo>(data.Span);
-            updaterClientStore.SetSecretKey(info.SecretKey);
             updaterClientStore.SetSync2Server(info.Sync2Server);
         }
     }
 
     public sealed partial class UpdaterSyncInfo
     {
-        /// <summary>
-        /// 密钥
-        /// </summary>
-        public string SecretKey { get; set; } = Helper.GlobalString;
         /// <summary>
         /// 与服务器同步
         /// </summary>

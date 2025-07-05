@@ -46,6 +46,10 @@ namespace linker.messenger.action
         /// 分组id
         /// </summary>
         public string GroupId { get; set; } = string.Empty;
+        /// <summary>
+        /// 超级管理
+        /// </summary>
+        public bool Super { get; set; }
     }
     public sealed class JsonArgRelayInfo
     {
@@ -105,7 +109,7 @@ namespace linker.messenger.action
     public sealed class SignInArgsAction : JsonArgReplace, ISignInArgsClient, ISignInArgsServer
     {
         public string Name => "action";
-        public SignInArgsLevel Level => SignInArgsLevel.Default;
+        public SignInArgsLevel Level => SignInArgsLevel.Bottom;
 
         private readonly ActionTransfer actionTransfer;
         private readonly IActionClientStore actionStore;
@@ -120,8 +124,7 @@ namespace linker.messenger.action
         public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
             actionStore.TryAddActionArg(host, args);
-            await Task.CompletedTask;
-            return string.Empty;
+            return await Task.FromResult(string.Empty);
         }
 
         public async Task<string> Validate(SignInfo signInfo, SignCacheInfo cache)
@@ -141,7 +144,8 @@ namespace linker.messenger.action
                         MachineId = signInfo.MachineId,
                         MachineName = signInfo.MachineName,
                         MachineKey = machineKey,
-                        IPAddress = signInfo.Connection.Address.Address
+                        IPAddress = signInfo.Connection.Address.Address,
+                        Super = signInfo.Super
                     }
                 };
                 return await actionTransfer.ExcuteActions(Replace(replace, str), actionServerStore.SignInActionUrl).ConfigureAwait(false);
@@ -172,7 +176,7 @@ namespace linker.messenger.action
                 }
                 if (toMachine != null && actionServerStore.TryGetActionArg(toMachine.Args, out string str1, out string machineKey1) == false)
                 {
-                    return $"relay action URL exists, but [{toMachine.MachineName}]e action value is not configured";
+                    return $"relay action URL exists, but [{toMachine.MachineName}] action value is not configured";
                 }
                 JsonArgInfo replace = new JsonArgInfo
                 {
@@ -193,6 +197,7 @@ namespace linker.messenger.action
                         MachineName = fromMachine.MachineName,
                         MachineKey = machineKey,
                         IPAddress = fromMachine.Connection.Address.Address,
+                        Super = fromMachine.Super
                     }
                 };
                 return await actionTransfer.ExcuteActions(Replace(replace, str), actionServerStore.RelayActionUrl).ConfigureAwait(false);
@@ -234,7 +239,8 @@ namespace linker.messenger.action
                         MachineId = cache.MachineId,
                         MachineName = cache.MachineName,
                         MachineKey = machineKey,
-                        IPAddress = cache.Connection.Address.Address
+                        IPAddress = cache.Connection.Address.Address,
+                        Super = cache.Super
                     }
                 };
                 return await actionTransfer.ExcuteActions(Replace(replace, str), actionServerStore.SForwardActionUrl).ConfigureAwait(false);

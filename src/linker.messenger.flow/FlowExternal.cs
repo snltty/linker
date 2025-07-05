@@ -2,14 +2,14 @@
 using linker.messenger.tunnel;
 namespace linker.messenger.flow
 {
-    public sealed class ExternalFlow : IFlow
+    public sealed class FlowExternal : IFlow
     {
         public long ReceiveBytes { get; private set; }
         public long SendtBytes { get; private set; }
         public string FlowName => "External";
         public VersionManager Version { get; } = new VersionManager();
 
-        public ExternalFlow()
+        public FlowExternal()
         {
         }
 
@@ -22,6 +22,13 @@ namespace linker.messenger.flow
         public void AddReceive(long bytes) { ReceiveBytes += bytes; Version.Increment(); }
         public void AddSendt(long bytes) { SendtBytes += bytes; Version.Increment(); }
 
+        public (long, long) GetDiffBytes(long recv, long sent)
+        {
+
+            long diffRecv = ReceiveBytes - recv;
+            long diffSendt = SendtBytes - sent;
+            return (diffRecv, diffSendt);
+        }
     }
 
     /// <summary>
@@ -29,8 +36,8 @@ namespace linker.messenger.flow
     /// </summary>
     public sealed class ExternalResolverFlow : TunnelServerExternalResolver
     {
-        private readonly ExternalFlow externalFlow;
-        public ExternalResolverFlow(ExternalFlow externalFlow)
+        private readonly FlowExternal externalFlow;
+        public ExternalResolverFlow(FlowExternal externalFlow)
         {
             this.externalFlow = externalFlow;
         }

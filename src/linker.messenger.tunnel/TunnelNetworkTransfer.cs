@@ -3,7 +3,7 @@ using linker.libs.extends;
 using linker.libs.timer;
 using linker.messenger.signin;
 using linker.messenger.tunnel.stun.client;
-using linker.messenger.tunnel.stun.result;
+using linker.messenger.tunnel.stun.enums;
 using linker.tunnel;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -117,14 +117,12 @@ namespace linker.messenger.tunnel
                 try
                 {
                     await client.QueryAsync();
+                    tunnelClientStore.Network.Net.Nat = client.State.NatType.ToString();
                 }
                 finally
                 {
                     await client.CloseProxyAsync();
                 }
-
-                tunnelClientStore.Network.Net.Nat = client.State.NatType.ToString();
-
                 OnChange?.Invoke();
                 return true;
             }
@@ -134,6 +132,7 @@ namespace linker.messenger.tunnel
                 {
                     LoggerHelper.Instance.Error(ex);
                 }
+                tunnelClientStore.Network.Net.Nat = NatType.Unknown.ToString();
             }
             return false;
         }
@@ -142,7 +141,7 @@ namespace linker.messenger.tunnel
         {
             TimerHelper.Async(async () =>
             {
-                bool isp = false, city = false,nat = false;
+                bool isp = false, city = false, nat = false;
                 for (int i = 0; i < 10; i++)
                 {
                     if (isp == false) isp = await GetIsp();
@@ -168,7 +167,7 @@ namespace linker.messenger.tunnel
             });
         }
 
-      
+
         public TunnelLocalNetworkInfo GetLocalNetwork()
         {
             return new TunnelLocalNetworkInfo

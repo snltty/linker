@@ -2,9 +2,11 @@
 {
     public enum SignInArgsLevel
     {
+        Bottom = -999,
         Low = -99,
         Default = 0,
-        Hight = 99
+        Hight = 99,
+        Top = 999,
     }
 
     /// <summary>

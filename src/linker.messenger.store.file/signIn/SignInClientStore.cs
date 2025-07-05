@@ -15,7 +15,13 @@ namespace linker.messenger.store.file.signIn
         public SignInClientStore(FileConfig config)
         {
             this.config = config;
-
+            if(string.IsNullOrWhiteSpace(Server.SecretKey) == false)
+            {
+                Server.SuperKey = Server.SecretKey;
+                Server.SuperPassword = Server.SecretKey;
+                Server.SecretKey = string.Empty;
+                config.Data.Update();
+            }
         }
 
         public void SetName(string newName)
@@ -40,9 +46,10 @@ namespace linker.messenger.store.file.signIn
             config.Data.Update();
         }
 
-        public void SetSecretKey(string secretKey)
+        public void SetSuper(string key, string password)
         {
-            Server.SecretKey = secretKey;
+            Server.SuperKey = key;
+            Server.SuperPassword = password;
             config.Data.Update();
         }
         public void SetUserId(string userid)

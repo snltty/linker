@@ -56,8 +56,8 @@
                         </el-form-item>
                     </el-col>
                     <el-col :sm="12" :xs="24">
-                        <el-form-item label="信标密钥" prop="serverSecretKey">
-                            <el-input v-model="state.form.serverSecretKey" maxlength="36" show-word-limit />
+                        <el-form-item label="信标服务1" prop="server1">
+                            <el-input v-model="state.form.server1"/>
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -66,41 +66,13 @@
             <el-form-item label="" label-width="0" v-if="state.form.hasServer">
                 <el-row class="w-100">
                     <el-col :sm="12" :xs="24">
-                        <el-form-item label="穿透密钥" prop="sForwardSecretKey">
-                            <el-input v-model="state.form.sForwardSecretKey" maxlength="36" show-word-limit />
+                        <el-form-item label="服务器密钥" prop="superKey">
+                            <el-input v-model="state.form.superKey" type="password" show-password maxlength="36" show-word-limit />
                         </el-form-item>
                     </el-col>
                     <el-col :sm="12" :xs="24">
-                        <el-form-item label="中继密钥" prop="relaySecretKey">
-                            <el-input v-model="state.form.relaySecretKey" maxlength="36" show-word-limit />
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-            </el-form-item>
-            <el-form-item label="" label-width="0" v-if="state.form.hasServer">
-                <el-row class="w-100">
-                    <el-col :sm="12" :xs="24">
-                        <el-form-item label="cdkey密钥" prop="cdkeySecretKey">
-                            <el-input v-model="state.form.cdkeySecretKey" maxlength="36" show-word-limit />
-                        </el-form-item>
-                    </el-col>
-                    <el-col :sm="12" :xs="24">
-                        <el-form-item label="白名单密钥" prop="whiteListSecretKey">
-                            <el-input v-model="state.form.whiteListSecretKey" maxlength="36" show-word-limit />
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-            </el-form-item>
-            <el-form-item label="" label-width="0" v-if="state.form.hasServer">
-                <el-row class="w-100">
-                    <el-col :sm="12" :xs="24">
-                        <el-form-item label="更新密钥" prop="updaterSecretKey">
-                            <el-input v-model="state.form.updaterSecretKey" maxlength="36" show-word-limit />
-                        </el-form-item>
-                    </el-col>
-                    <el-col :sm="12" :xs="24" v-if="globalData.isPc">
-                        <el-form-item label="占位">
-                            <el-input disabled maxlength="36" show-word-limit />
+                        <el-form-item label="服务器密码" prop="superPassword">
+                            <el-input v-model="state.form.superPassword" type="password" show-password maxlength="36" show-word-limit />
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -127,12 +99,9 @@ export default {
 
                 hasServer:step.value.form.client.hasServer ||false,
                 server:step.value.form.client.server ||globalData.value.config.Client.Server.Host,
-                serverSecretKey:step.value.form.client.serverSecretKey ||globalData.value.config.Client.ServerSecretKey,
-                sForwardSecretKey:step.value.form.client.sForwardSecretKey ||globalData.value.config.Client.SForward.SecretKey,
-                relaySecretKey:step.value.form.client.relaySecretKey ||(globalData.value.config.Client.Relay.Servers[0] || {SecretKey:'snltty'}).SecretKey,
-                updaterSecretKey:step.value.form.client.updaterSecretKey ||globalData.value.config.Client.Updater.SecretKey,
-                cdkeySecretKey:step.value.form.client.cdkeySecretKey ||globalData.value.config.Client.Cdkey.SecretKey,
-                whiteListSecretKey:step.value.form.client.whiteListSecretKey ||globalData.value.config.Client.WhiteList.SecretKey,
+                server1:step.value.form.client.server1 ||globalData.value.config.Client.Server.Host1,
+                superKey:step.value.form.client.superKey ||globalData.value.config.Client.Server.SuperKey,
+                superPassword:step.value.form.client.superPassword ||globalData.value.config.Client.Server.SuperPassword
             },
             rules: {
                 name: [{ required: true, message: "必填", trigger: "blur" }],
@@ -170,12 +139,9 @@ export default {
 
                                     hasServer: state.form.hasServer,
                                     server: state.form.server,
-                                    serverSecretKey: state.form.serverSecretKey,
-                                    sForwardSecretKey: state.form.sForwardSecretKey,
-                                    relaySecretKey: state.form.relaySecretKey,
-                                    updaterSecretKey: state.form.updaterSecretKey,
-                                    cdkeySecretKey: state.form.cdkeySecretKey,
-                                    whiteListSecretKey: state.form.whiteListSecretKey,
+                                    server1: state.form.server1,
+                                    superKey: state.form.superKey,
+                                    superPassword: state.form.superPassword
                                 }
                             },
                             form:{

@@ -20,9 +20,19 @@ namespace linker.messenger.flow
         {
             return flows.Select(c => new FlowItemInfo { ReceiveBytes = c.ReceiveBytes, SendtBytes = c.SendtBytes, FlowName = c.FlowName }).ToDictionary(c => c.FlowName);
         }
+        public Dictionary<string, FlowItemInfo> GetDiffFlows(Dictionary<string, FlowItemInfo> oldDic)
+        {
+            return flows.Select(c =>
+            {
+                if (oldDic.TryGetValue(c.FlowName, out FlowItemInfo oldItem))
+                {
+                    var (recv, sendt) = c.GetDiffBytes(oldItem.ReceiveBytes, oldItem.SendtBytes);
+                    return new FlowItemInfo { ReceiveBytes = recv, SendtBytes = sendt, FlowName = c.FlowName };
+                }
 
-       // Dictionary<byte,Dictionary<string,>>
-
+                return new FlowItemInfo { ReceiveBytes = c.ReceiveBytes, SendtBytes = c.SendtBytes, FlowName = c.FlowName };
+            }).ToDictionary(c => c.FlowName);
+        }
     }
 
 }

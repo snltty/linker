@@ -1,15 +1,14 @@
 ﻿using linker.libs;
 using linker.libs.extends;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 
 namespace linker.messenger.flow
 {
 
     public sealed class MessengerResolverFlow : MessengerResolver
     {
-        private readonly MessengerFlow messengerFlow;
-        public MessengerResolverFlow(IMessengerSender sender, MessengerFlow messengerFlow, IMessengerStore messengerStore) : base(sender, messengerStore)
+        private readonly FlowMessenger messengerFlow;
+        public MessengerResolverFlow(IMessengerSender sender, FlowMessenger messengerFlow, IMessengerStore messengerStore) : base(sender, messengerStore)
         {
             this.messengerFlow = messengerFlow;
         }
@@ -29,8 +28,8 @@ namespace linker.messenger.flow
     }
     public sealed class MessengerSenderFlow : MessengerSender
     {
-        private readonly MessengerFlow messengerFlow;
-        public MessengerSenderFlow(MessengerFlow messengerFlow)
+        private readonly FlowMessenger messengerFlow;
+        public MessengerSenderFlow(FlowMessenger messengerFlow)
         {
             this.messengerFlow = messengerFlow;
         }
@@ -47,7 +46,7 @@ namespace linker.messenger.flow
 
 
 
-    public sealed class MessengerFlow : IFlow
+    public sealed class FlowMessenger : IFlow
     {
         public long ReceiveBytes { get; private set; }
         public long SendtBytes { get; private set; }
@@ -57,7 +56,7 @@ namespace linker.messenger.flow
         private ConcurrentDictionary<ushort, FlowItemInfo> flows = new ConcurrentDictionary<ushort, FlowItemInfo>();
         private ConcurrentDictionary<ushort, FlowItemInfo> stopwatchs = new ConcurrentDictionary<ushort, FlowItemInfo>();
 
-        public MessengerFlow()
+        public FlowMessenger()
         {
         }
 
@@ -121,5 +120,14 @@ namespace linker.messenger.flow
         {
             return stopwatchs.ToDictionary();
         }
+
+        public (long, long) GetDiffBytes(long recv, long sent)
+        {
+
+            long diffRecv = ReceiveBytes - recv;
+            long diffSendt = SendtBytes - sent;
+            return (diffRecv, diffSendt);
+        }
     }
+
 }

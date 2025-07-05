@@ -22,7 +22,7 @@ namespace linker.messenger.store.file.signIn
 
         public void SetData(Memory<byte> data)
         {
-            ValueTuple<string,string> serverInfo = serializer.Deserialize<ValueTuple<string, string>>(data.Span);
+            ValueTuple<string, string> serverInfo = serializer.Deserialize<ValueTuple<string, string>>(data.Span);
             signInClientStore.SetHost(serverInfo.Item1, serverInfo.Item2);
         }
     }
@@ -34,7 +34,7 @@ namespace linker.messenger.store.file.signIn
 
     public sealed class SignInSyncSecretKey : ISync
     {
-        public string Name => "SignInSecretKey";
+        public string Name => "SignInSuperKey";
 
         private readonly ISignInClientStore signInClientStore;
         private readonly ISerializer serializer;
@@ -45,12 +45,13 @@ namespace linker.messenger.store.file.signIn
         }
         public Memory<byte> GetData()
         {
-            return serializer.Serialize(signInClientStore.Server.SecretKey);
+            return serializer.Serialize(new KeyValuePair<string, string>(signInClientStore.Server.SuperKey, signInClientStore.Server.SuperPassword));
         }
 
         public void SetData(Memory<byte> data)
         {
-            signInClientStore.SetSecretKey(serializer.Deserialize<string>(data.Span));
+            KeyValuePair<string, string> info = serializer.Deserialize<KeyValuePair<string, string>>(data.Span);
+            signInClientStore.SetSuper(info.Key, info.Value);
         }
     }
     public sealed class SignInSyncUserId : ISync

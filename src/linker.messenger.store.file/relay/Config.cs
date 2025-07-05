@@ -1,5 +1,4 @@
 ﻿using linker.libs;
-using linker.messenger.cdkey;
 using linker.messenger.relay.client.transport;
 using linker.messenger.relay.server;
 using linker.tunnel.connection;
@@ -44,14 +43,6 @@ namespace linker.messenger.store.file
     }
     public sealed class RelayConfigServerInfo
     {
-#if DEBUG
-        public string SecretKey { get; set; } = Helper.GlobalString;
-#else
-        public string SecretKey { get; set; } = Guid.NewGuid().ToString().ToUpper();
-#endif
-        [SaveJsonIgnore]
-        public CdkeyConfigTempInfo Cdkey { get; set; } = new CdkeyConfigTempInfo();
-
         public DistributedInfo Distributed { get; set; } = new DistributedInfo { };
     }
 
@@ -61,8 +52,13 @@ namespace linker.messenger.store.file
         public RelayServerMasterInfo Master { get; set; } = new RelayServerMasterInfo { };
     }
 
-    public sealed class CdkeyConfigTempInfo
+    public sealed class CdkeyConfigInfo
     {
-        public string SecretKey { get; set; }
+#if DEBUG
+        public string SecretKey { get; set; } = Helper.GlobalString;
+#else
+        public string SecretKey { get; set; }  = Guid.NewGuid().ToString().ToUpper();
+        public string SuperPassword { get; set; } = Guid.NewGuid().ToString().ToUpper();
+#endif
     }
 }

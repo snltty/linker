@@ -110,7 +110,6 @@ namespace linker.messenger.relay.client
                         FromMachineName = string.Empty,
                         RemoteMachineId = remoteMachineId,
                         RemoteMachineName = string.Empty,
-                        SecretKey = relayClientStore.Server.SecretKey,
                         TransactionId = transactionId,
                         TransportName = transport.Name,
                         SSL = relayClientStore.Server.SSL,

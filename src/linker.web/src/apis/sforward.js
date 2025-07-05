@@ -1,11 +1,5 @@
 import { sendWebsocketMsg } from './request'
 
-export const getSForwardSecretKey = () => {
-    return sendWebsocketMsg('sforward/GetSecretKey');
-}
-export const setSForwardSecretKey = (data) => {
-    return sendWebsocketMsg('sforward/SetSecretKey', data);
-}
 export const getSForwardInfo = (data) => {
     return sendWebsocketMsg('sforward/get', data);
 }
@@ -31,7 +25,4 @@ export const startSForwardInfo = (data) => {
 }
 export const stopSForwardInfo = (data) => {
     return sendWebsocketMsg('sforward/stop', data);
-}
-export const checkSForwardKey = () => {
-    return sendWebsocketMsg('sforward/checkkey');
 }

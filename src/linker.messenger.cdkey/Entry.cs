@@ -9,15 +9,10 @@ namespace linker.messenger.cdkey
         {
             serviceCollection.AddSingleton<CdkeyApiController>();
 
-            serviceCollection.AddSingleton<CdkeyConfigSyncSecretKey>();
-
             return serviceCollection;
         }
         public static ServiceProvider UseCdkeyClient(this ServiceProvider serviceProvider)
         {
-            SyncTreansfer syncTransfer = serviceProvider.GetService<SyncTreansfer>();
-            syncTransfer.AddSyncs(new List<ISync> { serviceProvider.GetService<CdkeyConfigSyncSecretKey>() });
-
             linker.messenger.api.IWebServer apiServer = serviceProvider.GetService<linker.messenger.api.IWebServer>();
             apiServer.AddPlugins(new List<IApiController> { serviceProvider.GetService<CdkeyApiController>() });
 
