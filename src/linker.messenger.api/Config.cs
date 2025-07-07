@@ -160,6 +160,8 @@ namespace linker.messenger.api
         ForwardFlow = 50,
         [AccessDisplay("查看Socks5流量")]
         Socks5Flow = 51,
+        [AccessDisplay("查看隧道流量")]
+        TunnelFlow = 52,
     }
 
     public sealed class AccessTextInfo

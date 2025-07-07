@@ -1,6 +1,7 @@
 ﻿using MemoryPack;
 using linker.messenger.flow;
 using System.Net;
+using linker.tunnel.connection;
 
 namespace linker.messenger.serializer.memorypack
 {
@@ -603,18 +604,27 @@ namespace linker.messenger.serializer.memorypack
         long SendtBytes => info.SendtBytes;
 
         [MemoryPackInclude]
+        long DiffReceiveBytes => info.DiffReceiveBytes;
+
+        [MemoryPackInclude]
+        long DiffSendtBytes => info.DiffSendtBytes;
+
+
+        [MemoryPackInclude]
         string Key => info.Key;
 
         [MemoryPackInclude, MemoryPackAllowSerialize]
         IPEndPoint Target => info.Target;
 
         [MemoryPackConstructor]
-        SerializableForwardFlowItemInfo(long receiveBytes, long sendtBytes, string key, IPEndPoint target)
+        SerializableForwardFlowItemInfo(long receiveBytes, long sendtBytes, long diffReceiveBytes, long diffSendtBytes, string key, IPEndPoint target)
         {
             var info = new ForwardFlowItemInfo
             {
                 ReceiveBytes = receiveBytes,
                 SendtBytes = sendtBytes,
+                DiffReceiveBytes = diffReceiveBytes,
+                DiffSendtBytes = diffSendtBytes,
                 Key = key,
                 Target = target
             };
@@ -779,6 +789,417 @@ namespace linker.messenger.serializer.memorypack
             }
 
             var wrapped = reader.ReadPackable<SerializableForwardFlowResponseInfo>();
+            value = wrapped.info;
+        }
+    }
+
+
+
+
+    [MemoryPackable]
+    public readonly partial struct SerializableSocks5FlowItemInfo
+    {
+        [MemoryPackIgnore]
+        public readonly Socks5FlowItemInfo info;
+
+        [MemoryPackInclude]
+        long ReceiveBytes => info.ReceiveBytes;
+
+        [MemoryPackInclude]
+        long SendtBytes => info.SendtBytes;
+
+        [MemoryPackInclude]
+        long DiffReceiveBytes => info.DiffReceiveBytes;
+
+        [MemoryPackInclude]
+        long DiffSendtBytes => info.DiffSendtBytes;
+
+
+        [MemoryPackInclude]
+        string Key => info.Key;
+
+        [MemoryPackInclude, MemoryPackAllowSerialize]
+        IPEndPoint Target => info.Target;
+
+        [MemoryPackConstructor]
+        SerializableSocks5FlowItemInfo(long receiveBytes, long sendtBytes, long diffReceiveBytes, long diffSendtBytes, string key, IPEndPoint target)
+        {
+            var info = new Socks5FlowItemInfo
+            {
+                ReceiveBytes = receiveBytes,
+                SendtBytes = sendtBytes,
+                DiffReceiveBytes = diffReceiveBytes,
+                DiffSendtBytes = diffSendtBytes,
+                Key = key,
+                Target = target
+            };
+            this.info = info;
+        }
+
+        public SerializableSocks5FlowItemInfo(Socks5FlowItemInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class Socks5FlowItemInfoFormatter : MemoryPackFormatter<Socks5FlowItemInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Socks5FlowItemInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableSocks5FlowItemInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref Socks5FlowItemInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableSocks5FlowItemInfo>();
+            value = wrapped.info;
+        }
+    }
+
+    [MemoryPackable]
+    public readonly partial struct SerializableSocks5FlowRequestInfo
+    {
+        [MemoryPackIgnore]
+        public readonly Socks5FlowRequestInfo info;
+
+        [MemoryPackInclude]
+        string MachineId => info.MachineId;
+
+        [MemoryPackInclude]
+        int Page => info.Page;
+
+        [MemoryPackInclude]
+        int PageSize => info.PageSize;
+
+        [MemoryPackInclude]
+        Socks5FlowOrder Order => info.Order;
+
+        [MemoryPackInclude]
+        Socks5FlowOrderType OrderType => info.OrderType;
+
+        [MemoryPackConstructor]
+        SerializableSocks5FlowRequestInfo(string machineId, int page, int pageSize, Socks5FlowOrder order, Socks5FlowOrderType orderType)
+        {
+            var info = new Socks5FlowRequestInfo
+            {
+                MachineId = machineId,
+                Order = order,
+                OrderType = orderType,
+                Page = page,
+                PageSize = pageSize
+            };
+            this.info = info;
+        }
+
+        public SerializableSocks5FlowRequestInfo(Socks5FlowRequestInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class Socks5FlowRequestInfoFormatter : MemoryPackFormatter<Socks5FlowRequestInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Socks5FlowRequestInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableSocks5FlowRequestInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref Socks5FlowRequestInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableSocks5FlowRequestInfo>();
+            value = wrapped.info;
+        }
+    }
+
+    [MemoryPackable]
+    public readonly partial struct SerializableSocks5FlowResponseInfo
+    {
+        [MemoryPackIgnore]
+        public readonly Socks5FlowResponseInfo info;
+
+        [MemoryPackInclude]
+        int Page => info.Page;
+
+        [MemoryPackInclude]
+        int PageSize => info.PageSize;
+
+        [MemoryPackInclude]
+        int Count => info.Count;
+
+        [MemoryPackInclude]
+        List<Socks5FlowItemInfo> Data => info.Data;
+
+        [MemoryPackConstructor]
+        SerializableSocks5FlowResponseInfo(int page, int pageSize, int count, List<Socks5FlowItemInfo> data)
+        {
+            var info = new Socks5FlowResponseInfo
+            {
+                Page = page,
+                PageSize = pageSize,
+                Count = count,
+                Data = data
+            };
+            this.info = info;
+        }
+
+        public SerializableSocks5FlowResponseInfo(Socks5FlowResponseInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class Socks5FlowResponseInfoFormatter : MemoryPackFormatter<Socks5FlowResponseInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Socks5FlowResponseInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableSocks5FlowResponseInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref Socks5FlowResponseInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableSocks5FlowResponseInfo>();
+            value = wrapped.info;
+        }
+    }
+
+
+
+    [MemoryPackable]
+    public readonly partial struct SerializableTunnelFlowItemInfo
+    {
+        [MemoryPackIgnore]
+        public readonly TunnelFlowItemInfo info;
+
+        [MemoryPackInclude]
+        long ReceiveBytes => info.ReceiveBytes;
+
+        [MemoryPackInclude]
+        long SendtBytes => info.SendtBytes;
+
+
+        [MemoryPackInclude]
+        string Key => info.Key;
+
+        [MemoryPackInclude]
+        string TransitionId => info.TransitionId;
+
+        [MemoryPackInclude]
+        TunnelDirection Direction => info.Direction;
+        [MemoryPackInclude]
+        TunnelType Type => info.Type;
+        [MemoryPackInclude]
+        TunnelMode Mode => info.Mode;
+
+        [MemoryPackConstructor]
+        SerializableTunnelFlowItemInfo(long receiveBytes, long sendtBytes, string key, string transitionId, TunnelDirection direction, TunnelType type, TunnelMode mode)
+        {
+            var info = new TunnelFlowItemInfo
+            {
+                ReceiveBytes = receiveBytes,
+                SendtBytes = sendtBytes,
+                Key = key,
+                TransitionId = transitionId,
+                Direction = direction,
+                Type = type,
+                Mode = mode
+            };
+            this.info = info;
+        }
+
+        public SerializableTunnelFlowItemInfo(TunnelFlowItemInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class TunnelFlowItemInfoFormatter : MemoryPackFormatter<TunnelFlowItemInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TunnelFlowItemInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableTunnelFlowItemInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref TunnelFlowItemInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableTunnelFlowItemInfo>();
+            value = wrapped.info;
+        }
+    }
+
+    [MemoryPackable]
+    public readonly partial struct SerializableTunnelFlowRequestInfo
+    {
+        [MemoryPackIgnore]
+        public readonly TunnelFlowRequestInfo info;
+
+        [MemoryPackInclude]
+        string MachineId => info.MachineId;
+
+        [MemoryPackInclude]
+        int Page => info.Page;
+
+        [MemoryPackInclude]
+        int PageSize => info.PageSize;
+
+        [MemoryPackInclude]
+        TunnelFlowOrder Order => info.Order;
+
+        [MemoryPackInclude]
+        TunnelFlowOrderType OrderType => info.OrderType;
+
+        [MemoryPackConstructor]
+        SerializableTunnelFlowRequestInfo(string machineId, int page, int pageSize, TunnelFlowOrder order, TunnelFlowOrderType orderType)
+        {
+            var info = new TunnelFlowRequestInfo
+            {
+                MachineId = machineId,
+                Order = order,
+                OrderType = orderType,
+                Page = page,
+                PageSize = pageSize
+            };
+            this.info = info;
+        }
+
+        public SerializableTunnelFlowRequestInfo(TunnelFlowRequestInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class TunnelFlowRequestInfoFormatter : MemoryPackFormatter<TunnelFlowRequestInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TunnelFlowRequestInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableTunnelFlowRequestInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref TunnelFlowRequestInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableTunnelFlowRequestInfo>();
+            value = wrapped.info;
+        }
+    }
+
+    [MemoryPackable]
+    public readonly partial struct SerializableTunnelFlowResponseInfo
+    {
+        [MemoryPackIgnore]
+        public readonly TunnelFlowResponseInfo info;
+
+        [MemoryPackInclude]
+        int Page => info.Page;
+
+        [MemoryPackInclude]
+        int PageSize => info.PageSize;
+
+        [MemoryPackInclude]
+        int Count => info.Count;
+
+        [MemoryPackInclude]
+        List<TunnelFlowItemInfo> Data => info.Data;
+
+        [MemoryPackConstructor]
+        SerializableTunnelFlowResponseInfo(int page, int pageSize, int count, List<TunnelFlowItemInfo> data)
+        {
+            var info = new TunnelFlowResponseInfo
+            {
+                Page = page,
+                PageSize = pageSize,
+                Count = count,
+                Data = data
+            };
+            this.info = info;
+        }
+
+        public SerializableTunnelFlowResponseInfo(TunnelFlowResponseInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class TunnelFlowResponseInfoFormatter : MemoryPackFormatter<TunnelFlowResponseInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TunnelFlowResponseInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableTunnelFlowResponseInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref TunnelFlowResponseInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableTunnelFlowResponseInfo>();
             value = wrapped.info;
         }
     }

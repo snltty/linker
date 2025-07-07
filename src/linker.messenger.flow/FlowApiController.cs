@@ -18,10 +18,11 @@ namespace linker.messenger.flow
         private readonly FlowSForward sForwardFlow;
         private readonly FlowForward forwardFlow;
         private readonly FlowSocks5 socks5Flow;
+        private readonly FlowTunnel tunnelFlow;
 
         private DateTime start = DateTime.Now;
 
-        public FlowApiController(IMessengerSender messengerSender, SignInClientState signInClientState, ISerializer serializer, ISignInClientStore signInClientStore, FlowMessenger messengerFlow, FlowTransfer flowTransfer, FlowSForward sForwardFlow, FlowForward forwardFlow, FlowSocks5 socks5Flow)
+        public FlowApiController(IMessengerSender messengerSender, SignInClientState signInClientState, ISerializer serializer, ISignInClientStore signInClientStore, FlowMessenger messengerFlow, FlowTransfer flowTransfer, FlowSForward sForwardFlow, FlowForward forwardFlow, FlowSocks5 socks5Flow, FlowTunnel tunnelFlow)
         {
             this.messengerSender = messengerSender;
             this.signInClientState = signInClientState;
@@ -32,6 +33,7 @@ namespace linker.messenger.flow
             this.sForwardFlow = sForwardFlow;
             this.forwardFlow = forwardFlow;
             this.socks5Flow = socks5Flow;
+            this.tunnelFlow = tunnelFlow;
         }
 
         public async Task<FlowInfo> GetFlows(ApiControllerParamsInfo param)
@@ -199,6 +201,29 @@ namespace linker.messenger.flow
                 return serializer.Deserialize<Socks5FlowResponseInfo>(resp.Data.Span);
             }
             return new Socks5FlowResponseInfo();
+        }
+
+        [Access(AccessValue.TunnelFlow)]
+        public async Task<TunnelFlowResponseInfo> GetTunnelFlows(ApiControllerParamsInfo param)
+        {
+            TunnelFlowRequestInfo info = param.Content.DeJson<TunnelFlowRequestInfo>();
+            ushort messengerId = string.IsNullOrWhiteSpace(info.MachineId) ? (ushort)FlowMessengerIds.Tunnel : (ushort)FlowMessengerIds.TunnelForward;
+            if (info.MachineId == signInClientStore.Id)
+            {
+                return tunnelFlow.GetFlows(info);
+            }
+
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = messengerId,
+                Payload = serializer.Serialize(info)
+            }).ConfigureAwait(false);
+            if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
+            {
+                return serializer.Deserialize<TunnelFlowResponseInfo>(resp.Data.Span);
+            }
+            return new TunnelFlowResponseInfo();
         }
     }
 

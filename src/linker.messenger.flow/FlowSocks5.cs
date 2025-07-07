@@ -1,5 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.extends;
+using linker.libs.timer;
 using linker.messenger.pcp;
 using linker.messenger.relay.client;
 using linker.messenger.signin;
@@ -9,6 +10,7 @@ using linker.tunnel;
 using linker.tunnel.connection;
 using System.Collections.Concurrent;
 using System.Net;
+using System.Text.Json.Serialization;
 
 namespace linker.messenger.flow
 {
@@ -46,6 +48,20 @@ namespace linker.messenger.flow
 
         public FlowSocks5()
         {
+            TimerHelper.SetIntervalLong(() =>
+            {
+                if (lastTicksManager.DiffLessEqual(5000))
+                {
+                    foreach (var item in flows.Values)
+                    {
+                        item.DiffReceiveBytes = item.SendtBytes - item.OldSendtBytes;
+                        item.DiffSendtBytes = item.ReceiveBytes - item.OldReceiveBytes;
+
+                        item.OldSendtBytes = item.SendtBytes;
+                        item.OldReceiveBytes = item.ReceiveBytes;
+                    }
+                }
+            }, () => lastTicksManager.DiffLessEqual(5000) ? 1000 : 30000);
         }
 
         public string GetItems() => flows.ToJson();
@@ -89,11 +105,23 @@ namespace linker.messenger.flow
                     else
                         items = items.OrderBy(x => x.SendtBytes);
                     break;
+                case Socks5FlowOrder.DiffSendt:
+                    if (info.OrderType == Socks5FlowOrderType.Desc)
+                        items = items.OrderByDescending(x => x.DiffSendtBytes);
+                    else
+                        items = items.OrderBy(x => x.DiffSendtBytes);
+                    break;
                 case Socks5FlowOrder.Receive:
                     if (info.OrderType == Socks5FlowOrderType.Desc)
                         items = items.OrderByDescending(x => x.ReceiveBytes);
                     else
                         items = items.OrderBy(x => x.ReceiveBytes);
+                    break;
+                case Socks5FlowOrder.DiffRecive:
+                    if (info.OrderType == Socks5FlowOrderType.Desc)
+                        items = items.OrderByDescending(x => x.DiffReceiveBytes);
+                    else
+                        items = items.OrderBy(x => x.DiffReceiveBytes);
                     break;
                 default:
                     break;
@@ -114,6 +142,13 @@ namespace linker.messenger.flow
     {
         public string Key { get; set; }
         public IPEndPoint Target { get; set; }
+
+        public long DiffReceiveBytes { get; set; }
+        public long DiffSendtBytes { get; set; }
+        [JsonIgnore]
+        public long OldReceiveBytes { get; set; }
+        [JsonIgnore]
+        public long OldSendtBytes { get; set; }
     }
 
     public sealed partial class Socks5FlowRequestInfo
@@ -128,7 +163,9 @@ namespace linker.messenger.flow
     public enum Socks5FlowOrder : byte
     {
         Sendt = 1,
-        Receive = 2,
+        DiffSendt = 2,
+        Receive = 3,
+        DiffRecive = 4
     }
     public enum Socks5FlowOrderType : byte
     {

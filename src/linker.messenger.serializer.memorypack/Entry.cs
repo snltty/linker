@@ -123,6 +123,15 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new SForwardFlowItemInfoFormatter());
             MemoryPackFormatterProvider.Register(new SForwardFlowRequestInfoFormatter());
             MemoryPackFormatterProvider.Register(new SForwardFlowResponseInfoFormatter());
+            MemoryPackFormatterProvider.Register(new ForwardFlowItemInfoFormatter());
+            MemoryPackFormatterProvider.Register(new ForwardFlowRequestInfoFormatter());
+            MemoryPackFormatterProvider.Register(new ForwardFlowResponseInfoFormatter());
+            MemoryPackFormatterProvider.Register(new Socks5FlowItemInfoFormatter());
+            MemoryPackFormatterProvider.Register(new Socks5FlowRequestInfoFormatter());
+            MemoryPackFormatterProvider.Register(new Socks5FlowResponseInfoFormatter());
+            MemoryPackFormatterProvider.Register(new TunnelFlowItemInfoFormatter());
+            MemoryPackFormatterProvider.Register(new TunnelFlowRequestInfoFormatter());
+            MemoryPackFormatterProvider.Register(new TunnelFlowResponseInfoFormatter());
 
             MemoryPackFormatterProvider.Register(new TuntapVeaLanIPAddressFormatter());
             MemoryPackFormatterProvider.Register(new TuntapVeaLanIPAddressListFormatter());

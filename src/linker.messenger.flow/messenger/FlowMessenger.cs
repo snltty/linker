@@ -269,6 +269,33 @@ namespace linker.messenger.flow.messenger
                 });
             }
         }
+
+        [MessengerId((ushort)FlowMessengerIds.TunnelForward)]
+        public void TunnelForward(IConnection connection)
+        {
+            TunnelFlowRequestInfo info = serializer.Deserialize<TunnelFlowRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, info.MachineId, out SignCacheInfo from, out SignCacheInfo to))
+            {
+                uint requestid = connection.ReceiveRequestWrap.RequestId;
+                _ = messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = to.Connection,
+                    MessengerId = (ushort)FlowMessengerIds.Tunnel,
+                    Payload = connection.ReceiveRequestWrap.Payload,
+                }).ContinueWith(async (result) =>
+                {
+                    if (result.Result.Code == MessageResponeCodes.OK && result.Result.Data.Length > 0)
+                    {
+                        await messengerSender.ReplyOnly(new MessageResponseWrap
+                        {
+                            Connection = connection,
+                            Payload = result.Result.Data,
+                            RequestId = requestid,
+                        }, (ushort)FlowMessengerIds.TunnelForward).ConfigureAwait(false);
+                    }
+                });
+            }
+        }
     }
 
 
@@ -279,17 +306,19 @@ namespace linker.messenger.flow.messenger
         private readonly FlowSForward sForwardFlow;
         private readonly FlowForward forwardFlow;
         private readonly FlowSocks5 socks5Flow;
+        private readonly FlowTunnel tunnelFlow;
         private readonly FlowTransfer flowTransfer;
 
         private DateTime start = DateTime.Now;
 
-        public FlowClientMessenger(flow.FlowMessenger messengerFlow, ISerializer serializer, FlowSForward sForwardFlow, FlowForward forwardFlow, FlowSocks5 socks5Flow, FlowTransfer flowTransfer)
+        public FlowClientMessenger(flow.FlowMessenger messengerFlow, ISerializer serializer, FlowSForward sForwardFlow, FlowForward forwardFlow, FlowSocks5 socks5Flow, FlowTunnel tunnelFlow, FlowTransfer flowTransfer)
         {
             this.messengerFlow = messengerFlow;
             this.serializer = serializer;
             this.sForwardFlow = sForwardFlow;
             this.forwardFlow = forwardFlow;
             this.socks5Flow = socks5Flow;
+            this.tunnelFlow = tunnelFlow;
             this.flowTransfer = flowTransfer;
         }
 
@@ -340,6 +369,14 @@ namespace linker.messenger.flow.messenger
             socks5Flow.Update();
             Socks5FlowRequestInfo info = serializer.Deserialize<Socks5FlowRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
             connection.Write(serializer.Serialize(socks5Flow.GetFlows(info)));
+        }
+
+        [MessengerId((ushort)FlowMessengerIds.Tunnel)]
+        public void Tunnel(IConnection connection)
+        {
+            tunnelFlow.Update();
+            TunnelFlowRequestInfo info = serializer.Deserialize<TunnelFlowRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            connection.Write(serializer.Serialize(tunnelFlow.GetFlows(info)));
         }
     }
 }

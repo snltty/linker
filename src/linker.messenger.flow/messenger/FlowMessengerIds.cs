@@ -25,6 +25,12 @@
         Socks5Forward = 2714,
         Socks5 = 2715,
 
+        TuntapForward = 2716,
+        Tuntap = 2717,
+
+        TunnelForward = 2718,
+        Tunnel = 2719,
+
         Max = 2799
     }
 }
