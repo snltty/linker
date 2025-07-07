@@ -7,6 +7,7 @@ using linker.messenger.relay.client;
 using linker.messenger.pcp;
 using linker.messenger.signin;
 using linker.libs.timer;
+using System.Net;
 
 namespace linker.messenger.channel
 {
@@ -40,6 +41,9 @@ namespace linker.messenger.channel
             pcpTransfer.SetConnectedCallback(TransactionId, OnConnected);
 
         }
+        public virtual void Add(ITunnelConnection connection)
+        {
+        }
         protected virtual void Connected(ITunnelConnection connection)
         {
         }
@@ -62,9 +66,8 @@ namespace linker.messenger.channel
             Version.Increment();
 
             Connected(connection);
-
-           
-                pcpTransfer.AddConnection(connection);
+            Add(connection);
+            pcpTransfer.AddConnection(connection);
         }
 
 

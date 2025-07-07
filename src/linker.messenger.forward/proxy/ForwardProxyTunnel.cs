@@ -10,7 +10,7 @@ using linker.snat;
 
 namespace linker.messenger.forward.proxy
 {
-    public sealed partial class ForwardProxy : Channel, ITunnelConnectionReceiveCallback
+    public partial class ForwardProxy : Channel, ITunnelConnectionReceiveCallback
     {
         private readonly ConcurrentDictionary<int, ForwardProxyCacheInfo> caches = new ConcurrentDictionary<int, ForwardProxyCacheInfo>();
         private readonly ConcurrentDictionary<string, SemaphoreSlim> locks = new ConcurrentDictionary<string, SemaphoreSlim>();

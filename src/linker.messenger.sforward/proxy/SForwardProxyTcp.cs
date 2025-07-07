@@ -119,12 +119,12 @@ namespace linker.plugins.sforward.proxy
                     }
                     return;
                 }
-
+                string key = token.ListenPort.ToString();
                 //是web的，去获取host请求头，匹配不同的服务
                 if (token.IsWeb)
                 {
 
-                    token.Host = GetHost(buffer1.AsMemory(0, length));
+                    key = token.Host = GetHost(buffer1.AsMemory(0, length));
                     if (string.IsNullOrWhiteSpace(token.Host))
                     {
                         CloseClientSocket(token);
@@ -159,11 +159,12 @@ namespace linker.plugins.sforward.proxy
                     return;
                 }
 
+                Add(key, token.GroupId, length, length);
                 //数据
                 await token.TargetSocket.SendAsync(buffer1.AsMemory(0, length)).ConfigureAwait(false);
 
                 //两端交换数据
-                await Task.WhenAll(CopyToAsync(token.Host, token.GroupId, token.ListenPort, buffer1, token.SourceSocket, token.TargetSocket), CopyToAsync(token.Host, token.GroupId, token.ListenPort, buffer2, token.TargetSocket, token.SourceSocket)).ConfigureAwait(false);
+                await Task.WhenAll(CopyToAsync(key, token.GroupId, buffer1, token.SourceSocket, token.TargetSocket), CopyToAsync(key, token.GroupId, buffer2, token.TargetSocket, token.SourceSocket)).ConfigureAwait(false);
 
                 CloseClientSocket(token);
             }
@@ -226,12 +227,13 @@ namespace linker.plugins.sforward.proxy
         /// <summary>
         /// 客户端，收到服务端的连接请求
         /// </summary>
+        /// <param name="key"></param>
         /// <param name="bufferSize"></param>
         /// <param name="id"></param>
         /// <param name="server"></param>
         /// <param name="service"></param>
         /// <returns></returns>
-        public async Task OnConnectTcp(byte bufferSize, ulong id, IPEndPoint server, IPEndPoint service)
+        public async Task OnConnectTcp(string key, byte bufferSize, ulong id, IPEndPoint server, IPEndPoint service)
         {
             Socket sourceSocket = null;
             Socket targetSocket = null;
@@ -241,12 +243,10 @@ namespace linker.plugins.sforward.proxy
             {
                 //连接服务器
                 sourceSocket = new Socket(server.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                //sourceSocket.IPv6Only(server.AddressFamily, false);
                 await sourceSocket.ConnectAsync(server).ConfigureAwait(false);
 
                 //连接本地服务
                 targetSocket = new Socket(service.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                //targetSocket.IPv6Only(service.AddressFamily, false);
                 await targetSocket.ConnectAsync(service).ConfigureAwait(false);
 
                 //给服务器回复，带上id
@@ -255,7 +255,7 @@ namespace linker.plugins.sforward.proxy
                 await sourceSocket.SendAsync(buffer1.AsMemory(0, flagBytes.Length + 8)).ConfigureAwait(false);
 
                 //交换数据即可
-                await Task.WhenAll(CopyToAsync(string.Empty, string.Empty, service.Port, buffer1, sourceSocket, targetSocket), CopyToAsync(string.Empty, string.Empty, service.Port, buffer2, targetSocket, sourceSocket)).ConfigureAwait(false);
+                await Task.WhenAll(CopyToAsync($"{key}->{service}", string.Empty, buffer1, sourceSocket, targetSocket), CopyToAsync($"{key}->{service}", string.Empty, buffer2, targetSocket, sourceSocket)).ConfigureAwait(false);
 
             }
             catch (Exception)
@@ -271,32 +271,20 @@ namespace linker.plugins.sforward.proxy
         /// <summary>
         /// 读取数据，然后发送给对方，用户两端交换数据
         /// </summary>
-        /// <param name="domain"></param>
-        /// <param name="port"></param>
+        /// <param name="key"></param>
+        /// <param name="groupid"></param>
         /// <param name="buffer"></param>
         /// <param name="source"></param>
         /// <param name="target"></param>
         /// <returns></returns>
-        private async Task CopyToAsync(string domain, string groupid, int port, Memory<byte> buffer, Socket source, Socket target)
+        private async Task CopyToAsync(string key, string groupid, Memory<byte> buffer, Socket source, Socket target)
         {
-            bool isDomain = string.IsNullOrWhiteSpace(domain) == false;
-            string portStr = port.ToString();
-
             try
             {
                 int bytesRead;
                 while ((bytesRead = await source.ReceiveAsync(buffer, SocketFlags.None).ConfigureAwait(false)) != 0)
                 {
-                    if (isDomain)
-                    {
-                        AddReceive(domain, groupid, bytesRead);
-                        AddSendt(domain, groupid, bytesRead);
-                    }
-                    else
-                    {
-                        AddReceive(portStr, groupid, bytesRead);
-                        AddSendt(portStr, groupid, bytesRead);
-                    }
+                    Add(key, groupid, bytesRead, bytesRead);
                     await target.SendAsync(buffer.Slice(0, bytesRead), SocketFlags.None).ConfigureAwait(false);
                 }
             }

@@ -6,10 +6,10 @@ namespace linker.messenger.socks5
     {
         public Action OnChanged { get; set; } = () => { };
 
-        private readonly TunnelProxy tunnelProxy;
+        private readonly Socks5Proxy tunnelProxy;
         private readonly ISocks5Store socks5Store;
         private readonly Socks5Decenter socks5Decenter;
-        public Socks5Transfer(TunnelProxy tunnelProxy, ISocks5Store socks5Store, Socks5Decenter socks5Decenter)
+        public Socks5Transfer(Socks5Proxy tunnelProxy, ISocks5Store socks5Store, Socks5Decenter socks5Decenter)
         {
             this.tunnelProxy = tunnelProxy;
             this.socks5Store = socks5Store;

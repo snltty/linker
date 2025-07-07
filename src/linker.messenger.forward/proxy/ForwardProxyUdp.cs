@@ -29,6 +29,7 @@ namespace linker.messenger.forward.proxy
                 {
                     ListenPort = ep.Port,
                     SourceSocket = socketUdp,
+
                     Proxy = new ProxyInfo { Port = (ushort)ep.Port, Step = ProxyStep.Forward, ConnectId = 0, Protocol = ProxyProtocol.Udp, Direction = ProxyDirection.Forward }
                 };
                 udpListens.AddOrUpdate(ep.Port, asyncUserUdpToken, (a, b) => asyncUserUdpToken);
@@ -104,6 +105,7 @@ namespace linker.messenger.forward.proxy
                     if (res == false)
                         CloseClientSocket(token);
                 }
+                Add(token.Connection.RemoteMachineId, token.Proxy.TargetEP, connectData.Length, 0);
             }
             catch (Exception)
             {
@@ -153,6 +155,7 @@ namespace linker.messenger.forward.proxy
                     if (udpConnections.TryGetValue(connectId, out AsyncUserUdpTokenTarget token))
                     {
                         token.Connection = tunnelToken.Connection;
+                        Add(tunnelToken.Connection.RemoteMachineId, token.TargetRealEP, 0, tunnelToken.Proxy.Data.Length);
                         await token.TargetSocket.SendToAsync(tunnelToken.Proxy.Data, tunnelToken.Proxy.TargetEP).ConfigureAwait(false);
                         token.LastTicks.Update();
                         return;
@@ -180,6 +183,7 @@ namespace linker.messenger.forward.proxy
                     try
                     {
                         asyncUserUdpToken.Connection = tunnelToken.Connection;
+                        Add(tunnelToken.Connection.RemoteMachineId, asyncUserUdpToken.IPEndPoint,0, tunnelToken.Proxy.Data.Length);
                         await asyncUserUdpToken.SourceSocket.SendToAsync(tunnelToken.Proxy.Data, tunnelToken.Proxy.SourceEP).ConfigureAwait(false);
                     }
                     catch (Exception ex)
@@ -245,6 +249,7 @@ namespace linker.messenger.forward.proxy
                 while (true)
                 {
                     SocketReceiveFromResult result = await socket.ReceiveFromAsync(udpToken.Buffer, SocketFlags.None, target).ConfigureAwait(false);
+
                     if (result.ReceivedBytes == 0)
                     {
                         continue;
@@ -253,8 +258,11 @@ namespace linker.messenger.forward.proxy
                     {
                         break;
                     }
+
                     udpToken.Proxy.Data = udpToken.Buffer.AsMemory(0, result.ReceivedBytes);
                     udpToken.LastTicks.Update();
+                    Add(udpToken.Connection.RemoteMachineId, udpToken.TargetRealEP, udpToken.Proxy.Data.Length, 0);
+
                     await SendToConnection(udpToken).ConfigureAwait(false);
                 }
             }
@@ -271,12 +279,6 @@ namespace linker.messenger.forward.proxy
 
         }
 
-
-        /// <summary>
-        /// b端接收到服务的数据，通过隧道发送给a
-        /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
         private async Task SendToConnection(AsyncUserUdpTokenTarget token)
         {
             byte[] connectData = token.Proxy.ToBytes(out int length);
@@ -393,6 +395,7 @@ namespace linker.messenger.forward.proxy
     public sealed class AsyncUserUdpToken
     {
         public int ListenPort { get; set; }
+        public IPEndPoint IPEndPoint { get; set; }
         public Socket SourceSocket { get; set; }
         public ITunnelConnection Connection { get; set; }
         public List<ITunnelConnection> Connections { get; set; }

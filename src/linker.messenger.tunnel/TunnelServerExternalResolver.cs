@@ -15,8 +15,7 @@ namespace linker.messenger.tunnel
     {
         public byte Type => (byte)ResolverType.External;
 
-        public virtual void AddReceive(long bytes) { }
-        public virtual void AddSendt(long bytes) { }
+        public virtual void Add(long recvBytes, long sendtBytes) { }
 
         /// <summary>
         /// UDP
@@ -29,7 +28,7 @@ namespace linker.messenger.tunnel
         {
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{ep} get udp external port");
 
-            AddReceive(memory.Length);
+            Add(memory.Length,0);
 
             TimerHelper.Async(async () =>
             {
@@ -42,7 +41,7 @@ namespace linker.messenger.tunnel
                     {
                         await Task.Delay(15).ConfigureAwait(false);
                         await socket.SendToAsync(send, SocketFlags.None, ep).ConfigureAwait(false);
-                        AddSendt(send.Length);
+                        Add(0,send.Length);
                     }
                 }
                 catch (Exception ex)
@@ -69,7 +68,7 @@ namespace linker.messenger.tunnel
             try
             {
                 memory = BuildSendData(sendData, socket.RemoteEndPoint as IPEndPoint);
-                AddSendt(memory.Length);
+                Add(0,memory.Length);
                 await socket.SendAsync(memory, SocketFlags.None).ConfigureAwait(false);
             }
             catch (Exception ex)

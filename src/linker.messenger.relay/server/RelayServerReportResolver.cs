@@ -24,10 +24,7 @@ namespace linker.messenger.relay.server
             this.messengerResolver = messengerResolver;
         }
 
-        public virtual void AddReceive(long bytes)
-        {
-        }
-        public virtual void AddSendt(long bytes)
+        public virtual void Add(long receiveBytes, long sendtBytes)
         {
         }
 
@@ -38,10 +35,9 @@ namespace linker.messenger.relay.server
             {
                
 
-                AddReceive(memory.Length);
                 await socket.ReceiveAsync(buffer.AsMemory(0, 1), SocketFlags.None).ConfigureAwait(false);
                 int length = buffer[0];
-                AddReceive(length);
+                Add(memory.Length,length);
                 await socket.ReceiveAsync(buffer.AsMemory(0, length), SocketFlags.None).ConfigureAwait(false);
 
                 string key = buffer.AsMemory(0, length).GetString();

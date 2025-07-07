@@ -15,21 +15,13 @@ namespace linker.messenger.flow
             this.relayFlow = relayFlow;
         }
 
-        public override void AddReceive(string key, string from, string to, string groupid, long bytes)
+        public override void Add(string key, string from, string to, string groupid, long receiveBytes, long sendtBytes)
         {
-            relayFlow.AddReceive(key, from, to, groupid, bytes);
+            relayFlow.Add(key, from, to, groupid, receiveBytes, sendtBytes);
         }
-        public override void AddSendt(string key, string from, string to, string groupid, long bytes)
+        public override void Add(string key, long receiveBytes, long sendtBytes)
         {
-            relayFlow.AddSendt(key, from, to, groupid, bytes);
-        }
-        public override void AddReceive(string key, long bytes)
-        {
-            relayFlow.AddReceive(key, bytes);
-        }
-        public override void AddSendt(string key, long bytes)
-        {
-            relayFlow.AddSendt(key, bytes);
+            relayFlow.Add(key, receiveBytes, sendtBytes);
         }
 
         public override long GetReceive()
@@ -89,45 +81,28 @@ namespace linker.messenger.flow
         public void SetBytes(long receiveBytes, long sendtBytes) { ReceiveBytes = receiveBytes; SendtBytes = sendtBytes; }
         public void Clear() { ReceiveBytes = 0; SendtBytes = 0; flows.Clear(); }
 
-        public void AddReceive(string key, string from, string to, string groupid, long bytes)
+        public void Add(string key, string from, string to, string groupid, long receiveBytes, long sendtBytess)
         {
             if (flows.TryGetValue(key, out RelayFlowItemInfo messengerFlowItemInfo) == false)
             {
                 messengerFlowItemInfo = new RelayFlowItemInfo { FromName = from, ToName = to, GroupId = groupid };
                 flows.TryAdd(key, messengerFlowItemInfo);
             }
-            ReceiveBytes += bytes;
-            messengerFlowItemInfo.ReceiveBytes += bytes;
-            Version.Increment();
-        }
-        public void AddSendt(string key, string from, string to, string groupid, long bytes)
-        {
-            if (flows.TryGetValue(key, out RelayFlowItemInfo messengerFlowItemInfo) == false)
-            {
-                messengerFlowItemInfo = new RelayFlowItemInfo { FromName = from, ToName = to, GroupId = groupid };
-                flows.TryAdd(key, messengerFlowItemInfo);
-            }
-            SendtBytes += bytes;
-            messengerFlowItemInfo.SendtBytes += bytes;
+            ReceiveBytes += receiveBytes;
+            messengerFlowItemInfo.ReceiveBytes += receiveBytes;
+            SendtBytes += sendtBytess;
+            messengerFlowItemInfo.SendtBytes += sendtBytess;
             Version.Increment();
         }
 
-        public void AddReceive(string key, long bytes)
+        public void Add(string key, long receiveBytes, long sendtBytess)
         {
             if (flows.TryGetValue(key, out RelayFlowItemInfo messengerFlowItemInfo))
             {
-                ReceiveBytes += bytes;
-                messengerFlowItemInfo.ReceiveBytes += bytes;
-                Version.Increment();
-            }
-
-        }
-        public void AddSendt(string key, long bytes)
-        {
-            if (flows.TryGetValue(key, out RelayFlowItemInfo messengerFlowItemInfo))
-            {
-                SendtBytes += bytes;
-                messengerFlowItemInfo.SendtBytes += bytes;
+                ReceiveBytes += receiveBytes;
+                messengerFlowItemInfo.ReceiveBytes += receiveBytes;
+                SendtBytes += sendtBytess;
+                messengerFlowItemInfo.SendtBytes += sendtBytess;
                 Version.Increment();
             }
 

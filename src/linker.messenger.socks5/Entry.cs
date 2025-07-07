@@ -1,5 +1,4 @@
 ﻿using linker.libs.web;
-using linker.messenger.api;
 using linker.messenger.decenter;
 using linker.messenger.exroute;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,7 +9,7 @@ namespace linker.messenger.socks5
         public static ServiceCollection AddSocks5Client(this ServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton<Socks5ApiController>();
-            serviceCollection.AddSingleton<TunnelProxy>();
+            serviceCollection.AddSingleton<Socks5Proxy>();
 
             serviceCollection.AddSingleton<Socks5ClientMessenger>();
 
@@ -25,7 +24,7 @@ namespace linker.messenger.socks5
         }
         public static ServiceProvider UseSocks5Client(this ServiceProvider serviceProvider)
         {
-            TunnelProxy socks5Proxy = serviceProvider.GetService<TunnelProxy>();
+            Socks5Proxy socks5Proxy = serviceProvider.GetService<Socks5Proxy>();
             Socks5Transfer socks5Transfer = serviceProvider.GetService<Socks5Transfer>();
 
             IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();

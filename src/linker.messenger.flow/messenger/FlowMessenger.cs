@@ -1,8 +1,5 @@
 ﻿using linker.libs;
-using linker.messenger.relay.server;
-using linker.messenger.sforward.server;
 using linker.messenger.signin;
-using System.Reflection.PortableExecutable;
 
 namespace linker.messenger.flow.messenger
 {
@@ -13,23 +10,19 @@ namespace linker.messenger.flow.messenger
         private readonly FlowSForward sForwardFlow;
         private readonly FlowRelay relayFlow;
         private readonly SignInServerCaching signCaching;
-        private readonly IRelayServerStore relayServerStore;
-        private readonly ISForwardServerStore sForwardServerStore;
         private readonly ISerializer serializer;
         private readonly FlowResolver flowResolver;
         private readonly IMessengerSender messengerSender;
 
-        private DateTime start = DateTime.Now;
+        private readonly DateTime start = DateTime.Now;
 
-        public FlowMessenger(FlowTransfer flowTransfer, flow.FlowMessenger messengerFlow, FlowSForward sForwardFlow, FlowRelay relayFlow, SignInServerCaching signCaching, IRelayServerStore relayServerStore, ISForwardServerStore sForwardServerStore, ISerializer serializer, FlowResolver flowResolver, IMessengerSender messengerSender)
+        public FlowMessenger(FlowTransfer flowTransfer, flow.FlowMessenger messengerFlow, FlowSForward sForwardFlow, FlowRelay relayFlow, SignInServerCaching signCaching, ISerializer serializer, FlowResolver flowResolver, IMessengerSender messengerSender)
         {
             this.flowTransfer = flowTransfer;
             this.messengerFlow = messengerFlow;
             this.sForwardFlow = sForwardFlow;
             this.relayFlow = relayFlow;
             this.signCaching = signCaching;
-            this.relayServerStore = relayServerStore;
-            this.sForwardServerStore = sForwardServerStore;
             this.serializer = serializer;
             this.flowResolver = flowResolver;
             this.messengerSender = messengerSender;
@@ -51,6 +44,7 @@ namespace linker.messenger.flow.messenger
             };
             connection.Write(serializer.Serialize(serverFlowInfo));
         }
+
         [MessengerId((ushort)FlowMessengerIds.Citys)]
         public void Citys(IConnection connection)
         {
@@ -62,6 +56,7 @@ namespace linker.messenger.flow.messenger
         {
             connection.Write(serializer.Serialize(messengerFlow.GetFlows()));
         }
+
         [MessengerId((ushort)FlowMessengerIds.StopwatchServer)]
         public void StopwatchServer(IConnection connection)
         {
@@ -141,6 +136,139 @@ namespace linker.messenger.flow.messenger
                 });
             }
         }
+
+        [MessengerId((ushort)FlowMessengerIds.ListForward)]
+        public void ListForward(IConnection connection)
+        {
+            string machineid = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, machineid, out SignCacheInfo from, out SignCacheInfo to))
+            {
+                uint requestid = connection.ReceiveRequestWrap.RequestId;
+                _ = messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = to.Connection,
+                    MessengerId = (ushort)FlowMessengerIds.List
+                }).ContinueWith(async (result) =>
+                {
+                    if (result.Result.Code == MessageResponeCodes.OK && result.Result.Data.Length > 0)
+                    {
+                        await messengerSender.ReplyOnly(new MessageResponseWrap
+                        {
+                            Connection = connection,
+                            Payload = result.Result.Data,
+                            RequestId = requestid,
+                        }, (ushort)FlowMessengerIds.ListForward).ConfigureAwait(false);
+                    }
+                });
+            }
+        }
+
+        [MessengerId((ushort)FlowMessengerIds.SForwardForward)]
+        public void SForwardForward(IConnection connection)
+        {
+            SForwardFlowRequestInfo info = serializer.Deserialize<SForwardFlowRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, info.MachineId, out SignCacheInfo from, out SignCacheInfo to))
+            {
+                uint requestid = connection.ReceiveRequestWrap.RequestId;
+                _ = messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = to.Connection,
+                    MessengerId = (ushort)FlowMessengerIds.SForward,
+                    Payload = connection.ReceiveRequestWrap.Payload,
+                }).ContinueWith(async (result) =>
+                {
+                    if (result.Result.Code == MessageResponeCodes.OK && result.Result.Data.Length > 0)
+                    {
+                        await messengerSender.ReplyOnly(new MessageResponseWrap
+                        {
+                            Connection = connection,
+                            Payload = result.Result.Data,
+                            RequestId = requestid,
+                        }, (ushort)FlowMessengerIds.SForwardForward).ConfigureAwait(false);
+                    }
+                });
+            }
+        }
+
+        [MessengerId((ushort)FlowMessengerIds.ForwardForward)]
+        public void ForwardForward(IConnection connection)
+        {
+            ForwardFlowRequestInfo info = serializer.Deserialize<ForwardFlowRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, info.MachineId, out SignCacheInfo from, out SignCacheInfo to))
+            {
+                uint requestid = connection.ReceiveRequestWrap.RequestId;
+                _ = messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = to.Connection,
+                    MessengerId = (ushort)FlowMessengerIds.Forward,
+                    Payload = connection.ReceiveRequestWrap.Payload,
+                }).ContinueWith(async (result) =>
+                {
+                    if (result.Result.Code == MessageResponeCodes.OK && result.Result.Data.Length > 0)
+                    {
+                        await messengerSender.ReplyOnly(new MessageResponseWrap
+                        {
+                            Connection = connection,
+                            Payload = result.Result.Data,
+                            RequestId = requestid,
+                        }, (ushort)FlowMessengerIds.ForwardForward).ConfigureAwait(false);
+                    }
+                });
+            }
+        }
+
+        [MessengerId((ushort)FlowMessengerIds.MessengerForward)]
+        public void MessengerForward(IConnection connection)
+        {
+            string machineid = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, machineid, out SignCacheInfo from, out SignCacheInfo to))
+            {
+                uint requestid = connection.ReceiveRequestWrap.RequestId;
+                _ = messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = to.Connection,
+                    MessengerId = (ushort)FlowMessengerIds.Messenger,
+                }).ContinueWith(async (result) =>
+                {
+                    if (result.Result.Code == MessageResponeCodes.OK && result.Result.Data.Length > 0)
+                    {
+                        await messengerSender.ReplyOnly(new MessageResponseWrap
+                        {
+                            Connection = connection,
+                            Payload = result.Result.Data,
+                            RequestId = requestid,
+                        }, (ushort)FlowMessengerIds.MessengerForward).ConfigureAwait(false);
+                    }
+                });
+            }
+        }
+
+        [MessengerId((ushort)FlowMessengerIds.Socks5Forward)]
+        public void Socks5Forward(IConnection connection)
+        {
+            Socks5FlowRequestInfo info = serializer.Deserialize<Socks5FlowRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, info.MachineId, out SignCacheInfo from, out SignCacheInfo to))
+            {
+                uint requestid = connection.ReceiveRequestWrap.RequestId;
+                _ = messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = to.Connection,
+                    MessengerId = (ushort)FlowMessengerIds.Socks5,
+                    Payload = connection.ReceiveRequestWrap.Payload,
+                }).ContinueWith(async (result) =>
+                {
+                    if (result.Result.Code == MessageResponeCodes.OK && result.Result.Data.Length > 0)
+                    {
+                        await messengerSender.ReplyOnly(new MessageResponseWrap
+                        {
+                            Connection = connection,
+                            Payload = result.Result.Data,
+                            RequestId = requestid,
+                        }, (ushort)FlowMessengerIds.Socks5Forward).ConfigureAwait(false);
+                    }
+                });
+            }
+        }
     }
 
 
@@ -148,19 +276,70 @@ namespace linker.messenger.flow.messenger
     {
         private readonly flow.FlowMessenger messengerFlow;
         private readonly ISerializer serializer;
+        private readonly FlowSForward sForwardFlow;
+        private readonly FlowForward forwardFlow;
+        private readonly FlowSocks5 socks5Flow;
+        private readonly FlowTransfer flowTransfer;
 
         private DateTime start = DateTime.Now;
 
-        public FlowClientMessenger(flow.FlowMessenger messengerFlow, ISerializer serializer)
+        public FlowClientMessenger(flow.FlowMessenger messengerFlow, ISerializer serializer, FlowSForward sForwardFlow, FlowForward forwardFlow, FlowSocks5 socks5Flow, FlowTransfer flowTransfer)
         {
             this.messengerFlow = messengerFlow;
             this.serializer = serializer;
+            this.sForwardFlow = sForwardFlow;
+            this.forwardFlow = forwardFlow;
+            this.socks5Flow = socks5Flow;
+            this.flowTransfer = flowTransfer;
         }
 
         [MessengerId((ushort)FlowMessengerIds.Stopwatch)]
         public void Stopwatch(IConnection connection)
         {
             connection.Write(serializer.Serialize(messengerFlow.GetStopwatch()));
+        }
+
+        [MessengerId((ushort)FlowMessengerIds.List)]
+        public void List(IConnection connection)
+        {
+            Dictionary<string, FlowItemInfo> dic = flowTransfer.GetFlows();
+            FlowInfo serverFlowInfo = new FlowInfo
+            {
+                Items = dic,
+                Start = start,
+                Now = DateTime.Now,
+            };
+            connection.Write(serializer.Serialize(serverFlowInfo));
+        }
+
+        [MessengerId((ushort)FlowMessengerIds.SForward)]
+        public void SForward(IConnection connection)
+        {
+            sForwardFlow.Update();
+            SForwardFlowRequestInfo info = serializer.Deserialize<SForwardFlowRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            connection.Write(serializer.Serialize(sForwardFlow.GetFlows(info)));
+        }
+
+        [MessengerId((ushort)FlowMessengerIds.Forward)]
+        public void Forward(IConnection connection)
+        {
+            forwardFlow.Update();
+            ForwardFlowRequestInfo info = serializer.Deserialize<ForwardFlowRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            connection.Write(serializer.Serialize(forwardFlow.GetFlows(info)));
+        }
+
+        [MessengerId((ushort)FlowMessengerIds.Messenger)]
+        public void Messenger(IConnection connection)
+        {
+            connection.Write(serializer.Serialize(messengerFlow.GetFlows()));
+        }
+
+        [MessengerId((ushort)FlowMessengerIds.Socks5)]
+        public void Socks5(IConnection connection)
+        {
+            socks5Flow.Update();
+            Socks5FlowRequestInfo info = serializer.Deserialize<Socks5FlowRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            connection.Write(serializer.Serialize(socks5Flow.GetFlows(info)));
         }
     }
 }

@@ -12,6 +12,9 @@ namespace linker.messenger.forward.proxy
     {
         private readonly NumberSpace ns = new NumberSpace();
 
+        public virtual void Add(string machineId, IPEndPoint target, long recvBytes,long sendtBytes)
+        {
+        }
 
         private void Start(IPEndPoint ep, byte bufferSize)
         {

@@ -14,20 +14,18 @@ using linker.snat;
 
 namespace linker.messenger.socks5
 {
-    public sealed partial class TunnelProxy : Channel
+    public partial class Socks5Proxy : Channel
     {
         private IPEndPoint proxyEP;
         protected override string TransactionId => "socks5";
 
         private readonly LinkerFirewall linkerFirewall;
-        private readonly SignInClientTransfer signInClientTransfer;
         private readonly Socks5CidrDecenterManager socks5CidrDecenterManager;
 
-        public TunnelProxy(ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer,
+        public Socks5Proxy(ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer,
             SignInClientTransfer signInClientTransfer, IRelayClientStore relayClientStore, LinkerFirewall linkerFirewall, Socks5CidrDecenterManager socks5CidrDecenterManager)
              : base(tunnelTransfer, relayTransfer, pcpTransfer, signInClientTransfer, signInClientStore, relayClientStore)
         {
-            this.signInClientTransfer = signInClientTransfer;
             this.linkerFirewall = linkerFirewall;
             this.socks5CidrDecenterManager = socks5CidrDecenterManager;
             TaskUdp();

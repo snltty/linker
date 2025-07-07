@@ -8,7 +8,7 @@ using linker.libs.timer;
 
 namespace linker.messenger.socks5
 {
-    public partial class TunnelProxy
+    public partial class Socks5Proxy
     {
         private ConcurrentDictionary<int, AsyncUserUdpToken> udpListens = new ConcurrentDictionary<int, AsyncUserUdpToken>();
         private ConcurrentDictionary<(IPAddress sip, ushort sport, string remoteId, string transId), AsyncUserUdpTokenTarget> udpConnections = new();
@@ -25,6 +25,7 @@ namespace linker.messenger.socks5
                 {
                     ListenPort = ep.Port,
                     SourceSocket = socketUdp,
+                     IPEndPoint = ep,
                     Proxy = new ProxyInfo { Port = (ushort)ep.Port, Step = ProxyStep.Forward, ConnectId = 0, Protocol = ProxyProtocol.Udp, Direction = ProxyDirection.Forward }
                 };
                 udpListens.AddOrUpdate(ep.Port, asyncUserUdpToken, (a, b) => asyncUserUdpToken);
@@ -88,6 +89,7 @@ namespace linker.messenger.socks5
                 {
                     CloseClientSocket(token);
                 }
+                Add(token.Connection.RemoteMachineId, token.IPEndPoint, length, 0);
             }
             catch (Exception)
             {
@@ -139,6 +141,7 @@ namespace linker.messenger.socks5
                     if (udpConnections.TryGetValue(connectId, out AsyncUserUdpTokenTarget token))
                     {
                         token.Connection = tunnelToken.Connection;
+                        Add(tunnelToken.Connection.RemoteMachineId, token.TargetRealEP, 0, tunnelToken.Proxy.Data.Length);
                         await token.TargetSocket.SendToAsync(tunnelToken.Proxy.Data, token.TargetRealEP).ConfigureAwait(false);
                         token.Update();
                         return;
@@ -169,6 +172,7 @@ namespace linker.messenger.socks5
                         if (await ConnectionReceiveUdp(tunnelToken, asyncUserUdpToken).ConfigureAwait(false) == false)
                         {
                             await asyncUserUdpToken.SourceSocket.SendToAsync(tunnelToken.Proxy.Data, tunnelToken.Proxy.SourceEP).ConfigureAwait(false);
+                            Add(tunnelToken.Connection.RemoteMachineId, asyncUserUdpToken.IPEndPoint, 0, tunnelToken.Proxy.Data.Length);
                         }
                     }
                     catch (Exception ex)
@@ -236,6 +240,7 @@ namespace linker.messenger.socks5
                     udpToken.Proxy.Data = udpToken.Buffer.AsMemory(0, result.ReceivedBytes);
                     udpToken.Update();
                     await SendToConnection(udpToken).ConfigureAwait(false);
+                    Add(tunnelToken.Connection.RemoteMachineId, udpToken.TargetRealEP, result.ReceivedBytes, 0);
                 }
             }
             catch (Exception)
@@ -365,6 +370,8 @@ namespace linker.messenger.socks5
         public ITunnelConnection Connection { get; set; }
         public List<ITunnelConnection> Connections { get; set; }
         public ProxyInfo Proxy { get; set; }
+
+        public IPEndPoint IPEndPoint { get; set; }
 
         public void Clear()
         {

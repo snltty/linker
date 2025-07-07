@@ -1,8 +1,9 @@
 ﻿using linker.libs.web;
-using linker.messenger.api;
 using linker.messenger.flow.history;
 using linker.messenger.flow.messenger;
+using linker.messenger.forward.proxy;
 using linker.messenger.relay.server;
+using linker.messenger.socks5;
 using linker.messenger.tunnel;
 using linker.plugins.sforward.proxy;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +17,18 @@ namespace linker.messenger.flow
             serviceCollection.AddSingleton<FlowApiController>();
             serviceCollection.AddSingleton<FlowTransfer>();
 
+            serviceCollection.AddSingleton<FlowSForward>();
+            serviceCollection.AddSingleton<SForwardProxy, FlowSForwardProxy>();
+
+            serviceCollection.AddSingleton<FlowForward>();
+            serviceCollection.AddSingleton<ForwardProxy, FlowForwardProxy>();
+
+            serviceCollection.AddSingleton<FlowSocks5>();
+            serviceCollection.AddSingleton<Socks5Proxy, FlowSocks5Proxy>();
+
+            serviceCollection.AddSingleton<FlowTunnel>();
+            
+
             serviceCollection.AddSingleton<FlowMessenger>();
             serviceCollection.AddSingleton<IMessengerResolver, MessengerResolverFlow>();
             serviceCollection.AddSingleton<IMessengerSender, MessengerSenderFlow>();
@@ -28,7 +41,13 @@ namespace linker.messenger.flow
             apiServer.AddPlugins(new List<IApiController> { serviceProvider.GetService<FlowApiController>() });
 
             FlowTransfer flowTransfer = serviceProvider.GetService<FlowTransfer>();
-            flowTransfer.AddFlows(new List<IFlow> { serviceProvider.GetService<FlowMessenger>() });
+            flowTransfer.AddFlows(new List<IFlow> {
+                serviceProvider.GetService<FlowMessenger>(),
+                serviceProvider.GetService<FlowSForward>(),
+                serviceProvider.GetService<FlowForward>(),
+                serviceProvider.GetService<FlowSocks5>(),
+                serviceProvider.GetService<FlowTunnel>(),
+            });
 
             IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
             messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<FlowClientMessenger>() });
@@ -56,7 +75,7 @@ namespace linker.messenger.flow
             serviceCollection.AddSingleton<TunnelServerExternalResolver, ExternalResolverFlow>();
 
             serviceCollection.AddSingleton<FlowSForward>();
-            serviceCollection.AddSingleton<SForwardProxy, SForwardProxyFlow>();
+            serviceCollection.AddSingleton<SForwardProxy, FlowSForwardProxy>();
 
             serviceCollection.AddSingleton<FlowHistoryTransfer>();
 

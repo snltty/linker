@@ -32,19 +32,12 @@ namespace linker.messenger.relay.server
         private readonly ConcurrentDictionary<IPEndPoint, RelayUdpNatInfo> udpNat = new();
         private readonly ConcurrentDictionary<ulong, RelayUdpNatInfo> relayUdpDic = new();
 
-        public virtual void AddReceive(string key, string from, string to, string groupid, long bytes)
+        public virtual void Add(string key, string from, string to, string groupid, long receiveBytes, long sendtBytes)
         {
         }
-        public virtual void AddSendt(string key, string from, string to, string groupid, long bytes)
+        public virtual void Add(string key, long receiveBytes, long sendtBytes)
         {
         }
-        public virtual void AddReceive(string key, long bytes)
-        {
-        }
-        public virtual void AddSendt(string key, long bytes)
-        {
-        }
-
         public virtual long GetReceive()
         {
             return 0;
@@ -107,7 +100,7 @@ namespace linker.messenger.relay.server
             }
 
             //流量统计
-            AddReceive(relayCache.FromId, relayCache.FromName, relayCache.ToName, relayCache.GroupId, memory.Length);
+            Add(relayCache.FromId, relayCache.FromName, relayCache.ToName, relayCache.GroupId, memory.Length,0);
             //回应
             if (relayMessage.Type == RelayMessengerType.Answer)
             {
@@ -153,8 +146,7 @@ namespace linker.messenger.relay.server
             {
                 return;
             }
-            AddReceive(trafficCacheInfo.Cache.FromId, trafficCacheInfo.Cache.FromName, trafficCacheInfo.Cache.ToName, trafficCacheInfo.Cache.GroupId, bytesRead);
-            AddSendt(trafficCacheInfo.Cache.FromId, trafficCacheInfo.Cache.FromName, trafficCacheInfo.Cache.ToName, trafficCacheInfo.Cache.GroupId, bytesRead);
+            Add(trafficCacheInfo.Cache.FromId, trafficCacheInfo.Cache.FromName, trafficCacheInfo.Cache.ToName, trafficCacheInfo.Cache.GroupId, bytesRead, bytesRead);
             await socket.SendToAsync(memory, nat.Target).ConfigureAwait(false);
         }
 
@@ -197,7 +189,7 @@ namespace linker.messenger.relay.server
                 }
 
                 //流量统计
-                AddReceive(relayCache.FromId, relayCache.FromName, relayCache.ToName, relayCache.GroupId, length);
+                Add(relayCache.FromId, relayCache.FromName, relayCache.ToName, relayCache.GroupId, length,0);
 
                 if (relayMessage.Type == RelayMessengerType.Answer)
                 {
@@ -282,8 +274,7 @@ namespace linker.messenger.relay.server
                         }
                     }
 
-                    AddReceive(trafficCacheInfo.Cache.FromId, trafficCacheInfo.Cache.FromName, trafficCacheInfo.Cache.ToName, trafficCacheInfo.Cache.GroupId, bytesRead);
-                    AddSendt(trafficCacheInfo.Cache.FromId, trafficCacheInfo.Cache.FromName, trafficCacheInfo.Cache.ToName, trafficCacheInfo.Cache.GroupId, bytesRead);
+                    Add(trafficCacheInfo.Cache.FromId, trafficCacheInfo.Cache.FromName, trafficCacheInfo.Cache.ToName, trafficCacheInfo.Cache.GroupId, bytesRead, bytesRead);
                     await destination.SendAsync(memory.Slice(0, bytesRead), SocketFlags.None).ConfigureAwait(false);
                 }
             }

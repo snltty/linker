@@ -17,8 +17,7 @@ namespace linker.messenger.flow
         public void SetBytes(long receiveBytes, long sendtBytes) { ReceiveBytes = receiveBytes; SendtBytes = sendtBytes; }
         public void Clear() { ReceiveBytes = 0; SendtBytes = 0; }
 
-        public void AddReceive(long bytes) { ReceiveBytes += bytes; Version.Increment(); }
-        public void AddSendt(long bytes) { SendtBytes += bytes; Version.Increment(); }
+        public void Add(long receiveBytes, long sendtBytes) { ReceiveBytes += receiveBytes; SendtBytes += sendtBytes; Version.Increment(); }
 
 
         public (long, long) GetDiffBytes(long recv, long sent)
@@ -38,8 +37,7 @@ namespace linker.messenger.flow
             this.relayReportFlow = relayReportFlow;
         }
 
-        public override void AddReceive(long bytes) { relayReportFlow.AddReceive(bytes); }
-        public override void AddSendt(long bytes) { relayReportFlow.AddSendt(bytes); }
+        public override void Add(long receiveBytes, long sendtBytes) { relayReportFlow.Add(receiveBytes, sendtBytes); }
 
     }
 

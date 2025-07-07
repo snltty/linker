@@ -60,7 +60,7 @@ namespace linker.plugins.sforward.proxy
 
                     Memory<byte> memory = buffer.AsMemory(0, result.ReceivedBytes);
 
-                    AddReceive(portStr, token.GroupId, memory.Length);
+                    Add(portStr, token.GroupId, memory.Length,0);
 
                     IPEndPoint source = result.RemoteEndPoint as IPEndPoint;
                     (IPAddress ip, ushort port) sourceKey = (source.Address, (ushort)source.Port);
@@ -68,7 +68,7 @@ namespace linker.plugins.sforward.proxy
                     //已经连接
                     if (udpConnections.TryGetValue(sourceKey, out UdpTargetCache cache) && cache != null)
                     {
-                        AddSendt(portStr, token.GroupId, memory.Length);
+                        Add(portStr, token.GroupId,0, memory.Length);
                         cache.LastTicks.Update();
                         await token.SourceSocket.SendToAsync(memory, cache.IPEndPoint).ConfigureAwait(false);
                     }
@@ -179,7 +179,7 @@ namespace linker.plugins.sforward.proxy
         /// <returns></returns>
         public async Task OnConnectUdp(byte bufferSize, ulong id, IPEndPoint server, IPEndPoint service)
         {
-            string portStr = service.Port.ToString();
+            string key = $"{server.Port}->{service.Port}";
             //连接服务器
             Socket serverUdp = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             serverUdp.WindowsUdpBug();
@@ -207,8 +207,7 @@ namespace linker.plugins.sforward.proxy
                     cache.LastTicks.Update();
 
                     Memory<byte> memory = buffer.AsMemory(0, result.ReceivedBytes);
-                    AddReceive(portStr, string.Empty, memory.Length);
-                    AddSendt(portStr, string.Empty, memory.Length);
+                    Add(key, string.Empty, memory.Length, memory.Length);
                     //未连接本地服务的，去连接一下
                     if (cache.TargetSocket == null)
                     {
@@ -248,8 +247,7 @@ namespace linker.plugins.sforward.proxy
                                 continue;
                             }
                             Memory<byte> memory = buffer.AsMemory(0, result.ReceivedBytes);
-                            AddReceive(portStr, string.Empty, memory.Length);
-                            AddSendt(portStr, string.Empty, memory.Length);
+                            Add(key, string.Empty, memory.Length, memory.Length);
 
                             await serverUdp.SendToAsync(memory, server).ConfigureAwait(false);
                             cache.LastTicks.Update();

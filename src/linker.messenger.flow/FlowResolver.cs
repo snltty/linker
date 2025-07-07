@@ -26,7 +26,7 @@ namespace linker.messenger.flow
         public long SendtBytes { get; private set; }
 
 
-        private ConcurrentDictionary<IPAddress, OnlineFlowInfo> servers = new ConcurrentDictionary<IPAddress, OnlineFlowInfo>(new IPAddressComparer());
+        private readonly ConcurrentDictionary<IPAddress, OnlineFlowInfo> servers = new(new IPAddressComparer());
         private readonly SignInServerCaching signCaching;
         private readonly ISerializer serializer;
         public FlowResolver(SignInServerCaching signCaching, ISerializer serializer)

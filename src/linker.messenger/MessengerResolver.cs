@@ -59,8 +59,7 @@ namespace linker.messenger
         }
 
 
-        public virtual void AddReceive(ushort id, long bytes) { }
-        public virtual void AddSendt(ushort id, long bytes) { }
+        public virtual void Add(ushort id, long receiveBytes, long sendtBytes) { }
         public virtual void AddStopwatch(ushort id, long time, MessageTypes type) { }
 
         /// <summary>
@@ -254,7 +253,7 @@ namespace linker.messenger
 
                 //新的请求
                 requestWrap.FromArray(data);
-                AddReceive(requestWrap.MessengerId, data.Length);
+                Add(requestWrap.MessengerId, data.Length,0);
                 //404,没这个插件
                 if (messengers.TryGetValue(requestWrap.MessengerId, out MessengerCacheInfo plugin) == false)
                 {

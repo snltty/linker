@@ -13,14 +13,11 @@ namespace linker.messenger.flow
             this.messengerFlow = messengerFlow;
         }
 
-        public override void AddReceive(ushort id, long bytes)
+        public override void Add(ushort id, long receiveBytes, long sendtBytes)
         {
-            messengerFlow.AddReceive(id, bytes);
+            messengerFlow.Add(id, receiveBytes, sendtBytes);
         }
-        public override void AddSendt(ushort id, long bytes)
-        {
-            messengerFlow.AddSendt(id, bytes);
-        }
+
         public override void AddStopwatch(ushort id, long time, MessageTypes type)
         {
             messengerFlow.AddStopwatch(id, time, type);
@@ -34,13 +31,9 @@ namespace linker.messenger.flow
             this.messengerFlow = messengerFlow;
         }
 
-        public override void AddReceive(ushort id, long bytes)
+        public override void Add(ushort id, long receiveBytes, long sendtBytes)
         {
-            messengerFlow.AddReceive(id, bytes);
-        }
-        public override void AddSendt(ushort id, long bytes)
-        {
-            messengerFlow.AddSendt(id, bytes);
+            messengerFlow.Add(id, receiveBytes, sendtBytes);
         }
     }
 
@@ -65,26 +58,17 @@ namespace linker.messenger.flow
         public void SetBytes(long receiveBytes, long sendtBytes) { ReceiveBytes = receiveBytes; SendtBytes = sendtBytes; }
         public void Clear() { ReceiveBytes = 0; SendtBytes = 0; flows.Clear(); }
 
-        public void AddReceive(ushort id, long bytes)
+        public void Add(ushort id, long receiveBytes, long sendtBytes)
         {
             if (flows.TryGetValue(id, out FlowItemInfo messengerFlowItemInfo) == false)
             {
                 messengerFlowItemInfo = new FlowItemInfo();
                 flows.TryAdd(id, messengerFlowItemInfo);
             }
-            ReceiveBytes += bytes;
-            messengerFlowItemInfo.ReceiveBytes += bytes;
-            Version.Increment();
-        }
-        public void AddSendt(ushort id, long bytes)
-        {
-            if (flows.TryGetValue(id, out FlowItemInfo messengerFlowItemInfo) == false)
-            {
-                messengerFlowItemInfo = new FlowItemInfo();
-                flows.TryAdd(id, messengerFlowItemInfo);
-            }
-            SendtBytes += bytes;
-            messengerFlowItemInfo.SendtBytes += bytes;
+            ReceiveBytes += receiveBytes;
+            messengerFlowItemInfo.ReceiveBytes += receiveBytes;
+            SendtBytes += sendtBytes;
+            messengerFlowItemInfo.SendtBytes += sendtBytes;
             Version.Increment();
         }
         public Dictionary<ushort, FlowItemInfo> GetFlows()

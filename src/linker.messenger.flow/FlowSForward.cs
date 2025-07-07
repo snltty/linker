@@ -7,20 +7,16 @@ using System.Text.Json.Serialization;
 
 namespace linker.messenger.flow
 {
-    public sealed class SForwardProxyFlow : SForwardProxy
+    public sealed class FlowSForwardProxy : SForwardProxy
     {
         private readonly FlowSForward sForwardFlow;
-        public SForwardProxyFlow(FlowSForward sForwardFlow)
+        public FlowSForwardProxy(FlowSForward sForwardFlow)
         {
             this.sForwardFlow = sForwardFlow;
         }
-        public override void AddReceive(string key, string groupid, long bytes)
+        public override void Add(string key, string groupid, long recvBytes, long sentBytes)
         {
-            sForwardFlow.AddReceive(key, groupid, bytes);
-        }
-        public override void AddSendt(string key, string groupid, long bytes)
-        {
-            sForwardFlow.AddSendt(key, groupid, bytes);
+            sForwardFlow.Add(key, groupid, recvBytes, sentBytes);
         }
     }
 
@@ -56,7 +52,7 @@ namespace linker.messenger.flow
         public string GetItems() => flows.ToJson();
         public void SetItems(string json) { flows = json.DeJson<ConcurrentDictionary<string, SForwardFlowItemInfo>>(); }
         public void SetBytes(long receiveBytes, long sendtBytes) { ReceiveBytes = receiveBytes; SendtBytes = sendtBytes; }
-        public void Clear() { ReceiveBytes = 0; SendtBytes = 0;flows.Clear(); }
+        public void Clear() { ReceiveBytes = 0; SendtBytes = 0; flows.Clear(); }
 
         public void Update()
         {
@@ -70,26 +66,17 @@ namespace linker.messenger.flow
             return (diffRecv, diffSendt);
         }
 
-        public void AddReceive(string key, string groupid, long bytes)
+        public void Add(string key, string groupid, long recvBytes, long sentBytes)
         {
             if (flows.TryGetValue(key, out SForwardFlowItemInfo messengerFlowItemInfo) == false)
             {
                 messengerFlowItemInfo = new SForwardFlowItemInfo { Key = key, GroupId = groupid };
                 flows.TryAdd(key, messengerFlowItemInfo);
             }
-            ReceiveBytes += bytes;
-            messengerFlowItemInfo.ReceiveBytes += bytes;
-            Version.Increment();
-        }
-        public void AddSendt(string key, string groupid, long bytes)
-        {
-            if (flows.TryGetValue(key, out SForwardFlowItemInfo messengerFlowItemInfo) == false)
-            {
-                messengerFlowItemInfo = new SForwardFlowItemInfo { Key = key, GroupId = groupid };
-                flows.TryAdd(key, messengerFlowItemInfo);
-            }
-            SendtBytes += bytes;
-            messengerFlowItemInfo.SendtBytes += bytes;
+            ReceiveBytes += recvBytes;
+            messengerFlowItemInfo.ReceiveBytes += recvBytes;
+            SendtBytes += sentBytes;
+            messengerFlowItemInfo.SendtBytes += sentBytes;
             Version.Increment();
         }
         public SForwardFlowResponseInfo GetFlows(SForwardFlowRequestInfo info)
@@ -157,9 +144,8 @@ namespace linker.messenger.flow
     public sealed partial class SForwardFlowRequestInfo
     {
         public string Key { get; set; } = string.Empty;
-
         public string GroupId { get; set; } = string.Empty;
-        public string SecretKey { get; set; } = string.Empty;
+        public string MachineId { get; set; } = string.Empty;
 
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 15;

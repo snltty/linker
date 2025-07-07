@@ -15,6 +15,16 @@
         Stopwatch = 2707,
         StopwatchForward = 2708,
 
+        Forward = 2709,
+
+        ListForward = 2710,
+        SForwardForward = 2711,
+        ForwardForward = 2712,
+        MessengerForward = 2713,
+
+        Socks5Forward = 2714,
+        Socks5 = 2715,
+
         Max = 2799
     }
 }

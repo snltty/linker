@@ -1,6 +1,6 @@
 ﻿using MemoryPack;
 using linker.messenger.flow;
-using linker.messenger.tunnel;
+using System.Net;
 
 namespace linker.messenger.serializer.memorypack
 {
@@ -454,9 +454,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-
-
     [MemoryPackable]
     public readonly partial struct SerializableSForwardFlowRequestInfo
     {
@@ -467,7 +464,7 @@ namespace linker.messenger.serializer.memorypack
         string Key => info.Key;
 
         [MemoryPackInclude]
-        string SecretKey => info.SecretKey;
+        string MachineId => info.MachineId;
 
         [MemoryPackInclude]
         int Page => info.Page;
@@ -482,7 +479,7 @@ namespace linker.messenger.serializer.memorypack
         SForwardFlowOrderType OrderType => info.OrderType;
 
         [MemoryPackConstructor]
-        SerializableSForwardFlowRequestInfo(string key, string secretKey, int page, int pageSize, SForwardFlowOrder order, SForwardFlowOrderType orderType)
+        SerializableSForwardFlowRequestInfo(string key, string machineId, int page, int pageSize, SForwardFlowOrder order, SForwardFlowOrderType orderType)
         {
             var info = new SForwardFlowRequestInfo
             {
@@ -491,7 +488,7 @@ namespace linker.messenger.serializer.memorypack
                 OrderType = orderType,
                 Page = page,
                 PageSize = pageSize,
-                SecretKey = secretKey
+                MachineId = machineId
             };
             this.info = info;
         }
@@ -527,8 +524,6 @@ namespace linker.messenger.serializer.memorypack
             value = wrapped.info;
         }
     }
-
-
 
     [MemoryPackable]
     public readonly partial struct SerializableSForwardFlowResponseInfo
@@ -589,6 +584,201 @@ namespace linker.messenger.serializer.memorypack
             }
 
             var wrapped = reader.ReadPackable<SerializableSForwardFlowResponseInfo>();
+            value = wrapped.info;
+        }
+    }
+
+
+
+    [MemoryPackable]
+    public readonly partial struct SerializableForwardFlowItemInfo
+    {
+        [MemoryPackIgnore]
+        public readonly ForwardFlowItemInfo info;
+
+        [MemoryPackInclude]
+        long ReceiveBytes => info.ReceiveBytes;
+
+        [MemoryPackInclude]
+        long SendtBytes => info.SendtBytes;
+
+        [MemoryPackInclude]
+        string Key => info.Key;
+
+        [MemoryPackInclude, MemoryPackAllowSerialize]
+        IPEndPoint Target => info.Target;
+
+        [MemoryPackConstructor]
+        SerializableForwardFlowItemInfo(long receiveBytes, long sendtBytes, string key, IPEndPoint target)
+        {
+            var info = new ForwardFlowItemInfo
+            {
+                ReceiveBytes = receiveBytes,
+                SendtBytes = sendtBytes,
+                Key = key,
+                Target = target
+            };
+            this.info = info;
+        }
+
+        public SerializableForwardFlowItemInfo(ForwardFlowItemInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class ForwardFlowItemInfoFormatter : MemoryPackFormatter<ForwardFlowItemInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ForwardFlowItemInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableForwardFlowItemInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref ForwardFlowItemInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableForwardFlowItemInfo>();
+            value = wrapped.info;
+        }
+    }
+
+    [MemoryPackable]
+    public readonly partial struct SerializableForwardFlowRequestInfo
+    {
+        [MemoryPackIgnore]
+        public readonly ForwardFlowRequestInfo info;
+
+        [MemoryPackInclude]
+        string MachineId => info.MachineId;
+
+        [MemoryPackInclude]
+        int Page => info.Page;
+
+        [MemoryPackInclude]
+        int PageSize => info.PageSize;
+
+        [MemoryPackInclude]
+        ForwardFlowOrder Order => info.Order;
+
+        [MemoryPackInclude]
+        ForwardFlowOrderType OrderType => info.OrderType;
+
+        [MemoryPackConstructor]
+        SerializableForwardFlowRequestInfo(string machineId, int page, int pageSize, ForwardFlowOrder order, ForwardFlowOrderType orderType)
+        {
+            var info = new ForwardFlowRequestInfo
+            {
+                MachineId = machineId,
+                Order = order,
+                OrderType = orderType,
+                Page = page,
+                PageSize = pageSize
+            };
+            this.info = info;
+        }
+
+        public SerializableForwardFlowRequestInfo(ForwardFlowRequestInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class ForwardFlowRequestInfoFormatter : MemoryPackFormatter<ForwardFlowRequestInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ForwardFlowRequestInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableForwardFlowRequestInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref ForwardFlowRequestInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableForwardFlowRequestInfo>();
+            value = wrapped.info;
+        }
+    }
+
+    [MemoryPackable]
+    public readonly partial struct SerializableForwardFlowResponseInfo
+    {
+        [MemoryPackIgnore]
+        public readonly ForwardFlowResponseInfo info;
+
+        [MemoryPackInclude]
+        int Page => info.Page;
+
+        [MemoryPackInclude]
+        int PageSize => info.PageSize;
+
+        [MemoryPackInclude]
+        int Count => info.Count;
+
+        [MemoryPackInclude]
+        List<ForwardFlowItemInfo> Data => info.Data;
+
+        [MemoryPackConstructor]
+        SerializableForwardFlowResponseInfo(int page, int pageSize, int count, List<ForwardFlowItemInfo> data)
+        {
+            var info = new ForwardFlowResponseInfo
+            {
+                Page = page,
+                PageSize = pageSize,
+                Count = count,
+                Data = data
+            };
+            this.info = info;
+        }
+
+        public SerializableForwardFlowResponseInfo(ForwardFlowResponseInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class ForwardFlowResponseInfoFormatter : MemoryPackFormatter<ForwardFlowResponseInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ForwardFlowResponseInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableForwardFlowResponseInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref ForwardFlowResponseInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableForwardFlowResponseInfo>();
             value = wrapped.info;
         }
     }

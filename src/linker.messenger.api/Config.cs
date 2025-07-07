@@ -155,6 +155,11 @@ namespace linker.messenger.api
 
         [AccessDisplay("白名单")]
         WhiteList = 49,
+
+        [AccessDisplay("查看端口转发流量")]
+        ForwardFlow = 50,
+        [AccessDisplay("查看Socks5流量")]
+        Socks5Flow = 51,
     }
 
     public sealed class AccessTextInfo

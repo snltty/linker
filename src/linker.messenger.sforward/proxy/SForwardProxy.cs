@@ -14,14 +14,11 @@ namespace linker.plugins.sforward.proxy
 
         }
 
-        public virtual void AddReceive(string key,string groupid, long bytes)
-        {
-        }
-        public virtual void AddSendt(string key,string groupid, long bytes)
+        public virtual void Add(string key, string groupid, long recvBytes, long sentBytes)
         {
         }
 
-        public string Start(int port, bool isweb, byte bufferSize,string groupid)
+        public string Start(int port, bool isweb, byte bufferSize, string groupid)
         {
             try
             {

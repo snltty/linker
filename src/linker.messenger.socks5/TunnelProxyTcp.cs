@@ -8,7 +8,7 @@ using System.Net.Sockets;
 
 namespace linker.messenger.socks5
 {
-    public partial class TunnelProxy
+    public partial class Socks5Proxy
     {
         private ConcurrentDictionary<int, AsyncUserToken> tcpListens = new ConcurrentDictionary<int, AsyncUserToken>();
         private readonly ConcurrentDictionary<(ulong connectid, string remoteId, string transId, byte dir), AsyncUserToken> tcpConnections = new();
@@ -34,6 +34,7 @@ namespace linker.messenger.socks5
                 userToken = new AsyncUserToken
                 {
                     ListenPort = _localEndPoint.Port,
+                     RealIPEndPoint = _localEndPoint,
                     Socket = new Socket(_localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp),
                     BufferSize = bufferSize
                 };
@@ -203,6 +204,7 @@ namespace linker.messenger.socks5
                 {
                     CloseClientSocket(token, 5);
                 }
+                Add(token.Connection.RemoteMachineId, token.RealIPEndPoint, length, 0);
             }
             catch (Exception)
             {
@@ -334,6 +336,7 @@ namespace linker.messenger.socks5
                 try
                 {
                     token1.Connection = tunnelToken.Connection;
+                    Add(token1.Connection.RemoteMachineId, token1.RealIPEndPoint,  0, tunnelToken.Proxy.Data.Length);
                     await token1.Socket.SendAsync(tunnelToken.Proxy.Data, SocketFlags.None).AsTask().WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
                 }
                 catch (Exception ex)

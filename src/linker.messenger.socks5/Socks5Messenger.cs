@@ -6,9 +6,9 @@ namespace linker.messenger.socks5
     public sealed class Socks5ClientMessenger : IMessenger
     {
         private readonly Socks5Transfer socks5Transfer;
-        private readonly TunnelProxy socks5Proxy;
+        private readonly Socks5Proxy socks5Proxy;
         private readonly ISerializer serializer;
-        public Socks5ClientMessenger(Socks5Transfer socks5Transfer, TunnelProxy socks5Proxy, ISerializer serializer)
+        public Socks5ClientMessenger(Socks5Transfer socks5Transfer, Socks5Proxy socks5Proxy, ISerializer serializer)
         {
             this.socks5Transfer = socks5Transfer;
             this.socks5Proxy = socks5Proxy;

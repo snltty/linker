@@ -512,7 +512,7 @@ namespace linker.plugins.sforward.messenger
                 SForwardInfo sForwardInfo = sForwardClientStore.Get(sForwardProxyInfo.Domain);
                 if (sForwardInfo != null)
                 {
-                    _ = proxy.OnConnectTcp(sForwardProxyInfo.BufferSize, sForwardProxyInfo.Id, new System.Net.IPEndPoint(connection.Address.Address, sForwardProxyInfo.RemotePort), sForwardInfo.LocalEP);
+                    _ = proxy.OnConnectTcp(sForwardProxyInfo.Domain, sForwardProxyInfo.BufferSize, sForwardProxyInfo.Id, new System.Net.IPEndPoint(connection.Address.Address, sForwardProxyInfo.RemotePort), sForwardInfo.LocalEP);
                 }
             }
             //是tcp
@@ -522,7 +522,7 @@ namespace linker.plugins.sforward.messenger
                 if (localEP != null)
                 {
                     IPEndPoint server = new IPEndPoint(connection.Address.Address, sForwardProxyInfo.RemotePort);
-                    _ = proxy.OnConnectTcp(sForwardProxyInfo.BufferSize, sForwardProxyInfo.Id, server, localEP);
+                    _ = proxy.OnConnectTcp(sForwardProxyInfo.RemotePort.ToString(),sForwardProxyInfo.BufferSize, sForwardProxyInfo.Id, server, localEP);
                 }
             }
         }

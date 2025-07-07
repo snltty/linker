@@ -13,12 +13,12 @@ namespace linker.messenger.socks5
         private readonly IMessengerSender messengerSender;
         private readonly Socks5Transfer socks5Transfer;
         private readonly SignInClientState signInClientState;
-        private readonly TunnelProxy tunnelProxy;
+        private readonly Socks5Proxy tunnelProxy;
         private readonly ISignInClientStore signInClientStore;
         private readonly Socks5Decenter socks5Decenter;
         private readonly ISerializer serializer;
         private readonly IAccessStore accessStore;
-        public Socks5ApiController(IMessengerSender messengerSender,  SignInClientState signInClientState, TunnelProxy tunnelProxy, Socks5Transfer socks5Transfer, ISignInClientStore signInClientStore, Socks5Decenter socks5Decenter, ISerializer serializer, IAccessStore accessStore)
+        public Socks5ApiController(IMessengerSender messengerSender,  SignInClientState signInClientState, Socks5Proxy tunnelProxy, Socks5Transfer socks5Transfer, ISignInClientStore signInClientStore, Socks5Decenter socks5Decenter, ISerializer serializer, IAccessStore accessStore)
         {
             this.messengerSender = messengerSender;
             this.socks5Transfer = socks5Transfer;

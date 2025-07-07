@@ -7,7 +7,7 @@ using System.Net.Sockets;
 
 namespace linker.messenger.socks5
 {
-    public partial class TunnelProxy : ITunnelConnectionReceiveCallback
+    public partial class Socks5Proxy : ITunnelConnectionReceiveCallback
     {
         private readonly NumberSpace ns = new NumberSpace();
         private SemaphoreSlim semaphoreSlimForward = new SemaphoreSlim(10);
@@ -19,6 +19,9 @@ namespace linker.messenger.socks5
             StartUdp(new IPEndPoint(ep.Address, LocalEndpoint.Port), bufferSize);
         }
 
+        public virtual void Add(string machineId, IPEndPoint target, long recvBytes, long sendtBytes)
+        {
+        }
 
         /// <summary>
         /// 收到隧道数据
