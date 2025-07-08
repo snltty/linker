@@ -23,7 +23,7 @@ namespace linker.messenger.sforward.server.validator
             List<string> sforward = await whiteListServerStore.Get("SForward", signCacheInfo.UserId);
             string target = string.IsNullOrWhiteSpace(sForwardAddInfo.Domain) ? sForwardAddInfo.RemotePort.ToString() : sForwardAddInfo.Domain;
 
-            if (signCacheInfo.Super == false && sforward.Contains(target) == false)
+            if (signCacheInfo.Super == false && sForwardServerStore.Anonymous == false && sforward.Contains(target) == false)
             {
                 return $"need super key and password";
             }

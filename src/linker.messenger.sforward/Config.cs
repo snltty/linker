@@ -68,6 +68,7 @@ namespace linker.messenger.sforward
         /// </summary>
         public int[] TunnelPortRange { get; set; } = new int[] { 10000, 60000 };
 
+        public bool Anonymous { get; set; }
     }
 
     /// <summary>

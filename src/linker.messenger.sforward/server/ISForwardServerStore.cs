@@ -14,6 +14,12 @@
         /// 端口隧道范围
         /// </summary>
         public int[] TunnelPortRange { get; }
+
+        /// <summary>
+        /// 匿名
+        /// </summary>
+        public bool Anonymous { get; }
+
         /// <summary>
         /// 缓冲区大小
         /// </summary>
@@ -32,6 +38,13 @@
         /// <param name="ports"></param>
         /// <returns></returns>
         public bool SetTunnelPortRange(int[] ports);
+
+        /// <summary>
+        /// 设置匿名
+        /// </summary>
+        /// <param name="anonymous"></param>
+        /// <returns></returns>
+        public bool SetAnonymous(bool anonymous);
 
         /// <summary>
         /// 提交保存
