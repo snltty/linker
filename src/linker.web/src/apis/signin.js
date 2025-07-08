@@ -38,3 +38,6 @@ export const getSignInNames = () => {
 export const checkSignInKey = () => {
     return sendWebsocketMsg('signIn/CheckSuper');
 }
+export const getSignInUserIds = (name) => {
+    return sendWebsocketMsg('signIn/UserIds',name);
+}

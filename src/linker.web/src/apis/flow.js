@@ -1,9 +1,9 @@
 import { sendWebsocketMsg } from './request'
 
-export const getFlows = (machineId) => {
+export const getFlows = (machineId = '') => {
     return sendWebsocketMsg('flow/GetFlows',machineId);
 }
-export const getMessengerFlows = (machineId) => {
+export const getMessengerFlows = (machineId = '') => {
     return sendWebsocketMsg('flow/GetMessengerFlows',machineId);
 }
 export const getSForwardFlows = (data) => {
@@ -15,7 +15,7 @@ export const getRelayFlows = (data) => {
 export const getCitys = () => {
     return sendWebsocketMsg('flow/GetCitys');
 }
-export const getStopwatch = (machineId) => {
+export const getStopwatch = (machineId = '') => {
     return sendWebsocketMsg('flow/GetStopwatch',machineId);
 }
 export const getForwardFlows = (data) => {

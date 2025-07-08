@@ -23,7 +23,8 @@
             <el-table-column prop="Name" :label="$t('server.wlistName')"></el-table-column>
             <el-table-column prop="Nodes" :label="$t(`server.wlistNodes${state.page.Type}`)">
                 <template #default="scope">
-                    <span>{{ scope.row.Nodes.map(c=>state.nodes[c]).join(',') }}</span>
+                    <span v-if="scope.row.Type == 'Relay'">{{ scope.row.Nodes.map(c=>state.nodes[c]).join(',') }}</span>
+                    <span v-else-if="scope.row.Type == 'SForward'">{{ scope.row.Nodes.join(',') }}</span>
                 </template>
             </el-table-column>
             <el-table-column prop="Remark" :label="$t('server.wlistRemark')"></el-table-column>

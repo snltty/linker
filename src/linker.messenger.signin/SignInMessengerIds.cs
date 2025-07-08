@@ -32,6 +32,8 @@
 
         CheckSuper = 19,
 
+        UserIds = 20,
+
         None = 99
     }
 }

@@ -212,6 +212,19 @@ namespace linker.messenger.signin
                 connection.Write(serializer.Serialize(list));
             }
         }
+        [MessengerId((ushort)SignInMessengerIds.UserIds)]
+        public void UserIds(IConnection connection)
+        {
+            string name = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false || cache.Super == false)
+            {
+                connection.Write(serializer.Serialize(new List<SignInUserIdsResponseItemInfo>()));
+                return;
+            }
+
+            List<SignInUserIdsResponseItemInfo> list = signCaching.Get(name, 10).Select(c => new SignInUserIdsResponseItemInfo { UserId = c.UserId, MachineName = c.MachineName, Online = c.Connected }).ToList();
+            connection.Write(serializer.Serialize(list));
+        }
 
 
         [MessengerId((ushort)SignInMessengerIds.Exists)]
@@ -374,7 +387,6 @@ namespace linker.messenger.signin
         public int Count { get; set; }
         public List<SignInIdsResponseItemInfo> List { get; set; } = new List<SignInIdsResponseItemInfo>();
     }
-
     public sealed class SignInIdsResponseItemInfo
     {
         public string MachineId { get; set; }
@@ -384,6 +396,12 @@ namespace linker.messenger.signin
     public sealed class SignInNamesResponseItemInfo
     {
         public string MachineId { get; set; }
+        public string MachineName { get; set; }
+        public bool Online { get; set; }
+    }
+    public sealed class SignInUserIdsResponseItemInfo
+    {
+        public string UserId { get; set; }
         public string MachineName { get; set; }
         public bool Online { get; set; }
     }

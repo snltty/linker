@@ -72,6 +72,8 @@ namespace linker.messenger.signin
             cache.Args = signInfo.Args;
             cache.GroupId = signInfo.GroupId;
             cache.Super = signInfo.Super;
+            cache.UserId = signInfo.UserId;
+
             signInStore.Update(cache);
             signInStore.Confirm();
             return string.Empty;
@@ -100,6 +102,10 @@ namespace linker.messenger.signin
         public List<SignCacheInfo> Get()
         {
             return Clients.Values.ToList();
+        }
+        public List<SignCacheInfo> Get(string name,int count)
+        {
+            return Clients.Values.Where(c=>c.MachineName.Contains(name) || c.UserId.Contains(name)).Take(count).ToList();
         }
         public List<SignCacheInfo> Get(SignCacheInfo other)
         {
@@ -176,7 +182,7 @@ namespace linker.messenger.signin
     /// <summary>
     /// 登录缓存对象
     /// </summary>
-    public sealed class SignCacheInfo
+    public partial class SignCacheInfo
     {
         public string Id { get; set; }
         /// <summary>
@@ -240,6 +246,7 @@ namespace linker.messenger.signin
 
 
         public bool Super { get; set; }
+        public string UserId { get; set; } = string.Empty;
 
 
         /// <summary>
@@ -258,14 +265,12 @@ namespace linker.messenger.signin
     /// <summary>
     /// 登录参数
     /// </summary>
-    public sealed class SignInfo
+    public partial class SignInfo
     {
         public string MachineId { get; set; } = string.Empty;
         public string MachineName { get; set; } = string.Empty;
         public string GroupId { get; set; } = string.Empty;
         public string Version { get; set; } = string.Empty;
-
-        public bool Super { get; set; } = false;
 
         public Dictionary<string, string> Args { get; set; } = new Dictionary<string, string>();
 

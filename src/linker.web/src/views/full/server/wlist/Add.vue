@@ -3,13 +3,19 @@
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="auto">
                 <el-form-item :label="$t('server.wlistUserId')" prop="UserId">
-                    <el-input maxlength="36" show-word-limit v-model="state.ruleForm.UserId" />
+                    <el-select v-model="state.ruleForm.UserId" filterable remote :loading="state.loading" :remote-method="handleUserIds" @change="handleUserIdChange">
+                        <el-option v-for="(item, index) in state.userids" :key="index" :label="item.MachineName" :value="item.UserId">
+                        </el-option>
+                    </el-select>
                 </el-form-item>
                 <el-form-item :label="$t('server.wlistName')" prop="Name">
                     <el-input v-model="state.ruleForm.Name" />
                 </el-form-item>
-                <el-form-item :label="$t(`server.wlistNodes${state.ruleForm.Type}`)" prop="Nodes">
+                <el-form-item v-if="state.ruleForm.Type == 'Relay'" :label="$t(`server.wlistNodes${state.ruleForm.Type}`)" prop="Nodes">
                     <el-input type="textarea" :value="state.nodes" @click="handleShowNodes" readonly resize="none" rows="4"></el-input>
+                </el-form-item>
+                <el-form-item v-if="state.ruleForm.Type == 'SForward'" :label="$t(`server.wlistNodes${state.ruleForm.Type}`)" prop="Nodes">
+                    <el-input type="textarea" v-model="state.ports" resize="none" rows="4" @change="handlePortChange"></el-input>
                 </el-form-item>
                 <el-form-item :label="$t('server.wlistRemark')" prop="Remark">
                     <el-input v-model="state.ruleForm.Remark" />
@@ -47,9 +53,10 @@
 
 <script>
 import { ElMessage } from 'element-plus';
-import { computed, inject, reactive, ref, watch } from 'vue'
+import { computed, inject, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n';
 import { wlistAdd } from '@/apis/wlist';
+import { getSignInUserIds } from '@/apis/signin';
 export default {
     props: ['modelValue'],
     emits: ['update:modelValue','success'],
@@ -78,7 +85,11 @@ export default {
                 Nodes: [{ required: true, message: "required", trigger: "blur" }],
             },
             showNodes:false,
-            nodeIds: []
+            nodeIds: [],
+
+            ports: editState.value.Type == 'SForward' ? editState.value.Nodes.join(',') : '',
+
+            userids:[]
         });
         watch(() => state.show, (val) => {
             if (!val) {
@@ -99,6 +110,21 @@ export default {
             state.ruleForm.Nodes = state.nodeIds;
             state.showNodes = false;
         }
+        const handlePortChange = ()=>{
+            state.ruleForm.Nodes = state.ports.split(',').map(c=>c.replace(/\s/g,'')).filter(c=>!!c);
+        }
+        const handleUserIdChange = ()=>{
+            try{
+                state.ruleForm.Name = state.userids.filter(c=>c.UserId == state.ruleForm.UserId)[0].MachineName 
+            }catch(e){
+            }
+        }
+
+        const handleUserIds = (query)=>{
+            getSignInUserIds(query).then(data=>{
+                state.userids = data;
+            });
+        }
 
         const ruleFormRef = ref(null);
         const handleSave = ()=>{       
@@ -115,7 +141,12 @@ export default {
                 });
             });
         }
-        return {state,nodes,handleShowNodes,srcFilterMethod,handleNodes,ruleFormRef,handleSave}
+
+        onMounted(()=>{
+            handleUserIds(state.ruleForm.UserId);
+        })
+
+        return {state,nodes,handleShowNodes,srcFilterMethod,handleNodes,ruleFormRef,handleSave,handlePortChange,handleUserIdChange,handleUserIds}
     }
 }
 </script>

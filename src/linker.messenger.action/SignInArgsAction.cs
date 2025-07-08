@@ -1,5 +1,4 @@
 ﻿using linker.libs.extends;
-using linker.messenger.relay.client.transport;
 using linker.messenger.relay.server;
 using linker.messenger.relay.server.validator;
 using linker.messenger.sforward;
@@ -52,6 +51,10 @@ namespace linker.messenger.action
         /// 分组id
         /// </summary>
         public string GroupId { get; set; } = string.Empty;
+        /// <summary>
+        /// 用户id
+        /// </summary>
+        public string UserId { get; set; } = string.Empty;
         /// <summary>
         /// 超级管理
         /// </summary>
@@ -169,7 +172,8 @@ namespace linker.messenger.action
                         MachineName = signInfo.MachineName,
                         MachineKey = machineKey,
                         IPAddress = signInfo.Connection.Address.Address,
-                        Super = signInfo.Super
+                        Super = signInfo.Super,
+                        UserId = signInfo.UserId
                     }
                 };
                 return await actionTransfer.ExcuteActions(Replace(replace, str), actionServerStore.SignInActionUrl).ConfigureAwait(false);
@@ -221,7 +225,8 @@ namespace linker.messenger.action
                         MachineName = fromMachine.MachineName,
                         MachineKey = machineKey,
                         IPAddress = fromMachine.Connection.Address.Address,
-                        Super = fromMachine.Super
+                        Super = fromMachine.Super,
+                        UserId = fromMachine.UserId
                     }
                 };
                 return await actionTransfer.ExcuteActions(Replace(replace, str), actionServerStore.RelayActionUrl).ConfigureAwait(false);
@@ -256,7 +261,8 @@ namespace linker.messenger.action
                         MachineName = fromMachine.MachineName,
                         MachineKey = machineKey,
                         IPAddress = fromMachine.Connection.Address.Address,
-                        Super = fromMachine.Super
+                        Super = fromMachine.Super,
+                        UserId = fromMachine.UserId
                     }
                 };
                 string ids = await actionTransfer.ExcuteActions(Replace(replace, str), actionServerStore.RelayNodeUrl).ConfigureAwait(false);
@@ -302,7 +308,8 @@ namespace linker.messenger.action
                         MachineName = cache.MachineName,
                         MachineKey = machineKey,
                         IPAddress = cache.Connection.Address.Address,
-                        Super = cache.Super
+                        Super = cache.Super,
+                        UserId = cache.UserId
                     }
                 };
                 return await actionTransfer.ExcuteActions(Replace(replace, str), actionServerStore.SForwardActionUrl).ConfigureAwait(false);

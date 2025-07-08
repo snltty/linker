@@ -24,6 +24,8 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new SignInResponseInfoFormatter());
             MemoryPackFormatterProvider.Register(new SignInConfigSetNameInfoFormatter());
             MemoryPackFormatterProvider.Register(new SignInNamesResponseItemInfoFormatter());
+            MemoryPackFormatterProvider.Register(new SignInUserIdsResponseItemInfoFormatter());
+            
             MemoryPackFormatterProvider.Register(new SignInPushArgInfoFormatter());
 
 

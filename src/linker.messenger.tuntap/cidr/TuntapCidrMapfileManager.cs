@@ -78,7 +78,7 @@ namespace linker.messenger.tuntap.cidr
         {
             try
             {
-                Dictionary<IPAddress, string> ip2machine = tuntapDecenter.Infos.Values.ToDictionary(c => c.IP, c => c.MachineId);
+                Dictionary<IPAddress, string> ip2machine = tuntapDecenter.Infos.Values.Where(c=>c.Available).DistinctBy(c=>c.IP).ToDictionary(c => c.IP, c => c.MachineId);
                 CidrAddInfo<string>[] cidrs = maps.Select(c =>
                 {
                     ip2machine.TryGetValue(c.Dst, out string machineId);

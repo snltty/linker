@@ -111,14 +111,11 @@ export default {
             webport: globalData.value.config.Client.CApi.WebPort,
 
             relay:true,
-            sforward:true,
             updater:true,
             server:true,
-            super:true,
+            super:false,
             group:true,
             tunnel:true,
-            cdkey:true,
-            whitelist:true,
 
             copyContent:'',
             showCopy:false,
@@ -144,14 +141,11 @@ export default {
                 apipassword:state.apipassword,
                 webport:+state.webport,
                 relay:state.relay,
-                sforward:state.sforward,
                 updater:state.updater,
                 server:state.server,
                 super:state.super,
                 group:state.group,
-                tunnel:state.tunnel,
-                cdkey:state.cdkey,
-                whitelist:state.whitelist,
+                tunnel:state.tunnel
             }
             
             if(json.single){

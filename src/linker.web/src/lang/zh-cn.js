@@ -337,13 +337,14 @@ export default {
     'server.wlistAddTime': '添加时间',
     'server.wlistNodes': '内容',
     'server.wlistNodesRelay': '节点',
+    'server.wlistNodesSForward': '端口/域名',
     'server.wlistOper': '操作',
     'server.wlistDelConfirm': '确认删除吗？',
     'server.wlistAdd': '添加白名单',
     'server.wlistUnselect': '未选择',
     'server.wlistSelected': '已选择',
 
-    'server.sforwardSecretKey': '服务器穿透密钥',
+    'server.sforward': '服务器穿透',
     'server.sforwardText': '密钥正确时可使用服务器穿透',
 
     'server.updater': '更新',

@@ -9,7 +9,7 @@ namespace linker.messenger.store.file.cdkey
 {
     public sealed class CdkeyServerStore : ICdkeyServerStore
     {
-        private string regex = @"([0-9]+|\?)-([0-9]+|\?)-([0-9]+|\?)\s+([0-9]+|\?):([0-9]+|\?):([0-9]+|\?)";
+        private readonly string regex = @"([0-9]+|\?)-([0-9]+|\?)-([0-9]+|\?)\s+([0-9]+|\?):([0-9]+|\?):([0-9]+|\?)";
         private int index = 0;
 
         private readonly Storefactory dBfactory;

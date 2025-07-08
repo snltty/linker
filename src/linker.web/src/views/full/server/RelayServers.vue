@@ -1,21 +1,23 @@
 <template>
     <el-form-item :label="$t('server.relay')">
-        <div >
+        <div>
             <div class="flex">
                 <div class="mgr-1">
-                    <el-checkbox class="mgr-1" v-model="state.list.SSL" :label="$t('server.relaySSL')" @change="handleSave" />
-                    <el-checkbox v-model="state.list.Disabled" :label="$t('server.relayDisable')" @change="handleSave" />
+                    <el-checkbox class="mgr-1" v-model="state.list.Disabled" :label="$t('server.relayDisable')" @change="handleSave" />
+                    <el-checkbox v-model="state.list.SSL" :label="$t('server.relaySSL')" @change="handleSave" />
+                </div>
+                <div class="mgr-1" :title="$t('server.relayUseCdkeyTitle')">
+                    <el-checkbox v-model="state.list.UseCdkey" :label="$t('server.relayUseCdkey')" @change="handleSave" />
                 </div>
                 <a href="javascript:;" @click="state.showModes=true" class="mgr-1 delay a-line" :class="{red:state.nodes.length==0,green:state.nodes.length>0}">
                     {{$t('server.relayNodes')}} : {{state.nodes.length}}
                 </a>
+                 <Sync class="mgl-1" name="RelaySecretKey"></Sync>
+            </div>
+            <div class="flex">
                 <WhiteList type="Relay"></WhiteList>
-                <div class="mgr-1" :title="$t('server.relayUseCdkeyTitle')">
-                    <el-checkbox v-model="state.list.UseCdkey" :label="$t('server.relayUseCdkey')" @change="handleSave" />
-                </div>
                 <Cdkey type="Relay"></Cdkey>
                 <Nodes v-if="state.showModes" v-model="state.showModes" :data="state.nodes"></Nodes>
-                <Sync class="mgl-1" name="RelaySecretKey"></Sync>
             </div>
         </div>
     </el-form-item>

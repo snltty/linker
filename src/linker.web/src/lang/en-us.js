@@ -246,6 +246,7 @@ export default {
     'server.wlistAddTime': 'Add time',
     'server.wlistNodes': 'Value',
     'server.wlistNodesRelay': 'Nodes',
+    'server.wlistNodesSForward': 'Port/Domain',
     'server.wlistOper': 'Oper',
     'server.wlistDelConfirm': 'Are you sure to delete？',
     'server.wlistAdd': 'Add',
@@ -253,7 +254,7 @@ export default {
     'server.wlistSelected': 'Selected',
 
 
-    'server.sforwardSecretKey': 'Server forward secretKey',
+    'server.sforward': 'Server forward',
     'server.sforwardText': 'The server forward can be used when the key is correct',
 
     'server.updater':'Updater',

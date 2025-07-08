@@ -38,6 +38,7 @@
                     </el-form-item>
                     <el-form-item></el-form-item>
                     <RelayServers class="mgt-2"></RelayServers>
+                    <SForwardServers class="mgt-2"></SForwardServers>
                     <Updater></Updater>
                 </el-form>
             </div>
@@ -56,10 +57,11 @@ import { ElMessage } from 'element-plus';
 import { computed, onMounted, reactive } from 'vue'
 import Updater from './Updater.vue';
 import RelayServers from './RelayServers.vue';
+import SForwardServers from './SForwardServers.vue';
 import { useI18n } from 'vue-i18n';
 import Sync from '../sync/Index.vue'
 export default {
-    components:{Updater,RelayServers,Sync},
+    components:{Updater,RelayServers,SForwardServers,Sync},
     setup(props) {
         const {t} = useI18n();
         const globalData = injectGlobalData();

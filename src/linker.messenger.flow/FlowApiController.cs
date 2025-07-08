@@ -54,6 +54,7 @@ namespace linker.messenger.flow
             {
                 Connection = signInClientState.Connection,
                 MessengerId = messengerId,
+                 Payload = serializer.Serialize(param.Content)
             }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
             {
@@ -87,6 +88,7 @@ namespace linker.messenger.flow
             {
                 Connection = signInClientState.Connection,
                 MessengerId = messengerId,
+                 Payload = serializer.Serialize(param.Content)
             }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
             {

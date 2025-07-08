@@ -14,6 +14,7 @@ namespace linker.messenger.signin
             serviceCollection.AddSingleton<SignInArgsSuperClient>();
             serviceCollection.AddSingleton<SignInArgsMachineKeyClient>();
             serviceCollection.AddSingleton<SignInArgsVersionClient>();
+            serviceCollection.AddSingleton<SignInArgsUserIdClient>();
 
             serviceCollection.AddSingleton<SignInClientState>();
             serviceCollection.AddSingleton<SignInClientTransfer>();
@@ -34,6 +35,7 @@ namespace linker.messenger.signin
                 serviceProvider.GetService<SignInArgsSuperClient>(),
                   serviceProvider.GetService<SignInArgsMachineKeyClient>(),
                 serviceProvider.GetService<SignInArgsVersionClient>(),
+                serviceProvider.GetService<SignInArgsUserIdClient>(),
             });
 
             linker.messenger.api.IWebServer apiServer = serviceProvider.GetService<linker.messenger.api.IWebServer>();
@@ -63,6 +65,7 @@ namespace linker.messenger.signin
             serviceCollection.AddSingleton<SignInArgsSuperServer>();
             serviceCollection.AddSingleton<SignInArgsMachineKeyServer>();
             serviceCollection.AddSingleton<SignInArgsVersionServer>();
+            serviceCollection.AddSingleton<SignInArgsUserIdServer>();
 
             serviceCollection.AddSingleton<SignInServerMessenger>();
             serviceCollection.AddSingleton<SignInServerCaching>();
@@ -81,6 +84,7 @@ namespace linker.messenger.signin
                 serviceProvider.GetService<SignInArgsSuperServer>(),
                  serviceProvider.GetService<SignInArgsMachineKeyServer>(),
                 serviceProvider.GetService<SignInArgsVersionServer>(),
+                serviceProvider.GetService<SignInArgsUserIdServer>(),
             });
 
             return serviceProvider;

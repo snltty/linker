@@ -56,3 +56,13 @@
 
     }
 }
+
+
+namespace linker.messenger.signin
+{
+    public partial class SignInfo
+    {
+        public bool Super { get; set; } = false;
+    }
+
+}
