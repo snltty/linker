@@ -103,9 +103,9 @@ namespace linker.messenger.signin
         {
             return Clients.Values.ToList();
         }
-        public List<SignCacheInfo> Get(string name,int count)
+        public List<SignCacheInfo> Get(string name, int count)
         {
-            return Clients.Values.Where(c=>c.MachineName.Contains(name) || c.UserId.Contains(name)).Take(count).ToList();
+            return Clients.Values.Where(c => c.MachineName.Contains(name) || c.UserId.Contains(name)).Take(count).ToList();
         }
         public List<SignCacheInfo> Get(SignCacheInfo other)
         {
@@ -138,6 +138,10 @@ namespace linker.messenger.signin
 
         public bool Exp(string machineId)
         {
+            if (TryGet(machineId, out SignCacheInfo cache))
+            {
+                cache.LastSignIn = DateTime.Now;
+            }
             return signInStore.Exp(machineId);
         }
 
