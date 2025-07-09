@@ -183,6 +183,10 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
+html.dark .flow-wrap{
+    background-color: #242526;
+    border-color: #575c61;
+}
 .flow-wrap{
     padding:.4rem;
     font-weight:bold;position:absolute;right:1rem;bottom:80%;

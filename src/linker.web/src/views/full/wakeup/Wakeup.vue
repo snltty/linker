@@ -201,6 +201,7 @@ export default {
 }
 </script>
 <style lang="stylus" scoped>
+html.dark .head{border-color:#575c61;}
 .head {
     margin-bottom: 1rem;
     color:#555;

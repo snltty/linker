@@ -289,6 +289,7 @@ export default {
     border:1px solid #eee;
     padding:0 1rem 1rem 1rem;
 }
+html.dark .head{border-color:#575c61;}
 </style>
 <style  lang="stylus">
 .firewall.el-table {
@@ -300,8 +301,5 @@ export default {
         color: #c83f08;
     }
 }
-.el-dropdown-link{
-    font-size:1.2rem;
-    padding-top:.3rem;
-}
+
 </style>

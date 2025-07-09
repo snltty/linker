@@ -48,6 +48,8 @@ export default {
 }
 </script>
 <style lang="stylus" scoped>
+html.dark .status-wrap{background-color:#242526;border-color:#575c61;}
+html.dark .status-wrap .copy a{color:#ccc;}
 .status-wrap{
     border-top:1px solid #ddd;
     background-color:#f5f5f5;

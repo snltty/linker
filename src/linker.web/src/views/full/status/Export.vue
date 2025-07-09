@@ -266,6 +266,7 @@ export default {
 }
 </script>
 <style lang="stylus" scoped>
+html.dark .status-wrap .status-export-wrap  a{color:#ccc;}
 .status-export-wrap{
     padding-right:1rem;
     a{

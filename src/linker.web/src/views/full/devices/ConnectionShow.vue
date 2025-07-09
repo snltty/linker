@@ -12,7 +12,7 @@
             </template>
         </template>
         <template v-else>
-            <span class="connect-point" title="未连接" v-loading="state.connecting"></span>
+            <span class="connect-point default" title="未连接" v-loading="state.connecting"></span>
         </template>
    </div>
 </template>
@@ -90,5 +90,6 @@ span.connect-point.node {
     background-color: #09dda9;
     border: 1px solid #0cac90;
 }
+html.dark span.connect-point.default{background-color: #666;border-color:#888}
 
 </style>

@@ -83,4 +83,8 @@ export default {
     top:50%;
     transform:translateX(-50%) translateY(-50%);
 }
+html.dark .app-wrap{
+    background-color:#141414;
+    border-color:#575c61;
+}
 </style>

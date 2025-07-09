@@ -174,6 +174,8 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
+
+html.dark .dropdown{border-color:#575c61;}
 .dropdown{
     border:1px solid #ddd;
     padding:.4rem;

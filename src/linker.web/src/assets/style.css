@@ -173,6 +173,13 @@ html {
     /* background-color: #282c34; */
     background-color: #f4f4f4;
 }
+html.dark{
+    background-color: #282c34;
+}
+html.dark .el-switch__core .el-switch__action{
+    background-color: #ccc;
+}
+html.dark .el-dialog{border: 1px solid #575c61;}
 
 body {
     overflow: hidden;

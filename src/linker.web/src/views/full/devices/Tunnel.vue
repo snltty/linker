@@ -150,6 +150,7 @@ export default {
 
 .green{font-weight:bold;}
 
+
 img.system,span.nat{
     height:1.4rem;
     margin-right:.4rem
@@ -157,5 +158,7 @@ img.system,span.nat{
     line-height:1.4rem;
     vertical-align:middle;
 }
+html.dark img.system,html.dark span.nat{border-color:#575c61;}
+
 span.nat{display:inline-block;padding:0 .2rem;margin-right:0;font-family: fantasy;}
 </style>
