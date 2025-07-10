@@ -1,5 +1,6 @@
 ﻿using linker.libs.extends;
 using linker.messenger.action;
+using System.Collections.Generic;
 namespace linker.messenger.store.file.action
 {
     public sealed class ActionClientStore : IActionClientStore
@@ -28,6 +29,10 @@ namespace linker.messenger.store.file.action
             {
                 return arg;
             }
+            else if (config.Data.Client.Action.Args.Count > 0)
+            {
+                return config.Data.Client.Action.Args.Values.FirstOrDefault();
+            }
             return string.Empty;
         }
 
@@ -40,6 +45,10 @@ namespace linker.messenger.store.file.action
             else if (config.Data.Client.Action.Args.TryGetValue(host, out string arg))
             {
                 args.TryAdd(ACTION_ARG_KEY, arg);
+            }
+            else if (config.Data.Client.Action.Args.Count > 0)
+            {
+                args.TryAdd(ACTION_ARG_KEY, config.Data.Client.Action.Args.Values.FirstOrDefault());
             }
             return true;
         }
