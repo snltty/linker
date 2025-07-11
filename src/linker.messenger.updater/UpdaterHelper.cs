@@ -90,12 +90,15 @@ namespace linker.messenger.updater
 
                 try
                 {
-                    DriveInfo drive = new DriveInfo(Path.GetPathRoot(savePath));
-                    if (drive.AvailableFreeSpace < updateInfo.Length)
+                    if(OperatingSystem.IsAndroid() == false)
                     {
-                        LoggerHelper.Instance.Error($"file size {updateInfo.Length}byte,device free space {drive.AvailableFreeSpace} byte");
-                        updateInfo.Status = status;
-                        return;
+                        DriveInfo drive = new DriveInfo(Path.GetPathRoot(savePath));
+                        if (drive.AvailableFreeSpace < updateInfo.Length)
+                        {
+                            LoggerHelper.Instance.Error($"file size {updateInfo.Length}byte,device free space {drive.AvailableFreeSpace} byte");
+                            updateInfo.Status = status;
+                            return;
+                        }
                     }
                 }
                 catch (Exception)
