@@ -26,14 +26,19 @@ namespace linker.messenger.store.file
         }
         public async Task<string> Save(IPEndPoint server, string value)
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(1024);
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024);
             Socket socket = new Socket(server.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             try
             {
                 await socket.ConnectAsync(server).WaitAsync(TimeSpan.FromMilliseconds(5000));
 
                 await socket.SendAsync(new byte[] { Type });
-                await socket.SendAsync(serializer.Serialize(new ExportSaveInfo { Type = ExportSaveType.Save, Value = value }.ToJson()));
+
+                byte[] playload = serializer.Serialize(new ExportSaveInfo { Type = ExportSaveType.Save, Value = value }.ToJson());
+                playload.Length.ToBytes().CopyTo(buffer.AsSpan(0, 4));
+                playload.CopyTo(buffer.AsSpan(4));
+
+                await socket.SendAsync(buffer.AsMemory(0, playload.Length + 4));
 
                 int length = await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).AsTask().WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
 
@@ -83,11 +88,18 @@ namespace linker.messenger.store.file
 
         public async Task Resolve(Socket socket, Memory<byte> memory)
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(8192);
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024);
             try
             {
-                int length = await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false);
-                ExportSaveInfo info = serializer.Deserialize<string>(buffer.AsMemory(0, length).Span).DeJson<ExportSaveInfo>();
+                int length = 0, payloadLength = 0;
+
+                while (length < payloadLength + 4)
+                {
+                    length += await socket.ReceiveAsync(buffer.AsMemory(length), SocketFlags.None).ConfigureAwait(false);
+                    if (length >= 4) payloadLength = buffer.ToInt32();
+                }
+
+                ExportSaveInfo info = serializer.Deserialize<string>(buffer.AsMemory(4, length - 4).Span).DeJson<ExportSaveInfo>();
 
                 if (string.IsNullOrWhiteSpace(info.Value))
                 {

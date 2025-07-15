@@ -302,6 +302,7 @@ namespace linker.messenger.store.file
                 client.Name,
                 client.CApi,
                 client.AccessBits,
+                client.FullAccess,
                 Groups = new SignInClientGroupInfo[] { config.Data.Client.Groups[0] },
                 Servers = new SignInClientServerInfo[] { config.Data.Client.Servers[0] },
                 client.Updater,
