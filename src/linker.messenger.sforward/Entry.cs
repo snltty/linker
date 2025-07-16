@@ -72,7 +72,7 @@ namespace linker.messenger.sforward
             ISForwardServerStore sForwardServerStore = serviceProvider.GetService<ISForwardServerStore>();
             if (sForwardServerStore.WebPort > 0)
             {
-                sForwardProxy.Start(sForwardServerStore.WebPort, true, 3, "3494B7B2-1D9E-4DA2-B4F7-8C439EB03912");
+                sForwardProxy.Start(sForwardServerStore.WebPort, true, sForwardServerStore.BufferSize, "3494B7B2-1D9E-4DA2-B4F7-8C439EB03912");
                 LoggerHelper.Instance.Debug($"start web forward in {sForwardServerStore.WebPort}");
             }
 
