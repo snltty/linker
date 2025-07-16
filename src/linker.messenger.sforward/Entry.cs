@@ -1,11 +1,10 @@
-﻿using linker.libs.web;
-using linker.messenger.api;
+﻿using linker.libs;
+using linker.libs.web;
 using linker.messenger.decenter;
 using linker.messenger.plan;
 using linker.messenger.sforward.client;
 using linker.messenger.sforward.server;
 using linker.messenger.sforward.server.validator;
-using linker.messenger.sync;
 using linker.plugins.sforward.messenger;
 using linker.plugins.sforward.proxy;
 using Microsoft.Extensions.DependencyInjection;
@@ -68,6 +67,14 @@ namespace linker.messenger.sforward
 
             SForwardValidatorTransfer sForwardValidatorTransfer = serviceProvider.GetService<SForwardValidatorTransfer>();
             sForwardValidatorTransfer.AddValidators(new List<ISForwardValidator> { serviceProvider.GetService<SForwardValidator>() });
+
+            SForwardProxy sForwardProxy = serviceProvider.GetService<SForwardProxy>();
+            ISForwardServerStore sForwardServerStore = serviceProvider.GetService<ISForwardServerStore>();
+            if (sForwardServerStore.WebPort > 0)
+            {
+                sForwardProxy.Start(sForwardServerStore.WebPort, true, 3, "3494B7B2-1D9E-4DA2-B4F7-8C439EB03912");
+                LoggerHelper.Instance.Debug($"start web forward in {sForwardServerStore.WebPort}");
+            }
 
             return serviceProvider;
         }

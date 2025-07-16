@@ -214,7 +214,7 @@ export default {
     'status.flowDetail': '详情',
     'status.flowMessenger': '信标',
     'status.flowRelay': '中继',
-    'status.flowRelayNode': '中继节点',
+    'status.flowRelayNode': '中继节点报告',
     'status.flowWanPort': '外网端口',
     'status.flowServerForward': '内网穿透',
     'status.flowSearchName': '名字搜索',
@@ -223,6 +223,9 @@ export default {
     'status.flowSearchDomainPort': '域名/端口',
     'status.flowArea': '地区',
     'status.flowNet': '网络',
+    'status.flowForward': '端口转发',
+    'status.flowSocks5': '代理',
+    'status.flowTunnel': '隧道连接',
 
     'status.tunnelName': '名称',
     'status.tunnelLabel': '说明',

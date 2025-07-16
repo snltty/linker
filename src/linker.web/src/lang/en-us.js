@@ -120,7 +120,7 @@ export default {
     'status.flowDetail': 'Detail',
     'status.flowMessenger': 'Messenger',
     'status.flowRelay': 'Relay',
-    'status.flowRelayNode': 'Relay Node',
+    'status.flowRelayNode': 'Relay Node Report',
     'status.flowWanPort': 'Wan Port',
     'status.flowServerForward': 'Server Forward',
     'status.flowSearchName': 'Name',
@@ -129,6 +129,9 @@ export default {
     'status.flowSearchDomainPort': 'Domain/Port',
     'status.flowArea': 'Area',
     'status.flowNet': 'Network',
+    'status.flowForward': 'Port Forward',
+    'status.flowSocks5': 'Proxy',
+    'status.flowTunnel': 'Tunnel',
 
     'status.tunnelName': 'Name',
     'status.tunnelLabel': 'Label',

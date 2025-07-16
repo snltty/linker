@@ -13,8 +13,6 @@ export default {
         const isSystemDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
         const isSystemLightMode = window.matchMedia('(prefers-color-scheme: light)').matches;
         const cacheMode = localStorage.getItem('theme-mode') || (isSystemDarkMode?'dark':'light');
-        
-        console.log(cacheMode);
         const state = reactive({
             mode: cacheMode,
         });

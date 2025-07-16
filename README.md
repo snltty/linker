@@ -11,7 +11,7 @@
 <div align="center">
 <p><img src="./readme/logo.png" height="150"></p> 
 
-# NET8.0、linker、link anywhere
+# linker、海内皆隔壁，天涯若比邻。
 
 [![Stars](https://img.shields.io/github/stars/snltty/linker?style=flat)](https://github.com/snltty/linker)
 [![Forks](https://img.shields.io/github/forks/snltty/linker?style=flat)](https://github.com/snltty/linker)
@@ -23,21 +23,9 @@
 
 </div>
 
-## [⭐]星星历史
+## [🪂]它在隔壁
 
-[![Star History Chart](https://api.star-history.com/svg?repos=snltty/linker&type=Date)](https://www.star-history.com/#snltty/linker&Date)
-
-## [🚫]免责声明
-
-本软件基于 [GPL-2.0 License](https://opensource.org/licenses/GPL-2.0) 发布，完全免费提供，旨在“按现状”供用户使用。作者及贡献者不对使用本软件所产生的任何直接或间接后果承担责任，包括但不限于性能下降、数据丢失、服务中断、或任何其他类型的损害。
-
-**无任何保证**：本软件不提供任何明示或暗示的保证，包括但不限于对特定用途的适用性、无侵权性、商用性及可靠性的保证。
-
-**用户责任**：使用本软件即表示您理解并同意承担由此产生的一切风险及责任，使用人员有责任和义务遵守当地法律条规，请勿用于违法犯罪。
-
-## [🪂]大概意思
-
-使用p2p或者中继转发，让你的各个局域网连通起来，让各个局域网内的任意联网设备都可以相互连通
+让你那些散落在世界各地的联网设备就像在隔壁房间一样轻松访问。
 
 <div align="center">
 <p><img src="./readme/linker.jpg"></p> 
@@ -80,6 +68,21 @@
 <p><img src="./readme/plan.jpg"></p> 
 <p><img src="./readme/firewall.jpg"></p> 
 
+## [⭐]星星历史
+
+[![Star History Chart](https://api.star-history.com/svg?repos=snltty/linker&type=Date)](https://www.star-history.com/#snltty/linker&Date)
+
+
+## [🚫]免责声明
+
+本软件基于 [GPL-2.0 License](https://opensource.org/licenses/GPL-2.0) 发布，完全免费提供，旨在“按现状”供用户使用。作者及贡献者不对使用本软件所产生的任何直接或间接后果承担责任，包括但不限于性能下降、数据丢失、服务中断、或任何其他类型的损害。
+
+**无任何保证**：本软件不提供任何明示或暗示的保证，包括但不限于对特定用途的适用性、无侵权性、商用性及可靠性的保证。
+
+**用户责任**：使用本软件即表示您理解并同意承担由此产生的一切风险及责任，使用人员有责任和义务遵守当地法律条规，请勿用于违法犯罪。
+
+
+
 ## [🎁]为爱发电
 
 若此项目对您有用，可以考虑通过 **[🔋为爱发电](https://afdian.com/a/snltty)** 对作者稍加支持，让作者更有动力，在项目上投入更多时间和精力
@@ -97,9 +100,11 @@
 - 李氏の天下
 - 小猪
 - 菜菜(木子)
+- 杰米儿
 
 </div>
 </details>
+
 
 ## [👏]特别说明
 

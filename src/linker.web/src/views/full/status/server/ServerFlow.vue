@@ -65,6 +65,9 @@ export default {
         const hasSForwardFlow = computed(()=>globalData.value.hasAccess('SForwardFlow')); 
         const hasRelayFlow = computed(()=>globalData.value.hasAccess('RelayFlow')); 
         const hasSigninFlow = computed(()=>globalData.value.hasAccess('SigninFlow')); 
+        const hasForwardFlow = computed(()=>globalData.value.hasAccess('ForwardFlow')); 
+        const hasSocks5Flow = computed(()=>globalData.value.hasAccess('Socks5Flow')); 
+        const hasTunnelFlow = computed(()=>globalData.value.hasAccess('TunnelFlow')); 
         const state = reactive({
             show:false,
             timer:0,
@@ -96,6 +99,9 @@ export default {
             'Messenger':{text:t('status.flowMessenger'),detail:hasSigninFlow.value},
             'SForward':{text:t('status.flowServerForward'),detail:hasSForwardFlow.value},
             'flow':{text:'',detail:false},
+            'Forward':{text:t('status.flowForward'),detail:hasForwardFlow.value},
+            'Socks5':{text:t('status.flowSocks5'),detail:hasSocks5Flow.value},
+            'Tunnel':{text:t('status.flowTunnel'),detail:hasTunnelFlow.value},
         };
         const _getFlows = ()=>{
             clearTimeout(state.timer);
