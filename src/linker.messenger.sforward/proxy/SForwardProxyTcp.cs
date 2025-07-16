@@ -11,6 +11,7 @@ namespace linker.plugins.sforward.proxy
     {
         private ConcurrentDictionary<int, AsyncUserToken> tcpListens = new ConcurrentDictionary<int, AsyncUserToken>();
         private ConcurrentDictionary<ulong, TaskCompletionSource<Socket>> tcpConnections = new ConcurrentDictionary<ulong, TaskCompletionSource<Socket>>();
+        private ConcurrentDictionary<ulong, AsyncUserToken> httpConnections = new ConcurrentDictionary<ulong, AsyncUserToken>();
 
         public Func<int, ulong, Task<bool>> TunnelConnect { get; set; } = async (port, id) => { return await Task.FromResult(false).ConfigureAwait(false); };
         public Func<string, int, ulong, Task<bool>> WebConnect { get; set; } = async (host, port, id) => { return await Task.FromResult(false).ConfigureAwait(false); };
@@ -120,10 +121,11 @@ namespace linker.plugins.sforward.proxy
                     return;
                 }
                 string key = token.ListenPort.ToString();
+               
                 //是web的，去获取host请求头，匹配不同的服务
                 if (token.IsWeb)
                 {
-
+                    httpConnections.TryAdd(id, token);
                     key = token.Host = GetHost(buffer1.AsMemory(0, length));
                     if (string.IsNullOrWhiteSpace(token.Host))
                     {
@@ -179,7 +181,7 @@ namespace linker.plugins.sforward.proxy
             finally
             {
                 tcpConnections.TryRemove(id, out _);
-
+                httpConnections.TryRemove(id, out _);
             }
         }
 
@@ -203,6 +205,18 @@ namespace linker.plugins.sforward.proxy
                 CloseClientSocket(userToken);
             }
         }
+        public void StopHttp(string host)
+        {
+            foreach (var item in httpConnections.Where(c=>c.Value.Host == host).Select(c=>c.Key).ToList())
+            {
+                if (httpConnections.TryRemove(item,out var token))
+                {
+                    CloseClientSocket(token);
+                }
+            }
+        }
+
+
 
         private readonly byte[] hostBytes = Encoding.UTF8.GetBytes("Host: ");
         private readonly byte[] wrapBytes = Encoding.UTF8.GetBytes("\r\n");

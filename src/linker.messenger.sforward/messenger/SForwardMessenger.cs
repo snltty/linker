@@ -183,6 +183,7 @@ namespace linker.plugins.sforward.messenger
                     else
                     {
                         sForwardServerCahing.TryRemove(sForwardAddInfo.Domain, connection.Id, out _);
+                        proxy.StopHttp(sForwardAddInfo.Domain);
                         result.Message = $"domain 【{sForwardAddInfo.Domain}】 remove success";
                     }
 
