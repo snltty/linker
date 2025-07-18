@@ -5,7 +5,7 @@
                 <el-row class="w-100">
                     <el-col :sm="12" :xs="24">
                         <el-form-item label="机器名" prop="name">
-                            <el-input v-model="state.form.name" maxlength="32" show-word-limit />
+                            <el-input v-trim v-model="state.form.name" maxlength="32" show-word-limit />
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -14,12 +14,12 @@
                 <el-row class="w-100">
                     <el-col :sm="12" :xs="24" v-if="globalData.isPc">
                         <el-form-item label="管理端口" prop="web">
-                            <el-input  v-model="state.form.web" />
+                            <el-input v-trim  v-model="state.form.web" />
                         </el-form-item>
                     </el-col>
                     <el-col :sm="12" :xs="24">
                         <el-form-item label="管理密码" prop="password">
-                            <el-input  type="password" v-model="state.form.password" show-password maxlength="36" show-word-limit/>
+                            <el-input v-trim  type="password" v-model="state.form.password" show-password maxlength="36" show-word-limit/>
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -28,12 +28,12 @@
                 <el-row class="w-100">
                     <el-col :sm="12" :xs="24">
                         <el-form-item label="分组名" prop="groupid">
-                            <el-input v-model="state.form.groupid" maxlength="36" show-word-limit />
+                            <el-input v-trim v-model="state.form.groupid" maxlength="36" show-word-limit />
                         </el-form-item>
                     </el-col>
                     <el-col :sm="12" :xs="24">
                         <el-form-item label="分组密码" prop="groupPassword">
-                            <el-input v-model="state.form.groupPassword" type="password" show-password maxlength="36" show-word-limit />
+                            <el-input v-trim v-model="state.form.groupPassword" type="password" show-password maxlength="36" show-word-limit />
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -52,12 +52,12 @@
                 <el-row class="w-100">
                     <el-col :sm="12" :xs="24">
                         <el-form-item label="信标服务" prop="server">
-                            <el-input v-model="state.form.server"/>
+                            <el-input v-trim v-model="state.form.server"/>
                         </el-form-item>
                     </el-col>
                     <el-col :sm="12" :xs="24">
                         <el-form-item label="信标服务1" prop="server1">
-                            <el-input v-model="state.form.server1"/>
+                            <el-input v-trim v-model="state.form.server1"/>
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -67,12 +67,12 @@
                 <el-row class="w-100">
                     <el-col :sm="12" :xs="24">
                         <el-form-item label="服务器密钥" prop="superKey">
-                            <el-input v-model="state.form.superKey" type="password" show-password maxlength="36" show-word-limit />
+                            <el-input v-trim v-model="state.form.superKey" type="password" show-password maxlength="36" show-word-limit />
                         </el-form-item>
                     </el-col>
                     <el-col :sm="12" :xs="24">
                         <el-form-item label="服务器密码" prop="superPassword">
-                            <el-input v-model="state.form.superPassword" type="password" show-password maxlength="36" show-word-limit />
+                            <el-input v-trim v-model="state.form.superPassword" type="password" show-password maxlength="36" show-word-limit />
                         </el-form-item>
                     </el-col>
                 </el-row>

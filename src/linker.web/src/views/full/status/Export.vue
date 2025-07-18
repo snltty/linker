@@ -18,7 +18,7 @@
                                         <el-col :span="12"><el-checkbox :disabled="onlyNode" v-model="state.single" :label="$t('status.exportSingle')" /></el-col>
                                         <el-col :span="12">
                                             <div class="flex flex-nowrap">
-                                                <span style="width: 11rem;">{{$t('status.exportName')}} : </span><el-input :disabled="!state.single" v-model="state.name" maxlength="32" show-word-limit></el-input>
+                                                <span style="width: 11rem;">{{$t('status.exportName')}} : </span><el-input v-trim :disabled="!state.single" v-model="state.name" maxlength="32" show-word-limit></el-input>
                                             </div>
                                         </el-col>
                                     </el-row>
@@ -27,12 +27,12 @@
                                     <el-row>
                                         <el-col :span="12">
                                             <div class="flex flex-nowrap mgt-1">
-                                                <span style="width: 11rem;">{{$t('status.exportWebport')}} : </span><el-input :disabled="onlyNode" v-model="state.webport"></el-input>
+                                                <span style="width: 11rem;">{{$t('status.exportWebport')}} : </span><el-input v-trim :disabled="onlyNode" v-model="state.webport"></el-input>
                                             </div>
                                         </el-col>
                                         <el-col :span="12">
                                             <div class="flex flex-nowrap mgt-1">
-                                                <span style="width: 11rem;">{{$t('status.exportApiPassword')}} : </span><el-input type="password" show-password :disabled="onlyNode" v-model="state.apipassword" maxlength="36" show-word-limit></el-input>
+                                                <span style="width: 11rem;">{{$t('status.exportApiPassword')}} : </span><el-input v-trim type="password" show-password :disabled="onlyNode" v-model="state.apipassword" maxlength="36" show-word-limit></el-input>
                                             </div>
                                         </el-col>
                                     </el-row>
@@ -63,7 +63,7 @@
         </el-dialog>
         <el-dialog class="options-center" :title="$t('status.export')" destroy-on-close v-model="state.showCopy" center  width="580" top="1vh">
             <div class="port-wrap">
-                <el-input v-model="state.copyContent" type="textarea" :rows="10" resize="none" readonly></el-input>
+                <el-input v-trim v-model="state.copyContent" type="textarea" :rows="10" resize="none" readonly></el-input>
             </div>
             <template #footer>
                 <el-button plain @click="copyToClipboard">{{$t('status.exportCopy') }}</el-button>
@@ -72,10 +72,10 @@
         <el-dialog class="options-center" :title="$t('status.export')" destroy-on-close v-model="state.showSave" center  width="300" top="1vh">
             <div class="port-wrap">
                 <div>
-                    <el-input v-model="state.saveServer" readonly></el-input>
+                    <el-input v-trim v-model="state.saveServer" readonly></el-input>
                 </div>
                 <div style="margin-top:1rem">
-                    <el-input v-model="state.saveContent" readonly></el-input>
+                    <el-input v-trim v-model="state.saveContent" readonly></el-input>
                 </div>
             </div>
             <template #footer>

@@ -5,7 +5,7 @@
                 <el-form-item :label="$t('wakeup.name')" prop="Name">
                     <el-row class="w-100">
                         <el-col :span="12">
-                            <el-input v-model="state.ruleForm.Data.Name" maxlength="32" show-word-limit />
+                            <el-input v-trim v-model="state.ruleForm.Data.Name" maxlength="32" show-word-limit />
                         </el-col>
                         <el-col :span="12"></el-col>
                     </el-row>
@@ -25,7 +25,7 @@
                     <el-form-item :label="$t('wakeup.valueMac')" prop="value1">
                         <el-row class="w-100">
                             <el-col :span="12">
-                                <el-input v-model="state.ruleForm.Data.value1" />
+                                <el-input v-trim v-model="state.ruleForm.Data.value1" />
                             </el-col>
                             <el-col :span="12"></el-col>
                         </el-row>
@@ -41,7 +41,7 @@
                             </el-col>
                             <el-col :span="12">
                                 <el-form-item :label="$t('wakeup.road')" prop="road">
-                                    <el-input v-model="state.ruleForm.Data.road" />
+                                    <el-input v-trim v-model="state.ruleForm.Data.road" />
                                 </el-form-item>
                             </el-col>
                         </el-row>
@@ -58,7 +58,7 @@
                             </el-col>
                             <el-col :span="12">
                                 <el-form-item :label="$t('wakeup.road')" prop="road">
-                                    <el-input v-model="state.ruleForm.Data.road" />
+                                    <el-input v-trim v-model="state.ruleForm.Data.road" />
                                 </el-form-item>
                             </el-col>
                         </el-row>
@@ -67,7 +67,7 @@
                 </template>
                 <el-form-item></el-form-item>
                 <el-form-item :label="$t('wakeup.remark')" prop="Remark">
-                    <el-input v-model="state.ruleForm.Data.Remark" maxlength="64" show-word-limit />
+                    <el-input v-trim v-model="state.ruleForm.Data.Remark" maxlength="64" show-word-limit />
                 </el-form-item>
                 <el-form-item label="" prop="Btns">
                     <div class="t-c w-100">
@@ -173,10 +173,10 @@ export default {
                     MachineId:state.ruleForm.MachineId,
                     Data:{
                         Id:state.ruleForm.Data.Id,
-                        Name:state.ruleForm.Data.Name.replace(/^\s|\s$/g,''),
+                        Name:state.ruleForm.Data.Name,
                         Type:state.ruleForm.Data.Type,
-                        Value:state.ruleForm.Data[`value${state.ruleForm.Data.Type}`].replace(/^\s|\s$/g,''),
-                        Remark:(state.ruleForm.Data.Remark || '').replace(/^\s|\s$/g,''),
+                        Value:state.ruleForm.Data[`value${state.ruleForm.Data.Type}`]|| '',
+                        Remark:state.ruleForm.Data.Remark || '',
                         Content:state.ruleForm.Data.Type == 2 || state.ruleForm.Data.Type == 4 
                         ? state.ruleForm.Data.road : ''
                     }

@@ -321,27 +321,27 @@ namespace linker.messenger.relay.client.transport
             return null;
         }
 
-        public async Task<List<RelayServerNodeReportInfo170>> RelayTestAsync(RelayTestInfo170 relayTestInfo)
+        public async Task<List<RelayServerNodeReportInfo188>> RelayTestAsync(RelayTestInfo188 relayTestInfo)
         {
             try
             {
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = signInClientState.Connection,
-                    MessengerId = (ushort)RelayMessengerIds.RelayTest170,
+                    MessengerId = (ushort)RelayMessengerIds.RelayTest188,
                     Payload = serializer.Serialize(relayTestInfo),
                     Timeout = 2000
                 }).ConfigureAwait(false);
 
                 if (resp.Code == MessageResponeCodes.OK)
                 {
-                    return serializer.Deserialize<List<RelayServerNodeReportInfo170>>(resp.Data.Span);
+                    return serializer.Deserialize<List<RelayServerNodeReportInfo188>>(resp.Data.Span);
                 }
             }
             catch (Exception)
             {
             }
-            return new List<RelayServerNodeReportInfo170>();
+            return new List<RelayServerNodeReportInfo188>();
         }
     }
 
@@ -609,7 +609,7 @@ namespace linker.messenger.relay.client.transport
             return false;
         }
 
-        public async Task<List<RelayServerNodeReportInfo170>> RelayTestAsync(RelayTestInfo170 relayTestInfo)
+        public async Task<List<RelayServerNodeReportInfo188>> RelayTestAsync(RelayTestInfo188 relayTestInfo)
         {
             try
             {
@@ -623,13 +623,13 @@ namespace linker.messenger.relay.client.transport
 
                 if (resp.Code == MessageResponeCodes.OK)
                 {
-                    return serializer.Deserialize<List<RelayServerNodeReportInfo170>>(resp.Data.Span);
+                    return serializer.Deserialize<List<RelayServerNodeReportInfo188>>(resp.Data.Span);
                 }
             }
             catch (Exception)
             {
             }
-            return new List<RelayServerNodeReportInfo170>();
+            return new List<RelayServerNodeReportInfo188>();
         }
     }
 }

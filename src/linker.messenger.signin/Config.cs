@@ -61,6 +61,7 @@ namespace linker.messenger.signin
 
         public string SecretKey { get; set; } = string.Empty;
 
+        public bool Enabled { get; set; } = true;
         public bool Anonymous { get; set; } = true;
 
 #if DEBUG

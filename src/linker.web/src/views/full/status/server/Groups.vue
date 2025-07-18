@@ -5,7 +5,7 @@
         <el-table-column prop="Name" :label="$t('status.groupName')" width="100">
             <template #default="scope">
                 <template v-if="scope.row.NameEditing">
-                    <el-input autofocus size="small" v-model="scope.row.Name"
+                    <el-input v-trim autofocus size="small" v-model="scope.row.Name"
                         @blur="handleEditBlur(scope.row, 'Name')"></el-input>
                 </template>
                 <template v-else>
@@ -16,7 +16,7 @@
         <el-table-column prop="Id" label="Id" >
             <template #default="scope">
                 <template v-if="scope.row.IdEditing">
-                    <el-input autofocus size="small" v-model="scope.row.Id"
+                    <el-input v-trim autofocus size="small" v-model="scope.row.Id"
                         @blur="handleEditBlur(scope.row, 'Id')"></el-input>
                 </template>
                 <template v-else>
@@ -27,7 +27,7 @@
         <el-table-column prop="Password" :label="$t('status.groupPassword')" >
             <template #default="scope">
                 <template v-if="scope.row.PasswordEditing">
-                    <el-input type="password" show-password size="small" v-model="scope.row.Password" @blur="handleEditBlur(scope.row, 'Password')"></el-input>
+                    <el-input v-trim type="password" show-password size="small" v-model="scope.row.Password" @blur="handleEditBlur(scope.row, 'Password')"></el-input>
                 </template>
                 <template v-else>
                     <a href="javascript:;" class="a-line" @click="handleEdit(scope.row, 'Password')">
@@ -113,6 +113,7 @@ export default {
         const handleEditBlur = (row, p) => {
             row[`${p}Editing`] = false;
             row[`__editing`] = false;
+            row[p] = row[p].trim();
             handleSave();
         }
 
@@ -134,7 +135,7 @@ export default {
             arr[index] = arr[0];
             arr[0] = temp;
             setSignIn({
-                name:globalData.value.config.Client.Name,
+                name:globalData.value.config.Client.Name.trim(),
                 groups:arr
             }).then(() => {
                 ElMessage.success(t('common.oper'));

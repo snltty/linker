@@ -18,9 +18,19 @@ function HomepageHeader() {
                 <p className="hero__subtitle">{siteConfig.tagline}</p>
                 <div className={styles.buttons}>
                     <Link
-                        className="button button--secondary button--lg"
-                        to="/docs/1%E3%80%81%E9%A6%96%E9%A1%B5">
-                        看文档
+                        className="button button--secondary button--lg button--info"
+                        to="https://linker.snltty.com">
+                        下载
+                    </Link>
+                    <Link
+                        className="button button--secondary button--lg button--warning"
+                        to="/docs/1%E3%80%81%E9%A6%96%E9%A1%B5" style={{ marginLeft: '10px'} }>
+                        文档
+                    </Link>
+                    <Link
+                        className="button button--secondary button--lg button--outline"
+                        to="https://afdian.com/a/snltty" style={{ marginLeft: '10px'} }>
+                        捐助
                     </Link>
                 </div>
             </div>
@@ -33,7 +43,7 @@ export default function Home() {
     return (
         <Layout
             title={`${siteConfig.title}`}
-            description="linker、一个免费开源的P2P异地组网和内网穿透内核">
+            description="linker、海内皆隔壁，天涯若比邻。">
             <HomepageHeader />
             <main>
                 <HomepageFeatures />

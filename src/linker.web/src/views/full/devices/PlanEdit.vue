@@ -25,35 +25,35 @@
                         </el-select>  <span>的</span>
                     </div>
                     <div class="w-100 mgt-1">
-                        <el-input @change="handleChange" v-if="state.ruleAt.type < 2" v-model="state.ruleAt.month" style="width: 8rem"><template #append>月</template></el-input>
-                        <el-input @change="handleChange" v-if="state.ruleAt.type < 3" :class="{'mgl-1':state.ruleAt.type < 2}" v-model="state.ruleAt.day" style="width: 8rem"><template #append>日</template></el-input>
-                        <el-input @change="handleChange" v-if="state.ruleAt.type < 4" :class="{'mgl-1':state.ruleAt.type < 3}" v-model="state.ruleAt.hour" style="width: 8rem"><template #append>时</template></el-input>
-                        <el-input @change="handleChange" v-if="state.ruleAt.type < 5" :class="{'mgl-1':state.ruleAt.type < 4}" v-model="state.ruleAt.min" style="width: 8rem"><template #append>分</template></el-input>
-                        <el-input @change="handleChange" :class="{'mgl-1':state.ruleAt.type < 5}" v-model="state.ruleAt.sec" style="width: 8rem"><template #append>秒</template></el-input>
+                        <el-input v-trim @change="handleChange" v-if="state.ruleAt.type < 2" v-model="state.ruleAt.month" style="width: 8rem"><template #append>月</template></el-input>
+                        <el-input v-trim @change="handleChange" v-if="state.ruleAt.type < 3" :class="{'mgl-1':state.ruleAt.type < 2}" v-model="state.ruleAt.day" style="width: 8rem"><template #append>日</template></el-input>
+                        <el-input v-trim @change="handleChange" v-if="state.ruleAt.type < 4" :class="{'mgl-1':state.ruleAt.type < 3}" v-model="state.ruleAt.hour" style="width: 8rem"><template #append>时</template></el-input>
+                        <el-input v-trim @change="handleChange" v-if="state.ruleAt.type < 5" :class="{'mgl-1':state.ruleAt.type < 4}" v-model="state.ruleAt.min" style="width: 8rem"><template #append>分</template></el-input>
+                        <el-input v-trim @change="handleChange" :class="{'mgl-1':state.ruleAt.type < 5}" v-model="state.ruleAt.sec" style="width: 8rem"><template #append>秒</template></el-input>
                     </div>
                 </el-form-item>
                 <el-form-item label="每" prop="Rule" v-if="state.ruleForm.Method == 4">
                     <div class="w-100">
-                        <el-input @change="handleChange" v-model="state.ruleTimer.year" style="width: 8rem"><template #append>年</template></el-input>
-                        <el-input @change="handleChange" class="mgl-1" v-model="state.ruleTimer.month" style="width: 8rem"><template #append>月</template></el-input>
-                        <el-input @change="handleChange" class="mgl-1" v-model="state.ruleTimer.day" style="width: 8rem"><template #append>日</template></el-input>
+                        <el-input v-trim @change="handleChange" v-model="state.ruleTimer.year" style="width: 8rem"><template #append>年</template></el-input>
+                        <el-input v-trim @change="handleChange" class="mgl-1" v-model="state.ruleTimer.month" style="width: 8rem"><template #append>月</template></el-input>
+                        <el-input v-trim @change="handleChange" class="mgl-1" v-model="state.ruleTimer.day" style="width: 8rem"><template #append>日</template></el-input>
                     </div>
                     <div class="w-100 mgt-1">
-                        <el-input @change="handleChange" v-model="state.ruleTimer.hour" style="width: 8rem"><template #append>时</template></el-input>
-                        <el-input @change="handleChange" class="mgl-1" v-model="state.ruleTimer.min" style="width: 8rem"><template #append>分</template></el-input>
-                        <el-input @change="handleChange" class="mgl-1" v-model="state.ruleTimer.sec" style="width: 8rem"><template #append>秒</template></el-input>
+                        <el-input v-trim @change="handleChange" v-model="state.ruleTimer.hour" style="width: 8rem"><template #append>时</template></el-input>
+                        <el-input v-trim @change="handleChange" class="mgl-1" v-model="state.ruleTimer.min" style="width: 8rem"><template #append>分</template></el-input>
+                        <el-input v-trim @change="handleChange" class="mgl-1" v-model="state.ruleTimer.sec" style="width: 8rem"><template #append>秒</template></el-input>
                     </div>
                 </el-form-item>
                 <el-form-item label="Cron" prop="Rule" v-if="state.ruleForm.Method == 8">
                     <div class="w-100">
-                        <el-input @change="handleChange" v-model="state.ruleCron.sec" style="width: 8rem"><template #append>秒</template></el-input>
-                        <el-input @change="handleChange" class="mgl-1" v-model="state.ruleCron.min" style="width: 8rem"><template #append>分</template></el-input>
-                        <el-input @change="handleChange" class="mgl-1" v-model="state.ruleCron.hour" style="width: 8rem"><template #append>时</template></el-input>
+                        <el-input v-trim @change="handleChange" v-model="state.ruleCron.sec" style="width: 8rem"><template #append>秒</template></el-input>
+                        <el-input v-trim @change="handleChange" class="mgl-1" v-model="state.ruleCron.min" style="width: 8rem"><template #append>分</template></el-input>
+                        <el-input v-trim @change="handleChange" class="mgl-1" v-model="state.ruleCron.hour" style="width: 8rem"><template #append>时</template></el-input>
                     </div>
                     <div class="w-100 mgt-1">
-                        <el-input @change="handleChange" v-model="state.ruleCron.day" style="width: 8rem"><template #append>日</template></el-input>
-                        <el-input @change="handleChange" class="mgl-1" v-model="state.ruleCron.month" style="width: 8rem"><template #append>月</template></el-input>
-                        <el-input @change="handleChange" class="mgl-1" v-model="state.ruleCron.week" style="width: 8rem"><template #append>周</template></el-input>
+                        <el-input v-trim @change="handleChange" v-model="state.ruleCron.day" style="width: 8rem"><template #append>日</template></el-input>
+                        <el-input v-trim @change="handleChange" class="mgl-1" v-model="state.ruleCron.month" style="width: 8rem"><template #append>月</template></el-input>
+                        <el-input v-trim @change="handleChange" class="mgl-1" v-model="state.ruleCron.week" style="width: 8rem"><template #append>周</template></el-input>
                     </div>
                 </el-form-item>
                 <el-form-item label="在" prop="Rule" v-if="state.ruleForm.Method == 16">
@@ -63,19 +63,19 @@
                         </el-select> <span>的</span>
                     </div>
                     <div class="mgt-1 w-100">
-                        <el-input @change="handleChange" v-model="state.ruleTrigger.year" style="width: 8rem"><template #append>年</template></el-input>
-                        <el-input @change="handleChange" class="mgl-1" v-model="state.ruleTrigger.month" style="width: 8rem"><template #append>月</template></el-input>
-                        <el-input @change="handleChange" class="mgl-1" v-model="state.ruleTrigger.day" style="width: 8rem"><template #append>日</template></el-input>
+                        <el-input v-trim @change="handleChange" v-model="state.ruleTrigger.year" style="width: 8rem"><template #append>年</template></el-input>
+                        <el-input v-trim @change="handleChange" class="mgl-1" v-model="state.ruleTrigger.month" style="width: 8rem"><template #append>月</template></el-input>
+                        <el-input v-trim @change="handleChange" class="mgl-1" v-model="state.ruleTrigger.day" style="width: 8rem"><template #append>日</template></el-input>
                     </div>
                     <div class="mgt-1 w-100">
-                        <el-input @change="handleChange" v-model="state.ruleTrigger.hour" style="width: 8rem"><template #append>时</template></el-input>
-                        <el-input @change="handleChange" class="mgl-1" v-model="state.ruleTrigger.min" style="width: 8rem"><template #append>分</template></el-input>
-                        <el-input @change="handleChange" class="mgl-1" v-model="state.ruleTrigger.sec" style="width: 8rem"><template #append>秒</template></el-input>
+                        <el-input v-trim @change="handleChange" v-model="state.ruleTrigger.hour" style="width: 8rem"><template #append>时</template></el-input>
+                        <el-input v-trim @change="handleChange" class="mgl-1" v-model="state.ruleTrigger.min" style="width: 8rem"><template #append>分</template></el-input>
+                        <el-input v-trim @change="handleChange" class="mgl-1" v-model="state.ruleTrigger.sec" style="width: 8rem"><template #append>秒</template></el-input>
                         <span>后</span>
                     </div>
                 </el-form-item> 
                 <el-form-item label="内容" prop="Value">
-                    <el-input type="textarea" resize="none" rows="5" v-model="state.ruleForm.Value"></el-input>
+                    <el-input v-trim type="textarea" resize="none" rows="5" v-model="state.ruleForm.Value"></el-input>
                 </el-form-item>
                 <el-form-item label="禁用" prop="Disabled">
                     <el-switch v-model="state.ruleForm.Disabled" />

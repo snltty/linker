@@ -6,12 +6,12 @@
                     <p>网络租期30天、IP租期7天</p>
                 </el-form-item>
                 <el-form-item label="网卡名" prop="Name">
-                    <el-input v-model="state.ruleForm.Name" style="width:14rem"/>
+                    <el-input v-trim v-model="state.ruleForm.Name" style="width:14rem"/>
                 </el-form-item>
                 <el-form-item label="网络前缀" prop="IP">
-                    <el-input v-model="state.ruleForm.IP" style="width:14rem" @change="handlePrefixLengthChange" />
+                    <el-input v-trim v-model="state.ruleForm.IP" style="width:14rem" @change="handlePrefixLengthChange" />
                     <span>/</span>
-                    <el-input @change="handlePrefixLengthChange" v-model="state.ruleForm.PrefixLength" style="width:4rem" />
+                    <el-input v-trim @change="handlePrefixLengthChange" v-model="state.ruleForm.PrefixLength" style="width:4rem" />
                     <span style="width: 1rem;"></span>
                     <el-button @click="handleClear">重置</el-button>
                 </el-form-item>

@@ -37,6 +37,11 @@
         /// <returns></returns>
         public async Task<string> Validate(SignInfo signInfo, SignCacheInfo cache)
         {
+            if(signInServerStore.Enabled == false)
+            {
+                return $"sign in disabled";
+            }
+
             if(signInfo.Args.TryGetValue("signin-key", out string key) && signInfo.Args.TryGetValue("signin-password", out string password))
             {
                 signInfo.Super = signInServerStore.ValidateSuper(key, password);

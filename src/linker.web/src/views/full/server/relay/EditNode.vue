@@ -3,7 +3,7 @@
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="auto">
                 <el-form-item :label="$t('server.relayName')" prop="Name">
-                    <el-input minlength="1" maxlength="32" show-word-limit v-model="state.ruleForm.Name" />
+                    <el-input v-trim minlength="1" maxlength="32" show-word-limit v-model="state.ruleForm.Name" />
                 </el-form-item>
                 <el-form-item :label="$t('server.relayConnection')" prop="MaxConnection">
                     <el-input-number v-model="state.ruleForm.MaxConnection" :min="0" :max="65535"/>
@@ -21,10 +21,13 @@
                     <el-input-number v-model="state.ruleForm.MaxGbTotalLastBytes" :min="0" />byte
                 </el-form-item>
                 <el-form-item :label="$t('server.relayUrl')" prop="Url">
-                    <el-input v-model="state.ruleForm.Url" />
+                    <el-input v-trim v-model="state.ruleForm.Url" />
                 </el-form-item>
                 <el-form-item :label="$t('server.relayPublic')" prop="Public">
                     <el-switch v-model="state.ruleForm.Public " size="small" />
+                </el-form-item>
+                <el-form-item :label="$t('server.relaySync2Server')" prop="Sync2Server">
+                    <el-switch v-model="state.ruleForm.Sync2Server " size="small" />
                 </el-form-item>
                 <el-form-item :label="$t('server.relayAllow')" prop="Allow">
                     <el-checkbox v-model="state.ruleForm.AllowTcp">TCP</el-checkbox>
@@ -46,7 +49,7 @@
 import { ElMessage } from 'element-plus';
 import { reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n';
-import {  relayUpdateNode } from '@/apis/relay';
+import {  relayEdit } from '@/apis/relay';
 import { Refresh } from '@element-plus/icons-vue'
 export default {
     props: ['data','modelValue'],
@@ -68,6 +71,7 @@ export default {
                 Url:props.data.Url,
                 AllowTcp:(props.data.AllowProtocol & 1) == 1,
                 AllowUdp:(props.data.AllowProtocol & 2) == 2,
+                Sync2Server:props.data.Sync2Server || false,
             },
             rules:{
             }
@@ -91,7 +95,7 @@ export default {
                 const json = JSON.parse(JSON.stringify(state.ruleForm));
                 json.AllowProtocol = (json.AllowTcp ? 1 : 0) | (json.AllowUdp ? 2 : 0);
 
-                relayUpdateNode(json).then((res)=>{
+                relayEdit(json).then((res)=>{
                     if(res){
                         ElMessage.success(t('common.oper'));
                         state.show = false;

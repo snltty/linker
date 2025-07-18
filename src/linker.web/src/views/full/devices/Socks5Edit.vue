@@ -6,7 +6,7 @@
                     配置代理，通过代理访问其它设备
                 </el-form-item>
                 <el-form-item label="代理端口" prop="Port">
-                    <el-input v-model="state.ruleForm.Port" style="width:14rem" />
+                    <el-input v-trim v-model="state.ruleForm.Port" style="width:14rem" />
                 </el-form-item>
                 <div class="upgrade-wrap">
                     <Socks5Lan ref="socks5Dom"></Socks5Lan>

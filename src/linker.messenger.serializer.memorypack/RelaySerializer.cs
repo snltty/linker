@@ -391,7 +391,7 @@ namespace linker.messenger.serializer.memorypack
         RelayServerNodeUpdateInfo Info => info.Info;
 
         [MemoryPackConstructor]
-        SerializableRelayServerNodeUpdateWrapInfo( string secretKey, RelayServerNodeUpdateInfo info)
+        SerializableRelayServerNodeUpdateWrapInfo(string secretKey, RelayServerNodeUpdateInfo info)
         {
             this.info = new RelayServerNodeUpdateWrapInfo
             {
@@ -930,5 +930,306 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
+
+
+    [MemoryPackable]
+    public readonly partial struct SerializableRelayTestInfo188
+    {
+        [MemoryPackIgnore]
+        public readonly RelayTestInfo188 info;
+
+        [MemoryPackInclude]
+        string MachineId => info.MachineId;
+        [MemoryPackInclude]
+        string SecretKey => string.Empty;
+
+        [MemoryPackInclude, MemoryPackAllowSerialize]
+        IPEndPoint Server => info.Server;
+        [MemoryPackInclude]
+        string UserId => info.UserId;
+
+        [MemoryPackConstructor]
+        SerializableRelayTestInfo188(string machineId, string secretKey, IPEndPoint server, string userid)
+        {
+            var info = new RelayTestInfo188 { MachineId = machineId, Server = server, UserId = userid };
+            this.info = info;
+        }
+
+        public SerializableRelayTestInfo188(RelayTestInfo188 info)
+        {
+            this.info = info;
+        }
+    }
+    public class RelayTestInfo188Formatter : MemoryPackFormatter<RelayTestInfo188>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref RelayTestInfo188 value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableRelayTestInfo188(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref RelayTestInfo188 value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableRelayTestInfo188>();
+            value = wrapped.info;
+        }
+    }
+
+    [MemoryPackable]
+    public readonly partial struct SerializableRelayServerNodeUpdateInfo188
+    {
+        [MemoryPackIgnore]
+        public readonly RelayServerNodeUpdateInfo188 info;
+        [MemoryPackInclude]
+        string Id => info.Id;
+        [MemoryPackInclude]
+        string Name => info.Name;
+        [MemoryPackInclude]
+        int MaxConnection => info.MaxConnection;
+        [MemoryPackInclude]
+        double MaxBandwidth => info.MaxBandwidth;
+        [MemoryPackInclude]
+        double MaxBandwidthTotal => info.MaxBandwidthTotal;
+        [MemoryPackInclude]
+        double MaxGbTotal => info.MaxGbTotal;
+        [MemoryPackInclude]
+        long MaxGbTotalLastBytes => info.MaxGbTotalLastBytes;
+        [MemoryPackInclude]
+        bool Public => info.Public;
+        [MemoryPackInclude]
+        string Url => info.Url;
+
+        [MemoryPackInclude]
+        bool AllowTcp => info.AllowTcp;
+        [MemoryPackInclude]
+        bool AllowUdp => info.AllowUdp;
+        [MemoryPackInclude]
+        bool Sync2Server => info.Sync2Server;
+
+        [MemoryPackConstructor]
+        SerializableRelayServerNodeUpdateInfo188(
+            string id, string name,
+            int maxConnection, double maxBandwidth, double maxBandwidthTotal,
+            double maxGbTotal, long maxGbTotalLastBytes,
+            bool Public, string url, bool allowTcp, bool allowUdp, bool sync2Server)
+        {
+            var info = new RelayServerNodeUpdateInfo188
+            {
+                Id = id,
+                MaxBandwidth = maxBandwidth,
+                MaxBandwidthTotal = maxBandwidthTotal,
+                MaxConnection = maxConnection,
+                MaxGbTotal = maxGbTotal,
+                MaxGbTotalLastBytes = maxGbTotalLastBytes,
+                Name = name,
+                Public = Public,
+                Url = url,
+                AllowTcp = allowTcp,
+                AllowUdp = allowUdp,
+                Sync2Server = sync2Server
+            };
+            this.info = info;
+        }
+
+        public SerializableRelayServerNodeUpdateInfo188(RelayServerNodeUpdateInfo188 info)
+        {
+            this.info = info;
+        }
+    }
+    public class RelayServerNodeUpdateInfo188Formatter : MemoryPackFormatter<RelayServerNodeUpdateInfo188>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref RelayServerNodeUpdateInfo188 value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableRelayServerNodeUpdateInfo188(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref RelayServerNodeUpdateInfo188 value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableRelayServerNodeUpdateInfo188>();
+            value = wrapped.info;
+        }
+    }
+    [MemoryPackable]
+    public readonly partial struct SerializableRelayServerNodeUpdateWrapInfo188
+    {
+        [MemoryPackIgnore]
+        public readonly RelayServerNodeUpdateWrapInfo188 info;
+        [MemoryPackInclude]
+        string SecretKey => string.Empty;
+        [MemoryPackInclude, MemoryPackAllowSerialize]
+        RelayServerNodeUpdateInfo188 Info => info.Info;
+
+        [MemoryPackConstructor]
+        SerializableRelayServerNodeUpdateWrapInfo188(string secretKey, RelayServerNodeUpdateInfo188 info)
+        {
+            this.info = new RelayServerNodeUpdateWrapInfo188
+            {
+                Info = info
+            };
+        }
+
+        public SerializableRelayServerNodeUpdateWrapInfo188(RelayServerNodeUpdateWrapInfo188 info)
+        {
+            this.info = info;
+        }
+    }
+    public class RelayServerNodeUpdateWrapInfo188Formatter : MemoryPackFormatter<RelayServerNodeUpdateWrapInfo188>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref RelayServerNodeUpdateWrapInfo188 value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableRelayServerNodeUpdateWrapInfo188(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref RelayServerNodeUpdateWrapInfo188 value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableRelayServerNodeUpdateWrapInfo188>();
+            value = wrapped.info;
+        }
+    }
+    [MemoryPackable]
+    public readonly partial struct SerializableRelayServerNodeReportInfo188
+    {
+        [MemoryPackIgnore]
+        public readonly RelayServerNodeReportInfo188 info;
+
+        [MemoryPackInclude]
+        string Id => info.Id;
+        [MemoryPackInclude]
+        string Name => info.Name;
+        [MemoryPackInclude]
+        int MaxConnection => info.MaxConnection;
+        [MemoryPackInclude]
+        double MaxBandwidth => info.MaxBandwidth;
+        [MemoryPackInclude]
+        double MaxBandwidthTotal => info.MaxBandwidthTotal;
+        [MemoryPackInclude]
+        double MaxGbTotal => info.MaxGbTotal;
+        [MemoryPackInclude]
+        long MaxGbTotalLastBytes => info.MaxGbTotalLastBytes;
+        [MemoryPackInclude]
+        double ConnectionRatio => info.ConnectionRatio;
+        [MemoryPackInclude]
+        double BandwidthRatio => info.BandwidthRatio;
+        [MemoryPackInclude]
+        bool Public => info.Public;
+        [MemoryPackInclude]
+        int Delay => info.Delay;
+        [MemoryPackInclude, MemoryPackAllowSerialize]
+        IPEndPoint EndPoint => info.EndPoint;
+        [MemoryPackInclude]
+        long LastTicks => info.LastTicks;
+        [MemoryPackInclude]
+        string Url => info.Url;
+
+        [MemoryPackInclude]
+        TunnelProtocolType AllowProtocol => info.AllowProtocol;
+
+        [MemoryPackInclude]
+        bool Sync2Server => info.Sync2Server;
+        [MemoryPackInclude]
+        string Version => info.Version;
+
+
+        [MemoryPackConstructor]
+        SerializableRelayServerNodeReportInfo188(
+            string id, string name,
+            int maxConnection, double maxBandwidth, double maxBandwidthTotal,
+            double maxGbTotal, long maxGbTotalLastBytes,
+            double connectionRatio, double bandwidthRatio,
+            bool Public, int delay,
+            IPEndPoint endPoint, long lastTicks, string url, TunnelProtocolType allowProtocol, bool sync2Server, string version)
+        {
+            var info = new RelayServerNodeReportInfo188
+            {
+                BandwidthRatio = bandwidthRatio,
+                ConnectionRatio = connectionRatio,
+                Delay = delay,
+                EndPoint = endPoint,
+                Id = id,
+                LastTicks = lastTicks,
+                MaxBandwidth = maxBandwidth,
+                MaxBandwidthTotal = maxBandwidthTotal,
+                MaxConnection = maxConnection,
+                MaxGbTotal = maxGbTotal,
+                MaxGbTotalLastBytes = maxGbTotalLastBytes,
+                Name = name,
+                Public = Public,
+                Url = url,
+                AllowProtocol = allowProtocol,
+                 Sync2Server= sync2Server,
+                  Version= version
+            };
+            this.info = info;
+        }
+
+        public SerializableRelayServerNodeReportInfo188(RelayServerNodeReportInfo188 info)
+        {
+            this.info = info;
+        }
+    }
+    public class RelayServerNodeReportInfo188Formatter : MemoryPackFormatter<RelayServerNodeReportInfo188>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref RelayServerNodeReportInfo188 value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableRelayServerNodeReportInfo188(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref RelayServerNodeReportInfo188 value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableRelayServerNodeReportInfo188>();
+            value = wrapped.info;
+        }
+    }
 
 }

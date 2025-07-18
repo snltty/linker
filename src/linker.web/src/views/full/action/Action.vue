@@ -7,7 +7,7 @@
             </div>
         </template>
         <div>
-            <el-input v-model="state.data" :rows="10" type="textarea" resize="none" @change="handleSave" />
+            <el-input v-trim v-model="state.data" :rows="10" type="textarea" resize="none" @change="handleSave" />
         </div>
         <template #footer>
             <div class="t-c">

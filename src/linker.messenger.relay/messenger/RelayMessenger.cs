@@ -79,7 +79,19 @@ namespace linker.messenger.relay.messenger
                 connection.Write(serializer.Serialize(new List<RelayServerNodeReportInfo170> { }));
                 return;
             }
-            List<RelayServerNodeReportInfo170> nodes = await GetNodes(info.UserId, cache);
+            List<RelayServerNodeReportInfo170> nodes = (await GetNodes(info.UserId, cache)).Select(c => (RelayServerNodeReportInfo170)c).ToList();
+            connection.Write(serializer.Serialize(nodes));
+        }
+        [MessengerId((ushort)RelayMessengerIds.RelayTest188)]
+        public async Task RelayTest188(IConnection connection)
+        {
+            RelayTestInfo188 info = serializer.Deserialize<RelayTestInfo188>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
+            {
+                connection.Write(serializer.Serialize(new List<RelayServerNodeReportInfo188> { }));
+                return;
+            }
+            List<RelayServerNodeReportInfo188> nodes = await GetNodes(info.UserId, cache);
             connection.Write(serializer.Serialize(nodes));
         }
 
@@ -103,7 +115,7 @@ namespace linker.messenger.relay.messenger
             }
 
             RelayAskResultInfo170 result = new RelayAskResultInfo170();
-            result.Nodes = await GetNodes(info.UserId, from).ConfigureAwait(false);
+            result.Nodes = (await GetNodes(info.UserId, from).ConfigureAwait(false)).Select(c => (RelayServerNodeReportInfo170)c).ToList();
             if (result.Nodes.Count > 0)
             {
                 result.FlowingId = relayServerTransfer.AddRelay(from.MachineId, from.MachineName, to.MachineId, to.MachineName, from.GroupId, info.UserId, from.Super, info.UseCdkey);
@@ -112,7 +124,7 @@ namespace linker.messenger.relay.messenger
             connection.Write(serializer.Serialize(result));
         }
 
-        private async Task<List<RelayServerNodeReportInfo170>> GetNodes(string userid, SignCacheInfo from)
+        private async Task<List<RelayServerNodeReportInfo188>> GetNodes(string userid, SignCacheInfo from)
         {
             return await relayServerTransfer.GetNodes(from.Super, userid);
         }
@@ -190,7 +202,7 @@ namespace linker.messenger.relay.messenger
             if (cache != null)
             {
                 byte[] sendt = serializer.Serialize(cache);
-                relayServerReportResolver.Add(connection.ReceiveRequestWrap.Payload.Length,sendt.Length);
+                relayServerReportResolver.Add(connection.ReceiveRequestWrap.Payload.Length, sendt.Length);
                 connection.Write(sendt);
             }
             else
@@ -201,13 +213,13 @@ namespace linker.messenger.relay.messenger
         [MessengerId((ushort)RelayMessengerIds.NodeGetCache186)]
         public async Task NodeGetCache186(IConnection connection)
         {
-            relayServerReportResolver.Add(connection.ReceiveRequestWrap.Payload.Length,0);
+            relayServerReportResolver.Add(connection.ReceiveRequestWrap.Payload.Length, 0);
             ValueTuple<string, string> key = serializer.Deserialize<ValueTuple<string, string>>(connection.ReceiveRequestWrap.Payload.Span);
             RelayCacheInfo cache = await relayServerTransfer.TryGetRelayCache(key.Item1, key.Item2);
             if (cache != null)
             {
                 byte[] sendt = serializer.Serialize(cache);
-                relayServerReportResolver.Add(0,sendt.Length);
+                relayServerReportResolver.Add(0, sendt.Length);
                 connection.Write(sendt);
             }
             else
@@ -223,33 +235,136 @@ namespace linker.messenger.relay.messenger
         [MessengerId((ushort)RelayMessengerIds.NodeReport)]
         public void NodeReport(IConnection connection)
         {
-            relayServerReportResolver.Add(connection.ReceiveRequestWrap.Payload.Length,0);
+            relayServerReportResolver.Add(connection.ReceiveRequestWrap.Payload.Length, 0);
             RelayServerNodeReportInfo170 info = serializer.Deserialize<RelayServerNodeReportInfo170>(connection.ReceiveRequestWrap.Payload.Span);
             relayServerTransfer.SetNodeReport(connection, info);
+
+            connection.Write(serializer.Serialize(VersionHelper.Version));
+        }
+        [MessengerId((ushort)RelayMessengerIds.NodeReport188)]
+        public void NodeReport188(IConnection connection)
+        {
+            relayServerReportResolver.Add(connection.ReceiveRequestWrap.Payload.Length, 0);
+            RelayServerNodeReportInfo188 info = serializer.Deserialize<RelayServerNodeReportInfo188>(connection.ReceiveRequestWrap.Payload.Span);
+            relayServerTransfer.SetNodeReport(connection, info);
+
+            connection.Write(serializer.Serialize(VersionHelper.Version));
         }
         /// <summary>
         /// 更新节点
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
-        [MessengerId((ushort)RelayMessengerIds.UpdateNode)]
-        public void UpdateNode(IConnection connection)
+        [MessengerId((ushort)RelayMessengerIds.Edit)]
+        public void Edit(IConnection connection)
         {
             RelayServerNodeUpdateInfo info = serializer.Deserialize<RelayServerNodeUpdateInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            relayServerNodeTransfer.UpdateNode(info);
+            relayServerNodeTransfer.Edit(info);
         }
         /// <summary>
         /// 更新节点转发
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
-        [MessengerId((ushort)RelayMessengerIds.UpdateNodeForward)]
-        public async Task UpdateNodeForward(IConnection connection)
+        [MessengerId((ushort)RelayMessengerIds.EditForward)]
+        public async Task EditForward(IConnection connection)
         {
             RelayServerNodeUpdateWrapInfo info = serializer.Deserialize<RelayServerNodeUpdateWrapInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) && cache.Super)
             {
-                await relayServerTransfer.UpdateNodeReport(info.Info).ConfigureAwait(false);
+                await relayServerTransfer.Edit(info.Info).ConfigureAwait(false);
+                connection.Write(Helper.TrueArray);
+            }
+            else
+            {
+                connection.Write(Helper.FalseArray);
+            }
+        }
+        /// <summary>
+        /// 更新节点
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        [MessengerId((ushort)RelayMessengerIds.Edit188)]
+        public void Edit188(IConnection connection)
+        {
+            RelayServerNodeUpdateInfo188 info = serializer.Deserialize<RelayServerNodeUpdateInfo188>(connection.ReceiveRequestWrap.Payload.Span);
+            relayServerNodeTransfer.Edit(info);
+        }
+        /// <summary>
+        /// 更新节点转发
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        [MessengerId((ushort)RelayMessengerIds.EditForward188)]
+        public async Task EditForward188(IConnection connection)
+        {
+            RelayServerNodeUpdateWrapInfo188 info = serializer.Deserialize<RelayServerNodeUpdateWrapInfo188>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) && cache.Super)
+            {
+                await relayServerTransfer.Edit(info.Info).ConfigureAwait(false);
+                connection.Write(Helper.TrueArray);
+            }
+            else
+            {
+                connection.Write(Helper.FalseArray);
+            }
+        }
+
+
+        /// <summary>
+        /// 重启
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        [MessengerId((ushort)RelayMessengerIds.Exit)]
+        public void Exit(IConnection connection)
+        {
+            relayServerNodeTransfer.Exit();
+        }
+        /// <summary>
+        /// 重启节点转发
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        [MessengerId((ushort)RelayMessengerIds.ExitForward)]
+        public async Task ExitForward(IConnection connection)
+        {
+            string id = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) && cache.Super)
+            {
+                await relayServerTransfer.Exit(id).ConfigureAwait(false);
+                connection.Write(Helper.TrueArray);
+            }
+            else
+            {
+                connection.Write(Helper.FalseArray);
+            }
+        }
+
+
+        /// <summary>
+        /// 更新
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        [MessengerId((ushort)RelayMessengerIds.Update)]
+        public void Update(IConnection connection)
+        {
+            relayServerNodeTransfer.Update(serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span));
+        }
+        /// <summary>
+        /// 更新转发
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        [MessengerId((ushort)RelayMessengerIds.UpdateForward)]
+        public async Task UpdateForward(IConnection connection)
+        {
+            KeyValuePair<string, string> info = serializer.Deserialize<KeyValuePair<string, string>>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) && cache.Super)
+            {
+                await relayServerTransfer.Update(info.Key, info.Value).ConfigureAwait(false);
                 connection.Write(Helper.TrueArray);
             }
             else
@@ -266,7 +381,7 @@ namespace linker.messenger.relay.messenger
         [MessengerId((ushort)RelayMessengerIds.TrafficReport)]
         public void TrafficReport(IConnection connection)
         {
-            relayServerReportResolver.Add(connection.ReceiveRequestWrap.Payload.Length,0);
+            relayServerReportResolver.Add(connection.ReceiveRequestWrap.Payload.Length, 0);
             RelayTrafficUpdateInfo info = serializer.Deserialize<RelayTrafficUpdateInfo>(connection.ReceiveRequestWrap.Payload.Span);
 
             relayServerTransfer.AddTraffic(info);
@@ -278,7 +393,7 @@ namespace linker.messenger.relay.messenger
         [MessengerId((ushort)RelayMessengerIds.SendLastBytes)]
         public void SendLastBytes(IConnection connection)
         {
-            relayServerReportResolver.Add(connection.ReceiveRequestWrap.Payload.Length,0);
+            relayServerReportResolver.Add(connection.ReceiveRequestWrap.Payload.Length, 0);
             Dictionary<int, long> info = serializer.Deserialize<Dictionary<int, long>>(connection.ReceiveRequestWrap.Payload.Span);
             relayServerNodeTransfer.UpdateLastBytes(info);
         }

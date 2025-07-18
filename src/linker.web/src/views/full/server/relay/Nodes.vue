@@ -6,68 +6,75 @@
                     <el-table-column property="Name" :label="$t('server.relayName')">
                         <template #default="scope">
                             <div> 
-                                <a :href="scope.row.Url" class="a-line" :class="{green:scope.row.Public}" target="_blank" :title="scope.row.Public?$t('server.public'):''">{{ scope.row.Name }}</a>
-                                <a v-if="state.super" href="javascript:;" class="a-line a-edit" @click="handleEdit(scope.row)">
-                                    <span><el-icon><Edit /></el-icon></span>
-                                    <span :class="{green:state.syncData.Value == 1 && scope.row.Id==state.syncData.Key}" 
-                                    :title="state.syncData.Value == 1 && scope.row.Id==state.syncData.Key ? `${$t('server.relayDefault')}TCP`:''" 
-                                    v-if="(scope.row.AllowProtocol & 1) == 1">,tcp</span>
-                                    <span 
-                                    :class="{green:state.syncData.Value == 2 && scope.row.Id==state.syncData.Key}" 
-                                    :title="state.syncData.Value == 2 && scope.row.Id==state.syncData.Key ? `${$t('server.relayDefault')}UDP`:''" 
-                                    v-if="(scope.row.AllowProtocol & 2) == 2">,udp</span>
-                                </a>
+                                <p class="flex">
+                                    <a :href="scope.row.Url" class="a-line" :class="{green:scope.row.Public}" target="_blank" :title="scope.row.Public?$t('server.relayPublic'):''">{{ scope.row.Name }}</a>
+                                    <span class="flex-1"></span>
+                                    <a href="javascript:;">
+                                        <span v-if="(scope.row.AllowProtocol & 1) == 1">tcp</span>
+                                        <span v-if="(scope.row.AllowProtocol & 2) == 2">,udp</span>
+                                    </a>
+                                </p>
+                                <p class="flex">
+                                    <el-checkbox style="margin-right:.6rem" v-model="scope.row.Sync2Server" disabled size="small" @click="handleSync2Server(scope.row)">{{ $t('server.relaySync2Server') }}</el-checkbox>
+                                    <template v-if="(scope.row.AllowProtocol & 1) == 1">
+                                        <template v-if="state.syncData.Key == scope.row.Id && state.syncData.Value == 1">
+                                            <el-checkbox style="margin-right:.6rem" size="small" disabled checked>{{ $t('server.relayDefault') }}TCP</el-checkbox>
+                                        </template>
+                                        <template v-else>
+                                            <el-checkbox style="margin-right:.6rem" size="small" disabled @click.stop="handleShowSync(scope.row.Id, 1)">{{ $t('server.relayDefault') }}TCP</el-checkbox>
+                                        </template>
+                                    </template>
+                                    <template v-if="(scope.row.AllowProtocol & 2) == 2">
+                                        <template v-if="state.syncData.Key == scope.row.Id && state.syncData.Value == 2">
+                                            <el-checkbox style="margin-right:.6rem" size="small" disabled checked>{{ $t('server.relayDefault') }}UDP</el-checkbox>
+                                        </template>
+                                        <template v-else>
+                                            <el-checkbox style="margin-right:.6rem" size="small" disabled @click.stop="handleShowSync(scope.row.Id, 2)">{{ $t('server.relayDefault') }}UDP</el-checkbox>
+                                        </template>
+                                    </template>
+                                    <span class="flex-1"></span>
+                                    <a href="javascript:;" class="a-line a-edit" @click="handleUpdate(scope.row.Id)"><el-icon><Refresh /></el-icon>{{ scope.row.Version }}</a>
+                                </p>
                             </div>
                         </template>
                     </el-table-column>
-                    <el-table-column property="MaxGbTotal" :label="$t('server.relayFlow')" width="160">
+                    <el-table-column property="MaxGbTotal" :label="$t('server.relayFlow')" width="100">
                         <template #default="scope">
-                            <span v-if="scope.row.MaxGbTotal == 0">--</span>
-                            <span v-else>{{ (scope.row.MaxGbTotalLastBytes/1024/1024/1024).toFixed(2) }}GB / {{ scope.row.MaxGbTotal }}GB</span>
+                            <template v-if="scope.row.MaxGbTotal == 0">--</template>
+                            <template v-else>
+                                <p>{{ scope.row.MaxGbTotal }}GB</p>
+                                <p><strong>{{ (scope.row.MaxGbTotalLastBytes/1024/1024/1024).toFixed(2) }}GB</strong></p>
+                            </template>
                         </template>
                     </el-table-column>
                     <el-table-column property="MaxBandwidth" :label="$t('server.relaySpeed')" width="80">
                         <template #default="scope">
-                            <span v-if="scope.row.MaxBandwidth == 0">--</span>
-                            <span v-else>{{ scope.row.MaxBandwidth }}Mbps</span>
+                            <p>
+                                <span v-if="scope.row.MaxBandwidth == 0">--</span>
+                                <span v-else>{{ scope.row.MaxBandwidth }}Mbps</span>
+                            </p>
+                            <p>{{ scope.row.Delay }}ms</p>
                         </template>
                     </el-table-column>
-                    <el-table-column property="MaxBandwidthTotal" :label="`${$t('server.relaySpeed2')}/${$t('server.relaySpeed1')}`" width="120">
+                    <el-table-column property="MaxBandwidthTotal" :label="$t('server.relaySpeed1')" width="100">
                         <template #default="scope">
-                            <span>
-                                <span>{{scope.row.BandwidthRatio}}</span>
-                                <span>/</span>
-                                <span v-if="scope.row.MaxBandwidthTotal == 0">--</span>
-                                <span v-else>{{ scope.row.MaxBandwidthTotal }}Mbps</span>
-                            </span>
+                            <p>
+                                <template v-if="scope.row.MaxBandwidthTotal == 0">--</template>
+                                <template v-else>{{ scope.row.MaxBandwidthTotal }}Mbps</template>
+                            </p>
+                            <p><strong>{{scope.row.BandwidthRatio}}</strong></p>
                         </template>
                     </el-table-column>
-                    <el-table-column property="ConnectionRatio" :label="$t('server.relayConnection')" width="100">
+                    <el-table-column property="ConnectionRatio" :label="$t('server.relayConnection')" width="80">
                         <template #default="scope">
-                            <span><strong>{{scope.row.ConnectionRatio}}</strong>/{{scope.row.MaxConnection}}</span>
+                            <p>{{scope.row.MaxConnection}}</p>
+                            <p><strong>{{scope.row.ConnectionRatio}}</strong></p>
                         </template>
                     </el-table-column>
-                    <el-table-column property="Delay" :label="$t('server.relayDelay')" width="60">
+                    <el-table-column property="Public" :label="$t('server.relayOper')" width="70">
                         <template #default="scope">
-                            <span>{{ scope.row.Delay }}ms</span>
-                        </template>
-                    </el-table-column>
-                    <el-table-column property="Public" :label="$t('server.relayDefault')" width="60">
-                        <template #default="scope">
-                            <el-dropdown size="small">
-                                <div class="dropdown">
-                                    <span style="font-size: 1.2rem;">{{ $t('server.relayDefault') }}</span>
-                                    <el-icon class="el-icon--right">
-                                        <ArrowDown />
-                                    </el-icon>
-                                </div>
-                                <template #dropdown>
-                                    <el-dropdown-menu>
-                                        <el-dropdown-item v-if="(scope.row.AllowProtocol & 1) == 1" @click="handleShowSync(scope.row.Id, 1)">{{$t('common.relay')}}TCP</el-dropdown-item>
-                                        <el-dropdown-item v-if="(scope.row.AllowProtocol & 2) == 2" @click="handleShowSync(scope.row.Id, 2)">{{$t('common.relay')}}UDP</el-dropdown-item>
-                                    </el-dropdown-menu>
-                                </template>
-                            </el-dropdown>
+                            <p><el-button size="small" @click="handleExit(scope.row.Id)">{{ $t('server.relayExit') }}</el-button></p>
+                            <p v-if="state.super"><el-button size="small" @click="handleEdit(scope.row)">{{ $t('server.relayEdit') }}</el-button></p>
                         </template>
                     </el-table-column>
                 </el-table>
@@ -87,25 +94,25 @@
     </div>
 </template>
 <script>
-import {  getDefault,syncDefault } from '@/apis/relay';
+import {  getDefault,relayEdit,relayExit,relayUpdate,syncDefault } from '@/apis/relay';
 import { injectGlobalData } from '@/provide';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { computed, onMounted, onUnmounted,  reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n';
 import Ids from '../../sync/Ids.vue';
 import EditNode from './EditNode.vue';
-import { Edit,ArrowDown } from '@element-plus/icons-vue';
+import { Edit,ArrowDown,Refresh } from '@element-plus/icons-vue';
 
 export default {
     props: ['modelValue','data'],
     emits: ['update:modelValue','success'],
-    components:{Ids,EditNode,Edit,ArrowDown},
+    components:{Ids,EditNode,Edit,ArrowDown,Refresh},
     setup(props,{emit}) {
         const {t} = useI18n();
         const globalData = injectGlobalData();
         const state = reactive({
             show:true,
-            nodes:props.data,
+            nodes:computed(()=>props.data),
             showEdit:false,
             current:{},
 
@@ -146,6 +153,47 @@ export default {
             });
         }
 
+        const handleSync2Server = (row)=>{
+            row.Sync2Server = !row.Sync2Server;
+            row.AllowTcp= (row.AllowProtocol & 1) == 1,
+            row.AllowUdp = (row.AllowProtocol & 2) == 2,
+            relayEdit(row).then(res => {
+                ElMessage.success(t('common.oper'));
+            }).catch(()=>{
+                ElMessage.error(t('common.operFail'));
+            });
+        }
+        const handleExit = (id)=>{
+            ElMessageBox.confirm(t('server.relayExit'), t('common.confirm'), {
+                confirmButtonText: t('common.confirm'),
+                cancelButtonText: t('common.cancel'),
+                type: 'warning',
+            }).then(() => {
+                relayExit(id).then(res => {
+                    ElMessage.success(t('common.oper'));
+                }).catch(()=>{
+                    ElMessage.error(t('common.operFail'));
+                });
+            }).catch(() => {
+                ElMessage.error(t('common.operFail'));
+            });
+        }
+        const handleUpdate = (id)=>{
+            ElMessageBox.confirm(`${t('server.relayUpdate')} ${globalData.value.signin.Version}`,t('server.relayUpdate'), {
+                confirmButtonText: t('common.confirm'),
+                cancelButtonText: t('common.cancel'),
+                type: 'warning',
+            }).then(() => {
+                relayUpdate({Key:id,Value:globalData.value.signin.Version}).then(res => {
+                    ElMessage.success(t('common.oper'));
+                }).catch(()=>{
+                    ElMessage.error(t('common.operFail'));
+                });
+            }).catch(()=>{
+                ElMessage.error(t('common.operFail'));
+            });
+        }
+
         onMounted(()=>{
             getDefault().then((res)=>{
                 state.syncData.Key = res.Key || '';
@@ -156,7 +204,7 @@ export default {
             clearTimeout(state.timer);
         });
 
-        return {globalData,state,handleEdit,domIds,handleShowSync,handleSync}
+        return {globalData,state,handleEdit,domIds,handleShowSync,handleSync,handleExit,handleUpdate,handleSync2Server}
     }
 }
 </script>
@@ -165,7 +213,6 @@ export default {
     color: #409EFF;
 }
 a.a-edit{
-    margin-left:1rem;
     .el-icon {
         vertical-align middle
     }

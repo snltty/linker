@@ -3,10 +3,10 @@
     <div class="group-wrap">
         <div class="head">
             <div class="search flex">
-                <div><span>{{$t('server.cdkeyUserId')}}</span> <el-input v-model="state.page.UserId" style="width:8rem" size="small" clearable @change="handleSearch" /></div>
-                <div><span>{{$t('server.cdkeyOrderId')}}</span> <el-input v-model="state.page.OrderId" style="width:8rem" size="small" clearable @change="handleSearch" /></div>
-                <div><span>{{$t('server.cdkeyContact')}}</span> <el-input v-model="state.page.Contact" style="width:8rem" size="small" clearable @change="handleSearch" /></div>
-                <div><span>{{$t('server.cdkeyRemark')}}</span> <el-input v-model="state.page.Remark" style="width:8rem" size="small" clearable @change="handleSearch" /></div>
+                <div><span>{{$t('server.cdkeyUserId')}}</span> <el-input v-trim v-model="state.page.UserId" style="width:8rem" size="small" clearable @change="handleSearch" /></div>
+                <div><span>{{$t('server.cdkeyOrderId')}}</span> <el-input v-trim v-model="state.page.OrderId" style="width:8rem" size="small" clearable @change="handleSearch" /></div>
+                <div><span>{{$t('server.cdkeyContact')}}</span> <el-input v-trim v-model="state.page.Contact" style="width:8rem" size="small" clearable @change="handleSearch" /></div>
+                <div><span>{{$t('server.cdkeyRemark')}}</span> <el-input v-trim v-model="state.page.Remark" style="width:8rem" size="small" clearable @change="handleSearch" /></div>
                 <div>
                     <el-button size="small" @click="handleSearch()">
                         <el-icon><Search /></el-icon>

@@ -13,6 +13,11 @@ namespace linker.messenger.updater
             this.updaterHelper = updaterHelper;
             this.updaterCommonTransfer = updaterCommonTransfer;
             CheckTask();
+
+            Helper.OnUpdate += (sender, version) =>
+            {
+                updaterHelper.Confirm(updateInfo, version);
+            };
         }
 
         public UpdaterInfo Get()

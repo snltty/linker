@@ -10,7 +10,7 @@
                     <el-table-column property="Name" label="名称">
                         <template #default="scope">
                             <template v-if="scope.row.NameEditing && scope.row.Started==false ">
-                                <el-input autofocus size="small" v-model="scope.row.Name"
+                                <el-input v-trim autofocus size="small" v-model="scope.row.Name"
                                     @blur="handleEditBlur(scope.row, 'Name')"></el-input>
                             </template>
                             <template v-else>
@@ -29,7 +29,7 @@
                     <el-table-column property="Temp" label="服务器端口/域名" width="160">
                         <template #default="scope">
                             <template v-if="scope.row.TempEditing && scope.row.Started==false">
-                                <el-input autofocus size="small" v-model="scope.row.Temp"
+                                <el-input v-trim autofocus size="small" v-model="scope.row.Temp"
                                     @blur="handleEditBlur(scope.row, 'Temp')"></el-input>
                             </template>
                             <template v-else>
@@ -48,7 +48,7 @@
                     <el-table-column property="LocalEP" label="本机服务" width="140">
                         <template #default="scope">
                             <template v-if="scope.row.LocalEPEditing && scope.row.Started==false">
-                                <el-input autofocus size="small" v-model="scope.row.LocalEP"
+                                <el-input v-trim autofocus size="small" v-model="scope.row.LocalEP"
                                     @blur="handleEditBlur(scope.row, 'LocalEP')"></el-input>
                             </template>
                             <template v-else>
@@ -197,6 +197,8 @@ export default {
             }
             row[`${p}Editing`] = false;
             state.editing = false;
+
+            row[p] = row[p].trim();
             saveRow(row);
         }
         const handleDel = (id) => {

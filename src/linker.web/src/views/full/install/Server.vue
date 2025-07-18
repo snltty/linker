@@ -5,12 +5,12 @@
                 <el-row>
                     <el-col :span="12">
                         <el-form-item label="服务端口" prop="servicePort">
-                            <el-input v-model="state.form.servicePort" />
+                            <el-input v-trim v-model="state.form.servicePort" />
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="web穿透端口" prop="webPort">
-                            <el-input v-model="state.form.webPort" />
+                            <el-input v-trim v-model="state.form.webPort" />
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -19,12 +19,12 @@
                 <el-row>
                     <el-col :span="12">
                         <el-form-item label="开放最小端口" prop="tunnelPort1">
-                            <el-input v-model="state.form.tunnelPort1" />
+                            <el-input v-trim v-model="state.form.tunnelPort1" />
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="开放最大端口" prop="tunnelPort2">
-                            <el-input v-model="state.form.tunnelPort2" />
+                            <el-input v-trim v-model="state.form.tunnelPort2" />
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -33,12 +33,12 @@
                 <el-row>
                     <el-col :span="12">
                         <el-form-item label="管理密钥" prop="superKey">
-                            <el-input v-model="state.form.superKey" type="password" show-password maxlength="36" show-word-limit />
+                            <el-input v-trim v-model="state.form.superKey" type="password" show-password maxlength="36" show-word-limit />
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="管理密码" prop="superPassword">
-                            <el-input v-model="state.form.superPassword" type="password" show-password maxlength="36" show-word-limit />
+                            <el-input v-trim v-model="state.form.superPassword" type="password" show-password maxlength="36" show-word-limit />
                         </el-form-item>
                     </el-col>
                 </el-row>

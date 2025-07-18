@@ -18,7 +18,7 @@ namespace linker.messenger.relay.server
     {
 
         private ulong relayFlowingId = 0;
-        private readonly ConcurrentDictionary<string, RelayServerNodeReportInfo170> reports = new ConcurrentDictionary<string, RelayServerNodeReportInfo170>();
+        private readonly ConcurrentDictionary<string, RelayServerNodeReportInfo188> reports = new ConcurrentDictionary<string, RelayServerNodeReportInfo188>();
         private readonly ConcurrentQueue<Dictionary<int, long>> trafficQueue = new ConcurrentQueue<Dictionary<int, long>>();
         private readonly ConcurrentQueue<List<int>> trafficIdsQueue = new ConcurrentQueue<List<int>>();
 
@@ -77,12 +77,30 @@ namespace linker.messenger.relay.server
             }
             return value;
         }
-        /// <summary>
-        /// 设置节点
-        /// </summary>
-        /// <param name="ep"></param>
-        /// <param name="data"></param>
         public void SetNodeReport(IConnection connection, RelayServerNodeReportInfo170 info)
+        {
+            SetNodeReport(connection, new RelayServerNodeReportInfo188
+            {
+                Version = string.Empty,
+                Sync2Server = false,
+                Id = info.Id,
+                Name = info.Name,
+                MaxConnection = info.MaxConnection,
+                MaxBandwidth = info.MaxBandwidth,
+                MaxBandwidthTotal = info.MaxBandwidthTotal,
+                MaxGbTotal = info.MaxGbTotal,
+                MaxGbTotalLastBytes = info.MaxGbTotalLastBytes,
+                ConnectionRatio = info.ConnectionRatio,
+                BandwidthRatio = info.BandwidthRatio,
+                Public = info.Public,
+                EndPoint = info.EndPoint,
+                LastTicks = info.LastTicks,
+                Url = info.Url,
+                Connection = connection
+
+            });
+        }
+        public void SetNodeReport(IConnection connection, RelayServerNodeReportInfo188 info)
         {
             try
             {
@@ -106,19 +124,50 @@ namespace linker.messenger.relay.server
                 }
             }
         }
-        /// <summary>
-        /// 更新节点
-        /// </summary>
-        /// <param name="info"></param>
-        public async Task UpdateNodeReport(RelayServerNodeUpdateInfo info)
+        public async Task Edit(RelayServerNodeUpdateInfo info)
         {
-            if (reports.TryGetValue(info.Id, out RelayServerNodeReportInfo170 cache))
+            if (reports.TryGetValue(info.Id, out RelayServerNodeReportInfo188 cache))
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = cache.Connection,
-                    MessengerId = (ushort)RelayMessengerIds.UpdateNode,
+                    MessengerId = (ushort)RelayMessengerIds.Edit,
                     Payload = serializer.Serialize(info)
+                }).ConfigureAwait(false);
+            }
+        }
+        public async Task Edit(RelayServerNodeUpdateInfo188 info)
+        {
+            if (reports.TryGetValue(info.Id, out RelayServerNodeReportInfo188 cache))
+            {
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = cache.Connection,
+                    MessengerId = (ushort)RelayMessengerIds.Edit188,
+                    Payload = serializer.Serialize(info)
+                }).ConfigureAwait(false);
+            }
+        }
+        public async Task Exit(string id)
+        {
+            if (reports.TryGetValue(id, out RelayServerNodeReportInfo188 cache))
+            {
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = cache.Connection,
+                    MessengerId = (ushort)RelayMessengerIds.Exit,
+                }).ConfigureAwait(false);
+            }
+        }
+        public async Task Update(string id, string version)
+        {
+            if (reports.TryGetValue(id, out RelayServerNodeReportInfo188 cache))
+            {
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = cache.Connection,
+                    MessengerId = (ushort)RelayMessengerIds.Update,
+                    Payload = serializer.Serialize(version)
                 }).ConfigureAwait(false);
             }
         }
@@ -128,9 +177,9 @@ namespace linker.messenger.relay.server
         /// </summary>
         /// <param name="validated">是否已认证</param>
         /// <returns></returns>
-        public async Task<List<RelayServerNodeReportInfo170>> GetNodes(bool validated, string userid)
+        public async Task<List<RelayServerNodeReportInfo188>> GetNodes(bool validated, string userid)
         {
-            var nodes = await whiteListServerStore.Get("Relay",userid);
+            var nodes = await whiteListServerStore.Get("Relay", userid);
 
             var result = reports.Values
                 .Where(c => Environment.TickCount64 - c.LastTicks < 15000)

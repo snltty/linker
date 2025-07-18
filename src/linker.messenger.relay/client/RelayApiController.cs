@@ -47,7 +47,7 @@ namespace linker.messenger.relay
             relayClientStore.SetServer(info);
             return true;
         }
-        public List<RelayServerNodeReportInfo170> Subscribe(ApiControllerParamsInfo param)
+        public List<RelayServerNodeReportInfo188> Subscribe(ApiControllerParamsInfo param)
         {
             relayTestTransfer.Subscribe();
             return relayTestTransfer.Nodes;
@@ -100,22 +100,58 @@ namespace linker.messenger.relay
         /// </summary>
         /// <param name="param"></param>
         /// <returns></returns>
-        public async Task<bool> UpdateNode(ApiControllerParamsInfo param)
+        public async Task<bool> Edit(ApiControllerParamsInfo param)
         {
-            RelayServerNodeUpdateInfo info = param.Content.DeJson<RelayServerNodeUpdateInfo>();
+            RelayServerNodeUpdateInfo188 info = param.Content.DeJson<RelayServerNodeUpdateInfo188>();
             var resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
-                MessengerId = (ushort)RelayMessengerIds.UpdateNodeForward,
-                Payload = serializer.Serialize(new RelayServerNodeUpdateWrapInfo
+                MessengerId = (ushort)RelayMessengerIds.EditForward188,
+                Payload = serializer.Serialize(new RelayServerNodeUpdateWrapInfo188
                 {
                     Info = info,
                 })
             }).ConfigureAwait(false);
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
-    }
 
+        /// <summary>
+        /// 重启节点
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public async Task<bool> Exit(ApiControllerParamsInfo param)
+        {
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)RelayMessengerIds.ExitForward,
+                Payload = serializer.Serialize(param.Content)
+            }).ConfigureAwait(false);
+            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
+        }
+        /// <summary>
+        /// 更新节点
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public async Task<bool> Update(ApiControllerParamsInfo param)
+        {
+            UpdateInfo info = param.Content.DeJson<UpdateInfo>();
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)RelayMessengerIds.UpdateForward,
+                Payload = serializer.Serialize(new KeyValuePair<string, string>(info.Key, info.Value))
+            }).ConfigureAwait(false);
+            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
+        }
+    }
+    public sealed class UpdateInfo
+    {
+        public string Key { get; set; }
+        public string Value { get; set; }
+    }
     public sealed class SyncInfo
     {
         public string[] Ids { get; set; } = [];

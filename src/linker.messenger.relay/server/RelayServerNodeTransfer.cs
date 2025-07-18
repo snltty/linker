@@ -84,13 +84,44 @@ namespace linker.messenger.relay.server
             return null;
         }
 
-        public void UpdateNode(RelayServerNodeUpdateInfo info)
+        public void Edit(RelayServerNodeUpdateInfo info)
+        {
+            if (info.Id == node.Id)
+            {
+                relayServerNodeStore.UpdateInfo(new RelayServerNodeUpdateInfo188
+                {
+                    AllowTcp = info.AllowTcp,
+                    AllowUdp = info.AllowUdp,
+                    Id = info.Id,
+                    Name = info.Name,
+                    MaxConnection = info.MaxConnection,
+                    MaxBandwidth = info.MaxBandwidth,
+                    MaxBandwidthTotal = info.MaxBandwidthTotal,
+                    MaxGbTotal = info.MaxGbTotal,
+                    MaxGbTotalLastBytes = info.MaxGbTotalLastBytes,
+                    Public = info.Public,
+                    Url = info.Url,
+                });
+                relayServerNodeStore.Confirm();
+
+                _ = Report();
+            }
+        }
+        public void Edit(RelayServerNodeUpdateInfo188 info)
         {
             if (info.Id == node.Id)
             {
                 relayServerNodeStore.UpdateInfo(info);
                 relayServerNodeStore.Confirm();
             }
+        }
+        public void Exit()
+        {
+            Helper.AppExit(1);
+        }
+        public void Update(string version)
+        {
+            Helper.AppUpdate(version);
         }
 
         public bool Validate(TunnelProtocolType tunnelProtocolType)
@@ -340,44 +371,58 @@ namespace linker.messenger.relay.server
         {
             TimerHelper.SetIntervalLong(async () =>
             {
-                double diff = (bytes - lastBytes) * 8 / 1024.0 / 1024.0;
-                lastBytes = bytes;
+                await Report();
+            }, 5000);
+        }
+        private async Task Report()
+        {
+            double diff = (bytes - lastBytes) * 8 / 1024.0 / 1024.0;
+            lastBytes = bytes;
 
-                try
+            try
+            {
+                IPEndPoint endPoint = await NetworkHelper.GetEndPointAsync(node.Host, relayServerNodeStore.ServicePort).ConfigureAwait(false) ?? new IPEndPoint(IPAddress.Any, relayServerNodeStore.ServicePort);
+                RelayServerNodeReportInfo188 relayNodeReportInfo = new RelayServerNodeReportInfo188
                 {
-                    IPEndPoint endPoint = await NetworkHelper.GetEndPointAsync(node.Host, relayServerNodeStore.ServicePort).ConfigureAwait(false) ?? new IPEndPoint(IPAddress.Any, relayServerNodeStore.ServicePort);
-                    RelayServerNodeReportInfo170 relayNodeReportInfo = new RelayServerNodeReportInfo170
-                    {
-                        Id = node.Id,
-                        Name = node.Name,
-                        Public = node.Public,
-                        MaxBandwidth = node.MaxBandwidth,
-                        BandwidthRatio = Math.Round(diff / 5, 2),
-                        MaxBandwidthTotal = node.MaxBandwidthTotal,
-                        MaxGbTotal = node.MaxGbTotal,
-                        MaxGbTotalLastBytes = node.MaxGbTotalLastBytes,
-                        MaxConnection = node.MaxConnection,
-                        ConnectionRatio = connectionNum,
-                        EndPoint = endPoint,
-                        Url = node.Url,
-                        AllowProtocol = (node.AllowTcp ? TunnelProtocolType.Tcp : TunnelProtocolType.None)
-                         | (node.AllowUdp ? TunnelProtocolType.Udp : TunnelProtocolType.None)
-                    };
-                    await messengerSender.SendOnly(new MessageRequestWrap
-                    {
-                        Connection = connection,
-                        MessengerId = (ushort)RelayMessengerIds.NodeReport,
-                        Payload = serializer.Serialize(relayNodeReportInfo)
-                    }).ConfigureAwait(false);
-                }
-                catch (Exception ex)
+                    Id = node.Id,
+                    Name = node.Name,
+                    Public = node.Public,
+                    MaxBandwidth = node.MaxBandwidth,
+                    BandwidthRatio = Math.Round(diff / 5, 2),
+                    MaxBandwidthTotal = node.MaxBandwidthTotal,
+                    MaxGbTotal = node.MaxGbTotal,
+                    MaxGbTotalLastBytes = node.MaxGbTotalLastBytes,
+                    MaxConnection = node.MaxConnection,
+                    ConnectionRatio = connectionNum,
+                    EndPoint = endPoint,
+                    Url = node.Url,
+                    AllowProtocol = (node.AllowTcp ? TunnelProtocolType.Tcp : TunnelProtocolType.None)
+                     | (node.AllowUdp ? TunnelProtocolType.Udp : TunnelProtocolType.None),
+                    Sync2Server = node.Sync2Server,
+                    Version = VersionHelper.Version
+                };
+                var resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    Connection = connection,
+                    MessengerId = (ushort)RelayMessengerIds.NodeReport188,
+                    Payload = serializer.Serialize(relayNodeReportInfo)
+                }).ConfigureAwait(false);
+                if (node.Sync2Server && resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
+                {
+                    string version = serializer.Deserialize<string>(resp.Data.Span);
+                    if (version != VersionHelper.Version)
                     {
-                        LoggerHelper.Instance.Error($"relay report : {ex}");
+                        Helper.AppUpdate(version);
                     }
                 }
-            }, 5000);
+            }
+            catch (Exception ex)
+            {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error($"relay report : {ex}");
+                }
+            }
         }
 
         private void SignInTask()

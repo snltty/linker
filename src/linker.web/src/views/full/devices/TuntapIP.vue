@@ -2,12 +2,12 @@
     <div class="wrap">
         <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="8rem">
             <el-form-item label="网卡名" prop="Name">
-                <el-input v-model="state.ruleForm.Name" style="width:14rem" /> <span>留空则使用【本组网络】的设置</span>
+                <el-input v-trim v-model="state.ruleForm.Name" style="width:14rem" /> <span>留空则使用【本组网络】的设置</span>
             </el-form-item>
             <el-form-item label="网卡IP" prop="IP" class="mgb-0">
-                <el-input v-model="state.ruleForm.IP" style="width:14rem" />
+                <el-input v-trim v-model="state.ruleForm.IP" style="width:14rem" />
                     <span>/</span>
-                    <el-input @change="handlePrefixLengthChange" v-model="state.ruleForm.PrefixLength" style="width:4rem" />
+                    <el-input v-trim @change="handlePrefixLengthChange" v-model="state.ruleForm.PrefixLength" style="width:4rem" />
             </el-form-item>
             <el-form-item label="" class="mgb-0">
                     <el-checkbox class="mgr-1" v-model="state.ruleForm.ShowDelay" label="显示延迟" size="large" />

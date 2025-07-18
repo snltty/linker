@@ -2,10 +2,10 @@
     <div>
         <el-form ref="formDom" :model="state.ruleForm" :rules="state.rules" label-width="auto">
             <el-form-item label="服务器" prop="server">
-                <el-input v-model="state.ruleForm.server" />
+                <el-input v-trim v-model="state.ruleForm.server" />
             </el-form-item>
             <el-form-item label="密钥" prop="value">
-                <el-input v-model="state.ruleForm.value" />
+                <el-input v-trim v-model="state.ruleForm.value" />
             </el-form-item>
             <el-form-item label="" prop="Btns">
                 <div class="t-c w-100">

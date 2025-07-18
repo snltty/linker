@@ -8,6 +8,7 @@ namespace linker.messenger.signin
     public interface ISignInServerStore : IStore<SignCacheInfo>
     {
         public int CleanDays { get; }
+        public bool Enabled { get; }
         public bool Anonymous { get; }
 
         public bool ValidateSuper(string key,string password);

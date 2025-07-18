@@ -11,7 +11,7 @@
             <div class="flex mgt-1">
                 <div>
                     <span>{{$t('wakeup.name')}}/{{$t('wakeup.value')}}/{{$t('wakeup.remark')}}</span>
-                    <el-input v-model="state.search.Data.Str" @change="loadData" size="small" style="width:7rem"></el-input>
+                    <el-input v-trim v-model="state.search.Data.Str" @change="loadData" size="small" style="width:7rem"></el-input>
                 </div>
                 <div class="mgl-1">
                     <el-button size="small" :loading="state.loading" @click="loadData">{{$t('common.refresh')}}</el-button>

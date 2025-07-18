@@ -9,7 +9,7 @@
                     <el-row>
                         <el-col :span="12">
                             <el-form-item label="网关层级" prop="RouteLevel">
-                                <el-input readonly v-model="state.ruleForm.RouteLevel" style="width:15rem" />
+                                <el-input v-trim readonly v-model="state.ruleForm.RouteLevel" style="width:15rem" />
                             </el-form-item>
                         </el-col>
                         <el-col :span="12">

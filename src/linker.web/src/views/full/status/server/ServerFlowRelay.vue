@@ -2,7 +2,7 @@
     <el-dialog :title="$t('status.flowRelay')" class="options-center" top="1vh" destroy-on-close v-model="state.show" width="680">
         <div>
             <div class="head">
-                <el-input v-model="state.page.Key" placeholder="名字搜索"></el-input>
+                <el-input v-trim v-model="state.page.Key" placeholder="名字搜索"></el-input>
             </div>
             <el-table :data="state.list" stripe border size="small" width="100%" height="60vh" @sort-change="handleSort">
                 <el-table-column prop="FromName" :label="$t('status.flowRelaySource')" width="120"></el-table-column>

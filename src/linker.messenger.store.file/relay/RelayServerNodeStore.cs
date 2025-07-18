@@ -22,7 +22,7 @@ namespace linker.messenger.store.file.relay
         {
             config.Data.Server.Relay.Distributed.Node = node;
         }
-        public void UpdateInfo(RelayServerNodeUpdateInfo update)
+        public void UpdateInfo(RelayServerNodeUpdateInfo188 update)
         {
             config.Data.Server.Relay.Distributed.Node.Name = update.Name;
             config.Data.Server.Relay.Distributed.Node.MaxConnection = update.MaxConnection;
@@ -34,6 +34,7 @@ namespace linker.messenger.store.file.relay
             config.Data.Server.Relay.Distributed.Node.Url = update.Url;
             config.Data.Server.Relay.Distributed.Node.AllowTcp = update.AllowTcp;
             config.Data.Server.Relay.Distributed.Node.AllowUdp = update.AllowUdp;
+            config.Data.Server.Relay.Distributed.Node.Sync2Server = update.Sync2Server;
 
         }
         public void SetMaxGbTotalLastBytes(long value)

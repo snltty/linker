@@ -3,13 +3,13 @@
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm.Data" :rules="state.rules" label-width="auto">
                 <el-form-item :label="$t('firewall.srcName')" prop="SrcId">
-                    <el-input type="textarea" v-model="state.ruleForm.Data.SrcName" @click="handleSrcId" readonly resize="none" rows="2"></el-input>
+                    <el-input v-trim type="textarea" v-model="state.ruleForm.Data.SrcName" @click="handleSrcId" readonly resize="none" rows="2"></el-input>
                 </el-form-item>
                 <el-form-item></el-form-item>
                 <el-form-item :label="$t('firewall.dstCidr')" prop="DstCIDR">
                     <el-row class="w-100">
                         <el-col :span="12">
-                            <el-input v-model="state.ruleForm.Data.DstCIDR" />
+                            <el-input v-trim v-model="state.ruleForm.Data.DstCIDR" />
                         </el-col>
                         <el-col :span="12">
                             10.18.1.1/24、10.18.1.1、0、*
@@ -20,7 +20,7 @@
                 <el-form-item :label="$t('firewall.dstPort')" prop="DstPort">
                     <el-row class="w-100">
                         <el-col :span="12">
-                            <el-input v-model="state.ruleForm.Data.DstPort" />
+                            <el-input v-trim v-model="state.ruleForm.Data.DstPort" />
                         </el-col>
                         <el-col :span="12">
                             80、80-88、80,443、0、*
@@ -58,7 +58,7 @@
                     </div>
                 </el-form-item> 
                 <el-form-item :label="$t('firewall.remark')" prop="Remark">
-                    <el-input v-model="state.ruleForm.Data.Remark" maxlength="64" show-word-limit/>
+                    <el-input v-trim v-model="state.ruleForm.Data.Remark" maxlength="64" show-word-limit/>
                 </el-form-item>
                 <el-form-item label="" prop="Btns">
                     <div class="t-c w-100">

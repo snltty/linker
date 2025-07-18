@@ -4,7 +4,7 @@
             <el-row>
                 <el-col :xs="24" :sm="8" :md="8" :lg="8" :xl="8">
                     <el-form-item :label="$t('logger.count')" prop="Size">
-                        <el-input size="default" v-model="state.form.Size"></el-input>
+                        <el-input v-trim size="default" v-model="state.form.Size"></el-input>
                     </el-form-item>
                 </el-col>
                 <el-col :xs="24" :sm="8" :md="8" :lg="8" :xl="8">

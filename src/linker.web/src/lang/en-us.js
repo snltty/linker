@@ -167,6 +167,10 @@ export default {
     'server.relayDefault': 'Default',
     'server.relaySetDefault': 'Set default relay',
     'server.relaySetDefaultText': 'Not selected will be all clients',
+    'server.relaySync2Server': 'Sync version',
+    'server.relayExit': 'Restart',
+    'server.relayUpdate': 'Update',
+    'server.relayEdit': 'Edit',
 
     'server.cdkeySecretKey': 'Cdkey secretKey',
     'server.cdkeyText': 'The cdkey manager can be used when the key is correct',

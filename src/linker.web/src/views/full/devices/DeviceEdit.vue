@@ -6,7 +6,7 @@
                     <div>修改后最好能重启一次客户端</div>
                 </el-form-item>
                 <el-form-item label="设备名" prop="MachineName">
-                    <el-input maxlength="32" show-word-limit v-model="state.ruleForm.MachineName" />
+                    <el-input v-trim maxlength="32" show-word-limit v-model="state.ruleForm.MachineName" />
                 </el-form-item>
                 <el-form-item label="" prop="Btns">
                     <div class="t-c w-100">

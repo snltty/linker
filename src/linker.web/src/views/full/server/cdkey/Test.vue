@@ -3,7 +3,7 @@
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="auto">
                 <el-form-item :label="$t('server.cdkeyTestKey')" prop="Base64">
-                    <el-input v-model="state.Base64" @change="handleChange" />
+                    <el-input v-trim v-model="state.Base64" @change="handleChange" />
                 </el-form-item>
                 <el-form-item label="" v-if="state.ruleForm.Field.indexOf('Parse')>=0">
                     <div class="t-c w-100">
@@ -13,7 +13,7 @@
                 <el-form-item :label="$t('server.cdkeyTestGB')" prop="GB">
                     <el-row class="w-100">
                         <el-col :span="15">
-                            <el-input v-model="state.ruleForm.Order.GB" />
+                            <el-input v-trim v-model="state.ruleForm.Order.GB" />
                         </el-col>
                         <el-col :span="9">
                             <span class="red" v-if="state.ruleForm.Field.indexOf('GB')>=0">{{$t('server.cdkeyTestGBError')}}</span>
@@ -24,7 +24,7 @@
                 <el-form-item :label="$t('server.cdkeyTestSpeed')" prop="Speed">
                     <el-row class="w-100">
                         <el-col :span="15">
-                            <el-input v-model="state.ruleForm.Order.Speed" />
+                            <el-input v-trim v-model="state.ruleForm.Order.Speed" />
                         </el-col>
                         <el-col :span="9">
                             <span class="red" v-if="state.ruleForm.Field.indexOf('Speed')>=0">{{$t('server.cdkeyTestSpeedError')}}</span>
@@ -35,7 +35,7 @@
                 <el-form-item :label="$t('server.cdkeyTestTime')" prop="Time">
                     <el-row class="w-100">
                         <el-col :span="15">
-                            <el-input v-model="state.ruleForm.Order.Time" />
+                            <el-input v-trim v-model="state.ruleForm.Order.Time" />
                         </el-col>
                         <el-col :span="9">
                             <span class="red" v-if="state.ruleForm.Field.indexOf('Time')>=0">{{$t('server.cdkeyTestTimeError')}}</span>
@@ -46,7 +46,7 @@
                 <el-form-item :label="$t('server.cdkeyTestUserId')" prop="WidgetUserId">
                     <el-row class="w-100">
                         <el-col :span="15">
-                            <el-input v-model="state.ruleForm.Order.WidgetUserId" />
+                            <el-input v-trim v-model="state.ruleForm.Order.WidgetUserId" />
                         </el-col>
                         <el-col :span="9">
                             <span class="red" v-if="state.ruleForm.Field.indexOf('UserId')>=0">{{$t('server.cdkeyTestUserIdError')}}</span>
@@ -57,7 +57,7 @@
                 <el-form-item :label="$t('server.cdkeyTestOrderId')" prop="OrderId">
                     <el-row class="w-100">
                         <el-col :span="15">
-                            <el-input v-model="state.ruleForm.Order.OrderId" />
+                            <el-input v-trim v-model="state.ruleForm.Order.OrderId" />
                         </el-col>
                         <el-col :span="9">
                             <span class="red" v-if="state.ruleForm.Field.indexOf('OrderId')>=0">{{$t('server.cdkeyTestOrderIdError')}}</span>
@@ -68,7 +68,7 @@
                 <el-form-item :label="$t('server.cdkeyTestContact')" prop="Contact">
                     <el-row class="w-100">
                         <el-col :span="15">
-                            <el-input v-model="state.ruleForm.Order.Contact" />
+                            <el-input v-trim v-model="state.ruleForm.Order.Contact" />
                         </el-col>
                         <el-col :span="9">
                             <span class="red" v-if="state.ruleForm.Field.indexOf('Contact')>=0">{{$t('server.cdkeyTestContactError')}}</span>
@@ -79,7 +79,7 @@
                 <el-form-item :label="$t('server.cdkeyTestCostPrice')" prop="CostPrice">
                     <el-row class="w-100">
                         <el-col :span="15">
-                            <el-input v-model="state.ruleForm.Order.CostPrice" />
+                            <el-input v-trim v-model="state.ruleForm.Order.CostPrice" />
                         </el-col>
                         <el-col :span="9">
                             <span class="red" v-if="state.ruleForm.Field.indexOf('CostPrice')>=0">{{$t('server.cdkeyTestCostPriceError')}}</span>
@@ -90,7 +90,7 @@
                 <el-form-item :label="$t('server.cdkeyTestPrice')" prop="Price">
                     <el-row class="w-100">
                         <el-col :span="15">
-                            <el-input v-model="state.ruleForm.Order.Price" />
+                            <el-input v-trim v-model="state.ruleForm.Order.Price" />
                         </el-col>
                         <el-col :span="9">
                             <span class="red" v-if="state.ruleForm.Field.indexOf('Price')>=0">{{$t('server.cdkeyTestPriceError')}}</span>
@@ -101,7 +101,7 @@
                 <el-form-item :label="$t('server.cdkeyTestUserPrice')" prop="UserPrice">
                     <el-row class="w-100">
                         <el-col :span="15">
-                            <el-input v-model="state.ruleForm.Order.UserPrice" />
+                            <el-input v-trim v-model="state.ruleForm.Order.UserPrice" />
                         </el-col>
                         <el-col :span="9">
                             <span class="red" v-if="state.ruleForm.Field.indexOf('UserPrice')>=0">{{$t('server.cdkeyTestUserPriceError')}}</span>
@@ -112,7 +112,7 @@
                 <el-form-item :label="$t('server.cdkeyTestPayPrice')" prop="PayPrice">
                     <el-row class="w-100">
                         <el-col :span="15">
-                            <el-input v-model="state.ruleForm.Order.PayPrice" />
+                            <el-input v-trim v-model="state.ruleForm.Order.PayPrice" />
                         </el-col>
                         <el-col :span="9">
                             <span class="red" v-if="state.ruleForm.Field.indexOf('PayPrice')>=0">{{$t('server.cdkeyTestPayPriceError')}}</span>
@@ -123,7 +123,7 @@
                 <el-form-item :label="$t('server.cdkeyTestCount')" prop="Count">
                     <el-row class="w-100">
                         <el-col :span="15">
-                            <el-input v-model="state.ruleForm.Order.Count" />
+                            <el-input v-trim v-model="state.ruleForm.Order.Count" />
                         </el-col>
                         <el-col :span="9">
                             <span class="red" v-if="state.ruleForm.Field.indexOf('Count')>=0">{{$t('server.cdkeyTestCountError')}}</span>
@@ -134,7 +134,7 @@
                 <el-form-item :label="$t('server.cdkeyTestType')" prop="Type">
                     <el-row class="w-100">
                         <el-col :span="15">
-                            <el-input v-model="state.ruleForm.Order.Type" />
+                            <el-input v-trim v-model="state.ruleForm.Order.Type" />
                         </el-col>
                         <el-col :span="9">
                             <span class="red" v-if="state.ruleForm.Field.indexOf('Type')>=0 || state.ruleForm.Order.Type !='Relay' ">{{$t('server.cdkeyTestTypeError')}}</span>

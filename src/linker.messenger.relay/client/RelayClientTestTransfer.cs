@@ -19,7 +19,7 @@ namespace linker.messenger.relay
         private readonly ISignInClientStore signInClientStore;
         private readonly IRelayClientStore relayClientStore;
 
-        public List<RelayServerNodeReportInfo170> Nodes { get; private set; } = new List<RelayServerNodeReportInfo170>();
+        public List<RelayServerNodeReportInfo188> Nodes { get; private set; } = new List<RelayServerNodeReportInfo188>();
 
         public RelayClientTestTransfer(RelayClientTransfer relayTransfer, SignInClientState signInClientState, ISignInClientStore signInClientStore, IRelayClientStore relayClientStore)
         {
@@ -44,7 +44,7 @@ namespace linker.messenger.relay
                 IRelayClientTransport transport = relayTransfer.Transports.FirstOrDefault(d => d.Type == relayClientStore.Server.RelayType);
                 if (transport != null)
                 {
-                    Nodes = await transport.RelayTestAsync(new RelayTestInfo170
+                    Nodes = await transport.RelayTestAsync(new RelayTestInfo188
                     {
                         MachineId = signInClientStore.Id,
                         UserId = signInClientStore.Server.UserId

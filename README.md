@@ -70,8 +70,7 @@
 
 ## [⭐]星星历史
 
-[![Star History Chart](https://api.star-history.com/svg?repos=snltty/linker&type=Date)](https://www.star-history.com/#snltty/linker&Date)
-
+[![Star History Chart](https://api.star-history.com/svg?repos=snltty/linker&type=Date&theme=dark)](https://www.star-history.com/#snltty/linker&Date)
 
 ## [🚫]免责声明
 
@@ -101,6 +100,7 @@
 - 小猪
 - 菜菜(木子)
 - 杰米儿
+- Oasis
 
 </div>
 </details>

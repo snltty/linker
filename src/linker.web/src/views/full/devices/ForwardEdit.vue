@@ -9,7 +9,7 @@
                 <el-table-column property="Name" label="名称" width="100">
                     <template #default="scope">
                         <template v-if="scope.row.NameEditing && scope.row.Started==false">
-                            <el-input autofocus size="small" v-model="scope.row.Name"
+                            <el-input v-trim autofocus size="small" v-model="scope.row.Name"
                                 @blur="handleEditBlur(scope.row, 'Name')"></el-input>
                         </template>
                         <template v-else>
@@ -44,7 +44,7 @@
                 <el-table-column property="Port" label="监听端口" width="80">
                     <template #default="scope">
                         <template v-if="scope.row.PortEditing && scope.row.Started==false">
-                            <el-input type="number" autofocus size="small" v-model="scope.row.Port"
+                            <el-input v-trim type="number" autofocus size="small" v-model="scope.row.Port"
                                 @blur="handleEditBlur(scope.row, 'Port')"></el-input>
                         </template>
                         <template v-else>
@@ -96,7 +96,7 @@
                 <el-table-column property="TargetEP" label="目标服务" width="140">
                     <template #default="scope">
                         <template v-if="scope.row.TargetEPEditing && scope.row.Started==false">
-                            <el-input autofocus size="small" v-model="scope.row.TargetEP"
+                            <el-input v-trim autofocus size="small" v-model="scope.row.TargetEP"
                                 @blur="handleEditBlur(scope.row, 'TargetEP')"></el-input>
                         </template>
                         <template v-else>
@@ -277,6 +277,7 @@ export default {
                 row.MachineName = machine.MachineName;
             }
 
+            row[p] = row[p].trim();
             saveRow(row);
         }
         const handleDel = (id) => {

@@ -3,7 +3,7 @@
     <template #header>
         <div class="flex">
             <span class="flex-1">设备</span>
-            <span> <el-input size="small" v-model="name" clearable @input="handleRefresh" placeholder="设备/虚拟网卡/端口转发" ></el-input> </span>
+            <span> <el-input v-trim size="small" v-model="name" clearable @input="handleRefresh" placeholder="设备/虚拟网卡/端口转发" ></el-input> </span>
             <span>
                 <el-button size="small" @click="handleRefresh"><el-icon><Search /></el-icon></el-button>
             </span>

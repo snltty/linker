@@ -9,16 +9,16 @@
                     </el-select>
                 </el-form-item>
                 <el-form-item :label="$t('server.wlistName')" prop="Name">
-                    <el-input v-model="state.ruleForm.Name" />
+                    <el-input v-trim v-model="state.ruleForm.Name" />
                 </el-form-item>
                 <el-form-item v-if="state.ruleForm.Type == 'Relay'" :label="$t(`server.wlistNodes${state.ruleForm.Type}`)" prop="Nodes">
-                    <el-input type="textarea" :value="state.nodes" @click="handleShowNodes" readonly resize="none" rows="4"></el-input>
+                    <el-input v-trim type="textarea" :value="state.nodes" @click="handleShowNodes" readonly resize="none" rows="4"></el-input>
                 </el-form-item>
                 <el-form-item v-if="state.ruleForm.Type == 'SForward'" :label="$t(`server.wlistNodes${state.ruleForm.Type}`)" prop="Nodes">
-                    <el-input type="textarea" v-model="state.ports" resize="none" rows="4" @change="handlePortChange"></el-input>
+                    <el-input v-trim type="textarea" v-model="state.ports" resize="none" rows="4" @change="handlePortChange"></el-input>
                 </el-form-item>
                 <el-form-item :label="$t('server.wlistRemark')" prop="Remark">
-                    <el-input v-model="state.ruleForm.Remark" />
+                    <el-input v-trim v-model="state.ruleForm.Remark" />
                 </el-form-item>
                 <el-form-item></el-form-item>
                 <el-form-item label="" prop="Btns">

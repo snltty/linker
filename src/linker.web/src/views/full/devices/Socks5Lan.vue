@@ -5,7 +5,7 @@
                 <el-table-column prop="IP" label="路由IP" width="120">
                     <template #default="scope">
                         <template v-if="scope.row.IPEditing">
-                            <el-input autofocus size="small" v-model="scope.row.IP"
+                            <el-input v-trim autofocus size="small" v-model="scope.row.IP"
                                 @blur="handleEditBlur(scope.row, 'IP')"></el-input>
                         </template>
                         <template v-else>
@@ -19,7 +19,7 @@
                 <el-table-column prop="PrefixLength" label="路由掩码" width="80">
                     <template #default="scope">
                         <template v-if="scope.row.PrefixLengthEditing">
-                            <el-input autofocus size="small" v-model="scope.row.PrefixLength"
+                            <el-input v-trim autofocus size="small" v-model="scope.row.PrefixLength"
                                 @blur="handleEditBlur(scope.row, 'PrefixLength')"></el-input>
                         </template>
                         <template v-else>
@@ -33,7 +33,7 @@
                 <el-table-column prop="MapIP" label="目标IP" width="120">
                     <template #default="scope">
                         <template v-if="scope.row.MapIPEditing">
-                            <el-input autofocus size="small" v-model="scope.row.MapIP"
+                            <el-input v-trim autofocus size="small" v-model="scope.row.MapIP"
                                 @blur="handleEditBlur(scope.row, 'MapIP')"></el-input>
                         </template>
                         <template v-else>
@@ -47,7 +47,7 @@
                 <el-table-column prop="MapPrefixLength" label="目标掩码" width="80">
                     <template #default="scope">
                         <template v-if="scope.row.MapPrefixLengthEditing">
-                            <el-input autofocus size="small" v-model="scope.row.MapPrefixLength"
+                            <el-input v-trim autofocus size="small" v-model="scope.row.MapPrefixLength"
                                 @blur="handleEditBlur(scope.row, 'MapPrefixLength')"></el-input>
                         </template>
                         <template v-else>
@@ -117,6 +117,7 @@ export default {
         const handleEditBlur = (row, p) => {
             row[`${p}Editing`] = false;
             row[`__editing`] = false;
+            row[p] = row[p].trim();
 
             if(p == 'PrefixLength' || p == 'MapPrefixLength'){
                 var value = +row[p];

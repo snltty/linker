@@ -47,7 +47,7 @@ namespace linker.messenger.relay.client.transport
         /// </summary>
         /// <param name="relayTestInfo"></param>
         /// <returns></returns>
-        public Task<List<RelayServerNodeReportInfo170>> RelayTestAsync(RelayTestInfo170 relayTestInfo);
+        public Task<List<RelayServerNodeReportInfo188>> RelayTestAsync(RelayTestInfo188 relayTestInfo);
     }
 
     /// <summary>
@@ -58,13 +58,14 @@ namespace linker.messenger.relay.client.transport
         public string MachineId { get; set; }
         public IPEndPoint Server { get; set; }
     }
-    public sealed partial class RelayTestInfo170: RelayTestInfo
+    public partial class RelayTestInfo170: RelayTestInfo
     {
         /// <summary>
         /// UserId
         /// </summary>
         public string UserId { get; set; }
     }
+    public class RelayTestInfo188 : RelayTestInfo170 { }
 
 
     public partial class RelayInfo170 : RelayInfo
@@ -75,6 +76,8 @@ namespace linker.messenger.relay.client.transport
         public string UserId { get; set; }
         public bool UseCdkey { get; set; }
     }
+   
+
     /// <summary>
     /// 中继交换数据
     /// </summary>

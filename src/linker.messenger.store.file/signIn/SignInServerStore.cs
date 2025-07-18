@@ -6,6 +6,7 @@ namespace linker.messenger.store.file.signIn
     public sealed class SignInServerStore : ISignInServerStore
     {
         public int CleanDays => fileConfig.Data.Server.SignIn.CleanDays;
+        public bool Enabled => fileConfig.Data.Server.SignIn.Enabled;
         public bool Anonymous => fileConfig.Data.Server.SignIn.Anonymous;
 
         private readonly Storefactory dBfactory;
@@ -41,6 +42,11 @@ namespace linker.messenger.store.file.signIn
         public void SetCleanDays(int days)
         {
             fileConfig.Data.Server.SignIn.CleanDays = days;
+            fileConfig.Data.Update();
+        }
+        public void SetEnabled(bool enabled)
+        {
+            fileConfig.Data.Server.SignIn.Enabled = enabled;
             fileConfig.Data.Update();
         }
         public void SetAnonymous(bool anonymous)

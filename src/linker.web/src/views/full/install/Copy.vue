@@ -1,7 +1,7 @@
 <template>
     <div>
         <div>
-            <el-input v-model="state.content" type="textarea" :rows="10" resize="none"></el-input>
+            <el-input v-trim v-model="state.content" type="textarea" :rows="10" resize="none"></el-input>
         </div>
         <div class="t-c mgt-1">
             <el-button type="primary" @click="handleSave">确定</el-button>

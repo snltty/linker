@@ -262,6 +262,10 @@ export default {
     'server.relayDefault': '默认',
     'server.relaySetDefault': '设置默认中继节点',
     'server.relaySetDefaultText': '不选择则所有客户端',
+    'server.relaySync2Server': '自动更新',
+    'server.relayExit': '重启',
+    'server.relayUpdate': '更新',
+    'server.relayEdit': '编辑',
 
      'server.cdkeySecretKey': 'Cdkey密钥',
      'server.cdkeyText': '密钥正确时可管理cdkey',

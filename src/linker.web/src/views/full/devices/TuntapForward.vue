@@ -9,7 +9,7 @@
                 <el-table-column prop="ListenPort" label="源端口" width="80">
                     <template #default="scope">
                         <template v-if="scope.row.ListenPortEditing">
-                            <el-input autofocus size="small" v-model="scope.row.ListenPort"
+                            <el-input v-trim autofocus size="small" v-model="scope.row.ListenPort"
                                 @blur="handleEditBlur(scope.row, 'ListenPort')"></el-input>
                         </template>
                         <template v-else>
@@ -23,7 +23,7 @@
                 <el-table-column prop="ConnectAddr" label="目标IP" width="140">
                     <template #default="scope">
                         <template v-if="scope.row.ConnectAddrEditing">
-                            <el-input autofocus size="small" v-model="scope.row.ConnectAddr"
+                            <el-input v-trim autofocus size="small" v-model="scope.row.ConnectAddr"
                                 @blur="handleEditBlur(scope.row, 'ConnectAddr')"></el-input>
                         </template>
                         <template v-else>
@@ -37,7 +37,7 @@
                 <el-table-column prop="ConnectPort" label="目标端口" width="80">
                     <template #default="scope">
                         <template v-if="scope.row.ConnectPortEditing">
-                            <el-input autofocus size="small" v-model="scope.row.ConnectPort"
+                            <el-input v-trim autofocus size="small" v-model="scope.row.ConnectPort"
                                 @blur="handleEditBlur(scope.row, 'ConnectPort')"></el-input>
                         </template>
                         <template v-else>
@@ -51,7 +51,7 @@
                 <el-table-column prop="Remark" label="备注">
                     <template #default="scope">
                         <template v-if="scope.row.RemarkEditing">
-                            <el-input autofocus size="small" v-model="scope.row.Remark"
+                            <el-input v-trim autofocus size="small" v-model="scope.row.Remark"
                                 @blur="handleEditBlur(scope.row, 'Remark')"></el-input>
                         </template>
                         <template v-else>
@@ -120,6 +120,7 @@ export default {
         const handleEditBlur = (row, p) => {
             row[`${p}Editing`] = false;
             row[`__editing`] = false;
+            row[p] = row[p].trim();
         }
 
         const handleDel = (index)=>{

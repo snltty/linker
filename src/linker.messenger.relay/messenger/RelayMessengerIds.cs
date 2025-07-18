@@ -20,8 +20,8 @@
         NodeReport = 2113,
         TrafficReport = 2114,
 
-        UpdateNode = 2117,
-        UpdateNodeForward = 2118,
+        Edit = 2117,
+        EditForward = 2118,
 
         RelayTest170 = 2119,
         RelayAsk170 = 2120,
@@ -30,6 +30,18 @@
         SendLastBytes = 2122,
 
         NodeGetCache186 = 2124,
+
+        Exit = 2125,
+        ExitForward = 2126,
+
+        RelayTest188 = 2127,
+        NodeReport188 = 2128,
+
+        Update = 2129,
+        UpdateForward = 2130,
+
+        Edit188 = 2131,
+        EditForward188 = 2132,
 
         Max = 2199
     }

@@ -9,7 +9,7 @@ import { themes as prismThemes } from 'prism-react-renderer';
 /** @type {import('@docusaurus/types').Config} */
 const config = {
     title: 'linker-doc',
-    tagline: 'linker、一个免费开源的P2P异地组网和内网穿透内核',
+    tagline: 'linker、海内皆隔壁，天涯若比邻。',
     favicon: 'img/favicon.ico',
 
     // Set the production url of your site here

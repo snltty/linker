@@ -3,7 +3,7 @@
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="auto">
                 <el-form-item :label="$t('server.cdkeyUserId')" prop="UserId">
-                    <el-input maxlength="36" show-word-limit v-model="state.ruleForm.UserId" />
+                    <el-input v-trim maxlength="36" show-word-limit v-model="state.ruleForm.UserId" />
                 </el-form-item>
                 <el-form-item :label="$t('server.cdkeyBandwidth')" prop="Bandwidth">
                     <el-input-number size="small" v-model="state.ruleForm.Bandwidth" :min="1" :max="102400" />Mbps
@@ -41,12 +41,12 @@
                     <el-row>
                         <el-col :span="12">
                             <el-form-item :label="$t('server.cdkeyRemark')" prop="Remark">
-                                <el-input v-model="state.ruleForm.Remark" />
+                                <el-input v-trim v-model="state.ruleForm.Remark" />
                             </el-form-item>
                         </el-col>
                         <el-col :span="12">
                             <el-form-item :label="$t('server.cdkeyContact')" prop="Contact">
-                                <el-input v-model="state.ruleForm.Contact" />
+                                <el-input v-trim v-model="state.ruleForm.Contact" />
                             </el-form-item>
                         </el-col>
                     </el-row>

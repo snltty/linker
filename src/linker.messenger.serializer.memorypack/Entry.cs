@@ -62,19 +62,23 @@ namespace linker.messenger.serializer.memorypack
 
             MemoryPackFormatterProvider.Register(new RelayTestInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayTestInfo170Formatter());
+            MemoryPackFormatterProvider.Register(new RelayTestInfo188Formatter());
             MemoryPackFormatterProvider.Register(new RelayInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayInfo170Formatter());
             MemoryPackFormatterProvider.Register(new RelayServerNodeUpdateInfoFormatter());
+            MemoryPackFormatterProvider.Register(new RelayServerNodeUpdateInfo188Formatter());
+            MemoryPackFormatterProvider.Register(new RelayServerNodeUpdateWrapInfoFormatter());
+            MemoryPackFormatterProvider.Register(new RelayServerNodeUpdateWrapInfo188Formatter());
             MemoryPackFormatterProvider.Register(new RelayServerNodeReportInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayServerNodeReportInfo170Formatter());
+            MemoryPackFormatterProvider.Register(new RelayServerNodeReportInfo188Formatter());
             MemoryPackFormatterProvider.Register(new RelayAskResultInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayAskResultInfo170Formatter());
             MemoryPackFormatterProvider.Register(new RelayCacheInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayMessageInfoFormatter());
 
             MemoryPackFormatterProvider.Register(new RelayTrafficUpdateInfoFormatter());
-            MemoryPackFormatterProvider.Register(new RelayServerNodeUpdateInfoFormatter());
-            MemoryPackFormatterProvider.Register(new RelayServerNodeUpdateWrapInfoFormatter());
+           
 
 
             MemoryPackFormatterProvider.Register(new CdkeyInfoFormatter());

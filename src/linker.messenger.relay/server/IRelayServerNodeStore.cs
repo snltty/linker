@@ -25,7 +25,7 @@ namespace linker.messenger.relay.server
         /// </summary>
         /// <param name="node"></param>
         public void SetInfo(RelayServerNodeInfo node);
-        public void UpdateInfo(RelayServerNodeUpdateInfo update);
+        public void UpdateInfo(RelayServerNodeUpdateInfo188 update);
 
         /// <summary>
         /// 设置月份
@@ -83,14 +83,15 @@ namespace linker.messenger.relay.server
         public string Url { get; set; } = "https://linker-doc.snltty.com";
 
         public bool AllowTcp { get; set; } = true;
-        public bool AllowUdp { get; set; } = false;
+        public bool AllowUdp { get; set; }
+        public bool Sync2Server { get; set; } 
     }
 
-    public sealed partial class RelayServerNodeUpdateWrapInfo
+    public partial class RelayServerNodeUpdateWrapInfo
     {
         public RelayServerNodeUpdateInfo Info { get; set; }
     }
-    public sealed partial class RelayServerNodeUpdateInfo
+    public partial class RelayServerNodeUpdateInfo
     {
         public string Id { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
@@ -107,6 +108,17 @@ namespace linker.messenger.relay.server
         public bool AllowTcp { get; set; } = true;
         public bool AllowUdp { get; set; } = false;
     }
+
+    public sealed partial class RelayServerNodeUpdateWrapInfo188
+    {
+        public RelayServerNodeUpdateInfo188 Info { get; set; }
+    }
+    public sealed partial class RelayServerNodeUpdateInfo188 : RelayServerNodeUpdateInfo
+    {
+        public bool Sync2Server { get; set; } = false;
+    }
+
+
     public partial class RelayServerNodeReportInfo
     {
         public string Id { get; set; } = string.Empty;
@@ -137,18 +149,20 @@ namespace linker.messenger.relay.server
         [JsonIgnore]
         public IConnection Connection { get; set; }
     }
+    public partial class RelayServerNodeReportInfo188 : RelayServerNodeReportInfo170
+    {
+        public string Version { get; set; } = string.Empty;
+        public bool Sync2Server { get; set; }
+    }
 
-    public sealed partial class RelayAskResultInfo
+    public partial class RelayAskResultInfo
     {
         public ulong FlowingId { get; set; }
 
         public List<RelayServerNodeReportInfo> Nodes { get; set; } = new List<RelayServerNodeReportInfo>();
     }
-
-    public sealed partial class RelayAskResultInfo170
+    public partial class RelayAskResultInfo170: RelayAskResultInfo
     {
-        public ulong FlowingId { get; set; }
-
-        public List<RelayServerNodeReportInfo170> Nodes { get; set; } = new List<RelayServerNodeReportInfo170>();
+        public new List<RelayServerNodeReportInfo170> Nodes { get; set; } = new List<RelayServerNodeReportInfo170>();
     }
 }
