@@ -22,7 +22,7 @@ do
     mkdir -p public/publish-ipk/${r}/data/usr/bin/linker
     cp -rf public/publish/${r}/* public/publish-ipk/${r}/data/usr/bin/linker/
 
-    sed -i "s|{version}|1.8.7|g" public/publish-ipk/${r}/control/control
+    sed -i "s|{version}|1.8.8|g" public/publish-ipk/${r}/control/control
     sed -i 's/\r$//' public/publish-ipk/${r}/data/etc/init.d/linker
     sed -i 's/\r$//' public/publish-ipk/${r}/control/control
     sed -i 's/\r$//' public/publish-ipk/${r}/control/postinst
