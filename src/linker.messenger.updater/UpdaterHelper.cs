@@ -7,6 +7,8 @@ namespace linker.messenger.updater
     {
         private readonly IUpdaterCommonStore updaterCommonTransfer;
         private readonly IUpdaterInstaller updaterInstaller;
+        private UpdaterInfo updateInfo;
+
         public UpdaterHelper(IUpdaterCommonStore updaterCommonTransfer, IUpdaterInstaller updaterInstaller)
         {
             this.updaterCommonTransfer = updaterCommonTransfer;
@@ -54,10 +56,9 @@ namespace linker.messenger.updater
         /// <summary>
         /// 下载更新
         /// </summary>
-        /// <param name="updateInfo"></param>
         /// <param name="version"></param>
         /// <returns></returns>
-        public async Task Download(UpdaterInfo updateInfo, string version)
+        private async Task Download(string version)
         {
             UpdaterStatus status = updateInfo.Status;
 
@@ -90,7 +91,7 @@ namespace linker.messenger.updater
 
                 try
                 {
-                    if(OperatingSystem.IsAndroid() == false)
+                    if (OperatingSystem.IsAndroid() == false)
                     {
                         DriveInfo drive = new DriveInfo(Path.GetPathRoot(savePath));
                         if (drive.AvailableFreeSpace < updateInfo.Length)
@@ -133,9 +134,8 @@ namespace linker.messenger.updater
         /// <summary>
         /// 解压更新
         /// </summary>
-        /// <param name="updateInfo"></param>
         /// <returns></returns>
-        public async Task Install(UpdaterInfo updateInfo)
+        private async Task Install()
         {
             //没下载完成
             if (updateInfo.Status != UpdaterStatus.Downloaded)
@@ -173,10 +173,13 @@ namespace linker.messenger.updater
         {
             if (string.IsNullOrWhiteSpace(version)) return;
 
+            if (this.updateInfo != null && this.updateInfo.Status >= UpdaterStatus.Downloading) return;
+            this.updateInfo = updateInfo;
+
             TimerHelper.Async(async () =>
             {
-                await Download(updateInfo, version).ConfigureAwait(false);
-                await Install(updateInfo).ConfigureAwait(false);
+                await Download(version).ConfigureAwait(false);
+                await Install().ConfigureAwait(false);
             });
         }
     }
