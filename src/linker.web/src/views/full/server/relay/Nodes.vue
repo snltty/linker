@@ -2,7 +2,7 @@
     <div>
         <el-dialog v-model="state.show" :title="$t('server.relayTitle')" width="98%" top="2vh">
             <div>
-                <el-table :data="state.nodes" size="small" border height="500">
+                <el-table :data="state.nodes" size="small" border height="500" stripe>
                     <el-table-column property="Name" :label="$t('server.relayName')">
                         <template #default="scope">
                             <div> 
@@ -62,7 +62,7 @@
                                 <template v-if="scope.row.MaxBandwidthTotal == 0">--</template>
                                 <template v-else>{{ scope.row.MaxBandwidthTotal }}Mbps</template>
                             </p>
-                            <p><strong>{{scope.row.BandwidthRatio}}</strong></p>
+                            <p><strong>{{scope.row.BandwidthRatio}}mbps</strong></p>
                         </template>
                     </el-table-column>
                     <el-table-column property="ConnectionRatio" :label="$t('server.relayConnection')" width="80">

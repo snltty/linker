@@ -81,20 +81,14 @@
                     <template #default="scope">
                         <div>
                             <a :href="scope.row.Url" class="a-line blue" target="_blank">{{ scope.row.Name }}</a>
-                            <a href="javascript:;" class="a-line">
-                                <span v-if="(scope.row.AllowProtocol & 1) == 1">,tcp</span>
-                                <span v-if="(scope.row.AllowProtocol & 2) == 2">,udp</span>
-                            </a>
                         </div>
                     </template>
                 </el-table-column>
-                <el-table-column property="MaxGbTotal" :label="$t('server.relayFlow')" width="140">
+                <el-table-column property="MaxGbTotal" :label="$t('server.relayFlow')" width="100">
                     <template #default="scope">
                         <span v-if="scope.row.MaxGbTotal == 0">--</span>
                         <span v-else>
-                            {{ (scope.row.MaxGbTotalLastBytes / 1024 / 1024 / 1024).toFixed(2) }}GB / {{
-                                scope.row.MaxGbTotal
-                            }}GB
+                            {{ (scope.row.MaxGbTotalLastBytes / 1024 / 1024 / 1024).toFixed(2) }}GB
                         </span>
                     </template>
                 </el-table-column>
@@ -105,19 +99,14 @@
                     </template>
                 </el-table-column>
                 <el-table-column property="MaxBandwidthTotal"
-                    :label="`${$t('server.relaySpeed2')}/${$t('server.relaySpeed1')}`" width="120">
+                    :label="$t('server.relaySpeed2')" width="80">
                     <template #default="scope">
-                        <span>
-                            <span>{{ scope.row.BandwidthRatio }}Mbps</span>
-                            <span>/</span>
-                            <span v-if="scope.row.MaxBandwidthTotal == 0">--</span>
-                            <span v-else>{{ scope.row.MaxBandwidthTotal }}Mbps</span>
-                        </span>
+                        <span>{{ scope.row.BandwidthRatio }}Mbps</span>
                     </template>
                 </el-table-column>
                 <el-table-column property="ConnectionRatio" :label="$t('server.relayConnection')" width="80">
                     <template #default="scope">
-                        <span><strong>{{ scope.row.ConnectionRatio }}</strong>/{{ scope.row.MaxConnection }}</span>
+                        <span><strong>{{ scope.row.ConnectionRatio }}</strong></span>
                     </template>
                 </el-table-column>
                 <el-table-column property="Delay" :label="$t('server.relayDelay')" width="60">
@@ -130,22 +119,10 @@
                         <el-switch disabled v-model="scope.row.Public" size="small" />
                     </template>
                 </el-table-column>
-                <el-table-column property="Oper" :label="$t('server.relayOper')" width="75">
+                <el-table-column property="Oper" :label="$t('server.relayUse')" width="130">
                     <template #default="scope">
-                        <el-dropdown size="small">
-                            <div class="dropdown">
-                                <span>{{ $t('server.relayUse') }}</span>
-                                <el-icon class="el-icon--right">
-                                    <ArrowDown />
-                                </el-icon>
-                            </div>
-                            <template #dropdown>
-                                <el-dropdown-menu>
-                                    <el-dropdown-item v-if="(scope.row.AllowProtocol & 1) == 1" @click="handleConnect(scope.row.Id, 1)">{{$t('common.relay')}}TCP</el-dropdown-item>
-                                    <el-dropdown-item v-if="(scope.row.AllowProtocol & 2) == 2" @click="handleConnect(scope.row.Id, 2)">{{$t('common.relay')}}UDP</el-dropdown-item>
-                                </el-dropdown-menu>
-                            </template>
-                        </el-dropdown>
+                        <el-button size="small" v-if="(scope.row.AllowProtocol & 1) == 1" @click="handleConnect(scope.row.Id, 1)">TCP</el-button>
+                        <el-button size="small" v-if="(scope.row.AllowProtocol & 2) == 2" @click="handleConnect(scope.row.Id, 2)">UDP</el-button>
                     </template>
                 </el-table-column>
             </el-table>
