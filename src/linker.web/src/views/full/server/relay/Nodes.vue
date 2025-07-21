@@ -7,7 +7,9 @@
                         <template #default="scope">
                             <div> 
                                 <p class="flex">
-                                    <a :href="scope.row.Url" class="a-line" :class="{green:scope.row.Public}" target="_blank" :title="scope.row.Public?$t('server.relayPublic'):''">{{ scope.row.Name }}</a>
+                                    <a :href="scope.row.Url" class="a-line" 
+                                    :class="{green:scope.row.Public}" target="_blank" 
+                                    :title="scope.row.Public?$t('server.relayPublic'):''"><strong>{{ scope.row.Name }}</strong></a>
                                     <span class="flex-1"></span>
                                     <a href="javascript:;">
                                         <span v-if="(scope.row.AllowProtocol & 1) == 1">tcp</span>
@@ -71,10 +73,14 @@
                             <p><strong>{{scope.row.ConnectionRatio}}</strong></p>
                         </template>
                     </el-table-column>
-                    <el-table-column property="Public" :label="$t('server.relayOper')" width="70">
+                    <el-table-column property="Public" :label="$t('server.relayOper')" width="60">
                         <template #default="scope">
-                            <p><el-button size="small" @click="handleExit(scope.row.Id)">{{ $t('server.relayExit') }}</el-button></p>
-                            <p v-if="state.super"><el-button size="small" @click="handleEdit(scope.row)">{{ $t('server.relayEdit') }}</el-button></p>
+                            <p>
+                                <a href="javascript:;" class="a-line" @click="handleExit(scope.row.Id)"><el-icon><Refresh /></el-icon>{{ $t('server.relayExit') }}</a>
+                            </p>
+                            <p>
+                                <a v-if="state.super" href="javascript:;" class="a-line" @click="handleEdit(scope.row)"><el-icon><Edit /></el-icon>{{ $t('server.relayEdit') }}</a>
+                            </p>
                         </template>
                     </el-table-column>
                 </el-table>
@@ -212,6 +218,7 @@ export default {
 .blue {
     color: #409EFF;
 }
+.el-checkbox{font-weight:100;}
 a.a-edit{
     .el-icon {
         vertical-align middle

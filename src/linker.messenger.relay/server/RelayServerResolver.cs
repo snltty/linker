@@ -80,6 +80,7 @@ namespace linker.messenger.relay.server
 
             //ask 是发起端来的，那key就是 发起端->目标端， answer的，目标和来源会交换，所以转换一下
             string key = relayMessage.Type == RelayMessengerType.Ask ? $"{relayMessage.FromId}->{relayMessage.ToId}->{relayMessage.FlowId}" : $"{relayMessage.ToId}->{relayMessage.FromId}->{relayMessage.FlowId}";
+            string flowKey = relayMessage.Type == RelayMessengerType.Ask ? $"{relayMessage.FromId}->{relayMessage.ToId}" : $"{relayMessage.ToId}->{relayMessage.FromId}";
 
             //获取缓存
             RelayCacheInfo relayCache = await relayServerNodeTransfer.TryGetRelayCache(key).ConfigureAwait(false);
@@ -100,7 +101,7 @@ namespace linker.messenger.relay.server
             }
 
             //流量统计
-            Add(relayCache.FromId, relayCache.FromName, relayCache.ToName, relayCache.GroupId, memory.Length,0);
+            Add(flowKey, relayCache.FromName, relayCache.ToName, relayCache.GroupId, memory.Length, 0);
             //回应
             if (relayMessage.Type == RelayMessengerType.Answer)
             {
@@ -115,8 +116,8 @@ namespace linker.messenger.relay.server
             }
 
             //请求
-            RelayTrafficCacheInfo trafficCacheInfo = new RelayTrafficCacheInfo { Cache = relayCache, Sendt = 0, Limit = new RelaySpeedLimit() };
-            RelayUdpNatInfo nat = new RelayUdpNatInfo { Ask = true, Source = ep, Traffic = trafficCacheInfo };
+            RelayTrafficCacheInfo trafficCacheInfo = new RelayTrafficCacheInfo { Cache = relayCache, Sendt = 0, Limit = new RelaySpeedLimit(), Key = flowKey };
+            RelayUdpNatInfo nat = new RelayUdpNatInfo { Ask = true, Source = ep, Traffic = trafficCacheInfo, Key = flowKey };
             udpNat.AddOrUpdate(ep, nat, (a, b) => nat);
             relayUdpDic.TryAdd(relayCache.FlowId, nat);
 
@@ -146,7 +147,7 @@ namespace linker.messenger.relay.server
             {
                 return;
             }
-            Add(trafficCacheInfo.Cache.FromId, trafficCacheInfo.Cache.FromName, trafficCacheInfo.Cache.ToName, trafficCacheInfo.Cache.GroupId, bytesRead, bytesRead);
+            Add(trafficCacheInfo.Key, trafficCacheInfo.Cache.FromName, trafficCacheInfo.Cache.ToName, trafficCacheInfo.Cache.GroupId, bytesRead, bytesRead);
             await socket.SendToAsync(memory, nat.Target).ConfigureAwait(false);
         }
 
@@ -167,6 +168,7 @@ namespace linker.messenger.relay.server
 
                 //ask 是发起端来的，那key就是 发起端->目标端， answer的，目标和来源会交换，所以转换一下
                 string key = relayMessage.Type == RelayMessengerType.Ask ? $"{relayMessage.FromId}->{relayMessage.ToId}->{relayMessage.FlowId}" : $"{relayMessage.ToId}->{relayMessage.FromId}->{relayMessage.FlowId}";
+                string flowKey = relayMessage.Type == RelayMessengerType.Ask ? $"{relayMessage.FromId}->{relayMessage.ToId}" : $"{relayMessage.ToId}->{relayMessage.FromId}";
 
                 //获取缓存
                 RelayCacheInfo relayCache = await relayServerNodeTransfer.TryGetRelayCache(key).ConfigureAwait(false);
@@ -189,7 +191,7 @@ namespace linker.messenger.relay.server
                 }
 
                 //流量统计
-                Add(relayCache.FromId, relayCache.FromName, relayCache.ToName, relayCache.GroupId, length,0);
+                Add(flowKey, relayCache.FromName, relayCache.ToName, relayCache.GroupId, length, 0);
 
                 if (relayMessage.Type == RelayMessengerType.Answer)
                 {
@@ -214,7 +216,7 @@ namespace linker.messenger.relay.server
                     Socket answerSocket = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(15000)).ConfigureAwait(false);
 
                     byte[] buffer2 = new byte[8 * 1024];
-                    RelayTrafficCacheInfo trafficCacheInfo = new RelayTrafficCacheInfo { Cache = relayCache, Sendt = 0, Limit = new RelaySpeedLimit() };
+                    RelayTrafficCacheInfo trafficCacheInfo = new RelayTrafficCacheInfo { Cache = relayCache, Sendt = 0, Limit = new RelaySpeedLimit(), Key = flowKey };
                     relayServerNodeTransfer.AddTrafficCache(trafficCacheInfo);
                     relayServerNodeTransfer.IncrementConnectionNum();
                     await Task.WhenAll(CopyToAsync(trafficCacheInfo, socket, answerSocket, buffer1), CopyToAsync(trafficCacheInfo, answerSocket, socket, buffer2)).ConfigureAwait(false);
@@ -274,7 +276,7 @@ namespace linker.messenger.relay.server
                         }
                     }
 
-                    Add(trafficCacheInfo.Cache.FromId, trafficCacheInfo.Cache.FromName, trafficCacheInfo.Cache.ToName, trafficCacheInfo.Cache.GroupId, bytesRead, bytesRead);
+                    Add(trafficCacheInfo.Key, trafficCacheInfo.Cache.FromName, trafficCacheInfo.Cache.ToName, trafficCacheInfo.Cache.GroupId, bytesRead, bytesRead);
                     await destination.SendAsync(memory.Slice(0, bytesRead), SocketFlags.None).ConfigureAwait(false);
                 }
             }
@@ -328,6 +330,7 @@ namespace linker.messenger.relay.server
         public IPEndPoint Target { get; set; }
         public long LastTicks { get; set; } = Environment.TickCount64;
         public RelayTrafficCacheInfo Traffic { get; set; }
+        public string Key { get; set; }
     }
 
 
@@ -430,6 +433,8 @@ namespace linker.messenger.relay.server
         public RelaySpeedLimit Limit { get; set; }
         public RelayCacheInfo Cache { get; set; }
         public CdkeyInfo CurrentCdkey { get; set; }
+
+        public string Key { get; set; }
     }
 
     public sealed partial class RelayMessageInfo

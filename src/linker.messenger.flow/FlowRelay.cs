@@ -85,9 +85,13 @@ namespace linker.messenger.flow
         {
             if (flows.TryGetValue(key, out RelayFlowItemInfo messengerFlowItemInfo) == false)
             {
-                messengerFlowItemInfo = new RelayFlowItemInfo { FromName = from, ToName = to, GroupId = groupid };
+                messengerFlowItemInfo = new RelayFlowItemInfo();
                 flows.TryAdd(key, messengerFlowItemInfo);
             }
+            messengerFlowItemInfo.FromName = from;
+            messengerFlowItemInfo.ToName = to;
+            messengerFlowItemInfo.GroupId = groupid;
+
             ReceiveBytes += receiveBytes;
             messengerFlowItemInfo.ReceiveBytes += receiveBytes;
             SendtBytes += sendtBytess;

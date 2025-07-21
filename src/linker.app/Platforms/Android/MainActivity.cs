@@ -37,7 +37,7 @@ namespace linker.app
             base.OnCreate(savedInstanceState);
 
             intent = new Intent(this, typeof(ForegroundService));
-            StartForegroundService(intent);
+            ContextCompat.StartForegroundService(this,intent);
         }
         public void SetLightStatusBar()
         {
@@ -154,12 +154,15 @@ namespace linker.app
             intent.SetFlags(ActivityFlags.NewTask);
             this.intent = intent;
 
-            NotificationChannel notificationChannel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationImportance.High);
-            notificationChannel.EnableLights(true);
-            notificationChannel.SetShowBadge(true);
-            notificationChannel.LockscreenVisibility = NotificationVisibility.Public;
-            NotificationManager manager = (NotificationManager)GetSystemService(NotificationService);
-            manager.CreateNotificationChannel(notificationChannel);
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+            {
+                NotificationChannel notificationChannel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationImportance.High);
+                notificationChannel.EnableLights(true);
+                notificationChannel.SetShowBadge(true);
+                notificationChannel.LockscreenVisibility = NotificationVisibility.Public;
+                NotificationManager manager = (NotificationManager)GetSystemService(NotificationService);
+                manager.CreateNotificationChannel(notificationChannel);
+            }
 
             if (Build.VERSION.SdkInt >= BuildVersionCodes.Q)
             {

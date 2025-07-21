@@ -80,7 +80,7 @@
                 <el-table-column property="Name" :label="$t('server.relayName')">
                     <template #default="scope">
                         <div>
-                            <a :href="scope.row.Url" class="a-line blue" target="_blank">{{ scope.row.Name }}</a>
+                            <a :href="scope.row.Url" class="a-line blue" target="_blank"></a>
                         </div>
                     </template>
                 </el-table-column>
@@ -255,6 +255,7 @@ export default {
 .blue {
     color: #409EFF;
 }
+.el-checkbox{font-weight:100}
 .dropdown{
     border:1px solid #ddd;
     padding:.4rem;

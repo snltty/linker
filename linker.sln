@@ -73,7 +73,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.cdkey", "s
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.rapp", "src\linker.messenger.rapp\linker.messenger.rapp.csproj", "{B895C1DC-9C75-407D-98CE-5DB873F32278}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "linker.messenger.wlist", "src\linker.messenger.wlist\linker.messenger.wlist.csproj", "{26550C65-0960-4BA3-9F83-BAC90DE9AA57}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.wlist", "src\linker.messenger.wlist\linker.messenger.wlist.csproj", "{26550C65-0960-4BA3-9F83-BAC90DE9AA57}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
