@@ -204,7 +204,7 @@ namespace linker.app
             LinkerMessengerEntry.Build();
 
             using JsonDocument config = InitConfig();
-            LinkerMessengerEntry.Setup(ExcludeModule.Logger, config);
+            LinkerMessengerEntry.Setup(ExcludeModule.None, config);
             IPlatformApplication.Current.Services.GetService<InitializeService>().SendOnInitialized();
 
             TuntapSetup();

@@ -43,6 +43,8 @@ namespace linker.messenger.logger
 
         private static void LoggerConsole()
         {
+            if ((OperatingSystem.IsWindows() || OperatingSystem.IsLinux() || OperatingSystem.IsMacOS()) == false) return;
+
             if (Directory.Exists(Path.Join(Helper.CurrentDirectory, "logs")) == false)
             {
                 Directory.CreateDirectory(Path.Join(Helper.CurrentDirectory, "logs"));

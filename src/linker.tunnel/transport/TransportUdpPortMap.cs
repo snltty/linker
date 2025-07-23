@@ -323,13 +323,23 @@ namespace linker.tunnel.transport
                         LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep}");
                     }
 
-                    await targetSocket.SendToAsync($"{flagTexts}-{tunnelTransportInfo.Local.MachineId}-{tunnelTransportInfo.FlowId}".ToBytes(), ep).ConfigureAwait(false);
+                    byte[] sendt = $"{flagTexts}-{tunnelTransportInfo.Local.MachineId}-{tunnelTransportInfo.FlowId}".ToBytes();
+                    await targetSocket.SendToAsync(sendt, ep).ConfigureAwait(false);
 
-                    byte[] buffer = new byte[1024];
-                    SocketReceiveFromResult recv = await targetSocket.ReceiveFromAsync(buffer, new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, 0)).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                    byte[] recv = new byte[1024];
+                    SocketReceiveFromResult recvRestlt = await targetSocket.ReceiveFromAsync(recv, new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, 0)).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+
+                    if(recv.AsSpan(0, recvRestlt.ReceivedBytes).SequenceEqual(sendt) == false)
+                    {
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        {
+                            LoggerHelper.Instance.Error($"{Name} connect to {ep}, recv <{recv.AsSpan(0, recvRestlt.ReceivedBytes).GetString()}> tunnel fail");
+                        }
+                        continue;
+                    }
 
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        LoggerHelper.Instance.Debug($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep} success -> <{buffer.AsMemory(0, recv.ReceivedBytes).GetString()}>");
+                        LoggerHelper.Instance.Debug($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep} tunnel success");
 
                     TunnelConnectionUdp result = new TunnelConnectionUdp
                     {
