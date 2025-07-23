@@ -199,8 +199,12 @@ namespace linker.tunnel.connection
                     await Task.Delay(3000).ConfigureAwait(false);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
             }
         }
         private async Task SendPingPong(byte[] data)
@@ -225,8 +229,12 @@ namespace linker.tunnel.connection
                 }
                 SendBytes += data.Length;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
                 Dispose();
             }
             finally

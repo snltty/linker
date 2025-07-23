@@ -107,6 +107,12 @@ namespace linker.messenger.signin
                 LoggerHelper.Instance.Error($"group id are empty");
                 return 1;
             }
+            if (string.IsNullOrWhiteSpace(host))
+            {
+                LoggerHelper.Instance.Error($"host are empty");
+                return 1;
+            }
+
             if (operatingManager.StartOperation() == false)
             {
                 return 2;

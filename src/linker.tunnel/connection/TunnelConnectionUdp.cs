@@ -5,6 +5,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Net.Sockets;
+using System;
 
 namespace linker.tunnel.connection
 {
@@ -72,7 +73,6 @@ namespace linker.tunnel.connection
         /// </summary>
         /// <param name="callback">数据回调</param>
         /// <param name="userToken">自定义数据</param>
-        /// <param name="framing">是否处理粘包，true时，请在首部4字节标注数据长度</param>
         public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken)
         {
             if (this.callback != null) return;
@@ -118,6 +118,7 @@ namespace linker.tunnel.connection
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Error($"tunnel connection writer offline {cancellationTokenSource.IsCancellationRequested}");
+                LoggerHelper.Instance.Error($"tunnel connection disponse 6");
                 Dispose();
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Error($"tunnel connection writer offline {ToString()}");
@@ -151,6 +152,7 @@ namespace linker.tunnel.connection
                 }
                 else if (memory.Span.SequenceEqual(finBytes))
                 {
+                    LoggerHelper.Instance.Error($"tunnel connection disponse 5");
                     Dispose();
                 }
             }
@@ -185,6 +187,7 @@ namespace linker.tunnel.connection
                 {
                     if (Connected == false)
                     {
+                        LoggerHelper.Instance.Error($"tunnel connection disponse 4");
                         Dispose();
                         break;
                     }
@@ -197,8 +200,12 @@ namespace linker.tunnel.connection
                     await Task.Delay(3000).ConfigureAwait(false);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
             }
         }
         private async Task SendPingPong(byte[] data)
@@ -225,8 +232,13 @@ namespace linker.tunnel.connection
             {
                 await UdpClient.SendToAsync(heartData.AsMemory(0, length), IPEndPoint, cancellationTokenSource.Token).ConfigureAwait(false);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
+                LoggerHelper.Instance.Error($"tunnel connection disponse 3");
                 Dispose();
             }
             finally
@@ -265,6 +277,7 @@ namespace linker.tunnel.connection
                 {
                     LoggerHelper.Instance.Error(ex);
                 }
+                LoggerHelper.Instance.Error($"tunnel connection disponse 2");
                 Dispose();
             }
             finally
@@ -299,7 +312,9 @@ namespace linker.tunnel.connection
                 {
                     LoggerHelper.Instance.Error(ex);
                 }
+                LoggerHelper.Instance.Error($"tunnel connection disponse 1");
                 Dispose();
+               
             }
             finally
             {
@@ -310,6 +325,9 @@ namespace linker.tunnel.connection
         public void Dispose()
         {
             if (uUdpClient == null) return;
+
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Error($"tunnel connection {this.GetHashCode()} writer offline {ToString()}");
 
             SendPingPong(finBytes).ContinueWith((result) =>
             {
