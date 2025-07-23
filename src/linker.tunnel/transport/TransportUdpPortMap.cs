@@ -103,6 +103,9 @@ namespace linker.tunnel.transport
 
                         if (connectionsDic.TryGetValue(remoteEP, out ConnectionCacheInfo cache) == false)
                         {
+                            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                                LoggerHelper.Instance.Debug($"{Name} recv from {result.RemoteEndPoint} <{memory.GetString()}>");
+
                             if (memory.Length > flagBytes.Length && memory.Span.Slice(0, flagBytes.Length).SequenceEqual(flagBytes))
                             {
                                 string key = memory.GetString();
@@ -321,10 +324,12 @@ namespace linker.tunnel.transport
                     }
 
                     await targetSocket.SendToAsync($"{flagTexts}-{tunnelTransportInfo.Local.MachineId}-{tunnelTransportInfo.FlowId}".ToBytes(), ep).ConfigureAwait(false);
-                    await targetSocket.ReceiveFromAsync(new byte[1024], new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, 0)).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+
+                    byte[] buffer = new byte[1024];
+                    SocketReceiveFromResult recv = await targetSocket.ReceiveFromAsync(buffer, new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, 0)).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
 
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        LoggerHelper.Instance.Debug($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep} success");
+                        LoggerHelper.Instance.Debug($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep} success -> <{buffer.AsMemory(0, recv.ReceivedBytes).GetString()}>");
 
                     TunnelConnectionUdp result = new TunnelConnectionUdp
                     {
