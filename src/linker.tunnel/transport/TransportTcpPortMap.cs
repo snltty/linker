@@ -306,7 +306,10 @@ namespace linker.tunnel.transport
             if (tunnelTransportInfo.Remote.LocalIps.Any(c => c.AddressFamily == AddressFamily.InterNetworkV6)
               && tunnelTransportInfo.Local.LocalIps.Any(c => c.AddressFamily == AddressFamily.InterNetworkV6))
             {
-                eps.Add(new IPEndPoint(tunnelTransportInfo.Remote.LocalIps.FirstOrDefault(c => c.AddressFamily == AddressFamily.InterNetworkV6), tunnelTransportInfo.Remote.PortMapWan));
+                foreach (var item in tunnelTransportInfo.Remote.LocalIps.Where(c => c.AddressFamily == AddressFamily.InterNetworkV6).Distinct())
+                {
+                    eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.PortMapWan));
+                }
             }
             eps.Add(new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address, tunnelTransportInfo.Remote.PortMapWan));
 
