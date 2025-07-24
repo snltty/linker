@@ -132,7 +132,7 @@ namespace linker.messenger.forward.proxy
                     {
                         break;
                     }
-                    if (FirewallCheck(token) == false)
+                    if (HookForward(token) == false)
                     {
                         CloseClientSocket(token, 7);
                         break;
@@ -151,7 +151,7 @@ namespace linker.messenger.forward.proxy
                         {
                             break;
                         }
-                        if (FirewallCheck(token) == false)
+                        if (HookForward(token) == false)
                         {
                             CloseClientSocket(token, 8);
                             break;
@@ -176,18 +176,6 @@ namespace linker.messenger.forward.proxy
                 CloseClientSocket(token, 6);
             }
 
-        }
-        private bool FirewallCheck(AsyncUserToken token)
-        {
-            ulong version = token.FirewallVersion;
-            bool firewall = token.Firewall && linkerFirewall.VersionChanged(ref version);
-            token.FirewallVersion = version;
-
-            if (firewall && linkerFirewall.Check(token.Connection.RemoteMachineId, token.IPEndPoint, ProtocolType.Tcp) == false)
-            {
-                return false;
-            }
-            return true;
         }
 
         /// <summary>
@@ -252,7 +240,7 @@ namespace linker.messenger.forward.proxy
         {
             if (token.Proxy.TargetEP == null) return;
 
-            if (linkerFirewall.Check(token.Connection.RemoteMachineId, token.Proxy.TargetEP, ProtocolType.Tcp) == false)
+            if (HookConnect(token.Connection.RemoteMachineId, token.Proxy.TargetEP, ProtocolType.Tcp) == false)
             {
                 return;
             }
@@ -260,7 +248,7 @@ namespace linker.messenger.forward.proxy
             Socket socket = new Socket(token.Proxy.TargetEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socket.KeepAlive();
 
-            ConnectState state = new ConnectState { BufferSize = token.Proxy.BufferSize, Connection = token.Connection, ConnectId = token.Proxy.ConnectId, Socket = socket, IPEndPoint = token.Proxy.TargetEP, Firewall = true };
+            ConnectState state = new ConnectState { BufferSize = token.Proxy.BufferSize, Connection = token.Connection, ConnectId = token.Proxy.ConnectId, Socket = socket, IPEndPoint = token.Proxy.TargetEP };
             state.CopyData(token.Proxy.Data);
             socket.BeginConnect(token.Proxy.TargetEP, ConnectCallback, state);
 
@@ -272,7 +260,7 @@ namespace linker.messenger.forward.proxy
             {
                 Connection = state.Connection,
                 Socket = state.Socket,
-                Firewall = state.Firewall,
+                Type = Type.Connect,
                 IPEndPoint = state.IPEndPoint,
                 Buffer = new byte[(1 << state.BufferSize) * 1024],
 
@@ -434,9 +422,24 @@ namespace linker.messenger.forward.proxy
         public byte[] Buffer { get; set; }
 
         public byte BufferSize { get; set; } = 3;
-        public bool Firewall { get; set; }
-        public ulong FirewallVersion { get; set; }
-        public IPEndPoint IPEndPoint { get; set; }
+
+        public Type Type { get; set; } = Type.Listen;
+        private IPEndPoint ipendpoint;
+        public IPEndPoint IPEndPoint
+        {
+            get => ipendpoint; set
+            {
+                if (value != null)
+                {
+                    ip = NetworkHelper.ToValue(value.Address);
+                    port = (ushort)value.Port;
+                }
+                ipendpoint = value;
+            }
+        }
+        private uint ip = 0;
+        private ushort port = 0;
+        public (uint ip, ushort port) RealIP => (ip, port);
 
         public void Clear()
         {
@@ -456,13 +459,19 @@ namespace linker.messenger.forward.proxy
             return (Proxy.ConnectId, Connection.RemoteMachineId, Connection.TransactionId, proxyDirection);
         }
     }
+
+    public enum Type : byte
+    {
+        Listen = 0,
+        Connect = 1
+    }
+
     public sealed class ConnectState
     {
         public ITunnelConnection Connection { get; set; }
         public ulong ConnectId { get; set; }
         public Socket Socket { get; set; }
         public IPEndPoint IPEndPoint { get; set; }
-        public bool Firewall { get; set; }
 
         public byte[] Data { get; set; } = Helper.EmptyArray;
         public int Length { get; set; }

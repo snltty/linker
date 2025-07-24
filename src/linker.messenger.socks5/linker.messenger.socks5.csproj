@@ -41,7 +41,6 @@
 		<ProjectReference Include="..\linker.messenger.api\linker.messenger.api.csproj" />
 		<ProjectReference Include="..\linker.messenger.channel\linker.messenger.channel.csproj" />
 		<ProjectReference Include="..\linker.messenger.exroute\linker.messenger.exroute.csproj" />
-		<ProjectReference Include="..\linker.messenger.firewall\linker.messenger.firewall.csproj" />
 		<ProjectReference Include="..\linker.messenger.signin\linker.messenger.signin.csproj" />
 		<ProjectReference Include="..\linker.messenger\linker.messenger.csproj" />
 		<ProjectReference Include="..\linker.snat\linker.snat.csproj" />

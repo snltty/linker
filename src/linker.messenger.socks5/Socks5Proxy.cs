@@ -10,7 +10,6 @@ using linker.messenger.relay.client;
 using linker.messenger.channel;
 using linker.messenger.signin;
 using linker.messenger.pcp;
-using linker.snat;
 
 namespace linker.messenger.socks5
 {
@@ -19,14 +18,12 @@ namespace linker.messenger.socks5
         private IPEndPoint proxyEP;
         protected override string TransactionId => "socks5";
 
-        private readonly LinkerFirewall linkerFirewall;
         private readonly Socks5CidrDecenterManager socks5CidrDecenterManager;
 
         public Socks5Proxy(ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer,
-            SignInClientTransfer signInClientTransfer, IRelayClientStore relayClientStore, LinkerFirewall linkerFirewall, Socks5CidrDecenterManager socks5CidrDecenterManager)
+            SignInClientTransfer signInClientTransfer, IRelayClientStore relayClientStore,  Socks5CidrDecenterManager socks5CidrDecenterManager)
              : base(tunnelTransfer, relayTransfer, pcpTransfer, signInClientTransfer, signInClientStore, relayClientStore)
         {
-            this.linkerFirewall = linkerFirewall;
             this.socks5CidrDecenterManager = socks5CidrDecenterManager;
             TaskUdp();
 

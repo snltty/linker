@@ -5,7 +5,6 @@ using linker.messenger.pcp;
 using linker.messenger.relay.client;
 using linker.messenger.signin;
 using linker.messenger.socks5;
-using linker.snat;
 using linker.tunnel;
 using linker.tunnel.connection;
 using System.Collections.Concurrent;
@@ -20,7 +19,7 @@ namespace linker.messenger.flow
         private readonly FlowTunnel flowTunnel;
 
         public FlowSocks5Proxy(FlowSocks5 flowSocks5, FlowTunnel flowTunnel, ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer,
-            SignInClientTransfer signInClientTransfer, IRelayClientStore relayClientStore, LinkerFirewall linkerFirewall, Socks5CidrDecenterManager socks5CidrDecenterManager) : base(signInClientStore, tunnelTransfer, relayTransfer, pcpTransfer, signInClientTransfer, relayClientStore, linkerFirewall, socks5CidrDecenterManager)
+            SignInClientTransfer signInClientTransfer, IRelayClientStore relayClientStore, Socks5CidrDecenterManager socks5CidrDecenterManager) : base(signInClientStore, tunnelTransfer, relayTransfer, pcpTransfer, signInClientTransfer, relayClientStore, socks5CidrDecenterManager)
         {
             this.flowSocks5 = flowSocks5;
             this.flowTunnel = flowTunnel;

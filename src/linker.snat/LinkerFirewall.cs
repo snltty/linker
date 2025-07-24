@@ -157,6 +157,13 @@ namespace linker.snat
 
             return Check(srcId, dst, dstPort, protocol);
         }
+        public bool Check(string srcId, (uint ip,ushort port) dstEP, ProtocolType protocol)
+        {
+            if (this.state != LinkerFirewallState.Enabled) return true;
+            return Check(srcId, dstEP.ip, dstEP.port, protocol);
+        }
+
+
         /// <summary>
         /// 检查数据包是否符合规则
         /// </summary>

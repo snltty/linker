@@ -41,7 +41,6 @@
 		<ProjectReference Include="..\linker.libs\linker.libs.csproj" />
 		<ProjectReference Include="..\linker.messenger.channel\linker.messenger.channel.csproj" />
 		<ProjectReference Include="..\linker.messenger.decenter\linker.messenger.decenter.csproj" />
-		<ProjectReference Include="..\linker.messenger.firewall\linker.messenger.firewall.csproj" />
 		<ProjectReference Include="..\linker.messenger.signin\linker.messenger.signin.csproj" />
 		<ProjectReference Include="..\linker.messenger\linker.messenger.csproj" />
 	</ItemGroup>

@@ -39,8 +39,6 @@ namespace linker.messenger.tuntap
 
             serviceCollection.AddSingleton<ITuntapSystemInformation, TuntapSystemInformation>();
 
-            serviceCollection.AddSingleton<TuntapFirewallHook>();
-
             serviceCollection.AddSingleton<TuntapCidrConnectionManager>();
             serviceCollection.AddSingleton<TuntapCidrDecenterManager>();
             serviceCollection.AddSingleton<TuntapCidrMapfileManager>();

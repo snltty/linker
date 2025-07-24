@@ -1,7 +1,11 @@
 ﻿
 using linker.libs.web;
+using linker.messenger.firewall.hooks;
+using linker.messenger.forward.proxy;
+using linker.messenger.socks5;
 using linker.messenger.sync;
 using linker.snat;
+using linker.tun;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace linker.messenger.firewall
@@ -15,6 +19,13 @@ namespace linker.messenger.firewall
             serviceCollection.AddSingleton<FirewallTransfer>();
             serviceCollection.AddSingleton<FirewallApiController>();
             serviceCollection.AddSingleton<FirewallSync>();
+
+
+            serviceCollection.AddSingleton<TuntapFirewallHook>();
+            serviceCollection.AddSingleton<Socks5FirewallHook>();
+            serviceCollection.AddSingleton<ForwardFirewallHook>();
+
+
 
             return serviceCollection;
         }
@@ -30,6 +41,16 @@ namespace linker.messenger.firewall
 
             SyncTreansfer syncTransfer = serviceProvider.GetService<SyncTreansfer>();
             syncTransfer.AddSyncs(new List<ISync> { serviceProvider.GetService<FirewallSync>() });
+
+
+            LinkerTunDeviceAdapter linkerTunDeviceAdapter = serviceProvider.GetService<LinkerTunDeviceAdapter>();
+            linkerTunDeviceAdapter.AddHooks(new List<ILinkerTunPacketHook> { serviceProvider.GetService<TuntapFirewallHook>() });
+
+            Socks5Proxy socks5Proxy = serviceProvider.GetService<Socks5Proxy>();
+            socks5Proxy.AddHooks(new List<ILinkerSocks5Hook> { serviceProvider.GetService<Socks5FirewallHook>() });
+
+            ForwardProxy forwardProxy = serviceProvider.GetService<ForwardProxy>();
+            forwardProxy.AddHooks(new List<ILinkerForwardHook> { serviceProvider.GetService<ForwardFirewallHook>() });
 
             return serviceProvider;
         }

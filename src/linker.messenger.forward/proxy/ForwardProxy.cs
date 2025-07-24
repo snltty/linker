@@ -12,6 +12,8 @@ namespace linker.messenger.forward.proxy
     {
         private readonly NumberSpace ns = new NumberSpace();
 
+        private ILinkerForwardHook[] hooks = [];
+
         public virtual void Add(string machineId, IPEndPoint target, long recvBytes,long sendtBytes)
         {
         }
@@ -57,6 +59,48 @@ namespace linker.messenger.forward.proxy
             }
         }
 
+
+        public void AddHooks(List<ILinkerForwardHook> hooks)
+        {
+            List<ILinkerForwardHook> list = this.hooks.ToList();
+            list.AddRange(hooks);
+
+            this.hooks = list.Distinct().ToArray();
+        }
+        private bool HookConnect(string srcId, IPEndPoint ep, ProtocolType protocol)
+        {
+            foreach (var hook in hooks)
+            {
+                if (!hook.Connect(srcId, ep, protocol))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        private bool HookForward(AsyncUserToken token)
+        {
+            foreach (var hook in hooks)
+            {
+                if (!hook.Forward(token))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        private bool HookForward(AsyncUserUdpTokenTarget token)
+        {
+            foreach (var hook in hooks)
+            {
+                if (!hook.Forward(token))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         private void Stop()
         {
             StopTcp();
@@ -68,6 +112,13 @@ namespace linker.messenger.forward.proxy
             StopUdp(port);
         }
 
+    }
+
+    public interface ILinkerForwardHook
+    {
+        public bool Connect(string srcId, IPEndPoint ep, ProtocolType protocol);
+        public bool Forward(AsyncUserToken token);
+        public bool Forward(AsyncUserUdpTokenTarget token);
     }
 
     public enum ProxyStep : byte

@@ -1,7 +1,7 @@
 ﻿using linker.snat;
 using linker.tun;
 
-namespace linker.messenger.tuntap
+namespace linker.messenger.firewall.hooks
 {
     public sealed class TuntapFirewallHook : ILinkerTunPacketHook
     {
@@ -16,7 +16,6 @@ namespace linker.messenger.tuntap
         public unsafe bool ReadAfter(ReadOnlyMemory<byte> packet)
         {
             linkerFirewall.AddAllow(packet);
-
             return true;
         }
 

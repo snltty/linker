@@ -25,8 +25,8 @@ namespace linker.messenger.socks5
                 {
                     ListenPort = ep.Port,
                     SourceSocket = socketUdp,
-                     IPEndPoint = ep,
-                      
+                    IPEndPoint = ep,
+
                     Proxy = new ProxyInfo { Port = (ushort)ep.Port, Step = ProxyStep.Forward, ConnectId = 0, Protocol = ProxyProtocol.Udp, Direction = ProxyDirection.Forward }
                 };
                 udpListens.AddOrUpdate(ep.Port, asyncUserUdpToken, (a, b) => asyncUserUdpToken);
@@ -119,18 +119,6 @@ namespace linker.messenger.socks5
             }
         }
 
-        private bool FirewallCheck(AsyncUserUdpTokenTarget token)
-        {
-            ulong version = token.FirewallVersion;
-            bool firewall = linkerFirewall.VersionChanged(ref version);
-            token.FirewallVersion = version;
-
-            if (firewall && linkerFirewall.Check(token.Connection.RemoteMachineId, token.TargetRealEP, ProtocolType.Udp) == false)
-            {
-                return false;
-            }
-            return true;
-        }
         private async Task SendToSocketUdp(AsyncUserTunnelToken tunnelToken)
         {
 
@@ -191,7 +179,7 @@ namespace linker.messenger.socks5
             IPAddress ip = socks5CidrDecenterManager.GetMapRealDst(tunnelToken.Proxy.TargetEP.Address);
             IPEndPoint target = new IPEndPoint(ip, tunnelToken.Proxy.TargetEP.Port);
 
-            if (linkerFirewall.Check(tunnelToken.Connection.RemoteMachineId, target, ProtocolType.Udp) == false)
+            if (HookConnect(tunnelToken.Connection.RemoteMachineId, target, ProtocolType.Udp) == false)
             {
                 return;
             }
@@ -233,7 +221,7 @@ namespace linker.messenger.socks5
                     {
                         continue;
                     }
-                    if (FirewallCheck(udpToken) == false)
+                    if (HookForward(udpToken) == false)
                     {
                         break;
                     }
@@ -373,8 +361,24 @@ namespace linker.messenger.socks5
         public ProxyInfo Proxy { get; set; }
 
         public IPEndPoint IPEndPoint { get; set; }
-        public IPEndPoint RealIPEndPoint { get; set; }
-        
+
+        private IPEndPoint ipendpoint;
+        public IPEndPoint RealIPEndPoint
+        {
+            get => ipendpoint; set
+            {
+                if (value != null)
+                {
+                    ip = NetworkHelper.ToValue(value.Address);
+                    port = (ushort)value.Port;
+                }
+                ipendpoint = value;
+            }
+        }
+        private uint ip = 0;
+        private ushort port = 0;
+        public (uint ip, ushort port) RealIP => (ip, port);
+
 
         public void Clear()
         {
@@ -388,7 +392,21 @@ namespace linker.messenger.socks5
     {
         public Socket TargetSocket { get; set; }
         public IPEndPoint TargetRealEP { get; set; }
-        public ulong FirewallVersion { get; set; }
+        private uint ip = 0;
+        private ushort port = 0;
+        public (uint ip, ushort port) RealIP
+        {
+            get
+            {
+                if (ip == 0 && TargetRealEP != null)
+                {
+                    ip = NetworkHelper.ToValue(TargetRealEP.Address);
+                    port = (ushort)TargetRealEP.Port;
+                }
+
+                return (ip, port);
+            }
+        }
 
         public ITunnelConnection Connection { get; set; }
         public ProxyInfo Proxy { get; set; }

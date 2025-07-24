@@ -196,23 +196,11 @@ namespace linker.messenger.forward.proxy
                 }
             }
         }
-        private bool FirewallCheck(AsyncUserUdpTokenTarget token)
-        {
-            ulong version = token.FirewallVersion;
-            bool firewall = linkerFirewall.VersionChanged(ref version);
-            token.FirewallVersion = version;
-
-            if (firewall && linkerFirewall.Check(token.Connection.RemoteMachineId, token.IPEndPoint, ProtocolType.Udp) == false)
-            {
-                return false;
-            }
-            return true;
-        }
 
         private async Task ConnectUdp(AsyncUserTunnelToken tunnelToken)
         {
             IPEndPoint target = new IPEndPoint(tunnelToken.Proxy.TargetEP.Address, tunnelToken.Proxy.TargetEP.Port);
-            if (linkerFirewall.Check(tunnelToken.Connection.RemoteMachineId, target, ProtocolType.Udp) == false)
+            if (HookConnect(tunnelToken.Connection.RemoteMachineId, target, ProtocolType.Udp) == false)
             {
                 return;
             }
@@ -254,7 +242,7 @@ namespace linker.messenger.forward.proxy
                     {
                         continue;
                     }
-                    if (FirewallCheck(udpToken) == false)
+                    if (HookForward(udpToken) == false)
                     {
                         break;
                     }
@@ -395,7 +383,23 @@ namespace linker.messenger.forward.proxy
     public sealed class AsyncUserUdpToken
     {
         public int ListenPort { get; set; }
-        public IPEndPoint IPEndPoint { get; set; }
+        private IPEndPoint ipendpoint;
+        public IPEndPoint IPEndPoint
+        {
+            get => ipendpoint; set
+            {
+                if (value != null)
+                {
+                    ip = NetworkHelper.ToValue(value.Address);
+                    port = (ushort)value.Port;
+                }
+                ipendpoint = value;
+            }
+        }
+        private uint ip = 0;
+        private ushort port = 0;
+        public (uint ip, ushort port) RealIP => (ip, port);
+
         public Socket SourceSocket { get; set; }
         public ITunnelConnection Connection { get; set; }
         public List<ITunnelConnection> Connections { get; set; }
@@ -413,6 +417,21 @@ namespace linker.messenger.forward.proxy
     {
         public Socket TargetSocket { get; set; }
         public IPEndPoint IPEndPoint { get; set; }
+        private uint ip = 0;
+        private ushort port = 0;
+        public (uint ip, ushort port) RealIP
+        {
+            get
+            {
+                if (ip == 0 && IPEndPoint != null)
+                {
+                    ip = NetworkHelper.ToValue(IPEndPoint.Address);
+                    port = (ushort)IPEndPoint.Port;
+                }
+
+                return (ip, port);
+            }
+        }
         public ulong FirewallVersion { get; set; }
         public ITunnelConnection Connection { get; set; }
         public ProxyInfo Proxy { get; set; }

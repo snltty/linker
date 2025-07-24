@@ -5,7 +5,6 @@ using linker.messenger.forward.proxy;
 using linker.messenger.pcp;
 using linker.messenger.relay.client;
 using linker.messenger.signin;
-using linker.snat;
 using linker.tunnel;
 using linker.tunnel.connection;
 using System.Collections.Concurrent;
@@ -19,7 +18,7 @@ namespace linker.messenger.flow
         private readonly FlowForward forwardFlow;
         private readonly FlowTunnel flowTunnel;
         public FlowForwardProxy(FlowForward forwardFlow, FlowTunnel flowTunnel, ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer,
-            SignInClientTransfer signInClientTransfer, IRelayClientStore relayClientStore, LinkerFirewall linkerFirewall) : base(signInClientStore, tunnelTransfer, relayTransfer, pcpTransfer, signInClientTransfer, relayClientStore, linkerFirewall)
+            SignInClientTransfer signInClientTransfer, IRelayClientStore relayClientStore) : base(signInClientStore, tunnelTransfer, relayTransfer, pcpTransfer, signInClientTransfer, relayClientStore)
         {
             this.forwardFlow = forwardFlow;
             this.flowTunnel = flowTunnel;

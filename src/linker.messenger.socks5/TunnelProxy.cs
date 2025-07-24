@@ -13,6 +13,8 @@ namespace linker.messenger.socks5
         private SemaphoreSlim semaphoreSlimForward = new SemaphoreSlim(10);
         private SemaphoreSlim semaphoreSlimReverse = new SemaphoreSlim(10);
 
+        private ILinkerSocks5Hook[] hooks = [];
+
         public void Start(IPEndPoint ep, byte bufferSize)
         {
             StartTcp(ep, bufferSize);
@@ -93,6 +95,49 @@ namespace linker.messenger.socks5
         }
 
 
+        public void AddHooks(List<ILinkerSocks5Hook> hooks)
+        {
+            List<ILinkerSocks5Hook> list = this.hooks.ToList();
+            list.AddRange(hooks);
+
+            this.hooks = list.Distinct().ToArray();
+        }
+        private bool HookConnect(string srcId, IPEndPoint ep, ProtocolType protocol)
+        {
+            foreach (var hook in hooks)
+            {
+                if (!hook.Connect(srcId, ep, protocol))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        private bool HookForward(AsyncUserToken token)
+        {
+            foreach (var hook in hooks)
+            {
+                if (!hook.Forward(token))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        private bool HookForward(AsyncUserUdpTokenTarget token)
+        {
+            foreach (var hook in hooks)
+            {
+                if (!hook.Forward(token))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+
+
         public void Stop()
         {
             StopTcp();
@@ -109,13 +154,8 @@ namespace linker.messenger.socks5
     public interface ILinkerSocks5Hook
     {
         public bool Connect(string srcId, IPEndPoint ep, ProtocolType protocol);
-        /// <summary>
-        /// 写入网卡前
-        /// </summary>
-        /// <param name="srcId"></param>
-        /// <param name="packet"></param>
-        /// <returns></returns>
-        public bool WriteBefore(string srcId, ReadOnlyMemory<byte> packet);
+        public bool Forward(AsyncUserToken token);
+        public bool Forward(AsyncUserUdpTokenTarget token);
     }
 
     public enum ProxyStep : byte
