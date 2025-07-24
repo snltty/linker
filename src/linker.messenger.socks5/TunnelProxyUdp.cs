@@ -26,6 +26,7 @@ namespace linker.messenger.socks5
                     ListenPort = ep.Port,
                     SourceSocket = socketUdp,
                      IPEndPoint = ep,
+                      
                     Proxy = new ProxyInfo { Port = (ushort)ep.Port, Step = ProxyStep.Forward, ConnectId = 0, Protocol = ProxyProtocol.Udp, Direction = ProxyDirection.Forward }
                 };
                 udpListens.AddOrUpdate(ep.Port, asyncUserUdpToken, (a, b) => asyncUserUdpToken);
@@ -89,7 +90,7 @@ namespace linker.messenger.socks5
                 {
                     CloseClientSocket(token);
                 }
-                Add(token.Connection.RemoteMachineId, token.IPEndPoint, length, 0);
+                Add(token.Connection.RemoteMachineId, token.RealIPEndPoint, length, 0);
             }
             catch (Exception)
             {
@@ -172,7 +173,7 @@ namespace linker.messenger.socks5
                         if (await ConnectionReceiveUdp(tunnelToken, asyncUserUdpToken).ConfigureAwait(false) == false)
                         {
                             await asyncUserUdpToken.SourceSocket.SendToAsync(tunnelToken.Proxy.Data, tunnelToken.Proxy.SourceEP).ConfigureAwait(false);
-                            Add(tunnelToken.Connection.RemoteMachineId, asyncUserUdpToken.IPEndPoint, 0, tunnelToken.Proxy.Data.Length);
+                            Add(tunnelToken.Connection.RemoteMachineId, asyncUserUdpToken.RealIPEndPoint, 0, tunnelToken.Proxy.Data.Length);
                         }
                     }
                     catch (Exception ex)
@@ -372,6 +373,8 @@ namespace linker.messenger.socks5
         public ProxyInfo Proxy { get; set; }
 
         public IPEndPoint IPEndPoint { get; set; }
+        public IPEndPoint RealIPEndPoint { get; set; }
+        
 
         public void Clear()
         {

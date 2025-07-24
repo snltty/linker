@@ -34,7 +34,7 @@ namespace linker.messenger.socks5
                 userToken = new AsyncUserToken
                 {
                     ListenPort = _localEndPoint.Port,
-                     RealIPEndPoint = _localEndPoint,
+                    RealIPEndPoint = _localEndPoint,
                     Socket = new Socket(_localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp),
                     BufferSize = bufferSize
                 };
@@ -84,6 +84,7 @@ namespace linker.messenger.socks5
                         Socket = socket,
                         ListenPort = acceptToken.ListenPort,
                         BufferSize = acceptToken.BufferSize,
+                        RealIPEndPoint = acceptToken.RealIPEndPoint,
                         Buffer = new byte[(1 << acceptToken.BufferSize) * 1024],
                         Proxy = new ProxyInfo { Data = Helper.EmptyArray, Step = ProxyStep.Request, Port = (ushort)acceptToken.ListenPort, ConnectId = ns.Increment() }
                     };
@@ -336,7 +337,7 @@ namespace linker.messenger.socks5
                 try
                 {
                     token1.Connection = tunnelToken.Connection;
-                    Add(token1.Connection.RemoteMachineId, token1.RealIPEndPoint,  0, tunnelToken.Proxy.Data.Length);
+                    Add(token1.Connection.RemoteMachineId, token1.RealIPEndPoint, 0, tunnelToken.Proxy.Data.Length);
                     await token1.Socket.SendAsync(tunnelToken.Proxy.Data, SocketFlags.None).AsTask().WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
                 }
                 catch (Exception ex)

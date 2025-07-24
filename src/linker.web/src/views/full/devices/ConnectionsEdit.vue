@@ -80,7 +80,7 @@
                 <el-table-column property="Name" :label="$t('server.relayName')">
                     <template #default="scope">
                         <div>
-                            <a :href="scope.row.Url" class="a-line blue" target="_blank"></a>
+                            <a :href="scope.row.Url" class="a-line blue" target="_blank">{{ scope.row.Name }}</a>
                         </div>
                     </template>
                 </el-table-column>

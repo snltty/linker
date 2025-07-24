@@ -29,7 +29,7 @@ namespace linker.messenger.forward.proxy
                 {
                     ListenPort = ep.Port,
                     SourceSocket = socketUdp,
-
+                    IPEndPoint = ep,
                     Proxy = new ProxyInfo { Port = (ushort)ep.Port, Step = ProxyStep.Forward, ConnectId = 0, Protocol = ProxyProtocol.Udp, Direction = ProxyDirection.Forward }
                 };
                 udpListens.AddOrUpdate(ep.Port, asyncUserUdpToken, (a, b) => asyncUserUdpToken);
@@ -155,7 +155,7 @@ namespace linker.messenger.forward.proxy
                     if (udpConnections.TryGetValue(connectId, out AsyncUserUdpTokenTarget token))
                     {
                         token.Connection = tunnelToken.Connection;
-                        Add(tunnelToken.Connection.RemoteMachineId, token.TargetRealEP, 0, tunnelToken.Proxy.Data.Length);
+                        Add(tunnelToken.Connection.RemoteMachineId, token.IPEndPoint, 0, tunnelToken.Proxy.Data.Length);
                         await token.TargetSocket.SendToAsync(tunnelToken.Proxy.Data, tunnelToken.Proxy.TargetEP).ConfigureAwait(false);
                         token.LastTicks.Update();
                         return;
@@ -183,7 +183,7 @@ namespace linker.messenger.forward.proxy
                     try
                     {
                         asyncUserUdpToken.Connection = tunnelToken.Connection;
-                        Add(tunnelToken.Connection.RemoteMachineId, asyncUserUdpToken.IPEndPoint,0, tunnelToken.Proxy.Data.Length);
+                        Add(tunnelToken.Connection.RemoteMachineId, asyncUserUdpToken.IPEndPoint, 0, tunnelToken.Proxy.Data.Length);
                         await asyncUserUdpToken.SourceSocket.SendToAsync(tunnelToken.Proxy.Data, tunnelToken.Proxy.SourceEP).ConfigureAwait(false);
                     }
                     catch (Exception ex)
@@ -202,7 +202,7 @@ namespace linker.messenger.forward.proxy
             bool firewall = linkerFirewall.VersionChanged(ref version);
             token.FirewallVersion = version;
 
-            if (firewall && linkerFirewall.Check(token.Connection.RemoteMachineId, token.TargetRealEP, ProtocolType.Udp) == false)
+            if (firewall && linkerFirewall.Check(token.Connection.RemoteMachineId, token.IPEndPoint, ProtocolType.Udp) == false)
             {
                 return false;
             }
@@ -235,7 +235,7 @@ namespace linker.messenger.forward.proxy
                     Port = tunnelToken.Proxy.Port,
                     BufferSize = tunnelToken.Proxy.BufferSize,
                 },
-                TargetRealEP = target,
+                IPEndPoint = target,
                 TargetSocket = socket,
                 ConnectId = connectId,
                 Connection = tunnelToken.Connection,
@@ -261,7 +261,7 @@ namespace linker.messenger.forward.proxy
 
                     udpToken.Proxy.Data = udpToken.Buffer.AsMemory(0, result.ReceivedBytes);
                     udpToken.LastTicks.Update();
-                    Add(udpToken.Connection.RemoteMachineId, udpToken.TargetRealEP, udpToken.Proxy.Data.Length, 0);
+                    Add(udpToken.Connection.RemoteMachineId, udpToken.IPEndPoint, udpToken.Proxy.Data.Length, 0);
 
                     await SendToConnection(udpToken).ConfigureAwait(false);
                 }
@@ -412,7 +412,7 @@ namespace linker.messenger.forward.proxy
     public sealed class AsyncUserUdpTokenTarget
     {
         public Socket TargetSocket { get; set; }
-        public IPEndPoint TargetRealEP { get; set; }
+        public IPEndPoint IPEndPoint { get; set; }
         public ulong FirewallVersion { get; set; }
         public ITunnelConnection Connection { get; set; }
         public ProxyInfo Proxy { get; set; }

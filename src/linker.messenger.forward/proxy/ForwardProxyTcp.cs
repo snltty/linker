@@ -34,7 +34,8 @@ namespace linker.messenger.forward.proxy
                 {
                     ListenPort = LocalEndpoint.Port,
                     Socket = socket,
-                    BufferSize = bufferSize
+                    BufferSize = bufferSize,
+                    IPEndPoint = new IPEndPoint(IPAddress.Any, LocalEndpoint.Port),
                 };
                 _ = StartAccept(userToken);
                 tcpListens.AddOrUpdate(LocalEndpoint.Port, userToken, (a, b) => userToken);
@@ -78,7 +79,8 @@ namespace linker.messenger.forward.proxy
                         ListenPort = acceptToken.ListenPort,
                         BufferSize = acceptToken.BufferSize,
                         Buffer = new byte[(1 << acceptToken.BufferSize) * 1024],
-                        IPEndPoint = new IPEndPoint(IPAddress.Any, acceptToken.ListenPort),
+                        IPEndPoint = acceptToken.IPEndPoint,
+
                         Proxy = new ProxyInfo { Data = Helper.EmptyArray, Step = ProxyStep.Request, Port = (ushort)acceptToken.ListenPort, ConnectId = ns.Increment() }
                     };
                     _ = BeginReceive(userToken);
@@ -290,7 +292,7 @@ namespace linker.messenger.forward.proxy
 
                 if (state.Data.Length > 0)
                 {
-                    Add(token.Connection.RemoteMachineId, state.IPEndPoint,0, state.Length);
+                    Add(token.Connection.RemoteMachineId, state.IPEndPoint, 0, state.Length);
                     await token.Socket.SendAsync(state.Data.AsMemory(0, state.Length), SocketFlags.None).ConfigureAwait(false);
                 }
                 tcpConnections.TryAdd(token.GetConnectId(ProxyDirection.Forward), token);
@@ -366,7 +368,7 @@ namespace linker.messenger.forward.proxy
                 {
 
                     token1.Connection = tunnelToken.Connection;
-                    Add(token1.Connection.RemoteMachineId, token1.IPEndPoint,0, tunnelToken.Proxy.Data.Length);
+                    Add(token1.Connection.RemoteMachineId, token1.IPEndPoint, 0, tunnelToken.Proxy.Data.Length);
                     await token1.Socket.SendAsync(tunnelToken.Proxy.Data, SocketFlags.None).AsTask().WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
                 }
                 catch (Exception ex)

@@ -106,6 +106,18 @@ namespace linker.messenger.socks5
 
     }
 
+    public interface ILinkerSocks5Hook
+    {
+        public bool Connect(string srcId, IPEndPoint ep, ProtocolType protocol);
+        /// <summary>
+        /// 写入网卡前
+        /// </summary>
+        /// <param name="srcId"></param>
+        /// <param name="packet"></param>
+        /// <returns></returns>
+        public bool WriteBefore(string srcId, ReadOnlyMemory<byte> packet);
+    }
+
     public enum ProxyStep : byte
     {
         Request = 1,
