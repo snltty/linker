@@ -86,7 +86,7 @@ namespace linker.messenger.tuntap
     }
 
 
-    public sealed partial class TuntapInfo
+    public partial class TuntapInfo
     {
         /// <summary>
         /// 设备id
@@ -109,10 +109,6 @@ namespace linker.messenger.tuntap
         /// 网卡名
         /// </summary>
         public string Name { get; set; }
-        /// <summary>
-        /// id
-        /// </summary>
-        public Guid Guid { get; set; }
 
         /// <summary>
         /// 网卡安装错误
@@ -327,6 +323,7 @@ namespace linker.messenger.tuntap
         /// </summary>
         public bool AppNat => (Switch & TuntapSwitch.AppNat) == TuntapSwitch.AppNat;
     }
+
 
     public sealed partial class TuntapForwardInfo
     {

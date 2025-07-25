@@ -152,9 +152,6 @@ namespace linker.messenger.serializer.memorypack
         string Name => info.Name;
 
         [MemoryPackInclude]
-        Guid Guid => info.Guid;
-
-        [MemoryPackInclude]
         List<TuntapLanInfo> Lans => info.Lans;
         [MemoryPackInclude, MemoryPackAllowSerialize]
         IPAddress Wan => info.Wan;
@@ -175,7 +172,7 @@ namespace linker.messenger.serializer.memorypack
         TuntapSwitch Switch => info.Switch;
 
         [MemoryPackConstructor]
-        SerializableTuntapInfo(string machineId, TuntapStatus status, IPAddress ip, byte prefixLength, string name, Guid guid,
+        SerializableTuntapInfo(string machineId, TuntapStatus status, IPAddress ip, byte prefixLength, string name,
             List<TuntapLanInfo> lans, IPAddress wan, string setupError, string natError, string systemInfo, List<TuntapForwardInfo> forwards, TuntapSwitch Switch)
         {
             var info = new TuntapInfo
@@ -190,7 +187,6 @@ namespace linker.messenger.serializer.memorypack
                 SetupError = setupError,
                 PrefixLength = prefixLength,
                 Name = name,
-                Guid = guid,
                 Status = status,
                 Switch = Switch,
             };
@@ -228,7 +224,6 @@ namespace linker.messenger.serializer.memorypack
             value = wrapped.info;
         }
     }
-
 
 
     [MemoryPackable]

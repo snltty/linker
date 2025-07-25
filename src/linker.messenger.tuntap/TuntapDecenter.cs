@@ -72,7 +72,6 @@ namespace linker.messenger.tuntap
                 SetupError = tuntapTransfer.SetupError,
                 NatError = tuntapTransfer.NatError,
                 SystemInfo = systemInformation.Get(),
-                Guid = tuntapConfigTransfer.Info.Guid,
                 Forwards = tuntapConfigTransfer.Info.Forwards,
                 Switch = tuntapConfigTransfer.Info.Switch
             });
@@ -123,7 +122,7 @@ namespace linker.messenger.tuntap
                     IEnumerable<string> availables = tuntapInfos.Values.Where(c => c.Available).Select(c => c.MachineId);
                     if (availables.Any())
                     {
-                        List<string> offlines = await signInClientTransfer.GetOfflines(availables.ToList()).ConfigureAwait(false); ;
+                        List<string> offlines = await signInClientTransfer.GetOfflines(availables.ToList()).ConfigureAwait(false);
                         if (offlines.Any())
                         {
                             foreach (var item in tuntapInfos.Values.Where(c => offlines.Contains(c.MachineId)))

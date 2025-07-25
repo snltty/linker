@@ -62,7 +62,6 @@ namespace linker.messenger.tuntap.messenger
             TuntapInfo info = serializer.Deserialize<TuntapInfo>(connection.ReceiveRequestWrap.Payload.Span);
             tuntapConfigTransfer.Update(info);
         }
-
         /// <summary>
         /// 重新租赁
         /// </summary>

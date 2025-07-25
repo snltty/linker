@@ -41,7 +41,7 @@ export default {
 
         const ruleFormRef = ref(null);
         const state = reactive({
-            showGuid:tuntap.value.current.systems.indexOf('windows') >= 0,
+            showGuid:false,//tuntap.value.current.systems.indexOf('windows') >= 0 && tuntap.value.current.device.isSelf,
             ruleForm: {
                 IP: tuntap.value.current.IP,
                 PrefixLength: tuntap.value.current.PrefixLength || 24,
@@ -55,7 +55,7 @@ export default {
                 InterfaceOrder: tuntap.value.current.InterfaceOrder,
                 Forwards: tuntap.value.current.Forwards,
                 Name: tuntap.value.current.Name,
-                Guid: tuntap.value.current.Guid,
+                // Guid: tuntap.value.current.Guid,
             },
             rules: {
                 Name: {
@@ -92,7 +92,7 @@ export default {
             json.TcpMerge = state.ruleForm.TcpMerge;
             json.InterfaceOrder = state.ruleForm.InterfaceOrder;
             json.Name = state.ruleForm.Name;
-            json.Guid = state.ruleForm.Guid;
+            // json.Guid = state.ruleForm.Guid;
 
             return json;
         }

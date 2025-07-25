@@ -73,7 +73,7 @@ namespace linker.messenger.tuntap
                 Info.Name = info.Name;
                 Info.Switch = info.Switch;
                 Info.Forwards = info.Forwards;
-                info.Guid = Info.Guid;
+
                 tuntapStore.Confirm();
 
                 await LeaseIP().ConfigureAwait(false);
