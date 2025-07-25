@@ -390,7 +390,7 @@ namespace linker.tunnel.transport
         {
             TimerHelper.SetIntervalLong(() =>
             {
-                var keys = connectionsDic.Where(c => (c.Value.Connection == null && c.Value.LastTicks.DiffGreater(5000)) || (c.Value.Connection != null && c.Value.Connection.Connected == false)).Select(c => c.Key).ToList();
+                var keys = connectionsDic.Where(c => (c.Value.Connection == null && c.Value.LastTicks.DiffGreater(15000)) || (c.Value.Connection != null && c.Value.Connection.Connected == false)).Select(c => c.Key).ToList();
                 foreach (var item in keys)
                 {
                     connectionsDic.TryRemove(item, out _);

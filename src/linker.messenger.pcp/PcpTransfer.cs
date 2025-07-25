@@ -94,7 +94,6 @@ namespace linker.messenger.pcp
             }
         }
 
-
         public void AddConnection(ITunnelConnection connection)
         {
             if (connection.Type != TunnelType.P2P) return;

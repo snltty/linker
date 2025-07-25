@@ -122,6 +122,10 @@ namespace linker.messenger.tuntap
                     {
                         leaseClientStore.Set(signInClientStore.Group.Id, lease.GetRawText().DeJson<LeaseInfo>());
                     }
+                    if (tuntap.TryGetProperty("Guid", out JsonElement guid))
+                    {
+                        tuntapClientStore.Info.Guid = Guid.Parse(guid.GetRawText());
+                    }
                 }
                 catch (Exception ex)
                 {

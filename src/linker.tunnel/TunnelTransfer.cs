@@ -397,35 +397,29 @@ namespace linker.tunnel
         /// <returns></returns>
         private async Task<TunnelTransportWanPortInfo> GetLocalInfo(TunnelWanPortProtocolType tunnelWanPortProtocolType)
         {
-            if (tunnelMessengerAdapter.ServerHost == null || string.IsNullOrWhiteSpace(tunnelMessengerAdapter.MachineId)) return null;
-
-            NetworkInfo network = new NetworkInfo
+            if (tunnelMessengerAdapter.ServerHost == null || string.IsNullOrWhiteSpace(tunnelMessengerAdapter.MachineId))
             {
-                LocalIps = networkInfo.LocalIps,
-                RouteLevel = networkInfo.RouteLevel + tunnelMessengerAdapter.RouteLevelPlus,
-                MachineId = tunnelMessengerAdapter.MachineId
-            };
-            if (string.IsNullOrWhiteSpace(network.MachineId))
-            {
+                LoggerHelper.Instance.Error($"wan port ServerHost is null or MachineId is null");
                 return null;
             }
-            TunnelWanPortEndPoint ip = await tunnelWanPortTransfer.GetWanPortAsync(tunnelMessengerAdapter.ServerHost, tunnelWanPortProtocolType).ConfigureAwait(false);
-            if (ip != null)
-            {
-                MapInfo portMapInfo = tunnelUpnpTransfer.PortMap ?? new MapInfo { PrivatePort = 0, PublicPort = 0 };
 
-                return new TunnelTransportWanPortInfo
-                {
-                    Local = ip.Local,
-                    Remote = ip.Remote,
-                    LocalIps = network.LocalIps,
-                    RouteLevel = network.RouteLevel,
-                    MachineId = network.MachineId,
-                    PortMapLan = portMapInfo.PrivatePort,
-                    PortMapWan = portMapInfo.PublicPort,
-                };
+            TunnelWanPortEndPoint ip = await tunnelWanPortTransfer.GetWanPortAsync(tunnelMessengerAdapter.ServerHost, tunnelWanPortProtocolType).ConfigureAwait(false);
+            if (ip == null)
+            {
+                LoggerHelper.Instance.Error($"wan port get ip is null");
+                return null;
             }
-            return null;
+            MapInfo portMapInfo = tunnelUpnpTransfer.PortMap ?? new MapInfo { PrivatePort = 0, PublicPort = 0 };
+            return new TunnelTransportWanPortInfo
+            {
+                Local = ip.Local,
+                Remote = ip.Remote,
+                LocalIps = networkInfo.LocalIps,
+                RouteLevel = networkInfo.RouteLevel + tunnelMessengerAdapter.RouteLevelPlus,
+                MachineId = tunnelMessengerAdapter.MachineId,
+                PortMapLan = portMapInfo.PrivatePort,
+                PortMapWan = portMapInfo.PublicPort,
+            };
         }
 
 

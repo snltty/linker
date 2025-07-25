@@ -39,7 +39,7 @@ namespace linker.messenger.tunnel
                    
                     for (int i = 0; i < 5; i++)
                     {
-                        await Task.Delay(15).ConfigureAwait(false);
+                        await Task.Delay(100).ConfigureAwait(false);
                         await socket.SendToAsync(send, SocketFlags.None, ep).ConfigureAwait(false);
                         Add(0,send.Length);
                     }
