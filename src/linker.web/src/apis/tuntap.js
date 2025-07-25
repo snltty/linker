@@ -44,3 +44,10 @@ export const getNetwork = () => {
 export const addNetwork = (data) => {
     return sendWebsocketMsg('tuntap/AddNetwork', data);
 }
+
+export const getid = (machineid) => {
+    return sendWebsocketMsg('tuntap/getid', machineid);
+}
+export const setid = (data) => {
+    return sendWebsocketMsg('tuntap/setid', data);
+}

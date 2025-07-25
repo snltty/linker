@@ -95,18 +95,27 @@ namespace linker.tunnel.transport
                         SocketReceiveFromResult result = await socket.ReceiveFromAsync(bytes.AsMemory(), ep).ConfigureAwait(false);
                         if (result.ReceivedBytes == 0)
                         {
+                            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                                LoggerHelper.Instance.Debug($"{Name} recv from {result.RemoteEndPoint} <0>");
+                            await Task.Delay(1000);
                             continue;
                         }
 
                         IPEndPoint remoteEP = result.RemoteEndPoint as IPEndPoint;
                         Memory<byte> memory = bytes.AsMemory(0, result.ReceivedBytes);
 
-                        if (connectionsDic.TryGetValue(remoteEP, out ConnectionCacheInfo cache) == false)
+                        
+                        if (memory.Length > flagBytes.Length && memory.Span.Slice(0, flagBytes.Length).SequenceEqual(flagBytes))
                         {
                             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                                 LoggerHelper.Instance.Debug($"{Name} recv from {result.RemoteEndPoint} <{memory.GetString()}>");
 
-                            if (memory.Length > flagBytes.Length && memory.Span.Slice(0, flagBytes.Length).SequenceEqual(flagBytes))
+                            if (connectionsDic.TryGetValue(remoteEP, out ConnectionCacheInfo cache))
+                            {
+                                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                                    LoggerHelper.Instance.Warning($"{Name} recv from {result.RemoteEndPoint} <{memory.GetString()}> connected");
+                            }
+                            else
                             {
                                 string key = memory.GetString();
                                 if (distDic.TryRemove(key, out TaskCompletionSource<State> tcs))
@@ -117,11 +126,7 @@ namespace linker.tunnel.transport
                                 }
                             }
                         }
-                        else if (memory.Length > flagBytes.Length && memory.Span.Slice(0, flagBytes.Length).SequenceEqual(flagBytes))
-                        {
-
-                        }
-                        else if (cache.Connection != null)
+                        else if (connectionsDic.TryGetValue(remoteEP, out ConnectionCacheInfo cache))
                         {
                             bool success = await cache.Connection.ProcessWrite(bytes, 0, result.ReceivedBytes).ConfigureAwait(false);
                             if (success == false)

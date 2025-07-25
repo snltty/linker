@@ -87,6 +87,13 @@ namespace linker.messenger.tuntap
                 OnUpdate();
             });
         }
+
+        public void SetID(Guid guid)
+        {
+            Info.Guid = guid;
+            tuntapStore.Confirm();
+        }
+
         /// <summary>
         /// 刷新IP
         /// </summary>

@@ -97,6 +97,16 @@ namespace linker.messenger.tuntap.messenger
         {
             connection.Write(serializer.Serialize(tuntapCidrDecenterManager.CidrRoutes));
         }
+        [MessengerId((ushort)TuntapMessengerIds.ID)]
+        public void ID(IConnection connection)
+        {
+            connection.Write(serializer.Serialize(tuntapConfigTransfer.Info.Guid));
+        }
+        [MessengerId((ushort)TuntapMessengerIds.SetID)]
+        public void SetID(IConnection connection)
+        {
+            tuntapConfigTransfer.SetID(serializer.Deserialize<Guid>(connection.ReceiveRequestWrap.Payload.Span));
+        }
     }
 
 
@@ -326,6 +336,49 @@ namespace linker.messenger.tuntap.messenger
                     Code = MessageResponeCodes.OK,
                     Payload = Helper.EmptyArray
                 }, (ushort)TuntapMessengerIds.RoutesForward);
+            }
+        }
+
+        [MessengerId((ushort)TuntapMessengerIds.IDForward)]
+        public void IDForward(IConnection connection)
+        {
+            uint requestid = connection.ReceiveRequestWrap.RequestId;
+            string machineid = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, machineid, out SignCacheInfo from, out SignCacheInfo to))
+            {
+                messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = to.Connection,
+                    MessengerId = (ushort)TuntapMessengerIds.ID,
+                    Timeout = 1000
+                }).ContinueWith((result) =>
+                {
+                    if (result.Result.Code == MessageResponeCodes.OK)
+                    {
+                        messengerSender.ReplyOnly(new MessageResponseWrap
+                        {
+                            Connection = connection,
+                            RequestId = requestid,
+                            Code = MessageResponeCodes.OK,
+                            Payload = result.Result.Data
+                        }, (ushort)TuntapMessengerIds.IDForward);
+                    }
+                });
+            }
+        }
+
+        [MessengerId((ushort)TuntapMessengerIds.SetIDForward)]
+        public async Task SetIDForward(IConnection connection)
+        {
+            KeyValuePair<string, Guid> info = serializer.Deserialize<KeyValuePair<string, Guid>>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, info.Key, out SignCacheInfo from, out SignCacheInfo to))
+            {
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = to.Connection,
+                    MessengerId = (ushort)TuntapMessengerIds.SetID,
+                    Payload = serializer.Serialize(info.Value)
+                }).ConfigureAwait(false);
             }
         }
     }

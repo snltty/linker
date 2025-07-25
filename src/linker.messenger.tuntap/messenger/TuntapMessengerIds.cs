@@ -26,6 +26,12 @@
         Routes = 2216,
         RoutesForward = 2217,
 
+        ID = 2218,
+        IDForward = 2219,
+
+        SetID = 2220,
+        SetIDForward = 2221,
+
         None = 2299
     }
 }

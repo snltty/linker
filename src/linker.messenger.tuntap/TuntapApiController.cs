@@ -28,7 +28,7 @@ namespace linker.messenger.tuntap
         private readonly ISerializer serializer;
         private readonly TuntapProxy tuntapProxy;
         public TuntapApiController(IMessengerSender messengerSender, TuntapTransfer tuntapTransfer, SignInClientState signInClientState,
-           TuntapCidrDecenterManager tuntapCidrDecenterManager,TuntapConfigTransfer tuntapConfigTransfer, LeaseClientTreansfer leaseClientTreansfer,
+           TuntapCidrDecenterManager tuntapCidrDecenterManager, TuntapConfigTransfer tuntapConfigTransfer, LeaseClientTreansfer leaseClientTreansfer,
             TuntapPingTransfer pingTransfer, IAccessStore accessStore, ISignInClientStore signInClientStore, TuntapDecenter tuntapDecenter, TuntapAdapter tuntapAdapter, ISerializer serializer, TuntapProxy tuntapProxy)
         {
             this.messengerSender = messengerSender;
@@ -223,6 +223,50 @@ namespace linker.messenger.tuntap
         }
 
 
+        public async Task<Guid> GetId(ApiControllerParamsInfo param)
+        {
+            if (param.Content == signInClientStore.Id)
+            {
+                return tuntapConfigTransfer.Info.Guid;
+            }
+            else
+            {
+                MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = signInClientState.Connection,
+                    MessengerId = (ushort)TuntapMessengerIds.IDForward,
+                    Payload = serializer.Serialize(param.Content),
+                    Timeout = 3000,
+                }).ConfigureAwait(false);
+
+                if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
+                {
+                    return serializer.Deserialize<Guid>(resp.Data.Span);
+                }
+            }
+            return Guid.Empty;
+        }
+        public async Task<bool> SetId(ApiControllerParamsInfo param)
+        {
+            SetIdKeyValueInfo info = param.Content.DeJson<SetIdKeyValueInfo>();
+            if (info.Key == signInClientStore.Id)
+            {
+                tuntapConfigTransfer.SetID(info.Value);
+            }
+            else
+            {
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = signInClientState.Connection,
+                    MessengerId = (ushort)TuntapMessengerIds.SetIDForward,
+                    Payload = serializer.Serialize(new KeyValuePair<string, Guid>(info.Key, info.Value)),
+                    Timeout = 3000,
+                }).ConfigureAwait(false);
+            }
+            return true;
+        }
+
+
         /// <summary>
         /// 计算网络
         /// </summary>
@@ -307,6 +351,13 @@ namespace linker.messenger.tuntap
         }
 
     }
+
+    public sealed class SetIdKeyValueInfo
+    {
+        public string Key { get; set; }
+        public Guid Value { get; set; }
+    }
+
     public sealed class TuntabListInfo
     {
         public ConcurrentDictionary<string, TuntapInfo> List { get; set; }

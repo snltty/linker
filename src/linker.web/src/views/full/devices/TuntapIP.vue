@@ -26,11 +26,13 @@
     </div>
 </template>
 <script>
-import { reactive, ref} from 'vue';
+import { onMounted, reactive, ref} from 'vue';
 import { useTuntap } from './tuntap';
 import TuntapForward from './TuntapForward.vue'
 import TuntapLan from './TuntapLan.vue'
 import { Delete, Plus, Warning, Refresh } from '@element-plus/icons-vue'
+import { getid, setid } from '@/apis/tuntap';
+import { ElMessage } from 'element-plus';
 export default {
     emits: ['change'],
     components: { Delete, Plus, Warning, Refresh,TuntapForward ,TuntapLan},
@@ -41,7 +43,7 @@ export default {
 
         const ruleFormRef = ref(null);
         const state = reactive({
-            showGuid:false,//tuntap.value.current.systems.indexOf('windows') >= 0 && tuntap.value.current.device.isSelf,
+            showGuid:tuntap.value.current.systems.indexOf('windows') >= 0,
             ruleForm: {
                 IP: tuntap.value.current.IP,
                 PrefixLength: tuntap.value.current.PrefixLength || 24,
@@ -55,7 +57,7 @@ export default {
                 InterfaceOrder: tuntap.value.current.InterfaceOrder,
                 Forwards: tuntap.value.current.Forwards,
                 Name: tuntap.value.current.Name,
-                // Guid: tuntap.value.current.Guid,
+                Guid: '',
             },
             rules: {
                 Name: {
@@ -77,6 +79,11 @@ export default {
         }
         const handleNewId = () => {
             state.ruleForm.Guid =  crypto.randomUUID();
+            setid({key:tuntap.value.current.device.MachineId,value:state.ruleForm.Guid}).then(res=>{ 
+                ElMessage.success('已操作')
+            }).catch(()=>{
+                ElMessage.error('操作失败！');
+            });
         }
 
         const getData = ()=>{
@@ -92,10 +99,16 @@ export default {
             json.TcpMerge = state.ruleForm.TcpMerge;
             json.InterfaceOrder = state.ruleForm.InterfaceOrder;
             json.Name = state.ruleForm.Name;
-            // json.Guid = state.ruleForm.Guid;
 
             return json;
         }
+
+        onMounted(()=>{
+            getid(tuntap.value.current.device.MachineId).then(res=>{
+                state.ruleForm.Guid = res;
+            });
+        })
+
         return {
             state, ruleFormRef, handlePrefixLengthChange,handleNewId,getData
         }
