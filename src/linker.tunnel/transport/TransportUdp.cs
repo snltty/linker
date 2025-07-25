@@ -224,13 +224,9 @@ namespace linker.tunnel.transport
 
             TimerHelper.Async(async () =>
             {
-                byte[] buffer = new byte[1024];
-                SocketReceiveFromResult result = await socket.ReceiveFromAsync(buffer, new IPEndPoint(IPAddress.IPv6Any, 0)).ConfigureAwait(false);
-                if (buffer.AsSpan(0, result.ReceivedBytes).SequenceEqual(authBytes))
-                {
-                    await socket.SendToAsync(endBytes, result.RemoteEndPoint).ConfigureAwait(false);
-                    tcs.TrySetResult(result.RemoteEndPoint as IPEndPoint);
-                }
+                SocketReceiveFromResult result = await socket.ReceiveFromAsync(new byte[1024], new IPEndPoint(IPAddress.IPv6Any, 0)).ConfigureAwait(false);
+                await socket.SendToAsync(endBytes, result.RemoteEndPoint).ConfigureAwait(false);
+                tcs.TrySetResult(result.RemoteEndPoint as IPEndPoint);
             });
             return socket;
         }

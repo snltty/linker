@@ -14,7 +14,7 @@ namespace linker.tun
         {
             linkerTunDeviceAdapter = new LinkerTunDeviceAdapter();
             linkerTunDeviceAdapter.Initialize(new LinkerTunDeviceCallbackICMP());
-            linkerTunDeviceAdapter.Setup("linker0", IPAddress.Parse("192.168.55.2"), 24, 1420);
+            linkerTunDeviceAdapter.Setup(new LinkerTunDeviceSetupInfo { Name = "linker0", Address = IPAddress.Parse("192.168.55.2"), PrefixLength = 24, Mtu = 1420 });
 
             if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.SetupError))
             {
@@ -84,7 +84,7 @@ namespace linker.tun
                     *(ushort*)(ptr + 20) = 0;
 
                     ChecksumHelper.Checksum(ptr, writableMemory.Length);
-                    Program.linkerTunDeviceAdapter.Write(string.Empty,writableMemory);
+                    Program.linkerTunDeviceAdapter.Write(string.Empty, writableMemory);
                 }
             }
         }

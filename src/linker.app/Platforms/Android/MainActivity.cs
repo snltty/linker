@@ -316,16 +316,16 @@ namespace linker.app
             this.vpnService = vpnService;
         }
 
-        public bool Setup(string name, IPAddress address, byte prefixLength, out string error)
+        public bool Setup(LinkerTunDeviceSetupInfo info, out string error)
         {
             error = string.Empty;
             if (address.Equals(IPAddress.Any)) return false;
             if (vpnService == null) return false;
 
 
-            this.name = name;
-            this.address = address;
-            this.prefixLength = prefixLength;
+            this.name = info.Name;
+            this.address = info.Address;
+            this.prefixLength = info.PrefixLength;
 
             Build();
 

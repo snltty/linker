@@ -15,7 +15,7 @@ namespace linker.messenger.tuntap
 
         private readonly ConcurrentDictionary<string, TuntapInfo> tuntapInfos = new ConcurrentDictionary<string, TuntapInfo>();
         public ConcurrentDictionary<string, TuntapInfo> Infos => tuntapInfos;
-       
+
         public Action OnClear { get; set; } = () => { };
         public Action OnChanged { get; set; } = () => { };
 
@@ -72,7 +72,7 @@ namespace linker.messenger.tuntap
                 SetupError = tuntapTransfer.SetupError,
                 NatError = tuntapTransfer.NatError,
                 SystemInfo = systemInformation.Get(),
-
+                Guid = tuntapConfigTransfer.Info.Guid,
                 Forwards = tuntapConfigTransfer.Info.Forwards,
                 Switch = tuntapConfigTransfer.Info.Switch
             });
@@ -137,6 +137,6 @@ namespace linker.messenger.tuntap
                 version = _version;
             }, 3000);
         }
-       
+
     }
 }

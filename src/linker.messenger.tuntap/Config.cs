@@ -20,8 +20,9 @@ namespace linker.messenger.tuntap
         /// </summary>
         public List<TuntapLanInfo> Lans { get; set; } = new List<TuntapLanInfo>();
 
-
         public string Name { get; set; }
+
+        public Guid Guid { get; set; } = Guid.Parse("771EF382-8718-5BC5-EBF0-A28B86142278");
 
         /// <summary>
         /// 是否在运行中
@@ -108,6 +109,10 @@ namespace linker.messenger.tuntap
         /// 网卡名
         /// </summary>
         public string Name { get; set; }
+        /// <summary>
+        /// id
+        /// </summary>
+        public Guid Guid { get; set; }
 
         /// <summary>
         /// 网卡安装错误

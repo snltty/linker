@@ -26,13 +26,13 @@ namespace linker.tun
         {
         }
 
-        public bool Setup(string name, IPAddress address,  byte prefixLength, out string error)
+        public bool Setup(LinkerTunDeviceSetupInfo info, out string error)
         {
             error = string.Empty;
 
-            this.name = name;
-            this.address = address;
-            this.prefixLength = prefixLength;
+            this.name = info.Name;
+            this.address = info.Address;
+            this.prefixLength = info.PrefixLength;
 
             if (Running)
             {

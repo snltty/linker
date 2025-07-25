@@ -1,8 +1,13 @@
 <template>
     <div class="wrap">
         <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="8rem">
+            <el-form-item label="网卡ID" prop="Guid" v-if="state.showGuid">
+                <el-input v-trim v-model="state.ruleForm.Guid" style="width:14rem" disabled />
+                <el-button  @click="handleNewId" class="mgl-1">新ID</el-button>
+            </el-form-item>
             <el-form-item label="网卡名" prop="Name">
-                <el-input v-trim v-model="state.ruleForm.Name" style="width:14rem" /> <span>留空则使用【本组网络】的设置</span>
+                <el-input v-trim v-model="state.ruleForm.Name" style="width:14rem" />
+                <span class="mgl-1">留空则使用【本组网络】的设置</span>
             </el-form-item>
             <el-form-item label="网卡IP" prop="IP" class="mgb-0">
                 <el-input v-trim v-model="state.ruleForm.IP" style="width:14rem" />
@@ -30,10 +35,13 @@ export default {
     emits: ['change'],
     components: { Delete, Plus, Warning, Refresh,TuntapForward ,TuntapLan},
     setup(props, { emit }) {
+        
 
         const tuntap = useTuntap();
+
         const ruleFormRef = ref(null);
         const state = reactive({
+            showGuid:tuntap.value.current.systems.indexOf('windows') >= 0,
             ruleForm: {
                 IP: tuntap.value.current.IP,
                 PrefixLength: tuntap.value.current.PrefixLength || 24,
@@ -47,6 +55,7 @@ export default {
                 InterfaceOrder: tuntap.value.current.InterfaceOrder,
                 Forwards: tuntap.value.current.Forwards,
                 Name: tuntap.value.current.Name,
+                Guid: tuntap.value.current.Guid,
             },
             rules: {
                 Name: {
@@ -66,6 +75,9 @@ export default {
             }
             state.ruleForm.PrefixLength = value;
         }
+        const handleNewId = () => {
+            state.ruleForm.Guid =  crypto.randomUUID();
+        }
 
         const getData = ()=>{
             const json = JSON.parse(JSON.stringify(tuntap.value.current));
@@ -80,11 +92,12 @@ export default {
             json.TcpMerge = state.ruleForm.TcpMerge;
             json.InterfaceOrder = state.ruleForm.InterfaceOrder;
             json.Name = state.ruleForm.Name;
+            json.Guid = state.ruleForm.Guid;
 
             return json;
         }
         return {
-            state, ruleFormRef, handlePrefixLengthChange,getData
+            state, ruleFormRef, handlePrefixLengthChange,handleNewId,getData
         }
     }
 }

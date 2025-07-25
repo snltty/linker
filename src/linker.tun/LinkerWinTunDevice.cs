@@ -1,5 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.extends;
+using System;
 using System.Buffers.Binary;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -21,8 +22,6 @@ namespace linker.tun
         private IPAddress address;
         private byte prefixLength = 24;
 
-        private Guid guid = Guid.Parse("771EF382-8718-5BC5-EBF0-A28B86142278");
-
         private CancellationTokenSource tokenSource;
 
 
@@ -31,11 +30,11 @@ namespace linker.tun
         {
         }
 
-        public bool Setup(string name, IPAddress address, byte prefixLength, out string error)
+        public bool Setup(LinkerTunDeviceSetupInfo info, out string error)
         {
-            this.name = name;
-            this.address = address;
-            this.prefixLength = prefixLength;
+            this.name = info.Name;
+            this.address = info.Address;
+            this.prefixLength = info.PrefixLength;
 
 
             error = string.Empty;
@@ -44,6 +43,9 @@ namespace linker.tun
                 error = ($"Adapter already exists");
                 return false;
             }
+
+            if (info.Guid == Guid.Empty) info.Guid = Guid.Parse("771EF382-8718-5BC5-EBF0-A28B86142278");
+            Guid guid = info.Guid;
 
             for (int i = 0; i < 5; i++)
             {

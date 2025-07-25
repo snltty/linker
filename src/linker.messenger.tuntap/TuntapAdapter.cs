@@ -14,7 +14,7 @@ namespace linker.messenger.tuntap
     {
         private List<LinkerTunDeviceForwardItem> forwardItems = new List<LinkerTunDeviceForwardItem>();
 
-        private bool skipCheck => tuntapTransfer.Status == TuntapStatus.Operating || tuntapConfigTransfer.Running == false;
+        private bool skipCheck => tuntapTransfer.Status == TuntapStatus.Operating || tuntapConfigTransfer.Info.Running == false;
         private bool needRestart => tuntapTransfer.Status != TuntapStatus.Running || tuntapConfigTransfer.Changed;
 
         private readonly TuntapTransfer tuntapTransfer;
@@ -148,7 +148,14 @@ namespace linker.messenger.tuntap
         {
             tuntapTransfer.Shutdown();
             await tuntapConfigTransfer.RefreshIPAsync().ConfigureAwait(false);
-            tuntapTransfer.Setup(tuntapConfigTransfer.Name, tuntapConfigTransfer.Info.IP, tuntapConfigTransfer.Info.PrefixLength);
+            tuntapTransfer.Setup(new LinkerTunDeviceSetupInfo
+            {
+                Name = tuntapConfigTransfer.Name,
+                Address = tuntapConfigTransfer.Info.IP,
+                PrefixLength = tuntapConfigTransfer.Info.PrefixLength,
+                Mtu = 1420,
+                Guid = tuntapConfigTransfer.Info.Guid,
+            });
         }
         /// <summary>
         /// 关闭网卡

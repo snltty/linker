@@ -4,16 +4,12 @@ using System.Net;
 using linker.messenger.signin;
 using linker.messenger.tuntap.lease;
 using linker.libs.timer;
-using linker.libs.extends;
 
 namespace linker.messenger.tuntap
 {
     public sealed class TuntapConfigTransfer
     {
         public TuntapConfigInfo Info => tuntapStore.Info;
-        public IPAddress IP => Info.IP;
-        public bool Running => Info.Running;
-        public TuntapSwitch Switch => Info.Switch;
 
         private string name = string.Empty;
         public string Name => string.IsNullOrWhiteSpace(Info.Name) ? (string.IsNullOrWhiteSpace(name) ? "linker" : name) : Info.Name;
@@ -77,6 +73,7 @@ namespace linker.messenger.tuntap
                 Info.Name = info.Name;
                 Info.Switch = info.Switch;
                 Info.Forwards = info.Forwards;
+                info.Guid = Info.Guid;
                 tuntapStore.Confirm();
 
                 await LeaseIP().ConfigureAwait(false);

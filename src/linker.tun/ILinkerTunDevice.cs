@@ -23,12 +23,10 @@ namespace linker.tun
         /// <summary>
         /// 启动
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="address"></param>
-        /// <param name="prefixLength"></param>
+        /// <param name="info"></param>
         /// <param name="error"></param>
         /// <returns></returns>
-        public bool Setup(string name, IPAddress address, byte prefixLength, out string error);
+        public bool Setup(LinkerTunDeviceSetupInfo info, out string error);
         /// <summary>
         /// 关闭
         /// </summary>
@@ -98,6 +96,31 @@ namespace linker.tun
         /// </summary>
         /// <returns></returns>
         public Task<bool> CheckAvailable(bool order = false);
+    }
+
+    public sealed class LinkerTunDeviceSetupInfo
+    {
+        /// <summary>
+        /// 设备名
+        /// </summary>
+        public string Name { get; set; } = string.Empty;
+        /// <summary>
+        /// IP地址
+        /// </summary>
+        public IPAddress Address { get; set; } = IPAddress.Any;
+        /// <summary>
+        /// 前缀长度
+        /// </summary>
+        public byte PrefixLength { get; set; }
+        /// <summary>
+        /// GUID 仅windows
+        /// </summary>
+        public Guid Guid { get; set; } = Guid.Empty;
+
+        /// <summary>
+        /// MTU
+        /// </summary>
+        public int Mtu { get; set; } = 1420; 
     }
 
     /// <summary>

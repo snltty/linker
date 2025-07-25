@@ -53,7 +53,7 @@ namespace linker.messenger.tuntap
         /// <summary>
         /// 运行网卡
         /// </summary>
-        public void Setup(string name, IPAddress ip, byte prefixLength)
+        public void Setup(LinkerTunDeviceSetupInfo info)
         {
             if (operatingManager.StartOperation() == false)
             {
@@ -63,12 +63,12 @@ namespace linker.messenger.tuntap
             {
                 try
                 {
-                    if (ip.Equals(IPAddress.Any))
+                    if (info.Address.Equals(IPAddress.Any))
                     {
                         return;
                     }
                     OnSetupBefore();
-                    linkerTunDeviceAdapter.Setup(name, ip, prefixLength, 1420);
+                    linkerTunDeviceAdapter.Setup(info);
                     if (string.IsNullOrWhiteSpace(linkerTunDeviceAdapter.SetupError) == false)
                     {
                         LoggerHelper.Instance.Error(linkerTunDeviceAdapter.SetupError);

@@ -29,13 +29,13 @@ namespace linker.tun
 
         }
 
-        public bool Setup(string name, IPAddress address, byte prefixLength, out string error)
+        public bool Setup(LinkerTunDeviceSetupInfo info, out string error)
         {
             this.name = "utun0";
             error = string.Empty;
 
-            this.address = address;
-            this.prefixLength = prefixLength;
+            this.address = info.Address;
+            this.prefixLength = info.PrefixLength;
 
             IntPtr arg = Marshal.AllocHGlobal(4);
             Marshal.WriteInt32(arg, 0);

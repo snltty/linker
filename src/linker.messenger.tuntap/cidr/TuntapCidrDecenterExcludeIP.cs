@@ -32,7 +32,7 @@ namespace linker.messenger.tuntap.cidr
         }
         public List<IPAddress> Get()
         {
-            return new List<IPAddress> { tuntapConfigTransfer.IP }
+            return new List<IPAddress> { tuntapConfigTransfer.Info.IP }
             .Concat(tuntapConfigTransfer.Info.Lans.Where(c => c.Disabled == false).Select(c => c.IP)).ToList();
         }
     }
