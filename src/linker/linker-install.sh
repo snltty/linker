@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LINKER_DOWNLOAD_URL="https://static.qbcode.cn/downloads/linker"
+LINKER_DOWNLOAD_URL="https://static.snltty.com/downloads/linker"
 LINKER_DOWNLOAD_VERSION=""
 LINKER_FILE_NAME="linker-linux-"
 

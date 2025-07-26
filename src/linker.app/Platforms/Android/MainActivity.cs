@@ -319,7 +319,7 @@ namespace linker.app
         public bool Setup(LinkerTunDeviceSetupInfo info, out string error)
         {
             error = string.Empty;
-            if (address.Equals(IPAddress.Any)) return false;
+            if (info.Address.Equals(IPAddress.Any)) return false;
             if (vpnService == null) return false;
 
 
