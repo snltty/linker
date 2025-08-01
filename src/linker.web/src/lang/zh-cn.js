@@ -226,6 +226,13 @@ export default {
     'status.flowForward': '端口转发',
     'status.flowSocks5': '代理',
     'status.flowTunnel': '隧道连接',
+    'status.flowMachineName': '来源',
+    'status.flowTarget': '服务',
+    'status.flowNum': '数量',
+    'status.flowTransitionId': '事务',
+    'status.flowDirection': '方向',
+    'status.flowType': '类型',
+    'status.flowMode': '模式',
 
     'status.tunnelName': '名称',
     'status.tunnelLabel': '说明',

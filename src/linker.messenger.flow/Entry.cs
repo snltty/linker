@@ -5,6 +5,7 @@ using linker.messenger.forward.proxy;
 using linker.messenger.relay.server;
 using linker.messenger.socks5;
 using linker.messenger.tunnel;
+using linker.messenger.tuntap;
 using linker.plugins.sforward.proxy;
 using Microsoft.Extensions.DependencyInjection;
 namespace linker.messenger.flow
@@ -26,8 +27,12 @@ namespace linker.messenger.flow
             serviceCollection.AddSingleton<FlowSocks5>();
             serviceCollection.AddSingleton<Socks5Proxy, FlowSocks5Proxy>();
 
+
             serviceCollection.AddSingleton<FlowTunnel>();
+            serviceCollection.AddSingleton<TuntapProxy, FlowTuntapProxy>();
             
+
+
 
             serviceCollection.AddSingleton<FlowMessenger>();
             serviceCollection.AddSingleton<IMessengerResolver, MessengerResolverFlow>();

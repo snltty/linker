@@ -21,16 +21,16 @@
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Description>1. 一些累计更新
-2. 修复一些BUG，过滤一些打洞成功的假象
-3. 修复socks5
-4. 其它一些代码优化</Description>
+2. 修复一些APP问题
+3. 增加一些数据统计
+4. 可选关闭信标服务</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>1.8.9</Version>
-		<AssemblyVersion>1.8.9</AssemblyVersion>
-		<FileVersion>1.8.9</FileVersion>
+		<Version>1.9.0</Version>
+		<AssemblyVersion>1.9.0</AssemblyVersion>
+		<FileVersion>1.9.0</FileVersion>
 		<DelaySign>False</DelaySign>
 	</PropertyGroup>
 

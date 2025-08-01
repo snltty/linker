@@ -167,7 +167,7 @@ namespace linker.tunnel.transport
                 SslStream sslStream = null;
                 if (state.SSL)
                 {
-                    sslStream = new SslStream(new NetworkStream(socket, false), false, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
+                    sslStream = new SslStream(new NetworkStream(socket, false), false, ValidateServerCertificate, null);
                     await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
                     {
                         EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls,
@@ -223,7 +223,7 @@ namespace linker.tunnel.transport
                         return null;
                     }
 
-                    sslStream = new SslStream(new NetworkStream(socket, false), false);
+                    sslStream = new SslStream(new NetworkStream(socket, false), false, ValidateServerCertificate);
                     await sslStream.AuthenticateAsServerAsync(certificate, OperatingSystem.IsAndroid(), SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls, false).ConfigureAwait(false);
                 }
 

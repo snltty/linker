@@ -71,7 +71,7 @@ namespace linker.messenger
         public async Task BeginReceiveServer(Socket socket, Memory<byte> memory)
         {
             NetworkStream networkStream = new NetworkStream(socket, false);
-            SslStream sslStream = new SslStream(networkStream, true);
+            SslStream sslStream = new SslStream(networkStream, true, ValidateServerCertificate,null);
             try
             {
                 await sslStream.AuthenticateAsServerAsync(messengerStore.Certificate, OperatingSystem.IsAndroid(), SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls, false).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
@@ -136,7 +136,7 @@ namespace linker.messenger
                 }
 
                 NetworkStream networkStream = new NetworkStream(socket, false);
-                SslStream sslStream = new SslStream(networkStream, true, new RemoteCertificateValidationCallback(ValidateServerCertificate), null);
+                SslStream sslStream = new SslStream(networkStream, true, ValidateServerCertificate, null);
                 try
                 {
                     await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions

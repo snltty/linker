@@ -1,10 +1,31 @@
 ﻿using linker.libs;
 using linker.libs.extends;
+using linker.messenger.pcp;
+using linker.messenger.relay.client;
+using linker.messenger.signin;
+using linker.messenger.tuntap;
+using linker.messenger.tuntap.cidr;
+using linker.tunnel;
 using linker.tunnel.connection;
 using System.Collections.Concurrent;
 
 namespace linker.messenger.flow
 {
+
+    public sealed class FlowTuntapProxy : TuntapProxy
+    {
+        private readonly FlowTunnel flowTunnel;
+
+        public FlowTuntapProxy(FlowTunnel flowTunnel, ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer,
+            SignInClientTransfer signInClientTransfer, IRelayClientStore relayClientStore, TuntapConfigTransfer tuntapConfigTransfer, TuntapCidrConnectionManager tuntapCidrConnectionManager, TuntapCidrDecenterManager tuntapCidrDecenterManager, TuntapCidrMapfileManager tuntapCidrMapfileManager) : base(signInClientStore, tunnelTransfer, relayTransfer, pcpTransfer, signInClientTransfer, relayClientStore, tuntapConfigTransfer, tuntapCidrConnectionManager, tuntapCidrDecenterManager, tuntapCidrMapfileManager)
+        {
+            this.flowTunnel = flowTunnel;
+        }
+        public override void Add(ITunnelConnection connection)
+        {
+            flowTunnel.Add(connection);
+        }
+    }
     public sealed class FlowTunnel : IFlow
     {
         public long ReceiveBytes { get; private set; }

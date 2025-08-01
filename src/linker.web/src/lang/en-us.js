@@ -132,6 +132,13 @@ export default {
     'status.flowForward': 'Port Forward',
     'status.flowSocks5': 'Proxy',
     'status.flowTunnel': 'Tunnel',
+    'status.flowMachineName': 'Source',
+    'status.flowTarget': 'Service',
+    'status.flowNum': 'Num',
+    'status.flowTransitionId': 'Trans',
+    'status.flowDirection': 'Dir',
+    'status.flowType': 'Type',
+    'status.flowMode': 'Mode',
 
     'status.tunnelName': 'Name',
     'status.tunnelLabel': 'Label',

@@ -17,9 +17,9 @@
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker messenger flow</PackageReleaseNotes>
-		<Version>1.8.9</Version>
-		<AssemblyVersion>1.8.9</AssemblyVersion>
-		<FileVersion>1.8.9</FileVersion>
+		<Version>1.9.0</Version>
+		<AssemblyVersion>1.9.0</AssemblyVersion>
+		<FileVersion>1.9.0</FileVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -45,6 +45,7 @@
 		<ProjectReference Include="..\linker.messenger.signin\linker.messenger.signin.csproj" />
 		<ProjectReference Include="..\linker.messenger.socks5\linker.messenger.socks5.csproj" />
 		<ProjectReference Include="..\linker.messenger.tunnel\linker.messenger.tunnel.csproj" />
+		<ProjectReference Include="..\linker.messenger.tuntap\linker.messenger.tuntap.csproj" />
 		<ProjectReference Include="..\linker.messenger\linker.messenger.csproj" />
 	</ItemGroup>
 </Project>

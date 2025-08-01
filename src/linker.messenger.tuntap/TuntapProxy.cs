@@ -16,7 +16,7 @@ namespace linker.messenger.tuntap
         public void Receive(ITunnelConnection connection, ReadOnlyMemory<byte> packet);
     }
 
-    public sealed class TuntapProxy : channel.Channel, ITunnelConnectionReceiveCallback
+    public class TuntapProxy : channel.Channel, ITunnelConnectionReceiveCallback
     {
         public ITuntapProxyCallback Callback { get; set; }
         protected override string TransactionId => "tuntap";
@@ -39,6 +39,7 @@ namespace linker.messenger.tuntap
 
         protected override void Connected(ITunnelConnection connection)
         {
+            Add(connection);
             connection.BeginReceive(this, null);
             if (tuntapConfigTransfer.Info.TcpMerge)
                 connection.StartPacketMerge();
