@@ -81,9 +81,9 @@ namespace linker.messenger.tuntap
         public async Task InputPacket(LinkerTunDevicPacket packet)
         {
             //IPV4广播组播、IPV6 多播
-            if (packet.IPV4Broadcast || packet.IPV6Multicast)
+            if ((packet.IPV4Broadcast || packet.IPV6Multicast) && tuntapConfigTransfer.Info.Multicast == false && connections.IsEmpty == false)
             {
-                if (tuntapConfigTransfer.Info.Switch.HasFlag(TuntapSwitch.Multicast) == false && connections.IsEmpty == false)
+                if (packet.DecrementTtl())
                 {
                     await Task.WhenAll(connections.Values.Where(c => c != null && c.Connected).Select(c => c.SendAsync(packet.Buffer, packet.Offset, packet.Length)));
                 }

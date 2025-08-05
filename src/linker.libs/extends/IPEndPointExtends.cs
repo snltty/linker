@@ -6,18 +6,26 @@ namespace linker.libs.extends
 {
     public static class IPEndPointExtends
     {
-        public static bool GetIsBroadcastAddress(this IPAddress address)
+        public static bool IsCast(this IPAddress address)
         {
-            return new ReadOnlySpan<byte>(address.GetAddressBytes()).GetIsBroadcastAddress();
+            return new ReadOnlySpan<byte>(address.GetAddressBytes()).IsCast();
         }
-        public static bool GetIsBroadcastAddress(this ReadOnlyMemory<byte> address)
+        public static bool IsCast(this ReadOnlyMemory<byte> address)
         {
-            return address.Span.GetIsBroadcastAddress();
+            return address.Span.IsCast();
         }
-        public static bool GetIsBroadcastAddress(this ReadOnlySpan<byte> address)
+        public static bool IsCast(this ReadOnlySpan<byte> address)
         {
-            uint ip = BinaryPrimitives.ReadUInt32BigEndian(address);
-            return address[3] == 255 || (ip >= 0xE0000000 && ip <= 0xEFFFFFFF) || ip == 0xFFFFFFFF;
+            return address.IsBroadcast() || address.IsMulticast();
+        }
+
+        public static bool IsBroadcast(this ReadOnlySpan<byte> address)
+        {
+            return address[3] == 255  || BinaryPrimitives.ReadUInt32BigEndian(address) == 0xFFFFFFFF;
+        }
+        public static bool IsMulticast(this ReadOnlySpan<byte> address)
+        {
+            return address[0] >= 0xE0 && address[0] <= 0xEF;
         }
     }
 }

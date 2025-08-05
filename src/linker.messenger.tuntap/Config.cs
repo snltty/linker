@@ -53,6 +53,7 @@ namespace linker.messenger.tuntap
         /// 调整网卡顺序
         /// </summary>
         public bool InterfaceOrder => Switch.HasFlag(TuntapSwitch.InterfaceOrder);
+        public bool Multicast => Switch.HasFlag(TuntapSwitch.Multicast);
     }
 
     public sealed class TuntapGroup2IPInfo
