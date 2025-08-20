@@ -24,7 +24,7 @@ function HomepageHeader() {
                     </Link>
                     <Link
                         className="button button--secondary button--lg button--warning"
-                        to="/docs/1%E3%80%81%E9%A6%96%E9%A1%B5" style={{ marginLeft: '10px'} }>
+                        to="/docs/home" style={{ marginLeft: '10px'} }>
                         文档
                     </Link>
                     <Link

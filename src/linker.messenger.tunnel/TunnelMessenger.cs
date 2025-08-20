@@ -106,14 +106,14 @@ namespace linker.messenger.tunnel
         }
 
         [MessengerId((ushort)TunnelMessengerIds.TransportGet)]
-        public void TransportGet(IConnection connection)
+        public async Task TransportGet(IConnection connection)
         {
-            connection.Write(serializer.Serialize(tunnelClientStore.GetTunnelTransports()));
+            connection.Write(serializer.Serialize(await tunnelClientStore.GetTunnelTransports()));
         }
         [MessengerId((ushort)TunnelMessengerIds.TransportSet)]
-        public void TransportSet(IConnection connection)
+        public async Task TransportSet(IConnection connection)
         {
-            tunnelClientStore.SetTunnelTransports(serializer.Deserialize<List<TunnelTransportItemInfo>>(connection.ReceiveRequestWrap.Payload.Span));
+            await tunnelClientStore.SetTunnelTransports(serializer.Deserialize<List<TunnelTransportItemInfo>>(connection.ReceiveRequestWrap.Payload.Span));
         }
     }
 

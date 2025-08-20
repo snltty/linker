@@ -27,6 +27,8 @@ namespace linker.messenger.sforward
 
             serviceCollection.AddSingleton<SForwardPlanHandle>();
 
+            serviceCollection.AddSingleton<SForwardClientTestTransfer>();
+
             return serviceCollection;
         }
         public static ServiceProvider UseSForwardClient(this ServiceProvider serviceProvider)
@@ -45,6 +47,10 @@ namespace linker.messenger.sforward
 
             PlanTransfer planTransfer = serviceProvider.GetService<PlanTransfer>();
             planTransfer.AddHandle(serviceProvider.GetService<SForwardPlanHandle>());
+
+
+            serviceProvider.GetService<SForwardClientTestTransfer>();
+
             return serviceProvider;
         }
 
@@ -58,6 +64,13 @@ namespace linker.messenger.sforward
 
             serviceCollection.AddSingleton<SForwardProxy>();
 
+            serviceCollection.AddSingleton<SForwardServerMasterTransfer>();
+            serviceCollection.AddSingleton<SForwardServerNodeTransfer>();
+            serviceCollection.AddSingleton<SForwardServerReportResolver>();
+
+            serviceCollection.AddSingleton<ISForwardServerWhiteListStore, SForwardServerWhiteListStore>();
+            serviceCollection.AddSingleton<ISForwardServerCdkeyStore, SForwardServerCdkeyStore>();
+
             return serviceCollection;
         }
         public static ServiceProvider UseSForwardServer(this ServiceProvider serviceProvider)
@@ -68,11 +81,17 @@ namespace linker.messenger.sforward
             SForwardValidatorTransfer sForwardValidatorTransfer = serviceProvider.GetService<SForwardValidatorTransfer>();
             sForwardValidatorTransfer.AddValidators(new List<ISForwardValidator> { serviceProvider.GetService<SForwardValidator>() });
 
+            ResolverTransfer resolverTransfer = serviceProvider.GetService<ResolverTransfer>();
+            resolverTransfer.AddResolvers(new List<IResolver>
+            {
+                serviceProvider.GetService<SForwardServerReportResolver>()
+            });
+
             SForwardProxy sForwardProxy = serviceProvider.GetService<SForwardProxy>();
             ISForwardServerStore sForwardServerStore = serviceProvider.GetService<ISForwardServerStore>();
             if (sForwardServerStore.WebPort > 0)
             {
-                sForwardProxy.Start(sForwardServerStore.WebPort, true, sForwardServerStore.BufferSize, "3494B7B2-1D9E-4DA2-B4F7-8C439EB03912");
+                sForwardProxy.StartHttp(sForwardServerStore.WebPort,3 );
                 LoggerHelper.Instance.Debug($"start web forward in {sForwardServerStore.WebPort}");
             }
 

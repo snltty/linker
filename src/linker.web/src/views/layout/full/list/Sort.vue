@@ -1,19 +1,19 @@
 <template>
    <el-table border style="width: 100%" height="32px" size="small" @sort-change="handleSortChange" class="table-sort">
-        <el-table-column prop="MachineId" label="设备名" width="110" sortable="custom" ></el-table-column>
-        <el-table-column prop="Version" label="版本" width="110" sortable="custom"></el-table-column>
-        <el-table-column prop="tunnel" label="网络" width="76" sortable="custom"></el-table-column>
-        <el-table-column v-if="tuntap.show" prop="tuntap" label="网卡IP" width="160" sortable="custom"></el-table-column>
-        <el-table-column v-if="socks5.show" prop="socks5" label="代理转发" width="160" sortable="custom"></el-table-column>
+        <el-table-column prop="MachineId" :label="$t('home.device')" width="110" sortable="custom" ></el-table-column>
+        <el-table-column prop="Version" :label="$t('home.version')" width="110" sortable="custom"></el-table-column>
+        <el-table-column prop="tunnel" :label="$t('home.tunnel')" width="86" sortable="custom"></el-table-column>
+        <el-table-column v-if="tuntap.show" prop="tuntap" :label="$t('home.tuntapIP')" width="160" sortable="custom"></el-table-column>
+        <el-table-column v-if="socks5.show" prop="socks5" :label="$t('home.proxy')" width="160" sortable="custom"></el-table-column>
         <el-table-column label="columns" fixed="right">
             <template #header>
                 <el-dropdown class="show-columns">
-                    <span class="el-dropdown-link">显示项<el-icon><ArrowDownBold /></el-icon></span>
+                    <span class="el-dropdown-link">{{$t('home.showItems')}}<el-icon><ArrowDownBold /></el-icon></span>
                     <template #dropdown>
                     <el-dropdown-menu>
-                        <el-dropdown-item><el-checkbox v-model="tuntap.show" @change="handleTuntapShow" size="small" style="margin-right:1rem">网卡</el-checkbox> </el-dropdown-item>
-                        <el-dropdown-item><el-checkbox v-model="socks5.show" @change="handleSocks5Show" size="small" style="margin-right:1rem">代理</el-checkbox> </el-dropdown-item>
-                        <el-dropdown-item><el-checkbox v-model="forward.show" @change="handleForwardShow" size="small" style="margin-right:0rem">转发</el-checkbox></el-dropdown-item>
+                        <el-dropdown-item><el-checkbox v-model="tuntap.show" @change="handleTuntapShow" size="small" style="margin-right:1rem">{{$t('home.tuntap')}}</el-checkbox> </el-dropdown-item>
+                        <el-dropdown-item><el-checkbox v-model="socks5.show" @change="handleSocks5Show" size="small" style="margin-right:1rem">{{$t('home.proxy')}}</el-checkbox> </el-dropdown-item>
+                        <el-dropdown-item><el-checkbox v-model="forward.show" @change="handleForwardShow" size="small" style="margin-right:0rem">{{$t('home.forward')}}</el-checkbox></el-dropdown-item>
                     </el-dropdown-menu>
                     </template>
                 </el-dropdown>

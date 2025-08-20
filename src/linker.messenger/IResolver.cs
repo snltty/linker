@@ -33,6 +33,11 @@ namespace linker.messenger
         /// 中继节点报告
         /// </summary>
         RelayReport = 7,
+
+        /// <summary>
+        /// 穿透节点报告
+        /// </summary>
+        SForwardReport = 8,
     }
     public interface IResolver
     {

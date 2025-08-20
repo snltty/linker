@@ -119,6 +119,9 @@ namespace linker.messenger.action
         /// 端口
         /// </summary>
         public int RemotePort { get; set; }
+        public string NodeId { get; set; } = string.Empty;
+        public string MachineId { get; set; } = string.Empty;
+        public string GroupId { get; set; } = string.Empty;
     }
 
 
@@ -285,7 +288,7 @@ namespace linker.messenger.action
             this.actionServerStore = actionServerStore;
         }
 
-        public async Task<string> Validate(SignCacheInfo cache, SForwardAddInfo sForwardAddInfo)
+        public async Task<string> Validate(SignCacheInfo cache, SForwardAddInfo191 sForwardAddInfo)
         {
             if (string.IsNullOrWhiteSpace(actionServerStore.SForwardActionUrl) == false)
             {
@@ -299,7 +302,12 @@ namespace linker.messenger.action
                     SForward = new JsonArgSForwardInfo
                     {
                         Domain = sForwardAddInfo.Domain ?? string.Empty,
-                        RemotePort = sForwardAddInfo.RemotePort
+                        RemotePort = sForwardAddInfo.RemotePort,
+                        GroupId = sForwardAddInfo.GroupId,
+                        NodeId = sForwardAddInfo.NodeId,
+                        MachineId = sForwardAddInfo.MachineId
+
+
                     },
                     Signin = new JsonArgSignInInfo
                     {

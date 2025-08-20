@@ -1,5 +1,4 @@
-﻿using linker.messenger.cdkey;
-using linker.messenger.relay.client.transport;
+﻿using linker.messenger.relay.client.transport;
 using linker.messenger.relay.server;
 using linker.tunnel.connection;
 using MemoryPack;
@@ -757,10 +756,10 @@ namespace linker.messenger.serializer.memorypack
 
 
         [MemoryPackInclude, MemoryPackAllowSerialize]
-        List<CdkeyInfo> Cdkey => info.Cdkey;
+        List<RelayCdkeyInfo> Cdkey => info.Cdkey;
 
         [MemoryPackConstructor]
-        SerializableRelayCacheInfo(ulong flowId, string fromId, string fromName, string toId, string toName, string groupId, bool validated, List<CdkeyInfo> cdkey)
+        SerializableRelayCacheInfo(ulong flowId, string fromId, string fromName, string toId, string toName, string groupId, bool validated, List<RelayCdkeyInfo> cdkey)
         {
             var info = new RelayCacheInfo
             {
@@ -1194,8 +1193,8 @@ namespace linker.messenger.serializer.memorypack
                 Public = Public,
                 Url = url,
                 AllowProtocol = allowProtocol,
-                 Sync2Server= sync2Server,
-                  Version= version
+                Sync2Server = sync2Server,
+                Version = version
             };
             this.info = info;
         }
@@ -1232,4 +1231,64 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
+
+
+
+    [MemoryPackable]
+    public readonly partial struct SerializableRelayCdkeyInfo
+    {
+        [MemoryPackIgnore]
+        public readonly RelayCdkeyInfo info;
+
+        [MemoryPackInclude]
+        int Id => info.Id;
+
+        [MemoryPackInclude]
+        double Bandwidth => info.Bandwidth;
+        [MemoryPackInclude]
+        long LastBytes => info.LastBytes;
+
+        [MemoryPackConstructor]
+        SerializableRelayCdkeyInfo(int id, double bandwidth, long lastBytes)
+        {
+            var info = new RelayCdkeyInfo
+            {
+                Id = id,
+                Bandwidth = bandwidth,
+                LastBytes = lastBytes
+            };
+            this.info = info;
+        }
+
+        public SerializableRelayCdkeyInfo(RelayCdkeyInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class RelayCdkeyInfoFormatter : MemoryPackFormatter<RelayCdkeyInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref RelayCdkeyInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableRelayCdkeyInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref RelayCdkeyInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableRelayCdkeyInfo>();
+            value = wrapped.info;
+        }
+    }
 }

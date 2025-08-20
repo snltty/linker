@@ -1,5 +1,6 @@
 ---
 sidebar_position: 1
+slug: /exchange/tuntap/ip
 ---
 
 # 1、虚拟网卡

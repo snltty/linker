@@ -26,6 +26,28 @@
         StopClient = 2315,
         StopClientForward = 2316,
 
+        Add191 = 2317,
+        Remove191 = 2318,
+        AddClient191 = 2319,
+        AddClientForward191 = 2320,
+
+        NodeReport = 2321,
+        Exit = 2322,
+        ExitForward = 2323,
+
+        Edit = 2324,
+        EditForward = 2325,
+
+        Update = 2326,
+        UpdateForward = 2327,
+
+        Nodes = 2328,
+        AddForward191 = 2329,
+        RemoveForward191 = 2330,
+
+        TrafficReport = 2331,
+        SendLastBytes = 2332,
+
         Max = 2399
     }
 }

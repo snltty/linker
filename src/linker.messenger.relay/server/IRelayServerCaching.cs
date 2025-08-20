@@ -1,7 +1,17 @@
 ﻿using linker.libs;
 using Microsoft.Extensions.Caching.Memory;
-namespace linker.messenger.relay.server.caching
+
+namespace linker.messenger.relay.server
 {
+    public interface IRelayServerCaching
+    {
+        public string Name { get; }
+
+        public bool TryAdd<T>(string key, T value, int expired);
+        public bool TryGetValue<T>(string key, out T value);
+    }
+
+
     public sealed class RelayServerCachingMemory : IRelayServerCaching
     {
         public string Name => "memory";
@@ -31,6 +41,5 @@ namespace linker.messenger.relay.server.caching
             return true;
         }
     }
-
 
 }

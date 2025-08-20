@@ -71,7 +71,6 @@ namespace linker.messenger.store.file
             serviceCollection.AddSingleton<IUpdaterServerStore, UpdaterServerStore>();
 
             serviceCollection.AddSingleton<IRelayClientStore, RelayClientStore>();
-            serviceCollection.AddSingleton<IRelayServerStore, RelayServerStore>();
             serviceCollection.AddSingleton<IRelayServerNodeStore, RelayServerNodeStore>();
             serviceCollection.AddSingleton<IRelayServerMasterStore, RelayServerMasterStore>();
 
@@ -102,6 +101,8 @@ namespace linker.messenger.store.file
 
             serviceCollection.AddSingleton<ISForwardClientStore, SForwardClientStore>();
             serviceCollection.AddSingleton<ISForwardServerStore, SForwardServerStore>();
+            serviceCollection.AddSingleton<ISForwardServerNodeStore, SForwardServerNodeStore>();
+            serviceCollection.AddSingleton<ISForwardServerMasterStore, SForwardServerMasterStore>();
 
             serviceCollection.AddSingleton<ILoggerStore, LoggerStore>();
 

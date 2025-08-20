@@ -21,10 +21,6 @@ export const relayConnect = (data) => {
 export const relayEdit = (data) => {
     return sendWebsocketMsg('relay/edit', data);
 }
-export const checkRelayKey = () => {
-    return sendWebsocketMsg('relay/checkkey');
-}
-
 export const relayExit = (id) => {
     return sendWebsocketMsg('relay/Exit', id);
 }

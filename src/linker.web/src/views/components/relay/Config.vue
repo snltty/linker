@@ -6,9 +6,6 @@
                     <el-checkbox class="mgr-1" v-model="state.list.Disabled" :label="$t('server.relayDisable')" @change="handleSave" />
                     <el-checkbox v-model="state.list.SSL" :label="$t('server.relaySSL')" @change="handleSave" />
                 </div>
-                <div class="mgr-1" :title="$t('server.relayUseCdkeyTitle')">
-                    <el-checkbox v-model="state.list.UseCdkey" :label="$t('server.relayUseCdkey')" @change="handleSave" />
-                </div>
                 <a href="javascript:;" @click="state.showModes=true" class="mgr-1 delay a-line" :class="{red:state.nodes.length==0,green:state.nodes.length>0}">
                     {{$t('server.relayNodes')}} : {{state.nodes.length}}
                 </a>
@@ -30,7 +27,7 @@ import { onMounted, onUnmounted, provide, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n';
 import Sync from '../sync/Index.vue'
 import Cdkey from '../cdkey/Index.vue'
-import Nodes from '../relay/Nodes.vue';
+import Nodes from './Nodes.vue';
 import WhiteList from '../wlist/Index.vue';
 
 export default {

@@ -1,5 +1,5 @@
 <template>
-    <el-table-column prop="tunnel" label="网络" width="76">
+    <el-table-column prop="tunnel" :label="$t('home.tunnel')" width="86">
         <template #default="scope">
             <template v-if="tunnel.list[scope.row.MachineId]">
                 <div>
@@ -30,9 +30,9 @@
                 <div class="flex">
                     <a href="javascript:;" class="a-line" 
                     :class="{yellow:tunnel.list[scope.row.MachineId].NeedReboot}" 
-                    :title="title(tunnel.list[scope.row.MachineId])"
+                    :title="$t('home.holeText')"
                     @click="handleTunnel(tunnel.list[scope.row.MachineId],scope.row)">
-                        <span>跳点:{{tunnel.list[scope.row.MachineId].RouteLevel}}+{{tunnel.list[scope.row.MachineId].RouteLevelPlus}}</span>
+                        <span>{{$t('home.jump')}}:{{tunnel.list[scope.row.MachineId].RouteLevel}}+{{tunnel.list[scope.row.MachineId].RouteLevelPlus}}</span>
                     </a>
                 </div>
             </template>
@@ -45,11 +45,13 @@ import { useConnections,useForwardConnections,useSocks5Connections,useTuntapConn
 import { injectGlobalData } from '@/provide';
 import { computed } from 'vue';
 import { ElMessage } from 'element-plus';
+import {useI18n} from 'vue-i18n';
 
 export default {
     emits: ['edit','refresh'],
     setup(props, { emit }) {
 
+        const t = useI18n();
         const globalData = injectGlobalData();
         const machineId = computed(() => globalData.value.config.Client.Id);
         const hasTunnelChangeSelf = computed(()=>globalData.value.hasAccess('TunnelChangeSelf')); 
@@ -60,15 +62,6 @@ export default {
         const forwardConnections = useForwardConnections();
         const tuntapConnections = useTuntapConnections();
         const socks5Connections = useSocks5Connections();
-
-        const title = (item)=>{
-            let texts = [
-                '调整网关层级有助于打洞成功'
-            ]
-            return item.NeedReboot
-            ?'需要重启'
-            :texts.join('\r\n');
-        }
 
         const imgMap = {
             'chinanet':'chinanet.svg',
@@ -118,12 +111,12 @@ export default {
         const handleTunnel = (_tunnel,row) => {
             if(machineId.value === _tunnel.MachineId){
                 if(!hasTunnelChangeSelf.value){
-                    ElMessage.success('无权限');
+                    ElMessage.success(t('common.access'));
                 return;
             }
             }else{
                 if(!hasTunnelChangeOther.value){
-                    ElMessage.success('无权限');
+                    ElMessage.success(t('common.access'));
                 return;
             }
             }
@@ -142,7 +135,7 @@ export default {
        
         return {
             tunnel, handleTunnel,handleTunnelRefresh,
-            connectionCount,handleConnections,title,netImg,natMap
+            connectionCount,handleConnections,netImg,natMap
         }
     }
 }

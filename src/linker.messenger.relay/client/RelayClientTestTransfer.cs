@@ -1,13 +1,12 @@
 ﻿using linker.libs;
 using linker.libs.timer;
-using linker.messenger.relay.client;
 using linker.messenger.relay.client.transport;
 using linker.messenger.relay.server;
 using linker.messenger.signin;
 using System.Net;
 using System.Net.NetworkInformation;
 
-namespace linker.messenger.relay
+namespace linker.messenger.relay.client
 {
     /// <summary>
     /// 中继
@@ -51,10 +50,10 @@ namespace linker.messenger.relay
                     }).ConfigureAwait(false);
                     var tasks = Nodes.Select(async (c) =>
                     {
-                        IPEndPoint ep = c.EndPoint == null || c.EndPoint.Address.Equals(IPAddress.Any) ? signInClientState.Connection.Address : c.EndPoint;
+                        c.EndPoint = c.EndPoint == null || c.EndPoint.Address.Equals(IPAddress.Any) ? signInClientState.Connection.Address : c.EndPoint;
 
                         using Ping ping = new Ping();
-                        var resp = await ping.SendPingAsync(ep.Address, 1000);
+                        var resp = await ping.SendPingAsync(c.EndPoint.Address, 1000);
                         c.Delay = resp.Status == IPStatus.Success ? (int)resp.RoundtripTime : -1;
                     });
                     await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -68,7 +67,7 @@ namespace linker.messenger.relay
         {
             TimerHelper.SetIntervalLong(async () =>
             {
-                if (lastTicksManager.DiffLessEqual(3000))
+                if (lastTicksManager.DiffLessEqual(3000) || Nodes.Count <= 0)
                 {
                     await TaskRelay().ConfigureAwait(false);
                 }

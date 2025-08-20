@@ -1,5 +1,6 @@
 ---
 sidebar_position: 94
+slug: /app
 ---
 
 # 94、关于app

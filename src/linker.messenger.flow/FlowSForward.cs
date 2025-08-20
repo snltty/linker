@@ -1,6 +1,7 @@
 ﻿using linker.libs;
 using linker.libs.extends;
 using linker.libs.timer;
+using linker.messenger.sforward.server;
 using linker.plugins.sforward.proxy;
 using System.Collections.Concurrent;
 using System.Text.Json.Serialization;
@@ -10,7 +11,7 @@ namespace linker.messenger.flow
     public sealed class FlowSForwardProxy : SForwardProxy
     {
         private readonly FlowSForward sForwardFlow;
-        public FlowSForwardProxy(FlowSForward sForwardFlow)
+        public FlowSForwardProxy(FlowSForward sForwardFlow, SForwardServerNodeTransfer sForwardServerNodeTransfer) :base(sForwardServerNodeTransfer)
         {
             this.sForwardFlow = sForwardFlow;
         }

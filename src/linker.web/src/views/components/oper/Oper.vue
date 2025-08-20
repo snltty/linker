@@ -1,37 +1,39 @@
 <template>
-    <el-table-column label="操作"  fixed="right" width="75">
+    <el-table-column :label="$t('home.oper')"  fixed="right" width="75">
         <template #default="scope">
-            <el-dropdown size="small" v-if="scope.row.Connected">
+            <el-dropdown size="small" >
                 <div class="dropdown">
-                    <span>操作</span>
+                    <span>{{$t('home.oper')}}</span>
                     <el-icon class="el-icon--right">
                         <ArrowDown />
                     </el-icon>
                 </div>
                 <template #dropdown>
                     <el-dropdown-menu>
-                        <el-dropdown-item v-if="scope.row.showReboot && hasReboot" @click="handleExit(scope.row.MachineId,scope.row.MachineName)"><el-icon><SwitchButton /></el-icon> 重启</el-dropdown-item>
-                        <el-dropdown-item v-if="scope.row.showDel && hasRemove" @click="handleDel(scope.row.MachineId,scope.row.MachineName)"><el-icon><Delete /></el-icon> 删除</el-dropdown-item>
-                        <el-dropdown-item v-if="handleShowAccess(scope.row,accessList[scope.row.MachineId] || '0')" @click="handleAccess(scope.row)"><el-icon><Flag /></el-icon> 权限</el-dropdown-item>
-                        <el-dropdown-item v-if="scope.row.isSelf && hasApiPassword" @click="handleApiPassword(scope.row)"><el-icon><HelpFilled /></el-icon> 管理接口</el-dropdown-item>
-                        <el-dropdown-item v-else-if="hasApiPasswordOther" @click="handleApiPassword(scope.row)"><el-icon><HelpFilled /></el-icon> 管理接口</el-dropdown-item>
-                        <el-dropdown-item @click="handleStopwatch(scope.row.MachineId,scope.row.MachineName)"><el-icon><Platform /></el-icon>它的信标</el-dropdown-item>
-                        <el-dropdown-item @click="handleStopwatch('',$t('status.messenger'))"><el-icon><Platform /></el-icon>服务器信标</el-dropdown-item>
-                        <el-dropdown-item @click="handleRoutes(scope.row.MachineId,scope.row.MachineName)"><el-icon><Paperclip /></el-icon>网卡路由</el-dropdown-item>
-                        
-                        <el-dropdown-item v-if="scope.row.isSelf && hasFirewallSelf" @click="handleFirewall(scope.row.MachineId,scope.row.MachineName)"><el-icon><CircleCheck /></el-icon>防火墙</el-dropdown-item>
-                        <el-dropdown-item v-else-if="hasFirewallOther" @click="handleFirewall(scope.row.MachineId,scope.row.MachineName)"><el-icon><CircleCheck /></el-icon>防火墙</el-dropdown-item>
+                        <template v-if="scope.row.Connected">
+                            <el-dropdown-item v-if="scope.row.showReboot && hasReboot" @click="handleExit(scope.row.MachineId,scope.row.MachineName)"><el-icon><SwitchButton /></el-icon>{{$t('home.reboot')}}</el-dropdown-item>
+                            <el-dropdown-item v-if="handleShowAccess(scope.row,accessList[scope.row.MachineId] || '0')" @click="handleAccess(scope.row)"><el-icon><Flag /></el-icon>{{$t('home.access')}}</el-dropdown-item>
+                            <el-dropdown-item v-if="scope.row.isSelf && hasApiPassword" @click="handleApiPassword(scope.row)"><el-icon><HelpFilled /></el-icon>{{$t('home.managerApi')}}</el-dropdown-item>
+                            <el-dropdown-item v-else-if="hasApiPasswordOther" @click="handleApiPassword(scope.row)"><el-icon><HelpFilled /></el-icon> {{$t('home.managerApi')}}</el-dropdown-item>
+                            <el-dropdown-item @click="handleStopwatch(scope.row.MachineId,scope.row.MachineName)"><el-icon><Platform /></el-icon>{{$t('home.messenger',[scope.row.MachineName])}}</el-dropdown-item>
+                            <el-dropdown-item @click="handleStopwatch('',$t('home.server'))"><el-icon><Platform /></el-icon>{{$t('home.messengerServer')}}</el-dropdown-item>
+                            <el-dropdown-item @click="handleRoutes(scope.row.MachineId,scope.row.MachineName)"><el-icon><Paperclip /></el-icon>{{$t('home.tuntapRoute')}}</el-dropdown-item>
+                            
+                            <el-dropdown-item v-if="scope.row.isSelf && hasFirewallSelf" @click="handleFirewall(scope.row.MachineId,scope.row.MachineName)"><el-icon><CircleCheck /></el-icon>{{$t('home.firewall')}}</el-dropdown-item>
+                            <el-dropdown-item v-else-if="hasFirewallOther" @click="handleFirewall(scope.row.MachineId,scope.row.MachineName)"><el-icon><CircleCheck /></el-icon>{{$t('home.firewall')}}</el-dropdown-item>
 
-                        <el-dropdown-item v-if="scope.row.isSelf && hasWakeupSelf" @click="handleWakeup(scope.row.MachineId,scope.row.MachineName)"><el-icon><VideoPlay /></el-icon>唤醒</el-dropdown-item>
-                        <el-dropdown-item v-else-if="hasWakeupOther" @click="handleWakeup(scope.row.MachineId,scope.row.MachineName)"><el-icon><VideoPlay /></el-icon>唤醒</el-dropdown-item>
-                        
-                        <el-dropdown-item v-if="hasTransport" @click="handleTransport(scope.row.MachineId,scope.row.MachineName)"><el-icon><Orange /></el-icon>打洞协议</el-dropdown-item>
+                            <el-dropdown-item v-if="scope.row.isSelf && hasWakeupSelf" @click="handleWakeup(scope.row.MachineId,scope.row.MachineName)"><el-icon><VideoPlay /></el-icon>{{$t('home.wakeup')}}</el-dropdown-item>
+                            <el-dropdown-item v-else-if="hasWakeupOther" @click="handleWakeup(scope.row.MachineId,scope.row.MachineName)"><el-icon><VideoPlay /></el-icon>{{$t('home.wakeup')}}</el-dropdown-item>
+                            
+                            <el-dropdown-item v-if="hasTransport" @click="handleTransport(scope.row.MachineId,scope.row.MachineName)"><el-icon><Orange /></el-icon>{{$t('home.protocol')}}</el-dropdown-item>
 
-                        <el-dropdown-item v-if="scope.row.isSelf && hasActionSelf" @click="handleAction(scope.row.MachineId,scope.row.MachineName)"><el-icon><Lock /></el-icon>验证参数</el-dropdown-item>
-                        <el-dropdown-item v-else-if="hasActionOther" @click="handleAction(scope.row.MachineId,scope.row.MachineName)"><el-icon><Lock /></el-icon>验证参数</el-dropdown-item>
-                        
-                        <el-dropdown-item v-if="scope.row.isSelf && hasFlow" @click="handleFlow(scope.row.MachineId,scope.row.MachineName)"><el-icon><Histogram /></el-icon>流量统计</el-dropdown-item>
-                        <el-dropdown-item v-else-if="hasFlow" @click="handleFlow(scope.row.MachineId,scope.row.MachineName)"><el-icon><Histogram /></el-icon>流量统计</el-dropdown-item>
+                            <el-dropdown-item v-if="scope.row.isSelf && hasActionSelf" @click="handleAction(scope.row.MachineId,scope.row.MachineName)"><el-icon><Lock /></el-icon>{{$t('home.action')}}</el-dropdown-item>
+                            <el-dropdown-item v-else-if="hasActionOther" @click="handleAction(scope.row.MachineId,scope.row.MachineName)"><el-icon><Lock /></el-icon>{{$t('home.action')}}</el-dropdown-item>
+                            
+                            <el-dropdown-item v-if="scope.row.isSelf && hasFlow" @click="handleFlow(scope.row.MachineId,scope.row.MachineName)"><el-icon><Histogram /></el-icon>{{$t('home.flowStatis')}}</el-dropdown-item>
+                            <el-dropdown-item v-else-if="hasFlow" @click="handleFlow(scope.row.MachineId,scope.row.MachineName)"><el-icon><Histogram /></el-icon>{{$t('home.flowStatis')}}</el-dropdown-item>
+                        </template>
+                        <el-dropdown-item v-if="scope.row.showDel && hasRemove" @click="handleDel(scope.row.MachineId,scope.row.MachineName)"><el-icon><Delete /></el-icon> {{$t('home.delete')}}</el-dropdown-item>
                     </el-dropdown-menu>
                 </template>
             </el-dropdown>
@@ -52,6 +54,7 @@ import { setApiPassword } from '@/apis/access';
 import { useFlow } from '../flow/flow';
 import { useOper } from './oper';
 import { useDevice } from '../device/devices';
+import { useI18n } from 'vue-i18n';
 
 export default {
     emits:['refresh','access'],
@@ -59,6 +62,7 @@ export default {
     setup (props,{emit}) {
         
         const globalData = injectGlobalData();
+        const {t} = useI18n();
 
         const devices = useDevice();
         const allAccess = useAccess();
@@ -87,11 +91,10 @@ export default {
         const flow = useFlow();
         const oper  = useOper();
         
-
         const handleDel = (machineId,machineName)=>{
-            ElMessageBox.confirm(`确认删除[${machineName}]?`, '提示', {
-                confirmButtonText: '确定',
-                cancelButtonText: '取消',
+            ElMessageBox.confirm(t('home.deleteSure',[machineName]), t('common.tips'), {
+                confirmButtonText: t('common.confirm'),
+                cancelButtonText: t('common.cancel'),
                 type: 'warning',
             }).then(() => {
                 signInDel(machineId).then(()=>{
@@ -100,9 +103,9 @@ export default {
             }).catch(() => {});
         }
         const handleExit = (machineId,machineName)=>{
-            ElMessageBox.confirm(`确认关闭[${machineName}]?`, '提示', {
-                confirmButtonText: '确定',
-                cancelButtonText: '取消',
+            ElMessageBox.confirm(t('home.closeSure',[machineName]), t('common.tips'), {
+                confirmButtonText: t('common.confirm'),
+                cancelButtonText: t('common.cancel'),
                 type: 'warning',
             }).then(() => {
                 exit(machineId).then(()=>{
@@ -126,22 +129,23 @@ export default {
         }
 
         const handleApiPassword = (row)=>{
-            ElMessageBox.prompt('输入新的管理接口密码', `重置【${row.MachineName}】的接口密码`, {
-                confirmButtonText: '确定',
-                cancelButtonText: '取消',
+            ElMessageBox.prompt(t('home.newPassword'), t('home.setPassword',[row.MachineName]), {
+                confirmButtonText:  t('common.confirm'),
+                cancelButtonText: t('common.cancel'),
                 inputPattern:/^[0-9a-zA-Z]{1,32}$/,
                 inputErrorMessage: '数字字母1-32位',
             }).then(({ value }) => {
                 setApiPassword({machineId:row.MachineId,password:value}).then(()=>{
-                    ElMessage.success('操作成功，重启后生效~');
+                    ElMessage.success(t('common.oper'));
                 }).catch(()=>{
-                    ElMessage.error('操作失败~');
+                    ElMessage.error(t('common.operFail'));
                 })
             }).catch(() => {
             })
         }
 
         const handleStopwatch = (id,name)=>{
+
             flow.value.device.id = id;
             flow.value.device.name = name;
             flow.value.show = true;

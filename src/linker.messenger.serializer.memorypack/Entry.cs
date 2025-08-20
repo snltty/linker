@@ -78,7 +78,10 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new RelayMessageInfoFormatter());
 
             MemoryPackFormatterProvider.Register(new RelayTrafficUpdateInfoFormatter());
-           
+            MemoryPackFormatterProvider.Register(new RelayCdkeyInfoFormatter());
+            
+
+
 
 
             MemoryPackFormatterProvider.Register(new CdkeyInfoFormatter());
@@ -110,7 +113,15 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new SForwardRemoveForwardInfoFormatter());
             MemoryPackFormatterProvider.Register(new SForwardProxyInfoFormatter());
             MemoryPackFormatterProvider.Register(new SForwardCountInfoFormatter());
-
+            MemoryPackFormatterProvider.Register(new SForwardAddForwardInfo191Formatter());
+            MemoryPackFormatterProvider.Register(new SForwardAddInfo191Formatter());
+            MemoryPackFormatterProvider.Register(new SForwardInfo191Formatter());
+            MemoryPackFormatterProvider.Register(new SForwardServerNodeUpdateInfoFormatter());
+            MemoryPackFormatterProvider.Register(new SForwardServerNodeUpdateWrapInfoFormatter());
+            MemoryPackFormatterProvider.Register(new SForwardServerNodeReportInfoFormatter());
+            MemoryPackFormatterProvider.Register(new SForwardCdkeyInfoFormatter());
+            MemoryPackFormatterProvider.Register(new SForwardTrafficUpdateInfoFormatter());
+            
 
             MemoryPackFormatterProvider.Register(new ForwardInfoFormatter());
             MemoryPackFormatterProvider.Register(new ForwardAddForwardInfoFormatter());

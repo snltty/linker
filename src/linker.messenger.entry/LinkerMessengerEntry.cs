@@ -69,8 +69,7 @@ namespace linker.messenger.entry
                 .AddPcpClient().AddPcpServer()
                 //中继
                 .AddRelayClient().AddRelayServer()
-                //cdkey
-                .AddCdkeyClient().AddCdkeyServer()
+                
                 //服务器穿透
                 .AddSForwardClient().AddSForwardServer()
                 //登录
@@ -105,6 +104,8 @@ namespace linker.messenger.entry
                 //唤醒
                 .AddWakeupClient().AddWakeupServer()
 
+                //cdkey
+                .AddCdkeyClient().AddCdkeyServer()
                 //白名单
                 .AddWhiteListClient().AddWhiteListServer();
 

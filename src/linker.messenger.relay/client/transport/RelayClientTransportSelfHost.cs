@@ -163,6 +163,7 @@ namespace linker.messenger.relay.client.transport
                         //连接中继服务器
                         Socket socket = new Socket(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                         socket.KeepAlive();
+                        socket.IPv6Only(ep.AddressFamily, false);
                         await socket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
 
                         //建立关联
@@ -289,7 +290,7 @@ namespace linker.messenger.relay.client.transport
                 SslStream sslStream = null;
                 if (relayInfo.SSL)
                 {
-                    sslStream = new SslStream(new NetworkStream(socket, false), false, ValidateServerCertificate,null);
+                    sslStream = new SslStream(new NetworkStream(socket, false), false, ValidateServerCertificate, null);
                     await sslStream.AuthenticateAsServerAsync(messengerStore.Certificate, OperatingSystem.IsAndroid(), SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls, false).ConfigureAwait(false);
                 }
                 return new TunnelConnectionTcp
@@ -479,6 +480,7 @@ namespace linker.messenger.relay.client.transport
                         //连接中继服务器
                         Socket socket = new Socket(ep.AddressFamily, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
                         socket.WindowsUdpBug();
+                        socket.IPv6Only(ep.AddressFamily,false);
 
                         //建立关联
                         RelayMessageInfo relayMessage = new RelayMessageInfo

@@ -7,7 +7,7 @@
                     <el-button size="small" @click="handleRefresh">刷新</el-button>
                 </div>
                 <el-table :data="state.data" size="small" border height="500" @cell-dblclick="handleCellClick">
-                    <el-table-column property="Name" label="名称">
+                    <el-table-column property="Name" label="名称" width="120">
                         <template #default="scope">
                             <template v-if="scope.row.NameEditing && scope.row.Started==false ">
                                 <el-input v-trim autofocus size="small" v-model="scope.row.Name"
@@ -18,15 +18,19 @@
                             </template>
                         </template>
                     </el-table-column>
-                    <el-table-column prop="Plan" label="开启和关闭计划" width="200">
+                    <el-table-column property="NodeId" label="节点" width="80">
                         <template #default="scope">
-                            <div class="plan">
-                                <p><el-icon><Select /></el-icon><PlanShow handle="start"  :keyid="scope.row.Id"></PlanShow></p>
-                                <p><el-icon><CloseBold /></el-icon><PlanShow handle="stop"  :keyid="scope.row.Id"></PlanShow></p>
-                            </div>
+                            <template v-if="scope.row.NodeIdEditing && scope.row.Started==false ">
+                                <el-select v-model="scope.row.NodeId" size="small" @change="handleEditBlur(scope.row, 'NodeId')">
+                                    <el-option :value="item.Id" :label="item.Name" v-for="(item,index) in state.nodes"></el-option>
+                                </el-select>
+                            </template>
+                            <template v-else>
+                                <a href="javascript:;" class="a-line" @click="handleEdit(scope.row, 'NodeId')">{{ state.nodesNames[scope.row.NodeId] || '未知' }}</a>
+                            </template>
                         </template>
                     </el-table-column>
-                    <el-table-column property="Temp" label="服务器端口/域名" width="160">
+                    <el-table-column property="Temp" label="服务器端口/域名" width="130">
                         <template #default="scope">
                             <template v-if="scope.row.TempEditing && scope.row.Started==false">
                                 <el-input v-trim autofocus size="small" v-model="scope.row.Temp"
@@ -40,12 +44,24 @@
                                             <el-icon size="20"><WarnTriangleFilled /></el-icon>
                                         </div>
                                     </template>
-                                    <template v-else><span :class="{green:scope.row.Started}">{{ scope.row.Temp }}</span></template>
+                                    <template v-else>
+                                        <template v-if="state.nodesJson[scope.row.NodeId1]">
+                                            <template v-if="/^\d+$/.test(scope.row.Temp)">
+                                                <span :class="{green:scope.row.Started}">{{ state.nodesJson[scope.row.NodeId1].Domain || state.nodesJson[scope.row.NodeId1].Address }}:{{ scope.row.Temp }}</span>
+                                            </template>
+                                            <template v-else>
+                                                <span :class="{green:scope.row.Started}">{{ scope.row.Temp }}.{{ state.nodesJson[scope.row.NodeId1].Domain || state.nodesJson[scope.row.NodeId1].Address }}:{{state.nodesJson[scope.row.NodeId1].WebPort}}</span>
+                                            </template>
+                                        </template>
+                                        <template v-else>
+                                            <span>{{ scope.row.Temp }}</span>
+                                        </template>
+                                    </template>
                                 </a>
                             </template>
                         </template>
                     </el-table-column>
-                    <el-table-column property="LocalEP" label="本机服务" width="140">
+                    <el-table-column property="LocalEP" label="本机服务" width="100">
                         <template #default="scope">
                             <template v-if="scope.row.LocalEPEditing && scope.row.Started==false">
                                 <el-input v-trim autofocus size="small" v-model="scope.row.LocalEP"
@@ -72,7 +88,16 @@
                                 active-text="是" inactive-text="否" @click="handleStartChange(scope.row)" />
                         </template>
                     </el-table-column>
-                    <el-table-column label="操作" width="54">
+                    
+                    <el-table-column prop="Plan" label="开启和关闭计划" width="200">
+                        <template #default="scope">
+                            <div class="plan">
+                                <p><el-icon><Select /></el-icon><PlanShow handle="start"  :keyid="scope.row.Id"></PlanShow></p>
+                                <p><el-icon><CloseBold /></el-icon><PlanShow handle="stop"  :keyid="scope.row.Id"></PlanShow></p>
+                            </div>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="操作" width="54" fixed="right">
                         <template #default="scope">
                             <el-popconfirm confirm-button-text="确认" cancel-button-text="取消" title="删除不可逆，是否确认?"
                                 @confirm="handleDel(scope.row.Id)">
@@ -89,7 +114,7 @@
 </template>
 <script>
 import { onMounted, onUnmounted,  reactive, ref, watch } from 'vue';
-import { getSForwardInfo, removeSForwardInfo, addSForwardInfo,testLocalSForwardInfo, stopSForwardInfo, startSForwardInfo } from '@/apis/sforward'
+import { getSForwardInfo, removeSForwardInfo, addSForwardInfo,testLocalSForwardInfo, stopSForwardInfo, startSForwardInfo, setSForwardSubscribe } from '@/apis/sforward'
 import { ElMessage } from 'element-plus';
 import {WarnTriangleFilled,Delete,Select,CloseBold} from '@element-plus/icons-vue'
 import { injectGlobalData } from '@/provide';
@@ -109,8 +134,12 @@ export default {
             bufferSize:globalData.value.bufferSize,
             show: true,
             data: [],
+            nodes:[],
+            nodesNames:{},
+            nodesJson:{},
             timer:0,
             timer1:0,
+            timer2:0,
             editing:false,
             loading:false,
             handles:[
@@ -141,6 +170,7 @@ export default {
                         c.Temp = (c.Domain || c.RemotePort).toString();
                         c.RemotePort = 0;
                         c.Domain = '';
+                        c.NodeId1 = c.NodeId1 || c.NodeId;
                     });
                     state.data = res;
                     state.timer1 = setTimeout(_getSForwardInfo,1000);
@@ -151,6 +181,8 @@ export default {
                 state.timer1 = setTimeout(_getSForwardInfo,1000);
             }
         }
+
+
         const handleOnShowList = () => {
             _getSForwardInfo();
         }
@@ -186,6 +218,7 @@ export default {
                 c[`LocalEPEditing`] = false;
                 c[`DomainEditing`] = false;
                 c[`TempEditing`] = false;
+                c[`NodeIdEditing`] = false;
             })
             row[`${p}Editing`] = true;
             state.editing = true;
@@ -249,13 +282,29 @@ export default {
         }
 
 
+        const _setSForwardSubscribe = ()=>{
+            clearTimeout(state.timer2);
+            setSForwardSubscribe().then((res)=>{
+                res = [{Id:'*',Name:'*'}].concat(res);
+                state.nodes = res;
+                state.nodesNames = res.reduce((json,item)=>{ json[item.Id] = item.Name; return json; },{});
+                state.nodesJson = res.reduce((json,item)=>{ json[item.Id] = item; return json; },{});
+                state.timer2 = setTimeout(_setSForwardSubscribe,1000);
+            }).catch(()=>{
+                state.timer2 = setTimeout(_setSForwardSubscribe,1000);
+            });
+        }
+
+
         onMounted(()=>{
             _getSForwardInfo();
             _testLocalSForwardInfo();
+            _setSForwardSubscribe();
         });
         onUnmounted(()=>{
             clearTimeout(state.timer);
             clearTimeout(state.timer1);
+            clearTimeout(state.timer2);
         })
 
         return {

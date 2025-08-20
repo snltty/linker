@@ -2,7 +2,6 @@
 using linker.libs.extends;
 using linker.libs.web;
 using linker.messenger.api;
-using linker.messenger.relay.client;
 using linker.messenger.relay.client.transport;
 using linker.messenger.relay.messenger;
 using linker.messenger.relay.server;
@@ -11,7 +10,7 @@ using linker.messenger.sync;
 using linker.tunnel.connection;
 using System.Collections.Concurrent;
 
-namespace linker.messenger.relay
+namespace linker.messenger.relay.client
 {
     /// <summary>
     /// 中继管理接口

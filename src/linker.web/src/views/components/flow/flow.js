@@ -8,7 +8,8 @@ export const provideFlow = () => {
         overallReceiveSpeed: '0000.00KB',
         overallOnline: '0/0',
         serverOnline: '',
-        machineId:''
+        machineId:'',
+        device:{id:'',name:''}
     });
     provide(flowSymbol, flow);
     return {

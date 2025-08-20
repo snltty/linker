@@ -1,12 +1,9 @@
 ﻿using linker.libs;
 using linker.libs.timer;
-using linker.libs.winapis;
-using linker.messenger.cdkey;
+using linker.messenger.relay.client.transport;
 using linker.messenger.relay.messenger;
-using linker.messenger.relay.server.caching;
-using linker.messenger.wlist;
+using linker.messenger.signin;
 using System.Collections.Concurrent;
-using System.Linq;
 using System.Net;
 
 namespace linker.messenger.relay.server
@@ -19,63 +16,70 @@ namespace linker.messenger.relay.server
 
         private ulong relayFlowingId = 0;
         private readonly ConcurrentDictionary<string, RelayServerNodeReportInfo188> reports = new ConcurrentDictionary<string, RelayServerNodeReportInfo188>();
+
+
         private readonly ConcurrentQueue<Dictionary<int, long>> trafficQueue = new ConcurrentQueue<Dictionary<int, long>>();
         private readonly ConcurrentQueue<List<int>> trafficIdsQueue = new ConcurrentQueue<List<int>>();
 
         private readonly IRelayServerCaching relayCaching;
         private readonly ISerializer serializer;
         private readonly IRelayServerMasterStore relayServerMasterStore;
-        private readonly ICdkeyServerStore relayServerCdkeyStore;
         private readonly IMessengerSender messengerSender;
-        private readonly IWhiteListServerStore whiteListServerStore;
-        private readonly ICdkeyServerStore cdkeyServerStore;
+        private readonly IRelayServerWhiteListStore relayServerWhiteListStore;
+        private readonly IRelayServerCdkeyStore relayServerCdkeyStore;
 
-        public RelayServerMasterTransfer(IRelayServerCaching relayCaching, ISerializer serializer, IRelayServerMasterStore relayServerMasterStore, ICdkeyServerStore relayServerCdkeyStore, IMessengerSender messengerSender, IWhiteListServerStore whiteListServerStore, ICdkeyServerStore cdkeyServerStore)
+        public RelayServerMasterTransfer(IRelayServerCaching relayCaching, ISerializer serializer, IRelayServerMasterStore relayServerMasterStore, IMessengerSender messengerSender, IRelayServerWhiteListStore relayServerWhiteListStore, IRelayServerCdkeyStore relayServerCdkeyStore)
         {
             this.relayCaching = relayCaching;
             this.serializer = serializer;
             this.relayServerMasterStore = relayServerMasterStore;
-            this.relayServerCdkeyStore = relayServerCdkeyStore;
             this.messengerSender = messengerSender;
-            this.whiteListServerStore = whiteListServerStore;
-            this.cdkeyServerStore = cdkeyServerStore;
+            this.relayServerWhiteListStore = relayServerWhiteListStore;
+            this.relayServerCdkeyStore = relayServerCdkeyStore;
+
             TrafficTask();
         }
 
 
-        public ulong AddRelay(string fromid, string fromName, string toid, string toName, string groupid, string userid, bool validated, bool useCdkey)
+        public async Task<ulong> AddRelay(SignCacheInfo from, SignCacheInfo to, RelayInfo170 info)
         {
             ulong flowingId = Interlocked.Increment(ref relayFlowingId);
 
             RelayCacheInfo cache = new RelayCacheInfo
             {
                 FlowId = flowingId,
-                FromId = fromid,
-                FromName = fromName,
-                ToId = toid,
-                ToName = toName,
-                GroupId = groupid,
-                UserId = userid,
-                Validated = validated,
-                UseCdkey = useCdkey,
+                FromId = from.MachineId,
+                FromName = from.MachineName,
+                ToId = to.Id,
+                ToName = to.MachineName,
+                GroupId = to.GroupId,
+                Validated = from.Super,
             };
-            bool added = relayCaching.TryAdd($"{fromid}->{toid}->{flowingId}", cache, 15000);
-            if (added == false) return 0;
+            if (reports.TryGetValue(info.NodeId, out var node) == false)
+            {
+                return 0;
+            }
 
+            cache.Validated = from.Super || await relayServerWhiteListStore.Contains(from.UserId, info.NodeId);
+            if (cache.Validated == false)
+            {
+                cache.Cdkey = (await relayServerCdkeyStore.GetAvailable(from.UserId).ConfigureAwait(false)).Select(c => new RelayCdkeyInfo { Bandwidth = c.Bandwidth, Id = c.Id, LastBytes = c.LastBytes }).ToList();
+                if (cache.Cdkey.Count <= 0 && node.Public == false) return 0;
+            }
+
+
+            bool added = relayCaching.TryAdd($"{cache.FromId}->{cache.ToId}->{flowingId}", cache, 15000);
+            if (added == false) return 0;
             return flowingId;
         }
 
-        public async Task<RelayCacheInfo> TryGetRelayCache(string key, string nodeid)
+        public RelayCacheInfo TryGetRelayCache(string key, string nodeid)
         {
-            if (relayCaching.TryGetValue(key, out RelayCacheInfo value))
+            if (relayCaching.TryGetValue(key, out RelayCacheInfo cache) && reports.TryGetValue(nodeid, out var node))
             {
-                var nodes = await whiteListServerStore.Get("Relay", value.UserId).ConfigureAwait(false);
-                value.Validated = value.Validated || nodes.Contains(nodeid);
-                value.Cdkey = value.UseCdkey
-                    ? (await cdkeyServerStore.GetAvailable(value.UserId, "Relay").ConfigureAwait(false)).Select(c => new CdkeyInfo { Bandwidth = c.Bandwidth, Id = c.Id, LastBytes = c.LastBytes }).ToList()
-                    : [];
+                return cache;
             }
-            return value;
+            return null;
         }
         public void SetNodeReport(IConnection connection, RelayServerNodeReportInfo170 info)
         {
@@ -179,7 +183,7 @@ namespace linker.messenger.relay.server
         /// <returns></returns>
         public async Task<List<RelayServerNodeReportInfo188>> GetNodes(bool validated, string userid)
         {
-            var nodes = await whiteListServerStore.Get("Relay", userid);
+            var nodes = await relayServerWhiteListStore.Get(userid);
 
             var result = reports.Values
                 .Where(c => Environment.TickCount64 - c.LastTicks < 15000)
@@ -200,10 +204,12 @@ namespace linker.messenger.relay.server
                      .ToList();
         }
 
+
+
         /// <summary>
         /// 消耗流量
         /// </summary>
-        /// <param name="relayTrafficUpdateInfo"></param>
+        /// <param name="info"></param>
         /// <returns></returns>
         public void AddTraffic(RelayTrafficUpdateInfo info)
         {

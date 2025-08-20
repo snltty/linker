@@ -1,5 +1,6 @@
 ---
 sidebar_position: 7
+slug: /cdkey
 ---
 
 # 7、CDKEY

@@ -105,7 +105,7 @@ namespace linker.messenger.signin
         }
         public List<SignCacheInfo> Get(string name, int count)
         {
-            return Clients.Values.Where(c => c.MachineName.Contains(name) || c.UserId.Contains(name)).Take(count).ToList();
+            return Clients.Values.Where(c => c.MachineName.Contains(name) || (c.UserId != null && c.UserId.Contains(name))).Take(count).ToList();
         }
         public List<SignCacheInfo> Get(SignCacheInfo other)
         {

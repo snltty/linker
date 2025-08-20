@@ -212,6 +212,7 @@ namespace linker.messenger.signin
                 connection.Write(serializer.Serialize(list));
             }
         }
+
         [MessengerId((ushort)SignInMessengerIds.UserIds)]
         public void UserIds(IConnection connection)
         {

@@ -28,6 +28,13 @@
                             <el-input v-trim :class="{success:state.super,error:state.super==false}" style="width:20rem;" type="password" show-password maxlength="36" v-model="state.list.SuperPassword" @blur="handleSave" />
                         </div>
                     </el-form-item>
+                    <!-- <el-form-item :label="$t('server.messenger')" v-if="state.super && hasWhiteList">
+                        <div>
+                            <div class="flex">
+                                <WhiteList type="SignIn"></WhiteList>
+                            </div>
+                        </div>
+                    </el-form-item> -->
                     <el-form-item></el-form-item>   
                     <el-form-item :label="$t('server.messengerUserId')">
                         <div class="flex">
@@ -60,11 +67,14 @@ import RelayServers from '../../../components/relay/Config.vue';
 import SForwardServers from '../../../components/forward/Config.vue';
 import { useI18n } from 'vue-i18n';
 import Sync from '../../../components/sync/Index.vue'
+import WhiteList from '../../../components/wlist/Index.vue';
+
 export default {
-    components:{Updater,RelayServers,SForwardServers,Sync},
+    components:{Updater,RelayServers,SForwardServers,Sync,WhiteList},
     setup(props) {
         const {t} = useI18n();
         const globalData = injectGlobalData();
+        const hasWhiteList = computed(()=>globalData.value.hasAccess('WhiteList')); 
         const state = reactive({
             list:globalData.value.config.Client.Server,
             height: computed(()=>globalData.value.height-90),
@@ -89,7 +99,7 @@ export default {
             handleCheckKey();
         });
 
-        return {globalData,state,handleSave}
+        return {globalData,state,hasWhiteList,handleSave}
     }
 }
 </script>

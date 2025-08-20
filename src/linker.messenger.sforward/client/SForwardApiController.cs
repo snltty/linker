@@ -5,6 +5,7 @@ using linker.messenger.signin;
 using linker.libs;
 using linker.messenger.api;
 using linker.libs.web;
+using linker.messenger.sforward.server;
 
 namespace linker.messenger.sforward.client
 {
@@ -19,8 +20,9 @@ namespace linker.messenger.sforward.client
         private readonly ISerializer serializer;
         private readonly IAccessStore accessStore;
         private readonly SForwardPlanHandle sForwardPlanHandle;
+        private readonly SForwardClientTestTransfer sForwardClientTestTransfer;
 
-        public SForwardApiController(SForwardClientTransfer forwardTransfer, IMessengerSender messengerSender, SignInClientState signInClientState, ISignInClientStore signInClientStore, SForwardDecenter sForwardDecenter, ISForwardClientStore sForwardClientStore, ISerializer serializer, IAccessStore accessStore, SForwardPlanHandle sForwardPlanHandle)
+        public SForwardApiController(SForwardClientTransfer forwardTransfer, IMessengerSender messengerSender, SignInClientState signInClientState, ISignInClientStore signInClientStore, SForwardDecenter sForwardDecenter, ISForwardClientStore sForwardClientStore, ISerializer serializer, IAccessStore accessStore, SForwardPlanHandle sForwardPlanHandle, SForwardClientTestTransfer sForwardClientTestTransfer)
         {
             this.forwardTransfer = forwardTransfer;
             this.messengerSender = messengerSender;
@@ -31,6 +33,13 @@ namespace linker.messenger.sforward.client
             this.serializer = serializer;
             this.accessStore = accessStore;
             this.sForwardPlanHandle = sForwardPlanHandle;
+            this.sForwardClientTestTransfer = sForwardClientTestTransfer;
+        }
+
+        public List<SForwardServerNodeReportInfo> Subscribe(ApiControllerParamsInfo param)
+        {
+            sForwardClientTestTransfer.Subscribe();
+            return sForwardClientTestTransfer.Nodes;
         }
 
         public void Refresh(ApiControllerParamsInfo param)
@@ -61,15 +70,15 @@ namespace linker.messenger.sforward.client
         /// </summary>
         /// <param name="param"></param>
         /// <returns></returns>
-        public async Task<List<SForwardInfo>> Get(ApiControllerParamsInfo param)
+        public async Task<List<SForwardInfo191>> Get(ApiControllerParamsInfo param)
         {
             if (param.Content == signInClientStore.Id)
             {
-                if (accessStore.HasAccess(AccessValue.ForwardShowSelf) == false) return new List<SForwardInfo>();
+                if (accessStore.HasAccess(AccessValue.ForwardShowSelf) == false) return new List<SForwardInfo191>();
                 return sForwardClientStore.Get().ToList();
             }
 
-            if (accessStore.HasAccess(AccessValue.ForwardShowOther) == false) return new List<SForwardInfo>();
+            if (accessStore.HasAccess(AccessValue.ForwardShowOther) == false) return new List<SForwardInfo191>();
             var resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
@@ -78,9 +87,9 @@ namespace linker.messenger.sforward.client
             }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK)
             {
-                return serializer.Deserialize<List<SForwardInfo>>(resp.Data.Span);
+                return serializer.Deserialize<List<SForwardInfo191>>(resp.Data.Span);
             }
-            return new List<SForwardInfo>();
+            return new List<SForwardInfo191>();
         }
 
         /// <summary>
@@ -90,7 +99,7 @@ namespace linker.messenger.sforward.client
         /// <returns></returns>
         public async Task<bool> Add(ApiControllerParamsInfo param)
         {
-            SForwardAddForwardInfo info = param.Content.DeJson<SForwardAddForwardInfo>();
+            SForwardAddForwardInfo191 info = param.Content.DeJson<SForwardAddForwardInfo191>();
             if (info.MachineId == signInClientStore.Id)
             {
                 if (accessStore.HasAccess(AccessValue.ForwardSelf) == false) return false;
@@ -100,7 +109,7 @@ namespace linker.messenger.sforward.client
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
-                MessengerId = (ushort)SForwardMessengerIds.AddClientForward,
+                MessengerId = (ushort)SForwardMessengerIds.AddClientForward191,
                 Payload = serializer.Serialize(info)
             }).ConfigureAwait(false);
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
@@ -186,8 +195,67 @@ namespace linker.messenger.sforward.client
             return true;
         }
 
+
+
+        /// <summary>
+        /// 更新节点
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public async Task<bool> Edit(ApiControllerParamsInfo param)
+        {
+            SForwardServerNodeUpdateInfo info = param.Content.DeJson<SForwardServerNodeUpdateInfo>();
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)SForwardMessengerIds.EditForward,
+                Payload = serializer.Serialize(new SForwardServerNodeUpdateWrapInfo
+                {
+                    Info = info,
+                })
+            }).ConfigureAwait(false);
+            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
+        }
+
+        /// <summary>
+        /// 重启节点
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public async Task<bool> Exit(ApiControllerParamsInfo param)
+        {
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)SForwardMessengerIds.ExitForward,
+                Payload = serializer.Serialize(param.Content)
+            }).ConfigureAwait(false);
+            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
+        }
+        /// <summary>
+        /// 更新节点
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public async Task<bool> Update(ApiControllerParamsInfo param)
+        {
+            UpdateInfo info = param.Content.DeJson<UpdateInfo>();
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)SForwardMessengerIds.UpdateForward,
+                Payload = serializer.Serialize(new KeyValuePair<string, string>(info.Key, info.Value))
+            }).ConfigureAwait(false);
+            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
+        }
+
     }
 
+    public sealed class UpdateInfo
+    {
+        public string Key { get; set; }
+        public string Value { get; set; }
+    }
     public sealed class SForwardListInfo
     {
         public ConcurrentDictionary<string, int> List { get; set; }

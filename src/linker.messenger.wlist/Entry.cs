@@ -1,4 +1,6 @@
 ﻿using linker.libs.web;
+using linker.messenger.relay.server;
+using linker.messenger.sforward.server;
 using Microsoft.Extensions.DependencyInjection;
 namespace linker.messenger.wlist
 {
@@ -22,6 +24,11 @@ namespace linker.messenger.wlist
         public static ServiceCollection AddWhiteListServer(this ServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton<WhiteListServerMessenger>();
+
+
+            serviceCollection.AddSingleton<IRelayServerWhiteListStore, RelayWhiteListStore>();
+            serviceCollection.AddSingleton<ISForwardServerWhiteListStore, SForwardWhiteListStore>();
+
             return serviceCollection;
         }
         public static ServiceProvider UseWhiteListServer(this ServiceProvider serviceProvider)

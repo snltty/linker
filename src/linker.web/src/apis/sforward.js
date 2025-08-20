@@ -26,3 +26,17 @@ export const startSForwardInfo = (data) => {
 export const stopSForwardInfo = (data) => {
     return sendWebsocketMsg('sforward/stop', data);
 }
+
+
+export const setSForwardSubscribe = () => {
+    return sendWebsocketMsg('sforward/Subscribe');
+}
+export const sforwardEdit = (data) => {
+    return sendWebsocketMsg('sforward/edit', data);
+}
+export const sforwardExit = (id) => {
+    return sendWebsocketMsg('sforward/Exit', id);
+}
+export const sforwardUpdate = (id) => {
+    return sendWebsocketMsg('sforward/Update', id);
+}

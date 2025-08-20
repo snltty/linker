@@ -1,5 +1,5 @@
 ﻿using linker.libs.web;
-using linker.messenger.sync;
+using linker.messenger.relay.server;
 using Microsoft.Extensions.DependencyInjection;
 namespace linker.messenger.cdkey
 {
@@ -23,6 +23,9 @@ namespace linker.messenger.cdkey
         public static ServiceCollection AddCdkeyServer(this ServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton<CdkeyServerMessenger>();
+
+            serviceCollection.AddSingleton<IRelayServerCdkeyStore, RelayCdkeyStore>();
+
             return serviceCollection;
         }
         public static ServiceProvider UseCdkeyServer(this ServiceProvider serviceProvider)

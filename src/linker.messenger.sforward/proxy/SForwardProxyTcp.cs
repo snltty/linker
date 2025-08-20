@@ -1,5 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.extends;
+using linker.messenger.sforward.server;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
@@ -12,6 +13,7 @@ namespace linker.plugins.sforward.proxy
         private ConcurrentDictionary<int, AsyncUserToken> tcpListens = new ConcurrentDictionary<int, AsyncUserToken>();
         private ConcurrentDictionary<ulong, TaskCompletionSource<Socket>> tcpConnections = new ConcurrentDictionary<ulong, TaskCompletionSource<Socket>>();
         private ConcurrentDictionary<ulong, AsyncUserToken> httpConnections = new ConcurrentDictionary<ulong, AsyncUserToken>();
+        private ConcurrentDictionary<string, SForwardTrafficCacheInfo> httpCaches = new ConcurrentDictionary<string, SForwardTrafficCacheInfo>();
 
         public Func<int, ulong, Task<bool>> TunnelConnect { get; set; } = async (port, id) => { return await Task.FromResult(false).ConfigureAwait(false); };
         public Func<string, int, ulong, Task<bool>> WebConnect { get; set; } = async (host, port, id) => { return await Task.FromResult(false).ConfigureAwait(false); };
@@ -19,11 +21,11 @@ namespace linker.plugins.sforward.proxy
         #region 服务端
 
 
-        private void StartTcp(int port, bool isweb, byte bufferSize, string groupid)
+        private void StartTcp(int port, bool isweb, byte bufferSize, string groupid, SForwardTrafficCacheInfo cache)
         {
             IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, port);
             Socket socket = new Socket(localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            //socket.IPv6Only(localEndPoint.AddressFamily, false);
+            socket.IPv6Only(localEndPoint.AddressFamily, false);
             socket.Bind(localEndPoint);
             socket.Listen(int.MaxValue);
             AsyncUserToken userToken = new AsyncUserToken
@@ -32,7 +34,8 @@ namespace linker.plugins.sforward.proxy
                 SourceSocket = socket,
                 IsWeb = isweb,
                 BufferSize = bufferSize,
-                GroupId = groupid
+                GroupId = groupid,
+                Cache = cache
             };
             SocketAsyncEventArgs acceptEventArg = new SocketAsyncEventArgs
             {
@@ -91,6 +94,7 @@ namespace linker.plugins.sforward.proxy
                             IsWeb = acceptToken.IsWeb,
                             BufferSize = acceptToken.BufferSize,
                             GroupId = acceptToken.GroupId,
+                            Cache = acceptToken.Cache
                         };
                         _ = BindReceive(userToken);
                     }
@@ -121,7 +125,8 @@ namespace linker.plugins.sforward.proxy
                     return;
                 }
                 string key = token.ListenPort.ToString();
-               
+                SForwardTrafficCacheInfo cache = token.Cache;
+
                 //是web的，去获取host请求头，匹配不同的服务
                 if (token.IsWeb)
                 {
@@ -137,6 +142,7 @@ namespace linker.plugins.sforward.proxy
                         CloseClientSocket(token);
                         return;
                     }
+                    httpCaches.TryGetValue(token.Host, out cache);
                 }
                 else
                 {
@@ -166,7 +172,7 @@ namespace linker.plugins.sforward.proxy
                 await token.TargetSocket.SendAsync(buffer1.AsMemory(0, length)).ConfigureAwait(false);
 
                 //两端交换数据
-                await Task.WhenAll(CopyToAsync(key, token.GroupId, buffer1, token.SourceSocket, token.TargetSocket), CopyToAsync(key, token.GroupId, buffer2, token.TargetSocket, token.SourceSocket)).ConfigureAwait(false);
+                await Task.WhenAll(CopyToAsync(key, token.GroupId, buffer1, token.SourceSocket, token.TargetSocket, cache), CopyToAsync(key, token.GroupId, buffer2, token.TargetSocket, token.SourceSocket, cache)).ConfigureAwait(false);
 
                 CloseClientSocket(token);
             }
@@ -190,26 +196,33 @@ namespace linker.plugins.sforward.proxy
             if (token == null) return;
             token.Clear();
         }
-        public void StopTcp()
-        {
-            foreach (var item in tcpListens)
-            {
-                CloseClientSocket(item.Value);
-            }
-            tcpListens.Clear();
-        }
         public void StopTcp(int port)
         {
             if (tcpListens.TryRemove(port, out AsyncUserToken userToken))
             {
+                if (userToken.Cache != null)
+                {
+                    sForwardServerNodeTransfer.RemoveTrafficCache(userToken.Cache.Cache.FlowId);
+                }
                 CloseClientSocket(userToken);
             }
         }
-        public void StopHttp(string host)
+
+
+        public void AddHttp(string host, bool validated, List<SForwardCdkeyInfo> cdkeys)
         {
-            foreach (var item in httpConnections.Where(c=>c.Value.Host == host).Select(c=>c.Key).ToList())
+            SForwardTrafficCacheInfo sForwardTrafficCacheInfo = sForwardServerNodeTransfer.AddTrafficCache(validated, cdkeys);
+            httpCaches.AddOrUpdate(host, sForwardTrafficCacheInfo, (a, b) => sForwardTrafficCacheInfo);
+        }
+        public void RemoveHttp(string host)
+        {
+            if (httpCaches.TryRemove(host, out var cache))
             {
-                if (httpConnections.TryRemove(item,out var token))
+                sForwardServerNodeTransfer.RemoveTrafficCache(cache.Cache.FlowId);
+            }
+            foreach (var item in httpConnections.Where(c => c.Value.Host == host).Select(c => c.Key).ToList())
+            {
+                if (httpConnections.TryRemove(item, out var token))
                 {
                     CloseClientSocket(token);
                 }
@@ -291,13 +304,45 @@ namespace linker.plugins.sforward.proxy
         /// <param name="source"></param>
         /// <param name="target"></param>
         /// <returns></returns>
-        private async Task CopyToAsync(string key, string groupid, Memory<byte> buffer, Socket source, Socket target)
+        private async Task CopyToAsync(string key, string groupid, Memory<byte> buffer, Socket source, Socket target, SForwardTrafficCacheInfo trafficCacheInfo = null)
         {
             try
             {
                 int bytesRead;
                 while ((bytesRead = await source.ReceiveAsync(buffer, SocketFlags.None).ConfigureAwait(false)) != 0)
                 {
+                    if (trafficCacheInfo != null)
+                    {
+                        //流量限制
+                        if (sForwardServerNodeTransfer.AddBytes(trafficCacheInfo, bytesRead) == false)
+                        {
+                            source.SafeClose();
+                            break;
+                        }
+
+                        //总速度
+                        if (sForwardServerNodeTransfer.NeedLimit(trafficCacheInfo))
+                        {
+                            int length = bytesRead;
+                            sForwardServerNodeTransfer.TryLimit(ref length);
+                            while (length > 0)
+                            {
+                                await Task.Delay(30).ConfigureAwait(false);
+                                sForwardServerNodeTransfer.TryLimit(ref length);
+                            }
+                        }
+                        //单个速度
+                        if (trafficCacheInfo.Limit.NeedLimit())
+                        {
+                            int length = bytesRead;
+                            trafficCacheInfo.Limit.TryLimit(ref length);
+                            while (length > 0)
+                            {
+                                await Task.Delay(30).ConfigureAwait(false);
+                                trafficCacheInfo.Limit.TryLimit(ref length);
+                            }
+                        }
+                    }
                     Add(key, groupid, bytesRead, bytesRead);
                     await target.SendAsync(buffer.Slice(0, bytesRead), SocketFlags.None).ConfigureAwait(false);
                 }
@@ -328,6 +373,8 @@ namespace linker.plugins.sforward.proxy
         public Socket TargetSocket { get; set; }
 
         public byte BufferSize { get; set; }
+
+        public SForwardTrafficCacheInfo Cache { get; set; }
 
         public void Clear()
         {

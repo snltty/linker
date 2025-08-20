@@ -42,7 +42,6 @@
 		<ProjectReference Include="..\linker.messenger.plan\linker.messenger.plan.csproj" />
 		<ProjectReference Include="..\linker.messenger.signin\linker.messenger.signin.csproj" />
 		<ProjectReference Include="..\linker.messenger.sync\linker.messenger.sync.csproj" />
-		<ProjectReference Include="..\linker.messenger.wlist\linker.messenger.wlist.csproj" />
 		<ProjectReference Include="..\linker.messenger\linker.messenger.csproj" />
 	</ItemGroup>
 </Project>

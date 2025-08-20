@@ -32,7 +32,7 @@
         /// <returns></returns>
         public async Task<string> Validate(SignInfo signInfo, SignCacheInfo cache)
         {
-            if (signInfo.Args.TryGetValue("userid", out string userid))
+            if (signInfo.Args.TryGetValue("userid", out string userid) && string.IsNullOrWhiteSpace(userid) == false)
             {
                 signInfo.UserId = userid;
             }

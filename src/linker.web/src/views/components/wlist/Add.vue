@@ -11,11 +11,11 @@
                 <el-form-item :label="$t('server.wlistName')" prop="Name">
                     <el-input v-trim v-model="state.ruleForm.Name" />
                 </el-form-item>
-                <el-form-item v-if="state.ruleForm.Type == 'Relay'" :label="$t(`server.wlistNodes${state.ruleForm.Type}`)" prop="Nodes">
-                    <el-input v-trim type="textarea" :value="state.nodes" @click="handleShowNodes" readonly resize="none" rows="4"></el-input>
+                <el-form-item :label="$t(`server.wlistNodes`)" prop="Nodes">
+                    <el-input v-trim type="textarea" :value="state.nodesText" @click="handleShowNodes" readonly resize="none" :rows="4"></el-input>
                 </el-form-item>
-                <el-form-item v-if="state.ruleForm.Type == 'SForward'" :label="$t(`server.wlistNodes${state.ruleForm.Type}`)" prop="Nodes">
-                    <el-input v-trim type="textarea" v-model="state.ports" resize="none" rows="4" @change="handlePortChange"></el-input>
+                <el-form-item v-if="state.prefix" :label="$t(`server.wlistNodes${state.ruleForm.Type}`)" prop="Domain">
+                    <el-input v-trim type="textarea" v-model="state.ports" resize="none" :rows="2" @change="handlePortChange"></el-input>
                 </el-form-item>
                 <el-form-item :label="$t('server.wlistRemark')" prop="Remark">
                     <el-input v-trim v-model="state.ruleForm.Remark" />
@@ -36,13 +36,9 @@
                 v-model="state.nodeIds"
                 filterable
                 :filter-method="srcFilterMethod"
-                :data="nodes"
+                :data="state.nodes"
                 :titles="[$t('server.wlistUnselect'), $t('server.wlistSelected')]"
-                :props="{
-                    key: 'Id',
-                    label: 'Name',
-                }"
-            />
+                :props="{key: 'Id',label: 'Name'}"/>
             <div class="t-c w-100 mgt-1">
                 <el-button @click="state.showNodes = false">{{$t('common.cancel')}}</el-button>
                 <el-button type="primary" @click="handleNodes">{{$t('common.confirm')}}</el-button>
@@ -63,6 +59,7 @@ export default {
     setup(props,{emit}) {
         const {t} = useI18n();
         const nodes = inject('nodes');
+        const nodeJson =[{Id:'*',Name:'*'}].concat(nodes.value).reduce((json,item,index)=>{ json[item.Id] = item.Name; return json; },{});
         const editState = inject('edit');
         const state = reactive({
             show:true,
@@ -75,21 +72,20 @@ export default {
                 Remark:editState.value.Remark || '',
                 Nodes:editState.value.Nodes || [],
             },
-            nodes:computed(()=>{
-                const json = nodes.value.reduce((json,item,index)=>{ json[item.Id] = item.Name; return json; },{});
-                return state.ruleForm.Nodes.map(c=>json[c]).join(',');
-            }),
+            
             rules:{
                 UserId: [{ required: true, message: "required", trigger: "blur" }],
                 Name: [{ required: true, message: "required", trigger: "blur" }],
                 Nodes: [{ required: true, message: "required", trigger: "blur" }],
             },
+            nodes:computed(()=>[{Id:'*',Name:'*'}].concat(nodes.value)),
+            nodesText:computed(()=>state.ruleForm.Nodes.filter(c=>!!!state.prefix || c.indexOf(state.prefix) < 0).map(c=>nodeJson[c]).join(',')),
+
             showNodes:false,
             nodeIds: [],
-
-            ports: editState.value.Type == 'SForward' ? editState.value.Nodes.join(',') : '',
-
-            userids:[]
+            ports: [],
+            userids:[],
+            prefix:editState.value.prefix
         });
         watch(() => state.show, (val) => {
             if (!val) {
@@ -99,19 +95,24 @@ export default {
             }
         });
 
-        const handleShowNodes = ()=>{
-            state.nodeIds = state.ruleForm.Nodes;
+        const formatNodes = ()=>{
+            const ports = state.ports.replace(/\n/g,',').split(',').map(c=>c.replace(/\s/g,'')).filter(c=>!!c).map(c=>`${state.prefix}${c}`);
+            state.ruleForm.Nodes = state.nodeIds.concat(ports);
+        }
+
+        const handleShowNodes = ()=>{     
+            state.nodeIds = state.ruleForm.Nodes.filter(c=>!!!state.prefix ||c.indexOf(state.prefix) < 0);
             state.showNodes = true;
         }
         const srcFilterMethod = (query, item) => {
             return item.Name.toLowerCase().includes(query.toLowerCase())
         }
         const handleNodes = ()=>{
-            state.ruleForm.Nodes = state.nodeIds;
+            formatNodes();
             state.showNodes = false;
         }
         const handlePortChange = ()=>{
-            state.ruleForm.Nodes = state.ports.split(',').map(c=>c.replace(/\s/g,'')).filter(c=>!!c);
+            formatNodes();        
         }
         const handleUserIdChange = ()=>{
             try{
@@ -119,11 +120,13 @@ export default {
             }catch(e){
             }
         }
-
         const handleUserIds = (query)=>{
             getSignInUserIds(query).then(data=>{
+                data.forEach(c=>{
+                    c.UserId = c.UserId || '';
+                })
                 state.userids = data;
-            });
+            }).catch(()=>{});
         }
 
         const ruleFormRef = ref(null);
@@ -143,10 +146,12 @@ export default {
         }
 
         onMounted(()=>{
+            state.nodeIds = state.ruleForm.Nodes.filter(c=>!!!state.prefix ||c.indexOf(state.prefix) < 0).map(c=>c.replace(state.prefix,''));
+            state.ports = state.ruleForm.Nodes.filter(c=>!!!state.prefix ||c.indexOf(state.prefix) >= 0).map(c=>c.replace(state.prefix,'')).join(',');
             handleUserIds(state.ruleForm.UserId);
-        })
+        });
 
-        return {state,nodes,handleShowNodes,srcFilterMethod,handleNodes,ruleFormRef,handleSave,handlePortChange,handleUserIdChange,handleUserIds}
+        return {state,handleShowNodes,srcFilterMethod,handleNodes,ruleFormRef,handleSave,handlePortChange,handleUserIdChange,handleUserIds}
     }
 }
 </script>

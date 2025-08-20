@@ -21,10 +21,14 @@
         <el-table stripe :data="state.list.List" border size="small" width="100%">
             
             <el-table-column prop="Name" :label="$t('server.wlistName')"></el-table-column>
-            <el-table-column prop="Nodes" :label="$t(`server.wlistNodes${state.page.Type}`)">
+            <el-table-column prop="Nodes" :label="$t(`server.wlistNodes`)">
                 <template #default="scope">
-                    <span v-if="scope.row.Type == 'Relay'">{{ scope.row.Nodes.map(c=>state.nodes[c]).join(',') }}</span>
-                    <span v-else-if="scope.row.Type == 'SForward'">{{ scope.row.Nodes.join(',') }}</span>
+                    <span>{{ scope.row.Nodes.filter(c=>c.indexOf(state.prefix)<0).map(c=>state.nodes[c]).join(',') }}</span>
+                </template>
+            </el-table-column>
+            <el-table-column v-if="state.prefix" prop="Nodes1" :label="$t(`server.wlistNodes${state.page.Type}`)">
+                <template #default="scope">
+                    <span>{{ scope.row.Nodes.filter(c=>c.indexOf(state.prefix)>=0).map(c=>c.replace(state.prefix,'')).join(',') }}</span>
                 </template>
             </el-table-column>
             <el-table-column prop="Remark" :label="$t('server.wlistRemark')"></el-table-column>
@@ -66,14 +70,14 @@ import { useI18n } from 'vue-i18n';
 import Add from './Add.vue';
 import { wlistDel, wlistPage } from '@/apis/wlist';
 export default {
-    props: ['modelValue','type'],
+    props: ['modelValue','type','prefix'],
     emits: ['update:modelValue'],
     components:{Delete,Plus,Search ,EditPen,Add,Warning},
     setup(props,{emit}) {
         const {t} = useI18n();
         const nodes = inject('nodes');
         const state = reactive({
-            nodes:computed(()=>nodes.value.reduce((json,item,index)=>{ json[item.Id] = item.Name; return json; },{})),
+            nodes:computed(()=>[{Id:'*',Name:'*'}].concat(nodes.value).reduce((json,item,index)=>{ json[item.Id] = item.Name; return json; },{})),
             page:{
                 Page:1,
                 Size:10,
@@ -89,7 +93,8 @@ export default {
                 List:[]
             },
             show:true,
-            showAdd:false
+            showAdd:false,
+            prefix:props.prefix
         });
         watch(() => state.show, (val) => {
             if (!val) {
@@ -105,11 +110,12 @@ export default {
         provide('edit',editState);
 
         const handleAdd = ()=>{
-            editState.value = {Id:0,Name:'',Nodes:[],Remark:'',UserId:'',Type:props.type};
+            editState.value = {Id:0,Name:'',Nodes:[],Remark:'',UserId:'',Type:props.type,prefix:props.prefix || ''};
             state.showAdd = true;
         }
         const handleEdit = (row)=>{
-            editState.value = row
+            row.prefix = props.prefix || '';
+            editState.value = row;
             state.showAdd = true;
         }
         const handleSearch = ()=>{

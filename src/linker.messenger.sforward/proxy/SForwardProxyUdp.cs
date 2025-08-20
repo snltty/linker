@@ -1,6 +1,7 @@
 ﻿using linker.libs;
 using linker.libs.extends;
 using linker.libs.timer;
+using linker.messenger.sforward.server;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net;
@@ -24,7 +25,7 @@ namespace linker.plugins.sforward.proxy
 
         #region 服务端
 
-        private void StartUdp(int port, byte bufferSize, string groupid)
+        private void StartUdp(int port, byte bufferSize, string groupid, SForwardTrafficCacheInfo cache)
         {
             Socket socketUdp = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             socketUdp.Bind(new IPEndPoint(IPAddress.Any, port));
@@ -33,6 +34,7 @@ namespace linker.plugins.sforward.proxy
                 ListenPort = port,
                 SourceSocket = socketUdp,
                 GroupId = groupid,
+                Cache = cache
             };
             socketUdp.EnableBroadcast = true;
             socketUdp.WindowsUdpBug();
@@ -58,9 +60,10 @@ namespace linker.plugins.sforward.proxy
                         continue;
                     }
 
+                    int bytesRead = result.ReceivedBytes;
                     Memory<byte> memory = buffer.AsMemory(0, result.ReceivedBytes);
 
-                    Add(portStr, token.GroupId, memory.Length,0);
+                    Add(portStr, token.GroupId, memory.Length, 0);
 
                     IPEndPoint source = result.RemoteEndPoint as IPEndPoint;
                     (IPAddress ip, ushort port) sourceKey = (source.Address, (ushort)source.Port);
@@ -68,8 +71,29 @@ namespace linker.plugins.sforward.proxy
                     //已经连接
                     if (udpConnections.TryGetValue(sourceKey, out UdpTargetCache cache) && cache != null)
                     {
-                        Add(portStr, token.GroupId,0, memory.Length);
+                        if (token.Cache != null)
+                        {
+                            //流量限制
+                            if (sForwardServerNodeTransfer.AddBytes(token.Cache, bytesRead) == false)
+                            {
+                                continue;
+                            }
+                            //总速度
+                            if (sForwardServerNodeTransfer.NeedLimit(token.Cache) && sForwardServerNodeTransfer.TryLimitPacket(bytesRead) == false)
+                            {
+                                continue;
+                            }
+                            //单个速度
+                            if (token.Cache.Limit.NeedLimit() && token.Cache.Limit.TryLimitPacket(bytesRead) == false)
+                            {
+                                continue;
+                            }
+                        }
+
+
+                        Add(portStr, token.GroupId, 0, memory.Length);
                         cache.LastTicks.Update();
+
                         await token.SourceSocket.SendToAsync(memory, cache.IPEndPoint).ConfigureAwait(false);
                     }
                     else
@@ -150,14 +174,6 @@ namespace linker.plugins.sforward.proxy
                     token.Clear();
                 }
             }
-        }
-        public void StopUdp()
-        {
-            foreach (var item in udpListens)
-            {
-                item.Value.Clear();
-            }
-            udpListens.Clear();
         }
         public virtual void StopUdp(int port)
         {
@@ -319,15 +335,13 @@ namespace linker.plugins.sforward.proxy
         public int ListenPort { get; set; }
         public string GroupId { get; set; }
         public Socket SourceSocket { get; set; }
-        public Socket TargetSocket { get; set; }
+
+        public SForwardTrafficCacheInfo Cache { get; set; }
 
         public void Clear()
         {
             SourceSocket?.SafeClose();
             SourceSocket = null;
-
-            TargetSocket?.SafeClose();
-            TargetSocket = null;
 
             GC.Collect();
         }

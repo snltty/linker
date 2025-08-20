@@ -1,10 +1,10 @@
-﻿using linker.libs;
+﻿using linker.messenger.sforward.server;
 using System.Net;
 
 
 namespace linker.messenger.sforward
 {
-    public sealed partial class SForwardInfo
+    public partial class SForwardInfo
     {
         public SForwardInfo() { }
         /// <summary>
@@ -52,13 +52,18 @@ namespace linker.messenger.sforward
         /// 端口范围
         /// </summary>
         public int RemotePortMax { get; set; }
+
+
     }
+
+    public sealed class SForwardInfo191 : SForwardInfo
+    {
+        public string NodeId { get; set; } = string.Empty;
+        public string NodeId1 { get; set; } = string.Empty;
+    }
+
     public sealed class SForwardConfigServerInfo
     {
-        /// <summary>
-        /// 缓冲区
-        /// </summary>
-        public byte BufferSize { get; set; } = 3;
         /// <summary>
         /// web端口
         /// </summary>
@@ -68,13 +73,18 @@ namespace linker.messenger.sforward
         /// </summary>
         public int[] TunnelPortRange { get; set; } = new int[] { 10000, 60000 };
 
-        public bool Anonymous { get; set; }
+        public DistributedInfo Distributed { get; set; } = new DistributedInfo { };
+    }
+    public sealed class DistributedInfo
+    {
+        public SForwardServerNodeInfo Node { get; set; } = new SForwardServerNodeInfo { };
+        public SForwardServerMasterInfo Master { get; set; } = new SForwardServerMasterInfo { };
     }
 
     /// <summary>
     /// 往服务器添加穿透
     /// </summary>
-    public sealed partial class SForwardAddInfo
+    public partial class SForwardAddInfo
     {
         /// <summary>
         /// 域名
@@ -85,6 +95,19 @@ namespace linker.messenger.sforward
         /// </summary>
         public int RemotePort { get; set; }
     }
+    public sealed partial class SForwardAddInfo191 : SForwardAddInfo
+    {
+        /// <summary>
+        /// 节点id
+        /// </summary>
+        public string NodeId { get; set; } = string.Empty;
+        public string MachineId { get; set; } = string.Empty;
+        public string GroupId { get; set; } = string.Empty;
+
+        public bool Validated { get; set; }
+        public List<SForwardCdkeyInfo> Cdkey { get; set; } = [];
+    }
+
     /// <summary>
     /// 添加穿透结果
     /// </summary>
@@ -104,10 +127,14 @@ namespace linker.messenger.sforward
         public byte BufferSize { get; set; }
     }
 
-    public sealed partial class SForwardAddForwardInfo
+    public partial class SForwardAddForwardInfo
     {
         public string MachineId { get; set; }
         public SForwardInfo Data { get; set; }
+    }
+    public sealed partial class SForwardAddForwardInfo191 : SForwardAddForwardInfo
+    {
+        public new SForwardInfo191 Data { get; set; }
     }
     public sealed partial class SForwardRemoveForwardInfo
     {

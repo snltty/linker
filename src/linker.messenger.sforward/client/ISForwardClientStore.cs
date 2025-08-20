@@ -12,31 +12,31 @@
         /// 获取穿透列表
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<SForwardInfo> Get();
+        public IEnumerable<SForwardInfo191> Get();
         /// <summary>
         /// 获取穿透
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public SForwardInfo Get(long id);
+        public SForwardInfo191 Get(long id);
         /// <summary>
         /// 获取穿透
         /// </summary>
         /// <param name="domain"></param>
         /// <returns></returns>
-        public SForwardInfo Get(string domain);
+        public SForwardInfo191 Get(string domain);
         /// <summary>
         /// 获取穿透
         /// </summary>
         /// <param name="port"></param>
         /// <returns></returns>
-        public SForwardInfo GetPort(int port);
+        public SForwardInfo191 GetPort(int port);
         /// <summary>
         /// 添加穿透
         /// </summary>
         /// <param name="info"></param>
         /// <returns></returns>
-        public bool Add(SForwardInfo info);
+        public bool Add(SForwardInfo191 info);
         /// <summary>
         /// 更新穿透
         /// </summary>
@@ -59,6 +59,9 @@
         /// <param name="localMsg"></param>
         /// <returns></returns>
         public bool Update(long id,string localMsg);
+
+        public bool UpdateNodeId1(long id, string nodeid1);
+
         /// <summary>
         /// 删除穿透
         /// </summary>

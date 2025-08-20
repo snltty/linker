@@ -17,21 +17,21 @@
                                     </a>
                                 </p>
                                 <p class="flex">
-                                    <el-checkbox style="margin-right:.6rem" v-model="scope.row.Sync2Server" disabled size="small" @click="handleSync2Server(scope.row)">{{ $t('server.relaySync2Server') }}</el-checkbox>
+                                    <el-checkbox class="mgr-p6" v-model="scope.row.Sync2Server" disabled size="small" @click="handleSync2Server(scope.row)">{{ $t('server.relaySync2Server') }}</el-checkbox>
                                     <template v-if="(scope.row.AllowProtocol & 1) == 1">
                                         <template v-if="state.syncData.Key == scope.row.Id && state.syncData.Value == 1">
-                                            <el-checkbox style="margin-right:.6rem" size="small" disabled checked>{{ $t('server.relayDefault') }}TCP</el-checkbox>
+                                            <el-checkbox class="mgr-p6" size="small" disabled checked>{{ $t('server.relayDefault') }}TCP</el-checkbox>
                                         </template>
                                         <template v-else>
-                                            <el-checkbox style="margin-right:.6rem" size="small" disabled @click.stop="handleShowSync(scope.row.Id, 1)">{{ $t('server.relayDefault') }}TCP</el-checkbox>
+                                            <el-checkbox class="mgr-p6" size="small" disabled @click.stop="handleShowSync(scope.row.Id, 1)">{{ $t('server.relayDefault') }}TCP</el-checkbox>
                                         </template>
                                     </template>
                                     <template v-if="(scope.row.AllowProtocol & 2) == 2">
                                         <template v-if="state.syncData.Key == scope.row.Id && state.syncData.Value == 2">
-                                            <el-checkbox style="margin-right:.6rem" size="small" disabled checked>{{ $t('server.relayDefault') }}UDP</el-checkbox>
+                                            <el-checkbox class="mgr-p6" size="small" disabled checked>{{ $t('server.relayDefault') }}UDP</el-checkbox>
                                         </template>
                                         <template v-else>
-                                            <el-checkbox style="margin-right:.6rem" size="small" disabled @click.stop="handleShowSync(scope.row.Id, 2)">{{ $t('server.relayDefault') }}UDP</el-checkbox>
+                                            <el-checkbox class="mgr-p6" size="small" disabled @click.stop="handleShowSync(scope.row.Id, 2)">{{ $t('server.relayDefault') }}UDP</el-checkbox>
                                         </template>
                                     </template>
                                     <span class="flex-1"></span>
@@ -57,7 +57,7 @@
                             </p>
                             <p>{{ scope.row.Delay }}ms</p>
                         </template>
-                    </el-table-column>
+                    </el-table-column> 
                     <el-table-column property="MaxBandwidthTotal" :label="$t('server.relaySpeed1')" width="100">
                         <template #default="scope">
                             <p>

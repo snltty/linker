@@ -2,7 +2,6 @@
 using linker.messenger.relay.client;
 using linker.messenger.relay.messenger;
 using linker.messenger.relay.server;
-using linker.messenger.relay.server.caching;
 using linker.messenger.relay.server.validator;
 using linker.messenger.sync;
 using Microsoft.Extensions.DependencyInjection;
@@ -51,6 +50,9 @@ namespace linker.messenger.relay
             serviceCollection.AddSingleton<IRelayServerCaching, RelayServerCachingMemory>();
 
             serviceCollection.AddSingleton<RelayServerValidatorTransfer>();
+
+            serviceCollection.AddSingleton<IRelayServerWhiteListStore, RelayServerWhiteListStore>();
+            serviceCollection.AddSingleton<IRelayServerCdkeyStore, RelayServerCdkeyStore>();
 
             return serviceCollection;
         }
