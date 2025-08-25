@@ -67,7 +67,7 @@ namespace linker.messenger.relay.client
         {
             TimerHelper.SetIntervalLong(async () =>
             {
-                if (lastTicksManager.DiffLessEqual(3000) || Nodes.Count <= 0)
+                if ((lastTicksManager.DiffLessEqual(3000) || Nodes.Count <= 0) && signInClientState.Connected)
                 {
                     await TaskRelay().ConfigureAwait(false);
                 }

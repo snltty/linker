@@ -2,6 +2,7 @@
 {
     public interface ISForwardServerCdkeyStore
     {
+        public Task<List<SForwardCdkeyInfo>> GetAvailable(string userid);
         public Task<List<SForwardCdkeyInfo>> GetAvailable(string userid,string target);
 
         /// <summary>
@@ -20,6 +21,10 @@
 
     public sealed class SForwardServerCdkeyStore : ISForwardServerCdkeyStore
     {
+        public async Task<List<SForwardCdkeyInfo>> GetAvailable(string userid)
+        {
+            return await Task.FromResult(new List<SForwardCdkeyInfo>());
+        }
         public async Task<List<SForwardCdkeyInfo>> GetAvailable(string userid, string target)
         {
             return await Task.FromResult(new List<SForwardCdkeyInfo>());

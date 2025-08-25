@@ -56,6 +56,7 @@ namespace linker.messenger.tuntap
         private void SignInSuccess(int times)
         {
             _ = CheckDevice();
+            FireWallHelper.WriteIcmp(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName, tuntapConfigTransfer.Info.IP, tuntapConfigTransfer.Info.PrefixLength);
         }
         private void Update()
         {

@@ -230,6 +230,8 @@ export default {
     'server.cdkeyOrderId': 'OrderNo',
     'server.cdkeyContact': 'Email',
     'server.cdkeyRemark': 'Remark',
+    'server.cdkeyValuesRelay': 'Values',
+    'server.cdkeyValuesSForward': 'Port/Doamin',
 
     'server.cdkeyAddTime': 'Add',
     'server.cdkeyStartTime': 'Start',

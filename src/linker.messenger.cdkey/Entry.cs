@@ -1,5 +1,6 @@
 ﻿using linker.libs.web;
 using linker.messenger.relay.server;
+using linker.messenger.sforward.server;
 using Microsoft.Extensions.DependencyInjection;
 namespace linker.messenger.cdkey
 {
@@ -25,6 +26,7 @@ namespace linker.messenger.cdkey
             serviceCollection.AddSingleton<CdkeyServerMessenger>();
 
             serviceCollection.AddSingleton<IRelayServerCdkeyStore, RelayCdkeyStore>();
+            serviceCollection.AddSingleton<ISForwardServerCdkeyStore, SForwardCdkeyStore>();
 
             return serviceCollection;
         }

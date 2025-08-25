@@ -1,8 +1,8 @@
 <template>
     <a @click="state.showMy = true" href="javascript:;" class="mgr-1 a-line">{{$t('server.myCdkey')}}</a>
     <a v-if="state.super && hasCdkey" @click="state.showManager = true" href="javascript:;" class="mgr-1 a-line">{{$t('server.cdkey')}}</a>
-    <Manager :type="state.type" v-if="state.showManager" v-model="state.showManager" />
-    <My :type="state.type" v-if="state.showMy" v-model="state.showMy" />
+    <Manager :type="state.type" v-if="state.showManager" v-model="state.showManager" :prefix="state.prefix" />
+    <My :type="state.type" v-if="state.showMy" v-model="state.showMy" :prefix="state.prefix" />
 </template>
 
 <script>
@@ -11,7 +11,7 @@ import { computed, onMounted, reactive } from 'vue';
 import Manager from './Manager.vue'
 import My from './My.vue'
 export default {
-    props:['type'],
+    props:['type','prefix'],
     components:{Manager,My},
     setup (props) {
 
@@ -21,7 +21,8 @@ export default {
             super:computed(()=>globalData.value.signin.Super),
             showManager:false,
             showMy:false,
-            type:props.type 
+            type:props.type ,
+            prefix:props.prefix ,
         });
 
         return {state,hasCdkey}

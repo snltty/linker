@@ -325,6 +325,8 @@ export default {
     'server.cdkeyOrderId': '订单号',
     'server.cdkeyContact': '邮箱',
     'server.cdkeyRemark': '备注',
+    'server.cdkeyValuesRelay': '中继值',
+    'server.cdkeyValuesSForward': '端口/域名',
 
     'server.cdkeyAddTime': '添加',
     'server.cdkeyStartTime': '开始',

@@ -1,12 +1,13 @@
 <template>
-    <el-form-item :label="$t('server.sforward')" v-if="state.super && hasWhiteList">
+    <el-form-item :label="$t('server.sforward')">
         <div>
             <div class="flex">
                 <a href="javascript:;" @click="state.showModes = true" class="mgr-1 delay a-line" :class="{red:state.nodes.length==0,green:state.nodes.length>0}">
                     {{$t('server.sforwardNodes')}} : {{state.nodes.length}}
                 </a>
-                <WhiteList type="SForward" prefix="sfp->" :sprefix="true"></WhiteList>
+                <WhiteList type="SForward" prefix="sfp->"  v-if="state.super && hasWhiteList"></WhiteList>
                 <Nodes v-if="state.showModes" v-model="state.showModes" :data="state.nodes"></Nodes>
+                <Cdkey type="SForward" prefix="sfp->"></Cdkey>
             </div>
         </div>
     </el-form-item>

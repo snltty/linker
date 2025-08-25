@@ -1,11 +1,12 @@
 ﻿using System;
 using System.IO;
+using System.Net;
 
 namespace linker.libs
 {
     public static class FireWallHelper
     {
-        public static void Write(string fileName)
+        public static void WriteAny(string fileName)
         {
             if (OperatingSystem.IsWindows())
             {
@@ -14,6 +15,13 @@ namespace linker.libs
             else if (OperatingSystem.IsLinux())
             {
                 Linux(fileName);
+            }
+        }
+        public static void WriteIcmp(string fileName, IPAddress ip, byte prefixLength)
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                Windows(fileName, ip, prefixLength);
             }
         }
 
@@ -40,10 +48,22 @@ namespace linker.libs
             {
                 string name = Path.GetFileNameWithoutExtension(fileName);
                 CommandHelper.Windows(string.Empty, new string[] {
-                    $"netsh advfirewall firewall delete rule name=\"{name}\"",
-                    $"netsh advfirewall firewall add rule name=\"{name}\" dir=in action=allow program=\"{fileName}\" protocol=tcp enable=yes",
-                    $"netsh advfirewall firewall add rule name=\"{name}\" dir=in action=allow program=\"{fileName}\" protocol=udp enable=yes",
-                    $"netsh advfirewall firewall add rule name=\"{name}\" dir=in action=allow program=\"{fileName}\" protocol=icmpv4 enable=yes",
+                    $"netsh advfirewall firewall delete rule name=\"{name}-any\"",
+                    $"netsh advfirewall firewall add rule name=\"{name}-any\" dir=in action=allow program=\"{fileName}\" enable=yes"
+                });
+            }
+            catch (Exception)
+            {
+            }
+        }
+        private static void Windows(string fileName, IPAddress ip, byte prefixLength)
+        {
+            try
+            {
+                string name = Path.GetFileNameWithoutExtension(fileName);
+                CommandHelper.Windows(string.Empty, new string[] {
+                    $"netsh advfirewall firewall delete rule name=\"{name}-icmp\"",
+                    $"netsh advfirewall firewall add rule name=\"{name}-icmp\" dir=in action=allow protocol=icmpv4 remoteip={ip}/{prefixLength} enable=yes",
                 });
             }
             catch (Exception)

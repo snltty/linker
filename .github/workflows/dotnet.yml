@@ -37,7 +37,7 @@ jobs:
           release_name: v1.9.0.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 一些累计更新\r\n2. 修复一些APP问题\r\n3. 增加一些数据统计\r\n4. 可选关闭信标服务"
+          body: "1. 一些累计更新\r\n2. 服务器转发多节点\r\n3. 一些代码优化\r\n4. 修复一些错误\r\n5. 其它一些小改变"
       - name: publish projects
         run: ./publish.bat "C:\\Android\\android-sdk"
       - name: upload-win-x86-oss

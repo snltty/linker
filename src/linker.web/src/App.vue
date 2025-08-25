@@ -1,5 +1,5 @@
 <template>
-    <div :class="{phone:globalData.isPhone}">
+    <div class="app-inner absolute" :class="{phone:globalData.isPhone}">
         <el-config-provider :locale="locale">
             <template v-if="configed">
                 <router-view />
@@ -32,6 +32,8 @@ export default {
 }
 </script>
 <style lang="stylus" scoped>
-
+html.dark .app-inner{
+    background: radial-gradient(circle at 15% 50%, rgba(34, 197, 94, 0.4) 0px, transparent 0px) 0px 0px / 100% 100%, radial-gradient(circle at 85% 50%, rgba(22, 163, 74, 0.4) 0px, transparent 0px) 0px 0px / 100% 100%, linear-gradient(90deg, transparent 0%, rgba(34, 197, 94, 0.15) 15%, rgba(34, 197, 94, 0.25) 50%, rgba(22, 163, 74, 0.15) 85%, transparent 100%) 0px 50% / 100% 4px;
+}
 </style>
 

@@ -17,7 +17,7 @@
                                     </a>
                                 </p>
                                 <p class="flex">
-                                    <el-checkbox class="mgr-p6" v-model="scope.row.Sync2Server" disabled size="small" @click="handleSync2Server(scope.row)">{{ $t('server.relaySync2Server') }}</el-checkbox>
+                                    <el-checkbox v-if="state.super" class="mgr-p6" v-model="scope.row.Sync2Server" disabled size="small" @click="handleSync2Server(scope.row)">{{ $t('server.relaySync2Server') }}</el-checkbox>
                                     <template v-if="(scope.row.AllowProtocol & 1) == 1">
                                         <template v-if="state.syncData.Key == scope.row.Id && state.syncData.Value == 1">
                                             <el-checkbox class="mgr-p6" size="small" disabled checked>{{ $t('server.relayDefault') }}TCP</el-checkbox>
@@ -35,7 +35,8 @@
                                         </template>
                                     </template>
                                     <span class="flex-1"></span>
-                                    <a href="javascript:;" class="a-line a-edit" @click="handleUpdate(scope.row.Id)"><el-icon><Refresh /></el-icon>{{ scope.row.Version }}</a>
+                                    <a v-if="state.super" href="javascript:;" class="a-line a-edit" @click="handleUpdate(scope.row.Id)"><el-icon><Refresh /></el-icon>{{ scope.row.Version }}</a>
+                                    <a v-else href="javascript:;" class="a-line a-edit"><el-icon><Refresh /></el-icon>{{ scope.row.Version }}</a>
                                 </p>
                             </div>
                         </template>
@@ -73,13 +74,13 @@
                             <p><strong>{{scope.row.ConnectionRatio}}</strong></p>
                         </template>
                     </el-table-column>
-                    <el-table-column property="Public" :label="$t('server.relayOper')" width="60">
+                    <el-table-column v-if="state.super" property="Public" :label="$t('server.relayOper')" width="60">
                         <template #default="scope">
                             <p>
-                                <a v-if="state.super" href="javascript:;" class="a-line" @click="handleExit(scope.row.Id)"><el-icon><Refresh /></el-icon>{{ $t('server.relayExit') }}</a>
+                                <a href="javascript:;" class="a-line" @click="handleExit(scope.row.Id)"><el-icon><Refresh /></el-icon>{{ $t('server.relayExit') }}</a>
                             </p>
                             <p>
-                                <a v-if="state.super" href="javascript:;" class="a-line" @click="handleEdit(scope.row)"><el-icon><Edit /></el-icon>{{ $t('server.relayEdit') }}</a>
+                                <a href="javascript:;" class="a-line" @click="handleEdit(scope.row)"><el-icon><Edit /></el-icon>{{ $t('server.relayEdit') }}</a>
                             </p>
                         </template>
                     </el-table-column>

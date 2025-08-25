@@ -21,9 +21,10 @@
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Description>1. 一些累计更新
-2. 修复一些APP问题
-3. 增加一些数据统计
-4. 可选关闭信标服务</Description>
+2. 服务器转发多节点
+3. 一些代码优化
+4. 修复一些错误
+5. 其它一些小改变</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>

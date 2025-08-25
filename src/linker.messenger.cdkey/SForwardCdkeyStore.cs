@@ -9,9 +9,13 @@ namespace linker.messenger.cdkey
         {
             this.cdkeyServerStore = cdkeyServerStore;
         }
-        public async Task<List<SForwardCdkeyInfo>> GetAvailable(string userid,string target)
+        public async Task<List<SForwardCdkeyInfo>> GetAvailable(string userid)
         {
             return (await cdkeyServerStore.GetAvailable(userid, "SForward")).Select(c => new SForwardCdkeyInfo { Bandwidth = c.Bandwidth, Id = c.Id, LastBytes = c.LastBytes }).ToList();
+        }
+        public async Task<List<SForwardCdkeyInfo>> GetAvailable(string userid, string target)
+        {
+            return (await cdkeyServerStore.GetAvailable(userid, "SForward", target)).Select(c => new SForwardCdkeyInfo { Bandwidth = c.Bandwidth, Id = c.Id, LastBytes = c.LastBytes }).ToList();
         }
 
         public async Task<Dictionary<int, long>> GetLastBytes(List<int> ids)

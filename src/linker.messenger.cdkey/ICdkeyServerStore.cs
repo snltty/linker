@@ -43,6 +43,7 @@ namespace linker.messenger.cdkey
         /// <param name="userid"></param>
         /// <returns></returns>
         public Task<List<CdkeyStoreInfo>> GetAvailable(string userid, string type);
+        public Task<List<CdkeyStoreInfo>> GetAvailable(string userid, string type,string value);
         /// <summary>
         /// 获取CDKEY列表
         /// </summary>
@@ -202,6 +203,7 @@ namespace linker.messenger.cdkey
         /// 支付金额
         /// </summary>
         public double PayPrice { get; set; }
+
         /// <summary>
         /// 备注
         /// </summary>
@@ -219,6 +221,8 @@ namespace linker.messenger.cdkey
         /// 已删除
         /// </summary>
         public bool Deleted { get; set; }
+
+        public string[] Values { get; set; } = [];
     }
 
     /// <summary>
@@ -290,5 +294,7 @@ namespace linker.messenger.cdkey
         public int Count { get; set; }
 
         public string Type { get; set; }
+
+        public string[] Values { get; set; } = [];
     }
 }

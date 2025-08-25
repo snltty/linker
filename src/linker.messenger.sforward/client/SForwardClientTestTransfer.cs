@@ -2,6 +2,7 @@
 using linker.libs.timer;
 using linker.messenger.sforward.server;
 using linker.messenger.signin;
+using linker.plugins.sforward.messenger;
 using System.Net;
 using System.Net.NetworkInformation;
 
@@ -45,18 +46,19 @@ namespace linker.messenger.sforward.client
         {
             try
             {
-                var tasks = Nodes.Select(async (c) =>
+                var resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
-                    c.Address = c.Address == null || c.Address.Equals(IPAddress.Any) ? signInClientState.Connection.Address.Address : c.Address;
-
-                    using Ping ping = new Ping();
-                    var resp = await ping.SendPingAsync(c.Address, 1000);
-                    c.Delay = resp.Status == IPStatus.Success ? (int)resp.RoundtripTime : -1;
+                    Connection = signInClientState.Connection,
+                    MessengerId = (ushort)SForwardMessengerIds.Nodes
                 });
-                await Task.WhenAll(tasks).ConfigureAwait(false);
+                Nodes = serializer.Deserialize<List<SForwardServerNodeReportInfo>>(resp.Data.Span);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
             }
         }
         private async Task PingNodes()
@@ -73,8 +75,12 @@ namespace linker.messenger.sforward.client
                 });
                 await Task.WhenAll(tasks).ConfigureAwait(false);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
             }
         }
 
@@ -83,7 +89,7 @@ namespace linker.messenger.sforward.client
         {
             TimerHelper.SetIntervalLong(async () =>
             {
-                if (lastTicksManager.DiffLessEqual(3000) || Nodes.Count <= 0)
+                if ((lastTicksManager.DiffLessEqual(3000) || Nodes.Count <= 0) && signInClientState.Connected)
                 {
                     await TaskNodes().ConfigureAwait(false);
                     await PingNodes().ConfigureAwait(false);

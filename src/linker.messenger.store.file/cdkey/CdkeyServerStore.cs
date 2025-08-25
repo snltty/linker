@@ -152,7 +152,8 @@ namespace linker.messenger.store.file.cdkey
                 Contact = order.Contact,
                 OrderId = order.OrderId,
                 PayPrice = order.PayPrice,
-                UserPrice = order.UserPrice
+                UserPrice = order.UserPrice,
+                Values = order.Values ?? [],
             };
             liteCollection.Insert(store);
             return await Task.FromResult(string.Empty).ConfigureAwait(false);
@@ -179,8 +180,12 @@ namespace linker.messenger.store.file.cdkey
         public async Task<List<CdkeyStoreInfo>> GetAvailable(string userid, string type)
         {
             if (string.IsNullOrWhiteSpace(userid) || string.IsNullOrWhiteSpace(type)) return [];
-
             return await Task.FromResult(liteCollection.Find(x => x.UserId == userid && x.Type == type && x.LastBytes > 0 && x.StartTime <= DateTime.Now && x.EndTime >= DateTime.Now && x.Deleted == false).ToList()).ConfigureAwait(false);
+        }
+        public async Task<List<CdkeyStoreInfo>> GetAvailable(string userid, string type, string value)
+        {
+            if (string.IsNullOrWhiteSpace(userid) || string.IsNullOrWhiteSpace(type)) return [];
+            return await Task.FromResult(liteCollection.Find(x => x.UserId == userid && x.Type == type && x.Values.Contains(value) && x.LastBytes > 0 && x.StartTime <= DateTime.Now && x.EndTime >= DateTime.Now && x.Deleted == false).ToList()).ConfigureAwait(false);
         }
         public async Task<List<CdkeyStoreInfo>> Get(List<int> ids)
         {

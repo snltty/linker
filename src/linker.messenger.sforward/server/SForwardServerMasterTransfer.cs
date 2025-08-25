@@ -111,11 +111,13 @@ namespace linker.messenger.sforward.server
 
             List<string> sforward = await sForwardServerWhiteListStore.Get(from.UserId);
             string target = string.IsNullOrWhiteSpace(info.Domain) ? info.RemotePort.ToString() : info.Domain;
-            info.Validated = from.Super && (sforward.Contains($"sfp->{target}") || sforward.Contains($"sfp->*")) && (sforward.Contains(info.NodeId) || sforward.Contains($"*"));
+            info.Validated = from.Super || (sforward.Contains($"sfp->{target}") || sforward.Contains($"sfp->*")) && (sforward.Contains(info.NodeId) || sforward.Contains($"*"));
 
             if (info.Validated == false)
             {
-                info.Cdkey = (await sForwardServerCdkeyStore.GetAvailable(from.UserId, target).ConfigureAwait(false)).Select(c => new SForwardCdkeyInfo { Bandwidth = c.Bandwidth, Id = c.Id, LastBytes = c.LastBytes }).ToList();
+                var cdkeys = await sForwardServerCdkeyStore.GetAvailable(from.UserId, $"sfp->{target}").ConfigureAwait(false);
+                var anyCdkeys = await sForwardServerCdkeyStore.GetAvailable(from.UserId, $"sfp->*").ConfigureAwait(false);
+                info.Cdkey = cdkeys.Concat(anyCdkeys).Select(c => new SForwardCdkeyInfo { Bandwidth = c.Bandwidth, Id = c.Id, LastBytes = c.LastBytes }).ToList();
 
                 if (info.Cdkey.Count <= 0 && node.Public == false)
                 {

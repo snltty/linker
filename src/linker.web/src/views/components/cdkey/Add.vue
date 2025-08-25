@@ -51,6 +51,9 @@
                         </el-col>
                     </el-row>
                 </el-form-item>
+                <el-form-item v-if="state.prefix" :label="$t(`server.cdkeyValues${state.ruleForm.Type}`)" prop="values">
+                    <el-input v-trim show-word-limit v-model="state.values" />
+                </el-form-item>
                 <el-form-item></el-form-item>
                 <el-form-item label="" prop="Btns">
                     <div class="t-c w-100">
@@ -70,12 +73,14 @@ import { useI18n } from 'vue-i18n';
 import moment from "moment";
 import { cdkeyAdd } from '@/apis/cdkey';
 export default {
-    props: ['modelValue','type'],
+    props: ['modelValue','type','prefix'],
     emits: ['update:modelValue','success'],
     setup(props,{emit}) {
         const {t} = useI18n();
         const state = reactive({
             show:true,
+            prefix:props.prefix,
+            values:'',
             ruleForm:{
                 UserId:'',
                 Bandwidth:1,
@@ -96,6 +101,7 @@ export default {
                 Remark:'hand',
                 Contact:'',
                 Type:props.type,
+                Values:[],
             },
             rules:{
                 UserId: [{ required: true, message: "required", trigger: "blur" }],
@@ -120,6 +126,7 @@ export default {
                 const end = new Date(date.getFullYear()+json.Year,date.getMonth()+json.Month,date.getDate()+json.Day,date.getHours()+json.Hour,date.getMinutes()+json.Min,date.getSeconds()+json.Sec);
                 json.EndTime = moment(end).format("YYYY-MM-DD HH:mm:ss");
                 json.MaxBytes = json.G*1024*1024*1024 + json.M*1024*1024 + json.K*1024 + json.B;
+                json.Values = state.values.trim().split(',').filter(v=>v).map(c=>`${state.prefix}${c}`);
                 cdkeyAdd(json).then(()=>{
                     ElMessage.success(t('common.oper'));
                     state.show = false;

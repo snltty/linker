@@ -44,10 +44,15 @@
             <el-table-column prop="OrderId" :label="`${$t('server.cdkeyOrder')}`" width="180">
                 <template #default="scope">
                     <p>{{ scope.row.OrderId }}</p>
+                    <p><strong>{{ scope.row.Values.map(c=>c.replace(state.prefix,'')).join(',') }}</strong></p>
+                </template>
+            </el-table-column>
+            <el-table-column prop="Remark" :label="$t('server.cdkeyRemark')">
+                <template #default="scope">
+                    <p>{{ scope.row.Remark }}</p>
                     <p>{{ scope.row.Contact }}</p>
                 </template>
             </el-table-column>
-            <el-table-column prop="Remark" :label="$t('server.cdkeyRemark')"></el-table-column>
             <el-table-column prop="EndTime" :label="`${$t('server.cdkeyEndTime')}`" width="140" sortable="custom">
             </el-table-column>
             <el-table-column prop="UseTime" :label="`${$t('server.cdkeyUseTime')}`" width="140" sortable="custom">
@@ -79,7 +84,7 @@
         </div>
     </div>
     </el-dialog>
-    <Add :type="state.page.Type" v-if="state.showAdd" v-model="state.showAdd" @success="handleSearch"></Add>
+    <Add :type="state.page.Type" :prefix="state.prefix" v-if="state.showAdd" v-model="state.showAdd" @success="handleSearch"></Add>
     <Test v-if="state.showTest" v-model="state.showTest"></Test>
 </template>
 
@@ -93,7 +98,7 @@ import Flags from './Flags.vue';
 import Add from './Add.vue';
 import Test from './Test.vue';
 export default {
-    props: ['modelValue','type'],
+    props: ['modelValue','type','prefix'],
     emits: ['update:modelValue'],
     components:{Delete,Plus,Search ,Flags,Add,Test,Warning},
     setup(props,{emit}) {
@@ -120,7 +125,8 @@ export default {
             },
             show:true,
             showAdd:false,
-            showTest:false
+            showTest:false,
+            prefix:props.prefix
         });
         watch(() => state.show, (val) => {
             if (!val) {

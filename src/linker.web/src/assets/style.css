@@ -170,11 +170,10 @@ table {
 
 html {
     font-size: 10px;
-    /* background-color: #282c34; */
-    background-color: #f4f4f4;
+    background-color: #f5f5f5;
 }
 html.dark{
-    background-color: #282c34;
+    background-color: #000;
 }
 html.dark .el-switch__core .el-switch__action{
     background-color: #ccc;

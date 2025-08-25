@@ -63,7 +63,6 @@ html.dark .head{background-color:#242526;border-color:#575c61;}
 .head{
     background-color:#f6f8fa;
     border-bottom:1px solid #d0d7de;
-    box-shadow:1px 1px 4px rgba(0,0,0,0.05);
     height:5rem;
     line-height:5rem;
     .logo{

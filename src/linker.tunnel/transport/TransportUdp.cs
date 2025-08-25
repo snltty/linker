@@ -149,7 +149,7 @@ namespace linker.tunnel.transport
 
             TaskCompletionSource<IPEndPoint> taskCompletionSource = new TaskCompletionSource<IPEndPoint>(TaskCreationOptions.RunContinuationsAsynchronously);
             //监听连接
-            Socket remoteUdp = BindListen(tunnelTransportInfo.Local.Local, taskCompletionSource);
+            Socket remoteUdp = BindListen(tunnelTransportInfo.Local.Local, taskCompletionSource, tunnelTransportInfo.RemoteEndPoints.Select(c=>c.Address).ToList());
 
             //给对方发送简单消息
             foreach (IPEndPoint ep in tunnelTransportInfo.RemoteEndPoints)
@@ -214,7 +214,7 @@ namespace linker.tunnel.transport
         /// <param name="local"></param>
         /// <param name="tcs"></param>
         /// <returns></returns>
-        private Socket BindListen(IPEndPoint local, TaskCompletionSource<IPEndPoint> tcs)
+        private Socket BindListen(IPEndPoint local, TaskCompletionSource<IPEndPoint> tcs,List<IPAddress> ips)
         {
             local = new IPEndPoint(IPAddress.IPv6Any, local.Port);
             Socket socket = new Socket(local.AddressFamily, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
@@ -224,9 +224,21 @@ namespace linker.tunnel.transport
 
             TimerHelper.Async(async () =>
             {
-                SocketReceiveFromResult result = await socket.ReceiveFromAsync(new byte[1024], new IPEndPoint(IPAddress.IPv6Any, 0)).ConfigureAwait(false);
-                await socket.SendToAsync(endBytes, result.RemoteEndPoint).ConfigureAwait(false);
-                tcs.TrySetResult(result.RemoteEndPoint as IPEndPoint);
+                byte[] buffer = new byte[1024];
+                while (true)
+                {
+                    SocketReceiveFromResult result = await socket.ReceiveFromAsync(buffer, new IPEndPoint(IPAddress.IPv6Any, 0)).ConfigureAwait(false);
+                    if (ips.Contains((result.RemoteEndPoint as IPEndPoint).Address))
+                    {
+                        await socket.SendToAsync(endBytes, result.RemoteEndPoint).ConfigureAwait(false);
+                        tcs.TrySetResult(result.RemoteEndPoint as IPEndPoint);
+                        break;
+                    }
+                    else
+                    {
+                        LoggerHelper.Instance.Warning($"{Name} connect recv from {result.RemoteEndPoint} {buffer.AsMemory(0, result.ReceivedBytes).GetString()}");
+                    }
+                }
             });
             return socket;
         }

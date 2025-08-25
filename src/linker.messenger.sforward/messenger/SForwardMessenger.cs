@@ -428,7 +428,7 @@ namespace linker.plugins.sforward.messenger
         {
             Add((SForwardAddInfo)sForwardAddInfo, sForwardAddInfo.MachineId, sForwardAddInfo.GroupId, result, sForwardAddInfo.Validated, sForwardAddInfo.Cdkey);
         }
-        private bool PortRange(string str, out int min, out int max)
+        private static bool PortRange(string str, out int min, out int max)
         {
             min = 0; max = 0;
             string[] arr = str.Split('/');

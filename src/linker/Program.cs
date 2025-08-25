@@ -15,7 +15,7 @@ namespace linker
 #if DEBUG
 #else
             //添加防火墙，不添加ICMP
-            linker.libs.FireWallHelper.Write(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName);
+            linker.libs.FireWallHelper.WriteAny(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName);
 #endif
             //全局异常
             AppDomain.CurrentDomain.UnhandledException += (a, b) =>

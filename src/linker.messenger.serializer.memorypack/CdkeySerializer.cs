@@ -111,8 +111,11 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         string Type => info.Type;
 
+        [MemoryPackInclude]
+        string[] Values => info.Values;
+
         [MemoryPackConstructor]
-        SerializableCdkeyStoreInfo(double bandwidth, long lastBytes, int id, string userid, DateTime addTime, DateTime startTime, DateTime endTime, DateTime useTime, long maxBytes, double costPrice, double price, double userPrice, double payPrice, string remark, string orderId, string contact, bool deleted, string type)
+        SerializableCdkeyStoreInfo(double bandwidth, long lastBytes, int id, string userid, DateTime addTime, DateTime startTime, DateTime endTime, DateTime useTime, long maxBytes, double costPrice, double price, double userPrice, double payPrice, string remark, string orderId, string contact, bool deleted, string type, string[] values)
         {
             var info = new CdkeyStoreInfo
             {
@@ -133,7 +136,8 @@ namespace linker.messenger.serializer.memorypack
                 OrderId = orderId,
                 Contact = contact,
                 Deleted = deleted,
-                Type = type
+                Type = type,
+                Values = values
             };
             this.info = info;
         }
@@ -574,10 +578,11 @@ namespace linker.messenger.serializer.memorypack
         int Count => info.Count;
         [MemoryPackInclude]
         string Type => info.Type;
-
+        [MemoryPackInclude]
+        string[] Values => info.Values;
 
         [MemoryPackConstructor]
-        SerializableCdkeyOrderInfo(int gb, int speed, string time, string widgetUserId, string orderId, string contact, double costPrice, double price, double userPrice, double payPrice, int count, string type)
+        SerializableCdkeyOrderInfo(int gb, int speed, string time, string widgetUserId, string orderId, string contact, double costPrice, double price, double userPrice, double payPrice, int count, string type, string[] values)
         {
             var info = new CdkeyOrderInfo
             {
@@ -592,7 +597,8 @@ namespace linker.messenger.serializer.memorypack
                 UserPrice = userPrice,
                 PayPrice = payPrice,
                 Count = count,
-                Type = type
+                Type = type,
+                 Values= values
             };
             this.info = info;
         }

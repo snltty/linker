@@ -11,9 +11,10 @@
                                     <span>({{ scope.row.Domain || scope.row.Address }})</span>
                                 </p>
                                 <p class="flex">
-                                    <el-checkbox class="mgr-p6" v-model="scope.row.Sync2Server" disabled size="small" @click="handleSync2Server(scope.row)">{{ $t('server.sforwardSync2Server') }}</el-checkbox>
+                                    <el-checkbox v-if="state.super" class="mgr-p6" v-model="scope.row.Sync2Server" disabled size="small" @click="handleSync2Server(scope.row)">{{ $t('server.sforwardSync2Server') }}</el-checkbox>
                                     <span class="flex-1"></span>
-                                    <a href="javascript:;" class="a-line a-edit" @click="handleUpdate(scope.row.Id)"><el-icon><Refresh /></el-icon>{{ scope.row.Version }}</a>
+                                    <a v-if="state.super" href="javascript:;" class="a-line a-edit" @click="handleUpdate(scope.row.Id)"><el-icon><Refresh /></el-icon>{{ scope.row.Version }}</a>
+                                    <a v-else href="javascript:;" class="a-line a-edit"><el-icon><Refresh /></el-icon>{{ scope.row.Version }}</a>
                                 </p>
                             </div>
                         </template>
@@ -51,13 +52,13 @@
                             <p><strong>{{scope.row.BandwidthRatio}}mbps</strong></p>
                         </template>
                     </el-table-column>
-                    <el-table-column property="Public" :label="$t('server.sforwardOper')" width="60">
+                    <el-table-column  v-if="state.super" property="Public" :label="$t('server.sforwardOper')" width="60">
                         <template #default="scope">
                             <p>
-                                <a v-if="state.super" href="javascript:;" class="a-line" @click="handleExit(scope.row.Id)"><el-icon><Refresh /></el-icon>{{ $t('server.sforwardExit') }}</a>
+                                <a href="javascript:;" class="a-line" @click="handleExit(scope.row.Id)"><el-icon><Refresh /></el-icon>{{ $t('server.sforwardExit') }}</a>
                             </p>
                             <p>
-                                <a v-if="state.super" href="javascript:;" class="a-line" @click="handleEdit(scope.row)"><el-icon><Edit /></el-icon>{{ $t('server.sforwardEdit') }}</a>
+                                <a href="javascript:;" class="a-line" @click="handleEdit(scope.row)"><el-icon><Edit /></el-icon>{{ $t('server.sforwardEdit') }}</a>
                             </p>
                         </template>
                     </el-table-column>
