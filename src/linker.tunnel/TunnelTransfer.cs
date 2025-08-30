@@ -35,6 +35,7 @@ namespace linker.tunnel
             tunnelWanPortTransfer = new TunnelWanPortTransfer();
             transports = new List<ITunnelTransport> {
                 new TransportUdp(tunnelMessengerAdapter),
+                new TransportUdpP2PNAT(tunnelMessengerAdapter),
                 new TransportTcpP2PNAT(tunnelMessengerAdapter),
                 new TransportTcpNutssb(tunnelMessengerAdapter),
                 transportUdpPortMap,
@@ -327,7 +328,7 @@ namespace linker.tunnel
         /// <param name="tunnelTransportInfo"></param>
         public async Task OnBegin(TunnelTransportInfo tunnelTransportInfo)
         {
-            
+
             if (operating.StartOperation(BuildKey(tunnelTransportInfo.Remote.MachineId, tunnelTransportInfo.TransactionId)) == false)
             {
                 return;

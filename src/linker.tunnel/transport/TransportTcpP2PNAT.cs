@@ -123,28 +123,31 @@ namespace linker.tunnel.transport
                 && tunnelTransportInfo.Local.LocalIps.Any(c => c.AddressFamily == AddressFamily.InterNetworkV6)
                 ? new IPEndPoint(tunnelTransportInfo.Remote.LocalIps.FirstOrDefault(c => c.AddressFamily == AddressFamily.InterNetworkV6), tunnelTransportInfo.Remote.Remote.Port)
                 : tunnelTransportInfo.Remote.Remote;
-            Socket targetSocket = new(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
-            try
+            for (int i = 0; i < 5; i++)
             {
-                targetSocket.KeepAlive();
-                targetSocket.IPv6Only(ep.AddressFamily, false);
-                targetSocket.ReuseBind(new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
-
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                Socket targetSocket = new(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
+                try
                 {
-                    LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep}");
-                }
-                await targetSocket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(2000)).ConfigureAwait(false);
+                    targetSocket.KeepAlive();
+                    targetSocket.IPv6Only(ep.AddressFamily, false);
+                    targetSocket.ReuseBind(new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
 
-                if (mode == TunnelMode.Client)
-                {
-                    return await TcpClient(tunnelTransportInfo, targetSocket).ConfigureAwait(false);
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep}");
+                    }
+                    await targetSocket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+
+                    if (mode == TunnelMode.Client)
+                    {
+                        return await TcpClient(tunnelTransportInfo, targetSocket).ConfigureAwait(false);
+                    }
+                    return await TcpServer(tunnelTransportInfo, targetSocket).ConfigureAwait(false);
                 }
-                return await TcpServer(tunnelTransportInfo, targetSocket).ConfigureAwait(false);
-            }
-            catch (Exception)
-            {
-                targetSocket.SafeClose();
+                catch (Exception)
+                {
+                    targetSocket.SafeClose();
+                }
             }
             return null;
         }
