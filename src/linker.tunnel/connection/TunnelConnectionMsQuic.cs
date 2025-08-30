@@ -42,6 +42,8 @@ namespace linker.tunnel.connection
 
         public LastTicksManager LastTicks { get; private set; } = new LastTicksManager();
 
+        public byte[] SendBuffer { get; } = new byte[8 * 1024];
+
 
         [JsonIgnore]
         public QuicStream Stream { get; init; }

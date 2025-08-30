@@ -50,22 +50,18 @@ namespace linker.tunnel.wanport
 
         public async Task<TunnelWanPortEndPoint> GetAsync(IPEndPoint server)
         {
-            UdpClient udpClient = new UdpClient(AddressFamily.InterNetwork);
+            UdpClient udpClient = new UdpClient(server.AddressFamily);
             udpClient.Client.ReuseBind(new IPEndPoint(IPAddress.Any, 0));
             udpClient.Client.WindowsUdpBug();
 
             byte[] buffer = ArrayPool<byte>.Shared.Rent(1024);
             try
             {
-                await udpClient.SendAsync(BuildSendData(buffer, 0), server).ConfigureAwait(false);
-                TimerHelper.Async(async () =>
+                for (byte i = 0; i < 5; i++)
                 {
-                    for (byte i = 1; i < 5; i++)
-                    {
-                        await Task.Delay(100).ConfigureAwait(false);
-                        await udpClient.SendAsync(BuildSendData(buffer, i), server).ConfigureAwait(false);
-                    }
-                });
+                    await udpClient.SendAsync(BuildSendData(buffer, i), server).ConfigureAwait(false);
+                    await Task.Delay(10).ConfigureAwait(false);
+                }
 
                 UdpReceiveResult result = await udpClient.ReceiveAsync().WaitAsync(TimeSpan.FromMilliseconds(2000)).ConfigureAwait(false);
                 if (result.Buffer.Length == 0)
@@ -84,7 +80,7 @@ namespace linker.tunnel.wanport
             catch (Exception ex)
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Error($"{Name}->{ex}");
+                    LoggerHelper.Instance.Error($"{Name}->{server}->{ex}");
             }
             finally
             {

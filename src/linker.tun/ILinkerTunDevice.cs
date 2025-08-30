@@ -227,6 +227,8 @@ namespace linker.tun
         public int Offset { get; private set; }
         public int Length { get; private set; }
 
+        public Memory<byte> IPPacket => Buffer.AsMemory(Offset + 4, Length - 4);
+
         /// <summary>
         /// 协议版本，4或者6
         /// </summary>
@@ -336,32 +338,26 @@ namespace linker.tun
         public bool IsValid { get; private set; }
         public LinkerTunDevicValidatePacket(ReadOnlyMemory<byte> packet)
         {
-            Validate(packet);
-        }
-        private void Validate(ReadOnlyMemory<byte> packet)
-        {
-            if (packet.Length < 1)
+            if (packet.Length >= 1)
             {
-                return;
+                byte version = (byte)(packet.Span[0] >> 4 & 0b1111);
+                int headLength = version == 4 ? (packet.Span[0] & 0b1111) * 4 : 40;
+                if (packet.Length < headLength) return;
+
+                ProtocolType protocolType = version switch
+                {
+                    4 => (ProtocolType)packet.Span[9],
+                    6 => (ProtocolType)packet.Span[6],
+                    _ => ProtocolType.Unknown
+                };
+                IsValid = protocolType switch
+                {
+                    ProtocolType.Tcp => packet.Length >= headLength + 20,
+                    ProtocolType.Udp => packet.Length >= headLength + 8,
+                    ProtocolType.Icmp => packet.Length >= headLength + 8,
+                    _ => false
+                };
             }
-
-            byte version = (byte)(packet.Span[0] >> 4 & 0b1111);
-            int headLength = version == 4 ? (packet.Span[0] & 0b1111) * 4 : 40;
-            if (packet.Length < headLength) return;
-
-            ProtocolType protocolType = version switch
-            {
-                4 => (ProtocolType)packet.Span[9],
-                6 => (ProtocolType)packet.Span[6],
-                _ => ProtocolType.Unknown
-            };
-            IsValid = protocolType switch
-            {
-                ProtocolType.Tcp => packet.Length >= headLength + 20,
-                ProtocolType.Udp => packet.Length >= headLength + 8,
-                ProtocolType.Icmp => packet.Length >= headLength + 8,
-                _ => false
-            };
         }
     }
 

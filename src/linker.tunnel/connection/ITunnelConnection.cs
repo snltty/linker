@@ -154,6 +154,10 @@ namespace linker.tunnel.connection
         /// </summary>
         public LastTicksManager LastTicks { get; }
 
+        /// <summary>
+        /// 缓冲区
+        /// </summary>
+        public byte[] SendBuffer { get; }
 
         /// <summary>
         /// 发送数据

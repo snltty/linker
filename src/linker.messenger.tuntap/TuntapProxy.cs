@@ -26,23 +26,25 @@ namespace linker.messenger.tuntap
         private readonly TuntapCidrConnectionManager tuntapCidrConnectionManager;
         private readonly TuntapCidrDecenterManager tuntapCidrDecenterManager;
         private readonly TuntapCidrMapfileManager tuntapCidrMapfileManager;
+        private readonly FakeAckTransfer fakeAckTransfer;
+
         public TuntapProxy(ISignInClientStore signInClientStore,
             TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer,
-            SignInClientTransfer signInClientTransfer, IRelayClientStore relayClientStore, TuntapConfigTransfer tuntapConfigTransfer, TuntapCidrConnectionManager tuntapCidrConnectionManager, TuntapCidrDecenterManager tuntapCidrDecenterManager, TuntapCidrMapfileManager tuntapCidrMapfileManager)
+            SignInClientTransfer signInClientTransfer, IRelayClientStore relayClientStore, TuntapConfigTransfer tuntapConfigTransfer, TuntapCidrConnectionManager tuntapCidrConnectionManager, TuntapCidrDecenterManager tuntapCidrDecenterManager, TuntapCidrMapfileManager tuntapCidrMapfileManager, FakeAckTransfer fakeAckTransfer)
             : base(tunnelTransfer, relayTransfer, pcpTransfer, signInClientTransfer, signInClientStore, relayClientStore)
         {
             this.tuntapConfigTransfer = tuntapConfigTransfer;
             this.tuntapCidrConnectionManager = tuntapCidrConnectionManager;
             this.tuntapCidrDecenterManager = tuntapCidrDecenterManager;
             this.tuntapCidrMapfileManager = tuntapCidrMapfileManager;
+            this.fakeAckTransfer = fakeAckTransfer;
         }
 
         protected override void Connected(ITunnelConnection connection)
         {
             Add(connection);
             connection.BeginReceive(this, null);
-            if (tuntapConfigTransfer.Info.TcpMerge)
-                connection.StartPacketMerge();
+            if (tuntapConfigTransfer.Info.TcpMerge) connection.StartPacketMerge();
             //有哪些目标IP用了相同目标隧道，更新一下
             tuntapCidrConnectionManager.Update(connection);
         }
@@ -58,7 +60,10 @@ namespace linker.messenger.tuntap
         public async Task Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer, object state)
 #pragma warning restore CS1998 // 异步方法缺少 "await" 运算符，将以同步方式运行
         {
-            //LoggerHelper.Instance.Warning($"tuntap write {buffer.Length}");
+            if (connection.SendBuffer.Length > 0)
+            {
+                fakeAckTransfer.Write(buffer);
+            }
             Callback.Receive(connection, buffer);
         }
         /// <summary>
@@ -111,6 +116,11 @@ namespace linker.messenger.tuntap
                     }
                 }, ip);
                 return;
+            }
+            if (connection.SendBuffer.Length > 0)
+            {
+                if (fakeAckTransfer.Read(packet.IPPacket, connection.SendBuffer, out ushort ackLength)) return;
+                if (ackLength > 0) Callback.Receive(connection, connection.SendBuffer.AsMemory(0, ackLength));
             }
             await connection.SendAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);
         }

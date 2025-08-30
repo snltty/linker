@@ -1,6 +1,5 @@
 ﻿using linker.libs;
 using linker.libs.timer;
-using System.Diagnostics;
 using System.Net;
 using static linker.snat.LinkerDstMapping;
 
@@ -299,11 +298,10 @@ namespace linker.tun
                         packet.Unpacket(buffer, 0, length);
                         if (packet.DistIPAddress.Length == 0) continue;
 
-                        for (int i = 0; i < hooks.Length; i++)
-                        {
-                            if (hooks[i].ReadAfter(buffer.AsMemory(4, length - 4)) == false) continue;
-                        }
+                        for (int i = 0; i < hooks.Length; i++) if (hooks[i].ReadAfter(packet.IPPacket) == false) goto end;
                         await linkerTunDeviceCallback.Callback(packet).ConfigureAwait(false);
+
+                    end:;
                     }
                     catch (Exception ex)
                     {
@@ -322,16 +320,9 @@ namespace linker.tun
         /// <returns></returns>
         public bool Write(string srcId, ReadOnlyMemory<byte> buffer)
         {
-            if (linkerTunDevice == null || Status != LinkerTunDeviceStatus.Running) return false;
+            if (linkerTunDevice == null || Status != LinkerTunDeviceStatus.Running || new LinkerTunDevicValidatePacket(buffer).IsValid == false) return false;
 
-            LinkerTunDevicValidatePacket packet = new LinkerTunDevicValidatePacket(buffer);
-            if (packet.IsValid == false) return false;
-
-            for (int i = 0; i < hooks.Length; i++)
-            {
-                if (hooks[i].WriteBefore(srcId, buffer) == false) return false;
-            }
-
+            for (int i = 0; i < hooks.Length; i++) if (hooks[i].WriteBefore(srcId, buffer) == false) return false;
             return linkerTunDevice.Write(buffer);
         }
 

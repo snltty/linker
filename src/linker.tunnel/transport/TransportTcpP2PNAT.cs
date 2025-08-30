@@ -195,8 +195,13 @@ namespace linker.tunnel.transport
                     BufferSize = state.BufferSize,
                 };
             }
-            catch (Exception)
-            { }
+            catch (Exception ex)
+            {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
+            }
             return null;
         }
         private async Task<ITunnelConnection> TcpServer(TunnelTransportInfo state, Socket socket)
@@ -223,7 +228,7 @@ namespace linker.tunnel.transport
                         return null;
                     }
 
-                    sslStream = new SslStream(new NetworkStream(socket, false), false, ValidateServerCertificate);
+                    sslStream = new SslStream(new NetworkStream(socket, false), false, ValidateServerCertificate, null);
                     await sslStream.AuthenticateAsServerAsync(certificate, OperatingSystem.IsAndroid(), SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls, false).ConfigureAwait(false);
                 }
 

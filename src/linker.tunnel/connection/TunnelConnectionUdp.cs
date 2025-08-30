@@ -38,6 +38,7 @@ namespace linker.tunnel.connection
         public long SendBytes { get; private set; }
         public long ReceiveBytes { get; private set; }
         public LastTicksManager LastTicks { get; private set; } = new LastTicksManager();
+        public byte[] SendBuffer { get; } = Helper.EmptyArray;
 
         public bool Receive { get; init; }
 
@@ -174,7 +175,7 @@ namespace linker.tunnel.connection
                         LoggerHelper.Instance.Error(Encoding.UTF8.GetString(memory.Span));
                         LoggerHelper.Instance.Error(string.Join(",", memory.ToArray()));
                     }
-                       
+
                 }
             }
         }
@@ -314,7 +315,7 @@ namespace linker.tunnel.connection
                 }
                 LoggerHelper.Instance.Error($"tunnel connection disponse 1");
                 Dispose();
-               
+
             }
             finally
             {
