@@ -2,12 +2,10 @@
 using linker.libs.extends;
 using linker.libs.timer;
 using linker.plugins.sforward.messenger;
-using linker.plugins.sforward.proxy;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
-using System.Xml.Linq;
 
 namespace linker.messenger.sforward.server
 {
@@ -36,7 +34,7 @@ namespace linker.messenger.sforward.server
         private readonly IMessengerSender messengerSender;
         private readonly ISForwardServerStore sForwardServerStore;
 
-        public SForwardServerNodeTransfer(ISerializer serializer, ISForwardServerNodeStore sForwardServerNodeStore, ISForwardServerMasterStore sForwardServerMasterStore, IMessengerResolver messengerResolver, IMessengerSender messengerSender, ISForwardServerStore sForwardServerStore)
+        public SForwardServerNodeTransfer(ISerializer serializer, ISForwardServerNodeStore sForwardServerNodeStore, ISForwardServerMasterStore sForwardServerMasterStore, IMessengerResolver messengerResolver, IMessengerSender messengerSender, ISForwardServerStore sForwardServerStore,ICommonStore commonStore)
         {
             this.serializer = serializer;
             this.sForwardServerNodeStore = sForwardServerNodeStore;
@@ -53,9 +51,12 @@ namespace linker.messenger.sforward.server
                 sForwardServerNodeStore.Node.Public = false;
             }
 
-            TrafficTask();
-            ReportTask();
-            SignInTask();
+            if (commonStore.Modes.HasFlag(CommonModes.Server))
+            {
+                TrafficTask();
+                ReportTask();
+                SignInTask();
+            }
         }
 
         public void Edit(SForwardServerNodeUpdateInfo info)

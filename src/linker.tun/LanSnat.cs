@@ -66,7 +66,7 @@ namespace linker.tun
 
         public bool ReadAfter(ReadOnlyMemory<byte> packet)
         {
-            return false;
+            return true;
         }
         public bool WriteBefore(string srcId, ReadOnlyMemory<byte> packet)
         {
