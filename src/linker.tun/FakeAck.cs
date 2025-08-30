@@ -5,7 +5,9 @@ using System.Net.Sockets;
 
 namespace linker.tun
 {
-    
+    /// <summary>
+    /// 伪造ACK操作类
+    /// </summary>
     public unsafe sealed class FakeAckTransfer
     {
         private readonly ConcurrentDictionary<FackAckKey, FackAckState> dic = new(new FackAckKeyComparer());
@@ -23,7 +25,7 @@ namespace linker.tun
 
             fixed (byte* ptr = packet.Span)
             {
-                FakeAckPacket originPacket = new FakeAckPacket(ptr);
+                FakeAckPacket originPacket = new(ptr);
                 if (originPacket.Version != 4 || originPacket.Protocol != ProtocolType.Tcp || originPacket.IsOnlySyn)
                 {
                     return false;
@@ -73,26 +75,29 @@ namespace linker.tun
         {
             fixed (byte* ptr = packet.Span)
             {
-                FakeAckPacket fakeAckTCPPacket = new FakeAckPacket(ptr);
-                if (fakeAckTCPPacket.Version != 4 || fakeAckTCPPacket.Protocol != ProtocolType.Tcp || fakeAckTCPPacket.IsOnlySyn)
+                FakeAckPacket originPacket = new(ptr);
+                if (originPacket.Version != 4 || originPacket.Protocol != ProtocolType.Tcp || originPacket.IsOnlySyn)
                 {
                     return;
                 }
-                FackAckKey key = new() { srcAddr = fakeAckTCPPacket.SrcAddr, srcPort = fakeAckTCPPacket.SrcPort, dstAddr = fakeAckTCPPacket.DstAddr, dstPort = fakeAckTCPPacket.DstPort };
+                FackAckKey key = new() { srcAddr = originPacket.SrcAddr, srcPort = originPacket.SrcPort, dstAddr = originPacket.DstAddr, dstPort = originPacket.DstPort };
                 //收到连接连接
-                if (fakeAckTCPPacket.TcpFlagSyn && fakeAckTCPPacket.TcpFlagAck)
+                if (originPacket.TcpFlagSyn && originPacket.TcpFlagAck)
                 {
-                    FackAckState state = new() { Seq = fakeAckTCPPacket.Seq + 1 };
+                    FackAckState state = new() { Seq = originPacket.Seq + 1 };
                     dic.AddOrUpdate(key, state, (a, b) => state);
                 }
                 //断开连接
-                else if (fakeAckTCPPacket.TcpFlagFin || fakeAckTCPPacket.TcpFlagRst)
+                else if (originPacket.TcpFlagFin || originPacket.TcpFlagRst)
                 {
                     dic.TryRemove(key, out _);
                 }
             }
         }
 
+        /// <summary>
+        /// 状态
+        /// </summary>
         sealed class FackAckState
         {
             public uint Seq { get; set; }
@@ -104,6 +109,9 @@ namespace linker.tun
                 return drop;
             }
         }
+        /// <summary>
+        /// 四元组缓存key
+        /// </summary>
         struct FackAckKey
         {
             public uint srcAddr;
@@ -111,6 +119,9 @@ namespace linker.tun
             public uint dstAddr;
             public ushort dstPort;
         }
+        /// <summary>
+        /// 四元组缓存key比较器
+        /// </summary>
         sealed class FackAckKeyComparer : IEqualityComparer<FackAckKey>
         {
             public bool Equals(FackAckKey x, FackAckKey y)
@@ -125,6 +136,9 @@ namespace linker.tun
             }
         }
 
+        /// <summary>
+        /// 数据包解析
+        /// </summary>
         readonly unsafe struct FakeAckPacket
         {
             private readonly byte* ptr;
@@ -200,44 +214,43 @@ namespace linker.tun
             /// 制作一个ACK包
             /// </summary>
             /// <param name="seq">给定一个序列号，可以从syn+ack包中+1获得</param>
-            /// <param name="dstPtr">目标内存</param>
+            /// <param name="ipPtr">目标内存</param>
             /// <returns></returns>
-            public readonly unsafe ushort ToAck(uint seq, byte* dstPtr)
+            public readonly unsafe ushort ToAck(uint seq, byte* ipPtr)
             {
+                //复制一份IP+TCP头部
                 int _ipHeadLength = (*ptr & 0b1111) * 4;
                 int _tcpHeaderLength = (*(ptr + _ipHeadLength + 12) >> 4) * 4;
                 int _headerLength = _ipHeadLength + _tcpHeaderLength;
-                new Span<byte>(ptr, _headerLength).CopyTo(new Span<byte>(dstPtr, _headerLength));
+                new Span<byte>(ptr, _headerLength).CopyTo(new Span<byte>(ipPtr, _headerLength));
 
-                byte* tcpPtr = dstPtr + _ipHeadLength;
+                //TCP头指针
+                byte* tcpPtr = ipPtr + _ipHeadLength;
 
-                ushort totalLength = BinaryPrimitives.ReverseEndianness(*(ushort*)(dstPtr + 2));
-                int ipHeaderLength = (*dstPtr & 0b1111) * 4;
+                ushort totalLength = BinaryPrimitives.ReverseEndianness(*(ushort*)(ipPtr + 2));
+                int ipHeaderLength = (*ipPtr & 0b1111) * 4;
                 int tcpHeaderLength = (*(tcpPtr + 12) >> 4) * 4;
                 uint payloadLength = (uint)(totalLength - ipHeaderLength - tcpHeaderLength);
                 totalLength = (ushort)(ipHeaderLength + tcpHeaderLength);
 
                 //交换地址和端口
-                (*(uint*)(dstPtr + 16), *(uint*)(dstPtr + 12)) = (*(uint*)(dstPtr + 12), *(uint*)(dstPtr + 16));
+                (*(uint*)(ipPtr + 16), *(uint*)(ipPtr + 12)) = (*(uint*)(ipPtr + 12), *(uint*)(ipPtr + 16));
                 (*(ushort*)(tcpPtr + 2), *(ushort*)(tcpPtr)) = (*(ushort*)(tcpPtr), *(ushort*)(tcpPtr + 2));
 
 
-                //设置总长度 = IP头长度 + TCP头长度
-                *(ushort*)(dstPtr + 2) = BinaryPrimitives.ReverseEndianness(totalLength);
+                //设置总长度
+                *(ushort*)(ipPtr + 2) = BinaryPrimitives.ReverseEndianness(totalLength);
 
                 //重置分片相关信息
-                *(ushort*)(dstPtr + 4) = 0; // 清除分片偏移和标志
-                *(ushort*)(dstPtr + 6) = 0; // 清除更多分片标志
+                *(ushort*)(ipPtr + 4) = 0; // 清除分片偏移和标志
+                *(ushort*)(ipPtr + 6) = 0; // 清除更多分片标志
 
                 //源序列号
                 uint _seq = BinaryPrimitives.ReverseEndianness(*(uint*)(tcpPtr + 4));
-                //新确认号 = 序列号+ 数据长度
-                uint cq = _seq + payloadLength;
-
                 //设置序列号
                 *(uint*)(tcpPtr + 4) = BinaryPrimitives.ReverseEndianness(seq);
                 //设置确认号
-                *(uint*)(tcpPtr + 8) = BinaryPrimitives.ReverseEndianness(cq);
+                *(uint*)(tcpPtr + 8) = BinaryPrimitives.ReverseEndianness(_seq + payloadLength);
 
                 //设置TCP标志位为ACK，其他标志位清除
                 *(tcpPtr + 13) = 0b00010000;
@@ -246,7 +259,7 @@ namespace linker.tun
                 *(ushort*)(tcpPtr + 14) = BinaryPrimitives.ReverseEndianness((ushort)65535);
 
                 //计算校验和
-                ChecksumHelper.Checksum(dstPtr, totalLength);
+                ChecksumHelper.Checksum(ipPtr, totalLength);
 
                 //只需要IP头+TCP头
                 return totalLength;
