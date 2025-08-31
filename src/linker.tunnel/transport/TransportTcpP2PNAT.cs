@@ -119,11 +119,20 @@ namespace linker.tunnel.transport
                 LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {string.Join("\r\n", tunnelTransportInfo.RemoteEndPoints.Select(c => c.ToString()))}");
             }
 
-            IPEndPoint ep = tunnelTransportInfo.Remote.LocalIps.Any(c => c.AddressFamily == AddressFamily.InterNetworkV6)
-                && tunnelTransportInfo.Local.LocalIps.Any(c => c.AddressFamily == AddressFamily.InterNetworkV6)
-                ? new IPEndPoint(tunnelTransportInfo.Remote.LocalIps.FirstOrDefault(c => c.AddressFamily == AddressFamily.InterNetworkV6), tunnelTransportInfo.Remote.Remote.Port)
-                : tunnelTransportInfo.Remote.Remote;
             for (int i = 0; i < 5; i++)
+            {
+                var results = (await Task.WhenAll(tunnelTransportInfo.RemoteEndPoints.Select(ConnectAsync).ToList())).Where(c => c.Item1).ToList();
+                if (results.Count == 0) continue;
+                for (int j = 1; j < results.Count; j++) results[j].Item2.SafeClose();
+
+                return mode == TunnelMode.Client
+                    ? await TcpClient(tunnelTransportInfo, results[0].Item2).ConfigureAwait(false)
+                    : await TcpServer(tunnelTransportInfo, results[0].Item2).ConfigureAwait(false);
+
+            }
+            return null;
+
+            async Task<ValueTuple<bool, Socket>> ConnectAsync(IPEndPoint ep)
             {
                 Socket targetSocket = new(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 try
@@ -138,18 +147,14 @@ namespace linker.tunnel.transport
                     }
                     await targetSocket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
 
-                    if (mode == TunnelMode.Client)
-                    {
-                        return await TcpClient(tunnelTransportInfo, targetSocket).ConfigureAwait(false);
-                    }
-                    return await TcpServer(tunnelTransportInfo, targetSocket).ConfigureAwait(false);
+                    return (true, targetSocket);
                 }
                 catch (Exception)
                 {
                     targetSocket.SafeClose();
                 }
+                return (false, null);
             }
-            return null;
         }
         private bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {

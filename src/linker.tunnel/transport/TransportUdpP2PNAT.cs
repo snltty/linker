@@ -108,17 +108,12 @@ namespace linker.tunnel.transport
                 LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {string.Join("\r\n", tunnelTransportInfo.RemoteEndPoints.Select(c => c.ToString()))}");
             }
 
-            IPEndPoint ep = tunnelTransportInfo.Remote.LocalIps.Any(c => c.AddressFamily == AddressFamily.InterNetworkV6)
-                && tunnelTransportInfo.Local.LocalIps.Any(c => c.AddressFamily == AddressFamily.InterNetworkV6)
-                ? new IPEndPoint(tunnelTransportInfo.Remote.LocalIps.FirstOrDefault(c => c.AddressFamily == AddressFamily.InterNetworkV6), tunnelTransportInfo.Remote.Remote.Port)
-                : tunnelTransportInfo.Remote.Remote;
-
             byte[] buffer = new byte[1024];
-            IPEndPoint tempEP = new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, 0);
-            Socket targetSocket = new(ep.AddressFamily, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
-            targetSocket.IPv6Only(ep.AddressFamily, false);
+            IPEndPoint tempEP = new IPEndPoint(IPAddress.IPv6Any, 0);
+            Socket targetSocket = new(AddressFamily.InterNetworkV6, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
+            targetSocket.IPv6Only(AddressFamily.InterNetworkV6, false);
             targetSocket.WindowsUdpBug();
-            targetSocket.ReuseBind(new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
+            targetSocket.ReuseBind(new IPEndPoint(IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
 
             for (int i = 0; i < 5; i++)
             {
@@ -126,16 +121,14 @@ namespace linker.tunnel.transport
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
-                        LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep}");
+                        LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName}");
                     }
 
-                    targetSocket.SendTo(authBytes, ep);
-                recv:;
-                    var result = await targetSocket.ReceiveFromAsync(buffer, tempEP).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
-                    if ((result.RemoteEndPoint as IPEndPoint).Equals(ep) == false)
+                    foreach (var item in tunnelTransportInfo.RemoteEndPoints)
                     {
-                        goto recv;
+                        targetSocket.SendTo(authBytes, item);
                     }
+                    var result = await targetSocket.ReceiveFromAsync(buffer, tempEP).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
 
                     ISymmetricCrypto crypto = mode == TunnelMode.Client ? CryptoFactory.CreateSymmetric(tunnelTransportInfo.Remote.MachineId) : CryptoFactory.CreateSymmetric(tunnelTransportInfo.Local.MachineId);
                     return new TunnelConnectionUdp
@@ -150,15 +143,19 @@ namespace linker.tunnel.transport
                         TransactionId = tunnelTransportInfo.TransactionId,
                         TransactionTag = tunnelTransportInfo.TransactionTag,
                         TransportName = tunnelTransportInfo.TransportName,
-                        IPEndPoint = NetworkHelper.TransEndpointFamily(ep),
+                        IPEndPoint = NetworkHelper.TransEndpointFamily(result.RemoteEndPoint as IPEndPoint),
                         Label = string.Empty,
                         Receive = true,
                         SSL = tunnelTransportInfo.SSL,
                         Crypto = crypto
                     };
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Error(ex);
+                    }
                 }
             }
             targetSocket.SafeClose();
