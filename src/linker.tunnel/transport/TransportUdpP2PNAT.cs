@@ -61,10 +61,6 @@ namespace linker.tunnel.transport
             {
                 return null;
             }
-            if (tunnelTransportInfo.Direction == TunnelDirection.Reverse)
-            {
-                await Task.Delay(50).ConfigureAwait(false);
-            }
             ITunnelConnection connection = await ConnectForward(tunnelTransportInfo, TunnelMode.Client).ConfigureAwait(false);
             if (connection != null)
             {
@@ -114,6 +110,7 @@ namespace linker.tunnel.transport
             targetSocket.IPv6Only(AddressFamily.InterNetworkV6, false);
             targetSocket.WindowsUdpBug();
             targetSocket.ReuseBind(new IPEndPoint(IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
+            await Task.Delay(500).ConfigureAwait(false);
 
             for (int i = 0; i < 5; i++)
             {
