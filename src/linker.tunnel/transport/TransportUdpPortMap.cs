@@ -104,7 +104,7 @@ namespace linker.tunnel.transport
                         IPEndPoint remoteEP = result.RemoteEndPoint as IPEndPoint;
                         Memory<byte> memory = bytes.AsMemory(0, result.ReceivedBytes);
 
-                        
+
                         if (memory.Length > flagBytes.Length && memory.Span.Slice(0, flagBytes.Length).SequenceEqual(flagBytes))
                         {
                             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
@@ -306,7 +306,7 @@ namespace linker.tunnel.transport
                 LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {string.Join("\r\n", tunnelTransportInfo.RemoteEndPoints.Select(c => c.ToString()))}");
             }
 
-            List<IPEndPoint> eps = tunnelTransportInfo.RemoteEndPoints.Select(c => new IPEndPoint(c.Address, tunnelTransportInfo.Remote.PortMapWan)).ToList();
+            List<IPEndPoint> eps = tunnelTransportInfo.RemoteEndPoints.Select(c => c.Address).Distinct().Select(c => new IPEndPoint(c, tunnelTransportInfo.Remote.PortMapWan)).ToList();
 
             foreach (var ep in eps)
             {

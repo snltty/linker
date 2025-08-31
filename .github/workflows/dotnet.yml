@@ -37,7 +37,7 @@ jobs:
           release_name: v1.9.1.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 一些累计更新\r\n2. 服务器转发多节点\r\n3. 虚拟网卡下伪造ACK为TCP-in-TCP隧道提速\r\n4. 新增一个UDP同时打开的打洞协议，优化了一下TCP同时打开的打洞协议\r\n5. 一些代码优化，修复一些错误，其它一些小改变"
+          body: "1. 一些累计更新\r\n2. 服务器转发多节点\r\n3. 虚拟网卡下伪造ACK为TCP-in-TCP隧道提速\r\n4. 新增一个UDP同时打开的打洞协议，优化了一下其它打洞协议\r\n5. 一些代码优化，修复一些错误，其它一些小改变"
       - name: publish projects
         run: ./publish.bat "C:\\Android\\android-sdk"
       - name: upload-win-x86-oss
@@ -220,6 +220,16 @@ jobs:
           asset_path: ./public/publish-zip/linker-linux-musl-arm64.zip
           asset_name: linker-linux-musl-arm64.zip
           asset_content_type: application/zip
+      - name: upload-version-oss
+        id: upload-version-oss
+        uses: tvrcgo/oss-action@v0.1.1
+        with:
+          region: oss-cn-shenzhen
+          key-id: ${{ secrets.ALIYUN_OSS_ID }}
+          key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
+          bucket: ide-qbcode
+          asset-path: ./public/version.txt
+          target-path: /downloads/linker/version.txt
       - name: upload-install-service-oss
         id: upload-install-service-oss
         uses: tvrcgo/oss-action@v0.1.1

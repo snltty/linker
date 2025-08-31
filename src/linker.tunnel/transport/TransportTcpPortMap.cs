@@ -302,7 +302,7 @@ namespace linker.tunnel.transport
                 LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {string.Join("\r\n", tunnelTransportInfo.RemoteEndPoints.Select(c => c.ToString()))}");
             }
 
-            List<IPEndPoint> eps = tunnelTransportInfo.RemoteEndPoints.Select(c=>new IPEndPoint(c.Address, tunnelTransportInfo.Remote.PortMapWan)).ToList();
+            List<IPEndPoint> eps = tunnelTransportInfo.RemoteEndPoints.Select(c => c.Address).Distinct().Select(c=>new IPEndPoint(c, tunnelTransportInfo.Remote.PortMapWan)).ToList();
 
             foreach (var ep in eps)
             {
