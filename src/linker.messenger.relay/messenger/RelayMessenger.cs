@@ -234,18 +234,30 @@ namespace linker.messenger.relay.messenger
         [MessengerId((ushort)RelayMessengerIds.NodeReport)]
         public void NodeReport(IConnection connection)
         {
-            relayServerReportResolver.Add(connection.ReceiveRequestWrap.Payload.Length, 0);
-            RelayServerNodeReportInfo170 info = serializer.Deserialize<RelayServerNodeReportInfo170>(connection.ReceiveRequestWrap.Payload.Span);
-            relayServerTransfer.SetNodeReport(connection, info);
+            try
+            {
+                relayServerReportResolver.Add(connection.ReceiveRequestWrap.Payload.Length, 0);
+                RelayServerNodeReportInfo170 info = serializer.Deserialize<RelayServerNodeReportInfo170>(connection.ReceiveRequestWrap.Payload.Span);
+                relayServerTransfer.SetNodeReport(connection, info);
+            }
+            catch (Exception)
+            {
+            }
 
             connection.Write(serializer.Serialize(VersionHelper.Version));
         }
         [MessengerId((ushort)RelayMessengerIds.NodeReport188)]
         public void NodeReport188(IConnection connection)
         {
-            relayServerReportResolver.Add(connection.ReceiveRequestWrap.Payload.Length, 0);
-            RelayServerNodeReportInfo188 info = serializer.Deserialize<RelayServerNodeReportInfo188>(connection.ReceiveRequestWrap.Payload.Span);
-            relayServerTransfer.SetNodeReport(connection, info);
+            try
+            {
+                relayServerReportResolver.Add(connection.ReceiveRequestWrap.Payload.Length, 0);
+                RelayServerNodeReportInfo188 info = serializer.Deserialize<RelayServerNodeReportInfo188>(connection.ReceiveRequestWrap.Payload.Span);
+                relayServerTransfer.SetNodeReport(connection, info);
+            }
+            catch (Exception)
+            {
+            }
 
             connection.Write(serializer.Serialize(VersionHelper.Version));
         }
@@ -309,7 +321,6 @@ namespace linker.messenger.relay.messenger
                 connection.Write(Helper.FalseArray);
             }
         }
-
 
         /// <summary>
         /// 重启

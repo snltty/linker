@@ -59,8 +59,14 @@ namespace linker.plugins.sforward.messenger
         [MessengerId((ushort)SForwardMessengerIds.NodeReport)]
         public void NodeReport(IConnection connection)
         {
-            SForwardServerNodeReportInfo info = serializer.Deserialize<SForwardServerNodeReportInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            sForwardServerMasterTransfer.SetNodeReport(connection, info);
+            try
+            {
+                SForwardServerNodeReportInfo info = serializer.Deserialize<SForwardServerNodeReportInfo>(connection.ReceiveRequestWrap.Payload.Span);
+                sForwardServerMasterTransfer.SetNodeReport(connection, info);
+            }
+            catch (Exception)
+            {
+            }
 
             connection.Write(serializer.Serialize(VersionHelper.Version));
         }
@@ -175,7 +181,7 @@ namespace linker.plugins.sforward.messenger
         public void Add191(IConnection connection)
         {
             SForwardAddInfo191 sForwardAddInfo = serializer.Deserialize<SForwardAddInfo191>(connection.ReceiveRequestWrap.Payload.Span);
-            SForwardAddResultInfo result = new SForwardAddResultInfo { Success = true, BufferSize = 3};
+            SForwardAddResultInfo result = new SForwardAddResultInfo { Success = true, BufferSize = 3 };
             try
             {
                 Add(sForwardAddInfo, result);
@@ -654,7 +660,7 @@ namespace linker.plugins.sforward.messenger
                 {
                     Connection = sign.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.Proxy,
-                    Payload = serializer.Serialize(new SForwardProxyInfo { Domain = host, RemotePort = port, Id = id, BufferSize = 3})
+                    Payload = serializer.Serialize(new SForwardProxyInfo { Domain = host, RemotePort = port, Id = id, BufferSize = 3 })
                 }).ConfigureAwait(false);
             }
             return false;
@@ -674,7 +680,7 @@ namespace linker.plugins.sforward.messenger
                 {
                     Connection = sign.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.Proxy,
-                    Payload = serializer.Serialize(new SForwardProxyInfo { RemotePort = port, Id = id, BufferSize =3})
+                    Payload = serializer.Serialize(new SForwardProxyInfo { RemotePort = port, Id = id, BufferSize = 3 })
                 }).ConfigureAwait(false);
             }
             return false;

@@ -303,10 +303,10 @@ namespace linker.messenger.store.file
                 client.CApi,
                 client.AccessBits,
                 client.FullAccess,
-                Groups = new SignInClientGroupInfo[] { config.Data.Client.Groups[0] },
-                Servers = new SignInClientServerInfo[] { config.Data.Client.Servers[0] },
+                Groups = new SignInClientGroupInfo[] { client.Group },
+                Servers = new SignInClientServerInfo[] { client.Server },
                 client.Updater,
-                Relay = new { Servers = new RelayServerInfo[] { client.Relay.Servers[0] } },
+                Relay = new { Servers = new RelayServerInfo[] { client.Relay.Server } },
                 client.Tunnel,
             }, common, new { Install = true, Modes = new string[] { "client" } });
         }

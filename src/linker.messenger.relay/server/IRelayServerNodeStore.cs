@@ -84,7 +84,7 @@ namespace linker.messenger.relay.server
 
         public bool AllowTcp { get; set; } = true;
         public bool AllowUdp { get; set; }
-        public bool Sync2Server { get; set; } 
+        public bool Sync2Server { get; set; }
     }
 
     public partial class RelayServerNodeUpdateWrapInfo
@@ -106,16 +106,16 @@ namespace linker.messenger.relay.server
         public string Url { get; set; } = "https://linker-doc.snltty.com";
 
         public bool AllowTcp { get; set; } = true;
-        public bool AllowUdp { get; set; } = false;
+        public bool AllowUdp { get; set; }
     }
 
-    public sealed partial class RelayServerNodeUpdateWrapInfo188
+    public partial class RelayServerNodeUpdateWrapInfo188
     {
         public RelayServerNodeUpdateInfo188 Info { get; set; }
     }
-    public sealed partial class RelayServerNodeUpdateInfo188 : RelayServerNodeUpdateInfo
+    public partial class RelayServerNodeUpdateInfo188 : RelayServerNodeUpdateInfo
     {
-        public bool Sync2Server { get; set; } = false;
+        public bool Sync2Server { get; set; }
     }
 
 
@@ -161,7 +161,7 @@ namespace linker.messenger.relay.server
 
         public List<RelayServerNodeReportInfo> Nodes { get; set; } = new List<RelayServerNodeReportInfo>();
     }
-    public partial class RelayAskResultInfo170: RelayAskResultInfo
+    public partial class RelayAskResultInfo170 : RelayAskResultInfo
     {
         public new List<RelayServerNodeReportInfo170> Nodes { get; set; } = new List<RelayServerNodeReportInfo170>();
     }

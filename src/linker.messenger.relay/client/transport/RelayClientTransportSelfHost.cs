@@ -618,7 +618,7 @@ namespace linker.messenger.relay.client.transport
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = signInClientState.Connection,
-                    MessengerId = (ushort)RelayMessengerIds.RelayTest170,
+                    MessengerId = (ushort)RelayMessengerIds.RelayTest188,
                     Payload = serializer.Serialize(relayTestInfo),
                     Timeout = 2000
                 }).ConfigureAwait(false);

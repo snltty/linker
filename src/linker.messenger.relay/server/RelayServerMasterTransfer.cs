@@ -101,7 +101,6 @@ namespace linker.messenger.relay.server
                 LastTicks = info.LastTicks,
                 Url = info.Url,
                 Connection = connection
-
             });
         }
         public void SetNodeReport(IConnection connection, RelayServerNodeReportInfo188 info)

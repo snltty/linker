@@ -39,7 +39,7 @@ namespace linker.messenger.store.file.relay
         }
         public void SetMaxGbTotalLastBytes(long value)
         {
-            config.Data.Server.Relay.Distributed.Node.MaxGbTotalLastBytes=value;
+            config.Data.Server.Relay.Distributed.Node.MaxGbTotalLastBytes = value;
         }
 
         public void SetMaxGbTotalMonth(int month)
@@ -47,6 +47,6 @@ namespace linker.messenger.store.file.relay
             config.Data.Server.Relay.Distributed.Node.MaxGbTotalMonth = month;
         }
 
-      
+
     }
 }

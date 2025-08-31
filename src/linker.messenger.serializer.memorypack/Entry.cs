@@ -25,7 +25,7 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new SignInConfigSetNameInfoFormatter());
             MemoryPackFormatterProvider.Register(new SignInNamesResponseItemInfoFormatter());
             MemoryPackFormatterProvider.Register(new SignInUserIdsResponseItemInfoFormatter());
-            
+
             MemoryPackFormatterProvider.Register(new SignInPushArgInfoFormatter());
 
 
@@ -79,7 +79,7 @@ namespace linker.messenger.serializer.memorypack
 
             MemoryPackFormatterProvider.Register(new RelayTrafficUpdateInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayCdkeyInfoFormatter());
-            
+
 
 
 
@@ -121,7 +121,7 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new SForwardServerNodeReportInfoFormatter());
             MemoryPackFormatterProvider.Register(new SForwardCdkeyInfoFormatter());
             MemoryPackFormatterProvider.Register(new SForwardTrafficUpdateInfoFormatter());
-            
+
 
             MemoryPackFormatterProvider.Register(new ForwardInfoFormatter());
             MemoryPackFormatterProvider.Register(new ForwardAddForwardInfoFormatter());
