@@ -4,7 +4,6 @@ using System.Buffers;
 using linker.libs.extends;
 using linker.libs;
 using System.Text;
-using linker.libs.timer;
 
 namespace linker.messenger.tunnel
 {
@@ -28,33 +27,23 @@ namespace linker.messenger.tunnel
         {
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{ep} get udp external port");
 
-            Add(memory.Length,0);
+            Add(memory.Length, 0);
 
-            TimerHelper.Async(async () =>
+            byte[] sendData = ArrayPool<byte>.Shared.Rent(1024);
+            try
             {
-                byte[] sendData = ArrayPool<byte>.Shared.Rent(1024);
-                try
-                {
-                    Memory<byte> send = BuildSendData(sendData, ep);
-                   
-                    for (int i = 0; i < 5; i++)
-                    {
-                        await socket.SendToAsync(send, SocketFlags.None, ep).ConfigureAwait(false);
-                        Add(0,send.Length);
-                        await Task.Delay(10).ConfigureAwait(false);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Error(ex);
-                }
-                finally
-                {
-                    ArrayPool<byte>.Shared.Return(sendData);
-                }
-            });
-
-            await Task.CompletedTask;
+                Memory<byte> send = BuildSendData(sendData, ep);
+                await socket.SendToAsync(send, SocketFlags.None, ep).ConfigureAwait(false);
+                Add(0, send.Length);
+            }
+            catch (Exception ex)
+            {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Error(ex);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(sendData);
+            }
         }
         /// <summary>
         /// TCP
@@ -68,7 +57,7 @@ namespace linker.messenger.tunnel
             try
             {
                 memory = BuildSendData(sendData, socket.RemoteEndPoint as IPEndPoint);
-                Add(0,memory.Length);
+                Add(0, memory.Length);
                 await socket.SendAsync(memory, SocketFlags.None).ConfigureAwait(false);
             }
             catch (Exception ex)

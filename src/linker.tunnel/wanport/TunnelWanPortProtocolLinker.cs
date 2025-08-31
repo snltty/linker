@@ -1,6 +1,5 @@
 ﻿using linker.libs;
 using linker.libs.extends;
-using linker.libs.timer;
 using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
@@ -45,37 +44,41 @@ namespace linker.tunnel.wanport
 
         public TunnelWanPortProtocolLinkerUdp()
         {
-
         }
 
         public async Task<TunnelWanPortEndPoint> GetAsync(IPEndPoint server)
         {
-            UdpClient udpClient = new UdpClient(server.AddressFamily);
-            udpClient.Client.ReuseBind(new IPEndPoint(IPAddress.Any, 0));
-            udpClient.Client.WindowsUdpBug();
-
             byte[] buffer = ArrayPool<byte>.Shared.Rent(1024);
             try
             {
                 for (byte i = 0; i < 5; i++)
                 {
-                    await udpClient.SendAsync(BuildSendData(buffer, i), server).ConfigureAwait(false);
-                    await Task.Delay(10).ConfigureAwait(false);
+                    UdpClient udpClient = new UdpClient(server.AddressFamily);
+                    udpClient.Client.ReuseBind(new IPEndPoint(IPAddress.Any, 0));
+                    udpClient.Client.WindowsUdpBug();
+                    try
+                    {
+                        await udpClient.SendAsync(BuildSendData(buffer, i), server).ConfigureAwait(false);
+                        UdpReceiveResult result = await udpClient.ReceiveAsync().WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                        if (result.Buffer.Length > 0)
+                        {
+                            return new TunnelWanPortEndPoint
+                            {
+                                Local = udpClient.Client.LocalEndPoint as IPEndPoint,
+                                Remote = UnpackRecvData(result.Buffer, result.Buffer.Length)
+                            };
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                            LoggerHelper.Instance.Error($"{Name}->{i}->{server}->{ex}");
+                    }
+                    finally
+                    {
+                        udpClient.Close();
+                    }
                 }
-
-                UdpReceiveResult result = await udpClient.ReceiveAsync().WaitAsync(TimeSpan.FromMilliseconds(2000)).ConfigureAwait(false);
-                if (result.Buffer.Length == 0)
-                {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        LoggerHelper.Instance.Error($"{Name}->0");
-                    return null;
-                }
-
-                return new TunnelWanPortEndPoint
-                {
-                    Local = udpClient.Client.LocalEndPoint as IPEndPoint,
-                    Remote = UnpackRecvData(result.Buffer, result.Buffer.Length)
-                };
             }
             catch (Exception ex)
             {
@@ -85,7 +88,6 @@ namespace linker.tunnel.wanport
             finally
             {
                 ArrayPool<byte>.Shared.Return(buffer);
-                udpClient.Close();
             }
 
             return null;
@@ -104,7 +106,6 @@ namespace linker.tunnel.wanport
 
         public TunnelWanPortProtocolLinkerTcp()
         {
-
         }
 
         public async Task<TunnelWanPortEndPoint> GetAsync(IPEndPoint server)
