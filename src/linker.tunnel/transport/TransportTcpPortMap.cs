@@ -302,16 +302,7 @@ namespace linker.tunnel.transport
                 LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {string.Join("\r\n", tunnelTransportInfo.RemoteEndPoints.Select(c => c.ToString()))}");
             }
 
-            List<IPEndPoint> eps = new List<IPEndPoint>();
-            if (tunnelTransportInfo.Remote.LocalIps.Any(c => c.AddressFamily == AddressFamily.InterNetworkV6)
-              && tunnelTransportInfo.Local.LocalIps.Any(c => c.AddressFamily == AddressFamily.InterNetworkV6))
-            {
-                foreach (var item in tunnelTransportInfo.Remote.LocalIps.Where(c => c.AddressFamily == AddressFamily.InterNetworkV6).Distinct())
-                {
-                    eps.Add(new IPEndPoint(item, tunnelTransportInfo.Remote.PortMapWan));
-                }
-            }
-            eps.Add(new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address, tunnelTransportInfo.Remote.PortMapWan));
+            List<IPEndPoint> eps = tunnelTransportInfo.RemoteEndPoints.Select(c=>new IPEndPoint(c.Address, tunnelTransportInfo.Remote.PortMapWan)).ToList();
 
             foreach (var ep in eps)
             {

@@ -126,8 +126,8 @@ namespace linker.tunnel.transport
                         targetSocket.SendTo(authBytes, item);
                     }
                     var result = await targetSocket.ReceiveFromAsync(buffer, tempEP).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
-                    //targetSocket.SendTo(authBytes, result.RemoteEndPoint);
-                    /*
+                    targetSocket.SendTo(authBytes, result.RemoteEndPoint);
+
                     while (true)
                     {
                         try
@@ -139,7 +139,7 @@ namespace linker.tunnel.transport
                             break;
                         }
                     }
-                    */
+
 
                     ISymmetricCrypto crypto = mode == TunnelMode.Client ? CryptoFactory.CreateSymmetric(tunnelTransportInfo.Remote.MachineId) : CryptoFactory.CreateSymmetric(tunnelTransportInfo.Local.MachineId);
                     return new TunnelConnectionUdp
