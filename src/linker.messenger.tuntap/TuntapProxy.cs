@@ -60,10 +60,12 @@ namespace linker.messenger.tuntap
         public async Task Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer, object state)
 #pragma warning restore CS1998 // 异步方法缺少 "await" 运算符，将以同步方式运行
         {
+            /*
             if (connection.SendBuffer.Length > 0)
             {
                 fakeAckTransfer.Write(buffer);
             }
+            */
             Callback.Receive(connection, buffer);
         }
         /// <summary>
@@ -117,11 +119,13 @@ namespace linker.messenger.tuntap
                 }, ip);
                 return;
             }
+            /*
             if (connection.SendBuffer.Length > 0)
             {
                 if (fakeAckTransfer.Read(packet.IPPacket, connection.SendBuffer, out ushort ackLength)) return;
                 if (ackLength > 0) Callback.Receive(connection, connection.SendBuffer.AsMemory(0, ackLength));
             }
+            */
             await connection.SendAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);
         }
 
