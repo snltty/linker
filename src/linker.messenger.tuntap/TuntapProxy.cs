@@ -38,6 +38,8 @@ namespace linker.messenger.tuntap
             this.tuntapCidrDecenterManager = tuntapCidrDecenterManager;
             this.tuntapCidrMapfileManager = tuntapCidrMapfileManager;
             this.fakeAckTransfer = fakeAckTransfer;
+
+            LoggerHelper.Instance.Warning($"disabled drop ack");
         }
 
         protected override void Connected(ITunnelConnection connection)
