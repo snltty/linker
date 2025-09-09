@@ -38,7 +38,9 @@ namespace linker.tunnel.connection
         public long SendBytes { get; private set; }
         public long ReceiveBytes { get; private set; }
         public LastTicksManager LastTicks { get; private set; } = new LastTicksManager();
-        public byte[] SendBuffer { get; } = Helper.EmptyArray;
+
+        [JsonIgnore]
+        public byte[] SendBuffer { get; set; } = Helper.EmptyArray;
 
         public bool Receive { get; init; }
 

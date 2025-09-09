@@ -41,19 +41,11 @@ namespace linker.messenger.tuntap
 
         public ConcurrentDictionary<string, TuntapGroup2IPInfo> Group2IP { get; set; } = new ConcurrentDictionary<string, TuntapGroup2IPInfo>();
 
-        /// <summary>
-        /// 禁用nat
-        /// </summary>
         public bool DisableNat => Switch.HasFlag(TuntapSwitch.DisableNat);
-        /// <summary>
-        /// tcp包合并
-        /// </summary>
         public bool TcpMerge => Switch.HasFlag(TuntapSwitch.TcpMerge);
-        /// <summary>
-        /// 调整网卡顺序
-        /// </summary>
         public bool InterfaceOrder => Switch.HasFlag(TuntapSwitch.InterfaceOrder);
         public bool Multicast => Switch.HasFlag(TuntapSwitch.Multicast);
+        public bool FakeAck => Switch.HasFlag(TuntapSwitch.FakeAck);
     }
 
     public sealed class TuntapGroup2IPInfo
@@ -323,6 +315,28 @@ namespace linker.messenger.tuntap
         /// 是否开启了应用层NAT
         /// </summary>
         public bool AppNat => (Switch & TuntapSwitch.AppNat) == TuntapSwitch.AppNat;
+
+        /// <summary>
+        /// 使用伪ACK，测试用
+        /// </summary>
+        public bool FakeAck
+        {
+            get
+            {
+                return (Switch & TuntapSwitch.FakeAck) == TuntapSwitch.FakeAck;
+            }
+            set
+            {
+                if (value)
+                {
+                    Switch |= TuntapSwitch.FakeAck;
+                }
+                else
+                {
+                    Switch &= ~TuntapSwitch.FakeAck;
+                }
+            }
+        }
     }
 
 
@@ -417,6 +431,11 @@ namespace linker.messenger.tuntap
         /// 是否开启了应用层NAT
         /// </summary>
         AppNat = 256,
+
+        /// <summary>
+        /// 使用伪ACK，测试用
+        /// </summary>
+        FakeAck = 512,
     }
 
 

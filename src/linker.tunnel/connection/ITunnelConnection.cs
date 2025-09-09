@@ -157,7 +157,7 @@ namespace linker.tunnel.connection
         /// <summary>
         /// 缓冲区
         /// </summary>
-        public byte[] SendBuffer { get; }
+        public byte[] SendBuffer { get; set; }
 
         /// <summary>
         /// 发送数据

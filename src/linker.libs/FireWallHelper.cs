@@ -63,7 +63,7 @@ namespace linker.libs
                 string name = Path.GetFileNameWithoutExtension(fileName);
                 CommandHelper.Windows(string.Empty, new string[] {
                     $"netsh advfirewall firewall delete rule name=\"{name}-icmp\"",
-                    $"netsh advfirewall firewall add rule name=\"{name}-icmp\" dir=in action=allow protocol=icmpv4 remoteip={ip}/{prefixLength} enable=yes",
+                    $"netsh advfirewall firewall add rule name=\"{name}-icmp\" dir=in action=allow protocol=icmpv4 localip={ip}/{prefixLength} enable=yes",
                 });
             }
             catch (Exception)

@@ -20,7 +20,8 @@
                     <el-checkbox class="mgr-1" v-model="state.ruleForm.Multicast" label="禁用广播" size="large" />
                     <el-checkbox class="mgr-1" v-model="state.ruleForm.DisableNat" label="禁用NAT" size="large" />
                     <el-checkbox class="mgr-1" v-model="state.ruleForm.TcpMerge" label="TCP包合并" size="large" />
-                    <el-checkbox v-model="state.ruleForm.InterfaceOrder" label="调整网卡顺序" size="large" />
+                    <el-checkbox class="mgr-1" v-model="state.ruleForm.InterfaceOrder" label="网卡顺序" size="large" />
+                    <el-checkbox v-model="state.ruleForm.FakeAck" label="伪ACK" size="large" />
             </el-form-item>
         </el-form>
     </div>
@@ -55,6 +56,7 @@ export default {
                 DisableNat: tuntap.value.current.DisableNat,
                 TcpMerge: tuntap.value.current.TcpMerge,
                 InterfaceOrder: tuntap.value.current.InterfaceOrder,
+                FakeAck: tuntap.value.current.FakeAck,
                 Forwards: tuntap.value.current.Forwards,
                 Name: tuntap.value.current.Name,
                 Guid: '',
@@ -98,6 +100,7 @@ export default {
             json.DisableNat = state.ruleForm.DisableNat;
             json.TcpMerge = state.ruleForm.TcpMerge;
             json.InterfaceOrder = state.ruleForm.InterfaceOrder;
+            json.FakeAck = state.ruleForm.FakeAck;
             json.Name = state.ruleForm.Name;
 
             return json;

@@ -1,6 +1,7 @@
 ﻿using linker.libs;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Net.Sockets;
 
 namespace linker.tun
@@ -10,7 +11,7 @@ namespace linker.tun
     /// </summary>
     public unsafe sealed class FakeAckTransfer
     {
-        private readonly ConcurrentDictionary<FackAckKey, FackAckState> dic = new(new FackAckKeyComparer());
+        private readonly ConcurrentDictionary<FaceAckKey, FackAckState> dic = new(new FackAckKeyComparer());
 
         /// <summary>
         /// 发起方
@@ -26,48 +27,38 @@ namespace linker.tun
             fixed (byte* ptr = packet.Span)
             {
                 FakeAckPacket originPacket = new(ptr);
-                if (originPacket.Version != 4 || originPacket.Protocol != ProtocolType.Tcp || originPacket.IsOnlySyn)
+                if (originPacket.Version != 4 || originPacket.Protocol != ProtocolType.Tcp)
                 {
                     return false;
                 }
 
-                FackAckKey key = new() { srcAddr = originPacket.SrcAddr, srcPort = originPacket.SrcPort, dstAddr = originPacket.DstAddr, dstPort = originPacket.DstPort };
-                //发送建立连接，由对方回一个ack，所以这边可以直接设置为丢弃ack
-                if (originPacket.TcpFlagSyn && originPacket.TcpFlagAck)
+                FaceAckKey key = new() { srcAddr = originPacket.SrcAddr, srcPort = originPacket.SrcPort, dstAddr = originPacket.DstAddr, dstPort = originPacket.DstPort };
+
+                if ((originPacket.IsOnlyAck || originPacket.IsPshAck) && dic.TryGetValue(key, out FackAckState state))
                 {
-                    FackAckState _state = new() { Seq = originPacket.Seq + 1, DropAck = true };
-                    dic.AddOrUpdate(key, _state, (a, b) => _state);
-                    return false;
-                }
-                //断开连接
-                if (originPacket.TcpFlagFin || originPacket.TcpFlagRst)
-                {
-                    dic.TryRemove(key, out _);
-                    return false;
-                }
-                if (dic.TryGetValue(key, out FackAckState state))
-                {
-                    //已经发送ack，开始丢弃ack，排除捎带机制(就是在ACK中携带数据，这些包不能丢)
-                    if (originPacket.IsOnlyAck)
+                    if (originPacket.TcpPayloadLength == 0)
                     {
-                        return state.SetDrop(true) && originPacket.TcpPayloadLength == 0;
+                        return state.Ack++ > 0;
                     }
-                    //发送数据
-                    if (originPacket.IsPshAck)
+
+                    fixed (byte* pptr = fakeBuffer.Span)
                     {
-                        fixed (byte* pptr = fakeBuffer.Span)
+                        fakeLength = originPacket.ToAck(state.Seq, pptr);
+                        if (new FakeAckPacket(pptr).Cq <= state.Cq)
                         {
-                            //伪造ACK包
-                            fakeLength = originPacket.ToAck(state.Seq, pptr);
+                            fakeLength = 0;
                         }
                     }
                 }
-
+                else if (originPacket.TcpFlagFin || originPacket.TcpFlagRst)
+                {
+                    dic.TryRemove(key, out _);
+                }
             }
             return false;
         }
         /// <summary>
-        /// 接收方，只需要在合适的时候建立状态和删除状态，其它的都交给发起方处理
+        /// 接收方
         /// </summary>
         /// <param name="packet">一个完整的TCP/IP包</param>
         /// <returns></returns>
@@ -76,18 +67,21 @@ namespace linker.tun
             fixed (byte* ptr = packet.Span)
             {
                 FakeAckPacket originPacket = new(ptr);
-                if (originPacket.Version != 4 || originPacket.Protocol != ProtocolType.Tcp || originPacket.IsOnlySyn)
+                if (originPacket.Version != 4 || originPacket.Protocol != ProtocolType.Tcp)
                 {
                     return;
                 }
-                FackAckKey key = new() { srcAddr = originPacket.SrcAddr, srcPort = originPacket.SrcPort, dstAddr = originPacket.DstAddr, dstPort = originPacket.DstPort };
-                //收到连接连接
-                if (originPacket.TcpFlagSyn && originPacket.TcpFlagAck)
+                FaceAckKey key = new() { srcAddr = originPacket.SrcAddr, srcPort = originPacket.SrcPort, dstAddr = originPacket.DstAddr, dstPort = originPacket.DstPort };
+
+                if (originPacket.TcpFlagAck && dic.TryGetValue(key, out FackAckState state))
                 {
-                    FackAckState state = new() { Seq = originPacket.Seq + 1 };
+                    state.Cq = originPacket.Cq;
+                }
+                else if (originPacket.IsOnlySyn || originPacket.IsSynAck)
+                {
+                    state = new() { Ack = (ulong)(originPacket.IsOnlySyn ? 1 : 0), Seq = originPacket.Seq + 1 };
                     dic.AddOrUpdate(key, state, (a, b) => state);
                 }
-                //断开连接
                 else if (originPacket.TcpFlagFin || originPacket.TcpFlagRst)
                 {
                     dic.TryRemove(key, out _);
@@ -100,19 +94,15 @@ namespace linker.tun
         /// </summary>
         sealed class FackAckState
         {
+            public ulong Ack { get; set; }
             public uint Seq { get; set; }
-            public bool DropAck { get; set; }
-            public bool SetDrop(bool value)
-            {
-                bool drop = DropAck;
-                DropAck = value;
-                return drop;
-            }
+            public uint Cq { get; set; }
         }
+
         /// <summary>
         /// 四元组缓存key
         /// </summary>
-        struct FackAckKey
+        struct FaceAckKey
         {
             public uint srcAddr;
             public ushort srcPort;
@@ -122,15 +112,15 @@ namespace linker.tun
         /// <summary>
         /// 四元组缓存key比较器
         /// </summary>
-        sealed class FackAckKeyComparer : IEqualityComparer<FackAckKey>
+        sealed class FackAckKeyComparer : IEqualityComparer<FaceAckKey>
         {
-            public bool Equals(FackAckKey x, FackAckKey y)
+            public bool Equals(FaceAckKey x, FaceAckKey y)
             {
                 return (x.srcAddr, x.srcPort, x.dstAddr, x.dstPort) == (y.srcAddr, y.srcPort, y.dstAddr, y.dstPort)
                     || (x.dstAddr, x.dstPort, x.srcAddr, x.srcPort) == (y.srcAddr, y.srcPort, y.dstAddr, y.dstPort);
             }
 
-            public int GetHashCode(FackAckKey obj)
+            public int GetHashCode(FaceAckKey obj)
             {
                 return (int)obj.srcAddr ^ obj.srcPort ^ (int)obj.dstAddr ^ obj.dstPort;
             }
@@ -184,7 +174,15 @@ namespace linker.tun
             /// <summary>
             /// TCP负载长度
             /// </summary>
-            public readonly int TcpPayloadLength => BinaryPrimitives.ReverseEndianness(*(ushort*)(ptr + 2)) - (*ptr & 0b1111) * 4 - (*(ptr + 12) >> 4) * 4;
+            public readonly int TcpPayloadLength
+            {
+                get
+                {
+                    int ipHeadLength = (*ptr & 0b1111) * 4;
+                    int tcpHeaderLength = (*(ptr + ipHeadLength + 12) >> 4) * 4;
+                    return BinaryPrimitives.ReverseEndianness(*(ushort*)(ptr + 2)) - ipHeadLength - tcpHeaderLength;
+                }
+            }
 
             /// <summary>
             /// TCP Flag
@@ -200,6 +198,7 @@ namespace linker.tun
             public readonly bool IsPshAck => TcpFlagPsh && TcpFlagAck;
             public readonly bool IsOnlyAck => TcpFlag == 0b00010000;
             public readonly bool IsOnlySyn => TcpFlag == 0b00000010;
+            public readonly bool IsSynAck => TcpFlag == 0b00010010;
 
             /// <summary>
             /// 加载TCP/IP包，必须是一个完整的TCP/IP包
@@ -219,24 +218,26 @@ namespace linker.tun
             public readonly unsafe ushort ToAck(uint seq, byte* ipPtr)
             {
                 //复制一份IP+TCP头部
-                int _ipHeadLength = (*ptr & 0b1111) * 4;
-                int _tcpHeaderLength = (*(ptr + _ipHeadLength + 12) >> 4) * 4;
-                int _headerLength = _ipHeadLength + _tcpHeaderLength;
-                new Span<byte>(ptr, _headerLength).CopyTo(new Span<byte>(ipPtr, _headerLength));
+                int ipHeaderLength = (*ptr & 0b1111) * 4;
+                int tcpHeaderLength = (*(ptr + ipHeaderLength + 12) >> 4) * 4;
+                ushort totalLength = BinaryPrimitives.ReverseEndianness(*(ushort*)(ipPtr + 2));
+                uint payloadLength = (uint)(totalLength - ipHeaderLength - tcpHeaderLength);
+
+                new Span<byte>(ptr, ipHeaderLength + tcpHeaderLength).CopyTo(new Span<byte>(ipPtr, ipHeaderLength + tcpHeaderLength));
 
                 //TCP头指针
-                byte* tcpPtr = ipPtr + _ipHeadLength;
+                byte* tcpPtr = ipPtr + ipHeaderLength;
 
-                ushort totalLength = BinaryPrimitives.ReverseEndianness(*(ushort*)(ipPtr + 2));
-                int ipHeaderLength = (*ipPtr & 0b1111) * 4;
-                int tcpHeaderLength = (*(tcpPtr + 12) >> 4) * 4;
-                uint payloadLength = (uint)(totalLength - ipHeaderLength - tcpHeaderLength);
+                //如果有时间戳，就填充时间戳选项
+                //FullOptionTimestamp(tcpPtr);
+                *(tcpPtr + 12) = 0b01010000;
+                //重新计算头部长度
+                tcpHeaderLength = (*(tcpPtr + 12) >> 4) * 4;
                 totalLength = (ushort)(ipHeaderLength + tcpHeaderLength);
 
                 //交换地址和端口
                 (*(uint*)(ipPtr + 16), *(uint*)(ipPtr + 12)) = (*(uint*)(ipPtr + 12), *(uint*)(ipPtr + 16));
                 (*(ushort*)(tcpPtr + 2), *(ushort*)(tcpPtr)) = (*(ushort*)(tcpPtr), *(ushort*)(tcpPtr + 2));
-
 
                 //设置总长度
                 *(ushort*)(ipPtr + 2) = BinaryPrimitives.ReverseEndianness(totalLength);
@@ -263,6 +264,45 @@ namespace linker.tun
 
                 //只需要IP头+TCP头
                 return totalLength;
+            }
+            private void FullOptionTimestamp(byte* tcpPtr)
+            {
+                int index = 20, end = (*(tcpPtr + 12) >> 4) * 4;
+                //找时间戳
+                uint timestampValue = 0;
+                while (index < end)
+                {
+                    byte kind = *(tcpPtr + index);
+                    if (kind == 0) break;
+
+                    byte length = *(tcpPtr + index + 1);
+                    if (kind == 1)
+                    {
+                        index++;
+                        continue;
+                    }
+                    else if (kind == 8 && length == 10)
+                    {
+                        timestampValue = *(uint*)(tcpPtr + index + 2);
+                        break;
+                    }
+                    index += length;
+                }
+                // TCP头长度
+                if (timestampValue > 0) //有时间戳选项，有选项，8个32位字，32字节，12字节OPTIONS
+                {
+                    *(tcpPtr + 12) = 0b10000000;
+                    *(tcpPtr + 20) = 0x01; //NOP
+                    *(tcpPtr + 21) = 0x01; //NOP
+                    *(tcpPtr + 22) = 0x08; //kind timestamp
+                    *(tcpPtr + 23) = 0x0A; //length 10
+                    *(uint*)(tcpPtr + 24) = (uint)(Stopwatch.GetTimestamp() / (Stopwatch.Frequency / 1000)); //val
+                    *(uint*)(tcpPtr + 28) = timestampValue; //ecr 10
+                }
+                else //没有时间戳，就没有选项，5个32位字,20字节
+                {
+                    *(tcpPtr + 12) = 0b01010000;
+                }
             }
         }
     }

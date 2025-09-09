@@ -27,10 +27,11 @@ namespace linker.messenger.tuntap
         private readonly TuntapCidrDecenterManager tuntapCidrDecenterManager;
         private readonly TuntapCidrMapfileManager tuntapCidrMapfileManager;
         private readonly FakeAckTransfer fakeAckTransfer;
+        private readonly TuntapDecenter tuntapDecenter;
 
         public TuntapProxy(ISignInClientStore signInClientStore,
             TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer,
-            SignInClientTransfer signInClientTransfer, IRelayClientStore relayClientStore, TuntapConfigTransfer tuntapConfigTransfer, TuntapCidrConnectionManager tuntapCidrConnectionManager, TuntapCidrDecenterManager tuntapCidrDecenterManager, TuntapCidrMapfileManager tuntapCidrMapfileManager, FakeAckTransfer fakeAckTransfer)
+            SignInClientTransfer signInClientTransfer, IRelayClientStore relayClientStore, TuntapConfigTransfer tuntapConfigTransfer, TuntapCidrConnectionManager tuntapCidrConnectionManager, TuntapCidrDecenterManager tuntapCidrDecenterManager, TuntapCidrMapfileManager tuntapCidrMapfileManager, FakeAckTransfer fakeAckTransfer, TuntapDecenter tuntapDecenter)
             : base(tunnelTransfer, relayTransfer, pcpTransfer, signInClientTransfer, signInClientStore, relayClientStore)
         {
             this.tuntapConfigTransfer = tuntapConfigTransfer;
@@ -38,15 +39,25 @@ namespace linker.messenger.tuntap
             this.tuntapCidrDecenterManager = tuntapCidrDecenterManager;
             this.tuntapCidrMapfileManager = tuntapCidrMapfileManager;
             this.fakeAckTransfer = fakeAckTransfer;
+            this.tuntapDecenter = tuntapDecenter;
 
-            LoggerHelper.Instance.Warning($"disabled drop ack");
+
         }
 
         protected override void Connected(ITunnelConnection connection)
         {
             Add(connection);
             connection.BeginReceive(this, null);
-            if (tuntapConfigTransfer.Info.TcpMerge) connection.StartPacketMerge();
+            if (tuntapConfigTransfer.Info.TcpMerge)
+            {
+                connection.StartPacketMerge();
+            }
+            if (tuntapConfigTransfer.Info.FakeAck && tuntapDecenter.HasSwitchFlag(connection.RemoteMachineId, TuntapSwitch.FakeAck))
+            {
+                connection.SendBuffer = new byte[4 * 1024];
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Debug($"[{connection.RemoteMachineId}][{connection.RemoteMachineName}] use fake ack");
+            }
             //有哪些目标IP用了相同目标隧道，更新一下
             tuntapCidrConnectionManager.Update(connection);
         }
@@ -62,12 +73,7 @@ namespace linker.messenger.tuntap
         public async Task Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer, object state)
 #pragma warning restore CS1998 // 异步方法缺少 "await" 运算符，将以同步方式运行
         {
-            /*
-            if (connection.SendBuffer.Length > 0)
-            {
-                fakeAckTransfer.Write(buffer);
-            }
-            */
+            if (connection.SendBuffer.Length > 0) fakeAckTransfer.Write(buffer);
             Callback.Receive(connection, buffer);
         }
         /// <summary>
@@ -92,10 +98,10 @@ namespace linker.messenger.tuntap
             //IPV4广播组播、IPV6 多播
             if ((packet.IPV4Broadcast || packet.IPV6Multicast) && tuntapConfigTransfer.Info.Multicast == false && connections.IsEmpty == false)
             {
-                if (packet.DecrementTtl())
-                {
-                    await Task.WhenAll(connections.Values.Where(c => c != null && c.Connected).Select(c => c.SendAsync(packet.Buffer, packet.Offset, packet.Length)));
-                }
+                //if (packet.DecrementTtl())
+                //{
+                await Task.WhenAll(connections.Values.Where(c => c != null && c.Connected).Select(c => c.SendAsync(packet.Buffer, packet.Offset, packet.Length)));
+                //}
                 return;
             }
 
@@ -121,14 +127,13 @@ namespace linker.messenger.tuntap
                 }, ip);
                 return;
             }
-            /*
-            if (connection.SendBuffer.Length > 0)
-            {
-                if (fakeAckTransfer.Read(packet.IPPacket, connection.SendBuffer, out ushort ackLength)) return;
-                if (ackLength > 0) Callback.Receive(connection, connection.SendBuffer.AsMemory(0, ackLength));
-            }
-            */
+
+            ushort ackLength = 0;
+            if (connection.SendBuffer.Length > 0 && fakeAckTransfer.Read(packet.IPPacket, connection.SendBuffer, out ackLength)) return;
+
             await connection.SendAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);
+
+            if (ackLength > 0) Callback.Receive(connection, connection.SendBuffer.AsMemory(0, ackLength));
         }
 
         /// <summary>
