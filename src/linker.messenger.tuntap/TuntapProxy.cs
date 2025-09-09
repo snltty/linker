@@ -52,7 +52,7 @@ namespace linker.messenger.tuntap
             {
                 connection.StartPacketMerge();
             }
-            if (tuntapConfigTransfer.Info.FakeAck && tuntapDecenter.HasSwitchFlag(connection.RemoteMachineId, TuntapSwitch.FakeAck))
+            if (connection.ProtocolType == TunnelProtocolType.Tcp && tuntapConfigTransfer.Info.FakeAck && tuntapDecenter.HasSwitchFlag(connection.RemoteMachineId, TuntapSwitch.FakeAck))
             {
                 connection.SendBuffer = new byte[4 * 1024];
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
