@@ -73,13 +73,14 @@ namespace linker.tun
                 }
                 FaceAckKey key = new() { srcAddr = originPacket.SrcAddr, srcPort = originPacket.SrcPort, dstAddr = originPacket.DstAddr, dstPort = originPacket.DstPort };
 
+                /*
                 if (originPacket.TcpFlagAck && dic.TryGetValue(key, out FackAckState state))
                 {
                     state.Cq = originPacket.Cq;
                 }
-                else if (originPacket.IsOnlySyn || originPacket.IsSynAck)
+                else*/ if (originPacket.IsOnlySyn || originPacket.IsSynAck)
                 {
-                    state = new() { Ack = (ulong)(originPacket.IsOnlySyn ? 1 : 0), Seq = originPacket.Seq + 1 };
+                    FackAckState state = new() { Ack = (ulong)(originPacket.IsOnlySyn ? 1 : 0), Seq = originPacket.Seq + 1 };
                     dic.AddOrUpdate(key, state, (a, b) => state);
                 }
                 else if (originPacket.TcpFlagFin || originPacket.TcpFlagRst)
