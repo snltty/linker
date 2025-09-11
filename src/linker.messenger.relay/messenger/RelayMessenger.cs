@@ -107,7 +107,7 @@ namespace linker.messenger.relay.messenger
 
             if (signCaching.TryGet(connection.Id, info.RemoteMachineId, out SignCacheInfo from, out SignCacheInfo to) == false)
             {
-                LoggerHelper.Instance.Error($"[relay] {connection.Id} to {info.RemoteMachineId} not same group");
+                LoggerHelper.Instance.Error($"[relay] {connection.Id}({from.MachineName})[{from.GroupId}] to {info.RemoteMachineId}({to.MachineName})[{to.GroupId}] fail");
 
                 connection.Write(serializer.Serialize(new RelayAskResultInfo170 { }));
                 return;
