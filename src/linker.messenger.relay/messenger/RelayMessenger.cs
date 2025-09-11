@@ -5,6 +5,7 @@ using linker.messenger.relay.client;
 using linker.messenger.relay.server;
 using linker.messenger.signin;
 using linker.messenger.relay.server.validator;
+using linker.libs.extends;
 
 namespace linker.messenger.relay.messenger
 {
@@ -107,8 +108,19 @@ namespace linker.messenger.relay.messenger
 
             if (signCaching.TryGet(connection.Id, info.RemoteMachineId, out SignCacheInfo from, out SignCacheInfo to) == false)
             {
-                LoggerHelper.Instance.Error($"[relay] {connection.Id}({from.MachineName})[{from.GroupId}] to {info.RemoteMachineId}({to.MachineName})[{to.GroupId}] fail");
-
+                if (from == null)
+                {
+                    LoggerHelper.Instance.Error($"[relay] from null");
+                }
+                else if (to == null)
+                {
+                    LoggerHelper.Instance.Error($"[relay] to null");
+                }
+                else
+                {
+                    LoggerHelper.Instance.Error($"[relay] {from.Id}({from.MachineName})[{from.GroupId}] to {to.Id}({to.MachineName})[{to.GroupId}] fail");
+                }
+                LoggerHelper.Instance.Error($"[relay] fail info {info.ToJson()}");
                 connection.Write(serializer.Serialize(new RelayAskResultInfo170 { }));
                 return;
             }
