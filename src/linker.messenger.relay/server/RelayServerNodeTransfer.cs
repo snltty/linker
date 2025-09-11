@@ -68,7 +68,8 @@ namespace linker.messenger.relay.server
                 {
                     Connection = connection,
                     MessengerId = (ushort)RelayMessengerIds.NodeGetCache186,
-                    Payload = serializer.Serialize(new ValueTuple<string, string>(key, node.Id))
+                    Payload = serializer.Serialize(new ValueTuple<string, string>(key, node.Id)),
+                    Timeout = 1000
                 }).ConfigureAwait(false);
                 if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
                 {

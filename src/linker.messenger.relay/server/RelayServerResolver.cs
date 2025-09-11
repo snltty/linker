@@ -49,12 +49,10 @@ namespace linker.messenger.relay.server
 
         public async Task Resolve(Socket socket, IPEndPoint ep, Memory<byte> memory)
         {
-            LoggerHelper.Instance.Debug($"udp from {ep},1");
             if (relayServerNodeTransfer.Validate(tunnel.connection.TunnelProtocolType.Udp) == false)
             {
                 return;
             }
-            LoggerHelper.Instance.Debug($"udp from {ep},2");
             RelayUdpStep step = (RelayUdpStep)memory.Span[0];
             memory = memory.Slice(1);
 
@@ -67,7 +65,6 @@ namespace linker.messenger.relay.server
                 }
                 return;
             }
-            LoggerHelper.Instance.Debug($"udp from {ep},3");
             byte flagLength = memory.Span[0];
             if (memory.Length < flagLength + 1 || memory.Slice(1, flagLength).Span.SequenceEqual(relayFlag) == false)
             {
@@ -75,59 +72,55 @@ namespace linker.messenger.relay.server
                 return;
             }
             memory = memory.Slice(1 + flagLength);
-            LoggerHelper.Instance.Debug($"udp from {ep},4");
             RelayMessageInfo relayMessage = serializer.Deserialize<RelayMessageInfo>(memory.Span);
 
             //ask 是发起端来的，那key就是 发起端->目标端， answer的，目标和来源会交换，所以转换一下
             string key = relayMessage.Type == RelayMessengerType.Ask ? $"{relayMessage.FromId}->{relayMessage.ToId}->{relayMessage.FlowId}" : $"{relayMessage.ToId}->{relayMessage.FromId}->{relayMessage.FlowId}";
             string flowKey = relayMessage.Type == RelayMessengerType.Ask ? $"{relayMessage.FromId}->{relayMessage.ToId}" : $"{relayMessage.ToId}->{relayMessage.FromId}";
-            LoggerHelper.Instance.Debug($"udp from {ep},5");
             //获取缓存
-            RelayCacheInfo relayCache = await relayServerNodeTransfer.TryGetRelayCache(key).ConfigureAwait(false);
-            if (relayCache == null)
-            {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Error($"relay {relayMessage.Type} get cache fail,flowid:{relayMessage.FlowId}");
-                await socket.SendToAsync(new byte[] { 1 }, ep).ConfigureAwait(false);
-                return;
-            }
-            LoggerHelper.Instance.Debug($"udp from {ep},6");
-            if (relayMessage.Type == RelayMessengerType.Ask && relayServerNodeTransfer.Validate(relayCache) == false)
-            {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Error($"relay {relayMessage.Type} Validate false,flowid:{relayMessage.FlowId}");
-                await socket.SendToAsync(new byte[] { 1 }, ep).ConfigureAwait(false);
-                return;
-            }
-            LoggerHelper.Instance.Debug($"udp from {ep},7");
-            //流量统计
-            Add(flowKey, relayCache.FromName, relayCache.ToName, relayCache.GroupId, memory.Length, 0);
-            //回应
-            if (relayMessage.Type == RelayMessengerType.Answer)
-            {
-                if (relayUdpDic.TryRemove(relayCache.FlowId, out RelayUdpNatInfo natAsk))
-                {
-                    natAsk.Target = ep;
+            _ = relayServerNodeTransfer.TryGetRelayCache(key).ContinueWith(async (result) =>
+             {
+                 RelayCacheInfo relayCache = result.Result;
+                 if (relayCache == null)
+                 {
+                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                         LoggerHelper.Instance.Error($"relay {relayMessage.Type} get cache fail,flowid:{relayMessage.FlowId}");
+                     await socket.SendToAsync(new byte[] { 1 }, ep).ConfigureAwait(false);
+                     return;
+                 }
+                 if (relayMessage.Type == RelayMessengerType.Ask && relayServerNodeTransfer.Validate(relayCache) == false)
+                 {
+                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                         LoggerHelper.Instance.Error($"relay {relayMessage.Type} Validate false,flowid:{relayMessage.FlowId}");
+                     await socket.SendToAsync(new byte[] { 1 }, ep).ConfigureAwait(false);
+                     return;
+                 }
+                 //流量统计
+                 Add(flowKey, relayCache.FromName, relayCache.ToName, relayCache.GroupId, memory.Length, 0);
+                 //回应
+                 if (relayMessage.Type == RelayMessengerType.Answer)
+                 {
+                     if (relayUdpDic.TryRemove(relayCache.FlowId, out RelayUdpNatInfo natAsk))
+                     {
+                         natAsk.Target = ep;
 
-                    RelayUdpNatInfo natAnswer = new RelayUdpNatInfo { Target = natAsk.Source, Traffic = natAsk.Traffic, Source = ep };
-                    udpNat.AddOrUpdate(ep, natAnswer, (a, b) => natAnswer);
-                }
-                return;
-            }
-            LoggerHelper.Instance.Debug($"udp from {ep},8");
+                         RelayUdpNatInfo natAnswer = new RelayUdpNatInfo { Target = natAsk.Source, Traffic = natAsk.Traffic, Source = ep };
+                         udpNat.AddOrUpdate(ep, natAnswer, (a, b) => natAnswer);
+                     }
+                     return;
+                 }
 
-            //请求
-            RelayTrafficCacheInfo trafficCacheInfo = new RelayTrafficCacheInfo { Cache = relayCache, Sendt = 0, Limit = new RelaySpeedLimit(), Key = flowKey };
-            RelayUdpNatInfo nat = new RelayUdpNatInfo { Ask = true, Source = ep, Traffic = trafficCacheInfo, Key = flowKey };
-            udpNat.AddOrUpdate(ep, nat, (a, b) => nat);
-            relayUdpDic.TryAdd(relayCache.FlowId, nat);
+                 //请求
+                 RelayTrafficCacheInfo trafficCacheInfo = new RelayTrafficCacheInfo { Cache = relayCache, Sendt = 0, Limit = new RelaySpeedLimit(), Key = flowKey };
+                 RelayUdpNatInfo nat = new RelayUdpNatInfo { Ask = true, Source = ep, Traffic = trafficCacheInfo, Key = flowKey };
+                 udpNat.AddOrUpdate(ep, nat, (a, b) => nat);
+                 relayUdpDic.TryAdd(relayCache.FlowId, nat);
 
-            relayServerNodeTransfer.AddTrafficCache(trafficCacheInfo);
-            relayServerNodeTransfer.IncrementConnectionNum();
+                 relayServerNodeTransfer.AddTrafficCache(trafficCacheInfo);
+                 relayServerNodeTransfer.IncrementConnectionNum();
 
-            LoggerHelper.Instance.Debug($"udp from {ep},9");
-            await socket.SendToAsync(new byte[] { 0 }, ep).ConfigureAwait(false);
-            LoggerHelper.Instance.Debug($"udp from {ep},10");
+                 await socket.SendToAsync(new byte[] { 0 }, ep).ConfigureAwait(false);
+             }).ConfigureAwait(false);
         }
         private async Task CopyToAsync(RelayUdpNatInfo nat, Socket socket, IPEndPoint ep, Memory<byte> memory)
         {
