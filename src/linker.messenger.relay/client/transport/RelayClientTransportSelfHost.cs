@@ -373,25 +373,20 @@ namespace linker.messenger.relay.client.transport
                 //问一下能不能中继
                 RelayAskResultInfo170 relayAskResultInfo = await RelayAsk(relayInfo).ConfigureAwait(false);
                 relayInfo.FlowingId = relayAskResultInfo.FlowingId;
-                if (relayInfo.FlowingId == 0 || relayAskResultInfo.Nodes.Count == 0)
+                var nodes = relayAskResultInfo.Nodes;
+                if (relayInfo.FlowingId == 0 || nodes.Count == 0)
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        LoggerHelper.Instance.Error($"relay ask fail,flowid:{relayInfo.FlowingId},nodes:{relayAskResultInfo.Nodes.Count}");
+                        LoggerHelper.Instance.Error($"relay ask fail,flowid:{relayInfo.FlowingId},nodes:{nodes.Count}");
                     return null;
                 }
 
-                //测试一下延迟
-                if (relayAskResultInfo.Nodes.Count > 1)
-                {
-                    //relayAskResultInfo.Nodes = await TestDelay(relayAskResultInfo.Nodes);
-                }
-
                 //连接中继节点服务器
-                var (socket, ep) = await ConnectNodeServer(relayInfo, relayAskResultInfo.Nodes).ConfigureAwait(false);
+                var (socket, ep) = await ConnectNodeServer(relayInfo, nodes).ConfigureAwait(false);
                 if (socket == null)
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        LoggerHelper.Instance.Error($"relay connect server fail,flowid:{relayInfo.FlowingId},nodes:{relayAskResultInfo.Nodes.Count}");
+                        LoggerHelper.Instance.Error($"relay connect server fail,flowid:{relayInfo.FlowingId},nodes:{nodes.Count}");
                     return null;
                 }
 
@@ -399,7 +394,7 @@ namespace linker.messenger.relay.client.transport
                 if (await RelayConfirm(relayInfo).ConfigureAwait(false) == false)
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        LoggerHelper.Instance.Error($"relay confirm fail,flowid:{relayInfo.FlowingId},nodes:{relayAskResultInfo.Nodes.Count}");
+                        LoggerHelper.Instance.Error($"relay confirm fail,flowid:{relayInfo.FlowingId},nodes:{nodes.Count}");
                     return null;
                 }
 
@@ -418,7 +413,8 @@ namespace linker.messenger.relay.client.transport
                     Label = string.Empty,
                     Receive = true,
                     SSL = relayInfo.SSL,
-                    Crypto = CryptoFactory.CreateSymmetric(relayInfo.RemoteMachineId)
+                    Crypto = CryptoFactory.CreateSymmetric(relayInfo.RemoteMachineId),
+                    NodeId = relayInfo.NodeId
                 };
             }
             catch (Exception ex)
@@ -588,7 +584,8 @@ namespace linker.messenger.relay.client.transport
                     Label = string.Empty,
                     Receive = true,
                     SSL = relayInfo.SSL,
-                    Crypto = CryptoFactory.CreateSymmetric(relayInfo.FromMachineId)
+                    Crypto = CryptoFactory.CreateSymmetric(relayInfo.FromMachineId),
+                    NodeId = relayInfo.NodeId,
                 });
                 return true;
             }
