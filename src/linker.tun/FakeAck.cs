@@ -77,6 +77,11 @@ namespace linker.tun
                 if (originPacket.TcpFlagAck && dic.TryGetValue(key, out FackAckState state))
                 {
                     state.Cq = originPacket.Cq;
+
+                    if (originPacket.TcpPayloadLength > 0)
+                    {
+                        state.Seq = originPacket.Seq + (uint)originPacket.TcpPayloadLength;
+                    }
                 }
                 else*/ if (originPacket.IsOnlySyn || originPacket.IsSynAck)
                 {
@@ -258,7 +263,7 @@ namespace linker.tun
                 *(tcpPtr + 13) = 0b00010000;
 
                 //设置窗口大小
-                *(ushort*)(tcpPtr + 14) = BinaryPrimitives.ReverseEndianness((ushort)65535);
+                *(ushort*)(tcpPtr + 14) = BinaryPrimitives.ReverseEndianness((ushort)8192);
 
                 //计算校验和
                 ChecksumHelper.Checksum(ipPtr, totalLength);

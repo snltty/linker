@@ -63,33 +63,31 @@ namespace linker.messenger.relay.messenger
         /// 测试一下中继通不通
         /// </summary>
         /// <param name="connection"></param>
-        [MessengerId((ushort)RelayMessengerIds.RelayTest)]
-        public void RelayTest(IConnection connection)
+        [MessengerId((ushort)RelayMessengerIds.Nodes)]
+        public void Nodes(IConnection connection)
         {
             connection.Write(serializer.Serialize(new List<RelayServerNodeReportInfo> { }));
         }
-        [MessengerId((ushort)RelayMessengerIds.RelayTest170)]
-        public async Task RelayTest170(IConnection connection)
+        [MessengerId((ushort)RelayMessengerIds.Nodes170)]
+        public async Task Nodes170(IConnection connection)
         {
-            RelayTestInfo170 info = serializer.Deserialize<RelayTestInfo170>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
             {
                 connection.Write(serializer.Serialize(new List<RelayServerNodeReportInfo170> { }));
                 return;
             }
-            List<RelayServerNodeReportInfo170> nodes = (await GetNodes(info.UserId, cache)).Select(c => (RelayServerNodeReportInfo170)c).ToList();
+            List<RelayServerNodeReportInfo170> nodes = (await GetNodes(cache)).Select(c => (RelayServerNodeReportInfo170)c).ToList();
             connection.Write(serializer.Serialize(nodes));
         }
-        [MessengerId((ushort)RelayMessengerIds.RelayTest188)]
-        public async Task RelayTest188(IConnection connection)
+        [MessengerId((ushort)RelayMessengerIds.Nodes188)]
+        public async Task Nodes188(IConnection connection)
         {
-            RelayTestInfo188 info = serializer.Deserialize<RelayTestInfo188>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
             {
                 connection.Write(serializer.Serialize(new List<RelayServerNodeReportInfo188> { }));
                 return;
             }
-            List<RelayServerNodeReportInfo188> nodes = await GetNodes(info.UserId, cache);
+            List<RelayServerNodeReportInfo188> nodes = await GetNodes(cache);
             connection.Write(serializer.Serialize(nodes));
         }
 
@@ -109,12 +107,16 @@ namespace linker.messenger.relay.messenger
 
             if (signCaching.TryGet(connection.Id, info.RemoteMachineId, out SignCacheInfo from, out SignCacheInfo to) == false)
             {
+                LoggerHelper.Instance.Error($"[relay] {connection.Id} to {info.RemoteMachineId} not same group");
+
                 connection.Write(serializer.Serialize(new RelayAskResultInfo170 { }));
                 return;
             }
 
-            RelayAskResultInfo170 result = new RelayAskResultInfo170();
-            result.Nodes = (await GetNodes(from.UserId, from).ConfigureAwait(false)).Select(c => (RelayServerNodeReportInfo170)c).ToList();
+            RelayAskResultInfo170 result = new()
+            {
+                Nodes = (await GetNodes(from).ConfigureAwait(false)).Select(c => (RelayServerNodeReportInfo170)c).ToList()
+            };
             if (result.Nodes.Count > 0)
             {
                 result.FlowingId = await relayServerTransfer.AddRelay(from, to, info);
@@ -123,9 +125,9 @@ namespace linker.messenger.relay.messenger
             connection.Write(serializer.Serialize(result));
         }
 
-        private async Task<List<RelayServerNodeReportInfo188>> GetNodes(string userid, SignCacheInfo from)
+        private async Task<List<RelayServerNodeReportInfo188>> GetNodes(SignCacheInfo from)
         {
-            return await relayServerTransfer.GetNodes(from.Super, userid);
+            return await relayServerTransfer.GetNodes(from.Super, from.UserId);
         }
 
 

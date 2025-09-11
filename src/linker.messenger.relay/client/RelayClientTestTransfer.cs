@@ -43,11 +43,7 @@ namespace linker.messenger.relay.client
                 IRelayClientTransport transport = relayTransfer.Transports.FirstOrDefault(d => d.Type == relayClientStore.Server.RelayType);
                 if (transport != null)
                 {
-                    Nodes = await transport.RelayTestAsync(new RelayTestInfo188
-                    {
-                        MachineId = signInClientStore.Id,
-                        UserId = signInClientStore.Server.UserId
-                    }).ConfigureAwait(false);
+                    Nodes = await transport.RelayTestAsync().ConfigureAwait(false);
                     var tasks = Nodes.Select(async (c) =>
                     {
                         c.EndPoint = c.EndPoint == null || c.EndPoint.Address.Equals(IPAddress.Any) ? signInClientState.Connection.Address : c.EndPoint;

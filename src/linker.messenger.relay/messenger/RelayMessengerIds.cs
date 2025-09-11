@@ -10,7 +10,7 @@
         RelayAsk = 2103,
         RelayConfirm = 2104,
 
-        RelayTest = 2105,
+        Nodes = 2105,
 
         NodeDelay = 2106,
         NodeDelayForward = 2107,
@@ -23,7 +23,7 @@
         Edit = 2117,
         EditForward = 2118,
 
-        RelayTest170 = 2119,
+        Nodes170 = 2119,
         RelayAsk170 = 2120,
         RelayForward170 = 2121,
 
@@ -34,7 +34,7 @@
         Exit = 2125,
         ExitForward = 2126,
 
-        RelayTest188 = 2127,
+        Nodes188 = 2127,
         NodeReport188 = 2128,
 
         Update = 2129,

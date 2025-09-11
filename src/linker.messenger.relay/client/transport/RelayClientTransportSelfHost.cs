@@ -47,25 +47,20 @@ namespace linker.messenger.relay.client.transport
                 //问一下能不能中继
                 RelayAskResultInfo170 relayAskResultInfo = await RelayAsk(relayInfo).ConfigureAwait(false);
                 relayInfo.FlowingId = relayAskResultInfo.FlowingId;
-                if (relayInfo.FlowingId == 0 || relayAskResultInfo.Nodes.Count == 0)
+                List<RelayServerNodeReportInfo170> nodes = relayAskResultInfo.Nodes;
+                if (relayAskResultInfo.FlowingId == 0 || relayAskResultInfo.Nodes.Count == 0)
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        LoggerHelper.Instance.Error($"relay ask fail,flowid:{relayInfo.FlowingId},nodes:{relayAskResultInfo.Nodes.Count}");
+                        LoggerHelper.Instance.Error($"relay ask fail,flowid:{relayInfo.FlowingId},nodes:{nodes.Count}");
                     return null;
                 }
 
-                //测试一下延迟
-                if (relayAskResultInfo.Nodes.Count > 1)
-                {
-                    //relayAskResultInfo.Nodes = await TestDelay(relayAskResultInfo.Nodes);
-                }
-
                 //连接中继节点服务器
-                Socket socket = await ConnectNodeServer(relayInfo, relayAskResultInfo.Nodes).ConfigureAwait(false);
+                Socket socket = await ConnectNodeServer(relayInfo, nodes).ConfigureAwait(false);
                 if (socket == null)
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        LoggerHelper.Instance.Error($"relay connect server fail,flowid:{relayInfo.FlowingId},nodes:{relayAskResultInfo.Nodes.Count}");
+                        LoggerHelper.Instance.Error($"relay connect server fail,flowid:{relayInfo.FlowingId},nodes:{nodes.Count}");
                     return null;
                 }
 
@@ -73,7 +68,7 @@ namespace linker.messenger.relay.client.transport
                 if (await RelayConfirm(relayInfo).ConfigureAwait(false) == false)
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        LoggerHelper.Instance.Error($"relay confirm fail,flowid:{relayInfo.FlowingId},nodes:{relayAskResultInfo.Nodes.Count}");
+                        LoggerHelper.Instance.Error($"relay confirm fail,flowid:{relayInfo.FlowingId},nodes:{nodes.Count}");
                     return null;
                 }
 
@@ -291,7 +286,9 @@ namespace linker.messenger.relay.client.transport
                 if (relayInfo.SSL)
                 {
                     sslStream = new SslStream(new NetworkStream(socket, false), false, ValidateServerCertificate, null);
+#pragma warning disable SYSLIB0039 // 类型或成员已过时
                     await sslStream.AuthenticateAsServerAsync(messengerStore.Certificate, OperatingSystem.IsAndroid(), SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls, false).ConfigureAwait(false);
+#pragma warning restore SYSLIB0039 // 类型或成员已过时
                 }
                 return new TunnelConnectionTcp
                 {
@@ -322,15 +319,14 @@ namespace linker.messenger.relay.client.transport
             return null;
         }
 
-        public async Task<List<RelayServerNodeReportInfo188>> RelayTestAsync(RelayTestInfo188 relayTestInfo)
+        public async Task<List<RelayServerNodeReportInfo188>> RelayTestAsync()
         {
             try
             {
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = signInClientState.Connection,
-                    MessengerId = (ushort)RelayMessengerIds.RelayTest188,
-                    Payload = serializer.Serialize(relayTestInfo),
+                    MessengerId = (ushort)RelayMessengerIds.Nodes188,
                     Timeout = 2000
                 }).ConfigureAwait(false);
 
@@ -480,7 +476,7 @@ namespace linker.messenger.relay.client.transport
                         //连接中继服务器
                         Socket socket = new Socket(ep.AddressFamily, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
                         socket.WindowsUdpBug();
-                        socket.IPv6Only(ep.AddressFamily,false);
+                        socket.IPv6Only(ep.AddressFamily, false);
 
                         //建立关联
                         RelayMessageInfo relayMessage = new RelayMessageInfo
@@ -611,15 +607,14 @@ namespace linker.messenger.relay.client.transport
             return false;
         }
 
-        public async Task<List<RelayServerNodeReportInfo188>> RelayTestAsync(RelayTestInfo188 relayTestInfo)
+        public async Task<List<RelayServerNodeReportInfo188>> RelayTestAsync()
         {
             try
             {
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = signInClientState.Connection,
-                    MessengerId = (ushort)RelayMessengerIds.RelayTest188,
-                    Payload = serializer.Serialize(relayTestInfo),
+                    MessengerId = (ushort)RelayMessengerIds.Nodes188,
                     Timeout = 2000
                 }).ConfigureAwait(false);
 

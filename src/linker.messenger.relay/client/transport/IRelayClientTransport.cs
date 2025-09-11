@@ -47,7 +47,7 @@ namespace linker.messenger.relay.client.transport
         /// </summary>
         /// <param name="relayTestInfo"></param>
         /// <returns></returns>
-        public Task<List<RelayServerNodeReportInfo188>> RelayTestAsync(RelayTestInfo188 relayTestInfo);
+        public Task<List<RelayServerNodeReportInfo188>> RelayTestAsync();
     }
 
     /// <summary>
