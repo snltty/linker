@@ -43,7 +43,7 @@ export default {
     'home.managerApi':'管理接口',
     'home.messenger':'[{0}]的信标',
     'home.messengerServer':'服务器信标',
-    'home.tuntapRoute':'网卡理由',
+    'home.tuntapRoute':'网卡路由',
     'home.firewall':'防火墙',
     'home.wakeup':'唤醒',
     'home.protocol':'打洞协议',

@@ -91,19 +91,19 @@ namespace linker.tunnel.connection
                         length = await Stream.ReadAsync(buffer).ConfigureAwait(false);
                         if (length == 0) break;
 
-                        await ReadPacket(buffer.AsMemory(0, length)).ConfigureAwait(false);
+                        await RecvPacket(buffer.AsMemory(0, length)).ConfigureAwait(false);
                     }
                     else
                     {
                         length = await Socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false);
                         if (length == 0) break;
-                        await ReadPacket(buffer.AsMemory(0, length)).ConfigureAwait(false);
+                        await RecvPacket(buffer.AsMemory(0, length)).ConfigureAwait(false);
 
                         while (Socket.Available > 0)
                         {
                             length = Socket.Receive(buffer);
                             if (length == 0) break;
-                            await ReadPacket(buffer.AsMemory(0, length)).ConfigureAwait(false);
+                            await RecvPacket(buffer.AsMemory(0, length)).ConfigureAwait(false);
                         }
                     }
                 }
@@ -120,7 +120,19 @@ namespace linker.tunnel.connection
                 Dispose();
             }
         }
-        private async Task ReadPacket(Memory<byte> buffer)
+        private async Task RecvPacket(ReadOnlyMemory<byte> buffer)
+        {
+            if (pipeWriter != null)
+            {
+                Memory<byte> memory = pipeSender.Writer.GetMemory(buffer.Length);
+                buffer.CopyTo(memory);
+                pipeSender.Writer.Advance(buffer.Length);
+                await pipeSender.Writer.FlushAsync();
+                return;
+            }
+            await ReadPacket(buffer).ConfigureAwait(false);
+        }
+        private async Task ReadPacket(ReadOnlyMemory<byte> buffer)
         {
             //没有缓存，可能是一个完整的包
             if (bufferCache.Size == 0 && buffer.Length > 4)
@@ -152,7 +164,7 @@ namespace linker.tunnel.connection
 
             } while (bufferCache.Size > 4);
         }
-        private async Task CallbackPacket(Memory<byte> packet)
+        private async Task CallbackPacket(ReadOnlyMemory<byte> packet)
         {
             ReceiveBytes += packet.Length;
             LastTicks.Update();
@@ -253,12 +265,12 @@ namespace linker.tunnel.connection
         {
             if (callback == null) return false;
 
-            if (pipe != null)
+            if (pipeSender != null)
             {
-                Memory<byte> memory = pipe.Writer.GetMemory(data.Length);
+                Memory<byte> memory = pipeSender.Writer.GetMemory(data.Length);
                 data.CopyTo(memory);
-                pipe.Writer.Advance(data.Length);
-                await pipe.Writer.FlushAsync();
+                pipeSender.Writer.Advance(data.Length);
+                await pipeSender.Writer.FlushAsync();
                 return true;
             }
 
@@ -298,13 +310,13 @@ namespace linker.tunnel.connection
         {
             if (callback == null) return false;
 
-            if (pipe != null)
+            if (pipeSender != null)
             {
                 ReadOnlyMemory<byte> data = buffer.AsMemory(offset, length);
-                Memory<byte> memory = pipe.Writer.GetMemory(data.Length);
+                Memory<byte> memory = pipeSender.Writer.GetMemory(data.Length);
                 data.CopyTo(memory);
-                pipe.Writer.Advance(data.Length);
-                await pipe.Writer.FlushAsync();
+                pipeSender.Writer.Advance(data.Length);
+                await pipeSender.Writer.FlushAsync();
                 return true;
             }
 
@@ -343,18 +355,20 @@ namespace linker.tunnel.connection
         }
 
 
-        private Pipe pipe;
+        private Pipe pipeSender;
+        private Pipe pipeWriter;
         public void StartPacketMerge()
         {
-            pipe = new Pipe(new PipeOptions(pauseWriterThreshold: 800 * 1024));
-            _ = Reader();
+            pipeSender = new Pipe(new PipeOptions(pauseWriterThreshold: 1 * 1024 * 1024));
+            pipeWriter = new Pipe(new PipeOptions(pauseWriterThreshold: 1 * 1024 * 1024));
+            _ = Sender();
+            _ = Writer();
         }
-        private async Task Reader()
+        private async Task Sender()
         {
-            byte[] pipeBuffer = new byte[10 * 1024];
             while (cancellationTokenSource.IsCancellationRequested == false)
             {
-                ReadResult result = await pipe.Reader.ReadAsync();
+                ReadResult result = await pipeSender.Reader.ReadAsync();
                 if (result.IsCompleted && result.Buffer.IsEmpty)
                 {
                     cancellationTokenSource.Cancel();
@@ -370,14 +384,16 @@ namespace linker.tunnel.connection
                     if (Stream != null) await semaphoreSlim.WaitAsync().ConfigureAwait(false);
                     try
                     {
-                        chunk.CopyTo(pipeBuffer);
-                        if (Stream != null)
+                        foreach (var item in chunk)
                         {
-                            await Stream.WriteAsync(pipeBuffer.AsMemory(0, chunkSize)).ConfigureAwait(false);
-                        }
-                        else
-                        {
-                            await Socket.SendAsync(pipeBuffer.AsMemory(0, chunkSize), SocketFlags.None).ConfigureAwait(false);
+                            if (Stream != null)
+                            {
+                                await Stream.WriteAsync(item).ConfigureAwait(false);
+                            }
+                            else
+                            {
+                                await Socket.SendAsync(item, SocketFlags.None).ConfigureAwait(false);
+                            }
                         }
                         SendBytes += chunk.Length;
                     }
@@ -397,10 +413,56 @@ namespace linker.tunnel.connection
                     buffer = buffer.Slice(chunkSize);
 
                 }
-                pipe.Reader.AdvanceTo(result.Buffer.End);
+                pipeSender.Reader.AdvanceTo(result.Buffer.End);
 
             }
         }
+        private async Task Writer()
+        {
+            while (cancellationTokenSource.IsCancellationRequested == false)
+            {
+                ReadResult result = await pipeWriter.Reader.ReadAsync();
+                if (result.IsCompleted && result.Buffer.IsEmpty)
+                {
+                    cancellationTokenSource.Cancel();
+                    break;
+                }
+
+                ReadOnlySequence<byte> buffer = result.Buffer;
+                while (buffer.Length > 0)
+                {
+                    int chunkSize = (int)Math.Min(buffer.Length, 8192);
+                    ReadOnlySequence<byte> chunk = buffer.Slice(0, chunkSize);
+
+                    if (Stream != null) await semaphoreSlim.WaitAsync().ConfigureAwait(false);
+                    try
+                    {
+                        foreach (var item in chunk)
+                        {
+                            ReadPacket(item);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        {
+                            LoggerHelper.Instance.Error(ex);
+                        }
+                        Dispose();
+                    }
+                    finally
+                    {
+                        if (Stream != null) semaphoreSlim.Release();
+                    }
+
+                    buffer = buffer.Slice(chunkSize);
+
+                }
+                pipeWriter.Reader.AdvanceTo(result.Buffer.End);
+
+            }
+        }
+        
 
         public void Dispose()
         {
@@ -422,8 +484,11 @@ namespace linker.tunnel.connection
 
             try
             {
-                pipe?.Writer.Complete();
-                pipe?.Reader.Complete();
+                pipeSender?.Writer.Complete();
+                pipeSender?.Reader.Complete();
+
+                pipeWriter?.Writer.Complete();
+                pipeWriter?.Reader.Complete();
             }
             catch (Exception)
             { }
