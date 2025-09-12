@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.libs.extends;
 using linker.libs.timer;
 using linker.messenger.relay.client.transport;
 using linker.messenger.relay.messenger;
@@ -41,7 +42,7 @@ namespace linker.messenger.relay.server
         }
 
 
-        public async Task<ulong> AddRelay(SignCacheInfo from, SignCacheInfo to, RelayInfo170 info)
+        public ulong AddRelay(SignCacheInfo from, SignCacheInfo to, RelayInfo170 info)
         {
             ulong flowingId = Interlocked.Increment(ref relayFlowingId);
 
@@ -54,29 +55,25 @@ namespace linker.messenger.relay.server
                 ToName = to.MachineName,
                 GroupId = to.GroupId,
                 Validated = from.Super,
+                UserId = from.UserId,
             };
-            if (reports.TryGetValue(info.NodeId, out var node) == false)
+            if (relayCaching.TryAdd($"{cache.FromId}->{cache.ToId}->{flowingId}", cache, 15000) == false)
             {
                 return 0;
             }
-
-            cache.Validated = from.Super || await relayServerWhiteListStore.Contains(from.UserId, info.NodeId);
-            if (cache.Validated == false)
-            {
-                cache.Cdkey = (await relayServerCdkeyStore.GetAvailable(from.UserId).ConfigureAwait(false)).Select(c => new RelayCdkeyInfo { Bandwidth = c.Bandwidth, Id = c.Id, LastBytes = c.LastBytes }).ToList();
-                if (cache.Cdkey.Count <= 0 && node.Public == false) return 0;
-            }
-
-
-            bool added = relayCaching.TryAdd($"{cache.FromId}->{cache.ToId}->{flowingId}", cache, 15000);
-            if (added == false) return 0;
             return flowingId;
         }
 
-        public RelayCacheInfo TryGetRelayCache(string key, string nodeid)
+        public async Task<RelayCacheInfo> TryGetRelayCache(string key, string nodeid)
         {
             if (relayCaching.TryGetValue(key, out RelayCacheInfo cache) && reports.TryGetValue(nodeid, out var node))
             {
+                cache.Validated = cache.Validated || await relayServerWhiteListStore.Contains(cache.UserId, node.Id);
+                if (cache.Validated == false)
+                {
+                    cache.Cdkey = (await relayServerCdkeyStore.GetAvailable(cache.UserId).ConfigureAwait(false)).Select(c => new RelayCdkeyInfo { Bandwidth = c.Bandwidth, Id = c.Id, LastBytes = c.LastBytes }).ToList();
+                    if (cache.Cdkey.Count == 0 && node.Public == false) return null;
+                }
                 return cache;
             }
             return null;
@@ -189,7 +186,7 @@ namespace linker.messenger.relay.server
                 .Where(c =>
                 {
                     return validated || nodes.Contains(c.Id)
-                    || (c.Public && (c.ConnectionRatio < c.MaxConnection && (c.MaxGbTotal == 0 || (c.MaxGbTotal > 0 && c.MaxGbTotalLastBytes > 0))));
+                    || (c.Public && c.ConnectionRatio < c.MaxConnection && (c.MaxGbTotal == 0 || (c.MaxGbTotal > 0 && c.MaxGbTotalLastBytes > 0)));
                 })
                 .OrderByDescending(c => c.LastTicks);
 

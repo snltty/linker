@@ -108,32 +108,20 @@ namespace linker.messenger.relay.messenger
 
             if (signCaching.TryGet(connection.Id, info.RemoteMachineId, out SignCacheInfo from, out SignCacheInfo to) == false)
             {
-                if (from == null)
-                {
-                    LoggerHelper.Instance.Error($"[relay] from null");
-                }
-                else if (to == null)
-                {
-                    LoggerHelper.Instance.Error($"[relay] to null");
-                }
-                else
-                {
-                    LoggerHelper.Instance.Error($"[relay] {from.Id}({from.MachineName})[{from.GroupId}] to {to.Id}({to.MachineName})[{to.GroupId}] fail");
-                }
-                LoggerHelper.Instance.Error($"[relay] fail info {info.ToJson()}");
                 connection.Write(serializer.Serialize(new RelayAskResultInfo170 { }));
                 return;
             }
 
+
+            var nodes = (await GetNodes(from).ConfigureAwait(false)).Select(c => (RelayServerNodeReportInfo170)c).ToList();
             RelayAskResultInfo170 result = new()
             {
-                Nodes = (await GetNodes(from).ConfigureAwait(false)).Select(c => (RelayServerNodeReportInfo170)c).ToList()
+                Nodes = nodes
             };
             if (result.Nodes.Count > 0)
             {
-                result.FlowingId = await relayServerTransfer.AddRelay(from, to, info);
+                result.FlowingId = relayServerTransfer.AddRelay(from, to, info);
             }
-
             connection.Write(serializer.Serialize(result));
         }
 
@@ -208,10 +196,10 @@ namespace linker.messenger.relay.messenger
         /// <param name="connection"></param>
         /// <returns></returns>
         [MessengerId((ushort)RelayMessengerIds.NodeGetCache)]
-        public void NodeGetCache(IConnection connection)
+        public async Task NodeGetCache(IConnection connection)
         {
             string key = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            RelayCacheInfo cache = relayServerTransfer.TryGetRelayCache(key, string.Empty);
+            RelayCacheInfo cache = await relayServerTransfer.TryGetRelayCache(key, string.Empty);
             if (cache != null)
             {
                 byte[] sendt = serializer.Serialize(cache);
@@ -224,11 +212,11 @@ namespace linker.messenger.relay.messenger
             }
         }
         [MessengerId((ushort)RelayMessengerIds.NodeGetCache186)]
-        public void NodeGetCache186(IConnection connection)
+        public async Task NodeGetCache186(IConnection connection)
         {
             relayServerReportResolver.Add(connection.ReceiveRequestWrap.Payload.Length, 0);
             ValueTuple<string, string> key = serializer.Deserialize<ValueTuple<string, string>>(connection.ReceiveRequestWrap.Payload.Span);
-            RelayCacheInfo cache = relayServerTransfer.TryGetRelayCache(key.Item1, key.Item2);
+            RelayCacheInfo cache = await relayServerTransfer.TryGetRelayCache(key.Item1, key.Item2);
             if (cache != null)
             {
                 byte[] sendt = serializer.Serialize(cache);
