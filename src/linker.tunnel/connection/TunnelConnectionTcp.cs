@@ -60,6 +60,10 @@ namespace linker.tunnel.connection
         private readonly byte[] pingBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.ping");
         private readonly byte[] pongBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.pong");
 
+
+        private Pipe pipeSender;
+        private Pipe pipeWriter;
+        private byte[] packetBuffer = new byte[4096];
         /// <summary>
         /// 开始接收数据
         /// </summary>
@@ -73,146 +77,40 @@ namespace linker.tunnel.connection
             this.userToken = userToken;
 
             cancellationTokenSource = new CancellationTokenSource();
+
+            pipeSender = new Pipe(new PipeOptions(pauseWriterThreshold: 1 * 1024 * 1024, resumeWriterThreshold: 512 * 1024, useSynchronizationContext: false));
+            pipeWriter = new Pipe(new PipeOptions(pauseWriterThreshold: 1 * 1024 * 1024, resumeWriterThreshold: 512 * 1024, useSynchronizationContext: false));
             _ = ProcessWrite();
-            _ = ProcessHeart();
-        }
-
-        private Pipe pipeSender;
-        private Pipe pipeWriter;
-        public void StartPacketMerge()
-        {
-            pipeSender = new Pipe(new PipeOptions(pauseWriterThreshold: 1 * 1024 * 1024));
-            pipeWriter = new Pipe(new PipeOptions(pauseWriterThreshold: 1 * 1024 * 1024));
             _ = Sender();
-            _ = Writer();
-        }
-        private async Task Sender()
-        {
-            while (cancellationTokenSource.IsCancellationRequested == false)
-            {
-                ReadResult result = await pipeSender.Reader.ReadAsync();
-                if (result.IsCompleted && result.Buffer.IsEmpty)
-                {
-                    cancellationTokenSource.Cancel();
-                    break;
-                }
-
-                ReadOnlySequence<byte> buffer = result.Buffer;
-                while (buffer.Length > 0)
-                {
-                    int chunkSize = (int)Math.Min(buffer.Length, 8192);
-                    ReadOnlySequence<byte> chunk = buffer.Slice(0, chunkSize);
-
-                    if (Stream != null) await semaphoreSlim.WaitAsync().ConfigureAwait(false);
-                    try
-                    {
-                        foreach (var item in chunk)
-                        {
-                            if (Stream != null)
-                            {
-                                await Stream.WriteAsync(item).ConfigureAwait(false);
-                            }
-                            else
-                            {
-                                await Socket.SendAsync(item, SocketFlags.None).ConfigureAwait(false);
-                            }
-                        }
-                        SendBytes += chunk.Length;
-                    }
-                    catch (Exception ex)
-                    {
-                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        {
-                            LoggerHelper.Instance.Error(ex);
-                        }
-                        Dispose();
-                    }
-                    finally
-                    {
-                        if (Stream != null) semaphoreSlim.Release();
-                    }
-
-                    buffer = buffer.Slice(chunkSize);
-
-                }
-                pipeSender.Reader.AdvanceTo(result.Buffer.End);
-
-            }
-        }
-        private async Task Writer()
-        {
-            while (cancellationTokenSource.IsCancellationRequested == false)
-            {
-                ReadResult result = await pipeWriter.Reader.ReadAsync();
-                if (result.IsCompleted && result.Buffer.IsEmpty)
-                {
-                    cancellationTokenSource.Cancel();
-                    break;
-                }
-
-                ReadOnlySequence<byte> buffer = result.Buffer;
-                while (buffer.Length > 0)
-                {
-                    int chunkSize = (int)Math.Min(buffer.Length, 8192);
-                    ReadOnlySequence<byte> chunk = buffer.Slice(0, chunkSize);
-
-                    if (Stream != null) await semaphoreSlim.WaitAsync().ConfigureAwait(false);
-                    try
-                    {
-                        foreach (var item in chunk)
-                        {
-                            await StickPacket(item);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        {
-                            LoggerHelper.Instance.Error(ex);
-                        }
-                        Dispose();
-                    }
-                    finally
-                    {
-                        if (Stream != null) semaphoreSlim.Release();
-                    }
-
-                    buffer = buffer.Slice(chunkSize);
-
-                }
-                pipeWriter.Reader.AdvanceTo(result.Buffer.End);
-
-            }
+            _ = Recver();
+            _ = ProcessHeart();
         }
 
         private async Task ProcessWrite()
         {
-            byte[] buffer = new byte[16 * 1024];
             try
             {
                 int length = 0;
                 while (cancellationTokenSource.IsCancellationRequested == false)
                 {
-
                     if (Stream != null)
                     {
-                        length = await Stream.ReadAsync(buffer).ConfigureAwait(false);
-                        if (length == 0) break;
-
-                        await RecvPacket(buffer.AsMemory(0, length)).ConfigureAwait(false);
+                        Memory<byte> memory = pipeWriter.Writer.GetMemory(8 * 1024);
+                        length = await Stream.ReadAsync(memory).ConfigureAwait(false);
+                        if (length == 0)
+                        {
+                            break;
+                        }
+                        pipeWriter.Writer.Advance(length);
+                        await pipeWriter.Writer.FlushAsync().ConfigureAwait(false);
                     }
                     else
                     {
-                        length = await Socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false);
+                        Memory<byte> memory = pipeWriter.Writer.GetMemory(8 * 1024);
+                        length = await Socket.ReceiveAsync(memory, SocketFlags.None).ConfigureAwait(false);
                         if (length == 0) break;
-                        await RecvPacket(buffer.AsMemory(0, length)).ConfigureAwait(false);
-
-                        while (Socket.Available > 0)
-                        {
-                            length = Socket.Receive(buffer);
-                            if (length == 0) break;
-                            await RecvPacket(buffer.AsMemory(0, length)).ConfigureAwait(false);
-                        }
+                        pipeWriter.Writer.Advance(length);
+                        await pipeWriter.Writer.FlushAsync().ConfigureAwait(false);
                     }
                 }
             }
@@ -228,53 +126,61 @@ namespace linker.tunnel.connection
                 Dispose();
             }
         }
-        private async Task RecvPacket(ReadOnlyMemory<byte> buffer)
+        private async Task Recver()
         {
-            if (pipeWriter != null)
+            while (cancellationTokenSource.IsCancellationRequested == false)
             {
-                Memory<byte> memory = pipeWriter.Writer.GetMemory(buffer.Length);
-                buffer.CopyTo(memory);
-                pipeWriter.Writer.Advance(buffer.Length);
-                await pipeWriter.Writer.FlushAsync();
-                return;
-            }
-            await StickPacket(buffer).ConfigureAwait(false);
-        }
-        private async Task StickPacket(ReadOnlyMemory<byte> buffer)
-        {
-            //没有缓存，可能是一个完整的包
-            if (bufferCache.Size == 0 && buffer.Length > 4)
-            {
-                int packageLen = buffer.Span.ToInt32();
-                //数据足够，包长度+4，那就存在一个完整包 
-                if (packageLen + 4 <= buffer.Length)
+                try
                 {
-                    await WritePacket(buffer.Slice(4, packageLen)).ConfigureAwait(false);
-                    buffer = buffer.Slice(4 + packageLen);
+                    ReadResult result = await pipeWriter.Reader.ReadAsync().ConfigureAwait(false);
+                    if (result.IsCompleted && result.Buffer.IsEmpty)
+                    {
+                        cancellationTokenSource.Cancel();
+                        break;
+                    }
+                    ReadOnlySequence<byte> buffer = result.Buffer;
+                    ReceiveBytes += buffer.Length;
+                    long offset = 0;
+
+                    do
+                    {
+                        int packageLen = 0;
+                        if (buffer.First.Length >= 4) packageLen = buffer.First.ToInt32();
+                        else
+                        {
+                            buffer.Slice(0, 4).CopyTo(packetBuffer);
+                            packageLen = packetBuffer.ToInt32();
+                        }
+                        if (packageLen + 4 > buffer.Length) break;
+
+                        ReadOnlySequence<byte> temp = buffer.Slice(4, packageLen);
+                        if (packetBuffer.Length < temp.Length) packetBuffer = new byte[temp.Length];
+                        temp.CopyTo(packetBuffer);
+                        await WritePacket(packetBuffer.AsMemory(0, packageLen)).ConfigureAwait(false);
+
+                        offset += 4 + packageLen;
+                        buffer = buffer.Slice(4 + packageLen);
+
+                    } while (buffer.Length > 4);
+
+
+                    pipeWriter.Reader.AdvanceTo(result.Buffer.GetPosition(offset), result.Buffer.End);
                 }
-                //没有剩下的数据就不继续往下了
-                if (buffer.Length == 0)
-                    return;
-            }
-            //添加到缓存
-            bufferCache.AddRange(buffer);
-            do
-            {
-                //取出一个一个包
-                int packageLen = bufferCache.Data.Span.ToInt32();
-                if (packageLen + 4 > bufferCache.Size)
+                catch (Exception ex)
                 {
-                    break;
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Error(ex);
+                    }
+                    Dispose();
                 }
-                await WritePacket(bufferCache.Data.Slice(4, packageLen)).ConfigureAwait(false);
 
-                bufferCache.RemoveRange(0, packageLen + 4);
 
-            } while (bufferCache.Size > 4);
+            }
         }
         private async Task WritePacket(ReadOnlyMemory<byte> packet)
         {
-            ReceiveBytes += packet.Length;
+
             LastTicks.Update();
             if (packet.Length == pingBytes.Length && packet.Span.Slice(0, pingBytes.Length - 4).SequenceEqual(pingBytes.AsSpan(0, pingBytes.Length - 4)))
             {
@@ -338,129 +244,84 @@ namespace linker.tunnel.connection
             data.Length.ToBytes(heartData.AsSpan());
             data.AsMemory().CopyTo(heartData.AsMemory(4));
 
-            await semaphoreSlim.WaitAsync().ConfigureAwait(false);
-            try
-            {
-                if (Stream != null)
-                {
-
-                    await Stream.WriteAsync(heartData.AsMemory(0, length)).ConfigureAwait(false);
-                }
-                else
-                {
-                    await Socket.SendAsync(heartData.AsMemory(0, length)).ConfigureAwait(false);
-                }
-                SendBytes += data.Length;
-            }
-            catch (Exception ex)
-            {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Error(ex);
-                }
-                Dispose();
-            }
-            finally
-            {
-                semaphoreSlim.Release();
-            }
+            await SendAsync(heartData.AsMemory(0, length));
 
             ArrayPool<byte>.Shared.Return(heartData);
         }
 
-        private readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
+        private async Task Sender()
+        {
+            while (cancellationTokenSource.IsCancellationRequested == false)
+            {
+                try
+                {
+                    ReadResult result = await pipeSender.Reader.ReadAsync().ConfigureAwait(false);
+                    if (result.IsCompleted && result.Buffer.IsEmpty)
+                    {
+                        cancellationTokenSource.Cancel();
+                        break;
+                    }
+                    if (result.Buffer.IsEmpty)
+                    {
+                        continue;
+                    }
+
+                    ReadOnlySequence<byte> buffer = result.Buffer;
+                    foreach (ReadOnlyMemory<byte> memoryBlock in result.Buffer)
+                    {
+                        if (Stream != null)
+                        {
+                            await Stream.WriteAsync(memoryBlock).ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            int sendt = 0;
+                            do
+                            {
+                                ReadOnlyMemory<byte> sendBlock = memoryBlock.Slice(sendt);
+                                int remaining = await Socket.SendAsync(sendBlock, SocketFlags.None).ConfigureAwait(false);
+                                if (remaining == 0) break;
+
+                                sendt += remaining;
+
+                            } while (sendt < memoryBlock.Length);
+                        }
+                    }
+                    pipeSender.Reader.AdvanceTo(buffer.End);
+                    LastTicks.Update();
+                }
+                catch (Exception ex)
+                {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Error(ex);
+                    }
+                    Dispose();
+
+                }
+            }
+        }
+
+        private readonly object _writeLock = new object();
         public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
             if (callback == null) return false;
 
-            if (pipeSender != null)
+            lock (_writeLock)
             {
                 Memory<byte> memory = pipeSender.Writer.GetMemory(data.Length);
                 data.CopyTo(memory);
                 pipeSender.Writer.Advance(data.Length);
-                await pipeSender.Writer.FlushAsync();
-                return true;
             }
-
-            if (Stream != null)
-            {
-                await semaphoreSlim.WaitAsync().ConfigureAwait(false);
-            }
-            try
-            {
-                if (Stream != null)
-                {
-                    await Stream.WriteAsync(data).ConfigureAwait(false);
-                }
-                else
-                {
-                    await Socket.SendAsync(data, SocketFlags.None).ConfigureAwait(false);
-                }
-                SendBytes += data.Length;
-                return true;
-            }
-            catch (Exception ex)
-            {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Error(ex);
-                }
-                Dispose();
-            }
-            finally
-            {
-                if (Stream != null)
-                    semaphoreSlim.Release();
-            }
+            await pipeSender.Writer.FlushAsync().ConfigureAwait(false);
             return false;
         }
         public async Task<bool> SendAsync(byte[] buffer, int offset, int length)
         {
-            if (callback == null) return false;
-
-            if (pipeSender != null)
-            {
-                ReadOnlyMemory<byte> data = buffer.AsMemory(offset, length);
-                Memory<byte> memory = pipeSender.Writer.GetMemory(data.Length);
-                data.CopyTo(memory);
-                pipeSender.Writer.Advance(data.Length);
-                await pipeSender.Writer.FlushAsync();
-                return true;
-            }
-
-            if (Stream != null)
-            {
-                await semaphoreSlim.WaitAsync().ConfigureAwait(false);
-            }
-            try
-            {
-                if (Stream != null)
-                {
-                    await Stream.WriteAsync(buffer.AsMemory(offset, length)).ConfigureAwait(false);
-                }
-                else
-                {
-                    await Socket.SendAsync(buffer.AsMemory(offset, length), SocketFlags.None).ConfigureAwait(false);
-                }
-                SendBytes += length;
-                LastTicks.Update();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Error(ex);
-                }
-                Dispose();
-            }
-            finally
-            {
-                if (Stream != null)
-                    semaphoreSlim.Release();
-            }
-            return false;
+            return await SendAsync(buffer.AsMemory(offset, length)).ConfigureAwait(false);
         }
+
+
 
         public void Dispose()
         {
@@ -479,6 +340,8 @@ namespace linker.tunnel.connection
             Stream?.Dispose();
 
             Socket?.SafeClose();
+
+            packetBuffer = null;
 
             try
             {

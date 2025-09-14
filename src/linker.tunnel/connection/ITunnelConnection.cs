@@ -180,10 +180,6 @@ namespace linker.tunnel.connection
         /// <param name="userToken">自定义数据，回调带上</param>
         public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken);
 
-        public void StartPacketMerge()
-        {
-        }
-
         public string ToString();
         public bool Equals(ITunnelConnection connection);
     }

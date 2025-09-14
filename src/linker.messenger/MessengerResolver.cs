@@ -74,7 +74,9 @@ namespace linker.messenger
             SslStream sslStream = new SslStream(networkStream, true, ValidateServerCertificate,null);
             try
             {
+#pragma warning disable SYSLIB0039 // 类型或成员已过时
                 await sslStream.AuthenticateAsServerAsync(messengerStore.Certificate, OperatingSystem.IsAndroid(), SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls, false).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+#pragma warning restore SYSLIB0039 // 类型或成员已过时
                 IConnection connection = CreateConnection(sslStream, networkStream, socket, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
 
                 connection.BeginReceive(this, null, true);
@@ -139,6 +141,7 @@ namespace linker.messenger
                 SslStream sslStream = new SslStream(networkStream, true, ValidateServerCertificate, null);
                 try
                 {
+#pragma warning disable SYSLIB0039 // 类型或成员已过时
                     await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
                     {
                         AllowRenegotiation = true,
@@ -146,6 +149,7 @@ namespace linker.messenger
                         CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
                         ClientCertificates = new X509CertificateCollection { messengerStore.Certificate }
                     }).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+#pragma warning restore SYSLIB0039 // 类型或成员已过时
 
                     IConnection connection = CreateConnection(sslStream, networkStream, socket, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
                     connection.BeginReceive(this, null, true);

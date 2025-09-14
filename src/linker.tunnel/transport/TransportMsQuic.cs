@@ -208,6 +208,7 @@ namespace linker.tunnel.transport
                 IPEndPoint remoteEP = await taskCompletionSource.Task.WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
                 //绑定一个udp，用来给QUIC链接
                 Socket quicUdp = ListenQuicConnect(tunnelTransportInfo.BufferSize, remoteUdp, remoteEP);
+#pragma warning disable SYSLIB0039 // 类型或成员已过时
                 QuicConnection connection = connection = await QuicConnection.ConnectAsync(new QuicClientConnectionOptions
                 {
                     RemoteEndPoint = new IPEndPoint(IPAddress.Loopback, (quicUdp.LocalEndPoint as IPEndPoint).Port),
@@ -225,6 +226,7 @@ namespace linker.tunnel.transport
                         }
                     }
                 }).AsTask().WaitAsync(TimeSpan.FromMilliseconds(1000)).ConfigureAwait(false);
+#pragma warning restore SYSLIB0039 // 类型或成员已过时
                 QuicStream quicStream = await connection.OpenOutboundStreamAsync(QuicStreamType.Bidirectional).ConfigureAwait(false);
                 return new TunnelConnectionMsQuic
                 {
@@ -693,6 +695,7 @@ namespace linker.tunnel.transport
                     ListenEndPoint = new IPEndPoint(IPAddress.Any, 0),
                     ConnectionOptionsCallback = (connection, hello, token) =>
                     {
+#pragma warning disable SYSLIB0039 // 类型或成员已过时
                         return ValueTask.FromResult(new QuicServerConnectionOptions
                         {
                             MaxInboundBidirectionalStreams = 65535,
@@ -707,6 +710,7 @@ namespace linker.tunnel.transport
                                 ApplicationProtocols = new List<SslApplicationProtocol> { SslApplicationProtocol.Http3 }
                             }
                         });
+#pragma warning restore SYSLIB0039 // 类型或成员已过时
                     }
                 }).ConfigureAwait(false);
                 quicListenEP = new IPEndPoint(IPAddress.Loopback, listener.LocalEndPoint.Port);

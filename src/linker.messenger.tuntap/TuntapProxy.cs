@@ -46,18 +46,6 @@ namespace linker.messenger.tuntap
         {
             Add(connection);
             connection.BeginReceive(this, null);
-            if (tuntapConfigTransfer.Info.TcpMerge)
-            {
-                connection.StartPacketMerge();
-            }
-            /*
-            if (connection.ProtocolType == TunnelProtocolType.Tcp && tuntapConfigTransfer.Info.FakeAck && tuntapDecenter.HasSwitchFlag(connection.RemoteMachineId, TuntapSwitch.FakeAck))
-            {
-                connection.SendBuffer = new byte[4 * 1024];
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Debug($"[{connection.RemoteMachineId}][{connection.RemoteMachineName}] use fake ack");
-            }
-            */
             //有哪些目标IP用了相同目标隧道，更新一下
             tuntapCidrConnectionManager.Update(connection);
         }
