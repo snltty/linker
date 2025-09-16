@@ -101,7 +101,7 @@ export const provideConnections = () => {
 
             connection.SendBytesText = parseSpeed(connection.SendBytes - cache.SendBytes,'/s');
             connection.ReceiveBytesText = parseSpeed(connection.ReceiveBytes - cache.ReceiveBytes,'/s');
-            connection.SendRemainingText = parseSpeed(connection.SendRemaining,'');
+            connection.SendBufferRemainingText = parseSpeed(connection.SendBufferRemaining,'');
 
             cache.SendBytes = connection.SendBytes;
             cache.ReceiveBytes = connection.ReceiveBytes;

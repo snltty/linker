@@ -19,7 +19,7 @@
                     <template #default="scope">
                         <div>
                             <p>{{ scope.row.TransportName }}({{ state.protocolTypes[scope.row.ProtocolType] }})</p>
-                            <p>{{ state.types[scope.row.Type] }} - {{ scope.row.SendRemainingText }}</p>
+                            <p>{{ state.types[scope.row.Type] }} - {{ scope.row.SendBufferRemainingText }}</p>
                         </div>
                     </template>
                 </el-table-column>

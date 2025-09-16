@@ -39,13 +39,13 @@ namespace linker.tunnel.connection
         public int Delay { get; private set; }
         public long SendBytes { get; private set; }
         public long ReceiveBytes { get; private set; }
-        public long SendRemaining { get; }
-        public double SendRemainRatio { get; } = 1;
+        public long SendBufferRemaining { get; }
+        public long SendBufferFree { get; } = 512 * 1024;
 
         public LastTicksManager LastTicks { get; private set; } = new LastTicksManager();
 
         [JsonIgnore]
-        public byte[] SendBuffer { get; set; } = Helper.EmptyArray;
+        public byte[] PacketBuffer { get; set; } = Helper.EmptyArray;
 
 
         [JsonIgnore]

@@ -151,11 +151,11 @@ namespace linker.tunnel.connection
         /// <summary>
         /// 发送缓冲区剩余大小
         /// </summary>
-        public long SendRemaining { get; }
+        public long SendBufferRemaining { get; }
         /// <summary>
         /// 发送缓冲区剩余比例
         /// </summary>
-        public double SendRemainRatio { get; }
+        public long SendBufferFree { get; }
 
         /// <summary>
         /// 最后通信时间
@@ -165,7 +165,7 @@ namespace linker.tunnel.connection
         /// <summary>
         /// 缓冲区
         /// </summary>
-        public byte[] SendBuffer { get; set; }
+        public byte[] PacketBuffer { get; set; }
 
         /// <summary>
         /// 发送数据

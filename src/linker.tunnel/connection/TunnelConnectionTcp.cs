@@ -39,14 +39,14 @@ namespace linker.tunnel.connection
         public long ReceiveBytes { get; private set; }
 
         private long sendRemaining = 0;
-        public long SendRemaining { get => sendRemaining; }
-        public double SendRemainRatio { get => sendRemaining / maxSendRemaining / 2; }
-        private const double maxSendRemaining = 1 * 1024 * 1024;
+        public long SendBufferRemaining { get => sendRemaining; }
+        public long SendBufferFree { get => maxSendRemaining - sendRemaining; }
+        private const long maxSendRemaining = 1 * 1024 * 1024;
 
         public LastTicksManager LastTicks { get; private set; } = new LastTicksManager();
 
         [JsonIgnore]
-        public byte[] SendBuffer { get; set; } = Helper.EmptyArray;
+        public byte[] PacketBuffer { get; set; } = Helper.EmptyArray;
 
 
         [JsonIgnore]
@@ -80,8 +80,8 @@ namespace linker.tunnel.connection
 
             cancellationTokenSource = new CancellationTokenSource();
 
-            pipeSender = new Pipe(new PipeOptions(pauseWriterThreshold: (long)maxSendRemaining, resumeWriterThreshold: (long)(maxSendRemaining / 2), useSynchronizationContext: false));
-            pipeWriter = new Pipe(new PipeOptions(pauseWriterThreshold: (long)maxSendRemaining, resumeWriterThreshold: (long)(maxSendRemaining / 2), useSynchronizationContext: false));
+            pipeSender = new Pipe(new PipeOptions(pauseWriterThreshold: maxSendRemaining, resumeWriterThreshold: (maxSendRemaining / 2), useSynchronizationContext: false));
+            pipeWriter = new Pipe(new PipeOptions(pauseWriterThreshold: maxSendRemaining, resumeWriterThreshold: (maxSendRemaining / 2), useSynchronizationContext: false));
             _ = ProcessWrite();
             _ = Sender();
             _ = Recver();
