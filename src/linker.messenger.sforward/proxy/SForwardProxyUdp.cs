@@ -201,7 +201,7 @@ namespace linker.plugins.sforward.proxy
             serverUdp.WindowsUdpBug();
 
             using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(65535);
-
+            //回复服务器
             flagBytes.AsMemory().CopyTo(buffer.Memory);
             id.ToBytes(buffer.Memory.Slice(flagBytes.Length));
             await serverUdp.SendToAsync(buffer.Memory, server).ConfigureAwait(false);

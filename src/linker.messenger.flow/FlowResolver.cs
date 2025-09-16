@@ -107,11 +107,13 @@ namespace linker.messenger.flow
 
         private void OnlineTask()
         {
+            UdpClient udpClient = new UdpClient(AddressFamily.InterNetwork);
+            udpClient.Client.WindowsUdpBug();
             TimerHelper.SetIntervalLong(() =>
             {
                 try
                 {
-                    Report();
+                    Report(udpClient);
                 }
                 catch (Exception ex)
                 {
@@ -122,7 +124,7 @@ namespace linker.messenger.flow
                 }
             }, 5000);
         }
-        private void Report()
+        private void Report(UdpClient udpClient)
         {
             List<FlowReportNetInfo> nets = signCaching.Get().Where(c => c.Args.ContainsKey("tunnelNet")).Select(c => c.Args["tunnelNet"].DeJson<SignInArgsNetInfo>()).GroupBy(c => c.City).Select(c => new FlowReportNetInfo
             {
@@ -139,16 +141,11 @@ namespace linker.messenger.flow
             total.ToBytes(buffer.Slice(5));
             netBytes.CopyTo(buffer.Slice(9));
 
-            using UdpClient udpClient = new UdpClient(AddressFamily.InterNetwork);
-            udpClient.Client.WindowsUdpBug();
-
             string domain = "linker.snltty.com";
 #if DEBUG
             domain = "127.0.0.1";
 #endif
             udpClient.Send(buffer.Slice(0, 9 + netBytes.Length), domain, 1802);
-
-            udpClient.Dispose();
         }
     }
 

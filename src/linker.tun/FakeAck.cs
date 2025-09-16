@@ -1,5 +1,4 @@
 ﻿using linker.libs;
-using System;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -19,7 +18,7 @@ namespace linker.tun
         /// </summary>
         /// <param name="packet">一个完整的TCP/IP包</param>
         /// <param name="fakeBuffer">一个能容纳ACK包的缓冲区，如果需要伪造ACK则写入到这里</param>
-        /// <param name="bufferFree">窗口大小</param>
+        /// <param name="bufferFree">缓冲区可用字节数，会根据这个来计算ack的窗口大小</param>
         /// <param name="fakeLength">ack包长度</param>
         /// <returns>是否丢包</returns>
         public bool Read(ReadOnlyMemory<byte> packet, ReadOnlyMemory<byte> fakeBuffer, long bufferFree, out ushort fakeLength)
@@ -77,6 +76,7 @@ namespace linker.tun
                 FaceAckKey key = new() { srcAddr = originPacket.SrcAddr, srcPort = originPacket.SrcPort, dstAddr = originPacket.DstAddr, dstPort = originPacket.DstPort };
 
                 /*
+                //更新序列号
                 if (originPacket.TcpFlagAck && dic.TryGetValue(key, out FackAckState state))
                 {
                     state.Cq = originPacket.Cq;
@@ -283,28 +283,41 @@ namespace linker.tun
                 return totalLength;
             }
 
+            /// <summary>
+            /// 从TCP的SYN包或SYN+ACK包中，获取窗口缩放比例
+            /// </summary>
+            /// <param name="ipPtr">一个完整TCP/IP包</param>
+            /// <returns></returns>
             public int FindOptionWindowScale(byte* ipPtr)
             {
+                //指针移动到TCP头开始位置
                 byte* tcpPtr = ipPtr + ((*ipPtr & 0b1111) * 4);
 
-                int index = 20, end = (*(tcpPtr + 12) >> 4) * 4;
+                //tcp头固定20，所以option从这里开始
+                int index = 20;
+                //tcp头结束位置，就是option结束位置
+                int end = (*(tcpPtr + 12) >> 4) * 4;
                 while (index < end)
                 {
                     byte kind = *(tcpPtr + index);
-                    if (kind == 0) break;
+                    //EOF结束符
+                    if (kind == 0)
+                    {
+                        break;
+                    }
 
                     byte length = *(tcpPtr + index + 1);
+                    //NOP 空选项
                     if (kind == 1)
                     {
                         index++;
                         continue;
                     }
+                    //Window Scale 1kind 1length 1shiftCount
                     else if (kind == 3 && length == 3)
                     {
                         byte shiftCount = *(tcpPtr + index + 2);
-                        if (shiftCount > 14) break;
-
-                        return 1 << shiftCount;
+                        return shiftCount > 14 ? 1 : 1 << shiftCount;
                     }
                     index += length;
                 }

@@ -46,17 +46,17 @@ namespace linker.tunnel.connection
 
         public bool Receive { get; init; }
 
-        public Socket uUdpClient;
+        public Socket udpClient;
         [JsonIgnore]
         public Socket UdpClient
         {
             get
             {
-                return uUdpClient;
+                return udpClient;
             }
             init
             {
-                uUdpClient = value;
+                udpClient = value;
             }
         }
         [JsonIgnore]
@@ -331,7 +331,7 @@ namespace linker.tunnel.connection
 
         public void Dispose()
         {
-            if (uUdpClient == null) return;
+            if (udpClient == null) return;
 
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Error($"tunnel connection {this.GetHashCode()} writer offline {ToString()}");
@@ -343,7 +343,7 @@ namespace linker.tunnel.connection
                 LastTicks.Clear();
                 if (Receive == true)
                     UdpClient?.SafeClose();
-                uUdpClient = null;
+                udpClient = null;
 
                 cancellationTokenSource?.Cancel();
                 callback?.Closed(this, userToken);
