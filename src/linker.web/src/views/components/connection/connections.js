@@ -99,22 +99,24 @@ export const provideConnections = () => {
             const key = `${connection.RemoteMachineId}-${connection.TransactionId}`;
             const cache = caches[key] || { SendBytes: 0, ReceiveBytes: 0 };
 
-            connection.SendBytesText = parseSpeed(connection.SendBytes - cache.SendBytes);
-            connection.ReceiveBytesText = parseSpeed(connection.ReceiveBytes - cache.ReceiveBytes);
+            connection.SendBytesText = parseSpeed(connection.SendBytes - cache.SendBytes,'/s');
+            connection.ReceiveBytesText = parseSpeed(connection.ReceiveBytes - cache.ReceiveBytes,'/s');
+            connection.SendRemainingText = parseSpeed(connection.SendRemaining,'');
 
             cache.SendBytes = connection.SendBytes;
             cache.ReceiveBytes = connection.ReceiveBytes;
             caches[key] = cache;
         }
     }
-    const parseSpeed = (num) => {
+    const parseSpeed = (num,subfix = '') => {
         let index = 0;
         while (num >= 1024) {
             num /= 1024;
             index++;
         }
-        return `${num.toFixed(2)}${['B/s', 'KB/s', 'MB/s', 'GB/s', 'TB/s'][index]}`;
+        return `${num.toFixed(2)}${['B', 'KB', 'MB', 'GB', 'TB'][index]}${subfix}`;
     }
+
     const handleTunnelConnections = (device) => {
         connections.value.current = device.MachineId;
         connections.value.currentName = device.MachineName;

@@ -39,11 +39,13 @@ namespace linker.tunnel.connection
         public int Delay { get; private set; }
         public long SendBytes { get; private set; }
         public long ReceiveBytes { get; private set; }
+        public long SendRemaining { get; }
+        public double SendRemainRatio { get; } = 1;
 
         public LastTicksManager LastTicks { get; private set; } = new LastTicksManager();
 
         [JsonIgnore]
-        public byte[] SendBuffer { get; set; } = new byte[8 * 1024];
+        public byte[] SendBuffer { get; set; } = Helper.EmptyArray;
 
 
         [JsonIgnore]
@@ -88,18 +90,18 @@ namespace linker.tunnel.connection
         }
         private async Task ProcessWrite()
         {
-            byte[] buffer = new byte[(1 << BufferSize) * 1024];
+            using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent((1 << BufferSize) * 1024);
             try
             {
                 while (cancellationTokenSource.IsCancellationRequested == false)
                 {
-                    int length = await Stream.ReadAsync(buffer, cancellationTokenSource.Token).ConfigureAwait(false);
+                    int length = await Stream.ReadAsync(buffer.Memory, cancellationTokenSource.Token).ConfigureAwait(false);
 
                     if (length == 0)
                     {
                         break;
                     }
-                    await ReadPacket(buffer.AsMemory(0, length)).ConfigureAwait(false);
+                    await ReadPacket(buffer.Memory.Slice(0, length)).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)

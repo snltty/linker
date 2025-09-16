@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Net;
 using linker.tunnel.wanport;
 using linker.libs.timer;
+using System.Buffers;
 
 namespace linker.tunnel
 {
@@ -143,11 +144,14 @@ namespace linker.tunnel
 
                 async Task<IPAddress> GetLocalIP(IPEndPoint server)
                 {
+                    using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(16);
+                    buffer.Memory.Span[0] = 255;
+
                     var socket = new Socket(server.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                     try
                     {
                         await socket.ConnectAsync(server).ConfigureAwait(false);
-                        await socket.SendAsync(new byte[] { 255 }).ConfigureAwait(false);
+                        await socket.SendAsync(buffer.Memory[..1]).ConfigureAwait(false);
                         return (socket.LocalEndPoint as IPEndPoint).Address;
                     }
                     catch (Exception)

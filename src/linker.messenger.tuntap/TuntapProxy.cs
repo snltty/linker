@@ -44,6 +44,11 @@ namespace linker.messenger.tuntap
 
         protected override void Connected(ITunnelConnection connection)
         {
+            if (connection.ProtocolType == TunnelProtocolType.Tcp && tuntapConfigTransfer.Info.FakeAck && tuntapDecenter.HasSwitchFlag(connection.RemoteMachineId, TuntapSwitch.FakeAck))
+            {
+                connection.SendBuffer = new byte[4096];
+            }
+
             Add(connection);
             connection.BeginReceive(this, null);
             //有哪些目标IP用了相同目标隧道，更新一下
@@ -61,7 +66,7 @@ namespace linker.messenger.tuntap
         public async Task Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer, object state)
 #pragma warning restore CS1998 // 异步方法缺少 "await" 运算符，将以同步方式运行
         {
-            //if (connection.SendBuffer.Length > 0) fakeAckTransfer.Write(buffer);
+            if (connection.SendBuffer.Length > 0) fakeAckTransfer.Write(buffer);
             Callback.Receive(connection, buffer);
         }
         /// <summary>
@@ -116,10 +121,10 @@ namespace linker.messenger.tuntap
                 return;
             }
 
-            //ushort ackLength = 0;
-            //if (connection.SendBuffer.Length > 0 && fakeAckTransfer.Read(packet.IPPacket, connection.SendBuffer, out ackLength)) return;
+            ushort ackLength = 0;
+            if (connection.SendBuffer.Length > 0 && fakeAckTransfer.Read(packet.IPPacket, connection.SendBuffer, (ushort)(4096 * (1 - connection.SendRemainRatio)), out ackLength)) return;
             await connection.SendAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);
-            //if (ackLength > 0) Callback.Receive(connection, connection.SendBuffer.AsMemory(0, ackLength));
+            if (ackLength > 0) Callback.Receive(connection, connection.SendBuffer.AsMemory(0, ackLength));
         }
 
         /// <summary>

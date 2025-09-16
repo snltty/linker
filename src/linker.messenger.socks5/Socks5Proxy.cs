@@ -10,6 +10,8 @@ using linker.messenger.relay.client;
 using linker.messenger.channel;
 using linker.messenger.signin;
 using linker.messenger.pcp;
+using static linker.snat.WinDivert;
+using System.Buffers;
 
 namespace linker.messenger.socks5
 {
@@ -21,14 +23,14 @@ namespace linker.messenger.socks5
         private readonly Socks5CidrDecenterManager socks5CidrDecenterManager;
 
         public Socks5Proxy(ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer,
-            SignInClientTransfer signInClientTransfer, IRelayClientStore relayClientStore,  Socks5CidrDecenterManager socks5CidrDecenterManager)
+            SignInClientTransfer signInClientTransfer, IRelayClientStore relayClientStore, Socks5CidrDecenterManager socks5CidrDecenterManager)
              : base(tunnelTransfer, relayTransfer, pcpTransfer, signInClientTransfer, signInClientStore, relayClientStore)
         {
             this.socks5CidrDecenterManager = socks5CidrDecenterManager;
             TaskUdp();
 
         }
-        
+
 
         public void Start(int port)
         {
@@ -96,13 +98,17 @@ namespace linker.messenger.socks5
         }
         private async Task<bool> ProcessSocks5(AsyncUserToken token)
         {
+            using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(1024);
+            buffer.Memory.Span[0] = 0x05;
+            buffer.Memory.Span[0] = 0x00;
+
             //步骤，request
             token.Proxy.Rsv = (byte)Socks5EnumStep.Request;
             if (await ReceiveCommandData(token).ConfigureAwait(false) == false)
             {
                 return true;
             }
-            await token.Socket.SendAsync(new byte[] { 0x05, 0x00 }).ConfigureAwait(false);
+            await token.Socket.SendAsync(buffer.Memory.Slice(0, 2)).ConfigureAwait(false);
 
             //步骤，command
             token.Proxy.Data = Helper.EmptyArray;
@@ -115,7 +121,7 @@ namespace linker.messenger.socks5
             //是UDP中继，不做连接操作，等UDP数据过去的时候再绑定
             if (command == Socks5EnumRequestCommand.UdpAssociate)
             {
-                await token.Socket.SendAsync(Socks5Parser.MakeConnectResponse(new IPEndPoint(IPAddress.Any, proxyEP.Port), (byte)Socks5EnumResponseCommand.ConnecSuccess).AsMemory()).ConfigureAwait(false);
+                await token.Socket.SendAsync(Socks5Parser.MakeConnectResponse(buffer.Memory, new IPEndPoint(IPAddress.Any, proxyEP.Port), (byte)Socks5EnumResponseCommand.ConnecSuccess)).ConfigureAwait(false);
                 return false;
             }
 
@@ -126,8 +132,7 @@ namespace linker.messenger.socks5
             //ipv6不支持
             if (addressType == Socks5EnumAddressType.IPV6)
             {
-                byte[] response1 = Socks5Parser.MakeConnectResponse(new IPEndPoint(IPAddress.Any, 0), (byte)Socks5EnumResponseCommand.AddressNotAllow);
-                await token.Socket.SendAsync(response1.AsMemory()).ConfigureAwait(false);
+                await token.Socket.SendAsync(Socks5Parser.MakeConnectResponse(buffer.Memory, new IPEndPoint(IPAddress.Any, 0), (byte)Socks5EnumResponseCommand.AddressNotAllow)).ConfigureAwait(false);
                 return true;
             }
             //解析域名
@@ -136,8 +141,7 @@ namespace linker.messenger.socks5
                 IPAddress ip = NetworkHelper.GetDomainIp(Encoding.UTF8.GetString(ipArray.Span));
                 if (ip == null)
                 {
-                    byte[] response1 = Socks5Parser.MakeConnectResponse(new IPEndPoint(IPAddress.Any, 0), (byte)Socks5EnumResponseCommand.AddressNotAllow);
-                    await token.Socket.SendAsync(response1.AsMemory()).ConfigureAwait(false);
+                    await token.Socket.SendAsync(Socks5Parser.MakeConnectResponse(buffer.Memory, new IPEndPoint(IPAddress.Any, 0), (byte)Socks5EnumResponseCommand.AddressNotAllow)).ConfigureAwait(false);
                     return true;
                 }
                 token.Proxy.TargetEP = new IPEndPoint(ip, port);
@@ -153,8 +157,7 @@ namespace linker.messenger.socks5
 
             //如果连接失败，返回错误
             Socks5EnumResponseCommand resp = token.Connection != null && token.Connection.Connected ? Socks5EnumResponseCommand.ConnecSuccess : Socks5EnumResponseCommand.NetworkError;
-            byte[] response = Socks5Parser.MakeConnectResponse(new IPEndPoint(IPAddress.Any, 0), (byte)resp);
-            await token.Socket.SendAsync(response.AsMemory()).ConfigureAwait(false);
+            await token.Socket.SendAsync(Socks5Parser.MakeConnectResponse(buffer.Memory, new IPEndPoint(IPAddress.Any, 0), (byte)resp)).ConfigureAwait(false);
 
             return true;
         }

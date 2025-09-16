@@ -288,7 +288,7 @@ namespace linker.messenger
         }
         private async Task ProcessWrite()
         {
-            byte[] buffer = new byte[8 * 1024];
+            using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(8*1024);
             try
             {
                 int length = 0;
@@ -296,11 +296,11 @@ namespace linker.messenger
                 {
                     if (SourceStream != null)
                     {
-                        length = await SourceStream.ReadAsync(buffer, cancellationTokenSource.Token).ConfigureAwait(false);
+                        length = await SourceStream.ReadAsync(buffer.Memory, cancellationTokenSource.Token).ConfigureAwait(false);
                     }
                     else
                     {
-                        length = await SourceSocket.ReceiveAsync(buffer, SocketFlags.None, cancellationTokenSource.Token).ConfigureAwait(false);
+                        length = await SourceSocket.ReceiveAsync(buffer.Memory, SocketFlags.None, cancellationTokenSource.Token).ConfigureAwait(false);
                     }
                     if (length == 0)
                     {
@@ -309,7 +309,7 @@ namespace linker.messenger
                     }
                     ReceiveBytes += length;
                     lastTicks.Update();
-                    await ReadPacket(buffer.AsMemory(0, length)).ConfigureAwait(false);
+                    await ReadPacket(buffer.Memory.Slice(0, length)).ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException)

@@ -1,6 +1,7 @@
 ﻿using linker.libs;
 using linker.libs.extends;
 using linker.libs.timer;
+using System.Buffers;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Net;
@@ -130,16 +131,16 @@ namespace linker.snat
         {
             TimerHelper.Async(() =>
             {
-                Memory<byte> packet = new Memory<byte>(new byte[10 * WinDivert.MTUMax]);
+                using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(10*WinDivert.MTUMax);
                 Memory<WinDivertAddress> abuf = new Memory<WinDivertAddress>(new WinDivertAddress[10]);
                 uint recvLen = 0, addrLen = 0;
                 while (cts.IsCancellationRequested == false)
                 {
                     try
                     {
-                        (recvLen, addrLen) = winDivert.RecvEx(packet.Span, abuf.Span);
+                        (recvLen, addrLen) = winDivert.RecvEx(buffer.Memory.Span, abuf.Span);
 
-                        Memory<byte> recv = packet[..(int)recvLen];
+                        Memory<byte> recv = buffer.Memory[..(int)recvLen];
                         Memory<WinDivertAddress> addr = abuf[..(int)addrLen];
                         foreach (var (i, p) in new WinDivertIndexedPacketParser(recv))
                         {

@@ -38,6 +38,11 @@ namespace linker.tunnel.connection
         public long SendBytes { get; private set; }
         public long ReceiveBytes { get; private set; }
 
+        private long sendRemaining = 0;
+        public long SendRemaining { get => sendRemaining; }
+        public double SendRemainRatio { get => sendRemaining / maxSendRemaining / 2; }
+        private const double maxSendRemaining = 1 * 1024 * 1024;
+
         public LastTicksManager LastTicks { get; private set; } = new LastTicksManager();
 
         [JsonIgnore]
@@ -54,16 +59,13 @@ namespace linker.tunnel.connection
         private ITunnelConnectionReceiveCallback callback;
         private CancellationTokenSource cancellationTokenSource;
         private object userToken;
-        private readonly ReceiveDataBuffer bufferCache = new ReceiveDataBuffer();
 
         private readonly LastTicksManager pingTicks = new LastTicksManager();
         private readonly byte[] pingBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.ping");
         private readonly byte[] pongBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.pong");
 
-
         private Pipe pipeSender;
         private Pipe pipeWriter;
-        private byte[] packetBuffer = new byte[4096];
         /// <summary>
         /// 开始接收数据
         /// </summary>
@@ -78,8 +80,8 @@ namespace linker.tunnel.connection
 
             cancellationTokenSource = new CancellationTokenSource();
 
-            pipeSender = new Pipe(new PipeOptions(pauseWriterThreshold: 1 * 1024 * 1024, resumeWriterThreshold: 512 * 1024, useSynchronizationContext: false));
-            pipeWriter = new Pipe(new PipeOptions(pauseWriterThreshold: 1 * 1024 * 1024, resumeWriterThreshold: 512 * 1024, useSynchronizationContext: false));
+            pipeSender = new Pipe(new PipeOptions(pauseWriterThreshold: (long)maxSendRemaining, resumeWriterThreshold: (long)(maxSendRemaining / 2), useSynchronizationContext: false));
+            pipeWriter = new Pipe(new PipeOptions(pauseWriterThreshold: (long)maxSendRemaining, resumeWriterThreshold: (long)(maxSendRemaining / 2), useSynchronizationContext: false));
             _ = ProcessWrite();
             _ = Sender();
             _ = Recver();
@@ -128,6 +130,7 @@ namespace linker.tunnel.connection
         }
         private async Task Recver()
         {
+            IMemoryOwner<byte> packetBuffer = MemoryPool<byte>.Shared.Rent(4 * 1024);
             while (cancellationTokenSource.IsCancellationRequested == false)
             {
                 try
@@ -138,32 +141,47 @@ namespace linker.tunnel.connection
                         cancellationTokenSource.Cancel();
                         break;
                     }
+
                     ReadOnlySequence<byte> buffer = result.Buffer;
                     ReceiveBytes += buffer.Length;
                     long offset = 0;
 
                     do
                     {
-                        int packageLen = 0;
-                        if (buffer.First.Length >= 4) packageLen = buffer.First.ToInt32();
+                        //读取包长度
+                        int packetLength = 0;
+                        if (buffer.First.Length >= 4)
+                        {
+                            packetLength = buffer.First.ToInt32();
+                        }
                         else
                         {
-                            buffer.Slice(0, 4).CopyTo(packetBuffer);
-                            packageLen = packetBuffer.ToInt32();
+                            //长度标识跨段了
+                            buffer.Slice(0, 4).CopyTo(packetBuffer.Memory.Span);
+                            packetLength = packetBuffer.Memory.ToInt32();
                         }
-                        if (packageLen + 4 > buffer.Length) break;
+                        //数据量不够
+                        if (packetLength + 4 > buffer.Length) break;
 
-                        ReadOnlySequence<byte> temp = buffer.Slice(4, packageLen);
-                        if (packetBuffer.Length < temp.Length) packetBuffer = new byte[temp.Length];
-                        temp.CopyTo(packetBuffer);
-                        await WritePacket(packetBuffer.AsMemory(0, packageLen)).ConfigureAwait(false);
+                        //复制一份
+                        ReadOnlySequence<byte> temp = buffer.Slice(4, packetLength);
+                        if (packetBuffer.Memory.Length < temp.Length)
+                        {
+                            packetBuffer.Dispose();
+                            packetBuffer = MemoryPool<byte>.Shared.Rent((int)temp.Length);
+                        }
+                        temp.CopyTo(packetBuffer.Memory.Span);
+                        //处理数据包
+                        await WritePacket(packetBuffer.Memory.Slice(0, packetLength)).ConfigureAwait(false);
 
-                        offset += 4 + packageLen;
-                        buffer = buffer.Slice(4 + packageLen);
+                        //移动位置
+                        offset += 4 + packetLength;
+                        //去掉已处理部分
+                        buffer = buffer.Slice(4 + packetLength);
 
                     } while (buffer.Length > 4);
 
-
+                    //告诉管道已经处理了多少数据，检查了多少数据
                     pipeWriter.Reader.AdvanceTo(result.Buffer.GetPosition(offset), result.Buffer.End);
                 }
                 catch (Exception ex)
@@ -174,9 +192,8 @@ namespace linker.tunnel.connection
                     }
                     Dispose();
                 }
-
-
             }
+            packetBuffer.Dispose();
         }
         private async Task WritePacket(ReadOnlyMemory<byte> packet)
         {
@@ -283,9 +300,9 @@ namespace linker.tunnel.connection
                                 if (remaining == 0) break;
 
                                 sendt += remaining;
-
                             } while (sendt < memoryBlock.Length);
                         }
+                        Interlocked.Add(ref sendRemaining, -memoryBlock.Length);
                     }
                     pipeSender.Reader.AdvanceTo(buffer.End);
                     LastTicks.Update();
@@ -297,7 +314,6 @@ namespace linker.tunnel.connection
                         LoggerHelper.Instance.Error(ex);
                     }
                     Dispose();
-
                 }
             }
         }
@@ -312,6 +328,7 @@ namespace linker.tunnel.connection
                 Memory<byte> memory = pipeSender.Writer.GetMemory(data.Length);
                 data.CopyTo(memory);
                 pipeSender.Writer.Advance(data.Length);
+                Interlocked.Add(ref sendRemaining, data.Length);
             }
             await pipeSender.Writer.FlushAsync().ConfigureAwait(false);
             return false;
@@ -320,8 +337,6 @@ namespace linker.tunnel.connection
         {
             return await SendAsync(buffer.AsMemory(offset, length)).ConfigureAwait(false);
         }
-
-
 
         public void Dispose()
         {
@@ -334,14 +349,12 @@ namespace linker.tunnel.connection
             userToken = null;
             cancellationTokenSource?.Cancel();
 
-            bufferCache.Clear(true);
+            Interlocked.Exchange(ref sendRemaining, 0);
 
             Stream?.Close();
             Stream?.Dispose();
 
             Socket?.SafeClose();
-
-            packetBuffer = null;
 
             try
             {

@@ -1,5 +1,6 @@
 ﻿using linker.libs.extends;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -154,16 +155,16 @@ namespace linker.libs.web
         }
         private async void HandleWs(WebSocket websocket)
         {
-            byte[] buffer = new byte[8 * 1024];
+            using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(8*1024);
             try
             {
-                WebSocketReceiveResult result = await websocket.ReceiveAsync(buffer, CancellationToken.None);
+                ValueWebSocketReceiveResult result = await websocket.ReceiveAsync(buffer.Memory, CancellationToken.None);
                 if (result.MessageType != WebSocketMessageType.Text)
                 {
                     await websocket.CloseAsync(WebSocketCloseStatus.ProtocolError, "password fail", CancellationToken.None);
                     return;
                 }
-                ApiControllerRequestInfo req = Encoding.UTF8.GetString(buffer.AsMemory(0, result.Count).Span).DeJson<ApiControllerRequestInfo>();
+                ApiControllerRequestInfo req = Encoding.UTF8.GetString(buffer.Memory.Slice(0, result.Count).Span).DeJson<ApiControllerRequestInfo>();
                 if (req.Path != "password" || req.Content != this.password)
                 {
                     await websocket.CloseAsync(WebSocketCloseStatus.ProtocolError, "password fail", CancellationToken.None);
@@ -181,12 +182,12 @@ namespace linker.libs.web
                 {
                     try
                     {
-                        result = await websocket.ReceiveAsync(buffer, CancellationToken.None);
+                        result = await websocket.ReceiveAsync(buffer.Memory, CancellationToken.None);
                         switch (result.MessageType)
                         {
                             case WebSocketMessageType.Text:
                                 {
-                                    req = Encoding.UTF8.GetString(buffer.AsMemory(0, result.Count).Span).DeJson<ApiControllerRequestInfo>();
+                                    req = Encoding.UTF8.GetString(buffer.Memory.Slice(0, result.Count).Span).DeJson<ApiControllerRequestInfo>();
                                     req.Connection = websocket;
                                     ApiControllerResponseInfo resp = await OnMessage(req);
                                     await websocket.SendAsync(resp.ToJson().ToBytes(), WebSocketMessageType.Text, true, CancellationToken.None);

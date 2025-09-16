@@ -18,9 +18,10 @@ namespace linker.tun
         /// </summary>
         /// <param name="packet">一个完整的TCP/IP包</param>
         /// <param name="fakeBuffer">一个能容纳ACK包的缓冲区，如果需要伪造ACK则写入到这里</param>
+        /// <param name="winSize">窗口大小</param>
         /// <param name="fakeLength">ack包长度</param>
         /// <returns>是否丢包</returns>
-        public bool Read(ReadOnlyMemory<byte> packet, ReadOnlyMemory<byte> fakeBuffer, out ushort fakeLength)
+        public bool Read(ReadOnlyMemory<byte> packet, ReadOnlyMemory<byte> fakeBuffer,ushort winSize, out ushort fakeLength)
         {
             fakeLength = 0;
 
@@ -43,7 +44,7 @@ namespace linker.tun
 
                     fixed (byte* pptr = fakeBuffer.Span)
                     {
-                        fakeLength = originPacket.ToAck(state.Seq, pptr);
+                        fakeLength = originPacket.ToAck(state.Seq, winSize, pptr);
                         if (new FakeAckPacket(pptr).Cq <= state.Cq)
                         {
                             fakeLength = 0;
@@ -219,9 +220,10 @@ namespace linker.tun
             /// 制作一个ACK包
             /// </summary>
             /// <param name="seq">给定一个序列号，可以从syn+ack包中+1获得</param>
+            /// <param name="winSize">窗口大小</param>
             /// <param name="ipPtr">目标内存</param>
             /// <returns></returns>
-            public readonly unsafe ushort ToAck(uint seq, byte* ipPtr)
+            public readonly unsafe ushort ToAck(uint seq,ushort winSize, byte* ipPtr)
             {
                 //复制一份IP+TCP头部
                 int ipHeaderLength = (*ptr & 0b1111) * 4;
@@ -263,7 +265,7 @@ namespace linker.tun
                 *(tcpPtr + 13) = 0b00010000;
 
                 //设置窗口大小
-                *(ushort*)(tcpPtr + 14) = BinaryPrimitives.ReverseEndianness((ushort)8192);
+                * (ushort*)(tcpPtr + 14) = BinaryPrimitives.ReverseEndianness(Math.Max(winSize,(ushort)8));
 
                 //计算校验和
                 ChecksumHelper.Checksum(ipPtr, totalLength);

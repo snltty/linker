@@ -10,6 +10,7 @@ using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Authentication;
 using linker.libs.timer;
+using System.Buffers;
 
 namespace linker.tunnel.transport
 {
@@ -97,14 +98,14 @@ namespace linker.tunnel.transport
                         {
                             try
                             {
-                                byte[] bytes = new byte[1024];
-                                int length = await client.ReceiveAsync(bytes.AsMemory()).AsTask().WaitAsync(TimeSpan.FromMilliseconds(3000)).ConfigureAwait(false);
+                                using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(1024);
+                                int length = await client.ReceiveAsync(buffer.Memory).AsTask().WaitAsync(TimeSpan.FromMilliseconds(3000)).ConfigureAwait(false);
                                 if (length > 0)
                                 {
-                                    string key = bytes.AsMemory(0, length).GetString();
+                                    string key = buffer.Memory.Slice(0, length).GetString();
                                     if (distDic.TryRemove(key, out TaskCompletionSource<Socket> tcs))
                                     {
-                                        await client.SendAsync(bytes.AsMemory(0, length)).ConfigureAwait(false);
+                                        await client.SendAsync(buffer.Memory.Slice(0, length)).ConfigureAwait(false);
                                         tcs.TrySetResult(client);
                                         return;
                                     }
@@ -304,7 +305,9 @@ namespace linker.tunnel.transport
                 LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {string.Join("\r\n", tunnelTransportInfo.RemoteEndPoints.Select(c => c.ToString()))}");
             }
 
-            List<IPEndPoint> eps = tunnelTransportInfo.RemoteEndPoints.Select(c => c.Address).Distinct().Select(c=>new IPEndPoint(c, tunnelTransportInfo.Remote.PortMapWan)).ToList();
+            List<IPEndPoint> eps = tunnelTransportInfo.RemoteEndPoints.Select(c => c.Address).Distinct().Select(c => new IPEndPoint(c, tunnelTransportInfo.Remote.PortMapWan)).ToList();
+
+            using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(1024);
 
             foreach (var ep in eps)
             {
@@ -322,7 +325,7 @@ namespace linker.tunnel.transport
                     await targetSocket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
 
                     await targetSocket.SendAsync($"{tunnelTransportInfo.Local.MachineId}-{tunnelTransportInfo.FlowId}".ToBytes()).ConfigureAwait(false);
-                    await targetSocket.ReceiveAsync(new byte[1024]).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                    await targetSocket.ReceiveAsync(buffer.Memory).AsTask().WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
 
                     //需要ssl
                     SslStream sslStream = null;
@@ -330,7 +333,8 @@ namespace linker.tunnel.transport
                     {
                         sslStream = new SslStream(new NetworkStream(targetSocket, false), false, ValidateServerCertificate, null);
 #pragma warning disable SYSLIB0039 // 类型或成员已过时
-                        await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions {
+                        await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
+                        {
                             EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls,
                             CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
                             ClientCertificates = new X509CertificateCollection { certificate }

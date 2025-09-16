@@ -8,6 +8,7 @@ using System.Collections.Concurrent;
 using linker.libs;
 using System.Security.Cryptography.X509Certificates;
 using linker.libs.timer;
+using System.Buffers;
 
 namespace linker.tunnel.transport
 {
@@ -69,6 +70,7 @@ namespace linker.tunnel.transport
                 return;
             }
 
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024);
             try
             {
                 socket?.SafeClose();
@@ -86,13 +88,12 @@ namespace linker.tunnel.transport
                     LoggerHelper.Instance.Debug($"{Name} listen {localPort}");
                 }
 
-                byte[] bytes = new byte[65 * 1024];
                 IPEndPoint ep = new IPEndPoint(IPAddress.Any, 0);
                 while (true)
                 {
                     try
                     {
-                        SocketReceiveFromResult result = await socket.ReceiveFromAsync(bytes.AsMemory(), ep).ConfigureAwait(false);
+                        SocketReceiveFromResult result = await socket.ReceiveFromAsync(buffer.AsMemory(), ep).ConfigureAwait(false);
                         if (result.ReceivedBytes == 0)
                         {
                             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
@@ -102,7 +103,7 @@ namespace linker.tunnel.transport
                         }
 
                         IPEndPoint remoteEP = result.RemoteEndPoint as IPEndPoint;
-                        Memory<byte> memory = bytes.AsMemory(0, result.ReceivedBytes);
+                        Memory<byte> memory = buffer.AsMemory(0, result.ReceivedBytes);
 
 
                         if (memory.Length > flagBytes.Length && memory.Span.Slice(0, flagBytes.Length).SequenceEqual(flagBytes))
@@ -128,7 +129,7 @@ namespace linker.tunnel.transport
                         }
                         else if (connectionsDic.TryGetValue(remoteEP, out ConnectionCacheInfo cache))
                         {
-                            bool success = await cache.Connection.ProcessWrite(bytes, 0, result.ReceivedBytes).ConfigureAwait(false);
+                            bool success = await cache.Connection.ProcessWrite(buffer, 0, result.ReceivedBytes).ConfigureAwait(false);
                             if (success == false)
                             {
                                 connectionsDic.TryRemove(remoteEP, out _);
@@ -148,6 +149,10 @@ namespace linker.tunnel.transport
                 {
                     LoggerHelper.Instance.Error(ex);
                 }
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
             }
         }
 
@@ -308,6 +313,7 @@ namespace linker.tunnel.transport
 
             List<IPEndPoint> eps = tunnelTransportInfo.RemoteEndPoints.Select(c => c.Address).Distinct().Select(c => new IPEndPoint(c, tunnelTransportInfo.Remote.PortMapWan)).ToList();
 
+            using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent( 1024);
             foreach (var ep in eps)
             {
                 Socket targetSocket = new(ep.AddressFamily, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
@@ -325,14 +331,13 @@ namespace linker.tunnel.transport
                     byte[] sendt = $"{flagTexts}-{tunnelTransportInfo.Local.MachineId}-{tunnelTransportInfo.FlowId}".ToBytes();
                     await targetSocket.SendToAsync(sendt, ep).ConfigureAwait(false);
 
-                    byte[] recv = new byte[1024];
-                    SocketReceiveFromResult recvRestlt = await targetSocket.ReceiveFromAsync(recv, new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, 0)).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                    SocketReceiveFromResult recvRestlt = await targetSocket.ReceiveFromAsync(buffer.Memory, new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, 0)).AsTask().WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
 
-                    if (recv.AsSpan(0, recvRestlt.ReceivedBytes).SequenceEqual(sendt) == false)
+                    if (buffer.Memory.Span.Slice(0, recvRestlt.ReceivedBytes).SequenceEqual(sendt) == false)
                     {
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         {
-                            LoggerHelper.Instance.Error($"{Name} connect to {ep}, recv <{recv.AsSpan(0, recvRestlt.ReceivedBytes).GetString()}> tunnel fail");
+                            LoggerHelper.Instance.Error($"{Name} connect to {ep}, recv <{buffer.Memory.Span.Slice(0, recvRestlt.ReceivedBytes).GetString()}> tunnel fail");
                         }
                         continue;
                     }

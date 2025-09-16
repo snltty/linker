@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using linker.tunnel.wanport;
+using System.Buffers;
 
 namespace linker.tunnel.transport
 {
@@ -104,7 +105,8 @@ namespace linker.tunnel.transport
                 LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {string.Join("\r\n", tunnelTransportInfo.RemoteEndPoints.Select(c => c.ToString()))}");
             }
 
-            byte[] buffer = new byte[1024];
+            using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(1024);
+
             IPEndPoint tempEP = new IPEndPoint(IPAddress.IPv6Any, 0);
             Socket targetSocket = new(AddressFamily.InterNetworkV6, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
             targetSocket.IPv6Only(AddressFamily.InterNetworkV6, false);
@@ -125,14 +127,14 @@ namespace linker.tunnel.transport
                     {
                         targetSocket.SendTo(authBytes, item);
                     }
-                    var result = await targetSocket.ReceiveFromAsync(buffer, tempEP).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                    var result = await targetSocket.ReceiveFromAsync(buffer.Memory, tempEP).AsTask().WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
                     targetSocket.SendTo(authBytes, result.RemoteEndPoint);
 
                     while (true)
                     {
                         try
                         {
-                            await targetSocket.ReceiveFromAsync(buffer, tempEP).WaitAsync(TimeSpan.FromMilliseconds(1000)).ConfigureAwait(false);
+                            await targetSocket.ReceiveFromAsync(buffer.Memory, tempEP).AsTask().WaitAsync(TimeSpan.FromMilliseconds(1000)).ConfigureAwait(false);
                         }
                         catch (Exception)
                         {

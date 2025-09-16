@@ -47,21 +47,21 @@ namespace linker.plugins.sforward.proxy
         {
             try
             {
-                byte[] buffer = new byte[65 * 1024];
-                IPEndPoint tempRemoteEP = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
+                using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(65535);
 
+                IPEndPoint tempRemoteEP = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
                 string portStr = token.ListenPort.ToString();
 
                 while (true)
                 {
-                    SocketReceiveFromResult result = await token.SourceSocket.ReceiveFromAsync(buffer, tempRemoteEP).ConfigureAwait(false);
+                    SocketReceiveFromResult result = await token.SourceSocket.ReceiveFromAsync(buffer.Memory, tempRemoteEP).ConfigureAwait(false);
                     if (result.ReceivedBytes == 0)
                     {
                         continue;
                     }
 
                     int bytesRead = result.ReceivedBytes;
-                    Memory<byte> memory = buffer.AsMemory(0, result.ReceivedBytes);
+                    Memory<byte> memory = buffer.Memory.Slice(0, result.ReceivedBytes);
 
                     Add(portStr, token.GroupId, memory.Length, 0);
 
@@ -200,29 +200,27 @@ namespace linker.plugins.sforward.proxy
             Socket serverUdp = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             serverUdp.WindowsUdpBug();
 
-            byte[] buffer = new byte[flagBytes.Length + 8];
-            flagBytes.AsMemory().CopyTo(buffer);
-            id.ToBytes(buffer.AsMemory(flagBytes.Length));
-            await serverUdp.SendToAsync(buffer, server).ConfigureAwait(false);
+            using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(65535);
 
-            //连接本地服务
-            buffer = new byte[65 * 1024];
+            flagBytes.AsMemory().CopyTo(buffer.Memory);
+            id.ToBytes(buffer.Memory.Slice(flagBytes.Length));
+            await serverUdp.SendToAsync(buffer.Memory, server).ConfigureAwait(false);
+
             IPEndPoint tempEp = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
-
             UdpConnectedCache cache = new UdpConnectedCache { SourceSocket = serverUdp, TargetSocket = null };
             while (true)
             {
                 try
                 {
                     //从服务端收数据
-                    SocketReceiveFromResult result = await serverUdp.ReceiveFromAsync(buffer, tempEp).ConfigureAwait(false);
+                    SocketReceiveFromResult result = await serverUdp.ReceiveFromAsync(buffer.Memory, tempEp).ConfigureAwait(false);
                     if (result.ReceivedBytes == 0)
                     {
                         continue;
                     }
                     cache.LastTicks.Update();
 
-                    Memory<byte> memory = buffer.AsMemory(0, result.ReceivedBytes);
+                    Memory<byte> memory = buffer.Memory.Slice(0, result.ReceivedBytes);
                     Add(key, string.Empty, memory.Length, memory.Length);
                     //未连接本地服务的，去连接一下
                     if (cache.TargetSocket == null)
@@ -251,18 +249,18 @@ namespace linker.plugins.sforward.proxy
                 await serviceUdp.SendToAsync(memory, service).ConfigureAwait(false);
                 TimerHelper.Async(async () =>
                 {
-                    byte[] buffer = new byte[65 * 1024];
+                    using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(65535);
                     IPEndPoint tempEp = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
                     while (true)
                     {
                         try
                         {
-                            SocketReceiveFromResult result = await serviceUdp.ReceiveFromAsync(buffer, tempEp).ConfigureAwait(false);
+                            SocketReceiveFromResult result = await serviceUdp.ReceiveFromAsync(buffer.Memory, tempEp).ConfigureAwait(false);
                             if (result.ReceivedBytes == 0)
                             {
                                 continue;
                             }
-                            Memory<byte> memory = buffer.AsMemory(0, result.ReceivedBytes);
+                            Memory<byte> memory = buffer.Memory.Slice(0, result.ReceivedBytes);
                             Add(key, string.Empty, memory.Length, memory.Length);
 
                             await serverUdp.SendToAsync(memory, server).ConfigureAwait(false);

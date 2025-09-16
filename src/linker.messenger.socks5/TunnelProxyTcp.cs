@@ -85,7 +85,7 @@ namespace linker.messenger.socks5
                         ListenPort = acceptToken.ListenPort,
                         BufferSize = acceptToken.BufferSize,
                         RealIPEndPoint = acceptToken.RealIPEndPoint,
-                        Buffer = new byte[(1 << acceptToken.BufferSize) * 1024],
+                        Buffer = ArrayPool<byte>.Shared.Rent((1 << acceptToken.BufferSize) * 1024),
                         Proxy = new ProxyInfo { Data = Helper.EmptyArray, Step = ProxyStep.Request, Port = (ushort)acceptToken.ListenPort, ConnectId = ns.Increment() }
                     };
                     _ = BeginReceive(userToken);
@@ -246,7 +246,7 @@ namespace linker.messenger.socks5
                 Socket = state.Socket,
                 Type = Type.Connect,
                 RealIPEndPoint = state.RealIPEndPoint,
-                Buffer = new byte[(1 << state.BufferSize) * 1024],
+                Buffer = ArrayPool<byte>.Shared.Rent((1 << state.BufferSize) * 1024),
                 Proxy = new ProxyInfo
                 {
                     ConnectId = state.ConnectId,
@@ -434,6 +434,7 @@ namespace linker.messenger.socks5
         {
             Socket?.SafeClose();
 
+            ArrayPool<byte>.Shared.Return(Buffer);
             Buffer = Helper.EmptyArray;
 
             ListenPort = 0;

@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using linker.libs.timer;
+using System.Buffers;
 
 namespace linker.messenger.forward.proxy
 {
@@ -44,20 +45,20 @@ namespace linker.messenger.forward.proxy
         }
         private async Task ReceiveUdp(AsyncUserUdpToken token, byte buffersize)
         {
-            byte[] bytes = new byte[65 * 1024];
+            using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(65535);
             IPEndPoint tempRemoteEP = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
             while (true)
             {
                 try
                 {
-                    SocketReceiveFromResult result = await token.SourceSocket.ReceiveFromAsync(bytes, tempRemoteEP).ConfigureAwait(false);
+                    SocketReceiveFromResult result = await token.SourceSocket.ReceiveFromAsync(buffer.Memory, tempRemoteEP).ConfigureAwait(false);
                     if (result.ReceivedBytes == 0)
                     {
                         continue;
                     }
 
                     token.Proxy.SourceEP = result.RemoteEndPoint as IPEndPoint;
-                    token.Proxy.Data = bytes.AsMemory(0, result.ReceivedBytes);
+                    token.Proxy.Data = buffer.Memory.Slice(0, result.ReceivedBytes);
                     await ConnectTunnelConnection(token).ConfigureAwait(false);
                     if (token.Proxy.TargetEP != null)
                     {
@@ -209,6 +210,8 @@ namespace linker.messenger.forward.proxy
             socket.WindowsUdpBug();
             await socket.SendToAsync(tunnelToken.Proxy.Data, target).ConfigureAwait(false);
 
+            using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(65535);
+
             var connectId = tunnelToken.GetUdpConnectId();
             AsyncUserUdpTokenTarget udpToken = new AsyncUserUdpTokenTarget
             {
@@ -227,7 +230,6 @@ namespace linker.messenger.forward.proxy
                 TargetSocket = socket,
                 ConnectId = connectId,
                 Connection = tunnelToken.Connection,
-                Buffer = new byte[65 * 1024]
             };
             udpToken.Proxy.Direction = ProxyDirection.Reverse;
             udpConnections.AddOrUpdate(connectId, udpToken, (a, b) => udpToken);
@@ -236,7 +238,7 @@ namespace linker.messenger.forward.proxy
             {
                 while (true)
                 {
-                    SocketReceiveFromResult result = await socket.ReceiveFromAsync(udpToken.Buffer, SocketFlags.None, target).ConfigureAwait(false);
+                    SocketReceiveFromResult result = await socket.ReceiveFromAsync(buffer.Memory, SocketFlags.None, target).ConfigureAwait(false);
 
                     if (result.ReceivedBytes == 0)
                     {
@@ -247,7 +249,7 @@ namespace linker.messenger.forward.proxy
                         break;
                     }
 
-                    udpToken.Proxy.Data = udpToken.Buffer.AsMemory(0, result.ReceivedBytes);
+                    udpToken.Proxy.Data = buffer.Memory.Slice(0, result.ReceivedBytes);
                     udpToken.LastTicks.Update();
                     Add(udpToken.Connection.RemoteMachineId, udpToken.IPEndPoint, udpToken.Proxy.Data.Length, 0);
 
@@ -437,8 +439,6 @@ namespace linker.messenger.forward.proxy
         public ProxyInfo Proxy { get; set; }
 
         public (IPAddress srcIp, ushort srcPort, string remoteMachineId, string transactionId) ConnectId { get; set; }
-
-        public byte[] Buffer { get; set; }
 
         public LastTicksManager LastTicks { get; set; } = new LastTicksManager();
         public bool Timeout => LastTicks.Expired(60 * 1000);

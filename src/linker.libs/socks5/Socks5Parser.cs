@@ -118,30 +118,27 @@ namespace linker.libs.socks5
         /// <param name="remoteEndPoint"></param>
         /// <param name="responseCommand"></param>
         /// <returns></returns>
-        public static unsafe byte[] MakeConnectResponse(IPEndPoint remoteEndPoint, byte responseCommand)
+        public static unsafe Memory<byte> MakeConnectResponse(Memory<byte> memory,IPEndPoint remoteEndPoint, byte responseCommand)
         {
             //VER REP  RSV ATYPE BND.ADDR BND.PORT
 
-            byte[] res = new byte[6 + (remoteEndPoint.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork ? 4 : 16)];
-            var span = res.AsSpan();
+            memory.Span[0] = 5;
+            memory.Span[1] = responseCommand;
+            memory.Span[2] = 0;
+            memory.Span[3] = (byte)(remoteEndPoint.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork ? Socks5EnumAddressType.IPV4 : Socks5EnumAddressType.IPV6);
 
-            res[0] = 5;
-            res[1] = responseCommand;
-            res[2] = 0;
-            res[3] = (byte)(remoteEndPoint.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork ? Socks5EnumAddressType.IPV4 : Socks5EnumAddressType.IPV6);
-
-            remoteEndPoint.Address.TryWriteBytes(span.Slice(4), out _);
+            remoteEndPoint.Address.TryWriteBytes(memory.Span.Slice(4), out _);
 
             int port = remoteEndPoint.Port;
             ref int _port = ref port;
             fixed (void* p = &_port)
             {
                 byte* pp = (byte*)p;
-                res[^2] = *(pp + 1);
-                res[^1] = *pp;
+                memory.Span[^2] = *(pp + 1);
+                memory.Span[^1] = *pp;
             }
 
-            return res;
+            return memory.Slice(0, 6 + (remoteEndPoint.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork ? 4 : 16));
         }
         /// <summary>
         /// 生成udp中中继数据包

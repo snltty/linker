@@ -172,7 +172,9 @@ namespace linker.messenger.relay.client.transport
                             ToId = relayInfo.RemoteMachineId,
                             NodeId = node.Id,
                         };
-                        await socket.SendAsync(new byte[] { (byte)ResolverType.Relay }).ConfigureAwait(false);
+
+                        buffer[0] = (byte)ResolverType.Relay;
+                        await socket.SendAsync(buffer.AsMemory(0,1)).ConfigureAwait(false);
                         await socket.SendAsync(serializer.Serialize(relayMessage)).ConfigureAwait(false);
 
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"relay  connected {ep}");
@@ -231,6 +233,8 @@ namespace linker.messenger.relay.client.transport
         }
         public async Task<bool> OnBeginAsync(RelayInfo170 relayInfo, Action<ITunnelConnection> callback)
         {
+            using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(16);
+            buffer.Memory.Span[0] = (byte)ResolverType.Relay;
             try
             {
                 IPEndPoint ep = relayInfo.Server == null || relayInfo.Server.Address.Equals(IPAddress.Any) ? signInClientState.Connection.Address : relayInfo.Server;
@@ -259,7 +263,7 @@ namespace linker.messenger.relay.client.transport
                     ToId = relayInfo.RemoteMachineId,
                     NodeId = relayInfo.NodeId,
                 };
-                await socket.SendAsync(new byte[] { (byte)ResolverType.Relay }).ConfigureAwait(false);
+                await socket.SendAsync(buffer.Memory.Slice(0,1)).ConfigureAwait(false);
                 await socket.SendAsync(serializer.Serialize(relayMessage)).ConfigureAwait(false);
 
                 _ = WaitSSL(socket, relayInfo).ContinueWith((result) =>

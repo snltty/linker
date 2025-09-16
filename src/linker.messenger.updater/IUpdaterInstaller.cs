@@ -1,5 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.extends;
+using System.Buffers;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -121,11 +122,11 @@ namespace linker.messenger.updater
 
                 using Stream entryStream = entry.Open();
                 using FileStream fileStream = File.Create(entryPath);
-                byte[] buffer = new byte[4096];
+                using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(4096);
                 int bytesRead;
-                while ((bytesRead = await entryStream.ReadAsync(buffer).ConfigureAwait(false)) != 0)
+                while ((bytesRead = await entryStream.ReadAsync(buffer.Memory).ConfigureAwait(false)) != 0)
                 {
-                    await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead));
+                    await fileStream.WriteAsync(buffer.Memory.Slice(0, bytesRead));
                     processs(total, bytesRead);
                 }
 

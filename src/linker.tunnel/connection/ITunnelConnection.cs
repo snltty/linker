@@ -148,6 +148,14 @@ namespace linker.tunnel.connection
         /// 已接受字节数
         /// </summary>
         public long ReceiveBytes { get; }
+        /// <summary>
+        /// 发送缓冲区剩余大小
+        /// </summary>
+        public long SendRemaining { get; }
+        /// <summary>
+        /// 发送缓冲区剩余比例
+        /// </summary>
+        public double SendRemainRatio { get; }
 
         /// <summary>
         /// 最后通信时间

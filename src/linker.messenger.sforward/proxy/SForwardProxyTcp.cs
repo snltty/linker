@@ -1,6 +1,7 @@
 ﻿using linker.libs;
 using linker.libs.extends;
 using linker.messenger.sforward.server;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
@@ -109,29 +110,29 @@ namespace linker.plugins.sforward.proxy
         private async Task BindReceive(AsyncUserToken token)
         {
             ulong id = ns.Increment();
-            byte[] buffer1 = new byte[(1 << token.BufferSize) * 1024];
-            byte[] buffer2 = new byte[(1 << token.BufferSize) * 1024];
+            using IMemoryOwner<byte> buffer1 = MemoryPool<byte>.Shared.Rent((1 << token.BufferSize) * 1024);
+            using IMemoryOwner<byte> buffer2 = MemoryPool<byte>.Shared.Rent((1 << token.BufferSize) * 1024);
             try
             {
-                int length = await token.SourceSocket.ReceiveAsync(buffer1.AsMemory(), SocketFlags.None).ConfigureAwait(false);
+                int length = await token.SourceSocket.ReceiveAsync(buffer1.Memory, SocketFlags.None).ConfigureAwait(false);
                 //是回复连接。传过来了id，去配一下
-                if (length > flagBytes.Length && buffer1.AsSpan(0, flagBytes.Length).SequenceEqual(flagBytes))
+                if (length > flagBytes.Length && buffer1.Memory.Span.Slice(0, flagBytes.Length).SequenceEqual(flagBytes))
                 {
-                    ulong _id = buffer1.AsSpan(flagBytes.Length).ToUInt64();
+                    ulong _id = buffer1.Memory.Span.Slice(flagBytes.Length).ToUInt64();
                     if (tcpConnections.TryRemove(_id, out TaskCompletionSource<Socket> _tcs))
                     {
                         _tcs.TrySetResult(token.SourceSocket);
                     }
                     return;
                 }
+
                 string key = token.ListenPort.ToString();
                 SForwardTrafficCacheInfo cache = token.Cache;
-
                 //是web的，去获取host请求头，匹配不同的服务
                 if (token.IsWeb)
                 {
                     httpConnections.TryAdd(id, token);
-                    key = token.Host = GetHost(buffer1.AsMemory(0, length));
+                    key = token.Host = GetHost(buffer1.Memory.Slice(0, length));
                     if (string.IsNullOrWhiteSpace(token.Host))
                     {
                         CloseClientSocket(token);
@@ -157,22 +158,13 @@ namespace linker.plugins.sforward.proxy
                 //等待回复
                 TaskCompletionSource<Socket> tcs = new TaskCompletionSource<Socket>(TaskCreationOptions.RunContinuationsAsynchronously);
                 tcpConnections.TryAdd(id, tcs);
-                try
-                {
-                    token.TargetSocket = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
-                }
-                catch (Exception)
-                {
-                    CloseClientSocket(token);
-                    return;
-                }
+                token.TargetSocket = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
 
                 Add(key, token.GroupId, length, length);
-                //数据
-                await token.TargetSocket.SendAsync(buffer1.AsMemory(0, length)).ConfigureAwait(false);
+                await token.TargetSocket.SendAsync(buffer1.Memory.Slice(0, length)).ConfigureAwait(false);
 
                 //两端交换数据
-                await Task.WhenAll(CopyToAsync(key, token.GroupId, buffer1, token.SourceSocket, token.TargetSocket, cache), CopyToAsync(key, token.GroupId, buffer2, token.TargetSocket, token.SourceSocket, cache)).ConfigureAwait(false);
+                await Task.WhenAll(CopyToAsync(key, token.GroupId, buffer1.Memory, token.SourceSocket, token.TargetSocket, cache), CopyToAsync(key, token.GroupId, buffer2.Memory, token.TargetSocket, token.SourceSocket, cache)).ConfigureAwait(false);
 
                 CloseClientSocket(token);
             }
@@ -230,7 +222,6 @@ namespace linker.plugins.sforward.proxy
         }
 
 
-
         private readonly byte[] hostBytes = Encoding.UTF8.GetBytes("Host: ");
         private readonly byte[] wrapBytes = Encoding.UTF8.GetBytes("\r\n");
         private readonly byte[] colonBytes = Encoding.UTF8.GetBytes(":");
@@ -264,8 +255,8 @@ namespace linker.plugins.sforward.proxy
         {
             Socket sourceSocket = null;
             Socket targetSocket = null;
-            byte[] buffer1 = new byte[(1 << bufferSize) * 1024];
-            byte[] buffer2 = new byte[(1 << bufferSize) * 1024];
+            using IMemoryOwner<byte> buffer1 = MemoryPool<byte>.Shared.Rent((1 << bufferSize) * 1024);
+            using IMemoryOwner<byte> buffer2 = MemoryPool<byte>.Shared.Rent((1 << bufferSize) * 1024);
             try
             {
                 //连接服务器
@@ -277,12 +268,12 @@ namespace linker.plugins.sforward.proxy
                 await targetSocket.ConnectAsync(service).ConfigureAwait(false);
 
                 //给服务器回复，带上id
-                flagBytes.AsMemory().CopyTo(buffer1);
-                id.ToBytes(buffer1.AsMemory(flagBytes.Length));
-                await sourceSocket.SendAsync(buffer1.AsMemory(0, flagBytes.Length + 8)).ConfigureAwait(false);
+                flagBytes.AsMemory().CopyTo(buffer1.Memory);
+                id.ToBytes(buffer1.Memory.Slice(flagBytes.Length));
+                await sourceSocket.SendAsync(buffer1.Memory.Slice(0, flagBytes.Length + 8)).ConfigureAwait(false);
 
                 //交换数据即可
-                await Task.WhenAll(CopyToAsync($"{key}->{service}", string.Empty, buffer1, sourceSocket, targetSocket), CopyToAsync($"{key}->{service}", string.Empty, buffer2, targetSocket, sourceSocket)).ConfigureAwait(false);
+                await Task.WhenAll(CopyToAsync($"{key}->{service}", string.Empty, buffer1.Memory, sourceSocket, targetSocket), CopyToAsync($"{key}->{service}", string.Empty, buffer2.Memory, targetSocket, sourceSocket)).ConfigureAwait(false);
 
             }
             catch (Exception)

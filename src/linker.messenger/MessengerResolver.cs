@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using linker.libs.extends;
+using System.Buffers;
 
 namespace linker.messenger
 {
@@ -121,6 +122,8 @@ namespace linker.messenger
         /// <returns></returns>
         public async Task<IConnection> BeginReceiveClient(Socket socket, bool sendFlag, byte flag, Memory<byte> data)
         {
+            using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(16);
+            buffer.Memory.Span[0] = flag;
             try
             {
                 if (socket == null || socket.RemoteEndPoint == null)
@@ -130,7 +133,7 @@ namespace linker.messenger
                 socket.KeepAlive();
                 if (sendFlag)
                 {
-                    await socket.SendAsync(new byte[] { flag }).ConfigureAwait(false);
+                    await socket.SendAsync(buffer.Memory.Slice(0,1)).ConfigureAwait(false);
                 }
                 if (data.Length > 0)
                 {

@@ -1,5 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.extends;
+using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
 
@@ -34,12 +35,12 @@ namespace linker.messenger.listen
             socketUdp.Bind(new IPEndPoint(IPAddress.Any, port));
             socketUdp.WindowsUdpBug();
             IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
-            byte[] buffer = new byte[1 * 1024 * 1024];
+            using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(65535);
             while (true)
             {
                 try
                 {
-                    SocketReceiveFromResult result = await socketUdp.ReceiveFromAsync(buffer, SocketFlags.None, endPoint).ConfigureAwait(false);
+                    SocketReceiveFromResult result = await socketUdp.ReceiveFromAsync(buffer.Memory, SocketFlags.None, endPoint).ConfigureAwait(false);
                     if (result.ReceivedBytes == 0)
                     {
                         LoggerHelper.Instance.Error($"udp server recv 0");
@@ -48,7 +49,7 @@ namespace linker.messenger.listen
                     IPEndPoint ep = result.RemoteEndPoint as IPEndPoint;
                     try
                     {
-                        await resolverTransfer.BeginReceive(socketUdp, ep, buffer.AsMemory(0, result.ReceivedBytes)).ConfigureAwait(false);
+                        await resolverTransfer.BeginReceive(socketUdp, ep, buffer.Memory.Slice(0, result.ReceivedBytes)).ConfigureAwait(false);
                     }
                     catch (Exception ex)
                     {

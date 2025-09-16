@@ -8,6 +8,7 @@ using System.Text;
 using linker.tunnel.wanport;
 using System.Security.Cryptography.X509Certificates;
 using linker.libs.timer;
+using System.Buffers;
 
 namespace linker.tunnel.transport
 {
@@ -224,8 +225,8 @@ namespace linker.tunnel.transport
 
             TimerHelper.Async(async () =>
             {
-                byte[] buffer = new byte[1024];
-                SocketReceiveFromResult result = await socket.ReceiveFromAsync(buffer, new IPEndPoint(IPAddress.IPv6Any, 0)).ConfigureAwait(false);
+                using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(1024);
+                SocketReceiveFromResult result = await socket.ReceiveFromAsync(buffer.Memory, new IPEndPoint(IPAddress.IPv6Any, 0)).ConfigureAwait(false);
                 await socket.SendToAsync(endBytes, result.RemoteEndPoint).ConfigureAwait(false);
                 tcs.TrySetResult(result.RemoteEndPoint as IPEndPoint);
             });
@@ -275,19 +276,19 @@ namespace linker.tunnel.transport
         }
         private async Task ListenReceiveCallback(ListenAsyncToken token)
         {
+            using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(8 * 1024);
             try
             {
-                byte[] buffer = new byte[8 * 1024];
                 IPEndPoint ep = new IPEndPoint(IPAddress.IPv6Any, 0);
                 while (token.Tcs.Task.IsCompleted == false)
                 {
-                    SocketReceiveFromResult result = await token.LocalUdp.ReceiveFromAsync(buffer, ep).ConfigureAwait(false);
+                    SocketReceiveFromResult result = await token.LocalUdp.ReceiveFromAsync(buffer.Memory, ep).ConfigureAwait(false);
                     if (result.ReceivedBytes == 0)
                     {
                         token.Tcs.TrySetResult(result.RemoteEndPoint.AddressFamily);
                         break;
                     }
-                    if (result.ReceivedBytes == endBytes.Length && buffer.AsSpan(0, result.ReceivedBytes).SequenceEqual(endBytes))
+                    if (result.ReceivedBytes == endBytes.Length && buffer.Memory.Span.Slice(0, result.ReceivedBytes).SequenceEqual(endBytes))
                     {
                         if (token.Tcs != null && token.Tcs.Task.IsCompleted == false)
                         {
@@ -298,7 +299,7 @@ namespace linker.tunnel.transport
                     }
                     else
                     {
-                        await token.LocalUdp.SendToAsync(buffer.AsMemory(0, result.ReceivedBytes), result.RemoteEndPoint).ConfigureAwait(false);
+                        await token.LocalUdp.SendToAsync(buffer.Memory.Slice(0, result.ReceivedBytes), result.RemoteEndPoint).ConfigureAwait(false);
                     }
                 }
             }

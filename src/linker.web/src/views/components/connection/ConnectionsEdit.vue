@@ -19,13 +19,15 @@
                     <template #default="scope">
                         <div>
                             <p>{{ scope.row.TransportName }}({{ state.protocolTypes[scope.row.ProtocolType] }})</p>
-                            <p>{{ state.types[scope.row.Type] }} - {{ 1 << scope.row.BufferSize }}KB</p>
+                            <p>{{ state.types[scope.row.Type] }} - {{ scope.row.SendRemainingText }}</p>
                         </div>
                     </template>
                 </el-table-column>
                 <el-table-column property="Delay" label="延迟" width="60">
                     <template #default="scope">
-                        <span>{{ scope.row.Delay }}ms</span>
+                        <div>
+                            <p>{{ scope.row.Delay }}</p>
+                        </div>
                     </template>
                 </el-table-column>
                 <el-table-column property="Bytes" label="通信">

@@ -32,7 +32,8 @@ namespace linker.messenger.store.file
             {
                 await socket.ConnectAsync(server).WaitAsync(TimeSpan.FromMilliseconds(5000));
 
-                await socket.SendAsync(new byte[] { Type });
+                buffer[0] = Type;
+                await socket.SendAsync(buffer.AsMemory(0,1));
 
                 byte[] playload = serializer.Serialize(new ExportSaveInfo { Type = ExportSaveType.Save, Value = value }.ToJson());
                 playload.Length.ToBytes().CopyTo(buffer.AsSpan(0, 4));
@@ -67,7 +68,8 @@ namespace linker.messenger.store.file
             {
                 await socket.ConnectAsync(server).WaitAsync(TimeSpan.FromMilliseconds(5000));
 
-                await socket.SendAsync(new byte[] { Type });
+                buffer[0] = Type;
+                await socket.SendAsync(buffer.AsMemory(0,1));
                 await socket.SendAsync(serializer.Serialize(new ExportSaveInfo { Type = ExportSaveType.Get, Value = value }.ToJson()));
 
                 int length = await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).AsTask().WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);

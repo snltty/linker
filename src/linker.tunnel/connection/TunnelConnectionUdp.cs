@@ -37,6 +37,8 @@ namespace linker.tunnel.connection
         public int Delay { get; private set; }
         public long SendBytes { get; private set; }
         public long ReceiveBytes { get; private set; }
+        public long SendRemaining { get; }
+        public double SendRemainRatio { get; } = 1;
         public LastTicksManager LastTicks { get; private set; } = new LastTicksManager();
 
         [JsonIgnore]
@@ -94,7 +96,7 @@ namespace linker.tunnel.connection
         }
         private async Task ProcessWrite()
         {
-            byte[] buffer = new byte[65 * 1024];
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(65535);
             IPEndPoint ep = new IPEndPoint(IPEndPoint.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, 0);
             try
             {
@@ -119,6 +121,8 @@ namespace linker.tunnel.connection
             }
             finally
             {
+                ArrayPool<byte>.Shared.Return(buffer);
+
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Error($"tunnel connection writer offline {cancellationTokenSource.IsCancellationRequested}");
                 LoggerHelper.Instance.Error($"tunnel connection disponse 6");
@@ -251,7 +255,7 @@ namespace linker.tunnel.connection
             ArrayPool<byte>.Shared.Return(heartData);
         }
 
-        private byte[] encodeBuffer = new byte[65 * 1024];
+        private byte[] encodeBuffer = ArrayPool<byte>.Shared.Rent(65 * 1024);
         public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
             try
@@ -331,6 +335,8 @@ namespace linker.tunnel.connection
 
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Error($"tunnel connection {this.GetHashCode()} writer offline {ToString()}");
+
+            ArrayPool<byte>.Shared.Return(encodeBuffer);
 
             SendPingPong(finBytes).ContinueWith((result) =>
             {

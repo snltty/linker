@@ -78,7 +78,7 @@ namespace linker.messenger.forward.proxy
                         Socket = socket,
                         ListenPort = acceptToken.ListenPort,
                         BufferSize = acceptToken.BufferSize,
-                        Buffer = new byte[(1 << acceptToken.BufferSize) * 1024],
+                        Buffer = ArrayPool<byte>.Shared.Rent((1 << acceptToken.BufferSize) * 1024),
                         IPEndPoint = acceptToken.IPEndPoint,
 
                         Proxy = new ProxyInfo { Data = Helper.EmptyArray, Step = ProxyStep.Request, Port = (ushort)acceptToken.ListenPort, ConnectId = ns.Increment() }
@@ -262,7 +262,7 @@ namespace linker.messenger.forward.proxy
                 Socket = state.Socket,
                 Type = Type.Connect,
                 IPEndPoint = state.IPEndPoint,
-                Buffer = new byte[(1 << state.BufferSize) * 1024],
+                Buffer = ArrayPool<byte>.Shared.Rent((1 << state.BufferSize) * 1024),
 
                 Proxy = new ProxyInfo
                 {
@@ -444,6 +444,8 @@ namespace linker.messenger.forward.proxy
         public void Clear()
         {
             Socket?.SafeClose();
+
+            ArrayPool<byte>.Shared.Return(Buffer);
 
             Buffer = Helper.EmptyArray;
 
