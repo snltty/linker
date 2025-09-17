@@ -44,7 +44,7 @@ namespace linker.tun
 
                     fixed (byte* pptr = fakeBuffer.Span)
                     {
-                        ushort win = (ushort)Math.Max(Math.Min(bufferFree / state.WindowScale, 65535), 8);
+                        ushort win = (ushort)Math.Max(Math.Min(bufferFree*0.8 / state.WindowScale, 32*1024), 4);
                         fakeLength = originPacket.ToAck(state.Seq, win, pptr);
                         if (new FakeAckPacket(pptr).Cq <= state.Cq)
                         {
