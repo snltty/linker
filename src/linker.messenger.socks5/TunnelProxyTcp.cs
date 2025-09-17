@@ -434,7 +434,8 @@ namespace linker.messenger.socks5
         {
             Socket?.SafeClose();
 
-            ArrayPool<byte>.Shared.Return(Buffer);
+            if (Buffer != null)
+                ArrayPool<byte>.Shared.Return(Buffer);
             Buffer = Helper.EmptyArray;
 
             ListenPort = 0;

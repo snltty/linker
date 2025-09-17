@@ -331,7 +331,7 @@ namespace linker.tunnel.connection
                 Interlocked.Add(ref sendRemaining, data.Length);
             }
             await pipeSender.Writer.FlushAsync().ConfigureAwait(false);
-            return false;
+            return true;
         }
         public async Task<bool> SendAsync(byte[] buffer, int offset, int length)
         {

@@ -36,6 +36,7 @@ namespace linker.messenger.forward.proxy
                     Socket = socket,
                     BufferSize = bufferSize,
                     IPEndPoint = new IPEndPoint(IPAddress.Any, LocalEndpoint.Port),
+
                 };
                 _ = StartAccept(userToken);
                 tcpListens.AddOrUpdate(LocalEndpoint.Port, userToken, (a, b) => userToken);
@@ -110,7 +111,7 @@ namespace linker.messenger.forward.proxy
             }
             else
             {
-                _ = ProcessReceive(token, false);
+                _ = ProcessReceive(token, 0, false);
             }
         }
 
@@ -118,7 +119,7 @@ namespace linker.messenger.forward.proxy
         /// 接收连接数据
         /// </summary>
         /// <param name="e"></param>
-        private async Task ProcessReceive(AsyncUserToken token, bool send = true)
+        private async Task ProcessReceive(AsyncUserToken token, int index = 0, bool send = true)
         {
             if (token.Received) return;
             token.Received = true;
@@ -248,7 +249,14 @@ namespace linker.messenger.forward.proxy
             Socket socket = new Socket(token.Proxy.TargetEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socket.KeepAlive();
 
-            ConnectState state = new ConnectState { BufferSize = token.Proxy.BufferSize, Connection = token.Connection, ConnectId = token.Proxy.ConnectId, Socket = socket, IPEndPoint = token.Proxy.TargetEP };
+            ConnectState state = new ConnectState
+            {
+                BufferSize = token.Proxy.BufferSize,
+                Connection = token.Connection,
+                ConnectId = token.Proxy.ConnectId,
+                Socket = socket,
+                IPEndPoint = token.Proxy.TargetEP
+            };
             state.CopyData(token.Proxy.Data);
             socket.BeginConnect(token.Proxy.TargetEP, ConnectCallback, state);
 
@@ -288,7 +296,7 @@ namespace linker.messenger.forward.proxy
                 await SendToConnection(token).ConfigureAwait(false);
                 token.Proxy.Step = ProxyStep.Forward;
 
-                _ = ProcessReceive(token);
+                _ = ProcessReceive(token, 1);
             }
             catch (Exception ex)
             {
@@ -314,7 +322,7 @@ namespace linker.messenger.forward.proxy
                 var connectId = tunnelToken.GetTcpConnectId();
                 if (tcpConnections.TryGetValue(connectId, out AsyncUserToken token))
                 {
-                    _ = ProcessReceive(token);
+                    _ = ProcessReceive(token, 2);
                 }
             }
         }
@@ -374,6 +382,7 @@ namespace linker.messenger.forward.proxy
         private void CloseClientSocket(AsyncUserToken token, int index)
         {
             if (token == null) return;
+
             if (token.Connection != null)
             {
                 tcpConnections.TryRemove(token.GetConnectId(), out _);
@@ -445,7 +454,8 @@ namespace linker.messenger.forward.proxy
         {
             Socket?.SafeClose();
 
-            ArrayPool<byte>.Shared.Return(Buffer);
+            if (Buffer != null)
+                ArrayPool<byte>.Shared.Return(Buffer);
 
             Buffer = Helper.EmptyArray;
 

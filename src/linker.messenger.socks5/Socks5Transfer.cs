@@ -1,4 +1,5 @@
-﻿using linker.libs.timer;
+﻿using linker.libs;
+using linker.libs.timer;
 
 namespace linker.messenger.socks5
 {
