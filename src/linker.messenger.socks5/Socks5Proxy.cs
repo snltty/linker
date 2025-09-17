@@ -100,7 +100,7 @@ namespace linker.messenger.socks5
         {
             using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(1024);
             buffer.Memory.Span[0] = 0x05;
-            buffer.Memory.Span[0] = 0x00;
+            buffer.Memory.Span[1] = 0x00;
 
             //步骤，request
             token.Proxy.Rsv = (byte)Socks5EnumStep.Request;
