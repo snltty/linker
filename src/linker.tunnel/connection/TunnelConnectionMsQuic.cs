@@ -41,6 +41,8 @@ namespace linker.tunnel.connection
         public long ReceiveBytes { get; private set; }
         public long SendBufferRemaining { get; }
         public long SendBufferFree { get; } = 512 * 1024;
+        public long RecvBufferRemaining { get; }
+        public long RecvBufferFree { get; } = 512 * 1024;
 
         public LastTicksManager LastTicks { get; private set; } = new LastTicksManager();
 

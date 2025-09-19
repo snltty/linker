@@ -11,37 +11,42 @@ namespace linker.libs
         /// </summary>
         /// <param name="packet">一个完整的IP包</param>
         /// <param name="payload">是否计算荷载协议校验和</param>
-        public static unsafe void Checksum(ReadOnlyMemory<byte> packet,bool payload = true)
+        public static unsafe void Checksum(ReadOnlyMemory<byte> packet, bool ipHeader = true, bool payload = true)
         {
-            fixed (byte* ptr = packet.Span)
-            {
-                Checksum(ptr, packet.Length, payload);
-            }
+            Checksum(packet.Span, ipHeader, payload);
         }
         /// <summary>
         /// 计算IP包的校验和
         /// </summary>
         /// <param name="packet">一个完整的IP包</param>
         /// <param name="payload">是否计算荷载协议校验和</param>
-        public static unsafe void Checksum(ReadOnlySpan<byte> packet, bool payload = true)
+        public static unsafe void Checksum(ReadOnlySpan<byte> packet, bool ipHeader = true, bool payload = true)
         {
             fixed (byte* ptr = packet)
             {
-                Checksum(ptr, packet.Length, payload);
+                Checksum(ptr, ipHeader, payload);
             }
         }
         /// <summary>
         /// 计算IP包的校验和
         /// </summary>
         /// <param name="ptr">IP包指针</param>
-        /// <param name="length">IP包长度</param>
+        /// <param name="ipHeader">是否计算IP校验和</param>
         /// <param name="payload">是否计算荷载协议校验和</param>
-        public static unsafe void Checksum(byte* ptr, int length, bool payload = true)
+        public static unsafe void Checksum(byte* ptr, bool ipHeader = true, bool payload = true)
         {
             byte ipHeaderLength = (byte)((*ptr & 0b1111) * 4);
-            //重新计算IP头校验和
-            *(ushort*)(ptr + 10) = 0;
-            *(ushort*)(ptr + 10) = Checksum((ushort*)ptr, ipHeaderLength);
+            byte* packetPtr = ptr + ipHeaderLength;
+            uint totalLength = BinaryPrimitives.ReverseEndianness(*(ushort*)(ptr + 2));
+            uint packetLength = totalLength - ipHeaderLength;
+
+            if (ipHeader)
+            {
+                //重新计算IP头校验和
+                *(ushort*)(ptr + 10) = 0;
+                *(ushort*)(ptr + 10) = Checksum((ushort*)ptr, ipHeaderLength);
+            }
+
 
             if (payload)
             {
@@ -50,22 +55,22 @@ namespace linker.libs
                 {
                     case ProtocolType.Tcp:
                         {
-                            *(ushort*)(ptr + ipHeaderLength + 16) = 0;
-                            ulong sum = PseudoHeaderSum(ptr, (uint)(length - ipHeaderLength));
-                            *(ushort*)(ptr + ipHeaderLength + 16) = Checksum((ushort*)(ptr + ipHeaderLength), (uint)length - ipHeaderLength, sum);
+                            *(ushort*)(packetPtr + 16) = 0;
+                            ulong sum = PseudoHeaderSum(ptr, packetLength);
+                            *(ushort*)(packetPtr + 16) = Checksum((ushort*)(packetPtr), packetLength, sum);
                         }
                         break;
                     case ProtocolType.Udp:
                         {
-                            *(ushort*)(ptr + ipHeaderLength + 6) = 0;
-                            ulong sum = PseudoHeaderSum(ptr, (uint)(length - ipHeaderLength));
-                            *(ushort*)(ptr + ipHeaderLength + 6) = Checksum((ushort*)(ptr + ipHeaderLength), (uint)length - ipHeaderLength, sum);
+                            *(ushort*)(packetPtr + 6) = 0;
+                            ulong sum = PseudoHeaderSum(ptr, packetLength);
+                            *(ushort*)(packetPtr + 6) = Checksum((ushort*)(packetPtr), packetLength, sum);
                         }
                         break;
                     case ProtocolType.Icmp:
                         {
-                            *(ushort*)(ptr + ipHeaderLength + 2) = 0;
-                            *(ushort*)(ptr + ipHeaderLength + 2) = Checksum((ushort*)(ptr + ipHeaderLength), (uint)length - ipHeaderLength);
+                            *(ushort*)(packetPtr + 2) = 0;
+                            *(ushort*)(packetPtr + 2) = Checksum((ushort*)(packetPtr), packetLength);
                         }
                         break;
                 }

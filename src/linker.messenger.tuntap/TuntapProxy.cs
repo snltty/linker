@@ -7,7 +7,6 @@ using linker.messenger.relay.client;
 using linker.messenger.signin;
 using linker.messenger.pcp;
 using linker.messenger.tuntap.cidr;
-using System.Net.Sockets;
 
 namespace linker.messenger.tuntap
 {
@@ -45,11 +44,12 @@ namespace linker.messenger.tuntap
 
         protected override void Connected(ITunnelConnection connection)
         {
+            /*
             if (connection.ProtocolType == TunnelProtocolType.Tcp && tuntapConfigTransfer.Info.FakeAck && tuntapDecenter.HasSwitchFlag(connection.RemoteMachineId, TuntapSwitch.FakeAck))
             {
-                connection.PacketBuffer = new byte[4096];
+                connection.PacketBuffer = new byte[1];
             }
-
+            */
             Add(connection);
             connection.BeginReceive(this, null);
             //有哪些目标IP用了相同目标隧道，更新一下
@@ -67,7 +67,7 @@ namespace linker.messenger.tuntap
         public async Task Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer, object state)
 #pragma warning restore CS1998 // 异步方法缺少 "await" 运算符，将以同步方式运行
         {
-            if (connection.PacketBuffer.Length > 0) fakeAckTransfer.Write(buffer);
+            //if (connection.PacketBuffer.Length > 0) fakeAckTransfer.Write(buffer, connection.SendBufferFree);
             Callback.Receive(connection, buffer);
         }
         /// <summary>
@@ -101,31 +101,33 @@ namespace linker.messenger.tuntap
 
             //IPV4+IPV6 单播
             uint ip = BinaryPrimitives.ReadUInt32BigEndian(packet.DistIPAddress.Span[^4..]);
-            if (tuntapCidrConnectionManager.TryGet(ip, out ITunnelConnection connection) == false || connection == null || connection.Connected == false)
+            if (tuntapCidrConnectionManager.TryGet(ip, out ITunnelConnection connection) && connection.Connected)
             {
-                //开始操作，开始失败直接丢包
-                if (operatingMultipleManager.StartOperation(ip) == false)
-                {
-                    return;
-                }
-
-                _ = ConnectTunnel(ip).ContinueWith((result, state) =>
-                {
-                    //结束操作
-                    operatingMultipleManager.StopOperation((uint)state);
-                    //连接成功就缓存隧道
-                    if (result.Result != null)
-                    {
-                        tuntapCidrConnectionManager.Add((uint)state, result.Result);
-                    }
-                }, ip);
+                await connection.SendAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);
                 return;
             }
-            
-            ushort ackLength = 0;
-            if (connection.PacketBuffer.Length > 0 && fakeAckTransfer.Read(packet.IPPacket, connection.PacketBuffer, connection.SendBufferFree, out ackLength)) return;
-            await connection.SendAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);
-            if (ackLength > 0) Callback.Receive(connection, connection.PacketBuffer.AsMemory(0, ackLength));
+            /*
+            if (connection.PacketBuffer.Length > 0)
+            {
+                fakeAckTransfer.Read(packet.IPPacket);
+            }
+            */
+
+            //开始操作，开始失败直接丢包
+            if (operatingMultipleManager.StartOperation(ip) == false)
+            {
+                return;
+            }
+            _ = ConnectTunnel(ip).ContinueWith((result, state) =>
+            {
+                //结束操作
+                operatingMultipleManager.StopOperation((uint)state);
+                //连接成功就缓存隧道
+                if (result.Result != null)
+                {
+                    tuntapCidrConnectionManager.Add((uint)state, result.Result);
+                }
+            }, ip);
 
         }
 

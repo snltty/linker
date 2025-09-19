@@ -83,7 +83,7 @@ namespace linker.tun
                     //response
                     *(ushort*)(ptr + 20) = 0;
 
-                    ChecksumHelper.Checksum(ptr, writableMemory.Length);
+                    ChecksumHelper.Checksum(ptr);
                     Program.linkerTunDeviceAdapter.Write(string.Empty, writableMemory);
                 }
             }

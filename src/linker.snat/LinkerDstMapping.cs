@@ -126,7 +126,7 @@ namespace linker.snat
                 if (checksum)
                 {
                     //计算校验和
-                    ChecksumHelper.Checksum(ptr, packet.Length);
+                    ChecksumHelper.Checksum(ptr);
                 }
             }
         }

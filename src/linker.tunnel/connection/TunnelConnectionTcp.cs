@@ -40,8 +40,12 @@ namespace linker.tunnel.connection
 
         private long sendRemaining = 0;
         public long SendBufferRemaining { get => sendRemaining; }
-        public long SendBufferFree { get => maxSendRemaining - sendRemaining; }
-        private const long maxSendRemaining = 1 * 1024 * 1024;
+        public long SendBufferFree { get => maxRemaining - sendRemaining; }
+        private const long maxRemaining = 1 * 1024 * 1024;
+
+        private long recvRemaining = 0;
+        public long RecvBufferRemaining { get => recvRemaining; }
+        public long RecvBufferFree { get => maxRemaining - recvRemaining; }
 
         public LastTicksManager LastTicks { get; private set; } = new LastTicksManager();
 
@@ -80,8 +84,8 @@ namespace linker.tunnel.connection
 
             cancellationTokenSource = new CancellationTokenSource();
 
-            pipeSender = new Pipe(new PipeOptions(pauseWriterThreshold: maxSendRemaining, resumeWriterThreshold: (maxSendRemaining / 2), useSynchronizationContext: false));
-            pipeWriter = new Pipe(new PipeOptions(pauseWriterThreshold: maxSendRemaining, resumeWriterThreshold: (maxSendRemaining / 2), useSynchronizationContext: false));
+            pipeSender = new Pipe(new PipeOptions(pauseWriterThreshold: maxRemaining, resumeWriterThreshold: (maxRemaining / 2), useSynchronizationContext: false));
+            pipeWriter = new Pipe(new PipeOptions(pauseWriterThreshold: maxRemaining, resumeWriterThreshold: (maxRemaining / 2), useSynchronizationContext: false));
             _ = ProcessWrite();
             _ = Sender();
             _ = Recver();
@@ -99,10 +103,8 @@ namespace linker.tunnel.connection
                     {
                         Memory<byte> memory = pipeWriter.Writer.GetMemory(8 * 1024);
                         length = await Stream.ReadAsync(memory).ConfigureAwait(false);
-                        if (length == 0)
-                        {
-                            break;
-                        }
+                        if (length == 0) break;
+                        Interlocked.Add(ref recvRemaining, length);
                         pipeWriter.Writer.Advance(length);
                         await pipeWriter.Writer.FlushAsync().ConfigureAwait(false);
                     }
@@ -111,6 +113,7 @@ namespace linker.tunnel.connection
                         Memory<byte> memory = pipeWriter.Writer.GetMemory(8 * 1024);
                         length = await Socket.ReceiveAsync(memory, SocketFlags.None).ConfigureAwait(false);
                         if (length == 0) break;
+                        Interlocked.Add(ref recvRemaining, length);
                         pipeWriter.Writer.Advance(length);
                         await pipeWriter.Writer.FlushAsync().ConfigureAwait(false);
                     }
@@ -173,6 +176,7 @@ namespace linker.tunnel.connection
                         temp.CopyTo(packetBuffer.Memory.Span);
                         //处理数据包
                         await WritePacket(packetBuffer.Memory.Slice(0, packetLength)).ConfigureAwait(false);
+                        Interlocked.Add(ref recvRemaining, -(packetLength + 4));
 
                         //移动位置
                         offset += 4 + packetLength;
@@ -303,6 +307,7 @@ namespace linker.tunnel.connection
                             } while (sendt < memoryBlock.Length);
                         }
                         Interlocked.Add(ref sendRemaining, -memoryBlock.Length);
+                        SendBytes += memoryBlock.Length;
                     }
                     pipeSender.Reader.AdvanceTo(buffer.End);
                     LastTicks.Update();

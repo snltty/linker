@@ -326,7 +326,7 @@ namespace linker.tun
             Span<byte> ipPacket = Buffer.AsSpan(Offset + 4);
             if (Version == 4) TTL = --ipPacket[8];
             else if (Version == 6) TTL = --ipPacket[7];
-            ChecksumHelper.Checksum(ipPacket, false);
+            ChecksumHelper.Checksum(ipPacket, true, false);
 
             return true;
 

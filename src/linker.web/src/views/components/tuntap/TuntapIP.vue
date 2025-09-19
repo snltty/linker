@@ -21,7 +21,7 @@
                     <el-checkbox class="mgr-1" v-model="state.ruleForm.DisableNat" label="禁用NAT" size="large" />
                     <!-- <el-checkbox class="mgr-1" v-model="state.ruleForm.TcpMerge" label="TCP包合并" size="large" /> -->
                     <el-checkbox class="mgr-1" v-model="state.ruleForm.InterfaceOrder" label="网卡顺序" size="large" />
-                    <el-checkbox v-model="state.ruleForm.FakeAck" label="伪ACK" size="large" />
+                    <!-- <el-checkbox v-model="state.ruleForm.FakeAck" label="伪ACK" size="large" /> -->
             </el-form-item>
         </el-form>
     </div>

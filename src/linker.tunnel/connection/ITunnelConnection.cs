@@ -158,6 +158,15 @@ namespace linker.tunnel.connection
         public long SendBufferFree { get; }
 
         /// <summary>
+        /// 发送缓冲区剩余大小
+        /// </summary>
+        public long RecvBufferRemaining { get; }
+        /// <summary>
+        /// 发送缓冲区剩余比例
+        /// </summary>
+        public long RecvBufferFree { get; }
+
+        /// <summary>
         /// 最后通信时间
         /// </summary>
         public LastTicksManager LastTicks { get; }
