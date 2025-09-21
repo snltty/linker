@@ -1,7 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.extends;
 using linker.libs.timer;
-using System;
 using System.Buffers;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
@@ -27,6 +26,7 @@ namespace linker.nat
         private ValueTuple<uint, uint>[] lans = [];
         private readonly ConcurrentDictionary<(uint srcIp, ushort srcPort), DstCacheInfo> dic = new();
         private readonly ConcurrentDictionary<(uint srcIp, ushort srcPort, uint dstIp, ushort dstPort), UdpState> udpMap = new();
+        private readonly ConcurrentDictionary<uint, IcmpState> icmpMap = new();
         public LinkerDstProxy()
         {
             Clear();
@@ -120,7 +120,7 @@ namespace linker.nat
                 state.Target.SafeClose();
             }
         }
-        private async Task CopyToAsync(Memory<byte> buffer, Socket source, Socket target)
+        private static async Task CopyToAsync(Memory<byte> buffer, Socket source, Socket target)
         {
             try
             {
@@ -281,12 +281,18 @@ namespace linker.nat
             (uint srcIp, ushort srcPort) key = (p.SrcAddr, p.SrcPort);
             if (dic.TryGetValue(key, out DstCacheInfo cache) == false || cache.IP != p.DstAddr || cache.Port != p.DstPort)
             {
-                if (p.IsOnlySyn == false) return true;
+                //仅SYN包建立映射
+                if (p.IsOnlySyn == false)
+                {
+                    return true;
+                }
                 cache = new DstCacheInfo { IP = p.DstAddr, Port = p.DstPort };
                 dic.AddOrUpdate(key, cache, (a, b) => cache);
             }
+            //更新最后使用时间
             cache.LastTime = Environment.TickCount64;
 
+            //FIN或RST包，标记为结束
             if (p.TcpFlagFin || p.TcpFlagRst)
             {
                 cache.Fin = true;
@@ -324,9 +330,20 @@ namespace linker.nat
         {
             if (p.IcmpType == 8)
             {
-                using Ping ping = new Ping();
-                PingReply reply = ping.Send(NetworkHelper.ToIP(p.DstAddr), 1000);
-                if (reply.Status != IPStatus.Success)
+                if (icmpMap.TryGetValue(p.DstAddr, out IcmpState state) == false)
+                {
+                    state = new IcmpState();
+                    icmpMap.AddOrUpdate(p.DstAddr, state, (a, b) => state);
+                    Ping(NetworkHelper.ToIP(p.DstAddr), state);
+                }
+                if (state.Times > 5 || Environment.TickCount64 - state.LastTime > 15 * 1000)
+                {
+                    _ = PingAsync(NetworkHelper.ToIP(p.DstAddr), state);
+                }
+
+                state.Times++;
+                state.LastTime = Environment.TickCount64;
+                if (state.Status != IPStatus.Success)
                 {
                     return false;
                 }
@@ -340,6 +357,20 @@ namespace linker.nat
             }
             return true;
         }
+        private static void Ping(IPAddress ip, IcmpState state)
+        {
+            state.Times = 0;
+            using Ping ping = new Ping();
+            PingReply reply = ping.Send(ip, 1000);
+            state.Status = reply.Status;
+        }
+        private static async Task PingAsync(IPAddress ip, IcmpState state)
+        {
+            state.Times = 0;
+            using Ping ping = new Ping();
+            PingReply reply = await ping.SendPingAsync(ip, 1000);
+            state.Status = reply.Status;
+        }
 
         private void Clear()
         {
@@ -349,6 +380,10 @@ namespace linker.nat
                 {
                     dic.TryRemove(item, out _);
                 }
+                foreach (var item in icmpMap.Where(c => Environment.TickCount64 - c.Value.LastTime > 30 * 1000).Select(c => c.Key).ToList())
+                {
+                    icmpMap.TryRemove(item, out _);
+                }
             }, 30000);
         }
 
@@ -357,7 +392,6 @@ namespace linker.nat
             public long LastTime { get; set; } = Environment.TickCount64;
             public uint IP { get; set; }
             public ushort Port { get; set; }
-
             public bool Fin { get; set; }
         }
 
@@ -372,6 +406,13 @@ namespace linker.nat
             public IPEndPoint SourceEP { get; set; }
             public Socket Target { get; set; }
             public IPEndPoint TargetEP { get; set; }
+        }
+        sealed class IcmpState
+        {
+            public long LastTime { get; set; } = Environment.TickCount64;
+            public IPStatus Status { get; set; } = IPStatus.Unknown;
+            public int Times { get; set; }
+
         }
         readonly unsafe struct DstProxyPacket
         {
