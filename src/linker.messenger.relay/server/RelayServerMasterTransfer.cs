@@ -199,6 +199,22 @@ namespace linker.messenger.relay.server
                      .ThenByDescending(x => x.MaxGbTotalLastBytes == 0 ? long.MaxValue : x.MaxGbTotalLastBytes)
                      .ToList();
         }
+        public List<RelayServerNodeReportInfo188> GetPublicNodes()
+        {
+            var result = reports.Values
+                .Where(c => Environment.TickCount64 - c.LastTicks < 15000)
+                .Where(c => c.Public)
+                .OrderByDescending(c => c.LastTicks);
+
+            return result.OrderByDescending(x => x.MaxConnection == 0 ? int.MaxValue : x.MaxConnection)
+                     .ThenBy(x => x.ConnectionRatio)
+                     .ThenBy(x => x.BandwidthRatio)
+                     .ThenByDescending(x => x.MaxBandwidth == 0 ? double.MaxValue : x.MaxBandwidth)
+                     .ThenByDescending(x => x.MaxBandwidthTotal == 0 ? double.MaxValue : x.MaxBandwidthTotal)
+                     .ThenByDescending(x => x.MaxGbTotal == 0 ? double.MaxValue : x.MaxGbTotal)
+                     .ThenByDescending(x => x.MaxGbTotalLastBytes == 0 ? long.MaxValue : x.MaxGbTotalLastBytes)
+                     .ToList();
+        }
 
 
 

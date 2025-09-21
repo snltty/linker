@@ -18,7 +18,7 @@
                             <strong class="yellow" :title="tuntap.list[item.MachineId].NatError">{{ tuntap.list[item.MachineId].IP }}</strong>
                         </template>
                         <template v-else-if="tuntap.list[item.MachineId].AppNat && tuntap.list[item.MachineId].running">
-                            <strong class="app-nat" :title="`虚拟网卡IP\r\n应用层SNAT\r\n如果无法使用点对网，请重启一次系统`">{{ tuntap.list[item.MachineId].IP }}</strong>
+                            <strong class="app-nat" :title="`虚拟网卡IP\r\n应用层DNAT`">{{ tuntap.list[item.MachineId].IP }}</strong>
                         </template>
                         <template v-else-if="tuntap.list[item.MachineId].running">
                             <strong class="green gateway" :title="`虚拟网卡IP\r\n系统NAT`">{{ tuntap.list[item.MachineId].IP }}</strong>

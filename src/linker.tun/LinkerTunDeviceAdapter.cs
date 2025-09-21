@@ -1,7 +1,9 @@
 ﻿using linker.libs;
 using linker.libs.timer;
+using linker.tun.device;
+using linker.tun.hook;
 using System.Net;
-using static linker.snat.LinkerDstMapping;
+using static linker.nat.LinkerDstMapping;
 
 namespace linker.tun
 {
@@ -19,12 +21,12 @@ namespace linker.tun
 
         private string natError = string.Empty;
         public string NatError => natError;
-        public bool AppNat => lanSnat.Running;
+        public bool AppNat => lanDnat.Running;
 
         private IPAddress address;
         private byte prefixLength;
-        private readonly LanMap lanMap = new LanMap();
-        private readonly LanSnat lanSnat = new LanSnat();
+        private readonly LinkerTunPacketHookLanMap lanMap = new LinkerTunPacketHookLanMap();
+        private readonly LinkerTunPacketHookLanDstProxy lanDnat = new LinkerTunPacketHookLanDstProxy();
 
 
         private readonly OperatingManager operatingManager = new OperatingManager();
@@ -43,13 +45,12 @@ namespace linker.tun
         }
 
         private ILinkerTunPacketHook[] hooks = [];
+        private ILinkerTunPacketHook[] hooks1 = [];
 
         public LinkerTunDeviceAdapter()
         {
-            hooks = new ILinkerTunPacketHook[]
-            {
-               lanMap,lanSnat
-            };
+            hooks = new ILinkerTunPacketHook[] { lanMap, lanDnat };
+            hooks1 = hooks.OrderByDescending(c => c.Level).ToArray();
         }
 
         /// <summary>
@@ -187,7 +188,7 @@ namespace linker.tun
             if (linkerTunDevice.Running)
             {
                 linkerTunDevice.SetNat(out natError);
-                lanSnat.Setup(address, prefixLength, items, ref natError);
+                lanDnat.Setup(address, prefixLength, items, ref natError);
             }
         }
         /// <summary>
@@ -201,7 +202,7 @@ namespace linker.tun
             }
             natError = string.Empty;
             linkerTunDevice.RemoveNat(out string error);
-            lanSnat.Shutdown();
+            lanDnat.Shutdown();
         }
 
         /// <summary>
@@ -274,6 +275,7 @@ namespace linker.tun
             list.AddRange(hooks);
 
             this.hooks = list.Distinct().OrderBy(c => c.Level).ToArray();
+            hooks1 = this.hooks.OrderByDescending(c => c.Level).ToArray();
         }
 
         private void Read()
@@ -298,7 +300,9 @@ namespace linker.tun
                         packet.Unpacket(buffer, 0, length);
                         if (packet.DistIPAddress.Length == 0) continue;
 
-                        for (int i = 0; i < hooks.Length; i++) if (hooks[i].ReadAfter(packet.IPPacket) == false) goto end;
+                        for (int i = 0; i < hooks1.Length; i++) if (hooks1[i].Read(packet.IPPacket) == false) goto end;
+                        ChecksumHelper.ChecksumWithZero(packet.IPPacket);
+
                         await linkerTunDeviceCallback.Callback(packet).ConfigureAwait(false);
 
                     end:;
@@ -322,7 +326,9 @@ namespace linker.tun
         {
             if (linkerTunDevice == null || Status != LinkerTunDeviceStatus.Running || new LinkerTunDevicValidatePacket(buffer).IsValid == false) return false;
 
-            for (int i = 0; i < hooks.Length; i++) if (hooks[i].WriteBefore(srcId, buffer) == false) return false;
+            for (int i = 0; i < hooks.Length; i++) if (hooks[i].Write(srcId, buffer) == false) return false;
+            ChecksumHelper.ChecksumWithZero(buffer);
+
             return linkerTunDevice.Write(buffer);
         }
 
@@ -332,14 +338,14 @@ namespace linker.tun
         /// <param name="maps"></param>
         public void SetMap(DstMapInfo[] maps)
         {
-            lanMap.SetMap(maps, AppNat == false);
+            lanMap.SetMap(maps);
         }
         /// <summary>
         /// 移除映射
         /// </summary>
         public void RemoveMap()
         {
-            lanMap.SetMap([], AppNat == false);
+            lanMap.SetMap([]);
         }
 
         public async Task<bool> CheckAvailable(bool order = false)

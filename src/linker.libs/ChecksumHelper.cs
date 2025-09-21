@@ -1,15 +1,93 @@
 ﻿using System;
 using System.Buffers.Binary;
 using System.Net.Sockets;
-
 namespace linker.libs
 {
     public sealed class ChecksumHelper
     {
         /// <summary>
+        /// 清空IP包的校验和
+        /// </summary>
+        /// <param name="ptr"></param>
+        /// <param name="ipHeader">是否情况IP头校验和</param>
+        /// <param name="payload">是否清空荷载协议校验和</param>
+        public static unsafe void ClearChecksum(byte* ptr, bool ipHeader = true, bool payload = true)
+        {
+            byte ipHeaderLength = (byte)((*ptr & 0b1111) * 4);
+            byte* packetPtr = ptr + ipHeaderLength;
+
+            if (ipHeader)
+            {
+                *(ushort*)(ptr + 10) = 0;
+            }
+            if (payload)
+            {
+                int index = (ProtocolType)(*(ptr + 9)) switch
+                {
+                    ProtocolType.Icmp => 2,
+                    ProtocolType.Tcp => 16,
+                    ProtocolType.Udp => 6,
+                    _ => -1,
+                };
+                if (index > 0)
+                {
+                    *(ushort*)(packetPtr + index) = 0;
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// 计算IP包的校验和，当校验和为0时才计算
+        /// </summary>
+        /// <param name="packet">一个完整的IP包</param>
+        /// <param name="ipHeader">是否计算IP头校验和</param>
+        /// <param name="payload">是否计算荷载协议校验和</param>
+        public static unsafe void ChecksumWithZero(ReadOnlyMemory<byte> packet, bool ipHeader = true, bool payload = true)
+        {
+            ChecksumWithZero(packet.Span, ipHeader, payload);
+        }
+        /// <summary>
+        /// 计算IP包的校验和，当校验和为0时才计算
+        /// </summary>
+        /// <param name="packet">一个完整的IP包</param>
+        /// <param name="ipHeader">是否计算IP头校验和</param>
+        /// <param name="payload">是否计算荷载协议校验和</param>
+        public static unsafe void ChecksumWithZero(ReadOnlySpan<byte> packet, bool ipHeader = true, bool payload = true)
+        {
+            fixed (byte* ptr = packet)
+            {
+                ChecksumWithZero(ptr, ipHeader, payload);
+            }
+        }
+        /// <summary>
+        /// 计算IP包的校验和，当校验和为0时才计算
+        /// </summary>
+        /// <param name="ptr">IP包指针</param>
+        /// <param name="ipHeader">是否计算IP头校验和</param>
+        /// <param name="payload">是否计算荷载协议校验和</param>
+        public static unsafe void ChecksumWithZero(byte* ptr, bool ipHeader = true, bool payload = true)
+        {
+            byte ipHeaderLength = (byte)((*ptr & 0b1111) * 4);
+            byte* packetPtr = ptr + ipHeaderLength;
+
+            ipHeader = ipHeader && *(ushort*)(ptr + 10) == 0;
+            payload = payload && ((ProtocolType)(*(ptr + 9)) switch
+            {
+                ProtocolType.Icmp => *(ushort*)(packetPtr + 2) == 0,
+                ProtocolType.Tcp => *(ushort*)(packetPtr + 16) == 0,
+                ProtocolType.Udp => *(ushort*)(packetPtr + 6) == 0,
+                _ => false,
+            });
+            if (ipHeader || payload)
+                Checksum(ptr, ipHeader, payload);
+        }
+
+        /// <summary>
         /// 计算IP包的校验和
         /// </summary>
         /// <param name="packet">一个完整的IP包</param>
+        /// <param name="ipHeader">是否计算IP头校验和</param>
         /// <param name="payload">是否计算荷载协议校验和</param>
         public static unsafe void Checksum(ReadOnlyMemory<byte> packet, bool ipHeader = true, bool payload = true)
         {
@@ -19,6 +97,7 @@ namespace linker.libs
         /// 计算IP包的校验和
         /// </summary>
         /// <param name="packet">一个完整的IP包</param>
+        /// <param name="ipHeader">是否计算IP头校验和</param>
         /// <param name="payload">是否计算荷载协议校验和</param>
         public static unsafe void Checksum(ReadOnlySpan<byte> packet, bool ipHeader = true, bool payload = true)
         {
@@ -31,7 +110,7 @@ namespace linker.libs
         /// 计算IP包的校验和
         /// </summary>
         /// <param name="ptr">IP包指针</param>
-        /// <param name="ipHeader">是否计算IP校验和</param>
+        /// <param name="ipHeader">是否计算IP头校验和</param>
         /// <param name="payload">是否计算荷载协议校验和</param>
         public static unsafe void Checksum(byte* ptr, bool ipHeader = true, bool payload = true)
         {

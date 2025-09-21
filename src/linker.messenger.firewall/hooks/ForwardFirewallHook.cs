@@ -1,6 +1,6 @@
 ﻿
 using linker.messenger.forward.proxy;
-using linker.snat;
+using linker.nat;
 using System.Net;
 using System.Net.Sockets;
 

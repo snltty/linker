@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text.RegularExpressions;
 
-namespace linker.tun
+namespace linker.tun.device
 {
     [SupportedOSPlatform("windows")]
     internal sealed class LinkerWinTunDevice : ILinkerTunDevice
@@ -16,7 +16,7 @@ namespace linker.tun
         public string Name => name;
         public bool Running => session != 0;
 
-        private IntPtr waitHandle = IntPtr.Zero, adapter = IntPtr.Zero, session = IntPtr.Zero;
+        private nint waitHandle = nint.Zero, adapter = nint.Zero, session = nint.Zero;
         private int interfaceNumber = 0;
         private IPAddress address;
         private byte prefixLength = 24;
@@ -31,15 +31,15 @@ namespace linker.tun
 
         public bool Setup(LinkerTunDeviceSetupInfo info, out string error)
         {
-            this.name = info.Name;
-            this.address = info.Address;
-            this.prefixLength = info.PrefixLength;
+            name = info.Name;
+            address = info.Address;
+            prefixLength = info.PrefixLength;
 
 
             error = string.Empty;
             if (adapter != 0)
             {
-                error = ($"Adapter already exists");
+                error = $"Adapter already exists";
                 return false;
             }
 
@@ -49,10 +49,10 @@ namespace linker.tun
             for (int i = 0; i < 5; i++)
             {
                 if (
-                    (
+
                         (adapter = WinTun.WintunCreateAdapter(name, name, ref guid)) == 0
                         && (adapter = WinTun.WintunOpenAdapter(name)) == 0
-                    )
+
                     || (session = WinTun.WintunStartSession(adapter, 0x400000)) == 0
                 )
                 {
@@ -64,12 +64,12 @@ namespace linker.tun
             }
             if (adapter == 0)
             {
-                error = ($"Failed to create adapter {Marshal.GetLastWin32Error()}");
+                error = $"Failed to create adapter {Marshal.GetLastWin32Error()}";
                 return false;
             }
             if (session == 0)
             {
-                error = ($"Failed to start session");
+                error = $"Failed to start session";
                 Shutdown();
                 return false;
             }
@@ -92,7 +92,7 @@ namespace linker.tun
                     Thread.Sleep(2000);
                 }
             }
-            error = ($"Failed to set adapter ip {Marshal.GetLastWin32Error()}");
+            error = $"Failed to set adapter ip {Marshal.GetLastWin32Error()}";
             Shutdown();
             return false;
 
@@ -167,8 +167,8 @@ namespace linker.tun
             if (session == 0) return;
             try
             {
-                IntPtr oldSession = session;
-                IntPtr oldWaitHandle = waitHandle;
+                nint oldSession = session;
+                nint oldWaitHandle = waitHandle;
 
                 CommandHelper.Windows(string.Empty, new string[] { $"netsh interface set interface {Name} enable" });
                 session = WinTun.WintunStartSession(adapter, 0x400000);
@@ -204,7 +204,7 @@ namespace linker.tun
                 }
 
                 SetupNat();
-                IPAddress network = NetworkHelper.ToNetworkIP(this.address, NetworkHelper.ToPrefixValue(prefixLength));
+                IPAddress network = NetworkHelper.ToNetworkIP(address, NetworkHelper.ToPrefixValue(prefixLength));
                 RemoveOldNat($"{network}/{prefixLength}");
 
                 CommandHelper.PowerShell($"New-NetNat -Name {Name} -InternalIPInterfaceAddressPrefix {network}/{prefixLength}", [], out error);
@@ -243,7 +243,7 @@ namespace linker.tun
                              .Select(c => c.Split(':')).Where(c => c.Length == 2).Select(c => { c[0] = c[0].Trim(); c[1] = c[1].Trim(); return c; })
                              .ToDictionary(c => c[0], c => c[1]);
                          })
-                    .Where(c => (c.TryGetValue("Name", out string name) && name == Name) || (c.TryGetValue("InternalIPInterfaceAddressPrefix", out string ip) && ip == addressPrefix))
+                    .Where(c => c.TryGetValue("Name", out string name) && name == Name || c.TryGetValue("InternalIPInterfaceAddressPrefix", out string ip) && ip == addressPrefix)
                     .Select(c => c["Name"]);
                 foreach (var name in names)
                 {
@@ -351,7 +351,7 @@ namespace linker.tun
             if (session == 0) return Helper.EmptyArray;
             for (; tokenSource.IsCancellationRequested == false;)
             {
-                IntPtr packetPtr = WinTun.WintunReceivePacket(session, out uint size);
+                nint packetPtr = WinTun.WintunReceivePacket(session, out uint size);
                 length = (int)size;
 
                 if (packetPtr != 0)
@@ -382,7 +382,7 @@ namespace linker.tun
         {
             if (session == 0 || tokenSource.IsCancellationRequested) return false;
 
-            IntPtr packetPtr = WinTun.WintunAllocateSendPacket(session, (uint)packet.Length);
+            nint packetPtr = WinTun.WintunAllocateSendPacket(session, (uint)packet.Length);
             if (packetPtr != 0)
             {
                 packet.Span.CopyTo(new Span<byte>((byte*)packetPtr, packet.Length));

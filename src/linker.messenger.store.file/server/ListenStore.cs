@@ -5,6 +5,7 @@ namespace linker.messenger.store.file.server
     public sealed class ListenStore: IListenStore
     {
         public int Port => config.Data.Server.ServicePort;
+        public int ApiPort => config.Data.Server.ApiPort;
 
         private readonly FileConfig config;
         public ListenStore(FileConfig config)
@@ -15,6 +16,11 @@ namespace linker.messenger.store.file.server
         public bool SetPort(int port)
         {
             config.Data.Server.ServicePort = port;
+            return true;
+        }
+        public bool SetApiPort(int port)
+        {
+            config.Data.Server.ApiPort = port;
             return true;
         }
 

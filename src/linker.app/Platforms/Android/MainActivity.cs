@@ -16,7 +16,7 @@ using linker.libs.web;
 using linker.messenger.entry;
 using linker.messenger.tuntap;
 using linker.messenger.updater;
-using linker.tun;
+using linker.tun.device;
 using linker.tunnel.connection;
 using System.Net;
 using System.Net.Sockets;

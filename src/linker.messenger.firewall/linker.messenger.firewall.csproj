@@ -44,7 +44,8 @@
 	  <ProjectReference Include="..\linker.messenger.socks5\linker.messenger.socks5.csproj" />
 	  <ProjectReference Include="..\linker.messenger.sync\linker.messenger.sync.csproj" />
 	  <ProjectReference Include="..\linker.messenger\linker.messenger.csproj" />
-	  <ProjectReference Include="..\linker.snat\linker.snat.csproj" />
+	  <ProjectReference Include="..\linker.nat\linker.nat.csproj" />
+	  <ProjectReference Include="..\linker.snat\linker.nat.csproj" />
 	  <ProjectReference Include="..\linker.tun\linker.tun.csproj" />
 	</ItemGroup>
 

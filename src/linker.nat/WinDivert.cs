@@ -8,7 +8,7 @@ using Microsoft.Win32.SafeHandles;
 
 #pragma warning disable CS1591
 
-namespace linker.snat
+namespace linker.nat
 {
     /// <summary>
     /// WinDivert 包装

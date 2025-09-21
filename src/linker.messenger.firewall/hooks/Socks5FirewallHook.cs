@@ -1,5 +1,5 @@
 ﻿using linker.messenger.socks5;
-using linker.snat;
+using linker.nat;
 using System.Net;
 using System.Net.Sockets;
 

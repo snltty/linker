@@ -3,6 +3,7 @@ using linker.messenger.relay.client;
 using linker.messenger.relay.messenger;
 using linker.messenger.relay.server;
 using linker.messenger.relay.server.validator;
+using linker.messenger.relay.webapi;
 using linker.messenger.sync;
 using Microsoft.Extensions.DependencyInjection;
 namespace linker.messenger.relay
@@ -54,6 +55,8 @@ namespace linker.messenger.relay
             serviceCollection.AddSingleton<IRelayServerWhiteListStore, RelayServerWhiteListStore>();
             serviceCollection.AddSingleton<IRelayServerCdkeyStore, RelayServerCdkeyStore>();
 
+
+            serviceCollection.AddSingleton<WebApiRelayNodesController>();
             return serviceCollection;
         }
         public static ServiceProvider UseRelayServer(this ServiceProvider serviceProvider)
@@ -70,6 +73,10 @@ namespace linker.messenger.relay
 
             RelayServerNodeTransfer relayServerNodeTransfer = serviceProvider.GetService<RelayServerNodeTransfer>();
             RelayServerMasterTransfer relayServerMasterTransfer = serviceProvider.GetService<RelayServerMasterTransfer>();
+
+            IWebApiServer webApiServer = serviceProvider.GetService<IWebApiServer>();
+            webApiServer.AddController(serviceProvider.GetService<WebApiRelayNodesController>());
+
             return serviceProvider;
         }
     }

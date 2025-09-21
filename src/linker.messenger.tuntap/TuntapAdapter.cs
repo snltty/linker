@@ -3,10 +3,10 @@ using linker.libs.extends;
 using linker.libs.timer;
 using linker.messenger.exroute;
 using linker.messenger.signin;
-using linker.tun;
+using linker.tun.device;
 using linker.tunnel.connection;
 using System.Net;
-using static linker.snat.LinkerDstMapping;
+using static linker.nat.LinkerDstMapping;
 
 namespace linker.messenger.tuntap
 {

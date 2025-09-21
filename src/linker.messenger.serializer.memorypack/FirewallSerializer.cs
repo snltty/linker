@@ -1,5 +1,5 @@
 ﻿using linker.messenger.firewall;
-using linker.snat;
+using linker.nat;
 using MemoryPack;
 
 namespace linker.messenger.serializer.memorypack
@@ -29,10 +29,10 @@ namespace linker.messenger.serializer.memorypack
         string DstPort => info.DstPort;
 
         [MemoryPackInclude]
-        snat.LinkerFirewallProtocolType Protocol => info.Protocol;
+        nat.LinkerFirewallProtocolType Protocol => info.Protocol;
 
         [MemoryPackInclude]
-        snat.LinkerFirewallAction Action => info.Action;
+        nat.LinkerFirewallAction Action => info.Action;
 
         [MemoryPackInclude]
         bool Disabled => info.Disabled;
@@ -45,7 +45,7 @@ namespace linker.messenger.serializer.memorypack
 
         [MemoryPackConstructor]
         SerializableFirewallRuleInfo(string id, string srcId, string srcName, string groupId, string dstCIDR, string dstPort,
-            snat.LinkerFirewallProtocolType protocol, snat.LinkerFirewallAction action, bool disabled, int orderby, string remark)
+            nat.LinkerFirewallProtocolType protocol, nat.LinkerFirewallAction action, bool disabled, int orderby, string remark)
         {
             var info = new FirewallRuleInfo
             {
@@ -115,14 +115,14 @@ namespace linker.messenger.serializer.memorypack
         int Disabled => info.Disabled;
 
         [MemoryPackInclude]
-        snat.LinkerFirewallProtocolType Protocol => info.Protocol;
+        nat.LinkerFirewallProtocolType Protocol => info.Protocol;
 
         [MemoryPackInclude]
-        snat.LinkerFirewallAction Action => info.Action;
+        nat.LinkerFirewallAction Action => info.Action;
 
         [MemoryPackConstructor]
-        SerializableFirewallSearchInfo(string groupId, string str, snat.LinkerFirewallProtocolType protocol,
-            snat.LinkerFirewallAction action, int disabled)
+        SerializableFirewallSearchInfo(string groupId, string str, nat.LinkerFirewallProtocolType protocol,
+            nat.LinkerFirewallAction action, int disabled)
         {
             var info = new FirewallSearchInfo
             {

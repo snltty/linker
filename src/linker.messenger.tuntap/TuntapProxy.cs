@@ -1,12 +1,13 @@
 ﻿using linker.tunnel;
 using linker.tunnel.connection;
 using linker.libs;
-using linker.tun;
 using System.Buffers.Binary;
 using linker.messenger.relay.client;
 using linker.messenger.signin;
 using linker.messenger.pcp;
 using linker.messenger.tuntap.cidr;
+using linker.nat;
+using linker.tun.device;
 
 namespace linker.messenger.tuntap
 {
@@ -103,15 +104,15 @@ namespace linker.messenger.tuntap
             uint ip = BinaryPrimitives.ReadUInt32BigEndian(packet.DistIPAddress.Span[^4..]);
             if (tuntapCidrConnectionManager.TryGet(ip, out ITunnelConnection connection) && connection.Connected)
             {
+                /*
+                if (connection.PacketBuffer.Length > 0)
+                {
+                    fakeAckTransfer.Read(packet.IPPacket);
+                }
+                */
                 await connection.SendAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);
                 return;
             }
-            /*
-            if (connection.PacketBuffer.Length > 0)
-            {
-                fakeAckTransfer.Read(packet.IPPacket);
-            }
-            */
 
             //开始操作，开始失败直接丢包
             if (operatingMultipleManager.StartOperation(ip) == false)

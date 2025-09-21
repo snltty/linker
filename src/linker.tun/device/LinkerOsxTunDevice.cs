@@ -4,7 +4,7 @@ using Microsoft.Win32.SafeHandles;
 using System.Net;
 using System.Runtime.InteropServices;
 
-namespace linker.tun
+namespace linker.tun.device
 {
     /// <summary>
     /// osx网卡实现，未测试
@@ -31,13 +31,13 @@ namespace linker.tun
 
         public bool Setup(LinkerTunDeviceSetupInfo info, out string error)
         {
-            this.name = "utun0";
+            name = "utun0";
             error = string.Empty;
 
-            this.address = info.Address;
-            this.prefixLength = info.PrefixLength;
+            address = info.Address;
+            prefixLength = info.PrefixLength;
 
-            IntPtr arg = Marshal.AllocHGlobal(4);
+            nint arg = Marshal.AllocHGlobal(4);
             Marshal.WriteInt32(arg, 0);
             try
             {
@@ -51,7 +51,7 @@ namespace linker.tun
                     error = $"open utun failed: {Marshal.GetLastWin32Error()}";
                     return false;
                 }
-                this.name = $"utun{Marshal.ReadInt32(arg)}";
+                name = $"utun{Marshal.ReadInt32(arg)}";
 
                 fsRead = new FileStream(safeFileHandle, FileAccess.Read, 65 * 1024, true);
                 fsWrite = new FileStream(safeFileHandle, FileAccess.Write, 65 * 1024, true);
@@ -64,7 +64,7 @@ namespace linker.tun
                     $"route add -net {network}/{prefixLength} {address}",
                 });
 
-               
+
                 return true;
             }
             catch (Exception ex)
@@ -99,7 +99,7 @@ namespace linker.tun
             catch (Exception)
             {
             }
-            IPAddress network = NetworkHelper.ToNetworkIP(address, NetworkHelper.ToPrefixValue(this.prefixLength));
+            IPAddress network = NetworkHelper.ToNetworkIP(address, NetworkHelper.ToPrefixValue(prefixLength));
             CommandHelper.Osx(string.Empty, new string[] { $"route delete -net {network}/{prefixLength} {address}" });
         }
         public void Refresh()

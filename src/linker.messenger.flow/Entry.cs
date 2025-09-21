@@ -1,6 +1,7 @@
 ﻿using linker.libs.web;
 using linker.messenger.flow.history;
 using linker.messenger.flow.messenger;
+using linker.messenger.flow.webapi;
 using linker.messenger.forward.proxy;
 using linker.messenger.relay.server;
 using linker.messenger.socks5;
@@ -30,7 +31,7 @@ namespace linker.messenger.flow
 
             serviceCollection.AddSingleton<FlowTunnel>();
             serviceCollection.AddSingleton<TuntapProxy, FlowTuntapProxy>();
-            
+
 
 
 
@@ -85,6 +86,10 @@ namespace linker.messenger.flow
             serviceCollection.AddSingleton<FlowHistoryTransfer>();
 
 
+            serviceCollection.AddSingleton<WebApiOnlineController>();
+            serviceCollection.AddSingleton<WebApiCitysController>();
+
+
             return serviceCollection;
         }
         public static ServiceProvider UseFlowServer(this ServiceProvider serviceProvider)
@@ -108,6 +113,11 @@ namespace linker.messenger.flow
             resolverTransfer.AddResolvers(new List<IResolver> { serviceProvider.GetService<FlowResolver>() });
 
             //FlowHistoryTransfer flowHistoryTransfer = serviceProvider.GetService<FlowHistoryTransfer>();
+            IWebApiServer webApiServer = serviceProvider.GetService<IWebApiServer>();
+            webApiServer.AddControllers(new List<IWebApiController> {
+                serviceProvider.GetService<WebApiOnlineController>(),
+                serviceProvider.GetService<WebApiCitysController>(),
+            });
 
             return serviceProvider;
         }

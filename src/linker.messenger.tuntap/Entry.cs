@@ -8,6 +8,7 @@ using linker.messenger.tunnel;
 using linker.messenger.tuntap.cidr;
 using linker.messenger.tuntap.lease;
 using linker.messenger.tuntap.messenger;
+using linker.nat;
 using linker.tun;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
@@ -44,8 +45,9 @@ namespace linker.messenger.tuntap
             serviceCollection.AddSingleton<TuntapCidrMapfileManager>();
 
 
+            serviceCollection.AddSingleton<LinkerFakeAckTransfer>();
             serviceCollection.AddSingleton<FakeAckTransfer>();
-
+            
 
             return serviceCollection;
         }

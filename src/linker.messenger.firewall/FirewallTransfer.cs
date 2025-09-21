@@ -1,5 +1,5 @@
 ﻿using linker.messenger.signin;
-using linker.snat;
+using linker.nat;
 
 namespace linker.messenger.firewall
 {

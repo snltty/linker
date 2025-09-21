@@ -1,5 +1,5 @@
-﻿using linker.snat;
-using linker.tun;
+﻿using linker.nat;
+using linker.tun.hook;
 
 namespace linker.messenger.firewall.hooks
 {
@@ -13,13 +13,13 @@ namespace linker.messenger.firewall.hooks
             this.linkerFirewall = linkerFirewall;
         }
 
-        public unsafe bool ReadAfter(ReadOnlyMemory<byte> packet)
+        public unsafe bool Read(ReadOnlyMemory<byte> packet)
         {
             linkerFirewall.AddAllow(packet);
             return true;
         }
 
-        public unsafe bool WriteBefore(string srcId, ReadOnlyMemory<byte> packet)
+        public unsafe bool Write(string srcId, ReadOnlyMemory<byte> packet)
         {
             return linkerFirewall.Check(srcId, packet);
         }

@@ -5,7 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Net;
 
-namespace linker.snat
+namespace linker.nat
 {
     /// <summary>
     /// 网段映射
@@ -14,8 +14,8 @@ namespace linker.snat
     public sealed class LinkerDstMapping
     {
         private FrozenDictionary<uint, uint> mapDic = new Dictionary<uint, uint>().ToFrozenDictionary();
-        private uint[] masks = Array.Empty<uint>();
-        private ConcurrentDictionary<uint, uint> natDic = new ConcurrentDictionary<uint, uint>();
+        private uint[] masks = [];
+        private readonly ConcurrentDictionary<uint, uint> natDic = new ConcurrentDictionary<uint, uint>();
 
         /// <summary>
         /// 设置映射目标
@@ -26,7 +26,7 @@ namespace linker.snat
             if (maps == null || maps.Length == 0)
             {
                 mapDic = new Dictionary<uint, uint>().ToFrozenDictionary();
-                masks = Array.Empty<uint>();
+                masks = [];
                 natDic.Clear();
                 return;
             }
@@ -83,7 +83,7 @@ namespace linker.snat
         /// </summary>
         /// <param name="packet">TCP/IP</param>
         /// <param name="checksum">是否计算校验和，如果使用了应用层NAT，可以交给应用层NAT去计算校验和</param>
-        public void ToRealDst(ReadOnlyMemory<byte> packet, bool checksum = true)
+        public void ToRealDst(ReadOnlyMemory<byte> packet)
         {
             //只支持映射IPV4
             if ((byte)(packet.Span[0] >> 4 & 0b1111) != 4) return;
@@ -101,8 +101,8 @@ namespace linker.snat
                 {
                     uint realDist = realNetwork | (fakeDist & ~masks[i]);
                     //修改目标IP
-                    ReWriteIP(packet, realDist, 16, checksum);
-                    if(natDic.TryGetValue(realDist,out uint value) == false || value != fakeDist)
+                    ReWriteIP(packet, realDist, 16);
+                    if (natDic.TryGetValue(realDist, out uint value) == false || value != fakeDist)
                     {
                         natDic.AddOrUpdate(realDist, fakeDist, (a, b) => fakeDist);
                     }
@@ -116,18 +116,14 @@ namespace linker.snat
         /// <param name="packet">IP包</param>
         /// <param name="newIP">大端IP</param>
         /// <param name="pos">写入位置，源12，目的16</param>
-        /// <param name="checksum">是否计算校验和，当windows使用应用层NAT后，会计算一次，这样可以减少一次计算</param>
-        private unsafe void ReWriteIP(ReadOnlyMemory<byte> packet, uint newIP, int pos, bool checksum = true)
+        private unsafe void ReWriteIP(ReadOnlyMemory<byte> packet, uint newIP, int pos)
         {
             fixed (byte* ptr = packet.Span)
             {
                 //修改目标IP，需要小端写入，IP计算都是按大端的，操作是小端的，所以转换一下
                 *(uint*)(ptr + pos) = BinaryPrimitives.ReverseEndianness(newIP);
-                if (checksum)
-                {
-                    //计算校验和
-                    ChecksumHelper.Checksum(ptr);
-                }
+                //清空校验和，等待重新计算
+                *(ushort*)(ptr + 10) = 0;
             }
         }
 

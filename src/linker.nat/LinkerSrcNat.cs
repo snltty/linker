@@ -9,7 +9,7 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 
-namespace linker.snat
+namespace linker.nat
 {
     /// <summary>
     /// 64位，放x64的WinDivert.dll和WinDivert64.sys
@@ -550,8 +550,6 @@ namespace linker.snat
             /// </summary>
             public byte Version => (byte)((*ptr >> 4) & 0b1111);
             public ProtocolType Protocol => (ProtocolType)(*(ptr + 9));
-
-
 
             /// <summary>
             /// 源地址

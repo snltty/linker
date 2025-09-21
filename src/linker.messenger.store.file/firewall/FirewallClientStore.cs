@@ -16,8 +16,8 @@ namespace linker.messenger.store.file.firewall
             this.runningConfig = runningConfig;
         }
 
-        public snat.LinkerFirewallState State => runningConfig.Data.Firewall.State;
-        public void SetState(snat.LinkerFirewallState state)
+        public nat.LinkerFirewallState State => runningConfig.Data.Firewall.State;
+        public void SetState(nat.LinkerFirewallState state)
         {
             runningConfig.Data.Firewall.State = state;
             runningConfig.Data.Update();

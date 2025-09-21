@@ -10,7 +10,6 @@ using linker.messenger.relay.client;
 using linker.messenger.channel;
 using linker.messenger.signin;
 using linker.messenger.pcp;
-using static linker.snat.WinDivert;
 using System.Buffers;
 
 namespace linker.messenger.socks5

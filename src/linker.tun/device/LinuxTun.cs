@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text;
 
-namespace linker.tun
+namespace linker.tun.device
 {
     internal static class LinuxAPI
     {
@@ -33,7 +33,7 @@ namespace linker.tun
         [DllImport("libc.so.6", EntryPoint = "read", SetLastError = true)]
         internal static extern int Read(int handle, byte[] data, int length);
         [DllImport("libc.so.6", EntryPoint = "read", SetLastError = true)]
-        internal static extern int Read(int handle, IntPtr data, int length);
+        internal static extern int Read(int handle, nint data, int length);
 
         [DllImport("libc.so.6", EntryPoint = "write", SetLastError = true)]
         internal static extern int Write(int handle, byte[] data, int length);
@@ -45,7 +45,7 @@ namespace linker.tun
             Array.Resize(ref ifreqFREG0, 16);
             byte[] ifreqFREG1 = { 0x01, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
             byte[] ifreq = BytesPlusBytes(ifreqFREG0, ifreqFREG1);
-            return LinuxAPI.Ioctl(device, request, ifreq);
+            return Ioctl(device, request, ifreq);
         }
         internal static byte[] BytesPlusBytes(byte[] A, byte[] B)
         {

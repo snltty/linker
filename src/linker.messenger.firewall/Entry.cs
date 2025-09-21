@@ -4,7 +4,8 @@ using linker.messenger.firewall.hooks;
 using linker.messenger.forward.proxy;
 using linker.messenger.socks5;
 using linker.messenger.sync;
-using linker.snat;
+using linker.nat;
+using linker.tun.hook;
 using linker.tun;
 using Microsoft.Extensions.DependencyInjection;
 

@@ -1,4 +1,4 @@
-﻿using linker.snat;
+﻿using linker.nat;
 
 namespace linker.messenger.firewall
 {
@@ -17,7 +17,7 @@ namespace linker.messenger.firewall
         public bool Check(FirewallCheckInfo info);
     }
 
-    public sealed class FirewallRuleInfo : linker.snat.LinkerFirewallRuleInfo
+    public sealed class FirewallRuleInfo : linker.nat.LinkerFirewallRuleInfo
     {
         public string Id { get; set; }
         public string GroupId { get; set; }

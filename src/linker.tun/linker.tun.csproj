@@ -38,7 +38,7 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\linker.libs\linker.libs.csproj" />
-		<ProjectReference Include="..\linker.snat\linker.snat.csproj" />
+		<ProjectReference Include="..\linker.nat\linker.nat.csproj" />
 	</ItemGroup>
 
 </Project>

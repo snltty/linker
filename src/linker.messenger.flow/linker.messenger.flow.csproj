@@ -47,5 +47,6 @@
 		<ProjectReference Include="..\linker.messenger.tunnel\linker.messenger.tunnel.csproj" />
 		<ProjectReference Include="..\linker.messenger.tuntap\linker.messenger.tuntap.csproj" />
 		<ProjectReference Include="..\linker.messenger\linker.messenger.csproj" />
+		<ProjectReference Include="..\linker.nat\linker.nat.csproj" />
 	</ItemGroup>
 </Project>

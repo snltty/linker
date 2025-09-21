@@ -1,24 +1,19 @@
 ﻿using linker.libs;
-using linker.snat;
+using linker.nat;
+using linker.tun.device;
 using System.Net;
 
-namespace linker.tun
+namespace linker.tun.hook
 {
-    internal sealed class LanSnat : ILinkerTunPacketHook
+    internal sealed class LinkerTunPacketHookLanDstProxy : ILinkerTunPacketHook
     {
         public LinkerTunPacketHookLevel Level => LinkerTunPacketHookLevel.Highest;
-        public bool Running => linkerSrcNat.Running;
+        private LinkerDstProxy linkerDstNat = new LinkerDstProxy();
 
-        private LinkerSrcNat linkerSrcNat = new LinkerSrcNat();
+        public bool Running => linkerDstNat.Running;
 
-
-        public LanSnat()
+        public LinkerTunPacketHookLanDstProxy()
         {
-        }
-
-        private void Helper_OnAppExit(object sender, EventArgs e)
-        {
-            Shutdown();
         }
 
         public void Setup(IPAddress address, byte prefixLength, LinkerTunAppNatItemInfo[] items, ref string error)
@@ -27,7 +22,7 @@ namespace linker.tun
 
             if (address == null || address.Equals(IPAddress.Any) || prefixLength == 0)
             {
-                error = "SNAT need CIDR,like 10.18.18.0/24";
+                error = "DProxy need CIDR,like 10.18.18.0/24";
                 return;
             }
 
@@ -46,17 +41,13 @@ namespace linker.tun
             }
 
             Shutdown();
-            linkerSrcNat.Setup(new LinkerSrcNat.SetupInfo
-            {
-                Src = address,
-                Dsts = items.Select(c => new LinkerSrcNat.AddrInfo(c.IP, c.PrefixLength)).ToArray()
-            }, ref error);
+            linkerDstNat.Setup(address, items.Select(c => new ValueTuple<IPAddress, byte>(c.IP, c.PrefixLength)).ToArray(), ref error);
         }
         public void Shutdown()
         {
             try
             {
-                linkerSrcNat.Shutdown();
+                linkerDstNat.Shutdown();
             }
             catch (Exception)
             {
@@ -64,13 +55,14 @@ namespace linker.tun
             GC.Collect();
         }
 
-        public bool ReadAfter(ReadOnlyMemory<byte> packet)
+        public bool Read(ReadOnlyMemory<byte> packet)
         {
+            linkerDstNat.Read(packet);
             return true;
         }
-        public bool WriteBefore(string srcId, ReadOnlyMemory<byte> packet)
+        public bool Write(string srcId, ReadOnlyMemory<byte> packet)
         {
-            return linkerSrcNat.Running == false || linkerSrcNat.Inject(packet) == false;
+            return linkerDstNat.Write(packet);
         }
     }
 }

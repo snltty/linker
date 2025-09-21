@@ -5,7 +5,7 @@ using linker.messenger.relay.client;
 using linker.messenger.signin;
 using linker.messenger.tuntap;
 using linker.messenger.tuntap.cidr;
-using linker.tun;
+using linker.nat;
 using linker.tunnel;
 using linker.tunnel.connection;
 using System.Collections.Concurrent;

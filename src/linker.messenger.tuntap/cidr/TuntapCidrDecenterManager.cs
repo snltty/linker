@@ -1,7 +1,7 @@
 ﻿using linker.libs;
 using linker.messenger.exroute;
 using linker.messenger.signin;
-using linker.tun;
+using linker.tun.device;
 using System.Net;
 
 namespace linker.messenger.tuntap.cidr

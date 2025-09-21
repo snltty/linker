@@ -2,7 +2,8 @@
 using System.Net;
 using linker.tun;
 using linker.libs.timer;
-using static linker.snat.LinkerDstMapping;
+using static linker.nat.LinkerDstMapping;
+using linker.tun.device;
 
 namespace linker.messenger.tuntap
 {

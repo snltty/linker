@@ -1,4 +1,4 @@
-﻿using linker.snat;
+﻿using linker.nat;
 
 namespace linker.messenger.store.file
 {

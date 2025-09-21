@@ -63,7 +63,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "linker.ics", "src\linker.ic
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.plan", "src\linker.messenger.plan\linker.messenger.plan.csproj", "{5649D02E-200B-45E0-A82F-8EBE76CF96C6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.snat", "src\linker.snat\linker.snat.csproj", "{A1EA64AA-8C30-4616-B65D-8AF07641807E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.nat", "src\linker.nat\linker.nat.csproj", "{A1EA64AA-8C30-4616-B65D-8AF07641807E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.firewall", "src\linker.messenger.firewall\linker.messenger.firewall.csproj", "{F97DB5A9-3807-4441-A520-7B1211C1CE8A}"
 EndProject

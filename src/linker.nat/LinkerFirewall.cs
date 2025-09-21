@@ -3,8 +3,8 @@ using linker.libs.timer;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
-using static linker.snat.LinkerSrcNat;
-namespace linker.snat
+using static linker.nat.LinkerSrcNat;
+namespace linker.nat
 {
     /// <summary>
     /// 开启后默认阻止

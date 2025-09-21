@@ -1,7 +1,7 @@
 <template>
     <div class="w-100">
         <div>
-            <span class="yellow">使用系统NAT或应用层SNAT</span>
+            <span class="yellow">使用系统NAT或应用层DNAT</span>
         </div>
         <div class="wrap">
             <el-table stripe  :data="state.lans" border size="small" width="100%" height="400px" @cell-dblclick="handleCellClick">

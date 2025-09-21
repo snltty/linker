@@ -1,12 +1,11 @@
-﻿
-using linker.libs;
+﻿using linker.libs;
 using linker.libs.extends;
 using Microsoft.Win32.SafeHandles;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
-namespace linker.tun
+namespace linker.tun.device
 {
     internal sealed class LinkerLinuxTunDevice : ILinkerTunDevice
     {
@@ -30,13 +29,13 @@ namespace linker.tun
         {
             error = string.Empty;
 
-            this.name = info.Name;
-            this.address = info.Address;
-            this.prefixLength = info.PrefixLength;
+            name = info.Name;
+            address = info.Address;
+            prefixLength = info.PrefixLength;
 
             if (Running)
             {
-                error = ($"Adapter already exists");
+                error = $"Adapter already exists";
                 return false;
             }
             if (Create(out error) == false)
@@ -71,7 +70,7 @@ namespace linker.tun
             string str = CommandHelper.Linux(string.Empty, new string[] { $"ifconfig" });
             if (str.Contains(Name) == false)
             {
-                CommandHelper.Linux(string.Empty, new string[] { $"ip tuntap add mode tun dev {Name}" },out error);
+                CommandHelper.Linux(string.Empty, new string[] { $"ip tuntap add mode tun dev {Name}" }, out error);
                 return false;
             }
 
@@ -173,7 +172,7 @@ namespace linker.tun
 
                     isSupport ? $"iptables -A FORWARD -i {Name} -o {interfaceLinux} -m state --state ESTABLISHED,RELATED -j ACCEPT"
                         :  $"iptables -A FORWARD -i {Name} -o {interfaceLinux} -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT",
-              
+
                     isSupport ? $"iptables -A FORWARD -o {Name} -m state --state ESTABLISHED,RELATED -j ACCEPT"
                     : $"iptables -A FORWARD -o {Name} -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT",
                 });
@@ -184,7 +183,7 @@ namespace linker.tun
                 error = ex.Message;
             }
         }
-      
+
         public void RemoveNat(out string error)
         {
             error = string.Empty;
@@ -198,7 +197,7 @@ namespace linker.tun
                     $"iptables -D FORWARD -i {interfaceLinux} -o {Name} -j ACCEPT",
                     $"iptables -D FORWARD -i {Name} -j ACCEPT",
                     $"iptables -t nat -D POSTROUTING -o {Name} -j MASQUERADE",
-                  
+
                     isSupport ? $"iptables -D FORWARD -i {Name} -o {interfaceLinux} -m state --state ESTABLISHED,RELATED -j ACCEPT"
                     : $"iptables -D FORWARD -i {Name} -o {interfaceLinux} -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT",
 
@@ -340,7 +339,7 @@ namespace linker.tun
                 }
                 catch (Exception ex)
                 {
-                    if(LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
                         LoggerHelper.Instance.Error(ex.Message);
                         LoggerHelper.Instance.Error(string.Join(",", buffer.ToArray()));

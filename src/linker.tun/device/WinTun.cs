@@ -1,10 +1,10 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace linker.tun
+namespace linker.tun.device
 {
     internal static class WinTun
     {
-       
+
 
         [StructLayout(LayoutKind.Explicit, Pack = 1, Size = 80)]
         internal struct MIB_UNICASTIPADDRESS_ROW
@@ -20,7 +20,7 @@ namespace linker.tun
             [FieldOffset(64)]
             public int DadState;
         }
-       
+
 
         [StructLayout(LayoutKind.Explicit, Pack = 1, Size = 104)]
         internal struct MIB_IPFORWARD_ROW2
@@ -52,12 +52,12 @@ namespace linker.tun
         [DllImport("iphlpapi.dll", SetLastError = true)]
         internal static extern uint CreateIpForwardEntry2(ref MIB_IPFORWARD_ROW2 Row);
         [DllImport("kernel32.dll")]
-        internal static extern uint WaitForSingleObject(IntPtr hHandle, uint dwMilliseconds);
+        internal static extern uint WaitForSingleObject(nint hHandle, uint dwMilliseconds);
         [DllImport("kernel32.dll")]
-        internal static extern bool SetEvent(IntPtr hEvent);
+        internal static extern bool SetEvent(nint hEvent);
 
         [DllImport("wintun.dll", SetLastError = true)]
-        internal static extern IntPtr WintunCreateAdapter(
+        internal static extern nint WintunCreateAdapter(
         [MarshalAs(UnmanagedType.LPWStr)]
         string name,
         [MarshalAs(UnmanagedType.LPWStr)]
@@ -68,31 +68,31 @@ namespace linker.tun
         internal static extern uint WintunGetRunningDriverVersion();
 
         [DllImport("wintun.dll", SetLastError = true)]
-        internal static extern void WintunGetAdapterLUID(IntPtr adapter, out ulong luid);
+        internal static extern void WintunGetAdapterLUID(nint adapter, out ulong luid);
 
         [DllImport("wintun.dll", SetLastError = true)]
-        internal static extern IntPtr WintunStartSession(IntPtr adapter, uint capacity);
+        internal static extern nint WintunStartSession(nint adapter, uint capacity);
 
         [DllImport("wintun.dll", SetLastError = true)]
-        internal static extern IntPtr WintunGetReadWaitEvent(IntPtr session);
+        internal static extern nint WintunGetReadWaitEvent(nint session);
 
         [DllImport("wintun.dll", SetLastError = true)]
-        internal static extern IntPtr WintunReceivePacket(IntPtr session, out uint packetSize);
+        internal static extern nint WintunReceivePacket(nint session, out uint packetSize);
 
         [DllImport("wintun.dll", SetLastError = true)]
-        internal static extern void WintunSendPacket(IntPtr session, IntPtr packet);
+        internal static extern void WintunSendPacket(nint session, nint packet);
 
         [DllImport("wintun.dll", SetLastError = true)]
-        internal static extern void WintunEndSession(IntPtr session);
+        internal static extern void WintunEndSession(nint session);
 
         [DllImport("wintun.dll", SetLastError = true)]
-        internal static extern void WintunCloseAdapter(IntPtr adapter);
+        internal static extern void WintunCloseAdapter(nint adapter);
 
         [DllImport("wintun.dll", SetLastError = true)]
-        internal static extern IntPtr WintunAllocateSendPacket(IntPtr session, uint packetSize);
+        internal static extern nint WintunAllocateSendPacket(nint session, uint packetSize);
 
         [DllImport("wintun.dll", SetLastError = true)]
-        internal static extern IntPtr WintunOpenAdapter(
+        internal static extern nint WintunOpenAdapter(
             [MarshalAs(UnmanagedType.LPWStr)]
         string name);
 
@@ -100,7 +100,7 @@ namespace linker.tun
         internal static extern bool WintunDeleteDriver();
 
         [DllImport("wintun.dll", SetLastError = true)]
-        internal static extern void WintunReleaseReceivePacket(IntPtr session, IntPtr packet);
+        internal static extern void WintunReleaseReceivePacket(nint session, nint packet);
 
         [DllImport("wintun.dll", SetLastError = true)]
         internal static extern void WintunSetLogger(WINTUN_LOGGER_CALLBACK newLogger);

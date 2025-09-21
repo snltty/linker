@@ -1,9 +1,9 @@
 ﻿using linker.libs;
 using linker.messenger.exroute;
 using linker.messenger.signin;
-using linker.snat;
+using linker.nat;
 using System.Net;
-using static linker.snat.LinkerDstMapping;
+using static linker.nat.LinkerDstMapping;
 
 namespace linker.messenger.socks5
 {
