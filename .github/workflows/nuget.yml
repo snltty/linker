@@ -50,7 +50,7 @@ jobs:
         dotnet build ./src/linker.messenger.firewall -c release
         dotnet build ./src/linker.messenger.wakeup -c release
         dotnet build ./src/linker.tun -c release
-        dotnet build ./src/linker.snat -c release
+        dotnet build ./src/linker.nat -c release
         dotnet build ./src/linker.tunnel -c release
 
     - name: Pack
@@ -85,7 +85,7 @@ jobs:
         dotnet pack ./src/linker.messenger.wakeup -c release
         dotnet pack ./src/linker.messenger.wlist -c release
         dotnet pack ./src/linker.tun -c release
-        dotnet pack ./src/linker.snat -c release
+        dotnet pack ./src/linker.nat -c release
         dotnet pack ./src/linker.tunnel -c release
         
     - name: Push
@@ -120,5 +120,5 @@ jobs:
         dotnet nuget push ./src/linker.messenger.wakeup/bin/release/linker.messenger.wakeup.1.9.1.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{ secrets.NUGET_KEY }} --no-symbols
         dotnet nuget push ./src/linker.messenger.wlist/bin/release/linker.messenger.wlist.1.9.1.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{ secrets.NUGET_KEY }} --no-symbols
         dotnet nuget push ./src/linker.tun/bin/release/linker.tun.1.9.1.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{ secrets.NUGET_KEY }} --no-symbols
-        dotnet nuget push ./src/linker.snat/bin/release/linker.snat.1.9.1.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{ secrets.NUGET_KEY }} --no-symbols
+        dotnet nuget push ./src/linker.nat/bin/release/linker.nat.1.9.1.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{ secrets.NUGET_KEY }} --no-symbols
         dotnet nuget push ./src/linker.tunnel/bin/release/linker.tunnel.1.9.1.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{ secrets.NUGET_KEY }} --no-symbols

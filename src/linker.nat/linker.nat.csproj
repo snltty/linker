@@ -8,14 +8,14 @@
 		<PublishAot>false</PublishAot>
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
 		<EnablePreviewFeatures>True</EnablePreviewFeatures>
-		<Title>linker snat</Title>
+		<Title>linker nat</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>linker snat</Description>
+		<Description>linker nat</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
-		<PackageReleaseNotes>linker snat</PackageReleaseNotes>
+		<PackageReleaseNotes>linker nat</PackageReleaseNotes>
 		<Version>1.9.1</Version>
 		<AssemblyVersion>1.9.1</AssemblyVersion>
 		<FileVersion>1.9.1</FileVersion>
