@@ -21,7 +21,7 @@ jobs:
           release_name: v1.9.1.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 一些累计更新\r\n2. 服务器转发多节点\r\n3. 虚拟网卡下伪造ACK为TCP-in-TCP隧道提速\r\n4. 新增一个UDP同时打开的打洞协议，优化了一下其它打洞协议\r\n5. 一些代码优化，修复一些错误，其它一些小改变"
+          body: "1. 一些累计更新\r\n2. 服务器转发多节点\r\n3. 新增一个UDP同时打开的打洞协议，优化了一下其它打洞协议\r\n4. 一些代码优化，修复一些错误，其它一些小改变"
       - name: setup node.js
         uses: actions/setup-node@v2
         with:
