@@ -45,7 +45,6 @@ namespace linker.messenger.tuntap
             serviceCollection.AddSingleton<TuntapCidrMapfileManager>();
 
 
-            serviceCollection.AddSingleton<LinkerFakeAckTransfer>();
             serviceCollection.AddSingleton<FakeAckTransfer>();
             
 

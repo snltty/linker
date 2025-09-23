@@ -48,7 +48,7 @@ namespace linker.messenger.tuntap
             /*
             if (connection.ProtocolType == TunnelProtocolType.Tcp && tuntapConfigTransfer.Info.FakeAck && tuntapDecenter.HasSwitchFlag(connection.RemoteMachineId, TuntapSwitch.FakeAck))
             {
-                connection.PacketBuffer = new byte[1];
+                connection.PacketBuffer = new byte[4 * 1024];
             }
             */
             Add(connection);
@@ -68,7 +68,7 @@ namespace linker.messenger.tuntap
         public async Task Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer, object state)
 #pragma warning restore CS1998 // 异步方法缺少 "await" 运算符，将以同步方式运行
         {
-            //if (connection.PacketBuffer.Length > 0) fakeAckTransfer.Write(buffer, connection.SendBufferFree);
+            //if (connection.PacketBuffer.Length > 0) fakeAckTransfer.Write(buffer);
             Callback.Receive(connection, buffer);
         }
         /// <summary>
@@ -91,12 +91,9 @@ namespace linker.messenger.tuntap
         public async Task InputPacket(LinkerTunDevicPacket packet)
         {
             //IPV4广播组播、IPV6 多播
-            if ((packet.IPV4Broadcast || packet.IPV6Multicast) && tuntapConfigTransfer.Info.Multicast == false && connections.IsEmpty == false)
+            if ((packet.IPV4Broadcast /*|| packet.IPV6Multicast*/) && tuntapConfigTransfer.Info.Multicast == false && connections.IsEmpty == false)
             {
-                //if (packet.DecrementTtl())
-                //{
                 await Task.WhenAll(connections.Values.Where(c => c != null && c.Connected).Select(c => c.SendAsync(packet.Buffer, packet.Offset, packet.Length)));
-                //}
                 return;
             }
 
@@ -107,7 +104,15 @@ namespace linker.messenger.tuntap
                 /*
                 if (connection.PacketBuffer.Length > 0)
                 {
-                    fakeAckTransfer.Read(packet.IPPacket);
+                    ushort faleLength = 0;
+                    if (fakeAckTransfer.Read(packet.IPPacket, connection.PacketBuffer, connection.SendBufferFree, out faleLength))
+                    {
+                        return;
+                    }
+                    if (faleLength > 0)
+                    {
+                        Callback.Receive(connection, connection.PacketBuffer.AsMemory(0, faleLength));
+                    }
                 }
                 */
                 await connection.SendAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);

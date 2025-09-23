@@ -298,7 +298,7 @@ namespace linker.tun
                         }
 
                         packet.Unpacket(buffer, 0, length);
-                        if (packet.DistIPAddress.Length == 0) continue;
+                        if (packet.DistIPAddress.Length == 0 || packet.Version != 4) continue;
 
                         for (int i = 0; i < hooks1.Length; i++) if (hooks1[i].Read(packet.IPPacket) == false) goto end;
                         ChecksumHelper.ChecksumWithZero(packet.IPPacket);

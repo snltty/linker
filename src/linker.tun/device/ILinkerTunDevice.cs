@@ -180,8 +180,6 @@ namespace linker.tun.device
         /// </summary>
         public byte Version { get; private set; }
 
-        public byte TTL { get; private set; }
-
         /// <summary>
         /// 协议
         /// </summary>
@@ -195,10 +193,6 @@ namespace linker.tun.device
         /// 源端口
         /// </summary>
         public ushort SourcePort { get; private set; }
-        /// <summary>
-        /// 源
-        /// </summary>
-        public IPEndPoint Source => new IPEndPoint(new IPAddress(SourceIPAddress.Span), SourcePort);
 
         /// <summary>
         /// 目标IP
@@ -208,10 +202,6 @@ namespace linker.tun.device
         /// 目标端口
         /// </summary>
         public ushort DistPort { get; private set; }
-        /// <summary>
-        /// 目标
-        /// </summary>
-        public IPEndPoint Dist => new IPEndPoint(new IPAddress(DistIPAddress.Span), DistPort);
 
         public bool IPV4Broadcast => Version == 4 && DistIPAddress.IsCast();
         public bool IPV6Multicast => Version == 6 && (DistIPAddress.Span[0] & 0xFF) == 0xFF;
@@ -219,17 +209,13 @@ namespace linker.tun.device
         public LinkerTunDevicPacket()
         {
         }
-        public LinkerTunDevicPacket(byte[] buffer, int offset, int length)
-        {
-            Unpacket(buffer, offset, length);
-        }
         public void Unpacket(byte[] buffer, int offset, int length)
         {
             Buffer = buffer;
             Offset = offset;
             Length = length;
 
-            ReadOnlyMemory<byte> ipPacket = Buffer.AsMemory(Offset + 4);
+            ReadOnlyMemory<byte> ipPacket = Buffer.AsMemory(Offset + 4, Length - 4);
             Version = (byte)(ipPacket.Span[0] >> 4 & 0b1111);
 
             SourceIPAddress = Helper.EmptyArray;
@@ -241,7 +227,6 @@ namespace linker.tun.device
                 DistIPAddress = ipPacket.Slice(16, 4);
 
                 ProtocolType = (ProtocolType)ipPacket.Span[9];
-                TTL = ipPacket.Span[8];
 
                 if (ProtocolType == ProtocolType.Tcp || ProtocolType == ProtocolType.Udp)
                 {
@@ -255,7 +240,6 @@ namespace linker.tun.device
                 DistIPAddress = ipPacket.Slice(24, 16);
 
                 ProtocolType = (ProtocolType)ipPacket.Span[6];
-                TTL = ipPacket.Span[7];
 
                 if (ProtocolType == ProtocolType.Tcp || ProtocolType == ProtocolType.Udp)
                 {
@@ -263,19 +247,6 @@ namespace linker.tun.device
                     DistPort = BinaryPrimitives.ReverseEndianness(ipPacket.Slice(44, 2).ToUInt16());
                 }
             }
-        }
-
-        public bool DecrementTtl()
-        {
-            if (TTL <= 0) return false;
-
-            Span<byte> ipPacket = Buffer.AsSpan(Offset + 4);
-            if (Version == 4) TTL = --ipPacket[8];
-            else if (Version == 6) TTL = --ipPacket[7];
-            ChecksumHelper.Checksum(ipPacket, true, false);
-
-            return true;
-
         }
 
     }
@@ -287,7 +258,7 @@ namespace linker.tun.device
             if (packet.Length >= 1)
             {
                 byte version = (byte)(packet.Span[0] >> 4 & 0b1111);
-                int headLength = version == 4 ? (packet.Span[0] & 0b1111) * 4 : 40;
+                int headLength = /*version == 4 ?*/ (packet.Span[0] & 0b1111) * 4 /*: 40*/;
                 if (packet.Length < headLength) return;
 
                 ProtocolType protocolType = version switch

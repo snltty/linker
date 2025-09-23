@@ -34,7 +34,7 @@ namespace linker.tun
         }
         private unsafe void TCPUDPRead(LinkerTunDevicPacket packet)
         {
-            if (packet.Version != 4) return;
+            //if (packet.Version != 4) return;
 
             Memory<byte> writableMemory = packet.Buffer.AsMemory(packet.Offset + 4, packet.Length);
             fixed (byte* ptr = writableMemory.Span)

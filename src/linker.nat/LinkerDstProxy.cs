@@ -34,6 +34,7 @@ namespace linker.nat
 
         public bool Setup(IPAddress dstAddr, ValueTuple<IPAddress, byte>[] dsts, ref string error)
         {
+            Shutdown();
             try
             {
                 if (dsts == null || dsts.Length == 0)
@@ -70,6 +71,7 @@ namespace linker.nat
         }
         private async Task ReceiveTcp()
         {
+            int hashcode = listenSocketTcp.GetHashCode();
             try
             {
                 while (true)
@@ -90,7 +92,8 @@ namespace linker.nat
             catch (Exception ex)
             {
                 LoggerHelper.Instance.Error(ex);
-                Shutdown();
+                if (listenSocketTcp != null && listenSocketTcp.GetHashCode() == hashcode)
+                    Shutdown();
             }
         }
         private async void ConnectCallback(IAsyncResult result)
@@ -146,6 +149,7 @@ namespace linker.nat
 
         private async Task ReceiveUdp()
         {
+            int hashcode = listenSocketUdp.GetHashCode();
             try
             {
                 using IMemoryOwner<byte> memory = MemoryPool<byte>.Shared.Rent(65535);
@@ -183,7 +187,8 @@ namespace linker.nat
             catch (Exception ex)
             {
                 LoggerHelper.Instance.Error(ex);
-                Shutdown();
+                if (listenSocketUdp != null && listenSocketUdp.GetHashCode() == hashcode)
+                    Shutdown();
             }
         }
         private async void ConnectCallback((uint srcIp, ushort srcPort, uint dstIp, ushort dstPort) keyUdp, UdpState state)
@@ -225,11 +230,11 @@ namespace linker.nat
         /// <param name="needChecksum"></param>
         public unsafe void Read(ReadOnlyMemory<byte> packet)
         {
-            if (listenSocketTcp == null) return;
+            if (Running == false) return;
             fixed (byte* ptr = packet.Span)
             {
                 DstProxyPacket p = new DstProxyPacket(ptr);
-                if (p.Version != 4) return;
+                //if (p.Version != 4) return;
 
                 if (p.Protocol == ProtocolType.Tcp || p.Protocol == ProtocolType.Udp)
                 {
@@ -257,11 +262,11 @@ namespace linker.nat
         /// <returns></returns>
         public unsafe bool Write(ReadOnlyMemory<byte> packet)
         {
-            if (listenSocketTcp == null) return true;
+            if (Running == false) return true;
             fixed (byte* ptr = packet.Span)
             {
                 DstProxyPacket p = new DstProxyPacket(ptr);
-                if (p.Version != 4 || p.DstAddr == tunIp || p.DstAddrSpan.IsCast()) return true;
+                if (/*p.Version != 4 ||*/ p.DstAddr == tunIp || p.DstAddrSpan.IsCast()) return true;
 
                 if (lans.Any(c => p.DstAddr >= c.Item1 && p.DstAddr <= c.Item2) == false)
                 {

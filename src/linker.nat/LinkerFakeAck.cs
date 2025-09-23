@@ -5,11 +5,11 @@ using System.Net.Sockets;
 
 namespace linker.nat
 {
-    
+
     /// <summary>
     /// 伪造ACK操作类
     /// </summary>
-    public unsafe sealed class LinkerFakeAckTransfer
+    public unsafe sealed class FakeAckTransfer
     {
         private readonly ConcurrentDictionary<FaceAckKey, FackAckState> dic = new(new FackAckKeyComparer());
 
@@ -28,7 +28,7 @@ namespace linker.nat
             fixed (byte* ptr = packet.Span)
             {
                 FakeAckPacket originPacket = new(ptr);
-                if (originPacket.Version != 4 || originPacket.Protocol != ProtocolType.Tcp)
+                if (originPacket.Protocol != ProtocolType.Tcp)
                 {
                     return false;
                 }
@@ -42,14 +42,18 @@ namespace linker.nat
                         return state.Ack++ > 0;
                     }
 
+                    //originPacket.ClearConfirmNum(ptr);
+
                     fixed (byte* pptr = fakeBuffer.Span)
                     {
-                        ushort win = (ushort)Math.Max(Math.Min(bufferFree * 0.8 / state.WindowScale, 32 * 1024), 4);
+                        ushort win = (ushort)Math.Max(Math.Min(bufferFree / state.WindowScale, 65535), 4);
                         fakeLength = originPacket.ToAck(state.Seq, win, pptr);
+                        /*
                         if (new FakeAckPacket(pptr).Cq <= state.Cq)
                         {
                             fakeLength = 0;
                         }
+                        */
                     }
                 }
                 else if (originPacket.TcpFlagFin || originPacket.TcpFlagRst)
@@ -69,7 +73,7 @@ namespace linker.nat
             fixed (byte* ptr = packet.Span)
             {
                 FakeAckPacket originPacket = new(ptr);
-                if (originPacket.Version != 4 || originPacket.Protocol != ProtocolType.Tcp)
+                if (originPacket.Protocol != ProtocolType.Tcp)
                 {
                     return;
                 }
@@ -283,6 +287,16 @@ namespace linker.nat
                 return totalLength;
             }
 
+            public void ClearConfirmNum(byte* ipPtr)
+            {
+                byte* tcpPtr = ipPtr + (*ptr & 0b1111) * 4;
+
+                *(tcpPtr + 13) = 0b00011000;
+                *(uint*)(tcpPtr + 8) = 0;
+                //计算校验和
+                ChecksumHelper.Checksum(ipPtr);
+            }
+
             /// <summary>
             /// 从TCP的SYN包或SYN+ACK包中，获取窗口缩放比例
             /// </summary>
@@ -327,7 +341,7 @@ namespace linker.nat
     }
 
 
-    public unsafe sealed class FakeAckTransfer
+    public unsafe sealed class FakeAckTransfer1
     {
         private readonly ConcurrentDictionary<FaceAckKey, int> dic = new(new FackAckKeyComparer());
 
@@ -341,7 +355,7 @@ namespace linker.nat
             fixed (byte* ptr = packet.Span)
             {
                 FakeAckPacket originPacket = new(ptr);
-                if (originPacket.Version != 4 || originPacket.Protocol != ProtocolType.Tcp)
+                if (/*originPacket.Version != 4 ||*/ originPacket.Protocol != ProtocolType.Tcp)
                 {
                     return;
                 }
@@ -362,7 +376,7 @@ namespace linker.nat
             fixed (byte* ptr = packet.Span)
             {
                 FakeAckPacket originPacket = new(ptr);
-                if (originPacket.Version != 4 || originPacket.Protocol != ProtocolType.Tcp)
+                if (/*originPacket.Version != 4 ||*/ originPacket.Protocol != ProtocolType.Tcp)
                 {
                     return;
                 }

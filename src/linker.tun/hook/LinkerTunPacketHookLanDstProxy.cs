@@ -22,7 +22,7 @@ namespace linker.tun.hook
 
             if (address == null || address.Equals(IPAddress.Any) || prefixLength == 0)
             {
-                error = "DProxy need CIDR,like 10.18.18.0/24";
+                error = "DstProxy need CIDR,like 10.18.18.0/24";
                 return;
             }
 
@@ -40,7 +40,6 @@ namespace linker.tun.hook
                 LoggerHelper.Instance.Error(ex);
             }
 
-            Shutdown();
             linkerDstNat.Setup(address, items.Select(c => new ValueTuple<IPAddress, byte>(c.IP, c.PrefixLength)).ToArray(), ref error);
         }
         public void Shutdown()

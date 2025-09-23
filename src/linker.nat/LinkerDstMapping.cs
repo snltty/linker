@@ -66,7 +66,7 @@ namespace linker.nat
         public void ToFakeDst(ReadOnlyMemory<byte> packet)
         {
             //只支持映射IPV4
-            if ((byte)(packet.Span[0] >> 4 & 0b1111) != 4) return;
+            //if ((byte)(packet.Span[0] >> 4 & 0b1111) != 4) return;
             //映射表不为空
             if (natDic.IsEmpty) return;
 
@@ -86,7 +86,7 @@ namespace linker.nat
         public void ToRealDst(ReadOnlyMemory<byte> packet)
         {
             //只支持映射IPV4
-            if ((byte)(packet.Span[0] >> 4 & 0b1111) != 4) return;
+            //if ((byte)(packet.Span[0] >> 4 & 0b1111) != 4) return;
             //映射表不为空
             if (masks.Length == 0 || mapDic.Count == 0) return;
             //广播包

@@ -15,7 +15,12 @@ namespace linker.messenger.tunnel
         }
         public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
-            args.TryAdd("tunnelNet", new SignInArgsNetInfo { Lat = tunnelClientStore.Network.Net.Lat, Lon = tunnelClientStore.Network.Net.Lon, City = tunnelClientStore.Network.Net.City }.ToJson());
+            args.TryAdd("tunnelNet", new SignInArgsNetInfo
+            {
+                Lat = tunnelClientStore.Network.Net.Lat,
+                Lon = tunnelClientStore.Network.Net.Lon,
+                City = tunnelClientStore.Network.Net.City,
+            }.ToJson());
             return await Task.FromResult(string.Empty);
         }
     }
