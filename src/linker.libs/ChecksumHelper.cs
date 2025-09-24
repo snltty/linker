@@ -5,6 +5,17 @@ namespace linker.libs
 {
     public sealed class ChecksumHelper
     {
+        public static unsafe void ClearChecksum(ReadOnlyMemory<byte> packet, bool ipHeader = true, bool payload = true)
+        {
+            ClearChecksum(packet.Span, ipHeader, payload);
+        }
+        public static unsafe void ClearChecksum(ReadOnlySpan<byte> packet, bool ipHeader = true, bool payload = true)
+        {
+            fixed (byte* ptr = packet)
+            {
+                ClearChecksum(ptr, ipHeader, payload);
+            }
+        }
         /// <summary>
         /// 清空IP包的校验和
         /// </summary>
@@ -70,7 +81,7 @@ namespace linker.libs
         {
             byte ipHeaderLength = (byte)((*ptr & 0b1111) * 4);
             byte* packetPtr = ptr + ipHeaderLength;
-
+            
             ipHeader = ipHeader && *(ushort*)(ptr + 10) == 0;
             payload = payload && ((ProtocolType)(*(ptr + 9)) switch
             {
@@ -79,6 +90,7 @@ namespace linker.libs
                 ProtocolType.Udp => *(ushort*)(packetPtr + 6) == 0,
                 _ => false,
             });
+            
             if (ipHeader || payload)
                 Checksum(ptr, ipHeader, payload);
         }

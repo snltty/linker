@@ -173,7 +173,7 @@ namespace linker.tun.device
         public int Offset { get; private set; }
         public int Length { get; private set; }
 
-        public Memory<byte> IPPacket => Buffer.AsMemory(Offset + 4, Length - 4);
+        public Memory<byte> RawPacket => Buffer.AsMemory(Offset + 4, Length - 4);
 
         /// <summary>
         /// 协议版本，4或者6
@@ -188,94 +188,67 @@ namespace linker.tun.device
         /// <summary>
         /// 源IP
         /// </summary>
-        public ReadOnlyMemory<byte> SourceIPAddress { get; private set; }
+        public ReadOnlyMemory<byte> SrcIp { get; private set; }
         /// <summary>
         /// 源端口
         /// </summary>
-        public ushort SourcePort { get; private set; }
+        public ushort SrcPort { get; private set; }
 
         /// <summary>
         /// 目标IP
         /// </summary>
-        public ReadOnlyMemory<byte> DistIPAddress { get; private set; }
+        public ReadOnlyMemory<byte> DstIp { get; private set; }
         /// <summary>
         /// 目标端口
         /// </summary>
-        public ushort DistPort { get; private set; }
+        public ushort DstPort { get; private set; }
 
-        public bool IPV4Broadcast => Version == 4 && DistIPAddress.IsCast();
-        public bool IPV6Multicast => Version == 6 && (DistIPAddress.Span[0] & 0xFF) == 0xFF;
+        public bool IPV4Broadcast => Version == 4 && DstIp.IsCast();
+        public bool IPV6Multicast => Version == 6 && (DstIp.Span[0] & 0xFF) == 0xFF;
 
         public LinkerTunDevicPacket()
         {
         }
-        public void Unpacket(byte[] buffer, int offset, int length)
+        public void Unpacket(byte[] buffer, int offset, int length, int pad = 4)
         {
             Buffer = buffer;
             Offset = offset;
             Length = length;
 
-            ReadOnlyMemory<byte> ipPacket = Buffer.AsMemory(Offset + 4, Length - 4);
+            ReadOnlyMemory<byte> ipPacket = Buffer.AsMemory(Offset + pad, Length - pad);
             Version = (byte)(ipPacket.Span[0] >> 4 & 0b1111);
 
-            SourceIPAddress = Helper.EmptyArray;
-            DistIPAddress = Helper.EmptyArray;
+            SrcIp = Helper.EmptyArray;
+            DstIp = Helper.EmptyArray;
 
             if (Version == 4)
             {
-                SourceIPAddress = ipPacket.Slice(12, 4);
-                DistIPAddress = ipPacket.Slice(16, 4);
+                SrcIp = ipPacket.Slice(12, 4);
+                DstIp = ipPacket.Slice(16, 4);
 
                 ProtocolType = (ProtocolType)ipPacket.Span[9];
 
                 if (ProtocolType == ProtocolType.Tcp || ProtocolType == ProtocolType.Udp)
                 {
-                    SourcePort = BinaryPrimitives.ReverseEndianness(ipPacket.Slice(20, 2).ToUInt16());
-                    DistPort = BinaryPrimitives.ReverseEndianness(ipPacket.Slice(22, 2).ToUInt16());
+                    SrcPort = BinaryPrimitives.ReverseEndianness(ipPacket.Slice(20, 2).ToUInt16());
+                    DstPort = BinaryPrimitives.ReverseEndianness(ipPacket.Slice(22, 2).ToUInt16());
                 }
             }
             else if (Version == 6)
             {
-                SourceIPAddress = ipPacket.Slice(8, 16);
-                DistIPAddress = ipPacket.Slice(24, 16);
+                SrcIp = ipPacket.Slice(8, 16);
+                DstIp = ipPacket.Slice(24, 16);
 
                 ProtocolType = (ProtocolType)ipPacket.Span[6];
 
                 if (ProtocolType == ProtocolType.Tcp || ProtocolType == ProtocolType.Udp)
                 {
-                    SourcePort = BinaryPrimitives.ReverseEndianness(ipPacket.Slice(42, 2).ToUInt16());
-                    DistPort = BinaryPrimitives.ReverseEndianness(ipPacket.Slice(44, 2).ToUInt16());
+                    SrcPort = BinaryPrimitives.ReverseEndianness(ipPacket.Slice(42, 2).ToUInt16());
+                    DstPort = BinaryPrimitives.ReverseEndianness(ipPacket.Slice(44, 2).ToUInt16());
                 }
             }
         }
 
-    }
-    public struct LinkerTunDevicValidatePacket
-    {
-        public bool IsValid { get; private set; }
-        public LinkerTunDevicValidatePacket(ReadOnlyMemory<byte> packet)
-        {
-            if (packet.Length >= 1)
-            {
-                byte version = (byte)(packet.Span[0] >> 4 & 0b1111);
-                int headLength = /*version == 4 ?*/ (packet.Span[0] & 0b1111) * 4 /*: 40*/;
-                if (packet.Length < headLength) return;
-
-                ProtocolType protocolType = version switch
-                {
-                    4 => (ProtocolType)packet.Span[9],
-                    6 => (ProtocolType)packet.Span[6],
-                    _ => ProtocolType.Unknown
-                };
-                IsValid = protocolType switch
-                {
-                    ProtocolType.Tcp => packet.Length >= headLength + 20,
-                    ProtocolType.Udp => packet.Length >= headLength + 8,
-                    ProtocolType.Icmp => packet.Length >= headLength + 8,
-                    _ => false
-                };
-            }
-        }
     }
 
     /// <summary>

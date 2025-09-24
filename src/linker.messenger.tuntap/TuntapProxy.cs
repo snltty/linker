@@ -91,14 +91,14 @@ namespace linker.messenger.tuntap
         public async Task InputPacket(LinkerTunDevicPacket packet)
         {
             //IPV4广播组播、IPV6 多播
-            if ((packet.IPV4Broadcast /*|| packet.IPV6Multicast*/) && tuntapConfigTransfer.Info.Multicast == false && connections.IsEmpty == false)
+            if ((packet.IPV4Broadcast || packet.IPV6Multicast) && tuntapConfigTransfer.Info.Multicast == false && connections.IsEmpty == false)
             {
                 await Task.WhenAll(connections.Values.Where(c => c != null && c.Connected).Select(c => c.SendAsync(packet.Buffer, packet.Offset, packet.Length)));
                 return;
             }
 
             //IPV4+IPV6 单播
-            uint ip = BinaryPrimitives.ReadUInt32BigEndian(packet.DistIPAddress.Span[^4..]);
+            uint ip = BinaryPrimitives.ReadUInt32BigEndian(packet.DstIp.Span[^4..]);
             if (tuntapCidrConnectionManager.TryGet(ip, out ITunnelConnection connection) && connection.Connected)
             {
                 /*

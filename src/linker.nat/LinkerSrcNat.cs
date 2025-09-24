@@ -196,7 +196,7 @@ namespace linker.nat
 
             IPV4Packet ipv4 = new IPV4Packet(packet.Span);
             //不是 ipv4，是虚拟网卡ip，是广播，不nat
-            if (/*ipv4.Version != 4 ||*/ ipv4.DstAddr == srcIp || ipv4.DstAddrSpan.IsCast())
+            if (ipv4.Version != 4 || ipv4.DstAddr == srcIp || ipv4.DstAddrSpan.IsCast())
             {
                 return false;
             }

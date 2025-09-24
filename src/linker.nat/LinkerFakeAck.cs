@@ -355,7 +355,7 @@ namespace linker.nat
             fixed (byte* ptr = packet.Span)
             {
                 FakeAckPacket originPacket = new(ptr);
-                if (/*originPacket.Version != 4 ||*/ originPacket.Protocol != ProtocolType.Tcp)
+                if (originPacket.Version != 4 || originPacket.Protocol != ProtocolType.Tcp)
                 {
                     return;
                 }
@@ -376,7 +376,7 @@ namespace linker.nat
             fixed (byte* ptr = packet.Span)
             {
                 FakeAckPacket originPacket = new(ptr);
-                if (/*originPacket.Version != 4 ||*/ originPacket.Protocol != ProtocolType.Tcp)
+                if (originPacket.Version != 4 || originPacket.Protocol != ProtocolType.Tcp)
                 {
                     return;
                 }

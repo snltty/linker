@@ -84,7 +84,6 @@ namespace linker.nat
                         source.SafeClose();
                         continue;
                     }
-
                     Socket dst = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                     dst.BeginConnect(new IPEndPoint(NetworkHelper.ToIP(cache.IP), cache.Port), ConnectCallback, new TcpState { Source = source, Target = dst });
                 }
@@ -266,7 +265,7 @@ namespace linker.nat
             fixed (byte* ptr = packet.Span)
             {
                 DstProxyPacket p = new DstProxyPacket(ptr);
-                if (/*p.Version != 4 ||*/ p.DstAddr == tunIp || p.DstAddrSpan.IsCast()) return true;
+                if (p.Version != 4 || p.DstAddr == tunIp || p.DstAddrSpan.IsCast()) return true;
 
                 if (lans.Any(c => p.DstAddr >= c.Item1 && p.DstAddr <= c.Item2) == false)
                 {

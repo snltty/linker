@@ -2,7 +2,9 @@
 using linker.libs.timer;
 using linker.tun.device;
 using linker.tun.hook;
+using System.Buffers.Binary;
 using System.Net;
+using System.Net.Sockets;
 using static linker.nat.LinkerDstMapping;
 
 namespace linker.tun
@@ -49,7 +51,10 @@ namespace linker.tun
 
         public LinkerTunDeviceAdapter()
         {
-            hooks = new ILinkerTunPacketHook[] { lanMap, lanDnat };
+            hooks = new ILinkerTunPacketHook[] {
+                lanMap,
+                lanDnat
+            };
             hooks1 = hooks.OrderByDescending(c => c.Level).ToArray();
         }
 
@@ -298,10 +303,10 @@ namespace linker.tun
                         }
 
                         packet.Unpacket(buffer, 0, length);
-                        if (packet.DistIPAddress.Length == 0 || packet.Version != 4) continue;
+                        if (packet.DstIp.Length == 0 || packet.Version != 4) continue;
 
-                        for (int i = 0; i < hooks1.Length; i++) if (hooks1[i].Read(packet.IPPacket) == false) goto end;
-                        ChecksumHelper.ChecksumWithZero(packet.IPPacket);
+                        for (int i = 0; i < hooks1.Length; i++) if (hooks1[i].Read(packet.RawPacket) == false) goto end;
+                        ChecksumHelper.ChecksumWithZero(packet.RawPacket);
 
                         await linkerTunDeviceCallback.Callback(packet).ConfigureAwait(false);
 
@@ -322,14 +327,17 @@ namespace linker.tun
         /// </summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        public bool Write(string srcId, ReadOnlyMemory<byte> buffer)
+        public unsafe bool Write(string srcId, ReadOnlyMemory<byte> buffer)
         {
-            if (linkerTunDevice == null || Status != LinkerTunDeviceStatus.Running || new LinkerTunDevicValidatePacket(buffer).IsValid == false) return false;
+            fixed (byte* ptr = buffer.Span)
+            {
+                if (Status != LinkerTunDeviceStatus.Running || BinaryPrimitives.ReverseEndianness(*(ushort*)(ptr + 2)) != buffer.Length) return false;
 
-            for (int i = 0; i < hooks.Length; i++) if (hooks[i].Write(srcId, buffer) == false) return false;
-            ChecksumHelper.ChecksumWithZero(buffer);
+                for (int i = 0; i < hooks.Length; i++) if (hooks[i].Write(srcId, buffer) == false) return false;
+                ChecksumHelper.ChecksumWithZero(buffer);
 
-            return linkerTunDevice.Write(buffer);
+                return linkerTunDevice.Write(buffer);
+            }
         }
 
         /// <summary>

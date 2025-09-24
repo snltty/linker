@@ -66,7 +66,7 @@ namespace linker.nat
         public void ToFakeDst(ReadOnlyMemory<byte> packet)
         {
             //只支持映射IPV4
-            //if ((byte)(packet.Span[0] >> 4 & 0b1111) != 4) return;
+            if ((byte)(packet.Span[0] >> 4 & 0b1111) != 4) return;
             //映射表不为空
             if (natDic.IsEmpty) return;
 
@@ -86,7 +86,7 @@ namespace linker.nat
         public void ToRealDst(ReadOnlyMemory<byte> packet)
         {
             //只支持映射IPV4
-            //if ((byte)(packet.Span[0] >> 4 & 0b1111) != 4) return;
+            if ((byte)(packet.Span[0] >> 4 & 0b1111) != 4) return;
             //映射表不为空
             if (masks.Length == 0 || mapDic.Count == 0) return;
             //广播包
@@ -122,8 +122,8 @@ namespace linker.nat
             {
                 //修改目标IP，需要小端写入，IP计算都是按大端的，操作是小端的，所以转换一下
                 *(uint*)(ptr + pos) = BinaryPrimitives.ReverseEndianness(newIP);
-                //清空校验和，等待重新计算
-                *(ushort*)(ptr + 10) = 0;
+                //清除校验和，由于IP头和传输层协议头都修改了，所以都需要重新计算
+                ChecksumHelper.ClearChecksum(ptr);
             }
         }
 

@@ -1,7 +1,4 @@
-﻿
-using linker.tun.device;
-
-namespace linker.tun.hook
+﻿namespace linker.tun.hook
 {
     /// <summary>
     /// 数据包钩子

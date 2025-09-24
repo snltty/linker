@@ -128,7 +128,7 @@ namespace linker.nat
             if (state != LinkerFirewallState.Enabled) return;
 
             IPV4Packet ipv4 = new IPV4Packet(packet.Span);
-            if (/*ipv4.Version == 4 &&*/ (ipv4.Protocol == ProtocolType.Udp || ipv4.Protocol == ProtocolType.Tcp))
+            if (ipv4.Version == 4 && (ipv4.Protocol == ProtocolType.Udp || ipv4.Protocol == ProtocolType.Tcp))
             {
                 (uint src, ushort srcPort, uint dst, ushort dstPort, ProtocolType pro) key = (ipv4.SrcAddr, ipv4.SrcPort, ipv4.DstAddr, ipv4.DstPort, ipv4.Protocol);
                 if (cacheSrcMap.TryGetValue(key, out SrcCacheInfo cache) == false)
@@ -176,7 +176,7 @@ namespace linker.nat
 
             IPV4Packet ipv4 = new IPV4Packet(packet.Span);
             //IPV4 TCP 和 UDP
-            if (/*ipv4.Version == 4 &&*/ (ipv4.Protocol == ProtocolType.Udp || ipv4.Protocol == ProtocolType.Tcp))
+            if (ipv4.Version == 4 && (ipv4.Protocol == ProtocolType.Udp || ipv4.Protocol == ProtocolType.Tcp))
             {
                 //连接状态
                 (uint src, ushort srcPort, uint dst, ushort dstPort, ProtocolType pro) key = (ipv4.DstAddr, ipv4.DstPort, ipv4.SrcAddr, ipv4.SrcPort, ipv4.Protocol);

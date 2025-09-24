@@ -43,8 +43,8 @@ namespace linker.tun
                 //6tcp  17udp
                 if (ptr[9] == 6 || ptr[9] == 17)
                 {
-                    IPAddress sourceIP = new IPAddress(packet.SourceIPAddress.Span);
-                    IPAddress distIP = new IPAddress(packet.DistIPAddress.Span);
+                    IPAddress sourceIP = new IPAddress(packet.SrcIp.Span);
+                    IPAddress distIP = new IPAddress(packet.DstIp.Span);
 
                     ushort sourcePort = *(ushort*)(ptr + 20);
                     ushort distPort = *(ushort*)(ptr + 22);
