@@ -109,6 +109,8 @@ namespace linker.nat
                     {
                         uint realDist = realNetwork | (fakeDist & ~masks[i]);
                         packet.DstAddr = realDist;
+                        packet.IPChecksum = 0;
+                        packet.PayloadChecksum = 0;
                         if (natDic.TryGetValue(realDist, out uint value) == false || value != fakeDist)
                         {
                             natDic.AddOrUpdate(realDist, fakeDist, (a, b) => fakeDist);
