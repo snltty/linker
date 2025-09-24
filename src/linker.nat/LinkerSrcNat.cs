@@ -194,7 +194,7 @@ namespace linker.nat
         {
             if (winDivert == null) return false;
 
-            IPV4Packet ipv4 = new IPV4Packet(packet.Span);
+            SrcNatPacket ipv4 = new SrcNatPacket(packet.Span);
             //不是 ipv4，是虚拟网卡ip，是广播，不nat
             if (ipv4.Version != 4 || ipv4.DstAddr == srcIp || ipv4.DstAddrSpan.IsCast())
             {
@@ -241,7 +241,7 @@ namespace linker.nat
             //只操作response 和 request
             if (p.ICMPv4Hdr->Type != 0 && p.ICMPv4Hdr->Type != 8) return false;
 
-            IPV4Packet ipv4 = new IPV4Packet(ptr);
+            SrcNatPacket ipv4 = new SrcNatPacket(ptr);
             if (ipv4.IsFragment) return false;
 
             //原标识符，两个字节
@@ -287,7 +287,7 @@ namespace linker.nat
             //只操作response 和 request
             if (p.ICMPv4Hdr->Type != 0 && p.ICMPv4Hdr->Type != 8) return false;
 
-            IPV4Packet ipv4 = new IPV4Packet(ptr);
+            SrcNatPacket ipv4 = new SrcNatPacket(ptr);
 
             //标识符，两个字节
             byte* ptr0 = ipv4.IcmpIdentifier0;
@@ -316,7 +316,7 @@ namespace linker.nat
         /// <returns></returns>
         private unsafe bool InjectTcp(WinDivertParseResult p, byte* ptr, NetworkIPv4Addr interfaceAddr)
         {
-            IPV4Packet ipv4 = new IPV4Packet(ptr);
+            SrcNatPacket ipv4 = new SrcNatPacket(ptr);
 
             //新端口
             ValueTuple<uint, ushort> portKey = (p.IPv4Hdr->SrcAddr.Raw, p.TCPHdr->SrcPort);
@@ -358,7 +358,7 @@ namespace linker.nat
         /// <returns></returns>
         private unsafe bool RecvTcp(WinDivertParseResult p, byte* ptr)
         {
-            IPV4Packet ipv4 = new IPV4Packet(ptr);
+            SrcNatPacket ipv4 = new SrcNatPacket(ptr);
 
             ValueTuple<uint, ushort, uint, ushort, ProtocolType> key = (p.IPv4Hdr->DstAddr.Raw, p.TCPHdr->DstPort, p.IPv4Hdr->SrcAddr.Raw, p.TCPHdr->SrcPort, ProtocolType.Tcp);
             if (natMap.TryGetValue(key, out NatMapInfo natMapInfo))
@@ -541,7 +541,7 @@ namespace linker.nat
         /// <summary>
         /// IPV4 包
         /// </summary>
-        public unsafe struct IPV4Packet
+        public unsafe struct SrcNatPacket
         {
             byte* ptr;
 
@@ -549,24 +549,10 @@ namespace linker.nat
             /// 协议版本
             /// </summary>
             public byte Version => (byte)((*ptr >> 4) & 0b1111);
-            public ProtocolType Protocol => (ProtocolType)(*(ptr + 9));
-
-            /// <summary>
-            /// 源地址
-            /// </summary>
-            public uint SrcAddr => BinaryPrimitives.ReverseEndianness(*(uint*)(ptr + 12));
-            /// <summary>
-            /// 源端口
-            /// </summary>
-            public ushort SrcPort => BinaryPrimitives.ReverseEndianness(*(ushort*)(ptr + IPHeadLength));
             /// <summary>
             /// 目的地址
             /// </summary>
             public uint DstAddr => BinaryPrimitives.ReverseEndianness(*(uint*)(ptr + 16));
-            /// <summary>
-            /// 目标端口
-            /// </summary>
-            public ushort DstPort => BinaryPrimitives.ReverseEndianness(*(ushort*)(ptr + IPHeadLength + 2));
             /// <summary>
             /// 源地址
             /// </summary>
@@ -585,10 +571,6 @@ namespace linker.nat
             /// IP Flag
             /// </summary>
             public byte Flag => (byte)(*(ptr + 6) >> 5);
-            /// <summary>
-            /// 不分片
-            /// </summary>
-            public bool DontFragment => (Flag & 0x02) == 2;
             /// <summary>
             /// 更多分片
             /// </summary>
@@ -622,11 +604,11 @@ namespace linker.nat
             public bool TcpFlagAck => (TcpFlag & 0b010000) != 0;
             public bool TcpFlagUrg => (TcpFlag & 0b100000) != 0;
 
-            public IPV4Packet(byte* ptr)
+            public SrcNatPacket(byte* ptr)
             {
                 this.ptr = ptr;
             }
-            public IPV4Packet(ReadOnlySpan<byte> span)
+            public SrcNatPacket(ReadOnlySpan<byte> span)
             {
                 fixed (byte* ptr = span)
                 {

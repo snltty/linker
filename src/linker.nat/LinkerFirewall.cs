@@ -1,9 +1,9 @@
 ﻿using linker.libs;
 using linker.libs.timer;
+using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
-using static linker.nat.LinkerSrcNat;
 namespace linker.nat
 {
     /// <summary>
@@ -123,20 +123,23 @@ namespace linker.nat
         /// 添加一个允许，比如 192.168.1.1:12345->192.168.100.100:80，等下192.168.100.100:80->192.168.1.1:12345时要允许，越过防火墙
         /// </summary>
         /// <param name="packet">一个TCP/IP包</param>
-        public void AddAllow(ReadOnlyMemory<byte> packet)
+        public unsafe void AddAllow(ReadOnlyMemory<byte> packet)
         {
             if (state != LinkerFirewallState.Enabled) return;
 
-            IPV4Packet ipv4 = new IPV4Packet(packet.Span);
-            if (ipv4.Version == 4 && (ipv4.Protocol == ProtocolType.Udp || ipv4.Protocol == ProtocolType.Tcp))
+            fixed (byte* ptr = packet.Span)
             {
-                (uint src, ushort srcPort, uint dst, ushort dstPort, ProtocolType pro) key = (ipv4.SrcAddr, ipv4.SrcPort, ipv4.DstAddr, ipv4.DstPort, ipv4.Protocol);
-                if (cacheSrcMap.TryGetValue(key, out SrcCacheInfo cache) == false)
+                FirewallPacket ipv4 = new FirewallPacket(ptr);
+                if (ipv4.Version == 4 && (ipv4.Protocol == ProtocolType.Udp || ipv4.Protocol == ProtocolType.Tcp))
                 {
-                    cache = new SrcCacheInfo { Type = SrcCacheType.Out };
-                    cacheSrcMap.TryAdd(key, cache);
+                    (uint src, ushort srcPort, uint dst, ushort dstPort, ProtocolType pro) key = (ipv4.SrcAddr, ipv4.SrcPort, ipv4.DstAddr, ipv4.DstPort, ipv4.Protocol);
+                    if (cacheSrcMap.TryGetValue(key, out SrcCacheInfo cache) == false)
+                    {
+                        cache = new SrcCacheInfo { Type = SrcCacheType.Out };
+                        cacheSrcMap.TryAdd(key, cache);
+                    }
+                    cache.LastTime = Environment.TickCount64;
                 }
-                cache.LastTime = Environment.TickCount64;
             }
         }
 
@@ -157,7 +160,7 @@ namespace linker.nat
 
             return Check(srcId, dst, dstPort, protocol);
         }
-        public bool Check(string srcId, (uint ip,ushort port) dstEP, ProtocolType protocol)
+        public bool Check(string srcId, (uint ip, ushort port) dstEP, ProtocolType protocol)
         {
             if (this.state != LinkerFirewallState.Enabled) return true;
             return Check(srcId, dstEP.ip, dstEP.port, protocol);
@@ -170,29 +173,32 @@ namespace linker.nat
         /// <param name="srcId">客户端Id</param>
         /// <param name="packet">TCP/IP数据包</param>
         /// <returns></returns>
-        public bool Check(string srcId, ReadOnlyMemory<byte> packet)
+        public unsafe bool Check(string srcId, ReadOnlyMemory<byte> packet)
         {
             if (state != LinkerFirewallState.Enabled) return true;
 
-            IPV4Packet ipv4 = new IPV4Packet(packet.Span);
-            //IPV4 TCP 和 UDP
-            if (ipv4.Version == 4 && (ipv4.Protocol == ProtocolType.Udp || ipv4.Protocol == ProtocolType.Tcp))
+            fixed (byte* ptr = packet.Span)
             {
-                //连接状态
-                (uint src, ushort srcPort, uint dst, ushort dstPort, ProtocolType pro) key = (ipv4.DstAddr, ipv4.DstPort, ipv4.SrcAddr, ipv4.SrcPort, ipv4.Protocol);
-                if (cacheSrcMap.TryGetValue(key, out SrcCacheInfo cache) == false)
+                FirewallPacket ipv4 = new FirewallPacket(ptr);
+                //IPV4 TCP 和 UDP
+                if (ipv4.Version == 4 && (ipv4.Protocol == ProtocolType.Udp || ipv4.Protocol == ProtocolType.Tcp))
                 {
-                    cache = new SrcCacheInfo { Type = SrcCacheType.In };
-                    cacheSrcMap.TryAdd(key, cache);
+                    //连接状态
+                    (uint src, ushort srcPort, uint dst, ushort dstPort, ProtocolType pro) key = (ipv4.DstAddr, ipv4.DstPort, ipv4.SrcAddr, ipv4.SrcPort, ipv4.Protocol);
+                    if (cacheSrcMap.TryGetValue(key, out SrcCacheInfo cache) == false)
+                    {
+                        cache = new SrcCacheInfo { Type = SrcCacheType.In };
+                        cacheSrcMap.TryAdd(key, cache);
+                    }
+                    cache.LastTime = Environment.TickCount64;
+
+                    //有出站标记 或 通过检查
+                    return cache.Type == SrcCacheType.Out
+                        || Check(srcId, ipv4.SrcAddr, ipv4.SrcPort, ipv4.Protocol);
                 }
-                cache.LastTime = Environment.TickCount64;
 
-                //有出站标记 或 通过检查
-                return cache.Type == SrcCacheType.Out
-                    || Check(srcId, ipv4.SrcAddr, ipv4.SrcPort, ipv4.Protocol);
+                return true;
             }
-
-            return true;
         }
 
         private bool Check(string srcId, uint ip, ushort port, ProtocolType protocol)
@@ -255,7 +261,104 @@ namespace linker.nat
             public LinkerFirewallProtocolType Protocol { get; set; }
             public LinkerFirewallAction Action { get; set; }
         }
+        sealed class SrcCacheInfo
+        {
+            public long LastTime { get; set; } = Environment.TickCount64;
+            public SrcCacheType Type { get; set; }
+        }
+        enum SrcCacheType
+        {
+            In = 0,
+            Out = 1
+        }
+
+        readonly unsafe struct FirewallPacket
+        {
+            private readonly byte* ptr;
+
+            /// <summary>
+            /// 协议版本
+            /// </summary>
+            public readonly byte Version => (byte)((*ptr >> 4) & 0b1111);
+            public readonly ProtocolType Protocol => (ProtocolType)(*(ptr + 9));
+
+            /// <summary>
+            /// IP头长度
+            /// </summary>
+            public readonly int IPHeadLength => (*ptr & 0b1111) * 4;
+            /// <summary>
+            /// IP包荷载数据指针，也就是TCP/UDP头指针
+            /// </summary>
+            public readonly byte* PayloadPtr => ptr + IPHeadLength;
+
+            /// <summary>
+            /// 源地址
+            /// </summary>
+            public readonly uint SrcAddr
+            {
+                get
+                {
+                    return BinaryPrimitives.ReverseEndianness(*(uint*)(ptr + 12));
+                }
+                set
+                {
+                    *(uint*)(ptr + 12) = BinaryPrimitives.ReverseEndianness(value);
+                }
+            }
+            /// <summary>
+            /// 源端口
+            /// </summary>
+            public readonly ushort SrcPort
+            {
+                get
+                {
+                    return BinaryPrimitives.ReverseEndianness(*(ushort*)(PayloadPtr));
+                }
+                set
+                {
+                    *(ushort*)(PayloadPtr) = BinaryPrimitives.ReverseEndianness(value);
+                }
+            }
+            /// <summary>
+            /// 目的地址
+            /// </summary>
+            public readonly uint DstAddr
+            {
+                get
+                {
+                    return BinaryPrimitives.ReverseEndianness(*(uint*)(ptr + 16));
+                }
+                set
+                {
+                    *(uint*)(ptr + 16) = BinaryPrimitives.ReverseEndianness(value);
+                }
+            }
+            /// <summary>
+            /// 目标端口
+            /// </summary>
+            public readonly ushort DstPort
+            {
+                get
+                {
+                    return BinaryPrimitives.ReverseEndianness(*(ushort*)(PayloadPtr + 2));
+                }
+                set
+                {
+                    *(ushort*)(PayloadPtr + 2) = BinaryPrimitives.ReverseEndianness(value);
+                }
+            }
+
+            /// <summary>
+            /// 加载TCP/IP包，必须是一个完整的TCP/IP包
+            /// </summary>
+            /// <param name="ptr">一个完整的TCP/IP包</param>
+            public FirewallPacket(byte* ptr)
+            {
+                this.ptr = ptr;
+            }
+        }
     }
+
     public class LinkerFirewallRuleInfo
     {
         public string SrcId { get; set; } = string.Empty;
@@ -266,7 +369,6 @@ namespace linker.nat
         public LinkerFirewallProtocolType Protocol { get; set; }
         public LinkerFirewallAction Action { get; set; }
     }
-
     public enum LinkerFirewallProtocolType : byte
     {
         None = 0,
@@ -286,15 +388,9 @@ namespace linker.nat
         Disabled = 1
     }
 
-    public sealed class SrcCacheInfo
-    {
-        public long LastTime { get; set; } = Environment.TickCount64;
-        public SrcCacheType Type { get; set; }
-    }
-    public enum SrcCacheType
-    {
-        In = 0,
-        Out = 1
-    }
+
+
+
+
 
 }

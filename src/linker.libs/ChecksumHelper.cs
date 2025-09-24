@@ -5,48 +5,6 @@ namespace linker.libs
 {
     public sealed class ChecksumHelper
     {
-        public static unsafe void ClearChecksum(ReadOnlyMemory<byte> packet, bool ipHeader = true, bool payload = true)
-        {
-            ClearChecksum(packet.Span, ipHeader, payload);
-        }
-        public static unsafe void ClearChecksum(ReadOnlySpan<byte> packet, bool ipHeader = true, bool payload = true)
-        {
-            fixed (byte* ptr = packet)
-            {
-                ClearChecksum(ptr, ipHeader, payload);
-            }
-        }
-        /// <summary>
-        /// 清空IP包的校验和
-        /// </summary>
-        /// <param name="ptr"></param>
-        /// <param name="ipHeader">是否情况IP头校验和</param>
-        /// <param name="payload">是否清空荷载协议校验和</param>
-        public static unsafe void ClearChecksum(byte* ptr, bool ipHeader = true, bool payload = true)
-        {
-            byte ipHeaderLength = (byte)((*ptr & 0b1111) * 4);
-            byte* packetPtr = ptr + ipHeaderLength;
-
-            if (ipHeader)
-            {
-                *(ushort*)(ptr + 10) = 0;
-            }
-            if (payload)
-            {
-                int index = (ProtocolType)(*(ptr + 9)) switch
-                {
-                    ProtocolType.Icmp => 2,
-                    ProtocolType.Tcp => 16,
-                    ProtocolType.Udp => 6,
-                    _ => -1,
-                };
-                if (index > 0)
-                {
-                    *(ushort*)(packetPtr + index) = 0;
-                }
-            }
-        }
-
 
         /// <summary>
         /// 计算IP包的校验和，当校验和为0时才计算

@@ -1,9 +1,11 @@
 ﻿using linker.libs;
+using linker.libs.extends;
 using System.Buffers;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Net;
+using System.Net.Sockets;
 
 namespace linker.nat
 {
@@ -62,68 +64,58 @@ namespace linker.nat
         /// <summary>
         /// 转换为假IP
         /// </summary>
-        /// <param name="packet">TCP/IP</param>
-        public void ToFakeDst(ReadOnlyMemory<byte> packet)
+        /// <param name="buffer">TCP/IP</param>
+        public unsafe void ToFakeDst(ReadOnlyMemory<byte> buffer)
         {
-            //只支持映射IPV4
-            if ((byte)(packet.Span[0] >> 4 & 0b1111) != 4) return;
             //映射表不为空
             if (natDic.IsEmpty) return;
 
-            //源IP
-            uint realDist = NetworkHelper.ToValue(packet.Span.Slice(12, 4));
-            if (natDic.TryGetValue(realDist, out uint fakeDist))
+            fixed (byte* ptr = buffer.Span)
             {
-                //修改源IP
-                ReWriteIP(packet, fakeDist, 12);
+                MapPacket packet = new MapPacket(ptr);
+                //只支持映射IPV4
+                if (packet.Version != 4) return;
+
+                if (natDic.TryGetValue(packet.SrcAddr, out uint fakeDist))
+                {
+                    packet.SrcAddr = fakeDist;
+                    packet.IPChecksum = 0;
+                    packet.PayloadChecksum = 0;
+                }
             }
+
         }
         /// <summary>
         /// 转换为真IP
         /// </summary>
         /// <param name="packet">TCP/IP</param>
         /// <param name="checksum">是否计算校验和，如果使用了应用层NAT，可以交给应用层NAT去计算校验和</param>
-        public void ToRealDst(ReadOnlyMemory<byte> packet)
+        public unsafe void ToRealDst(ReadOnlyMemory<byte> buffer)
         {
-            //只支持映射IPV4
-            if ((byte)(packet.Span[0] >> 4 & 0b1111) != 4) return;
             //映射表不为空
             if (masks.Length == 0 || mapDic.Count == 0) return;
-            //广播包
-            if (packet.Span[19] == 255) return;
 
-            uint fakeDist = NetworkHelper.ToValue(packet.Span.Slice(16, 4));
-
-            for (int i = 0; i < masks.Length; i++)
+            fixed (byte* ptr = buffer.Span)
             {
-                //目标IP网络号存在映射表中，找到映射后的真实网络号，替换网络号得到最终真实的IP
-                if (mapDic.TryGetValue(fakeDist & masks[i], out uint realNetwork))
+                MapPacket packet = new MapPacket(ptr);
+                //只支持映射IPV4
+                if (packet.Version != 4 || packet.DstAddrSpan.IsCast()) return;
+
+                uint fakeDist = packet.DstAddr;
+                for (int i = 0; i < masks.Length; i++)
                 {
-                    uint realDist = realNetwork | (fakeDist & ~masks[i]);
-                    //修改目标IP
-                    ReWriteIP(packet, realDist, 16);
-                    if (natDic.TryGetValue(realDist, out uint value) == false || value != fakeDist)
+                    //目标IP网络号存在映射表中，找到映射后的真实网络号，替换网络号得到最终真实的IP
+                    if (mapDic.TryGetValue(fakeDist & masks[i], out uint realNetwork))
                     {
-                        natDic.AddOrUpdate(realDist, fakeDist, (a, b) => fakeDist);
+                        uint realDist = realNetwork | (fakeDist & ~masks[i]);
+                        packet.DstAddr = realDist;
+                        if (natDic.TryGetValue(realDist, out uint value) == false || value != fakeDist)
+                        {
+                            natDic.AddOrUpdate(realDist, fakeDist, (a, b) => fakeDist);
+                        }
+                        break;
                     }
-                    break;
                 }
-            }
-        }
-        /// <summary>
-        /// 写入新IP
-        /// </summary>
-        /// <param name="packet">IP包</param>
-        /// <param name="newIP">大端IP</param>
-        /// <param name="pos">写入位置，源12，目的16</param>
-        private unsafe void ReWriteIP(ReadOnlyMemory<byte> packet, uint newIP, int pos)
-        {
-            fixed (byte* ptr = packet.Span)
-            {
-                //修改目标IP，需要小端写入，IP计算都是按大端的，操作是小端的，所以转换一下
-                *(uint*)(ptr + pos) = BinaryPrimitives.ReverseEndianness(newIP);
-                //清除校验和，由于IP头和传输层协议头都修改了，所以都需要重新计算
-                ChecksumHelper.ClearChecksum(ptr);
             }
         }
 
@@ -144,6 +136,105 @@ namespace linker.nat
             /// 前缀
             /// </summary>
             public byte PrefixLength { get; set; }
+        }
+
+        readonly unsafe struct MapPacket
+        {
+            private readonly byte* ptr;
+
+            /// <summary>
+            /// 协议版本
+            /// </summary>
+            public readonly byte Version => (byte)((*ptr >> 4) & 0b1111);
+            public readonly ProtocolType Protocol => (ProtocolType)(*(ptr + 9));
+
+            /// <summary>
+            /// IP头长度
+            /// </summary>
+            public readonly int IPHeadLength => (*ptr & 0b1111) * 4;
+            /// <summary>
+            /// IP包荷载数据指针，也就是TCP/UDP头指针
+            /// </summary>
+            public readonly byte* PayloadPtr => ptr + IPHeadLength;
+
+            /// <summary>
+            /// 源地址
+            /// </summary>
+            public readonly uint SrcAddr
+            {
+                get
+                {
+                    return BinaryPrimitives.ReverseEndianness(*(uint*)(ptr + 12));
+                }
+                set
+                {
+                    *(uint*)(ptr + 12) = BinaryPrimitives.ReverseEndianness(value);
+                }
+            }
+            /// <summary>
+            /// 目的地址
+            /// </summary>
+            public readonly uint DstAddr
+            {
+                get
+                {
+                    return BinaryPrimitives.ReverseEndianness(*(uint*)(ptr + 16));
+                }
+                set
+                {
+                    *(uint*)(ptr + 16) = BinaryPrimitives.ReverseEndianness(value);
+                }
+            }
+            public ReadOnlySpan<byte> DstAddrSpan => new Span<byte>((ptr + 16), 4);
+
+            public readonly ushort IPChecksum
+            {
+                get
+                {
+                    return BinaryPrimitives.ReverseEndianness(*(ushort*)(ptr + 10));
+                }
+                set
+                {
+                    *(ushort*)(ptr + 10) = BinaryPrimitives.ReverseEndianness(value);
+                }
+            }
+            public readonly ushort PayloadChecksum
+            {
+                get
+                {
+                    return Protocol switch
+                    {
+                        ProtocolType.Icmp => BinaryPrimitives.ReverseEndianness(*(ushort*)(PayloadPtr + 2)),
+                        ProtocolType.Tcp => BinaryPrimitives.ReverseEndianness(*(ushort*)(PayloadPtr + 16)),
+                        ProtocolType.Udp => BinaryPrimitives.ReverseEndianness(*(ushort*)(PayloadPtr + 6)),
+                        _ => (ushort)0,
+                    };
+                }
+                set
+                {
+                    switch (Protocol)
+                    {
+                        case ProtocolType.Icmp:
+                            *(ushort*)(PayloadPtr + 2) = BinaryPrimitives.ReverseEndianness(value);
+                            break;
+                        case ProtocolType.Tcp:
+                            *(ushort*)(PayloadPtr + 16) = BinaryPrimitives.ReverseEndianness(value);
+                            break;
+                        case ProtocolType.Udp:
+                            *(ushort*)(PayloadPtr + 6) = BinaryPrimitives.ReverseEndianness(value);
+                            break;
+                    }
+                }
+            }
+
+            /// <summary>
+            /// 加载TCP/IP包，必须是一个完整的TCP/IP包
+            /// </summary>
+            /// <param name="ptr">一个完整的TCP/IP包</param>
+            public MapPacket(byte* ptr)
+            {
+                this.ptr = ptr;
+            }
         }
     }
 }
