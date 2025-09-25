@@ -5,6 +5,7 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading.Channels;
 
 namespace linker.messenger.socks5
 {
@@ -197,6 +198,7 @@ namespace linker.messenger.socks5
             catch (Exception)
             {
             }
+
             finally
             {
             }

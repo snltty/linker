@@ -158,10 +158,12 @@ namespace linker.messenger.entry
         {
             if (setuped.StartOperation() == false) return;
 
-            ICommonStore commonStore = serviceProvider.GetService<ICommonStore>();
-
             if (modules.HasFlag(ExcludeModule.Logger) == false)
                 serviceProvider.UseLogger();
+
+            ICommonStore commonStore = serviceProvider.GetService<ICommonStore>();
+
+           
 
             serviceProvider.UseMessenger();
 

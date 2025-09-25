@@ -44,7 +44,6 @@
 		<ProjectReference Include="..\linker.messenger.signin\linker.messenger.signin.csproj" />
 		<ProjectReference Include="..\linker.messenger\linker.messenger.csproj" />
 		<ProjectReference Include="..\linker.nat\linker.nat.csproj" />
-		<ProjectReference Include="..\linker.snat\linker.nat.csproj" />
 	</ItemGroup>
 
 </Project>

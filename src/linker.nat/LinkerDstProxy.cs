@@ -23,7 +23,7 @@ namespace linker.nat
         ushort proxyPort = 0;
         uint tunIp = 0;
 
-        private ValueTuple<uint, uint>[] lans = [];
+        private (uint min, uint max)[] lans = [];
         private readonly ConcurrentDictionary<(uint srcIp, ushort srcPort), DstCacheInfo> dic = new();
         private readonly ConcurrentDictionary<(uint srcIp, ushort srcPort, uint dstIp, ushort dstPort), UdpState> udpMap = new();
         private readonly ConcurrentDictionary<uint, IcmpState> icmpMap = new();
@@ -32,7 +32,7 @@ namespace linker.nat
             Clear();
         }
 
-        public bool Setup(IPAddress dstAddr, ValueTuple<IPAddress, byte>[] dsts, ref string error)
+        public bool Setup(IPAddress dstAddr, (IPAddress ip, byte prefix)[] dsts, ref string error)
         {
             Shutdown();
             try
@@ -44,7 +44,7 @@ namespace linker.nat
                     return false;
                 }
 
-                lans = dsts.Select(c => new ValueTuple<uint, uint>(NetworkHelper.ToNetworkValue(c.Item1, c.Item2), NetworkHelper.ToBroadcastValue(c.Item1, c.Item2))).ToArray();
+                lans = dsts.Select(c => (NetworkHelper.ToNetworkValue(c.ip, c.prefix), NetworkHelper.ToBroadcastValue(c.ip, c.prefix))).ToArray();
 
                 listenSocketTcp = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 listenSocketTcp.Bind(new IPEndPoint(IPAddress.Any, 0));
@@ -267,7 +267,7 @@ namespace linker.nat
                 DstProxyPacket p = new DstProxyPacket(ptr);
                 if (p.Version != 4 || p.DstAddr == tunIp || p.DstAddrSpan.IsCast()) return true;
 
-                if (lans.Any(c => p.DstAddr >= c.Item1 && p.DstAddr <= c.Item2) == false)
+                if (lans.Any(c => p.DstAddr >= c.min && p.DstAddr <= c.max) == false)
                 {
                     return true;
                 }

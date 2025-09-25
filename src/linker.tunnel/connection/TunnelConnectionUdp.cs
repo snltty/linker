@@ -6,6 +6,8 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Net.Sockets;
 using System;
+using System.IO.Pipelines;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace linker.tunnel.connection
 {
@@ -37,10 +39,15 @@ namespace linker.tunnel.connection
         public int Delay { get; private set; }
         public long SendBytes { get; private set; }
         public long ReceiveBytes { get; private set; }
-        public long SendBufferRemaining { get; }
-        public long SendBufferFree { get; } = 512 * 1024;
-        public long RecvBufferRemaining { get; }
-        public long RecvBufferFree { get; } = 512 * 1024;
+
+        private long sendRemaining = 0;
+        public long SendBufferRemaining { get => sendRemaining; }
+        public long SendBufferFree { get => maxRemaining - sendRemaining; }
+        private const long maxRemaining = 1 * 1024 * 1024;
+
+        private long recvRemaining = 500 * 1024;
+        public long RecvBufferRemaining { get => recvRemaining; }
+        public long RecvBufferFree { get => maxRemaining - recvRemaining; }
 
         public LastTicksManager LastTicks { get; private set; } = new LastTicksManager();
 
@@ -75,7 +82,7 @@ namespace linker.tunnel.connection
         private readonly byte[] pongBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.udp.pong");
         private readonly byte[] finBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.udp.fing");
 
-
+        private Pipe pipeSender;
         /// <summary>
         /// 开始接收数据
         /// </summary>
@@ -90,12 +97,12 @@ namespace linker.tunnel.connection
 
             cancellationTokenSource = new CancellationTokenSource();
 
+            _ = Sender();
             if (Receive)
             {
                 _ = ProcessWrite();
             }
             _ = ProcessHeart();
-
         }
         private async Task ProcessWrite()
         {
@@ -149,43 +156,40 @@ namespace linker.tunnel.connection
             LastTicks.Update();
 
             Memory<byte> memory = buffer.AsMemory(offset, length);
-
-            if (memory.Length == pingBytes.Length && memory.Span.Slice(0, pingBytes.Length - 4).SequenceEqual(pingBytes.AsSpan(0, pingBytes.Length - 4)))
+            try
             {
-                if (memory.Span.SequenceEqual(pingBytes))
+                if (SSL)
                 {
-                    await SendPingPong(pongBytes).ConfigureAwait(false);
+                    memory = Crypto.Decode(buffer, offset, length);
                 }
-                else if (memory.Span.SequenceEqual(pongBytes))
+                if (memory.Length == pingBytes.Length && memory.Span.Slice(0, pingBytes.Length - 4).SequenceEqual(pingBytes.AsSpan(0, pingBytes.Length - 4)))
                 {
-                    Delay = (int)pingTicks.Diff();
+                    if (memory.Span.SequenceEqual(pingBytes))
+                    {
+                        await SendPingPong(pongBytes).ConfigureAwait(false);
+                    }
+                    else if (memory.Span.SequenceEqual(pongBytes))
+                    {
+                        Delay = (int)pingTicks.Diff();
+                    }
+                    else if (memory.Span.SequenceEqual(finBytes))
+                    {
+                        LoggerHelper.Instance.Error($"tunnel connection disponse 5");
+                        Dispose();
+                    }
+                    return;
                 }
-                else if (memory.Span.SequenceEqual(finBytes))
-                {
-                    LoggerHelper.Instance.Error($"tunnel connection disponse 5");
-                    Dispose();
-                }
+                await callback.Receive(this, memory, this.userToken).ConfigureAwait(false);
             }
-            else
+            catch (Exception ex)
             {
-                try
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    if (SSL)
-                    {
-                        memory = Crypto.Decode(buffer, offset, length);
-                    }
-                    await callback.Receive(this, memory, this.userToken).ConfigureAwait(false);
+                    LoggerHelper.Instance.Error(ex);
+                    LoggerHelper.Instance.Error(Encoding.UTF8.GetString(memory.Span));
+                    LoggerHelper.Instance.Error(string.Join(",", memory.ToArray()));
                 }
-                catch (Exception ex)
-                {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    {
-                        LoggerHelper.Instance.Error(ex);
-                        LoggerHelper.Instance.Error(Encoding.UTF8.GetString(memory.Span));
-                        LoggerHelper.Instance.Error(string.Join(",", memory.ToArray()));
-                    }
 
-                }
             }
         }
 
@@ -220,27 +224,83 @@ namespace linker.tunnel.connection
         }
         private async Task SendPingPong(byte[] data)
         {
-            int length = 0;
+            byte[] heartData = ArrayPool<byte>.Shared.Rent(4 + data.Length);
 
-            byte[] heartData = ArrayPool<byte>.Shared.Rent(1024);
-            Memory<byte> memory = heartData.AsMemory();
+            data.Length.ToBytes(heartData.AsMemory());
+            data.AsMemory().CopyTo(heartData.AsMemory(4));
 
-            //中继包头
-            if (Type == TunnelType.Relay)
-            {
-                length += 2;
-                heartData[0] = 2; //relay
-                heartData[1] = 1; //forward
-                memory = memory.Slice(2);
-            }
-            //真的数据
-            data.AsMemory().CopyTo(memory);
-            length += data.Length;
+            await SendAsync(heartData.AsMemory(0, 4 + data.Length));
 
-            SendBytes += length;
+            ArrayPool<byte>.Shared.Return(heartData);
+        }
+
+
+
+        private async Task Sender()
+        {
+            pipeSender = new Pipe(new PipeOptions(pauseWriterThreshold: maxRemaining, resumeWriterThreshold: (maxRemaining / 2), useSynchronizationContext: false));
+            byte[] encodeBuffer = ArrayPool<byte>.Shared.Rent(65 * 1024);
+            encodeBuffer[0] = 2; //relay
+            encodeBuffer[1] = 1; //forward
+            int index = Type == TunnelType.Relay ? 0 : 2;
+            int lengthPlus = Type == TunnelType.Relay ? 2 : 0;
             try
             {
-                await UdpClient.SendToAsync(heartData.AsMemory(0, length), IPEndPoint, cancellationTokenSource.Token).ConfigureAwait(false);
+                while (cancellationTokenSource.IsCancellationRequested == false)
+                {
+                    ReadResult result = await pipeSender.Reader.ReadAsync().ConfigureAwait(false);
+                    if (result.IsCompleted && result.Buffer.IsEmpty)
+                    {
+                        cancellationTokenSource.Cancel();
+                        break;
+                    }
+
+                    ReadOnlySequence<byte> buffer = result.Buffer;
+                    SendBytes += buffer.Length;
+                    long offset = 0;
+
+                    do
+                    {
+                        //读取包长度
+                        int packetLength = 0;
+                        if (buffer.First.Length >= 4)
+                        {
+                            packetLength = buffer.First.ToInt32();
+                        }
+                        else
+                        {
+                            //长度标识跨段了
+                            buffer.Slice(0, 4).CopyTo(encodeBuffer.AsSpan(2));
+                            packetLength = encodeBuffer.AsSpan(2).ToInt32();
+                        }
+                        //数据量不够
+                        if (packetLength + 4 > buffer.Length) break;
+
+                        //复制一份
+                        ReadOnlySequence<byte> temp = buffer.Slice(4, packetLength);
+                        temp.CopyTo(encodeBuffer.AsSpan(2));
+
+                        int sendLength = packetLength + lengthPlus;
+                        if (SSL)
+                        {
+                            var data = Crypto.Encode(encodeBuffer, 2, packetLength);
+                            data.AsMemory().CopyTo(encodeBuffer.AsMemory(2));
+                            sendLength = data.Length + lengthPlus;
+                        }
+
+                        await UdpClient.SendToAsync(encodeBuffer.AsMemory(index, sendLength), IPEndPoint, cancellationTokenSource.Token).ConfigureAwait(false);
+                        SendBytes += packetLength;
+
+                        //移动位置
+                        offset += 4 + packetLength;
+                        //去掉已处理部分
+                        buffer = buffer.Slice(4 + packetLength);
+
+                    } while (buffer.Length > 4);
+
+                    //告诉管道已经处理了多少数据，检查了多少数据
+                    pipeSender.Reader.AdvanceTo(result.Buffer.GetPosition(offset), result.Buffer.End);
+                }
             }
             catch (Exception ex)
             {
@@ -248,37 +308,19 @@ namespace linker.tunnel.connection
                 {
                     LoggerHelper.Instance.Error(ex);
                 }
-                LoggerHelper.Instance.Error($"tunnel connection disponse 3");
                 Dispose();
             }
-            finally
-            {
-            }
-
-            ArrayPool<byte>.Shared.Return(heartData);
+            ArrayPool<byte>.Shared.Return(encodeBuffer);
         }
 
-        private byte[] encodeBuffer = ArrayPool<byte>.Shared.Rent(65 * 1024);
+        private SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
         public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
+            await semaphoreSlim.WaitAsync();
             try
             {
-                data = data.Slice(4);
-
-                if (SSL)
-                {
-                    data.CopyTo(encodeBuffer);
-                    data = Crypto.Encode(encodeBuffer, 0, data.Length);
-                }
-                if (Type == TunnelType.Relay)
-                {
-                    data.CopyTo(encodeBuffer.AsMemory(2));
-                    encodeBuffer[0] = 2; //relay
-                    encodeBuffer[1] = 1; //forward 
-                    data = encodeBuffer.AsMemory(0, data.Length + 2);
-                }
-                await UdpClient.SendToAsync(data, IPEndPoint, cancellationTokenSource.Token).ConfigureAwait(false);
-                SendBytes += data.Length;
+                await pipeSender.Writer.WriteAsync(data);
+                Interlocked.Add(ref sendRemaining, data.Length);
                 return true;
             }
             catch (Exception ex)
@@ -292,44 +334,13 @@ namespace linker.tunnel.connection
             }
             finally
             {
+                semaphoreSlim.Release();
             }
             return false;
         }
         public async Task<bool> SendAsync(byte[] buffer, int offset, int length)
         {
-            try
-            {
-                Memory<byte> data = buffer.AsMemory(offset + 4, length - 4);
-
-                if (SSL)
-                {
-                    data = Crypto.Encode(buffer, offset + 4, length - 4);
-                }
-                if (Type == TunnelType.Relay)
-                {
-                    data.CopyTo(encodeBuffer.AsMemory(2));
-                    encodeBuffer[0] = 2; //relay
-                    encodeBuffer[1] = 1; //forward 
-                    data = encodeBuffer.AsMemory(0, data.Length + 2);
-                }
-                await UdpClient.SendToAsync(data, IPEndPoint, cancellationTokenSource.Token).ConfigureAwait(false);
-                SendBytes += data.Length;
-                return true;
-            }
-            catch (Exception ex)
-            {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Error(ex);
-                }
-                LoggerHelper.Instance.Error($"tunnel connection disponse 1");
-                Dispose();
-
-            }
-            finally
-            {
-            }
-            return false;
+            return await SendAsync(buffer.AsMemory(offset, length)).ConfigureAwait(false);
         }
 
         public void Dispose()
@@ -339,10 +350,9 @@ namespace linker.tunnel.connection
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Error($"tunnel connection {this.GetHashCode()} writer offline {ToString()}");
 
-            ArrayPool<byte>.Shared.Return(encodeBuffer);
-
             SendPingPong(finBytes).ContinueWith((result) =>
             {
+
                 LastTicks.Clear();
                 if (Receive == true)
                     UdpClient?.SafeClose();
@@ -354,6 +364,9 @@ namespace linker.tunnel.connection
                 userToken = null;
 
                 Crypto?.Dispose();
+
+                pipeSender?.Writer.Complete();
+                pipeSender?.Reader.Complete();
 
                 GC.Collect();
             });

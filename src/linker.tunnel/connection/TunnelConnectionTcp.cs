@@ -84,11 +84,10 @@ namespace linker.tunnel.connection
 
             cancellationTokenSource = new CancellationTokenSource();
 
-            pipeSender = new Pipe(new PipeOptions(pauseWriterThreshold: maxRemaining, resumeWriterThreshold: (maxRemaining / 2), useSynchronizationContext: false));
-            pipeWriter = new Pipe(new PipeOptions(pauseWriterThreshold: maxRemaining, resumeWriterThreshold: (maxRemaining / 2), useSynchronizationContext: false));
-            _ = ProcessWrite();
             _ = Sender();
             _ = Recver();
+
+            _ = ProcessWrite();
             _ = ProcessHeart();
         }
 
@@ -133,10 +132,12 @@ namespace linker.tunnel.connection
         }
         private async Task Recver()
         {
+            pipeWriter = new Pipe(new PipeOptions(pauseWriterThreshold: maxRemaining, resumeWriterThreshold: (maxRemaining / 2), useSynchronizationContext: false));
             IMemoryOwner<byte> packetBuffer = MemoryPool<byte>.Shared.Rent(4 * 1024);
-            while (cancellationTokenSource.IsCancellationRequested == false)
+
+            try
             {
-                try
+                while (cancellationTokenSource.IsCancellationRequested == false)
                 {
                     ReadResult result = await pipeWriter.Reader.ReadAsync().ConfigureAwait(false);
                     if (result.IsCompleted && result.Buffer.IsEmpty)
@@ -188,15 +189,16 @@ namespace linker.tunnel.connection
                     //告诉管道已经处理了多少数据，检查了多少数据
                     pipeWriter.Reader.AdvanceTo(result.Buffer.GetPosition(offset), result.Buffer.End);
                 }
-                catch (Exception ex)
-                {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    {
-                        LoggerHelper.Instance.Error(ex);
-                    }
-                    Dispose();
-                }
             }
+            catch (Exception ex)
+            {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
+                Dispose();
+            }
+
             packetBuffer.Dispose();
         }
         private async Task WritePacket(ReadOnlyMemory<byte> packet)
@@ -272,9 +274,10 @@ namespace linker.tunnel.connection
 
         private async Task Sender()
         {
-            while (cancellationTokenSource.IsCancellationRequested == false)
+            pipeSender = new Pipe(new PipeOptions(pauseWriterThreshold: maxRemaining, resumeWriterThreshold: (maxRemaining / 2), useSynchronizationContext: false));
+            try
             {
-                try
+                while (cancellationTokenSource.IsCancellationRequested == false)
                 {
                     ReadResult result = await pipeSender.Reader.ReadAsync().ConfigureAwait(false);
                     if (result.IsCompleted && result.Buffer.IsEmpty)
@@ -312,31 +315,39 @@ namespace linker.tunnel.connection
                     pipeSender.Reader.AdvanceTo(buffer.End);
                     LastTicks.Update();
                 }
-                catch (Exception ex)
-                {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    {
-                        LoggerHelper.Instance.Error(ex);
-                    }
-                    Dispose();
-                }
             }
+            catch (Exception ex)
+            {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
+                Dispose();
+            }
+
         }
 
-        private readonly object _writeLock = new object();
+        private SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
         public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
             if (callback == null) return false;
 
-            lock (_writeLock)
+            await semaphoreSlim.WaitAsync();
+            try
             {
-                Memory<byte> memory = pipeSender.Writer.GetMemory(data.Length);
-                data.CopyTo(memory);
-                pipeSender.Writer.Advance(data.Length);
+                FlushResult result = await pipeSender.Writer.WriteAsync(data).ConfigureAwait(false);
                 Interlocked.Add(ref sendRemaining, data.Length);
+                return true;
             }
-            await pipeSender.Writer.FlushAsync().ConfigureAwait(false);
-            return true;
+            catch (Exception)
+            {
+            }
+            finally
+            {
+                semaphoreSlim.Release();
+            }
+
+            return false;
         }
         public async Task<bool> SendAsync(byte[] buffer, int offset, int length)
         {

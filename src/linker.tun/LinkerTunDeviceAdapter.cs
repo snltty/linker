@@ -2,9 +2,10 @@
 using linker.libs.timer;
 using linker.tun.device;
 using linker.tun.hook;
+using System.Buffers;
 using System.Buffers.Binary;
+using System.Collections.Concurrent;
 using System.Net;
-using System.Net.Sockets;
 using static linker.nat.LinkerDstMapping;
 
 namespace linker.tun
@@ -251,7 +252,6 @@ namespace linker.tun
         /// 添加路由
         /// </summary>
         /// <param name="ips"></param>
-        /// <param name="ip"></param>
         public void AddRoute(LinkerTunDeviceRouteItem[] ips)
         {
             if (linkerTunDevice == null)
@@ -364,6 +364,7 @@ namespace linker.tun
             }
             return await linkerTunDevice.CheckAvailable(order);
         }
+
     }
 
 
