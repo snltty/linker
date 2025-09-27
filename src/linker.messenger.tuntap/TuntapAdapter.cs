@@ -3,6 +3,7 @@ using linker.libs.extends;
 using linker.libs.timer;
 using linker.messenger.exroute;
 using linker.messenger.signin;
+using linker.nat;
 using linker.tun.device;
 using linker.tunnel.connection;
 using System.Net;
@@ -12,17 +13,15 @@ namespace linker.messenger.tuntap
 {
     public sealed class TuntapAdapter : ILinkerTunDeviceCallback, ITuntapProxyCallback
     {
-        private List<LinkerTunDeviceForwardItem> forwardItems = new List<LinkerTunDeviceForwardItem>();
+        private List<LinkerTunDeviceForwardItem> forwardItems = [];
 
-        private bool skipCheck => tuntapTransfer.Status == TuntapStatus.Operating || tuntapConfigTransfer.Info.Running == false;
-        private bool needRestart => tuntapTransfer.Status != TuntapStatus.Running || tuntapConfigTransfer.Changed;
+        private bool SkipCheck => tuntapTransfer.Status == TuntapStatus.Operating || tuntapConfigTransfer.Info.Running == false;
+        private bool NeedRestart => tuntapTransfer.Status != TuntapStatus.Running || tuntapConfigTransfer.Changed;
 
         private readonly TuntapTransfer tuntapTransfer;
         private readonly TuntapConfigTransfer tuntapConfigTransfer;
         private readonly TuntapDecenter tuntapDecenter;
         private readonly TuntapProxy tuntapProxy;
-        private readonly ISignInClientStore signInClientStore;
-        private readonly ExRouteTransfer exRouteTransfer;
 
         public TuntapAdapter(TuntapTransfer tuntapTransfer, TuntapConfigTransfer tuntapConfigTransfer, TuntapDecenter tuntapDecenter, TuntapProxy tuntapProxy, SignInClientState signInClientState, ISignInClientStore signInClientStore, ExRouteTransfer exRouteTransfer)
         {
@@ -30,8 +29,6 @@ namespace linker.messenger.tuntap
             this.tuntapConfigTransfer = tuntapConfigTransfer;
             this.tuntapDecenter = tuntapDecenter;
             this.tuntapProxy = tuntapProxy;
-            this.signInClientStore = signInClientStore;
-            this.exRouteTransfer = exRouteTransfer;
 
             //初始化网卡
             tuntapTransfer.Initialize(this);
@@ -99,6 +96,15 @@ namespace linker.messenger.tuntap
         {
             await tuntapProxy.InputPacket(packet).ConfigureAwait(false);
         }
+        public async Task Callback(LinkerSrcProxyReadPacket packet)
+        {
+            await tuntapProxy.InputPacket(packet).ConfigureAwait(false);
+        }
+        public bool Callback(uint ip)
+        {
+            return tuntapProxy.TestIp(ip);
+        }
+
         public async ValueTask Close(ITunnelConnection connection)
         {
             tuntapDecenter.Refresh();
@@ -110,7 +116,7 @@ namespace linker.messenger.tuntap
         }
 
 
-        private OperatingManager checking = new OperatingManager();
+        private readonly OperatingManager checking = new OperatingManager();
         /// <summary>
         /// 检查网卡设备
         /// </summary>
@@ -119,11 +125,11 @@ namespace linker.messenger.tuntap
         {
             try
             {
-                if (checking.StartOperation() == false || skipCheck)
+                if (checking.StartOperation() == false || SkipCheck)
                 {
                     return;
                 }
-                if (needRestart)
+                if (NeedRestart)
                 {
                     await RetstartDevice().ConfigureAwait(false);
                     return;

@@ -7,7 +7,9 @@ namespace linker.tun.hook
 {
     internal sealed class LinkerTunPacketHookLanSrcNat : ILinkerTunPacketHook
     {
-        public LinkerTunPacketHookLevel Level => LinkerTunPacketHookLevel.Highest;
+        public string Name => "DstNat";
+        public LinkerTunPacketHookLevel ReadLevel => LinkerTunPacketHookLevel.Lowest;
+        public LinkerTunPacketHookLevel WriteLevel => LinkerTunPacketHookLevel.Highest;
         public bool Running => linkerSrcNat.Running;
 
         private LinkerSrcNat linkerSrcNat = new LinkerSrcNat();
@@ -65,11 +67,11 @@ namespace linker.tun.hook
             GC.Collect();
         }
 
-        public bool Read(ReadOnlyMemory<byte> packet)
+        public bool Read(ReadOnlyMemory<byte> packet, ref bool send, ref bool writeBack)
         {
             return true;
         }
-        public bool Write(string srcId, ReadOnlyMemory<byte> packet)
+        public bool Write(ReadOnlyMemory<byte> packet, string srcId, ref bool write)
         {
             return linkerSrcNat.Running == false || linkerSrcNat.Inject(packet) == false;
         }

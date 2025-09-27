@@ -411,7 +411,6 @@ namespace linker.messenger.forward.proxy
             }
             foreach (var item in tcpConnections.Where(c => c.Value.ListenPort == port).ToList())
             {
-                //LoggerHelper.Instance.Warning($"stop {port} connection");
                 item.Value.Clear();
                 tcpConnections.TryRemove(item.Key, out _);
             }

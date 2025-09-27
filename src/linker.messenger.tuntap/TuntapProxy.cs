@@ -27,30 +27,20 @@ namespace linker.messenger.tuntap
         private readonly TuntapCidrConnectionManager tuntapCidrConnectionManager;
         private readonly TuntapCidrDecenterManager tuntapCidrDecenterManager;
         private readonly TuntapCidrMapfileManager tuntapCidrMapfileManager;
-        private readonly FakeAckTransfer fakeAckTransfer;
-        private readonly TuntapDecenter tuntapDecenter;
 
         public TuntapProxy(ISignInClientStore signInClientStore,
             TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer,
-            SignInClientTransfer signInClientTransfer, IRelayClientStore relayClientStore, TuntapConfigTransfer tuntapConfigTransfer, TuntapCidrConnectionManager tuntapCidrConnectionManager, TuntapCidrDecenterManager tuntapCidrDecenterManager, TuntapCidrMapfileManager tuntapCidrMapfileManager, FakeAckTransfer fakeAckTransfer, TuntapDecenter tuntapDecenter)
+            SignInClientTransfer signInClientTransfer, IRelayClientStore relayClientStore, TuntapConfigTransfer tuntapConfigTransfer, TuntapCidrConnectionManager tuntapCidrConnectionManager, TuntapCidrDecenterManager tuntapCidrDecenterManager, TuntapCidrMapfileManager tuntapCidrMapfileManager, TuntapDecenter tuntapDecenter)
             : base(tunnelTransfer, relayTransfer, pcpTransfer, signInClientTransfer, signInClientStore, relayClientStore)
         {
             this.tuntapConfigTransfer = tuntapConfigTransfer;
             this.tuntapCidrConnectionManager = tuntapCidrConnectionManager;
             this.tuntapCidrDecenterManager = tuntapCidrDecenterManager;
             this.tuntapCidrMapfileManager = tuntapCidrMapfileManager;
-            this.fakeAckTransfer = fakeAckTransfer;
-            this.tuntapDecenter = tuntapDecenter;
         }
 
         protected override void Connected(ITunnelConnection connection)
         {
-            /*
-            if (connection.ProtocolType == TunnelProtocolType.Tcp && tuntapConfigTransfer.Info.FakeAck && tuntapDecenter.HasSwitchFlag(connection.RemoteMachineId, TuntapSwitch.FakeAck))
-            {
-                connection.PacketBuffer = new byte[4 * 1024];
-            }
-            */
             Add(connection);
             connection.BeginReceive(this, null);
             //有哪些目标IP用了相同目标隧道，更新一下
@@ -68,7 +58,6 @@ namespace linker.messenger.tuntap
         public async Task Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer, object state)
 #pragma warning restore CS1998 // 异步方法缺少 "await" 运算符，将以同步方式运行
         {
-            //if (connection.PacketBuffer.Length > 0) fakeAckTransfer.Write(buffer);
             Callback.Receive(connection, buffer);
         }
         /// <summary>
@@ -101,20 +90,6 @@ namespace linker.messenger.tuntap
             uint ip = BinaryPrimitives.ReadUInt32BigEndian(packet.DstIp.Span[^4..]);
             if (tuntapCidrConnectionManager.TryGet(ip, out ITunnelConnection connection) && connection.Connected)
             {
-                /*
-                if (connection.PacketBuffer.Length > 0)
-                {
-                    ushort faleLength = 0;
-                    if (fakeAckTransfer.Read(packet.IPPacket, connection.PacketBuffer, connection.SendBufferFree, out faleLength))
-                    {
-                        return;
-                    }
-                    if (faleLength > 0)
-                    {
-                        Callback.Receive(connection, connection.PacketBuffer.AsMemory(0, faleLength));
-                    }
-                }
-                */
                 await connection.SendAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);
                 return;
             }
@@ -136,6 +111,53 @@ namespace linker.messenger.tuntap
             }, ip);
 
         }
+        public async Task InputPacket(LinkerSrcProxyReadPacket packet)
+        {
+            if (tuntapCidrConnectionManager.TryGet(packet.DstAddr, out ITunnelConnection connection) && connection.Connected)
+            {
+                if (connection.ProtocolType != TunnelProtocolType.Udp)
+                    await connection.SendAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);
+                return;
+            }
+
+            //开始操作，开始失败直接丢包
+            if (operatingMultipleManager.StartOperation(packet.DstAddr) == false)
+            {
+                return;
+            }
+            _ = ConnectTunnel(packet.DstAddr).ContinueWith((result, state) =>
+            {
+                //结束操作
+                operatingMultipleManager.StopOperation((uint)state);
+                //连接成功就缓存隧道
+                if (result.Result != null)
+                {
+                    tuntapCidrConnectionManager.Add((uint)state, result.Result);
+                }
+            }, packet.DstAddr);
+        }
+        public bool TestIp(uint ip)
+        {
+            if (tuntapCidrConnectionManager.TryGet(ip, out ITunnelConnection connection))
+            {
+                return connection.Connected && connection.ProtocolType != TunnelProtocolType.Udp;
+            }
+            if (operatingMultipleManager.StartOperation(ip))
+            {
+                _ = ConnectTunnel(ip).ContinueWith((result, state) =>
+                {
+                    //结束操作
+                    operatingMultipleManager.StopOperation((uint)state);
+                    //连接成功就缓存隧道
+                    if (result.Result != null)
+                    {
+                        tuntapCidrConnectionManager.Add((uint)state, result.Result);
+                    }
+                }, ip);
+            }
+            return false;
+        }
+
 
         /// <summary>
         /// 打洞或者中继

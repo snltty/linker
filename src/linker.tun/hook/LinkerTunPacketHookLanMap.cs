@@ -5,7 +5,9 @@ namespace linker.tun.hook
 {
     internal sealed class LinkerTunPacketHookLanMap : ILinkerTunPacketHook
     {
-        public LinkerTunPacketHookLevel Level => LinkerTunPacketHookLevel.Lowest;
+        public string Name => "Map";
+        public LinkerTunPacketHookLevel ReadLevel => LinkerTunPacketHookLevel.Lowest;
+        public LinkerTunPacketHookLevel WriteLevel => LinkerTunPacketHookLevel.Lowest;
 
 
         private readonly LinkerDstMapping linkerDstMapping = new LinkerDstMapping();
@@ -14,13 +16,13 @@ namespace linker.tun.hook
             linkerDstMapping.SetDsts(maps);
         }
 
-        public bool Read(ReadOnlyMemory<byte> packet)
+        public bool Read(ReadOnlyMemory<byte> packet, ref bool send, ref bool writeBack)
         {
             linkerDstMapping.ToFakeDst(packet);
             return true;
         }
 
-        public bool Write(string srcId, ReadOnlyMemory<byte> packet)
+        public bool Write(ReadOnlyMemory<byte> packet, string srcId, ref bool write)
         {
             linkerDstMapping.ToRealDst(packet);
             return true;

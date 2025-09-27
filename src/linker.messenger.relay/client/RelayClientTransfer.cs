@@ -63,7 +63,7 @@ namespace linker.messenger.relay.client
 
         public async Task<ITunnelConnection> ConnectAsync(string fromMachineId, string remoteMachineId, string transactionId, string nodeId, TunnelProtocolType protocol)
         {
-            return await ConnectAsync(fromMachineId, remoteMachineId, transactionId, TunnelProtocolType.All & (~protocol), nodeId).ConfigureAwait(false);
+            return await ConnectAsync(fromMachineId, remoteMachineId, transactionId, TunnelProtocolType.All & (~protocol), nodeId, protocol).ConfigureAwait(false);
         }
         /// <summary>
         /// 中继连接对方
@@ -72,9 +72,10 @@ namespace linker.messenger.relay.client
         /// <param name="remoteMachineId">对方id</param>
         /// <param name="transactionId">事务</param>
         /// <returns></returns>
-        public async Task<ITunnelConnection> ConnectAsync(string fromMachineId, string remoteMachineId, string transactionId, TunnelProtocolType denyProtocols, string nodeId = "")
+        public async Task<ITunnelConnection> ConnectAsync(string fromMachineId, string remoteMachineId, string transactionId, TunnelProtocolType denyProtocols, string nodeId = "", TunnelProtocolType protocol = TunnelProtocolType.None)
         {
             if (string.IsNullOrWhiteSpace(nodeId)) nodeId = relayClientStore.DefaultNodeId;
+            if(protocol == TunnelProtocolType.None) protocol = relayClientStore.DefaultProtocol;
 
 
             if (operating.StartOperation(BuildKey(remoteMachineId, transactionId)) == false)
@@ -90,9 +91,9 @@ namespace linker.messenger.relay.client
 
                 IEnumerable<IRelayClientTransport> transports = Transports
                     //优先的
-                    .Where(c => c.ProtocolType == relayClientStore.DefaultProtocol)
+                    .Where(c => c.ProtocolType == protocol)
                     //其次的
-                    .Concat(Transports.Where(c => c.ProtocolType != relayClientStore.DefaultProtocol))
+                    .Concat(Transports.Where(c => c.ProtocolType != protocol))
                     //不包含在禁用列表里的
                     .Where(c => denyProtocols.HasFlag(c.ProtocolType) == false);
 

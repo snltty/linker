@@ -1,10 +1,9 @@
 ﻿using linker.libs;
 using linker.libs.timer;
+using linker.nat;
 using linker.tun.device;
 using linker.tun.hook;
-using System.Buffers;
 using System.Buffers.Binary;
-using System.Collections.Concurrent;
 using System.Net;
 using static linker.nat.LinkerDstMapping;
 
@@ -13,7 +12,7 @@ namespace linker.tun
     /// <summary>
     /// linker tun网卡适配器，自动选择不同平台的实现
     /// </summary>
-    public sealed class LinkerTunDeviceAdapter
+    public sealed class LinkerTunDeviceAdapter : ILinkerSrcProxyCallback
     {
         private ILinkerTunDevice linkerTunDevice;
         private ILinkerTunDeviceCallback linkerTunDeviceCallback;
@@ -24,12 +23,13 @@ namespace linker.tun
 
         private string natError = string.Empty;
         public string NatError => natError;
-        public bool AppNat => lanDnat.Running;
+        public bool AppNat => lanDstProxy.Running;
 
         private IPAddress address;
         private byte prefixLength;
         private readonly LinkerTunPacketHookLanMap lanMap = new LinkerTunPacketHookLanMap();
-        private readonly LinkerTunPacketHookLanDstProxy lanDnat = new LinkerTunPacketHookLanDstProxy();
+        private readonly LinkerTunPacketHookLanSrcProxy lanSrcProxy = new LinkerTunPacketHookLanSrcProxy();
+        private readonly LinkerTunPacketHookLanDstProxy lanDstProxy = new LinkerTunPacketHookLanDstProxy();
 
 
         private readonly OperatingManager operatingManager = new OperatingManager();
@@ -47,16 +47,14 @@ namespace linker.tun
             }
         }
 
-        private ILinkerTunPacketHook[] hooks = [];
-        private ILinkerTunPacketHook[] hooks1 = [];
+        private ILinkerTunPacketHook[] readHooks = [];
+        private ILinkerTunPacketHook[] writeHooks = [];
 
         public LinkerTunDeviceAdapter()
         {
-            hooks = new ILinkerTunPacketHook[] {
-                lanMap,
-                lanDnat
-            };
-            hooks1 = hooks.OrderByDescending(c => c.Level).ToArray();
+            var hooks = new ILinkerTunPacketHook[] { lanMap, lanSrcProxy, lanDstProxy };
+            readHooks = [.. hooks.OrderBy(c => c.ReadLevel)];
+            writeHooks = [.. hooks.OrderBy(c => c.WriteLevel)];
         }
 
         /// <summary>
@@ -98,6 +96,15 @@ namespace linker.tun
             this.linkerTunDevice = linkerTunDevice;
             this.linkerTunDeviceCallback = linkerTunDeviceCallback;
             return true;
+        }
+
+        public async Task Callback(LinkerSrcProxyReadPacket packet)
+        {
+            await linkerTunDeviceCallback.Callback(packet);
+        }
+        public bool Callback(uint ip)
+        {
+            return linkerTunDeviceCallback.Callback(ip);
         }
 
         /// <summary>
@@ -194,7 +201,8 @@ namespace linker.tun
             if (linkerTunDevice.Running)
             {
                 linkerTunDevice.SetNat(out natError);
-                lanDnat.Setup(address, prefixLength, items, ref natError);
+                lanDstProxy.Setup(address, prefixLength, items, ref natError);
+                lanSrcProxy.Setup(address, prefixLength, this, ref natError);
             }
         }
         /// <summary>
@@ -208,7 +216,8 @@ namespace linker.tun
             }
             natError = string.Empty;
             linkerTunDevice.RemoveNat(out string error);
-            lanDnat.Shutdown();
+            lanDstProxy.Shutdown();
+            lanSrcProxy.Shutdown();
         }
 
         /// <summary>
@@ -276,11 +285,10 @@ namespace linker.tun
 
         public void AddHooks(List<ILinkerTunPacketHook> hooks)
         {
-            List<ILinkerTunPacketHook> list = this.hooks.ToList();
-            list.AddRange(hooks);
+            hooks = hooks.UnionBy(this.readHooks, c => c.Name).ToList();
 
-            this.hooks = list.Distinct().OrderBy(c => c.Level).ToArray();
-            hooks1 = this.hooks.OrderByDescending(c => c.Level).ToArray();
+            readHooks = [.. hooks.OrderBy(c => c.ReadLevel)];
+            writeHooks = [.. hooks.OrderBy(c => c.WriteLevel)];
         }
 
         private void Read()
@@ -305,12 +313,18 @@ namespace linker.tun
                         packet.Unpacket(buffer, 0, length);
                         if (packet.DstIp.Length == 0 || packet.Version != 4) continue;
 
-                        for (int i = 0; i < hooks1.Length; i++) if (hooks1[i].Read(packet.RawPacket) == false) goto end;
+                        bool send = true, writeBack = false;
+                        for (int i = 0; i < readHooks.Length; i++)
+                        {
+                            if (readHooks[i].Read(packet.RawPacket, ref send, ref writeBack) == false) break;
+                        }
                         ChecksumHelper.ChecksumWithZero(packet.RawPacket);
 
-                        await linkerTunDeviceCallback.Callback(packet).ConfigureAwait(false);
+                        if (writeBack)
+                            linkerTunDevice.Write(packet.RawPacket);
+                        if (send)
+                            await linkerTunDeviceCallback.Callback(packet).ConfigureAwait(false);
 
-                    end:;
                     }
                     catch (Exception ex)
                     {
@@ -333,10 +347,14 @@ namespace linker.tun
             {
                 if (Status != LinkerTunDeviceStatus.Running || BinaryPrimitives.ReverseEndianness(*(ushort*)(ptr + 2)) != buffer.Length) return false;
 
-                for (int i = 0; i < hooks.Length; i++) if (hooks[i].Write(srcId, buffer) == false) return false;
+                bool write = true;
+                for (int i = 0; i < writeHooks.Length; i++)
+                {
+                    if (writeHooks[i].Write(buffer, srcId, ref write) == false) break;
+                }
                 ChecksumHelper.ChecksumWithZero(buffer);
 
-                return linkerTunDevice.Write(buffer);
+                return write == false || linkerTunDevice.Write(buffer);
             }
         }
 

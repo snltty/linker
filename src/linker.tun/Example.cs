@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.nat;
 using linker.tun.device;
 using System.Buffers.Binary;
 using System.Net;
@@ -32,9 +33,13 @@ namespace linker.tun
             TCPUDPRead(packet);
             await Task.CompletedTask.ConfigureAwait(false);
         }
+        public async Task Callback(LinkerSrcProxyReadPacket packet)
+        {
+        }
+        public bool Callback(uint ip) { return true; }
         private unsafe void TCPUDPRead(LinkerTunDevicPacket packet)
         {
-            //if (packet.Version != 4) return;
+            if (packet.Version != 4) return;
 
             Memory<byte> writableMemory = packet.Buffer.AsMemory(packet.Offset + 4, packet.Length);
             fixed (byte* ptr = writableMemory.Span)
@@ -63,6 +68,10 @@ namespace linker.tun
             ICMPAnswer(packet);
             await Task.CompletedTask.ConfigureAwait(false);
         }
+        public async Task Callback(LinkerSrcProxyReadPacket packet)
+        {
+        }
+        public bool Callback(uint ip) { return true; }
         private unsafe void ICMPAnswer(LinkerTunDevicPacket packet)
         {
             Memory<byte> writableMemory = packet.Buffer.AsMemory(packet.Offset + 4, packet.Length);

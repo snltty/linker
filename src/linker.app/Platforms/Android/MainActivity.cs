@@ -16,6 +16,7 @@ using linker.libs.web;
 using linker.messenger.entry;
 using linker.messenger.tuntap;
 using linker.messenger.updater;
+using linker.nat;
 using linker.tun.device;
 using linker.tunnel.connection;
 using System.Net;
@@ -108,6 +109,10 @@ namespace linker.app
         }
 
         public async Task Callback(LinkerTunDevicPacket packet)
+        {
+            await tuntapProxy.InputPacket(packet).ConfigureAwait(false);
+        }
+        public async Task Callback(LinkerSrcProxyReadPacket packet)
         {
             await tuntapProxy.InputPacket(packet).ConfigureAwait(false);
         }

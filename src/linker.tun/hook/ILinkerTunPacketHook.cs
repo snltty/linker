@@ -5,21 +5,27 @@
     /// </summary>
     public interface ILinkerTunPacketHook
     {
-        public LinkerTunPacketHookLevel Level { get; }
+        public string Name { get; }
+
+        public LinkerTunPacketHookLevel ReadLevel { get; }
+        public LinkerTunPacketHookLevel WriteLevel { get; }
 
         /// <summary>
         /// 从网卡读取到数据包后
         /// </summary>
         /// <param name="packet"></param>
+        /// <param name="send"></param>
+        /// <param name="writeBack"></param>
         /// <returns></returns>
-        public bool Read(ReadOnlyMemory<byte> packet);
+        public bool Read(ReadOnlyMemory<byte> packet, ref bool send, ref bool writeBack);
         /// <summary>
         /// 写入网卡前
         /// </summary>
-        /// <param name="srcId"></param>
         /// <param name="packet"></param>
-        /// <returns></returns>
-        public bool Write(string srcId, ReadOnlyMemory<byte> packet);
+        /// <param name="srcId"></param>
+        /// <param name="write"></param>
+        /// <returns>next</returns>
+        public bool Write(ReadOnlyMemory<byte> packet, string srcId, ref bool write);
     }
     /// <summary>
     /// 回调处理级别

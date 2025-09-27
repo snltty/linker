@@ -45,9 +45,6 @@ namespace linker.messenger.tuntap
             serviceCollection.AddSingleton<TuntapCidrMapfileManager>();
 
 
-            serviceCollection.AddSingleton<FakeAckTransfer>();
-            
-
             return serviceCollection;
         }
         public static ServiceProvider UseTuntapClient(this ServiceProvider serviceProvider, JsonDocument json = default)

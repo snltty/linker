@@ -39,7 +39,7 @@ namespace linker.messenger.listen
                 {
                     LoggerHelper.Instance.Error(ex);
                 }
-                LoggerHelper.Instance.Warning($"server web api listen:{listenStore.Port}");
+                LoggerHelper.Instance.Warning($"server web api listen:{listenStore.ApiPort}");
             }
 
             return serviceProvider;

@@ -7,10 +7,13 @@ namespace linker.tun.hook
 {
     internal sealed class LinkerTunPacketHookLanDstProxy : ILinkerTunPacketHook
     {
-        public LinkerTunPacketHookLevel Level => LinkerTunPacketHookLevel.Highest;
-        private LinkerDstProxy linkerDstNat = new LinkerDstProxy();
+        public string Name => "DstProxy";
+        public LinkerTunPacketHookLevel ReadLevel => LinkerTunPacketHookLevel.Lowest;
+        public LinkerTunPacketHookLevel WriteLevel => LinkerTunPacketHookLevel.Highest;
 
-        public bool Running => linkerDstNat.Running;
+        private readonly LinkerDstProxy linkerDstProxy = new LinkerDstProxy();
+
+        public bool Running => linkerDstProxy.Running;
 
         public LinkerTunPacketHookLanDstProxy()
         {
@@ -18,8 +21,6 @@ namespace linker.tun.hook
 
         public void Setup(IPAddress address, byte prefixLength, LinkerTunAppNatItemInfo[] items, ref string error)
         {
-            if (OperatingSystem.IsWindows() == false) return;
-
             if (address == null || address.Equals(IPAddress.Any) || prefixLength == 0)
             {
                 error = "DstProxy need CIDR,like 10.18.18.0/24";
@@ -40,13 +41,13 @@ namespace linker.tun.hook
                 LoggerHelper.Instance.Error(ex);
             }
 
-            linkerDstNat.Setup(address, items.Select(c => new ValueTuple<IPAddress, byte>(c.IP, c.PrefixLength)).ToArray(), ref error);
+            linkerDstProxy.Setup(address, items.Select(c => new ValueTuple<IPAddress, byte>(c.IP, c.PrefixLength)).ToArray(), ref error);
         }
         public void Shutdown()
         {
             try
             {
-                linkerDstNat.Shutdown();
+                linkerDstProxy.Shutdown();
             }
             catch (Exception)
             {
@@ -54,14 +55,15 @@ namespace linker.tun.hook
             GC.Collect();
         }
 
-        public bool Read(ReadOnlyMemory<byte> packet)
+        public bool Read(ReadOnlyMemory<byte> packet, ref bool send, ref bool writeBack)
         {
-            linkerDstNat.Read(packet);
+            linkerDstProxy.Read(packet);
             return true;
         }
-        public bool Write(string srcId, ReadOnlyMemory<byte> packet)
+        public bool Write(ReadOnlyMemory<byte> packet, string srcId, ref bool write)
         {
-            return linkerDstNat.Write(packet);
+            linkerDstProxy.Write(packet, ref write);
+            return true;
         }
     }
 }

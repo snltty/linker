@@ -226,61 +226,64 @@ namespace linker.nat
         /// 从网卡读取之后
         /// </summary>
         /// <param name="packet"></param>
-        /// <param name="needChecksum"></param>
         public unsafe void Read(ReadOnlyMemory<byte> packet)
         {
             if (Running == false) return;
             fixed (byte* ptr = packet.Span)
             {
                 DstProxyPacket p = new DstProxyPacket(ptr);
-                //if (p.Version != 4) return;
+                if (p.Version != 4 || p.SrcPort != proxyPort || (p.Protocol == ProtocolType.Tcp || p.Protocol == ProtocolType.Udp) == false) return;
 
-                if (p.Protocol == ProtocolType.Tcp || p.Protocol == ProtocolType.Udp)
+                if (dic.TryGetValue((p.DstAddr, p.DstPort), out DstCacheInfo cache))
                 {
-                    if (dic.TryGetValue((p.DstAddr, p.DstPort), out DstCacheInfo cache))
-                    {
-                        cache.LastTime = Environment.TickCount64;
-                        p.SrcAddr = cache.IP;
-                        p.SrcPort = cache.Port;
-                        p.IPChecksum = 0;
-                        p.PayloadChecksum = 0;
+                    cache.LastTime = Environment.TickCount64;
+                    p.SrcAddr = cache.IP;
+                    p.SrcPort = cache.Port;
+                    p.IPChecksum = 0;
+                    p.PayloadChecksum = 0;
 
-                        if (p.Protocol == ProtocolType.Tcp && (p.TcpFlagFin || p.TcpFlagRst))
-                        {
-                            cache.Fin = true;
-                        }
+                    if (p.Protocol == ProtocolType.Tcp && (p.TcpFlagFin || p.TcpFlagRst))
+                    {
+                        cache.Fin = true;
                     }
                 }
             }
 
         }
         /// <summary>
-        /// 写如网卡之前
+        /// 写入网卡之前
         /// </summary>
         /// <param name="packet">单个完整TCP/IP包</param>
         /// <returns></returns>
-        public unsafe bool Write(ReadOnlyMemory<byte> packet)
+        public unsafe void Write(ReadOnlyMemory<byte> packet,ref bool write)
         {
-            if (Running == false) return true;
+            if (Running == false) return;
             fixed (byte* ptr = packet.Span)
             {
                 DstProxyPacket p = new DstProxyPacket(ptr);
-                if (p.Version != 4 || p.DstAddr == tunIp || p.DstAddrSpan.IsCast()) return true;
+                if (p.Version != 4 || p.DstAddr == tunIp || p.DstAddrSpan.IsCast()) return;
 
                 if (lans.Any(c => p.DstAddr >= c.min && p.DstAddr <= c.max) == false)
                 {
-                    return true;
+                    return;
                 }
-                return p.Protocol switch
+                switch (p.Protocol)
                 {
-                    ProtocolType.Tcp => WriteTcp(p),
-                    ProtocolType.Udp => WriteUdp(p),
-                    ProtocolType.Icmp => WriteIcmp(p),
-                    _ => true,
-                };
+                    case ProtocolType.Icmp:
+                        WriteIcmp(p, ref write);
+                        break;
+                    case ProtocolType.Tcp:
+                        WriteTcp(p);
+                        break;
+                    case ProtocolType.Udp:
+                        WriteUdp(p);
+                        break;
+                    default:
+                        break;
+                }
             }
         }
-        private bool WriteTcp(DstProxyPacket p)
+        private void WriteTcp(DstProxyPacket p)
         {
             (uint srcIp, ushort srcPort) key = (p.SrcAddr, p.SrcPort);
             if (dic.TryGetValue(key, out DstCacheInfo cache) == false || cache.IP != p.DstAddr || cache.Port != p.DstPort)
@@ -288,7 +291,7 @@ namespace linker.nat
                 //仅SYN包建立映射
                 if (p.IsOnlySyn == false)
                 {
-                    return true;
+                    return;
                 }
                 cache = new DstCacheInfo { IP = p.DstAddr, Port = p.DstPort };
                 dic.AddOrUpdate(key, cache, (a, b) => cache);
@@ -308,10 +311,8 @@ namespace linker.nat
             //重新计算校验和
             p.IPChecksum = 0;
             p.PayloadChecksum = 0;
-
-            return true;
         }
-        private bool WriteUdp(DstProxyPacket p)
+        private void WriteUdp(DstProxyPacket p)
         {
             (uint srcIp, ushort srcPort) key = (p.SrcAddr, p.SrcPort);
             if (dic.TryGetValue(key, out DstCacheInfo cache) == false || cache.IP != p.DstAddr || cache.Port != p.DstPort)
@@ -327,10 +328,8 @@ namespace linker.nat
             //重新计算校验和
             p.IPChecksum = 0;
             p.PayloadChecksum = 0;
-
-            return true;
         }
-        private bool WriteIcmp(DstProxyPacket p)
+        private void WriteIcmp(DstProxyPacket p,ref bool write)
         {
             if (p.IcmpType == 8)
             {
@@ -349,7 +348,7 @@ namespace linker.nat
                 state.LastTime = Environment.TickCount64;
                 if (state.Status != IPStatus.Success)
                 {
-                    return false;
+                    write = false;
                 }
                 //交换IP
                 (p.DstAddr, p.SrcAddr) = (p.SrcAddr, p.DstAddr);
@@ -359,7 +358,6 @@ namespace linker.nat
                 p.IPChecksum = 0;
                 p.PayloadChecksum = 0;
             }
-            return true;
         }
         private static void Ping(IPAddress ip, IcmpState state)
         {
@@ -380,7 +378,7 @@ namespace linker.nat
         {
             TimerHelper.SetIntervalLong(() =>
             {
-                foreach (var item in dic.Where(c => c.Value.Fin && Environment.TickCount64 - c.Value.LastTime > 5 * 60 * 1000).Select(c => c.Key).ToList())
+                foreach (var item in dic.Where(c => c.Value.Fin && Environment.TickCount64 - c.Value.LastTime > 60 * 1000).Select(c => c.Key).ToList())
                 {
                     dic.TryRemove(item, out _);
                 }

@@ -1,5 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.extends;
+using linker.nat;
 using System.Buffers.Binary;
 using System.Net;
 using System.Net.Sockets;
@@ -134,6 +135,8 @@ namespace linker.tun.device
         /// <param name="packet"></param>
         /// <returns></returns>
         public Task Callback(LinkerTunDevicPacket packet);
+        public Task Callback(LinkerSrcProxyReadPacket proxy);
+        public bool Callback(uint ip);
     }
 
 
@@ -198,6 +201,7 @@ namespace linker.tun.device
         /// 目标IP
         /// </summary>
         public ReadOnlyMemory<byte> DstIp { get; private set; }
+
         /// <summary>
         /// 目标端口
         /// </summary>
@@ -250,6 +254,8 @@ namespace linker.tun.device
         }
 
     }
+
+
 
     /// <summary>
     /// 添加路由项
