@@ -223,7 +223,7 @@ namespace linker.nat
                 bool match = (item.SrcIds == null ? (item.SrcId == "*" || item.SrcId == srcId) : item.SrcIds.Contains("*") || item.SrcIds.Contains(srcId))
                     && ((ip & item.DstPrefixLength) == item.DstNetwork)
                     && ((port >= item.DstPortStart && port <= item.DstPortEnd) || item.DstPorts.Contains(port))
-                    && item.Protocol.HasFlag(_rotocol);
+                    && (item.Protocol & _rotocol) == _rotocol;
                 if (match)
                 {
                     value = item.Action == LinkerFirewallAction.Allow;
@@ -369,6 +369,7 @@ namespace linker.nat
         public LinkerFirewallProtocolType Protocol { get; set; }
         public LinkerFirewallAction Action { get; set; }
     }
+    [Flags]
     public enum LinkerFirewallProtocolType : byte
     {
         None = 0,

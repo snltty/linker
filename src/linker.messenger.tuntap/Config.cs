@@ -41,11 +41,11 @@ namespace linker.messenger.tuntap
 
         public ConcurrentDictionary<string, TuntapGroup2IPInfo> Group2IP { get; set; } = new ConcurrentDictionary<string, TuntapGroup2IPInfo>();
 
-        public bool DisableNat => Switch.HasFlag(TuntapSwitch.DisableNat);
-        public bool TcpMerge => Switch.HasFlag(TuntapSwitch.TcpMerge);
-        public bool InterfaceOrder => Switch.HasFlag(TuntapSwitch.InterfaceOrder);
-        public bool Multicast => Switch.HasFlag(TuntapSwitch.Multicast);
-        public bool FakeAck => Switch.HasFlag(TuntapSwitch.FakeAck);
+        public bool DisableNat => (Switch & TuntapSwitch.DisableNat) == TuntapSwitch.DisableNat;
+        public bool TcpMerge => (Switch & TuntapSwitch.TcpMerge) == TuntapSwitch.TcpMerge;
+        public bool InterfaceOrder => (Switch & TuntapSwitch.InterfaceOrder) == TuntapSwitch.InterfaceOrder;
+        public bool Multicast => (Switch & TuntapSwitch.Multicast) == TuntapSwitch.Multicast;
+        public bool SrcProxy => (Switch & TuntapSwitch.SrcProxy) == TuntapSwitch.SrcProxy;
     }
 
     public sealed class TuntapGroup2IPInfo
@@ -319,21 +319,21 @@ namespace linker.messenger.tuntap
         /// <summary>
         /// 使用伪ACK，测试用
         /// </summary>
-        public bool FakeAck
+        public bool SrcProxy
         {
             get
             {
-                return (Switch & TuntapSwitch.FakeAck) == TuntapSwitch.FakeAck;
+                return (Switch & TuntapSwitch.SrcProxy) == TuntapSwitch.SrcProxy;
             }
             set
             {
                 if (value)
                 {
-                    Switch |= TuntapSwitch.FakeAck;
+                    Switch |= TuntapSwitch.SrcProxy;
                 }
                 else
                 {
-                    Switch &= ~TuntapSwitch.FakeAck;
+                    Switch &= ~TuntapSwitch.SrcProxy;
                 }
             }
         }
@@ -433,9 +433,9 @@ namespace linker.messenger.tuntap
         AppNat = 256,
 
         /// <summary>
-        /// 使用伪ACK，测试用
+        /// 源代理
         /// </summary>
-        FakeAck = 512,
+        SrcProxy = 512,
     }
 
 

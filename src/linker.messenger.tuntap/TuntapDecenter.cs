@@ -59,6 +59,8 @@ namespace linker.messenger.tuntap
             {
                 tuntapConfigTransfer.Info.Switch &= ~TuntapSwitch.AppNat;
             }
+            tuntapConfigTransfer.Info.Switch |= TuntapSwitch.SrcProxy;
+
             return serializer.Serialize(new TuntapInfo
             {
                 IP = tuntapConfigTransfer.Info.IP,
@@ -113,9 +115,9 @@ namespace linker.messenger.tuntap
         }
 
 
-        public bool HasSwitchFlag(string machineId,TuntapSwitch tuntapSwitch)
+        public bool HasSwitchFlag(string machineId, TuntapSwitch tuntapSwitch)
         {
-            return tuntapInfos.TryGetValue(machineId, out var info) && info.Switch.HasFlag(tuntapSwitch);
+            return tuntapInfos.TryGetValue(machineId, out var info) && (info.Switch & tuntapSwitch) == tuntapSwitch;
         }
 
         private void CheckAvailableTask()

@@ -27,6 +27,7 @@ namespace linker.messenger.tuntap
         private readonly TuntapCidrConnectionManager tuntapCidrConnectionManager;
         private readonly TuntapCidrDecenterManager tuntapCidrDecenterManager;
         private readonly TuntapCidrMapfileManager tuntapCidrMapfileManager;
+        private readonly TuntapDecenter tuntapDecenter;
 
         public TuntapProxy(ISignInClientStore signInClientStore,
             TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer,
@@ -37,10 +38,16 @@ namespace linker.messenger.tuntap
             this.tuntapCidrConnectionManager = tuntapCidrConnectionManager;
             this.tuntapCidrDecenterManager = tuntapCidrDecenterManager;
             this.tuntapCidrMapfileManager = tuntapCidrMapfileManager;
+            this.tuntapDecenter = tuntapDecenter;
         }
 
         protected override void Connected(ITunnelConnection connection)
         {
+            if (connection.ProtocolType == TunnelProtocolType.Tcp && tuntapConfigTransfer.Info.SrcProxy && tuntapDecenter.HasSwitchFlag(connection.RemoteMachineId, TuntapSwitch.SrcProxy))
+            {
+                connection.PacketBuffer = Helper.TrueArray;
+            }
+
             Add(connection);
             connection.BeginReceive(this, null);
             //有哪些目标IP用了相同目标隧道，更新一下
@@ -115,32 +122,31 @@ namespace linker.messenger.tuntap
         {
             if (tuntapCidrConnectionManager.TryGet(packet.DstAddr, out ITunnelConnection connection) && connection.Connected)
             {
-                if (connection.ProtocolType != TunnelProtocolType.Udp)
+                if (connection.PacketBuffer.Length > 0)
                     await connection.SendAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);
                 return;
             }
 
             //开始操作，开始失败直接丢包
-            if (operatingMultipleManager.StartOperation(packet.DstAddr) == false)
+            if (operatingMultipleManager.StartOperation(packet.DstAddr))
             {
-                return;
-            }
-            _ = ConnectTunnel(packet.DstAddr).ContinueWith((result, state) =>
-            {
-                //结束操作
-                operatingMultipleManager.StopOperation((uint)state);
-                //连接成功就缓存隧道
-                if (result.Result != null)
+                _ = ConnectTunnel(packet.DstAddr).ContinueWith((result, state) =>
                 {
-                    tuntapCidrConnectionManager.Add((uint)state, result.Result);
-                }
-            }, packet.DstAddr);
+                    //结束操作
+                    operatingMultipleManager.StopOperation((uint)state);
+                    //连接成功就缓存隧道
+                    if (result.Result != null)
+                    {
+                        tuntapCidrConnectionManager.Add((uint)state, result.Result);
+                    }
+                }, packet.DstAddr);
+            }
         }
         public bool TestIp(uint ip)
         {
-            if (tuntapCidrConnectionManager.TryGet(ip, out ITunnelConnection connection))
+            if (tuntapCidrConnectionManager.TryGet(ip, out ITunnelConnection connection) && connection.Connected)
             {
-                return connection.Connected && connection.ProtocolType != TunnelProtocolType.Udp;
+                return connection.PacketBuffer.Length > 0;
             }
             if (operatingMultipleManager.StartOperation(ip))
             {

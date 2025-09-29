@@ -116,6 +116,10 @@ namespace linker.app
         {
             await tuntapProxy.InputPacket(packet).ConfigureAwait(false);
         }
+        public bool Callback(uint ip)
+        {
+            return tuntapProxy.TestIp(ip);
+        }
         public async ValueTask Close(ITunnelConnection connection)
         {
             tuntapDecenter.Refresh();

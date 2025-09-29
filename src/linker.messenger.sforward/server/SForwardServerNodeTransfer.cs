@@ -51,7 +51,7 @@ namespace linker.messenger.sforward.server
                 sForwardServerNodeStore.Node.Public = false;
             }
 
-            if (commonStore.Modes.HasFlag(CommonModes.Server))
+            if ((commonStore.Modes & CommonModes.Server) == CommonModes.Server)
             {
                 TrafficTask();
                 ReportTask();

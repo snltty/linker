@@ -95,7 +95,7 @@ namespace linker.messenger.relay.client
                     //其次的
                     .Concat(Transports.Where(c => c.ProtocolType != protocol))
                     //不包含在禁用列表里的
-                    .Where(c => denyProtocols.HasFlag(c.ProtocolType) == false);
+                    .Where(c => (denyProtocols & c.ProtocolType)!= c.ProtocolType);
 
                 foreach (IRelayClientTransport transport in transports)
                 {

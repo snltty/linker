@@ -196,27 +196,27 @@ namespace linker.messenger.store.file.cdkey
         {
             ILiteQueryable<CdkeyStoreInfo> query = liteCollection.Query();
 
-            if (info.Flag.HasFlag(CdkeyPageRequestFlag.TimeIn))
+            if ((info.Flag & CdkeyPageRequestFlag.TimeIn) == CdkeyPageRequestFlag.TimeIn)
             {
                 query = query.Where(x => x.StartTime <= DateTime.Now && x.EndTime >= DateTime.Now);
             }
-            if (info.Flag.HasFlag(CdkeyPageRequestFlag.TimeOut))
+            if ((info.Flag & CdkeyPageRequestFlag.TimeOut) == (CdkeyPageRequestFlag.TimeOut))
             {
                 query = query.Where(x => x.StartTime > DateTime.Now || x.EndTime < DateTime.Now);
             }
-            if (info.Flag.HasFlag(CdkeyPageRequestFlag.BytesIn))
+            if ((info.Flag & CdkeyPageRequestFlag.BytesIn) == (CdkeyPageRequestFlag.BytesIn))
             {
                 query = query.Where(x => x.LastBytes > 0);
             }
-            if (info.Flag.HasFlag(CdkeyPageRequestFlag.BytesOut))
+            if ((info.Flag & CdkeyPageRequestFlag.BytesOut) == (CdkeyPageRequestFlag.BytesOut))
             {
                 query = query.Where(x => x.LastBytes <= 0);
             }
-            if (info.Flag.HasFlag(CdkeyPageRequestFlag.Deleted))
+            if ((info.Flag & CdkeyPageRequestFlag.Deleted) == (CdkeyPageRequestFlag.Deleted))
             {
                 query = query.Where(x => x.Deleted == true);
             }
-            if (info.Flag.HasFlag(CdkeyPageRequestFlag.UnDeleted))
+            if ((info.Flag & CdkeyPageRequestFlag.UnDeleted) == (CdkeyPageRequestFlag.UnDeleted))
             {
                 query = query.Where(x => x.Deleted == false);
             }

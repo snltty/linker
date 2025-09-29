@@ -134,6 +134,8 @@ namespace linker.tun
                 }
                 linkerTunDevice.SetMtu(info.Mtu);
                 Read();
+
+                lanSrcProxy.Setup(address, prefixLength, this, ref natError);
                 return true;
             }
             catch (Exception ex)
@@ -166,6 +168,7 @@ namespace linker.tun
             {
                 cancellationTokenSource?.Cancel();
                 linkerTunDevice.Shutdown();
+                lanSrcProxy.Shutdown();
             }
             catch (Exception)
             {
@@ -202,7 +205,6 @@ namespace linker.tun
             {
                 linkerTunDevice.SetNat(out natError);
                 lanDstProxy.Setup(address, prefixLength, items, ref natError);
-                lanSrcProxy.Setup(address, prefixLength, this, ref natError);
             }
         }
         /// <summary>
@@ -217,7 +219,6 @@ namespace linker.tun
             natError = string.Empty;
             linkerTunDevice.RemoveNat(out string error);
             lanDstProxy.Shutdown();
-            lanSrcProxy.Shutdown();
         }
 
         /// <summary>
