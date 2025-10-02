@@ -60,10 +60,9 @@ namespace linker.tun.hook
             linkerDstProxy.Read(packet);
             return true;
         }
-        public bool Write(ReadOnlyMemory<byte> packet, string srcId, ref bool write)
+        public ValueTask<(bool next, bool write)> WriteAsync(ReadOnlyMemory<byte> packet, string srcId)
         {
-            linkerDstProxy.Write(packet, ref write);
-            return true;
+            return ValueTask.FromResult((true, linkerDstProxy.Write(packet)));
         }
     }
 }

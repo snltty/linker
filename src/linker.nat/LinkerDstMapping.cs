@@ -88,8 +88,7 @@ namespace linker.nat
         /// <summary>
         /// 转换为真IP
         /// </summary>
-        /// <param name="packet">TCP/IP</param>
-        /// <param name="checksum">是否计算校验和，如果使用了应用层NAT，可以交给应用层NAT去计算校验和</param>
+        /// <param name="buffer"></param>
         public unsafe void ToRealDst(ReadOnlyMemory<byte> buffer)
         {
             //映射表不为空

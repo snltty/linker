@@ -125,9 +125,9 @@ namespace linker.app
             tuntapDecenter.Refresh();
             await ValueTask.CompletedTask.ConfigureAwait(false);
         }
-        public void Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer)
+        public async ValueTask Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer)
         {
-            tuntapTransfer.Write(connection.RemoteMachineId, buffer);
+           await tuntapTransfer.Write(connection.RemoteMachineId, buffer).ConfigureAwait(false);
         }
 
     }
@@ -237,7 +237,7 @@ namespace linker.app
                     CApi = new
                     {
                         ApiPassword = Helper.GlobalString,
-                        WebPort = ApplyNewPort()
+                        WebPort = NetworkHelper.ApplyNewPort()
                     }
                 }
             }.ToJson());
@@ -286,13 +286,6 @@ namespace linker.app
             };
         }
 
-        private ushort ApplyNewPort()
-        {
-            using Socket socket = new Socket(AddressFamily.InterNetwork, System.Net.Sockets.SocketType.Dgram, ProtocolType.Udp);
-            socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-            socket.Bind(new IPEndPoint(IPAddress.Any, 0));
-            return (ushort)(socket.LocalEndPoint as IPEndPoint).Port;
-        }
     }
 
     /// <summary>

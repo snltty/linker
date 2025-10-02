@@ -41,7 +41,8 @@ namespace linker.tunnel.connection
         private long sendRemaining = 0;
         public long SendBufferRemaining { get => sendRemaining; }
         public long SendBufferFree { get => maxRemaining - sendRemaining; }
-        private const long maxRemaining = 1 * 1024 * 1024;
+        private const long maxRemaining = 128 * 1024;
+
 
         private long recvRemaining = 0;
         public long RecvBufferRemaining { get => recvRemaining; }
@@ -70,11 +71,6 @@ namespace linker.tunnel.connection
 
         private Pipe pipeSender;
         private Pipe pipeWriter;
-        /// <summary>
-        /// 开始接收数据
-        /// </summary>
-        /// <param name="callback">数据回调</param>
-        /// <param name="userToken">自定义数据</param>
         public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken)
         {
             if (this.callback != null) return;
@@ -132,7 +128,7 @@ namespace linker.tunnel.connection
         }
         private async Task Recver()
         {
-            pipeWriter = new Pipe(new PipeOptions(pauseWriterThreshold: maxRemaining, resumeWriterThreshold: (maxRemaining / 2), useSynchronizationContext: false));
+            pipeWriter = new Pipe(new PipeOptions(pauseWriterThreshold: maxRemaining, resumeWriterThreshold: (maxRemaining / 2), useSynchronizationContext: false, minimumSegmentSize: 8192));
             IMemoryOwner<byte> packetBuffer = MemoryPool<byte>.Shared.Rent(4 * 1024);
 
             try
@@ -274,7 +270,7 @@ namespace linker.tunnel.connection
 
         private async Task Sender()
         {
-            pipeSender = new Pipe(new PipeOptions(pauseWriterThreshold: maxRemaining, resumeWriterThreshold: (maxRemaining / 2), useSynchronizationContext: false));
+            pipeSender = new Pipe(new PipeOptions(pauseWriterThreshold: maxRemaining, resumeWriterThreshold: (maxRemaining / 2), useSynchronizationContext: false, minimumSegmentSize: 8192));
             try
             {
                 while (cancellationTokenSource.IsCancellationRequested == false)
@@ -327,7 +323,7 @@ namespace linker.tunnel.connection
 
         }
 
-        private SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
+        private readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
         public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
             if (callback == null) return false;

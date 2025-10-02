@@ -5,9 +5,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Net.Sockets;
-using System;
 using System.IO.Pipelines;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace linker.tunnel.connection
 {
@@ -43,7 +41,7 @@ namespace linker.tunnel.connection
         private long sendRemaining = 0;
         public long SendBufferRemaining { get => sendRemaining; }
         public long SendBufferFree { get => maxRemaining - sendRemaining; }
-        private const long maxRemaining = 1 * 1024 * 1024;
+        private const long maxRemaining = 128 * 1024;
 
         private long recvRemaining = 500 * 1024;
         public long RecvBufferRemaining { get => recvRemaining; }
@@ -83,11 +81,6 @@ namespace linker.tunnel.connection
         private readonly byte[] finBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.udp.fing");
 
         private Pipe pipeSender;
-        /// <summary>
-        /// 开始接收数据
-        /// </summary>
-        /// <param name="callback">数据回调</param>
-        /// <param name="userToken">自定义数据</param>
         public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken)
         {
             if (this.callback != null) return;
@@ -234,8 +227,6 @@ namespace linker.tunnel.connection
             ArrayPool<byte>.Shared.Return(heartData);
         }
 
-
-
         private async Task Sender()
         {
             pipeSender = new Pipe(new PipeOptions(pauseWriterThreshold: maxRemaining, resumeWriterThreshold: (maxRemaining / 2), useSynchronizationContext: false));
@@ -313,7 +304,7 @@ namespace linker.tunnel.connection
             ArrayPool<byte>.Shared.Return(encodeBuffer);
         }
 
-        private SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
+        private readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
         public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
             await semaphoreSlim.WaitAsync();

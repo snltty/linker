@@ -6,7 +6,6 @@ using System.Net;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Net.Sockets;
-using System;
 
 namespace linker.tunnel.connection
 {
@@ -71,12 +70,6 @@ namespace linker.tunnel.connection
         private readonly byte[] pongBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.udp.pong");
 
 
-        /// <summary>
-        /// 开始接收数据
-        /// </summary>
-        /// <param name="callback">数据回调</param>
-        /// <param name="userToken">自定义数据</param>
-        /// <param name="framing">是否处理粘包，true时，请在首部4字节标注数据长度</param>
         public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken)
         {
             if (this.callback != null) return;
@@ -196,7 +189,7 @@ namespace linker.tunnel.connection
             {
             }
         }
-        private async Task SendPingPong(byte[] data)
+        private  async Task SendPingPong(byte[] data)
         {
             int length = 4 + data.Length;
 
@@ -222,7 +215,7 @@ namespace linker.tunnel.connection
             ArrayPool<byte>.Shared.Return(heartData);
         }
 
-        private SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
+        private readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
         public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
             await semaphoreSlim.WaitAsync().ConfigureAwait(false);

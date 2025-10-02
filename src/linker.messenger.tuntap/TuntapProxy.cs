@@ -14,7 +14,7 @@ namespace linker.messenger.tuntap
     public interface ITuntapProxyCallback
     {
         public ValueTask Close(ITunnelConnection connection);
-        public void Receive(ITunnelConnection connection, ReadOnlyMemory<byte> packet);
+        public ValueTask Receive(ITunnelConnection connection, ReadOnlyMemory<byte> packet);
     }
 
     public class TuntapProxy : channel.Channel, ITunnelConnectionReceiveCallback
@@ -61,11 +61,9 @@ namespace linker.messenger.tuntap
         /// <param name="buffer"></param>
         /// <param name="state"></param>
         /// <returns></returns>
-#pragma warning disable CS1998 // 异步方法缺少 "await" 运算符，将以同步方式运行
         public async Task Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer, object state)
-#pragma warning restore CS1998 // 异步方法缺少 "await" 运算符，将以同步方式运行
         {
-            Callback.Receive(connection, buffer);
+            await Callback.Receive(connection, buffer).ConfigureAwait(false);
         }
         /// <summary>
         /// 隧道关闭

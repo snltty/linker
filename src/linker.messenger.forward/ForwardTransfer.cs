@@ -71,7 +71,7 @@ namespace linker.messenger.forward
             {
                 try
                 {
-                    forwardProxy.Start(new System.Net.IPEndPoint(forwardInfo.BindIPAddress, forwardInfo.Port), forwardInfo.TargetEP, forwardInfo.MachineId, forwardInfo.BufferSize);
+                    forwardProxy.StartForward(new System.Net.IPEndPoint(forwardInfo.BindIPAddress, forwardInfo.Port), forwardInfo.TargetEP, forwardInfo.MachineId, forwardInfo.BufferSize);
 
                     forwardInfo.Port = forwardProxy.LocalEndpoint.Port;
                     forwardClientStore.Update(forwardInfo.Id, forwardInfo.Port);
@@ -123,7 +123,7 @@ namespace linker.messenger.forward
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         LoggerHelper.Instance.Debug($"stop forward {forwardInfo.ToJson()}");
-                    forwardProxy.StopPort(forwardInfo.Port);
+                    forwardProxy.StopForward(forwardInfo.Port);
                     forwardInfo.Proxy = false;
                     forwardClientStore.Update(forwardInfo.Id, forwardInfo.Started, false, forwardInfo.Msg);
                 }

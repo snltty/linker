@@ -45,6 +45,7 @@ namespace linker.messenger.tuntap
         public bool TcpMerge => (Switch & TuntapSwitch.TcpMerge) == TuntapSwitch.TcpMerge;
         public bool InterfaceOrder => (Switch & TuntapSwitch.InterfaceOrder) == TuntapSwitch.InterfaceOrder;
         public bool Multicast => (Switch & TuntapSwitch.Multicast) == TuntapSwitch.Multicast;
+        public bool FakeAck => (Switch & TuntapSwitch.FakeAck) == TuntapSwitch.FakeAck;
         public bool SrcProxy => (Switch & TuntapSwitch.SrcProxy) == TuntapSwitch.SrcProxy;
     }
 
@@ -319,6 +320,28 @@ namespace linker.messenger.tuntap
         /// <summary>
         /// 使用伪ACK，测试用
         /// </summary>
+        public bool FakeAck
+        {
+            get
+            {
+                return (Switch & TuntapSwitch.FakeAck) == TuntapSwitch.FakeAck;
+            }
+            set
+            {
+                if (value)
+                {
+                    Switch |= TuntapSwitch.FakeAck;
+                }
+                else
+                {
+                    Switch &= ~TuntapSwitch.FakeAck;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 源代理
+        /// </summary>
         public bool SrcProxy
         {
             get
@@ -433,9 +456,13 @@ namespace linker.messenger.tuntap
         AppNat = 256,
 
         /// <summary>
+        /// 伪造ack
+        /// </summary>
+        FakeAck = 512,
+        /// <summary>
         /// 源代理
         /// </summary>
-        SrcProxy = 512,
+        SrcProxy = 1024,
     }
 
 

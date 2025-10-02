@@ -344,7 +344,7 @@ namespace linker.tun.device
         }
 
 
-        private readonly byte[] buffer = new byte[65 * 1024];
+        private readonly byte[] buffer = new byte[128 * 1024];
         public unsafe byte[] Read(out int length)
         {
             length = 0;

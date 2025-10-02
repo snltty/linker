@@ -71,9 +71,9 @@ namespace linker.tun.hook
         {
             return true;
         }
-        public bool Write(ReadOnlyMemory<byte> packet, string srcId, ref bool write)
+        public ValueTask<(bool next, bool write)> WriteAsync(ReadOnlyMemory<byte> packet, string srcId)
         {
-            return linkerSrcNat.Running == false || linkerSrcNat.Inject(packet) == false;
+            return ValueTask.FromResult((linkerSrcNat.Running == false || linkerSrcNat.Inject(packet) == false, true));
         }
     }
 }

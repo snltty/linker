@@ -324,7 +324,7 @@ namespace linker.nat
             {
                 //只在syn时建立
                 if (ipv4.TcpFlagSyn == false || ipv4.TcpFlagAck) return false;
-                newPort = ApplyNewPort();
+                newPort = NetworkHelper.ApplyNewPort();
                 source2portMap.TryAdd(portKey, newPort);
             }
 
@@ -388,7 +388,7 @@ namespace linker.nat
             ValueTuple<uint, ushort> portKey = (p.IPv4Hdr->SrcAddr.Raw, p.UDPHdr->SrcPort);
             if (source2portMap.TryGetValue(portKey, out ushort newPort) == false)
             {
-                newPort = ApplyNewPort();
+                newPort = NetworkHelper.ApplyNewPort();
                 source2portMap.TryAdd(portKey, newPort);
             }
             //映射
@@ -428,19 +428,7 @@ namespace linker.nat
             return false;
         }
 
-        /// <summary>
-        /// 申请一个新的端口
-        /// </summary>
-        /// <returns></returns>
-        private static ushort ApplyNewPort()
-        {
-            using Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-            socket.Bind(new IPEndPoint(IPAddress.Any, 0));
-
-            return (ushort)(socket.LocalEndPoint as IPEndPoint).Port;
-        }
-
+      
         /// <summary>
         /// 关闭
         /// </summary>

@@ -33,6 +33,11 @@ namespace linker.messenger.forward
             this.serializer = serializer;
         }
 
+        /// <summary>
+        /// 获取隧道连接
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public ConnectionListInfo Connections(ApiControllerParamsInfo param)
         {
             ulong hashCode = ulong.Parse(param.Content);
@@ -47,21 +52,40 @@ namespace linker.messenger.forward
             return new ConnectionListInfo { HashCode = version };
         }
 
+        /// <summary>
+        /// 移除隧道连接
+        /// </summary>
+        /// <param name="param"></param>
         [Access(AccessValue.TunnelRemove)]
         public void RemoveConnection(ApiControllerParamsInfo param)
         {
             forwardProxy.RemoveConnection(param.Content);
         }
 
+        /// <summary>
+        /// 获取绑定IP列表
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public IPAddress[] BindIPs(ApiControllerParamsInfo param)
         {
             return NetworkHelper.GetIPV4();
         }
 
+        /// <summary>
+        /// 刷新分布式数据
+        /// </summary>
+        /// <param name="param"></param>
         public void Refresh(ApiControllerParamsInfo param)
         {
             forwardDecenter.Refresh();
         }
+
+        /// <summary>
+        /// 获取所有客户端的端口转发数量
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public ForwardListInfo GetCount(ApiControllerParamsInfo param)
         {
             ulong hashCode = ulong.Parse(param.Content);

@@ -154,6 +154,7 @@ public class StunClient3489 : IUdpStunClient
 
 	private async ValueTask<StunResponse> RequestAsync(StunMessage5389 sendMessage, IPEndPoint remote, IPEndPoint receive, CancellationToken cancellationToken)
 	{
+		if (remote is null) return default;
 		try
 		{
 			using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(0x10000);

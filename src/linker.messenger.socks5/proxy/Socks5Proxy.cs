@@ -1,41 +1,47 @@
-﻿using linker.tunnel.connection;
+﻿using linker.tunnel;
+using linker.tunnel.connection;
 using linker.libs;
-using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
+using linker.messenger.relay.client;
+using linker.messenger.channel;
+using linker.messenger.signin;
+using linker.messenger.pcp;
+using System.Buffers;
 using linker.libs.extends;
 
-namespace linker.messenger.forward.proxy
+namespace linker.messenger.socks5
 {
-    /// <summary>
-    /// 端口转发代理
-    /// </summary>
-    public partial class ForwardProxy
+    public partial class Socks5Proxy : Channel
     {
-        private readonly NumberSpace ns = new NumberSpace();
+        private IPEndPoint proxyEP;
+        public string Error { get; private set; }
+        protected override string TransactionId => "socks5";
 
-        private ILinkerForwardHook[] hooks = [];
+        private readonly Socks5CidrDecenterManager socks5CidrDecenterManager;
 
-        /// <summary>
-        /// 流量统计
-        /// </summary>
-        /// <param name="machineId"></param>
-        /// <param name="target"></param>
-        /// <param name="recvBytes"></param>
-        /// <param name="sendtBytes"></param>
+        public Socks5Proxy(ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer,
+            SignInClientTransfer signInClientTransfer, IRelayClientStore relayClientStore, Socks5CidrDecenterManager socks5CidrDecenterManager)
+             : base(tunnelTransfer, relayTransfer, pcpTransfer, signInClientTransfer, signInClientStore, relayClientStore)
+        {
+            this.socks5CidrDecenterManager = socks5CidrDecenterManager;
+            TaskUdp();
+        }
+
         public virtual void Add(string machineId, IPEndPoint target, long recvBytes, long sendtBytes)
         {
         }
-
-        /// <summary>
-        /// 开始转发
-        /// </summary>
-        /// <param name="ep"></param>
-        /// <param name="bufferSize"></param>
-        private void Start(IPEndPoint ep, byte bufferSize)
+        public void Start(int port)
         {
-            StartTcp(ep, bufferSize);
-            StartUdp(new IPEndPoint(ep.Address, LocalEndpoint.Port), bufferSize);
+            try
+            {
+                Start(new IPEndPoint(IPAddress.Any, port), 3);
+                proxyEP = new IPEndPoint(IPAddress.Any, LocalEndpoint.Port);
+            }
+            catch (Exception ex)
+            {
+                Error = ex.Message;
+            }
         }
 
         /// <summary>
@@ -94,9 +100,9 @@ namespace linker.messenger.forward.proxy
         /// 添加钩子
         /// </summary>
         /// <param name="hooks"></param>
-        public void AddHooks(List<ILinkerForwardHook> hooks)
+        public void AddHooks(List<ILinkerSocks5Hook> hooks)
         {
-            List<ILinkerForwardHook> list = this.hooks.ToList();
+            List<ILinkerSocks5Hook> list = this.hooks.ToList();
             list.AddRange(hooks);
 
             this.hooks = list.Distinct().ToArray();
@@ -139,19 +145,17 @@ namespace linker.messenger.forward.proxy
         /// <summary>
         /// 关闭所有转发
         /// </summary>
-        private void Stop()
+        public void Stop()
         {
-            StopTcp();
-            StopUdp();
-        }
-        /// <summary>
-        /// 关闭指定端口转发
-        /// </summary>
-        /// <param name="port"></param>
-        private void Stop(int port)
-        {
-            StopTcp(port);
-            StopUdp(port);
+            try
+            {
+                StopTcp();
+                StopUdp();
+            }
+            catch (Exception ex)
+            {
+                Error = ex.Message;
+            }
         }
 
         readonly unsafe struct ForwardWritePacket : IDisposable
@@ -183,9 +187,9 @@ namespace linker.messenger.forward.proxy
                 handle.Dispose();
             }
         }
-    }
 
-    public interface ILinkerForwardHook
+    }
+    public interface ILinkerSocks5Hook
     {
         public bool Connect(string srcId, IPEndPoint ep, ProtocolType protocol);
         public bool Forward(AsyncUserToken token);
@@ -338,8 +342,6 @@ namespace linker.messenger.forward.proxy
             handle.Dispose();
         }
     }
-
-
     public sealed class AsyncUserToken
     {
         public int ListenPort { get; set; }

@@ -5,6 +5,9 @@ using System.Collections.Concurrent;
 
 namespace linker.messenger.forward
 {
+    /// <summary>
+    /// 端口转发的分布式数据
+    /// </summary>
     public sealed class ForwardDecenter : IDecenter
     {
         public string Name => "forward";

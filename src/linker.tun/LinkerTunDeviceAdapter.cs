@@ -342,20 +342,25 @@ namespace linker.tun
         /// </summary>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        public unsafe bool Write(string srcId, ReadOnlyMemory<byte> buffer)
+        public async ValueTask<bool> Write(string srcId, ReadOnlyMemory<byte> buffer)
+        {
+            if (Status != LinkerTunDeviceStatus.Running || VerifyPacket(buffer) == false) return false;
+            bool write = true;
+            for (int i = 0; i < writeHooks.Length; i++)
+            {
+                (bool next, bool _write) = await writeHooks[i].WriteAsync(buffer, srcId).ConfigureAwait(false);
+                if (next == false) break;
+                write &= _write;
+            }
+            ChecksumHelper.ChecksumWithZero(buffer);
+
+            return write == false || linkerTunDevice.Write(buffer);
+        }
+        private unsafe bool VerifyPacket(ReadOnlyMemory<byte> buffer)
         {
             fixed (byte* ptr = buffer.Span)
             {
-                if (Status != LinkerTunDeviceStatus.Running || BinaryPrimitives.ReverseEndianness(*(ushort*)(ptr + 2)) != buffer.Length) return false;
-
-                bool write = true;
-                for (int i = 0; i < writeHooks.Length; i++)
-                {
-                    if (writeHooks[i].Write(buffer, srcId, ref write) == false) break;
-                }
-                ChecksumHelper.ChecksumWithZero(buffer);
-
-                return write == false || linkerTunDevice.Write(buffer);
+                return BinaryPrimitives.ReverseEndianness(*(ushort*)(ptr + 2)) == buffer.Length;
             }
         }
 

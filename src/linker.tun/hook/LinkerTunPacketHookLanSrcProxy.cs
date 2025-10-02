@@ -37,10 +37,10 @@ namespace linker.tun.hook
             LinkerSrcProxy.Read(packet, ref send, ref writeBack);
             return send;
         }
-        public bool Write(ReadOnlyMemory<byte> packet, string srcId, ref bool write)
+        public async ValueTask<(bool next, bool write)> WriteAsync(ReadOnlyMemory<byte> packet, string srcId)
         {
-            LinkerSrcProxy.Write(packet, ref write);
-            return write;
+            bool write = await LinkerSrcProxy.WriteAsync(packet).ConfigureAwait(false);
+            return await ValueTask.FromResult((write, write));
         }
     }
 }

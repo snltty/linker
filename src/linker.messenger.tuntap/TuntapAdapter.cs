@@ -110,9 +110,9 @@ namespace linker.messenger.tuntap
             tuntapDecenter.Refresh();
             await ValueTask.CompletedTask.ConfigureAwait(false);
         }
-        public void Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer)
+        public async ValueTask Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer)
         {
-            tuntapTransfer.Write(connection.RemoteMachineId, buffer);
+            await tuntapTransfer.Write(connection.RemoteMachineId, buffer).ConfigureAwait(false);
         }
 
 

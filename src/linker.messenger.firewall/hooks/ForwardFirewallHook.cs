@@ -21,12 +21,7 @@ namespace linker.messenger.firewall.hooks
 
         public bool Forward(AsyncUserToken token)
         {
-            return linkerFirewall.Check(token.Connection.RemoteMachineId, token.RealIP, ProtocolType.Tcp);
-        }
-
-        public bool Forward(AsyncUserUdpTokenTarget token)
-        {
-            return linkerFirewall.Check(token.Connection.RemoteMachineId, token.RealIP, ProtocolType.Udp);
+            return linkerFirewall.Check(token.Connection.RemoteMachineId, token.IPEndPoint, ProtocolType.Tcp);
         }
     }
 

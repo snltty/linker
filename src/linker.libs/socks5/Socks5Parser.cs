@@ -145,22 +145,22 @@ namespace linker.libs.socks5
         /// </summary>
         /// <param name="remoteEndPoint"></param>
         /// <param name="data"></param>
+        /// <param name="target"></param>
         /// <returns></returns>
-        public static unsafe byte[] MakeUdpResponse(IPEndPoint remoteEndPoint, ReadOnlyMemory<byte> data, out int length)
+        public static unsafe int MakeUdpResponse(IPEndPoint remoteEndPoint, ReadOnlyMemory<byte> data,Memory<byte> target)
         {
             //RSV FRAG ATYPE DST.ADDR DST.PORT DATA
             //RSV占俩字节
 
             int ipLength = (remoteEndPoint.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork ? 4 : 16);
-            length = 4 + ipLength + 2 + data.Length;
+            int length = 4 + ipLength + 2 + data.Length;
 
-            byte[] res = ArrayPool<byte>.Shared.Rent(length);
-            var span = res.AsSpan();
+            var span = target.Span;
 
-            res[0] = 0;
-            res[1] = 0;
-            res[2] = 0; //FRAG
-            res[3] = (byte)(ipLength == 4 ? Socks5EnumAddressType.IPV4 : Socks5EnumAddressType.IPV6);
+            span[0] = 0;
+            span[1] = 0;
+            span[2] = 0; //FRAG
+            span[3] = (byte)(ipLength == 4 ? Socks5EnumAddressType.IPV4 : Socks5EnumAddressType.IPV6);
 
             int index = 4;
 
@@ -172,20 +172,13 @@ namespace linker.libs.socks5
             fixed (void* p = &_port)
             {
                 byte* pp = (byte*)p;
-                res[index] = *(pp + 1);
-                res[index + 1] = *pp;
+                span[index] = *(pp + 1);
+                span[index + 1] = *pp;
             }
             index += 2;
 
-            data.CopyTo(res.AsMemory(index, data.Length));
-
-            return res;
+            return length;
         }
-        public static void Return(byte[] data)
-        {
-            ArrayPool<byte>.Shared.Return(data);
-        }
-
 
         public static EnumProxyValidateDataResult ValidateData(Socks5EnumStep step, Memory<byte> data)
         {

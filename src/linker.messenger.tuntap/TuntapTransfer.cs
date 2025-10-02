@@ -46,9 +46,9 @@ namespace linker.messenger.tuntap
             linkerTunDeviceAdapter.Initialize(linkerTunDevice, linkerTunDeviceCallback);
         }
 
-        public bool Write(string srcId, ReadOnlyMemory<byte> buffer)
+        public async ValueTask<bool> Write(string srcId, ReadOnlyMemory<byte> buffer)
         {
-            return linkerTunDeviceAdapter.Write(srcId, buffer);
+            return await linkerTunDeviceAdapter.Write(srcId, buffer).ConfigureAwait(false);
         }
 
         /// <summary>

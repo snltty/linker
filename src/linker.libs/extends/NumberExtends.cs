@@ -14,10 +14,9 @@ namespace linker.libs.extends
         }
         public static unsafe void ToBytes(this double value, Memory<byte> memory)
         {
-            ref double v = ref value;
-            fixed (void* p = &v)
+            fixed (void* p = memory.Span)
             {
-                new Span<byte>(p, sizeof(double)).CopyTo(memory.Span);
+                *(double*)p = value;
             }
         }
         #endregion
@@ -29,10 +28,9 @@ namespace linker.libs.extends
         }
         public static unsafe void ToBytes(this long value, Memory<byte> memory)
         {
-            ref long v = ref value;
-            fixed (void* p = &v)
+            fixed (void* p = memory.Span)
             {
-                new Span<byte>(p, sizeof(long)).CopyTo(memory.Span);
+                *(long*)p = value;
             }
         }
         public static unsafe void ToBytes(this long[] value, Memory<byte> memory)
@@ -48,10 +46,9 @@ namespace linker.libs.extends
         }
         public static unsafe void ToBytes(this ulong value, Memory<byte> memory)
         {
-            ref ulong v = ref value;
-            fixed (void* p = &v)
+            fixed (void* p = memory.Span)
             {
-                new Span<byte>(p, sizeof(ulong)).CopyTo(memory.Span);
+                *(ulong*)p = value;
             }
         }
         public static unsafe void ToBytes(this ulong[] value, Memory<byte> memory)
@@ -78,18 +75,16 @@ namespace linker.libs.extends
         }
         public static unsafe void ToBytes(this int value, Memory<byte> memory)
         {
-            ref int v = ref value;
-            fixed (void* p = &v)
+            fixed (void* p = memory.Span)
             {
-                new Span<byte>(p, sizeof(int)).CopyTo(memory.Span);
+                *(int*)p = value;
             }
         }
         public static unsafe void ToBytes(this int value, Span<byte> span)
         {
-            ref int v = ref value;
-            fixed (void* p = &v)
+            fixed (void* p = span)
             {
-                new Span<byte>(p, sizeof(int)).CopyTo(span);
+                *(int*)p = value;
             }
         }
         public static unsafe void ToBytes(this int[] value, Memory<byte> memory)
@@ -105,10 +100,9 @@ namespace linker.libs.extends
         }
         public static unsafe void ToBytes(this uint value, Memory<byte> memory)
         {
-            ref uint v = ref value;
-            fixed (void* p = &v)
+            fixed (void* p = memory.Span)
             {
-                new Span<byte>(p, sizeof(uint)).CopyTo(memory.Span);
+                *(uint*)p = value;
             }
         }
         public static unsafe void ToBytes(this uint[] value, Memory<byte> memory)
@@ -127,12 +121,9 @@ namespace linker.libs.extends
         }
         public static unsafe void ToBytes(this short value, Memory<byte> memory)
         {
-            ref short v = ref value;
-            fixed (void* p = &v)
+            fixed (void* p = memory.Span)
             {
-                var span = new Span<byte>(p, sizeof(short));
-                memory.Span[0] = span[0];
-                memory.Span[1] = span[1];
+                *(short*)p = value;
             }
         }
         public static unsafe void ToBytes(this short[] value, Memory<byte> memory)
@@ -149,12 +140,9 @@ namespace linker.libs.extends
         }
         public static unsafe void ToBytes(this ushort value, Span<byte> span)
         {
-            ref ushort v = ref value;
-            fixed (void* p = &v)
+            fixed (void* p = span)
             {
-                var _span = new Span<byte>(p, sizeof(ushort));
-                span[0] = _span[0];
-                span[1] = _span[1];
+                *(ushort*)p = value;
             }
         }
         public static unsafe void ToBytes(this ushort value, Memory<byte> memory)

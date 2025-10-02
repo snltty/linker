@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.libs.extends;
 using linker.messenger.exroute;
 using linker.messenger.signin;
 using linker.nat;
@@ -50,7 +51,8 @@ namespace linker.messenger.socks5
         private void AddRoute()
         {
             List<Socks5LanIPAddressList> ipsList = ParseIPs(socks5Decenter.Infos.Values.ToList());
-            cidrManager.Add(ipsList.SelectMany(c => c.IPS).Select(c => new CidrAddInfo<string> { IPAddress = c.IPAddress, PrefixLength = c.PrefixLength, Value = c.MachineId }).ToArray());
+            var routes = ipsList.SelectMany(c => c.IPS).Select(c => new CidrAddInfo<string> { IPAddress = c.IPAddress, PrefixLength = c.PrefixLength, Value = c.MachineId }).ToArray();
+            cidrManager.Add(routes);
             GC.Collect();
         }
 
@@ -118,4 +120,5 @@ namespace linker.messenger.socks5
         }
 
     }
+
 }

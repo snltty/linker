@@ -6,9 +6,14 @@ using linker.messenger.relay.client;
 using linker.messenger.signin;
 using linker.messenger.channel;
 using linker.messenger.pcp;
+using linker.libs;
+using System.Net.Sockets;
 
 namespace linker.messenger.forward.proxy
 {
+    /// <summary>
+    /// 隧道相关
+    /// </summary>
     public partial class ForwardProxy : Channel, ITunnelConnectionReceiveCallback
     {
         private readonly ConcurrentDictionary<int, ForwardProxyCacheInfo> caches = new ConcurrentDictionary<int, ForwardProxyCacheInfo>();
@@ -23,11 +28,20 @@ namespace linker.messenger.forward.proxy
         {
             TaskUdp();
         }
-
+        /// <summary>
+        /// 隧道已连接
+        /// </summary>
+        /// <param name="connection"></param>
         protected override void Connected(ITunnelConnection connection)
         {
-            BindConnectionReceive(connection);
+            connection.BeginReceive(this, null);
         }
+
+        /// <summary>
+        /// 锁
+        /// </summary>
+        /// <param name="machineId"></param>
+        /// <returns></returns>
         protected override async ValueTask<bool> WaitAsync(string machineId)
         {
             //不要同时去连太多，锁以下
@@ -41,6 +55,10 @@ namespace linker.messenger.forward.proxy
             await slim.WaitAsync().ConfigureAwait(false);
             return true;
         }
+        /// <summary>
+        /// 释放锁
+        /// </summary>
+        /// <param name="machineId"></param>
         protected override void WaitRelease(string machineId)
         {
             if (locks.TryGetValue(machineId, out SemaphoreSlim slim))
@@ -49,58 +67,20 @@ namespace linker.messenger.forward.proxy
             }
         }
 
-        private void BindConnectionReceive(ITunnelConnection connection)
-        {
-            connection.BeginReceive(this, new AsyncUserTunnelToken
-            {
-                Connection = connection,
-                Proxy = new ProxyInfo { }
-            });
-        }
-
         /// <summary>
-        /// 收到隧道数据
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="memory"></param>
-        /// <param name="userToken"></param>
-        /// <returns></returns>
-        public async Task Receive(ITunnelConnection connection, ReadOnlyMemory<byte> memory, object userToken)
-        {
-            try
-            {
-                AsyncUserTunnelToken token = userToken as AsyncUserTunnelToken;
-                token.Proxy.DeBytes(memory);
-                await ReadConnectionPack(token).ConfigureAwait(false);
-            }
-            catch (Exception)
-            {
-            }
-        }
-        /// <summary>
-        /// 收到隧道关闭消息
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="userToken"></param>
-        /// <returns></returns>
-        public async Task Closed(ITunnelConnection connection, object userToken)
-        {
-            Version.Increment();
-            await Task.CompletedTask.ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// 来一个TCP转发
+        /// 建立隧道
         /// </summary>
         /// <param name="token"></param>
         /// <returns></returns>
-        private async ValueTask<bool> ConnectTunnelConnection(AsyncUserToken token)
+        private async ValueTask<bool> Tunneling(AsyncUserToken token)
         {
             if (token.ListenPort > 0)
             {
                 if (caches.TryGetValue(token.ListenPort, out ForwardProxyCacheInfo cache))
                 {
-                    token.Proxy.TargetEP = cache.TargetEP;
+                    token.ReadPacket.DstAddr = cache.DstAddr;
+                    token.ReadPacket.DstPort = cache.DstPort;
+                    token.IPEndPoint = new IPEndPoint(NetworkHelper.ToIP(token.ReadPacket.DstAddr), token.ReadPacket.DstPort);
                     cache.Connection = await ConnectTunnel(cache.MachineId, TunnelProtocolType.Udp).ConfigureAwait(false);
                     token.Connection = cache.Connection;
                 }
@@ -113,47 +93,71 @@ namespace linker.messenger.forward.proxy
             return true;
         }
         /// <summary>
-        /// 来一个UDP转发
+        /// 从隧道连接发送数据到对方
         /// </summary>
         /// <param name="token"></param>
         /// <returns></returns>
-        private async ValueTask ConnectTunnelConnection(AsyncUserUdpToken token)
+        private async Task<bool> SendToConnection(AsyncUserToken token)
         {
-            if (token.ListenPort > 0)
+            if (token.Connection == null)
             {
-                if (caches.TryGetValue(token.ListenPort, out ForwardProxyCacheInfo cache))
-                {
-                    token.Proxy.TargetEP = cache.TargetEP;
-                    cache.Connection = await ConnectTunnel(cache.MachineId, TunnelProtocolType.Udp).ConfigureAwait(false);
-                    token.Connection = cache.Connection;
-                }
+                return false;
             }
-            else if (token.Connection != null)
-            {
-                token.Connection = await ConnectTunnel(token.Connection.RemoteMachineId, TunnelProtocolType.Udp).ConfigureAwait(false);
-            }
+            await token.Connection.SendAsync(token.ReadPacket.Buffer.AsMemory(token.ReadPacket.Offset, token.ReadPacket.Length)).ConfigureAwait(false);
+            Add(token.Connection.RemoteMachineId, token.IPEndPoint, token.ReadPacket.Length, 0);
+            return true;
+        }
 
+        /// <summary>
+        /// 隧道来数据了
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="memory"></param>
+        /// <param name="userToken"></param>
+        /// <returns></returns>
+        public async Task Receive(ITunnelConnection connection, ReadOnlyMemory<byte> memory, object userToken)
+        {
+            await InputPacket(connection, memory).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 隧道已关闭
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="userToken"></param>
+        /// <returns></returns>
+        public async Task Closed(ITunnelConnection connection, object userToken)
+        {
+            Version.Increment();
+            await Task.CompletedTask.ConfigureAwait(false);
         }
 
         /// <summary>
         /// 启动转发
         /// </summary>
         /// <param name="ep"></param>
-        /// <param name="targetEP"></param>
+        /// <param name="target"></param>
         /// <param name="machineId"></param>
         /// <param name="bufferSize"></param>
-        public void Start(IPEndPoint ep, IPEndPoint targetEP, string machineId, byte bufferSize)
+        public void StartForward(IPEndPoint ep, IPEndPoint target, string machineId, byte bufferSize)
         {
-            StopPort(ep.Port);
+            StopForward(ep.Port);
             Start(ep, bufferSize);
-            caches.TryAdd(LocalEndpoint.Port, new ForwardProxyCacheInfo { Port = LocalEndpoint.Port, TargetEP = targetEP, MachineId = machineId });
+            caches.TryAdd(LocalEndpoint.Port, new ForwardProxyCacheInfo
+            {
+                Port = LocalEndpoint.Port,
+                DstAddr = NetworkHelper.ToValue(target.Address),
+                DstPort = (ushort)target.Port,
+                MachineId = machineId,
+
+            });
             Version.Increment();
         }
         /// <summary>
         /// 关闭转发
         /// </summary>
         /// <param name="port"></param>
-        public void StopPort(int port)
+        public void StopForward(int port)
         {
             caches.TryRemove(port, out ForwardProxyCacheInfo cache);
             Stop(port);
@@ -163,9 +167,9 @@ namespace linker.messenger.forward.proxy
         public sealed class ForwardProxyCacheInfo
         {
             public int Port { get; set; }
-            public IPEndPoint TargetEP { get; set; }
+            public uint DstAddr { get; set; }
+            public ushort DstPort { get; set; }
             public string MachineId { get; set; }
-
             public ITunnelConnection Connection { get; set; }
         }
     }

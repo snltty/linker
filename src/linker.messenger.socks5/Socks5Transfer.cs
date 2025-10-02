@@ -1,5 +1,4 @@
-﻿using linker.libs;
-using linker.libs.timer;
+﻿using linker.libs.timer;
 
 namespace linker.messenger.socks5
 {
@@ -30,7 +29,7 @@ namespace linker.messenger.socks5
             socks5Decenter.Refresh();
         }
         /// <summary>
-        /// 网卡
+        /// 关闭
         /// </summary>
         public void Stop()
         {

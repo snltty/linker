@@ -51,12 +51,14 @@ namespace linker.libs
             return ep;
         }
 
+        public static ushort ApplyNewPort()
+        {
+            using Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            socket.Bind(new IPEndPoint(IPAddress.Any, 0));
+            return (ushort)(socket.LocalEndPoint as IPEndPoint).Port;
+        }
 
-        /// <summary>
-        /// 域名解析
-        /// </summary>
-        /// <param name="domain"></param>
-        /// <returns></returns>
         public static IPAddress GetDomainIp(string domain)
         {
             try

@@ -6,17 +6,16 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 
-namespace linker.messenger.forward.proxy
+namespace linker.messenger.socks5
 {
-    /// <summary>
-    /// 端口转发的TCP部分
-    /// </summary>
-    public partial class ForwardProxy
+    public partial class Socks5Proxy
     {
-        private readonly ConcurrentDictionary<int, Socket> tcpListens = new();
         private readonly ConcurrentDictionary<(uint srcAddr, ushort srcPort, uint dstAddr, ushort dstPort), AsyncUserToken> tcpConnections = new();
-        private Socket socket;
         public IPEndPoint LocalEndpoint { get; private set; }
+
+        private Socket listenSocketTcp;
+        public bool Running => listenSocketTcp != null;
+
 
         /// <summary>
         /// 启动TCP转发
@@ -26,13 +25,13 @@ namespace linker.messenger.forward.proxy
         private void StartTcp(IPEndPoint ep, byte bufferSize)
         {
             IPEndPoint _localEndPoint = ep;
-            socket = new Socket(_localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            socket.IPv6Only(_localEndPoint.AddressFamily, false);
-            socket.Bind(_localEndPoint);
-            socket.Listen(int.MaxValue);
+            listenSocketTcp = new Socket(_localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            listenSocketTcp.IPv6Only(_localEndPoint.AddressFamily, false);
+            listenSocketTcp.Bind(_localEndPoint);
+            listenSocketTcp.Listen(int.MaxValue);
 
-            LocalEndpoint = socket.LocalEndPoint as IPEndPoint;
-            _ = StartAcceptTcp(socket, bufferSize);
+            LocalEndpoint = listenSocketTcp.LocalEndPoint as IPEndPoint;
+            _ = StartAcceptTcp(bufferSize);
         }
         /// <summary>
         /// 开始接收TCP连接
@@ -40,15 +39,16 @@ namespace linker.messenger.forward.proxy
         /// <param name="socket"></param>
         /// <param name="bufferSize"></param>
         /// <returns></returns>
-        private async Task StartAcceptTcp(Socket socket, byte bufferSize)
+        private async Task StartAcceptTcp(byte bufferSize)
         {
-            ushort port = (ushort)(socket.LocalEndPoint as IPEndPoint).Port;
-            tcpListens.AddOrUpdate(port, socket, (a, b) => socket);
+            int hashcode = listenSocketTcp.GetHashCode();
+
+            ushort port = (ushort)(listenSocketTcp.LocalEndPoint as IPEndPoint).Port;
             try
             {
                 while (true)
                 {
-                    Socket client = await socket.AcceptAsync().ConfigureAwait(false);
+                    Socket client = await listenSocketTcp.AcceptAsync().ConfigureAwait(false);
                     _ = ProcessAcceptTcp(client, port, bufferSize);
                 }
             }
@@ -57,8 +57,8 @@ namespace linker.messenger.forward.proxy
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Error(ex);
 
-                tcpListens.TryRemove(port, out _);
-                socket.SafeClose();
+                if (listenSocketTcp != null && listenSocketTcp.GetHashCode() == hashcode)
+                    StopTcp();
             }
 
         }
@@ -95,11 +95,10 @@ namespace linker.messenger.forward.proxy
                         }
                     };
 
-                    bool closeConnect = await Tunneling(token).ConfigureAwait(false);
+                    int length = await Tunneling(token, ProtocolType.Tcp).ConfigureAwait(false);
                     if (token.Connection == null || token.ReadPacket.DstAddr == 0)
                     {
-                        if (closeConnect)
-                            token.Disponse();
+                        token.Disponse();
                         return;
                     }
 
@@ -107,14 +106,14 @@ namespace linker.messenger.forward.proxy
                     tcpConnections.AddOrUpdate(key, token, (a, b) => token);
 
                     token.ReadPacket.Flag = ForwardFlags.Syn;
-                    token.ReadPacket.Length = token.ReadPacket.HeaderLength;
+                    token.ReadPacket.Length = token.ReadPacket.HeaderLength + length;
                     await SendToConnection(token).ConfigureAwait(false);
 
                     await token.Tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(15000)).ConfigureAwait(false);
 
                     while (true)
                     {
-                        int length = await token.Socket.ReceiveAsync(buffer.AsMemory(token.ReadPacket.HeaderLength), SocketFlags.None).ConfigureAwait(false);
+                        length = await token.Socket.ReceiveAsync(buffer.AsMemory(token.ReadPacket.HeaderLength), SocketFlags.None).ConfigureAwait(false);
 
                         if (length == 0 || HookForward(token) == false)
                         {
@@ -157,11 +156,10 @@ namespace linker.messenger.forward.proxy
         /// <returns></returns>
         private async Task HandleSynTcp(ITunnelConnection connection, ForwardWritePacket packet, ReadOnlyMemory<byte> memory)
         {
-            IPEndPoint ep = new IPEndPoint(NetworkHelper.ToIP(packet.DstAddr), packet.DstPort);
-            if (HookConnect(connection.RemoteMachineId, ep, ProtocolType.Tcp) == false)
-            {
-                return;
-            }
+            IPEndPoint target = new IPEndPoint(NetworkHelper.ToIP(packet.DstAddr), packet.DstPort);
+            target.Address = socks5CidrDecenterManager.GetMapRealDst(target.Address);
+
+            if (HookConnect(connection.RemoteMachineId, target, ProtocolType.Tcp) == false) return;
 
             byte[] buffer = ArrayPool<byte>.Shared.Rent((1 << packet.BufferSize) * 1024);
             (uint srcAddr, ushort srcPort, uint dstAddr, ushort dstPort) key = (0, 0, 0, 0);
@@ -171,10 +169,9 @@ namespace linker.messenger.forward.proxy
                 int length = memory.Length - packet.HeaderLength;
                 if (length > 0) memory.Slice(packet.HeaderLength).CopyTo(buffer.AsMemory());
 
-                Socket socket = new Socket(ep.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                Socket socket = new Socket(target.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 socket.KeepAlive();
-                await socket.ConnectAsync(ep).ConfigureAwait(false);
-
+                await socket.ConnectAsync(target).ConfigureAwait(false);
                 if (length > 0) await socket.SendAsync(buffer.AsMemory(0, length), SocketFlags.None).ConfigureAwait(false);
 
                 IPEndPoint local = socket.LocalEndPoint as IPEndPoint;
@@ -183,7 +180,7 @@ namespace linker.messenger.forward.proxy
                     Connection = connection,
                     Socket = socket,
                     ListenPort = local.Port,
-                    IPEndPoint = ep,
+                    IPEndPoint = target,
                     ReadPacket = new ForwardReadPacket(buffer)
                     {
                         ProtocolType = ProtocolType.Tcp,
@@ -196,7 +193,6 @@ namespace linker.messenger.forward.proxy
                     }
                 };
                 key = (token.ReadPacket.SrcAddr, token.ReadPacket.SrcPort, token.ReadPacket.DstAddr, token.ReadPacket.DstPort);
-
                 tcpConnections.AddOrUpdate(key, token, (a, b) => token);
 
                 token.ReadPacket.Flag = ForwardFlags.SynAck;
@@ -323,32 +319,14 @@ namespace linker.messenger.forward.proxy
         /// </summary>
         private void StopTcp()
         {
-            foreach (var item in tcpListens)
-            {
-                item.Value.SafeClose();
-            }
-            tcpListens.Clear();
+            listenSocketTcp?.SafeClose();
+            listenSocketTcp = null;
+
             foreach (var item in tcpConnections)
             {
                 item.Value?.Socket?.SafeClose();
             }
             tcpConnections.Clear();
-        }
-        /// <summary>
-        /// 停止指定端口转发
-        /// </summary>
-        /// <param name="port"></param>
-        private void StopTcp(int port)
-        {
-            if (tcpListens.TryRemove(port, out Socket socket))
-            {
-                socket.SafeClose();
-            }
-            foreach (var item in tcpConnections.Where(c => c.Value.ListenPort == port).ToList())
-            {
-                item.Value.Disponse();
-                tcpConnections.TryRemove(item.Key, out _);
-            }
         }
 
     }

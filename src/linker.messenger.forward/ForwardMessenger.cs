@@ -86,7 +86,11 @@ namespace linker.messenger.forward
             }
         }
 
-
+        /// <summary>
+        /// 订阅测试结果
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
         [MessengerId((ushort)ForwardMessengerIds.SubTestForward)]
         public async Task SubTestForward(IConnection connection)
         {
@@ -101,6 +105,11 @@ namespace linker.messenger.forward
             }
         }
 
+
+        /// <summary>
+        /// 测试服务
+        /// </summary>
+        /// <param name="connection"></param>
         [MessengerId((ushort)ForwardMessengerIds.TestForward)]
         public void TestForward(IConnection connection)
         {
@@ -164,6 +173,10 @@ namespace linker.messenger.forward
             this.serializer = serializer;
         }
 
+        /// <summary>
+        /// 获取端口转发列表
+        /// </summary>
+        /// <param name="connection"></param>
         [MessengerId((ushort)ForwardMessengerIds.Get)]
         public void Get(IConnection connection)
         {
@@ -190,13 +203,20 @@ namespace linker.messenger.forward
             forwardTransfer.Remove(id);
         }
 
-
+        /// <summary>
+        /// 订阅测试结果
+        /// </summary>
+        /// <param name="connection"></param>
         [MessengerId((ushort)ForwardMessengerIds.SubTest)]
         public void SubTest(IConnection connection)
         {
             forwardTransfer.SubscribeTest();
         }
 
+        /// <summary>
+        /// 测试服务
+        /// </summary>
+        /// <param name="connection"></param>
         [MessengerId((ushort)ForwardMessengerIds.Test)]
         public void Test(IConnection connection)
         {

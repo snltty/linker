@@ -23,9 +23,8 @@
         /// </summary>
         /// <param name="packet"></param>
         /// <param name="srcId"></param>
-        /// <param name="write"></param>
         /// <returns>next</returns>
-        public bool Write(ReadOnlyMemory<byte> packet, string srcId, ref bool write);
+        public ValueTask<(bool next,bool write)> WriteAsync(ReadOnlyMemory<byte> packet, string srcId);
     }
     /// <summary>
     /// 回调处理级别

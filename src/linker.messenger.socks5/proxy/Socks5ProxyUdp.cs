@@ -6,15 +6,13 @@ using System.Net;
 using System.Net.Sockets;
 using linker.libs.timer;
 using System.Buffers;
+using linker.libs.socks5;
 
-namespace linker.messenger.forward.proxy
+namespace linker.messenger.socks5
 {
-    /// <summary>
-    /// 端口转发代理 - UDP部分
-    /// </summary>
-    public partial class ForwardProxy
+    public partial class Socks5Proxy
     {
-        private readonly ConcurrentDictionary<int, Socket> udpListens = new ConcurrentDictionary<int, Socket>();
+        private Socket udpListen;
         private readonly ConcurrentDictionary<(int srcId, uint srcAddr, ushort srcPort, uint dstAddr, ushort dstPort), AsyncUserToken> udpConnections = new();
 
         /// <summary>
@@ -26,12 +24,12 @@ namespace linker.messenger.forward.proxy
         {
             try
             {
-                Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-                socket.EnableBroadcast = true;
-                socket.WindowsUdpBug();
-                socket.Bind(ep);
+                udpListen = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                udpListen.EnableBroadcast = true;
+                udpListen.WindowsUdpBug();
+                udpListen.Bind(ep);
 
-                _ = ReceiveFromAsync(socket, (ushort)ep.Port, buffersize);
+                _ = ReceiveFromAsync(udpListen, (ushort)ep.Port, buffersize);
 
             }
             catch (Exception ex)
@@ -49,8 +47,7 @@ namespace linker.messenger.forward.proxy
         /// <returns></returns>
         private async Task ReceiveFromAsync(Socket socket, ushort port, byte bufferSize)
         {
-            udpListens.AddOrUpdate(port, socket, (a, b) => socket);
-
+            int hashcode = udpListen.GetHashCode();
             byte[] buffer = ArrayPool<byte>.Shared.Rent(65535);
             AsyncUserToken token = new AsyncUserToken
             {
@@ -81,9 +78,10 @@ namespace linker.messenger.forward.proxy
                     token.ReadPacket.Length = token.ReadPacket.HeaderLength + result.ReceivedBytes;
                     token.ReadPacket.SrcAddr = NetworkHelper.ToValue((result.RemoteEndPoint as IPEndPoint).Address);
                     token.ReadPacket.SrcPort = (ushort)(result.RemoteEndPoint as IPEndPoint).Port;
-                    await Tunneling(token).ConfigureAwait(false);
+                    int length = await Tunneling(token, ProtocolType.Udp).ConfigureAwait(false);
                     if (token.ReadPacket.DstAddr > 0 && token.Connection != null)
                     {
+                        token.ReadPacket.Length = token.ReadPacket.HeaderLength + length;
                         await SendToConnection(token).ConfigureAwait(false);
                     }
                 }
@@ -95,8 +93,8 @@ namespace linker.messenger.forward.proxy
             }
             finally
             {
-                udpListens.TryRemove(port, out _);
-                socket.SafeClose();
+                if (udpListen != null && udpListen.GetHashCode() == hashcode)
+                    StopUdp();
             }
         }
 
@@ -143,15 +141,19 @@ namespace linker.messenger.forward.proxy
         /// <returns></returns>
         private async Task HndlePshAckUdp(ITunnelConnection connection, ForwardWritePacket packet, ReadOnlyMemory<byte> memory)
         {
-            if (udpListens.TryGetValue(packet.Port, out Socket socket))
+            if (udpListen != null)
             {
+
+                IPEndPoint src = new IPEndPoint(NetworkHelper.ToIP(packet.SrcAddr), packet.SrcPort);
+                IPEndPoint dst = new IPEndPoint(NetworkHelper.ToIP(packet.SrcAddr), packet.SrcPort);
+
+                using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(memory.Length + 1024);
+                int length = Socks5Parser.MakeUdpResponse(dst, memory.Slice(packet.HeaderLength), memoryOwner.Memory);
                 try
                 {
-                    IPEndPoint src = new IPEndPoint(NetworkHelper.ToIP(packet.SrcAddr), packet.SrcPort);
-                    IPEndPoint dst = new IPEndPoint(NetworkHelper.ToIP(packet.SrcAddr), packet.SrcPort);
-
                     Add(connection.RemoteMachineId, dst, 0, memory.Length);
-                    await socket.SendToAsync(memory.Slice(packet.HeaderLength), src).ConfigureAwait(false);
+
+                    await udpListen.SendToAsync(memoryOwner.Memory.Slice(0, length), src).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -164,6 +166,8 @@ namespace linker.messenger.forward.proxy
         private async Task ConnectUdp(ITunnelConnection connection, ForwardWritePacket packet, ReadOnlyMemory<byte> memory)
         {
             IPEndPoint target = new IPEndPoint(NetworkHelper.ToIP(packet.DstAddr), packet.DstPort);
+            target.Address = socks5CidrDecenterManager.GetMapRealDst(target.Address);
+
             if (HookConnect(connection.RemoteMachineId, target, ProtocolType.Udp) == false)
             {
                 return;
@@ -259,11 +263,8 @@ namespace linker.messenger.forward.proxy
         /// </summary>
         private void StopUdp()
         {
-            foreach (var item in udpListens)
-            {
-                item.Value.SafeClose();
-            }
-            udpListens.Clear();
+            udpListen?.SafeClose();
+            udpListen = null;
 
             foreach (var item in udpConnections)
             {
@@ -271,27 +272,5 @@ namespace linker.messenger.forward.proxy
             }
             udpConnections.Clear();
         }
-        /// <summary>
-        /// 停止UDP指定端口转发
-        /// </summary>
-        /// <param name="port"></param>
-        private void StopUdp(int port)
-        {
-            if (udpListens.TryRemove(port, out Socket socket))
-            {
-                socket.SafeClose();
-            }
-
-            if (udpListens.IsEmpty)
-            {
-                foreach (var item in udpConnections)
-                {
-                    item.Value.Disponse();
-                }
-                udpConnections.Clear();
-            }
-        }
-
     }
-
 }
