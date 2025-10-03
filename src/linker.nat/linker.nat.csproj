@@ -16,9 +16,9 @@
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker nat</PackageReleaseNotes>
-		<Version>1.9.2</Version>
-		<AssemblyVersion>1.9.2</AssemblyVersion>
-		<FileVersion>1.9.2</FileVersion>
+		<Version>1.9.3</Version>
+		<AssemblyVersion>1.9.3</AssemblyVersion>
+		<FileVersion>1.9.3</FileVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -36,6 +36,9 @@
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0|AnyCPU'">
 		<DebugType>embedded</DebugType>
 	</PropertyGroup>
+	<ItemGroup>
+	  <PackageReference Include="System.IO.Pipelines" Version="9.0.9" />
+	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\linker.libs\linker.libs.csproj" />
 	</ItemGroup>

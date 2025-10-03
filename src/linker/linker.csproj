@@ -21,17 +21,17 @@
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Description>1. 一些累计更新，一些BUG修复
-2. 使用代理方式重写应用层NAT
-3. 新增服务端webapi，对外提供公开数据，监听1803端口，设置为0则不监听
-4. 去除TCP包合并选项，TCP隧道默认使用pipelines管道
-5. 修复中继列表能看到节点但无法中继的BUG</Description>
+2. 虚拟网卡TCP转代理，为TCP隧道提速
+3. 重写socks5代理
+4. 重写端口转发
+5. 及时释放服务端端口转发的监听</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>1.9.2</Version>
-		<AssemblyVersion>1.9.2</AssemblyVersion>
-		<FileVersion>1.9.2</FileVersion>
+		<Version>1.9.3</Version>
+		<AssemblyVersion>1.9.3</AssemblyVersion>
+		<FileVersion>1.9.3</FileVersion>
 		<DelaySign>False</DelaySign>
 	</PropertyGroup>
 

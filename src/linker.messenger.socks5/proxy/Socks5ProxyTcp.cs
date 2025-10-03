@@ -5,6 +5,7 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
+using System.IO.Pipelines;
 
 namespace linker.messenger.socks5
 {
@@ -31,7 +32,7 @@ namespace linker.messenger.socks5
             listenSocketTcp.Listen(int.MaxValue);
 
             LocalEndpoint = listenSocketTcp.LocalEndPoint as IPEndPoint;
-            _ = StartAcceptTcp(bufferSize);
+            _ = StartAcceptTcp(bufferSize).ConfigureAwait(false);
         }
         /// <summary>
         /// 开始接收TCP连接
@@ -49,7 +50,7 @@ namespace linker.messenger.socks5
                 while (true)
                 {
                     Socket client = await listenSocketTcp.AcceptAsync().ConfigureAwait(false);
-                    _ = ProcessAcceptTcp(client, port, bufferSize);
+                    _ = ProcessAcceptTcp(client, port, bufferSize).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -83,6 +84,7 @@ namespace linker.messenger.socks5
                         Socket = socket,
                         ListenPort = listenPort,
                         Tcs = new TaskCompletionSource(),
+                        Pipe = new Pipe(new PipeOptions(minimumSegmentSize: 8192, pauseWriterThreshold: 2 * 1024 * 1024, resumeWriterThreshold: 512 * 1024, useSynchronizationContext: false)),
                         ReadPacket = new ForwardReadPacket(buffer)
                         {
                             ProtocolType = ProtocolType.Tcp,
@@ -111,19 +113,8 @@ namespace linker.messenger.socks5
 
                     await token.Tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(15000)).ConfigureAwait(false);
 
-                    while (true)
-                    {
-                        length = await token.Socket.ReceiveAsync(buffer.AsMemory(token.ReadPacket.HeaderLength), SocketFlags.None).ConfigureAwait(false);
-
-                        if (length == 0 || HookForward(token) == false)
-                        {
-                            break;
-                        }
-
-                        token.ReadPacket.Flag = ForwardFlags.Psh;
-                        token.ReadPacket.Length = token.ReadPacket.HeaderLength + length;
-                        await SendToConnection(token).ConfigureAwait(false);
-                    }
+                    token.ReadPacket.Flag = ForwardFlags.Psh;
+                    await Task.WhenAll(Sender(token), Recver(token, buffer, ForwardFlags.Psh)).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -199,15 +190,8 @@ namespace linker.messenger.socks5
                 token.ReadPacket.Length = token.ReadPacket.HeaderLength;
                 await SendToConnection(token).ConfigureAwait(false);
 
-                while (true)
-                {
-                    length = await token.Socket.ReceiveAsync(buffer.AsMemory(token.ReadPacket.HeaderLength), SocketFlags.None).ConfigureAwait(false);
-                    if (length == 0 || HookForward(token) == false) break;
-
-                    token.ReadPacket.Flag = ForwardFlags.PshAck;
-                    token.ReadPacket.Length = token.ReadPacket.HeaderLength + length;
-                    await SendToConnection(token).ConfigureAwait(false);
-                }
+                token.ReadPacket.Flag = ForwardFlags.PshAck;
+                await Task.WhenAll(Sender(token), Recver(token, buffer, ForwardFlags.PshAck)).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -255,8 +239,15 @@ namespace linker.messenger.socks5
                 try
                 {
                     token.Connection = connection;
-                    Add(token.Connection.RemoteMachineId, token.IPEndPoint, 0, memory.Length);
-                    await token.Socket.SendAsync(memory.Slice(packet.HeaderLength), SocketFlags.None).AsTask().WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+                    token.Sending = packet.BufferSize > 0;
+
+                    memory = memory.Slice(packet.HeaderLength);
+                    if (memory.Length > 0)
+                    {
+                        await token.Pipe.Writer.WriteAsync(memory).ConfigureAwait(false);
+                        token.AddReceived(memory.Length);
+                    }
+                    if (token.NeedPause) await SendWindow(token, 0).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -279,8 +270,15 @@ namespace linker.messenger.socks5
                 try
                 {
                     token.Connection = connection;
-                    Add(token.Connection.RemoteMachineId, token.IPEndPoint, 0, memory.Length);
-                    await token.Socket.SendAsync(memory.Slice(packet.HeaderLength), SocketFlags.None).AsTask().WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+                    token.Sending = packet.BufferSize > 0;
+
+                    memory = memory.Slice(packet.HeaderLength);
+                    if (memory.Length > 0)
+                    {
+                        await token.Pipe.Writer.WriteAsync(memory).ConfigureAwait(false);
+                        token.AddReceived(memory.Length);
+                    }
+                    if (token.NeedPause) await SendWindow(token, 0).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -289,6 +287,75 @@ namespace linker.messenger.socks5
                 }
             }
         }
+
+
+        private async Task SendWindow(AsyncUserToken token, byte window)
+        {
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(token.ReadPacket.HeaderLength);
+            try
+            {
+                token.ReadPacket.BufferSize = window;
+                token.Receiving = window > 0;
+                token.ReadPacket.Buffer.AsMemory(0, token.ReadPacket.HeaderLength).CopyTo(buffer);
+
+                using ForwardReadPacket packet = new ForwardReadPacket(buffer);
+                token.ReadPacket.Length = token.ReadPacket.HeaderLength;
+                await SendToConnection(token.Connection, packet, token.IPEndPoint).ConfigureAwait(false);
+                packet.Dispose();
+            }
+            catch (Exception)
+            {
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
+        }
+        private async Task Sender(AsyncUserToken token)
+        {
+            while (true)
+            {
+                ReadResult result = await token.Pipe.Reader.ReadAsync().ConfigureAwait(false);
+                if (result.IsCompleted && result.Buffer.IsEmpty)
+                {
+                    break;
+                }
+                ReadOnlySequence<byte> buffer = result.Buffer;
+                foreach (ReadOnlyMemory<byte> memoryBlock in result.Buffer)
+                {
+                    await token.Socket.SendAsync(memoryBlock, SocketFlags.None).ConfigureAwait(false);
+                    Add(token.Connection.RemoteMachineId, token.IPEndPoint, 0, memoryBlock.Length);
+                    token.AddReceived(-memoryBlock.Length);
+                    if (token.NeedResume) await SendWindow(token, 1).ConfigureAwait(false);
+                }
+                token.Pipe.Reader.AdvanceTo(buffer.End);
+            }
+        }
+        private async Task Recver(AsyncUserToken token, byte[] buffer, ForwardFlags flag)
+        {
+            int bytesRead;
+            while ((bytesRead = await token.Socket.ReceiveAsync(buffer.AsMemory(token.ReadPacket.HeaderLength), SocketFlags.None).ConfigureAwait(false)) != 0)
+            {
+                if (HookForward(token) == false)
+                {
+                    break;
+                }
+
+                token.ReadPacket.Flag = flag;
+                token.ReadPacket.Length = bytesRead + token.ReadPacket.HeaderLength;
+                await SendToConnection(token).ConfigureAwait(false);
+
+                if (token.Sending == false)
+                {
+                    while (token.Sending == false && token.Socket != null)
+                    {
+                        await Task.Delay(10).ConfigureAwait(false);
+                    }
+                }
+            }
+        }
+
+
         /// <summary>
         /// B端处理RST
         /// </summary>

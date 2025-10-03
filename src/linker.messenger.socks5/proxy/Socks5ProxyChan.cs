@@ -100,6 +100,17 @@ namespace linker.messenger.socks5
             Add(token.Connection.RemoteMachineId, token.IPEndPoint, token.ReadPacket.Length, 0);
             return true;
         }
+        private async Task<bool> SendToConnection(ITunnelConnection connection, ForwardReadPacket packet, IPEndPoint ep)
+        {
+            if (connection == null)
+            {
+                return false;
+            }
+            await connection.SendAsync(packet.Buffer.AsMemory(packet.Offset, packet.Length)).ConfigureAwait(false);
+            Add(connection.RemoteMachineId, ep, packet.Length, 0);
+            return true;
+        }
+
 
         /// <summary>
         /// 建立隧道

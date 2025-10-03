@@ -9,6 +9,7 @@ using linker.messenger.signin;
 using linker.messenger.pcp;
 using System.Buffers;
 using linker.libs.extends;
+using System.IO.Pipelines;
 
 namespace linker.messenger.socks5
 {
@@ -357,9 +358,26 @@ namespace linker.messenger.socks5
         public LastTicksManager LastTicks { get; set; } = new LastTicksManager();
         public bool Timeout => LastTicks.Expired(60 * 1000);
 
+        public Pipe Pipe { get; init; }
+        private long received = 0;
+        public long Received => received;
+
+        public bool Sending { get; set; } = true;
+        public bool Receiving { get; set; } = true;
+        public void AddReceived(long value)
+        {
+            Interlocked.Add(ref received, value);
+        }
+        public bool NeedPause => Received > 512 * 1024 && Receiving;
+        public bool NeedResume => Received < 128 * 1024 && Receiving == false;
+
         public void Disponse()
         {
+            Pipe?.Writer.Complete();
+            Pipe?.Reader.Complete();
+
             Socket?.SafeClose();
+            Socket = null;
 
             ReadPacket?.Dispose();
 

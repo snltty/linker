@@ -114,7 +114,6 @@ namespace linker.messenger.tuntap
             OnChanged();
         }
 
-
         public bool HasSwitchFlag(string machineId, TuntapSwitch tuntapSwitch)
         {
             return tuntapInfos.TryGetValue(machineId, out var info) && (info.Switch & tuntapSwitch) == tuntapSwitch;

@@ -12,7 +12,7 @@ namespace linker.messenger.socks5
 {
     public partial class Socks5Proxy
     {
-        private Socket udpListen;
+        private Socket socketUdp;
         private readonly ConcurrentDictionary<(int srcId, uint srcAddr, ushort srcPort, uint dstAddr, ushort dstPort), AsyncUserToken> udpConnections = new();
 
         /// <summary>
@@ -24,12 +24,12 @@ namespace linker.messenger.socks5
         {
             try
             {
-                udpListen = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-                udpListen.EnableBroadcast = true;
-                udpListen.WindowsUdpBug();
-                udpListen.Bind(ep);
+                socketUdp = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                socketUdp.EnableBroadcast = true;
+                socketUdp.WindowsUdpBug();
+                socketUdp.Bind(ep);
 
-                _ = ReceiveFromAsync(udpListen, (ushort)ep.Port, buffersize);
+                _ = ReceiveFromAsync(socketUdp, (ushort)ep.Port, buffersize).ConfigureAwait(false);
 
             }
             catch (Exception ex)
@@ -47,7 +47,7 @@ namespace linker.messenger.socks5
         /// <returns></returns>
         private async Task ReceiveFromAsync(Socket socket, ushort port, byte bufferSize)
         {
-            int hashcode = udpListen.GetHashCode();
+            int hashcode = socketUdp.GetHashCode();
             byte[] buffer = ArrayPool<byte>.Shared.Rent(65535);
             AsyncUserToken token = new AsyncUserToken
             {
@@ -93,7 +93,8 @@ namespace linker.messenger.socks5
             }
             finally
             {
-                if (udpListen != null && udpListen.GetHashCode() == hashcode)
+                token.Disponse();
+                if (socketUdp != null && socketUdp.GetHashCode() == hashcode)
                     StopUdp();
             }
         }
@@ -118,8 +119,7 @@ namespace linker.messenger.socks5
                     token.LastTicks.Update();
                     return;
                 }
-
-                _ = ConnectUdp(connection, packet, memory);
+                _ = ConnectUdp(connection, packet, memory).ConfigureAwait(false);
 
             }
             catch (Exception ex)
@@ -141,19 +141,17 @@ namespace linker.messenger.socks5
         /// <returns></returns>
         private async Task HndlePshAckUdp(ITunnelConnection connection, ForwardWritePacket packet, ReadOnlyMemory<byte> memory)
         {
-            if (udpListen != null)
+            if (socketUdp != null)
             {
-
                 IPEndPoint src = new IPEndPoint(NetworkHelper.ToIP(packet.SrcAddr), packet.SrcPort);
-                IPEndPoint dst = new IPEndPoint(NetworkHelper.ToIP(packet.SrcAddr), packet.SrcPort);
+                IPEndPoint dst = new IPEndPoint(NetworkHelper.ToIP(packet.DstAddr), packet.DstPort);
 
                 using IMemoryOwner<byte> memoryOwner = MemoryPool<byte>.Shared.Rent(memory.Length + 1024);
                 int length = Socks5Parser.MakeUdpResponse(dst, memory.Slice(packet.HeaderLength), memoryOwner.Memory);
                 try
                 {
                     Add(connection.RemoteMachineId, dst, 0, memory.Length);
-
-                    await udpListen.SendToAsync(memoryOwner.Memory.Slice(0, length), src).ConfigureAwait(false);
+                    await socketUdp.SendToAsync(memoryOwner.Memory.Slice(0, length), src).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -263,8 +261,8 @@ namespace linker.messenger.socks5
         /// </summary>
         private void StopUdp()
         {
-            udpListen?.SafeClose();
-            udpListen = null;
+            socketUdp?.SafeClose();
+            socketUdp = null;
 
             foreach (var item in udpConnections)
             {

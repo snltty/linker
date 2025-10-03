@@ -51,11 +51,11 @@ namespace linker.libs.web
                             if (context.Request.IsWebSocketRequest)
                             {
                                 HttpListenerWebSocketContext wsContext = await context.AcceptWebSocketAsync(null);
-                                HandleWs(wsContext.WebSocket);
+                                _ = HandleWs(wsContext.WebSocket);
                             }
                             else
                             {
-                                HandleWeb(context);
+                                _ = HandleWeb(context);
                             }
                         }
                         catch (Exception)
@@ -70,7 +70,7 @@ namespace linker.libs.web
             }, TaskCreationOptions.LongRunning);
         }
 
-        private void HandleWeb(HttpListenerContext context)
+        private async Task HandleWeb(HttpListenerContext context)
         {
             HttpListenerRequest request = context.Request;
             HttpListenerResponse response = context.Response;
@@ -99,8 +99,8 @@ namespace linker.libs.web
                         {
                             response.Headers.Set("Last-Modified", last.ToString());
                         }
-                        response.OutputStream.Write(memory.Span);
-                        response.OutputStream.Flush();
+                        await response.OutputStream.WriteAsync(memory);
+                        await response.OutputStream.FlushAsync();
                         response.OutputStream.Close();
                     }
                     else
@@ -113,8 +113,8 @@ namespace linker.libs.web
                     byte[] bytes = System.Text.Encoding.UTF8.GetBytes(ex + $"");
                     response.ContentLength64 = bytes.Length;
                     response.ContentType = "text/plain; charset=utf-8";
-                    response.OutputStream.Write(bytes, 0, bytes.Length);
-                    response.OutputStream.Flush();
+                    await response.OutputStream.WriteAsync(bytes, 0, bytes.Length);
+                    await response.OutputStream.FlushAsync();
                     response.OutputStream.Close();
                 }
             }
@@ -142,7 +142,7 @@ namespace linker.libs.web
         private string GetContentType(string path)
         {
             string ext = Path.GetExtension(path);
-            if (types.TryGetValue(ext,out string value))
+            if (types.TryGetValue(ext, out string value))
             {
                 return value;
             }
@@ -153,9 +153,9 @@ namespace linker.libs.web
         {
             this.password = password;
         }
-        private async void HandleWs(WebSocket websocket)
+        private async Task HandleWs(WebSocket websocket)
         {
-            using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(8*1024);
+            using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(8 * 1024);
             try
             {
                 ValueWebSocketReceiveResult result = await websocket.ReceiveAsync(buffer.Memory, CancellationToken.None);

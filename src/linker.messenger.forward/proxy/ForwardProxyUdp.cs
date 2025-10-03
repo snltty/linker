@@ -14,7 +14,7 @@ namespace linker.messenger.forward.proxy
     /// </summary>
     public partial class ForwardProxy
     {
-        private readonly ConcurrentDictionary<int, Socket> udpListens = new ConcurrentDictionary<int, Socket>();
+        private readonly ConcurrentDictionary<int, AsyncUserToken> udpListens = new ConcurrentDictionary<int, AsyncUserToken>();
         private readonly ConcurrentDictionary<(int srcId, uint srcAddr, ushort srcPort, uint dstAddr, ushort dstPort), AsyncUserToken> udpConnections = new();
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace linker.messenger.forward.proxy
                 socket.WindowsUdpBug();
                 socket.Bind(ep);
 
-                _ = ReceiveFromAsync(socket, (ushort)ep.Port, buffersize);
+                _ = ReceiveFromAsync(socket, (ushort)ep.Port, buffersize).ConfigureAwait(false);
 
             }
             catch (Exception ex)
@@ -49,8 +49,6 @@ namespace linker.messenger.forward.proxy
         /// <returns></returns>
         private async Task ReceiveFromAsync(Socket socket, ushort port, byte bufferSize)
         {
-            udpListens.AddOrUpdate(port, socket, (a, b) => socket);
-
             byte[] buffer = ArrayPool<byte>.Shared.Rent(65535);
             AsyncUserToken token = new AsyncUserToken
             {
@@ -67,6 +65,7 @@ namespace linker.messenger.forward.proxy
                     DstPort = 0
                 }
             };
+            udpListens.AddOrUpdate(port, token, (a, b) => token);
             try
             {
                 IPEndPoint ep = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
@@ -96,7 +95,7 @@ namespace linker.messenger.forward.proxy
             finally
             {
                 udpListens.TryRemove(port, out _);
-                socket.SafeClose();
+                token.Disponse();
             }
         }
 
@@ -121,7 +120,7 @@ namespace linker.messenger.forward.proxy
                     return;
                 }
 
-                _ = ConnectUdp(connection, packet, memory);
+                _ = ConnectUdp(connection, packet, memory).ConfigureAwait(false);
 
             }
             catch (Exception ex)
@@ -143,7 +142,7 @@ namespace linker.messenger.forward.proxy
         /// <returns></returns>
         private async Task HndlePshAckUdp(ITunnelConnection connection, ForwardWritePacket packet, ReadOnlyMemory<byte> memory)
         {
-            if (udpListens.TryGetValue(packet.Port, out Socket socket))
+            if (udpListens.TryGetValue(packet.Port, out AsyncUserToken token))
             {
                 try
                 {
@@ -151,7 +150,7 @@ namespace linker.messenger.forward.proxy
                     IPEndPoint dst = new IPEndPoint(NetworkHelper.ToIP(packet.SrcAddr), packet.SrcPort);
 
                     Add(connection.RemoteMachineId, dst, 0, memory.Length);
-                    await socket.SendToAsync(memory.Slice(packet.HeaderLength), src).ConfigureAwait(false);
+                    await token.Socket.SendToAsync(memory.Slice(packet.HeaderLength), src).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -261,7 +260,7 @@ namespace linker.messenger.forward.proxy
         {
             foreach (var item in udpListens)
             {
-                item.Value.SafeClose();
+                item.Value.Disponse();
             }
             udpListens.Clear();
 
@@ -277,9 +276,9 @@ namespace linker.messenger.forward.proxy
         /// <param name="port"></param>
         private void StopUdp(int port)
         {
-            if (udpListens.TryRemove(port, out Socket socket))
+            if (udpListens.TryRemove(port, out AsyncUserToken token))
             {
-                socket.SafeClose();
+                token.Disponse();
             }
 
             if (udpListens.IsEmpty)

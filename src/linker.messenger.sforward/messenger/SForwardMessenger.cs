@@ -7,7 +7,6 @@ using linker.messenger.sforward;
 using linker.messenger.sforward.server.validator;
 using linker.messenger.sforward.server;
 using linker.messenger.sforward.client;
-using System.Xml.Linq;
 
 namespace linker.plugins.sforward.messenger
 {
@@ -308,7 +307,6 @@ namespace linker.plugins.sforward.messenger
                 connection.Write(serializer.Serialize(result));
             }
         }
-
 
 
         public void Remove(SForwardAddInfo sForwardAddInfo, string machineId, SForwardAddResultInfo result)
@@ -705,8 +703,6 @@ namespace linker.plugins.sforward.messenger
             }
             return false;
         }
-
-
 
     }
 

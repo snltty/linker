@@ -12,14 +12,14 @@ namespace linker.plugins.sforward.proxy
     public partial class SForwardProxy
     {
         //服务器监听表
-        private ConcurrentDictionary<int, AsyncUserUdpToken> udpListens = new ConcurrentDictionary<int, AsyncUserUdpToken>();
+        private readonly ConcurrentDictionary<int, AsyncUserUdpToken> udpListens = new();
         //服务器映射表，服务器收到一个地址的数据包，要知道发给谁
-        private ConcurrentDictionary<(IPAddress ip, ushort port), UdpTargetCache> udpConnections = new ConcurrentDictionary<(IPAddress ip, ushort port), UdpTargetCache>();
+        private readonly ConcurrentDictionary<(IPAddress ip, ushort port), UdpTargetCache> udpConnections = new();
         //连接缓存表，a连接，保存，b连接查询，找到对应的，就成立映射关系，完成隧道
-        private ConcurrentDictionary<ulong, TaskCompletionSource<IPEndPoint>> udptcss = new ConcurrentDictionary<ulong, TaskCompletionSource<IPEndPoint>>();
+        private readonly ConcurrentDictionary<ulong, TaskCompletionSource<IPEndPoint>> udptcss = new();
 
         //本地服务表，其实不必要，只是缓存一下去定时检测过期没有
-        private ConcurrentDictionary<ulong, UdpConnectedCache> udpConnecteds = new ConcurrentDictionary<ulong, UdpConnectedCache>();
+        private readonly ConcurrentDictionary<ulong, UdpConnectedCache> udpConnecteds = new();
 
         public Func<int, ulong, Task<bool>> UdpConnect { get; set; } = async (port, id) => { return await Task.FromResult(false).ConfigureAwait(false); };
 

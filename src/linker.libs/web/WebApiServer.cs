@@ -33,14 +33,8 @@ namespace linker.libs.web
 
                     while (true)
                     {
-                        try
-                        {
-                            HttpListenerContext context = await http.GetContextAsync();
-                            HandleWeb(context);
-                        }
-                        catch (Exception)
-                        {
-                        }
+                        HttpListenerContext context = await http.GetContextAsync();
+                        _ = HandleWeb(context);
                     }
                 }
                 catch (Exception ex)
@@ -65,7 +59,7 @@ namespace linker.libs.web
                 dic.TryAdd(controller.Path.ToLower(), controller);
             }
         }
-        private void HandleWeb(HttpListenerContext context)
+        private async Task HandleWeb(HttpListenerContext context)
         {
             HttpListenerRequest request = context.Request;
             HttpListenerResponse response = context.Response;
@@ -85,8 +79,8 @@ namespace linker.libs.web
                         Memory<byte> memory = controller.Handle(query);
                         response.ContentLength64 = memory.Length;
                         response.ContentType = "application/json";
-                        response.OutputStream.Write(memory.Span);
-                        response.OutputStream.Flush();
+                        await response.OutputStream.WriteAsync(memory);
+                        await response.OutputStream.FlushAsync();
                         response.OutputStream.Close();
 
                         controller.Free();
@@ -101,8 +95,8 @@ namespace linker.libs.web
                     byte[] bytes = System.Text.Encoding.UTF8.GetBytes(ex + $"");
                     response.ContentLength64 = bytes.Length;
                     response.ContentType = "text/plain; charset=utf-8";
-                    response.OutputStream.Write(bytes, 0, bytes.Length);
-                    response.OutputStream.Flush();
+                    await response.OutputStream.WriteAsync(bytes.AsMemory(0, bytes.Length));
+                    await response.OutputStream.FlushAsync();
                     response.OutputStream.Close();
                 }
             }
