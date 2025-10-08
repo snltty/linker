@@ -20,6 +20,7 @@
                     <el-checkbox class="mgr-1" v-model="state.ruleForm.Multicast" label="禁用广播" size="large" />
                     <el-checkbox class="mgr-1" v-model="state.ruleForm.DisableNat" label="禁用NAT" size="large" />
                     <el-checkbox class="mgr-1" v-model="state.ruleForm.InterfaceOrder" label="网卡顺序" size="large" />
+                    <el-checkbox class="mgr-1" v-model="state.ruleForm.SrcProxy" label="TCP转代理" size="large" />
             </el-form-item>
         </el-form>
     </div>

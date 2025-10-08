@@ -59,7 +59,6 @@ namespace linker.messenger.tuntap
             {
                 tuntapConfigTransfer.Info.Switch &= ~TuntapSwitch.AppNat;
             }
-            tuntapConfigTransfer.Info.Switch |= TuntapSwitch.SrcProxy;
 
             return serializer.Serialize(new TuntapInfo
             {
