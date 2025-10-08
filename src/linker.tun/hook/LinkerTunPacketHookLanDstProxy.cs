@@ -30,7 +30,9 @@ namespace linker.tun.hook
             try
             {
                 IPAddress network = NetworkHelper.ToNetworkIP(address, NetworkHelper.ToPrefixValue(prefixLength));
-                string result = CommandHelper.PowerShell($"Get-NetNat", [], out string e);
+                string result = OperatingSystem.IsWindows()
+                    ? CommandHelper.PowerShell($"Get-NetNat", [], out string e)
+                    : OperatingSystem.IsLinux() ? CommandHelper.Linux(string.Empty, new string[] { $"iptables -t nat -L --line-numbers" }) : string.Empty;
                 if (string.IsNullOrWhiteSpace(result) == false && result.Contains($"{network}/{prefixLength}"))
                 {
                     return;
