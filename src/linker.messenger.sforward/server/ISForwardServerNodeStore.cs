@@ -23,6 +23,7 @@ namespace linker.messenger.sforward.server
         /// <param name="node"></param>
         public void SetInfo(SForwardServerNodeInfo node);
         public void UpdateInfo(SForwardServerNodeUpdateInfo update);
+        public void SetMasterHosts(string[] hosts);
 
         /// <summary>
         /// 设置月份
@@ -81,6 +82,8 @@ namespace linker.messenger.sforward.server
 #endif
         public string Url { get; set; } = "https://linker-doc.snltty.com";
         public bool Sync2Server { get; set; }
+
+        public string[] MasterHosts { get; set; } = [];
     }
 
     public partial class SForwardServerNodeUpdateWrapInfo

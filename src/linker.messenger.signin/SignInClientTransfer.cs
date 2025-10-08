@@ -45,10 +45,13 @@ namespace linker.messenger.signin
                 {
                     if (clientSignInState.Connected == false)
                     {
-                        int result = await SignIn(signInClientStore.Server.Host).ConfigureAwait(false);
-                        if (result == 3)
+                        string[] hosts = [signInClientStore.Server.Host, signInClientStore.Server.Host1, .. signInClientStore.Hosts];
+                        foreach (var host in hosts.Where(c => string.IsNullOrWhiteSpace(c) == false))
                         {
-                            result = await SignIn(signInClientStore.Server.Host1).ConfigureAwait(false);
+                            if (await SignIn(host).ConfigureAwait(false) != 3)
+                            {
+                                break;
+                            }
                         }
                     }
                     else
@@ -105,11 +108,6 @@ namespace linker.messenger.signin
             if (string.IsNullOrWhiteSpace(signInClientStore.Group.Id))
             {
                 LoggerHelper.Instance.Error($"group id are empty");
-                return 1;
-            }
-            if (string.IsNullOrWhiteSpace(host))
-            {
-                LoggerHelper.Instance.Error($"host are empty");
                 return 1;
             }
 
@@ -372,11 +370,18 @@ namespace linker.messenger.signin
         /// <returns></returns>
         public async Task Exp()
         {
-            await messengerSender.SendOnly(new MessageRequestWrap
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = clientSignInState.Connection,
                 MessengerId = (ushort)SignInMessengerIds.Exp,
+                Timeout = 3000
             }).ConfigureAwait(false);
+            if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
+            {
+                var hosts = serializer.Deserialize<string[]>(resp.Data.Span);
+                if (hosts != null && hosts.Length > 0)
+                    signInClientStore.SetHosts(hosts);
+            }
         }
 
         /// <summary>

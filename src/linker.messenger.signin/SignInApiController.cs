@@ -155,7 +155,7 @@ namespace linker.messenger.signin
 
         public async Task CheckSuper(ApiControllerParamsInfo param)
         {
-            await signInClientTransfer.CheckSuper();
+            await signInClientTransfer.CheckSuper().ConfigureAwait(false);
         }
     }
 

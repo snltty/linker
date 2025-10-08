@@ -42,6 +42,7 @@ namespace linker.messenger.signin
         public string Name { get; set; } = string.Empty;
         public string Host { get; set; } = string.Empty;
         public string Host1 { get; set; } = string.Empty;
+        public string[] Hosts { get; set; } = [];
 
         public string SecretKey { get; set; } = string.Empty;
         public string UserId { get; set; } = Guid.NewGuid().ToString();
@@ -71,6 +72,8 @@ namespace linker.messenger.signin
         public string SuperKey { get; set; } = Guid.NewGuid().ToString().ToUpper();
         public string SuperPassword { get; set; } = Guid.NewGuid().ToString().ToUpper();
 #endif
+
+
     }
 
     public sealed partial class SignInConfigSetNameInfo

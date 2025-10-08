@@ -1,5 +1,6 @@
 ﻿using linker.messenger.sforward.server;
 using System.Net;
+using System.Net.Sockets;
 
 
 namespace linker.messenger.sforward
@@ -145,7 +146,7 @@ namespace linker.messenger.sforward
     /// <summary>
     /// 服务器穿透代理信息
     /// </summary>
-    public sealed partial class SForwardProxyInfo
+    public partial class SForwardProxyInfo
     {
         /// <summary>
         /// 请求编号
@@ -163,7 +164,13 @@ namespace linker.messenger.sforward
         /// bufsize
         /// </summary>
         public byte BufferSize { get; set; } = 3;
+
+        public string MachineId { get; set; }
+        public ProtocolType ProtocolType { get; set; }
+        public string NodeId { get; set; }
+        public IPAddress Addr { get; set; }
     }
+
 
 
     public sealed partial class SForwardCountInfo

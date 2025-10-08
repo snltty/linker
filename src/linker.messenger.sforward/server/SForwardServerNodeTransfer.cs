@@ -6,6 +6,7 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 
 namespace linker.messenger.sforward.server
 {
@@ -25,7 +26,7 @@ namespace linker.messenger.sforward.server
         private readonly NumberSpace ns = new NumberSpace(65537);
         private long bytes = 0;
         private long lastBytes = 0;
-        private SForwardSpeedLimit limitTotal = new SForwardSpeedLimit();
+        private readonly SForwardSpeedLimit limitTotal = new SForwardSpeedLimit();
         private readonly ConcurrentDictionary<ulong, SForwardTrafficCacheInfo> trafficDict = new ConcurrentDictionary<ulong, SForwardTrafficCacheInfo>();
 
         private readonly ISerializer serializer;
@@ -34,7 +35,7 @@ namespace linker.messenger.sforward.server
         private readonly IMessengerSender messengerSender;
         private readonly ISForwardServerStore sForwardServerStore;
 
-        public SForwardServerNodeTransfer(ISerializer serializer, ISForwardServerNodeStore sForwardServerNodeStore, ISForwardServerMasterStore sForwardServerMasterStore, IMessengerResolver messengerResolver, IMessengerSender messengerSender, ISForwardServerStore sForwardServerStore,ICommonStore commonStore)
+        public SForwardServerNodeTransfer(ISerializer serializer, ISForwardServerNodeStore sForwardServerNodeStore, ISForwardServerMasterStore sForwardServerMasterStore, IMessengerResolver messengerResolver, IMessengerSender messengerSender, ISForwardServerStore sForwardServerStore, ICommonStore commonStore)
         {
             this.serializer = serializer;
             this.sForwardServerNodeStore = sForwardServerNodeStore;
@@ -76,6 +77,32 @@ namespace linker.messenger.sforward.server
         public void Update(string version)
         {
             Helper.AppUpdate(version);
+        }
+
+        public async Task<bool> ProxyNode(SForwardProxyInfo info)
+        {
+            return await messengerSender.SendOnly(new MessageRequestWrap
+            {
+                Connection = Connection,
+                MessengerId = (ushort)SForwardMessengerIds.ProxyNode,
+                Payload = serializer.Serialize(info)
+            }).ConfigureAwait(false);
+        }
+        public async Task<List<string>> Heart(List<string> ids)
+        {
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = Connection,
+                MessengerId = (ushort)SForwardMessengerIds.Heart,
+                Payload = serializer.Serialize(ids)
+            }).ConfigureAwait(false);
+
+            if (resp.Code == MessageResponeCodes.OK)
+            {
+                return serializer.Deserialize<List<string>>(resp.Data.Span);
+            }
+
+            return [];
         }
 
         /// <summary>
@@ -264,6 +291,7 @@ namespace linker.messenger.sforward.server
             TimerHelper.SetIntervalLong(async () =>
             {
                 await Report();
+                await MasterHosts();
             }, 5000);
         }
         private async Task Report()
@@ -316,16 +344,79 @@ namespace linker.messenger.sforward.server
                 }
             }
         }
+        private async Task MasterHosts()
+        {
+            try
+            {
 
+                var resp = await messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = Connection,
+                    MessengerId = (ushort)SForwardMessengerIds.Hosts,
+                }).ConfigureAwait(false);
+                if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
+                {
+                    string[] hosts = serializer.Deserialize<string[]>(resp.Data.Span);
+                    if (hosts != null && hosts.Length > 0)
+                    {
+                        sForwardServerNodeStore.SetMasterHosts(hosts);
+                    }
+                }
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+
+        private string signInHost = string.Empty;
         private void SignInTask()
         {
             TimerHelper.SetIntervalLong(async () =>
             {
                 if (Connection == null || Connection.Connected == false)
                 {
-                    connection = await SignIn(Node.MasterHost, Node.MasterSecretKey).ConfigureAwait(false);
+                    string[] hosts = [Node.MasterHost, .. Node.MasterHosts];
+                    foreach (var host in hosts.Where(c => string.IsNullOrWhiteSpace(c) == false))
+                    {
+                        connection = await SignIn(host, Node.MasterSecretKey).ConfigureAwait(false);
+                        if (connection != null && connection.Connected)
+                        {
+                            signInHost = host;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    if (await TestHost(Node.MasterHost))
+                    {
+                        connection = await SignIn(Node.MasterHost, Node.MasterSecretKey).ConfigureAwait(false);
+                        if (connection != null && connection.Connected)
+                        {
+                            signInHost = Node.MasterHost;
+                        }
+                    }
                 }
             }, 3000);
+        }
+        private async Task<bool> TestHost(string host)
+        {
+            if (signInHost == Node.MasterHost) return false;
+            try
+            {
+                IPEndPoint ip = await NetworkHelper.GetEndPointAsync(host, 1802).ConfigureAwait(false);
+                using Socket socket = new Socket(ip.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                socket.KeepAlive();
+                await socket.ConnectAsync(ip).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+
+                socket.SafeClose();
+                return true;
+            }
+            catch (Exception)
+            {
+            }
+            return false;
         }
         private async Task<IConnection> SignIn(string host, string secretKey)
         {

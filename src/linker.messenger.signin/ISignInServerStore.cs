@@ -10,12 +10,13 @@ namespace linker.messenger.signin
         public int CleanDays { get; }
         public bool Enabled { get; }
         public bool Anonymous { get; }
+        public string[] Hosts { get; }
 
         public bool ValidateSuper(string key,string password);
         public void SetSuper(string key, string password);
         public void SetCleanDays(int days);
         public void SetAnonymous(bool anonymous);
 
-        public bool Exp(string id);
+        public string[] Exp(string id);
     }
 }

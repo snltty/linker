@@ -48,8 +48,11 @@ namespace linker.messenger.relay.messenger
         private readonly ISerializer serializer;
         private readonly RelayServerNodeTransfer relayServerNodeTransfer;
         private readonly RelayServerReportResolver relayServerReportResolver;
+        private readonly ISignInServerStore signInServerStore;
 
-        public RelayServerMessenger(IMessengerSender messengerSender, SignInServerCaching signCaching, ISerializer serializer, RelayServerMasterTransfer relayServerTransfer, RelayServerValidatorTransfer relayValidatorTransfer, RelayServerNodeTransfer relayServerNodeTransfer, RelayServerReportResolver relayServerReportResolver)
+        public RelayServerMessenger(IMessengerSender messengerSender, SignInServerCaching signCaching, ISerializer serializer,
+            RelayServerMasterTransfer relayServerTransfer, RelayServerValidatorTransfer relayValidatorTransfer,
+            RelayServerNodeTransfer relayServerNodeTransfer, RelayServerReportResolver relayServerReportResolver, ISignInServerStore signInServerStore)
         {
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;
@@ -58,6 +61,7 @@ namespace linker.messenger.relay.messenger
             this.serializer = serializer;
             this.relayServerNodeTransfer = relayServerNodeTransfer;
             this.relayServerReportResolver = relayServerReportResolver;
+            this.signInServerStore = signInServerStore;
         }
 
         /// <summary>
@@ -410,6 +414,11 @@ namespace linker.messenger.relay.messenger
             relayServerNodeTransfer.UpdateLastBytes(info);
         }
 
+        [MessengerId((ushort)RelayMessengerIds.Hosts)]
+        public void Hosts(IConnection connection)
+        {
+            connection.Write(serializer.Serialize(signInServerStore.Hosts));
+        }
 
     }
 }

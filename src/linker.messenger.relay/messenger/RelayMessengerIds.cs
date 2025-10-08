@@ -43,6 +43,8 @@
         Edit188 = 2131,
         EditForward188 = 2132,
 
+        Hosts = 2133,
+
         Max = 2199
     }
 }

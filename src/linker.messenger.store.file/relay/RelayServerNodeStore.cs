@@ -37,6 +37,10 @@ namespace linker.messenger.store.file.relay
             config.Data.Server.Relay.Distributed.Node.Sync2Server = update.Sync2Server;
 
         }
+        public void SetMasterHosts(string[] hosts)
+        {
+            config.Data.Server.Relay.Distributed.Node.MasterHosts = hosts;
+        }
         public void SetMaxGbTotalLastBytes(long value)
         {
             config.Data.Server.Relay.Distributed.Node.MaxGbTotalLastBytes = value;

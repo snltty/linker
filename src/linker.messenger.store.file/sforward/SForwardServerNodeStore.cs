@@ -38,6 +38,10 @@ namespace linker.messenger.store.file.sforward
             config.Data.Server.SForward.WebPort = update.WebPort;
             config.Data.Server.SForward.TunnelPortRange = update.PortRange;
         }
+        public void SetMasterHosts(string[] hosts)
+        {
+            config.Data.Server.SForward.Distributed.Node.MasterHosts = hosts;
+        }
         public void SetMaxGbTotalLastBytes(long value)
         {
             config.Data.Server.SForward.Distributed.Node.MaxGbTotalLastBytes = value;

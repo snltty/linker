@@ -9,6 +9,8 @@ namespace linker.messenger.store.file.signIn
         public bool Enabled => fileConfig.Data.Server.SignIn.Enabled;
         public bool Anonymous => fileConfig.Data.Server.SignIn.Anonymous;
 
+        public string[] Hosts => fileConfig.Data.Server.Hosts;
+
         private readonly Storefactory dBfactory;
         private readonly ILiteCollection<SignCacheInfo> liteCollection;
         private readonly FileConfig fileConfig;
@@ -89,9 +91,10 @@ namespace linker.messenger.store.file.signIn
         {
             return liteCollection.Update(value);
         }
-        public bool Exp(string id)
+        public string[] Exp(string id)
         {
-            return liteCollection.UpdateMany(p => new SignCacheInfo { LastSignIn = DateTime.Now }, c => c.Id == id) > 0;
+            liteCollection.UpdateMany(p => new SignCacheInfo { LastSignIn = DateTime.Now }, c => c.Id == id);
+            return fileConfig.Data.Server.Hosts;
         }
 
     }

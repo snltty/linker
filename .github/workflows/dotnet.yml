@@ -21,7 +21,7 @@ jobs:
           release_name: v1.9.3.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 一些累计更新，一些BUG修复\r\n2. 虚拟网卡TCP转代理，为TCP隧道提速\r\n3. 重写socks5代理\r\n4. 重写端口转发\r\n5. 及时释放服务端端口转发的监听"
+          body: "1. 一些累计更新，一些BUG修复\r\n2. 虚拟网卡TCP转代理，为TCP隧道提速\r\n3. 重写代理模块\r\n4. 重写端口转发模块\r\n5. 完善内网穿透多节点和及时释放端口监听\r\n6. 同步备用服务器"
       - name: setup node.js
         uses: actions/setup-node@v2
         with:

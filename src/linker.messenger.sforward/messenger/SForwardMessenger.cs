@@ -7,6 +7,8 @@ using linker.messenger.sforward;
 using linker.messenger.sforward.server.validator;
 using linker.messenger.sforward.server;
 using linker.messenger.sforward.client;
+using System.Net.Sockets;
+using linker.libs.timer;
 
 namespace linker.plugins.sforward.messenger
 {
@@ -21,12 +23,15 @@ namespace linker.plugins.sforward.messenger
         private readonly IMessengerSender sender;
         private readonly SignInServerCaching signCaching;
         private readonly SForwardValidatorTransfer validator;
-        private readonly ISForwardServerStore sForwardServerStore;
         private readonly ISerializer serializer;
         private readonly SForwardServerMasterTransfer sForwardServerMasterTransfer;
         private readonly SForwardServerNodeTransfer sForwardServerNodeTransfer;
+        private readonly ISignInServerStore signInServerStore;
 
-        public SForwardServerMessenger(SForwardProxy proxy, ISForwardServerCahing sForwardServerCahing, IMessengerSender sender, SignInServerCaching signCaching, SForwardValidatorTransfer validator, ISForwardServerStore sForwardServerStore, ISerializer serializer, SForwardServerMasterTransfer sForwardServerMasterTransfer, SForwardServerNodeTransfer sForwardServerNodeTransfer)
+        public SForwardServerMessenger(SForwardProxy proxy, ISForwardServerCahing sForwardServerCahing, IMessengerSender sender,
+            SignInServerCaching signCaching, SForwardValidatorTransfer validator, ISerializer serializer,
+            SForwardServerMasterTransfer sForwardServerMasterTransfer, SForwardServerNodeTransfer sForwardServerNodeTransfer,
+            ISignInServerStore signInServerStore)
         {
             this.proxy = proxy;
             proxy.WebConnect = WebConnect;
@@ -36,10 +41,12 @@ namespace linker.plugins.sforward.messenger
             this.sender = sender;
             this.signCaching = signCaching;
             this.validator = validator;
-            this.sForwardServerStore = sForwardServerStore;
             this.serializer = serializer;
             this.sForwardServerMasterTransfer = sForwardServerMasterTransfer;
             this.sForwardServerNodeTransfer = sForwardServerNodeTransfer;
+            this.signInServerStore = signInServerStore;
+
+            ClearTask();
         }
 
         [MessengerId((ushort)SForwardMessengerIds.Nodes)]
@@ -129,7 +136,6 @@ namespace linker.plugins.sforward.messenger
                 connection.Write(Helper.FalseArray);
             }
         }
-
 
         /// <summary>
         /// 添加穿透
@@ -233,6 +239,17 @@ namespace linker.plugins.sforward.messenger
                 connection.Write(serializer.Serialize(result));
             }
 
+        }
+        [MessengerId((ushort)SForwardMessengerIds.Heart)]
+        public void Heart(IConnection connection)
+        {
+            List<string> ids = serializer.Deserialize<List<string>>(connection.ReceiveRequestWrap.Payload.Span);
+            connection.Write(serializer.Serialize(ids.Except(signCaching.GetOnline()).ToList()));
+        }
+        [MessengerId((ushort)SForwardMessengerIds.Hosts)]
+        public void Hosts(IConnection connection)
+        {
+            connection.Write(serializer.Serialize(signInServerStore.Hosts));
         }
 
         /// <summary>
@@ -635,7 +652,27 @@ namespace linker.plugins.sforward.messenger
         }
 
 
+        /// <summary>
+        /// 来自节点的连接
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        [MessengerId((ushort)SForwardMessengerIds.ProxyNode)]
+        public async Task ProxyNode(IConnection connection)
+        {
+            SForwardProxyInfo info = serializer.Deserialize<SForwardProxyInfo>(connection.ReceiveRequestWrap.Payload.Span);
 
+            if (sForwardServerMasterTransfer.GetNode(info.NodeId, out var node) && string.IsNullOrWhiteSpace(info.MachineId) == false && signCaching.TryGet(info.MachineId, out SignCacheInfo sign) && sign.Connected)
+            {
+                info.Addr = node.Address;
+                await sender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = sign.Connection,
+                    MessengerId = (ushort)SForwardMessengerIds.Proxy,
+                    Payload = serializer.Serialize(info)
+                }).ConfigureAwait(false);
+            }
+        }
         /// <summary>
         /// 服务器收到http连接
         /// </summary>
@@ -651,17 +688,17 @@ namespace linker.plugins.sforward.messenger
             }
             host = host.Replace($".{sForwardServerNodeTransfer.Node.Domain}", "");
 
-            //发给对应的客户端
-            if (sForwardServerCahing.TryGet(host, out string machineId) && signCaching.TryGet(machineId, out SignCacheInfo sign) && sign.Connected)
+            sForwardServerCahing.TryGet(host, out string machineId);
+            return await sForwardServerNodeTransfer.ProxyNode(new SForwardProxyInfo
             {
-                return await sender.SendOnly(new MessageRequestWrap
-                {
-                    Connection = sign.Connection,
-                    MessengerId = (ushort)SForwardMessengerIds.Proxy,
-                    Payload = serializer.Serialize(new SForwardProxyInfo { Domain = host, RemotePort = port, Id = id, BufferSize = 3 })
-                }).ConfigureAwait(false);
-            }
-            return false;
+                Domain = host,
+                RemotePort = port,
+                Id = id,
+                BufferSize = 3,
+                NodeId = sForwardServerNodeTransfer.Node.Id,
+                ProtocolType = ProtocolType.Tcp,
+                MachineId = machineId,
+            });
         }
         /// <summary>
         /// 服务器收到tcp连接
@@ -671,17 +708,16 @@ namespace linker.plugins.sforward.messenger
         /// <returns></returns>
         private async Task<bool> TunnelConnect(int port, ulong id)
         {
-            //发给对应的客户端
-            if (sForwardServerCahing.TryGet(port, out string machineId) && signCaching.TryGet(machineId, out SignCacheInfo sign) && sign.Connected)
+            sForwardServerCahing.TryGet(port, out string machineId);
+            return await sForwardServerNodeTransfer.ProxyNode(new SForwardProxyInfo
             {
-                return await sender.SendOnly(new MessageRequestWrap
-                {
-                    Connection = sign.Connection,
-                    MessengerId = (ushort)SForwardMessengerIds.Proxy,
-                    Payload = serializer.Serialize(new SForwardProxyInfo { RemotePort = port, Id = id, BufferSize = 3 })
-                }).ConfigureAwait(false);
-            }
-            return false;
+                RemotePort = port,
+                Id = id,
+                BufferSize = 3,
+                NodeId = sForwardServerNodeTransfer.Node.Id,
+                ProtocolType = ProtocolType.Tcp,
+                MachineId = machineId,
+            });
         }
         /// <summary>
         /// 服务器收到udp数据
@@ -691,19 +727,51 @@ namespace linker.plugins.sforward.messenger
         /// <returns></returns>
         private async Task<bool> UdpConnect(int port, ulong id)
         {
-            //发给对应的客户端
-            if (sForwardServerCahing.TryGet(port, out string machineId) && signCaching.TryGet(machineId, out SignCacheInfo sign) && sign.Connected)
+            sForwardServerCahing.TryGet(port, out string machineId);
+            return await sForwardServerNodeTransfer.ProxyNode(new SForwardProxyInfo
             {
-                return await sender.SendOnly(new MessageRequestWrap
-                {
-                    Connection = sign.Connection,
-                    MessengerId = (ushort)SForwardMessengerIds.ProxyUdp,
-                    Payload = serializer.Serialize(new SForwardProxyInfo { RemotePort = port, Id = id, BufferSize = 3 })
-                }).ConfigureAwait(false);
-            }
-            return false;
+                RemotePort = port,
+                Id = id,
+                BufferSize = 3,
+                NodeId = sForwardServerNodeTransfer.Node.Id,
+                ProtocolType = ProtocolType.Udp,
+                MachineId = machineId
+            });
         }
 
+
+        private void ClearTask()
+        {
+            TimerHelper.SetIntervalLong(async () =>
+            {
+                var ids = sForwardServerCahing.GetMachineIds();
+                if (ids.Count > 0)
+                {
+                    var offIds = await sForwardServerNodeTransfer.Heart(ids);
+
+                    if (sForwardServerCahing.TryGet(offIds, out List<string> domains, out List<int> ports))
+                    {
+                        if (domains.Count != 0)
+                        {
+                            foreach (var domain in domains)
+                            {
+                                sForwardServerCahing.TryRemove(domain, out _);
+                                proxy.RemoveHttp(domain);
+                            }
+                        }
+                        if (ports.Count != 0)
+                        {
+                            foreach (var port in ports)
+                            {
+                                sForwardServerCahing.TryRemove(port, out _);
+                                proxy.Stop(port);
+                            }
+                        }
+                    }
+                }
+
+            }, 15000);
+        }
     }
 
     /// <summary>
@@ -715,14 +783,12 @@ namespace linker.plugins.sforward.messenger
         private readonly SForwardClientTransfer sForwardTransfer;
         private readonly ISForwardClientStore sForwardClientStore;
         private readonly ISerializer serializer;
-        private readonly SForwardPlanHandle sForwardPlanHandle;
-        public SForwardClientMessenger(SForwardProxy proxy, SForwardClientTransfer sForwardTransfer, ISForwardClientStore sForwardClientStore, ISerializer serializer, SForwardPlanHandle sForwardPlanHandle)
+        public SForwardClientMessenger(SForwardProxy proxy, SForwardClientTransfer sForwardTransfer, ISForwardClientStore sForwardClientStore, ISerializer serializer)
         {
             this.proxy = proxy;
             this.sForwardTransfer = sForwardTransfer;
             this.sForwardClientStore = sForwardClientStore;
             this.serializer = serializer;
-            this.sForwardPlanHandle = sForwardPlanHandle;
         }
 
         /// <summary>
@@ -795,44 +861,32 @@ namespace linker.plugins.sforward.messenger
         [MessengerId((ushort)SForwardMessengerIds.Proxy)]
         public void Proxy(IConnection connection)
         {
-            SForwardProxyInfo sForwardProxyInfo = serializer.Deserialize<SForwardProxyInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            SForwardProxyInfo info = serializer.Deserialize<SForwardProxyInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            IPEndPoint server = new IPEndPoint(IPAddress.Any.Equals(info.Addr) ? connection.Address.Address : info.Addr, info.RemotePort);
 
             //是http
-            if (string.IsNullOrWhiteSpace(sForwardProxyInfo.Domain) == false)
+            if (string.IsNullOrWhiteSpace(info.Domain) == false)
             {
-                SForwardInfo sForwardInfo = sForwardClientStore.Get(sForwardProxyInfo.Domain);
+                SForwardInfo sForwardInfo = sForwardClientStore.Get(info.Domain);
                 if (sForwardInfo != null)
                 {
-                    _ = proxy.OnConnectTcp(sForwardProxyInfo.Domain, sForwardProxyInfo.BufferSize, sForwardProxyInfo.Id, new System.Net.IPEndPoint(connection.Address.Address, sForwardProxyInfo.RemotePort), sForwardInfo.LocalEP);
+                    _ = proxy.OnConnectTcp(info.Domain, info.BufferSize, info.Id, server, sForwardInfo.LocalEP);
                 }
             }
-            //是tcp
-            else if (sForwardProxyInfo.RemotePort > 0)
+            //是端口
+            else if (info.RemotePort > 0)
             {
-                IPEndPoint localEP = GetLocalEP(sForwardProxyInfo);
+                IPEndPoint localEP = GetLocalEP(info);
                 if (localEP != null)
                 {
-                    IPEndPoint server = new IPEndPoint(connection.Address.Address, sForwardProxyInfo.RemotePort);
-                    _ = proxy.OnConnectTcp(sForwardProxyInfo.RemotePort.ToString(), sForwardProxyInfo.BufferSize, sForwardProxyInfo.Id, server, localEP);
-                }
-            }
-        }
-
-        /// <summary>
-        /// 收到服务器发来的udp请求
-        /// </summary>
-        /// <param name="connection"></param>
-        [MessengerId((ushort)SForwardMessengerIds.ProxyUdp)]
-        public void ProxyUdp(IConnection connection)
-        {
-            SForwardProxyInfo sForwardProxyInfo = serializer.Deserialize<SForwardProxyInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (sForwardProxyInfo.RemotePort > 0)
-            {
-                IPEndPoint localEP = GetLocalEP(sForwardProxyInfo);
-                if (localEP != null)
-                {
-                    IPEndPoint server = new IPEndPoint(connection.Address.Address, sForwardProxyInfo.RemotePort);
-                    _ = proxy.OnConnectUdp(sForwardProxyInfo.BufferSize, sForwardProxyInfo.Id, server, localEP);
+                    if (info.ProtocolType == ProtocolType.Tcp)
+                    {
+                        _ = proxy.OnConnectTcp(info.RemotePort.ToString(), info.BufferSize, info.Id, server, localEP);
+                    }
+                    else
+                    {
+                        _ = proxy.OnConnectUdp(info.BufferSize, info.Id, server, localEP);
+                    }
                 }
             }
         }

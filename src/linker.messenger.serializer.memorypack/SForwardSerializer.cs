@@ -2,6 +2,7 @@
 using linker.messenger.sforward;
 using System.Net;
 using linker.messenger.sforward.server;
+using System.Net.Sockets;
 
 namespace linker.messenger.serializer.memorypack
 {
@@ -341,16 +342,30 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         byte BufferSize => info.BufferSize;
 
+        [MemoryPackInclude]
+        string MachineId => info.MachineId;
+        [MemoryPackInclude]
+        string NodeId => info.NodeId;
+
+        [MemoryPackInclude]
+        ProtocolType ProtocolType => info.ProtocolType;
+
+        [MemoryPackInclude, MemoryPackAllowSerialize]
+        IPAddress Addr => info.Addr;
 
         [MemoryPackConstructor]
-        SerializableSForwardProxyInfo(ulong id, string domain, int remotePort, byte bufferSize)
+        SerializableSForwardProxyInfo(ulong id, string domain, int remotePort, byte bufferSize, string machineId, string nodeid, ProtocolType protocolType, IPAddress addr)
         {
             this.info = new SForwardProxyInfo
             {
                 Id = id,
                 BufferSize = bufferSize,
                 Domain = domain,
-                RemotePort = remotePort
+                RemotePort = remotePort,
+                NodeId = nodeid,
+                ProtocolType = protocolType,
+                Addr = addr,
+                MachineId = machineId
             };
         }
 
@@ -385,7 +400,6 @@ namespace linker.messenger.serializer.memorypack
             value = wrapped.info;
         }
     }
-
 
 
     [MemoryPackable]

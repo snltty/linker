@@ -112,6 +112,10 @@ namespace linker.messenger.signin
             return Clients.Values.Where(c => c.GroupId == other.GroupId).ToList();
         }
 
+        public IEnumerable<string> GetOnline()
+        {
+            return Clients.Values.Where(c => c.Connected).Select(c => c.MachineId);
+        }
         public bool GetOnline(string machineId)
         {
             return Clients.TryGetValue(machineId, out SignCacheInfo cache) && cache.Connected;
@@ -136,7 +140,7 @@ namespace linker.messenger.signin
             return signInStore.NewId();
         }
 
-        public bool Exp(string machineId)
+        public string[] Exp(string machineId)
         {
             if (TryGet(machineId, out SignCacheInfo cache))
             {

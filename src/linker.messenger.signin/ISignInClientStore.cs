@@ -11,6 +11,7 @@
         /// </summary>
         public SignInClientGroupInfo Group { get; }
         public SignInClientGroupInfo[] Groups { get; }
+
         /// <summary>
         /// id
         /// </summary>
@@ -19,6 +20,7 @@
         /// 名称
         /// </summary>
         public string Name { get; }
+        public string[] Hosts { get; }
 
         /// <summary>
         /// 设置名称
@@ -57,6 +59,7 @@
         /// <param name="host"></param>
         /// <param name="host1"></param>
         public void SetHost(string host, string host1);
+        public void SetHosts(string[] hosts);
         /// <summary>
         /// 设置id
         /// </summary>

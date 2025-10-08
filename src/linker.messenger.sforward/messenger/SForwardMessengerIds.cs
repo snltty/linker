@@ -8,7 +8,6 @@
         Remove = 2302,
 
         Proxy = 2303,
-        ProxyUdp = 2304,
 
         GetForward = 2305,
         Get = 2306,
@@ -47,6 +46,13 @@
 
         TrafficReport = 2331,
         SendLastBytes = 2332,
+
+
+        ProxyNode = 2333,
+
+        Heart = 2334,
+        Hosts = 2335,
+
 
         Max = 2399
     }

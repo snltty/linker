@@ -26,6 +26,7 @@ namespace linker.messenger.relay.server
         /// <param name="node"></param>
         public void SetInfo(RelayServerNodeInfo node);
         public void UpdateInfo(RelayServerNodeUpdateInfo188 update);
+        public void SetMasterHosts(string[] hosts);
 
         /// <summary>
         /// 设置月份
@@ -85,6 +86,8 @@ namespace linker.messenger.relay.server
         public bool AllowTcp { get; set; } = true;
         public bool AllowUdp { get; set; }
         public bool Sync2Server { get; set; }
+
+        public string[] MasterHosts { get; set; } = [];
     }
 
     public partial class RelayServerNodeUpdateWrapInfo

@@ -11,11 +11,13 @@ namespace linker.messenger.store.file.signIn
         public string Id => config.Data.Client.Id;
         public string Name => config.Data.Client.Name;
 
+        public string[] Hosts => Server.Hosts;
+
         private readonly FileConfig config;
         public SignInClientStore(FileConfig config)
         {
             this.config = config;
-            if(string.IsNullOrWhiteSpace(Server.SecretKey) == false)
+            if (string.IsNullOrWhiteSpace(Server.SecretKey) == false)
             {
                 Server.SuperKey = Server.SecretKey;
                 Server.SuperPassword = Server.SecretKey;
@@ -63,6 +65,11 @@ namespace linker.messenger.store.file.signIn
             Server.Host1 = host1;
             config.Data.Update();
         }
+        public void SetHosts(string[] hosts)
+        {
+            Server.Hosts = hosts;
+            config.Data.Update();
+        }
 
         public void SetId(string id)
         {
@@ -75,5 +82,7 @@ namespace linker.messenger.store.file.signIn
             config.Data.Update();
             return true;
         }
+
+
     }
 }

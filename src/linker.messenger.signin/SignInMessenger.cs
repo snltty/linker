@@ -304,7 +304,7 @@ namespace linker.messenger.signin
         [MessengerId((ushort)SignInMessengerIds.Exp)]
         public void Exp(IConnection connection)
         {
-            signCaching.Exp(connection.Id);
+            connection.Write(serializer.Serialize(signCaching.Exp(connection.Id)));
         }
 
         [MessengerId((ushort)SignInMessengerIds.CheckSuper)]

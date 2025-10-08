@@ -10,10 +10,14 @@ namespace linker.messenger.sforward.server
 
         public bool TryGet(string domain, out string machineId);
         public bool TryGet(int port, out string machineId);
+        public bool TryGet(List<string> ids, out List<string> domains, out List<int> ports);
 
         public bool TryRemove(string domain, string operMachineId, out string machineId);
+        public bool TryRemove(string domain, out string machineId);
         public bool TryRemove(int port, string operMachineId, out string machineId);
-        public bool TryRemove(string machineId, out List<int> ports);
+        public bool TryRemove(int port, out string machineId);
+
+        public List<string> GetMachineIds();
     }
 
     /// <summary>
@@ -21,8 +25,8 @@ namespace linker.messenger.sforward.server
     /// </summary>
     public sealed class SForwardServerCahing : ISForwardServerCahing
     {
-        private readonly ConcurrentDictionary<string, string> serverDoamins = new ConcurrentDictionary<string, string>();
-        private readonly ConcurrentDictionary<int, string> serverPorts = new ConcurrentDictionary<int, string>();
+        private readonly ConcurrentDictionary<string, CacheInfo> serverDoamins = new();
+        private readonly ConcurrentDictionary<int, CacheInfo> serverPorts = new();
 
         private readonly SignInServerCaching signCaching;
         public SForwardServerCahing(SignInServerCaching signCaching)
@@ -32,7 +36,7 @@ namespace linker.messenger.sforward.server
 
         public bool TryAdd(string domain, string machineId)
         {
-            if (serverDoamins.TryGetValue(domain, out string _machineId) && machineId == _machineId)
+            if (serverDoamins.TryGetValue(domain, out CacheInfo cache) && machineId == cache.MachineId)
             {
                 return true;
             }
@@ -41,12 +45,12 @@ namespace linker.messenger.sforward.server
                 serverDoamins.TryRemove(domain, out _);
             }
 
-            return serverDoamins.TryAdd(domain, machineId);
+            return serverDoamins.TryAdd(domain, new CacheInfo { MachineId = machineId });
         }
 
         public bool TryAdd(int port, string machineId)
         {
-            if (serverPorts.TryGetValue(port, out string _machineId) && machineId == _machineId)
+            if (serverPorts.TryGetValue(port, out CacheInfo cache) && machineId == cache.MachineId)
             {
                 return true;
             }
@@ -55,52 +59,88 @@ namespace linker.messenger.sforward.server
                 serverPorts.TryRemove(port, out _);
             }
 
-            return serverPorts.TryAdd(port, machineId);
+            return serverPorts.TryAdd(port, new CacheInfo { MachineId = machineId });
         }
 
         public bool TryGet(string domain, out string machineId)
         {
-            return serverDoamins.TryGetValue(domain, out machineId);
+            machineId = string.Empty;
+            if (serverDoamins.TryGetValue(domain, out CacheInfo cache))
+            {
+                machineId = cache.MachineId;
+            }
+            return false;
         }
 
         public bool TryGet(int port, out string machineId)
         {
-            return serverPorts.TryGetValue(port, out machineId);
+            machineId = string.Empty;
+            if (serverPorts.TryGetValue(port, out CacheInfo cache))
+            {
+                machineId = cache.MachineId;
+            }
+            return false;
+        }
+        public bool TryGet(List<string> ids, out List<string> domains, out List<int> ports)
+        {
+            domains = serverDoamins.Where(c => ids.Contains(c.Value.MachineId)).Select(c => c.Key).ToList();
+            ports = serverPorts.Where(c => ids.Contains(c.Value.MachineId)).Select(c => c.Key).ToList();
+            return domains.Count > 0 || ports.Count > 0;
         }
 
         public bool TryRemove(string domain, string operMachineId, out string machineId)
         {
-            if (serverDoamins.TryGetValue(domain, out machineId) && machineId == operMachineId)
+            machineId = string.Empty;
+            if (serverDoamins.TryGetValue(domain, out CacheInfo cache) && cache.MachineId == operMachineId)
             {
-                return serverDoamins.TryRemove(domain, out machineId);
+                if (serverDoamins.TryRemove(domain, out CacheInfo cache1))
+                {
+                    machineId = cache1.MachineId;
+                }
+            }
+            return false;
+        }
+        public bool TryRemove(string domain, out string machineId)
+        {
+            machineId = string.Empty;
+            if (serverDoamins.TryRemove(domain, out CacheInfo cache))
+            {
+                machineId = cache.MachineId;
             }
             return false;
         }
 
         public bool TryRemove(int port, string operMachineId, out string machineId)
         {
-            if (serverPorts.TryGetValue(port, out machineId) && machineId == operMachineId)
+            machineId = string.Empty;
+            if (serverPorts.TryGetValue(port, out CacheInfo cache) && cache.MachineId == operMachineId)
             {
-                return serverPorts.TryRemove(port, out machineId);
+                if (serverPorts.TryRemove(port, out CacheInfo cache1))
+                {
+                    machineId = cache1.MachineId;
+                }
+            }
+            return false;
+        }
+        public bool TryRemove(int port, out string machineId)
+        {
+            machineId = string.Empty;
+            if (serverPorts.TryRemove(port, out CacheInfo cache1))
+            {
+                machineId = cache1.MachineId;
             }
             return false;
         }
 
-        public bool TryRemove(string machineId, out List<int> ports)
+        public List<string> GetMachineIds()
         {
-            var domains = serverDoamins.Where(c => c.Value == machineId).Select(c => c.Key).ToList();
-            ports = serverPorts.Where(c => c.Value == machineId).Select(c => c.Key).ToList();
+            return serverDoamins.Values.Select(c => c.MachineId).Union(serverPorts.Values.Select(c => c.MachineId)).Distinct().ToList();
+        }
 
-            foreach (var item in domains)
-            {
-                serverDoamins.TryRemove(item, out _);
-            }
-            foreach (var item in ports)
-            {
-                serverPorts.TryRemove(item, out _);
-            }
-
-            return true;
+        sealed class CacheInfo
+        {
+            public string MachineId { get; set; }
+            public long LastTime { get; set; } = Environment.TickCount64;
         }
     }
 }

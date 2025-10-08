@@ -34,6 +34,8 @@
 
         UserIds = 20,
 
+        Hosts = 21,
+
         None = 99
     }
 }
