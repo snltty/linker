@@ -1,18 +1,20 @@
 ﻿using linker.libs;
 using linker.libs.extends;
+using linker.libs.timer;
 using LiteDB;
 using System.Reflection;
 using System.Text;
-using System.Text.Json.Serialization;
-using linker.libs.timer;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 
 namespace linker.messenger.store.file
 {
     public sealed class FileConfigInitParams
     {
+        public bool UseMemory { get; set; } = false;
 
+        public Dictionary<string, string> InitialData { get; set; } = new Dictionary<string, string>();
     }
     public sealed class FileConfig
     {
@@ -22,10 +24,30 @@ namespace linker.messenger.store.file
         private Dictionary<string, FileReadWrite> fsDic = new Dictionary<string, FileReadWrite>();
         private List<string[]> saveJsonIgnorePaths = new List<string[]>();
 
+        public static bool ForceInMemory { get; set; } = false;
+        private bool useMemory = false;
+        private readonly Dictionary<string, string> memoryStore = new Dictionary<string, string>();
+
         public ConfigInfo Data { get; private set; } = new ConfigInfo();
 
-        public FileConfig()
+        public FileConfig(FileConfigInitParams? initParams = null)
         {
+            if (initParams != null)
+            {
+                useMemory = initParams.UseMemory;
+                if (initParams.InitialData != null)
+                {
+                    foreach (var kv in initParams.InitialData)
+                    {
+                        memoryStore[kv.Key.ToLower()] = kv.Value;
+                    }
+                }
+            }
+            else
+            {
+                useMemory = ForceInMemory;
+            }
+
             Init();
             Load();
             Save();
@@ -74,7 +96,7 @@ namespace linker.messenger.store.file
                     }
                 }
             }
-            if (Directory.Exists(Path.Combine(Helper.CurrentDirectory, configPath)) == false)
+            if (Directory.Exists(Path.Combine(Helper.CurrentDirectory, configPath)) == false && !useMemory)
             {
                 Directory.CreateDirectory(Path.Combine(Helper.CurrentDirectory, configPath));
             }
@@ -104,31 +126,45 @@ namespace linker.messenger.store.file
                     {
                         if (item.Value.PropertyObject == null)
                         {
-                            LoggerHelper.Instance.Error($"{item.Value.Property.Name} not found");
                             continue;
                         }
                         string text = string.Empty;
-                        if (File.Exists(item.Value.Path))
+                        if (useMemory)
                         {
-                            text = File.ReadAllText(item.Value.Path, encoding: System.Text.Encoding.UTF8);
+                            if (memoryStore.TryGetValue(item.Key.ToLower(), out var memText))
+                            {
+                                text = memText;
+                            }
+                            else
+                            {
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            if (File.Exists(item.Value.Path))
+                            {
+                                text = File.ReadAllText(item.Value.Path, encoding: System.Text.Encoding.UTF8);
+                            }
                         }
                         if (string.IsNullOrWhiteSpace(text))
                         {
-                            LoggerHelper.Instance.Error($"{item.Value.Path} empty");
-                            continue;
+                            if (!useMemory)
+                            {
+                                LoggerHelper.Instance.Error($"{item.Value.Path} empty");
+                                continue;
+                            }
                         }
                         object value = item.Value.PropertyMethod.Deserialize(text);
                         item.Value.Property.SetValue(Data, value);
                     }
                     catch (Exception ex)
                     {
-                        LoggerHelper.Instance.Error(ex);
                     }
                 }
             }
             catch (Exception ex)
             {
-                LoggerHelper.Instance.Error(ex);
             }
             finally
             {
@@ -147,7 +183,6 @@ namespace linker.messenger.store.file
                     {
                         if (item.Value.PropertyObject == null)
                         {
-                            LoggerHelper.Instance.Error($"{item.Value.Property.Name} save not found");
                             continue;
                         }
 
@@ -182,18 +217,24 @@ namespace linker.messenger.store.file
 
                             item.Value.Property.SetValue(Data, value);
                         }
-                        File.WriteAllText($"{item.Value.Path}.temp", text, encoding: System.Text.Encoding.UTF8);
-                        File.Move($"{item.Value.Path}.temp", item.Value.Path, true);
+
+                        if (useMemory)
+                        {
+                            memoryStore[item.Key.ToLower()] = text;
+                        }
+                        else
+                        {
+                            File.WriteAllText($"{item.Value.Path}.temp", text, encoding: System.Text.Encoding.UTF8);
+                            File.Move($"{item.Value.Path}.temp", item.Value.Path, true);
+                        }
                     }
                     catch (Exception ex)
                     {
-                        LoggerHelper.Instance.Error(ex);
                     }
                 }
             }
             catch (Exception ex)
             {
-                LoggerHelper.Instance.Error(ex);
             }
             finally
             {
@@ -269,6 +310,8 @@ namespace linker.messenger.store.file
                 return list;
             }
         }
+
+        public IReadOnlyDictionary<string, string> GetMemoryStore() => new Dictionary<string, string>(memoryStore);
     }
 
     public sealed class FileReadWrite

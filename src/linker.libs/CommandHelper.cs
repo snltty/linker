@@ -37,7 +37,10 @@ namespace linker.libs
         {
             return Execute("/bin/bash", arg, commands, out string error);
         }
-
+        public static string Osx(string arg, string[] commands, out string error)
+        {
+            return Execute("/bin/bash", arg, commands, out error);
+        }
         public static Process Execute(string fileName, string arg)
         {
             Process proc = new Process();
