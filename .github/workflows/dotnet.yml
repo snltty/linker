@@ -32,10 +32,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
           dotnet-version: 8.0.x
-      - name: setup msbuild
-        uses: microsoft/setup-msbuild@v2
-        with:
-          msbuild-architecture: x64
       - name: install dotnet maui
         run: dotnet workload install maui
       - name: publish projects

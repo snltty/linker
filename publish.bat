@@ -34,13 +34,6 @@ for %%r in (win-x86,win-x64,win-arm64) do (
     echo F|xcopy "src\\linker\\WinDivert64-%%r.sys" "public\\extends\\%%r\\linker-%%r\\WinDivert64.sys"  /s /f /h /y
 )
 
-rem msbuild "src\\linker.ics\\linker.ics.csproj" -p:Configuration=Release -p:OutputPath=../../public/extends/win-x64/linker-win-x64
-rem del /f .\public\extends\win-x64\linker-win-x64\linker.ics.pdb
-rem msbuild "src\\linker.ics\\linker.ics.csproj" -p:Configuration=Release -p:OutputPath=../../public/extends/win-arm64/linker-win-arm64
-rem del /f .\public\extends\win-arm64\linker-win-arm64\linker.ics.pdb
-rem msbuild "src\\linker.ics\\linker.ics.csproj" -p:Configuration=Release -p:OutputPath=../../public/extends/win-x86/linker-win-x86
-rem del /f .\public\extends\win-x86\linker-win-x86\linker.ics.pdb
-
 for %%r in (win-x86,win-x64,win-arm64,linux-x64,linux-arm,linux-arm64,linux-musl-x64,linux-musl-arm,linux-musl-arm64) do (
 	
 	dotnet publish ./src/linker -c release -f net8.0 -o ./public/publish/%%r/linker-%%r  -r %%r  -p:PublishSingleFile=true  --self-contained true  -p:TrimMode=partial -p:TieredPGO=true  -p:DebugType=full -p:EventSourceSupport=false -p:DebugSymbols=true -p:EnableCompressionInSingleFile=true -p:DebuggerSupport=false -p:EnableUnsafeBinaryFormatterSerialization=false -p:EnableUnsafeUTF7Encoding=false -p:HttpActivityPropagationSupport=false -p:InvariantGlobalization=true  -p:MetadataUpdaterSupport=false  -p:UseSystemResourceKeys=true -p:MetricsSupport=false -p:StackTraceSupport=false -p:XmlResolverIsNetworkingEnabledByDefault=false
