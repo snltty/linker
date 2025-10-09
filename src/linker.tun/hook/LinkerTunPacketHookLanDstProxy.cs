@@ -21,6 +21,8 @@ namespace linker.tun.hook
 
         public void Setup(IPAddress address, byte prefixLength, LinkerTunAppNatItemInfo[] items, ref string error)
         {
+            if (OperatingSystem.IsWindows() == false) return;
+
             if (address == null || address.Equals(IPAddress.Any) || prefixLength == 0)
             {
                 error = "DstProxy need CIDR,like 10.18.18.0/24";
