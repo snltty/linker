@@ -257,10 +257,12 @@ namespace linker.nat
         /// <returns></returns>
         public unsafe bool Write(ReadOnlyMemory<byte> packet)
         {
+
             if (Running == false) return true;
             fixed (byte* ptr = packet.Span)
             {
                 DstProxyPacket p = new DstProxyPacket(ptr);
+               
                 if (p.Version != 4 || p.DstAddr == tunIp || p.DstAddrSpan.IsCast()) return true;
 
                 if (lans.Any(c => p.DstAddr >= c.min && p.DstAddr <= c.max) == false)

@@ -6,7 +6,7 @@ namespace linker.tun.hook
     internal sealed class LinkerTunPacketHookLanMap : ILinkerTunPacketHook
     {
         public string Name => "Map";
-        public LinkerTunPacketHookLevel ReadLevel => LinkerTunPacketHookLevel.Lowest;
+        public LinkerTunPacketHookLevel ReadLevel => LinkerTunPacketHookLevel.Highest;
         public LinkerTunPacketHookLevel WriteLevel => LinkerTunPacketHookLevel.Lowest;
 
 
