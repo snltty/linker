@@ -11,16 +11,17 @@ using System.Buffers;
 
 namespace linker.tunnel
 {
+    [System.Runtime.Versioning.RequiresPreviewFeatures]
     public sealed class TunnelTransfer
     {
         private readonly NetworkInfo networkInfo = new NetworkInfo();
 
-        private List<ITunnelTransport> transports;
-        private TunnelWanPortTransfer tunnelWanPortTransfer;
-        private TunnelUpnpTransfer tunnelUpnpTransfer;
+        private readonly List<ITunnelTransport> transports;
+        private readonly TunnelWanPortTransfer tunnelWanPortTransfer;
+        private readonly TunnelUpnpTransfer tunnelUpnpTransfer;
 
         public ConcurrentDictionary<string, bool> Operating => operating.StringKeyValue;
-        private OperatingMultipleManager operating = new OperatingMultipleManager();
+        private readonly OperatingMultipleManager operating = new OperatingMultipleManager();
         private uint flowid = 1;
         private Dictionary<string, List<Action<ITunnelConnection>>> OnConnectedDic { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
 
