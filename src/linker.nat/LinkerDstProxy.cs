@@ -24,12 +24,12 @@ namespace linker.nat
         uint tunIp = 0;
 
         private (uint min, uint max)[] lans = [];
-        private readonly ConcurrentDictionary<(uint srcIp, ushort srcPort), DstCacheInfo> dic = new();
+        private readonly ConcurrentDictionary<(uint srcIp, uint srcPort), DstCacheInfo> dic = new();
         private readonly ConcurrentDictionary<(uint srcIp, ushort srcPort, uint dstIp, ushort dstPort), UdpState> udpMap = new();
         private readonly ConcurrentDictionary<uint, IcmpState> icmpMap = new();
         public LinkerDstProxy()
         {
-            Clear();
+            ClearTask();
         }
 
         public bool Setup(IPAddress dstAddr, (IPAddress ip, byte prefix)[] dsts, ref string error)
@@ -220,6 +220,14 @@ namespace linker.nat
             listenSocketTcp = null;
             listenSocketUdp?.SafeClose();
             listenSocketUdp = null;
+
+            dic.Clear();
+            icmpMap.Clear();
+            foreach (var item in udpMap)
+            {
+                item.Value.Source?.SafeClose();
+            }
+            udpMap.Clear();
         }
 
         /// <summary>
@@ -232,19 +240,31 @@ namespace linker.nat
             fixed (byte* ptr = packet.Span)
             {
                 DstProxyPacket p = new DstProxyPacket(ptr);
-                if (p.Version != 4 || p.SrcPort != proxyPort || (p.Protocol == ProtocolType.Tcp || p.Protocol == ProtocolType.Udp) == false) return;
+                if (p.Version != 4 || p.SrcPort != proxyPort) return;
 
-                if (dic.TryGetValue((p.DstAddr, p.DstPort), out DstCacheInfo cache))
+                if (p.Protocol == ProtocolType.Tcp || p.Protocol == ProtocolType.Udp)
                 {
-                    cache.LastTime = Environment.TickCount64;
-                    p.SrcAddr = cache.IP;
-                    p.SrcPort = cache.Port;
-                    p.IPChecksum = 0;
-                    p.PayloadChecksum = 0;
-
-                    if (p.Protocol == ProtocolType.Tcp && (p.TcpFlagFin || p.TcpFlagRst))
+                    if (dic.TryGetValue((p.DstAddr, p.DstPort), out DstCacheInfo cache))
                     {
-                        cache.Fin = true;
+                        cache.LastTime = Environment.TickCount64;
+                        p.SrcAddr = cache.IP;
+                        p.SrcPort = cache.Port;
+                        p.IPChecksum = 0;
+                        p.PayloadChecksum = 0;
+
+                        if (p.Protocol == ProtocolType.Tcp && (p.TcpFlagFin || p.TcpFlagRst))
+                        {
+                            cache.Fin = true;
+                        }
+                    }
+                }
+                else if (p.Protocol == ProtocolType.Icmp && p.IcmpType == 0)
+                {
+                    if (dic.TryGetValue((p.DstAddr, p.IcmpId), out DstCacheInfo cache))
+                    {
+                        cache.LastTime = Environment.TickCount64;
+                        p.SrcAddr = cache.IP;
+                        p.IPChecksum = 0;
                     }
                 }
             }
@@ -262,7 +282,7 @@ namespace linker.nat
             fixed (byte* ptr = packet.Span)
             {
                 DstProxyPacket p = new DstProxyPacket(ptr);
-               
+
                 if (p.Version != 4 || p.DstAddr == tunIp || p.DstAddrSpan.IsCast()) return true;
 
                 if (lans.Any(c => p.DstAddr >= c.min && p.DstAddr <= c.max) == false)
@@ -271,16 +291,16 @@ namespace linker.nat
                 }
                 return p.Protocol switch
                 {
-                    ProtocolType.Icmp=> WriteIcmp(p),
-                    ProtocolType.Tcp=> WriteTcp(p),
+                    ProtocolType.Icmp => WriteIcmp(p),
+                    ProtocolType.Tcp => WriteTcp(p),
                     ProtocolType.Udp => WriteUdp(p),
-                    _=>true
+                    _ => true
                 };
             }
         }
         private bool WriteTcp(DstProxyPacket p)
         {
-            (uint srcIp, ushort srcPort) key = (p.SrcAddr, p.SrcPort);
+            (uint srcIp, uint srcPort) key = (p.SrcAddr, p.SrcPort);
             if (dic.TryGetValue(key, out DstCacheInfo cache) == false || cache.IP != p.DstAddr || cache.Port != p.DstPort)
             {
                 //仅SYN包建立映射
@@ -311,7 +331,7 @@ namespace linker.nat
         }
         private bool WriteUdp(DstProxyPacket p)
         {
-            (uint srcIp, ushort srcPort) key = (p.SrcAddr, p.SrcPort);
+            (uint srcIp, uint srcPort) key = (p.SrcAddr, p.SrcPort);
             if (dic.TryGetValue(key, out DstCacheInfo cache) == false || cache.IP != p.DstAddr || cache.Port != p.DstPort)
             {
                 cache = new DstCacheInfo { IP = p.DstAddr, Port = p.DstPort, Fin = true };
@@ -330,33 +350,37 @@ namespace linker.nat
         }
         private bool WriteIcmp(DstProxyPacket p)
         {
-            if (p.IcmpType == 8)
-            {
-                if (icmpMap.TryGetValue(p.DstAddr, out IcmpState state) == false)
-                {
-                    state = new IcmpState();
-                    icmpMap.AddOrUpdate(p.DstAddr, state, (a, b) => state);
-                    Ping(NetworkHelper.ToIP(p.DstAddr), state);
-                }
-                if (state.Times > 5 || Environment.TickCount64 - state.LastTime > 15 * 1000)
-                {
-                    _ = PingAsync(NetworkHelper.ToIP(p.DstAddr), state);
-                }
+            if (p.IcmpType != 8) return true;
 
-                state.Times++;
-                state.LastTime = Environment.TickCount64;
-                if (state.Status != IPStatus.Success)
-                {
-                    return false;
-                }
-                //交换IP
-                (p.DstAddr, p.SrcAddr) = (p.SrcAddr, p.DstAddr);
-                //改为response
-                p.IcmpType = 0;
-                //重新计算校验和
-                p.IPChecksum = 0;
-                p.PayloadChecksum = 0;
+            if (icmpMap.TryGetValue(p.DstAddr, out IcmpState state) == false)
+            {
+                state = new IcmpState();
+                icmpMap.AddOrUpdate(p.DstAddr, state, (a, b) => state);
+                Ping(NetworkHelper.ToIP(p.DstAddr), state);
             }
+            if (state.Times > 5 || Environment.TickCount64 - state.LastTime > 15 * 1000)
+            {
+                _ = PingAsync(NetworkHelper.ToIP(p.DstAddr), state);
+            }
+
+            state.Times++;
+            state.LastTime = Environment.TickCount64;
+            if (state.Status != IPStatus.Success)
+            {
+                return false;
+            }
+
+            (uint srcIp, uint icmpid) key = (p.SrcAddr, p.IcmpId);
+            if (dic.TryGetValue(key, out DstCacheInfo cache) == false || cache.IP != p.DstAddr)
+            {
+                cache = new DstCacheInfo { IP = p.DstAddr, Port = 0, Fin = true };
+                dic.AddOrUpdate(key, cache, (a, b) => cache);
+            }
+            cache.LastTime = Environment.TickCount64;
+
+            p.DstAddr = tunIp;
+            p.IPChecksum = 0;
+
             return true;
         }
         private static void Ping(IPAddress ip, IcmpState state)
@@ -374,7 +398,7 @@ namespace linker.nat
             state.Status = reply.Status;
         }
 
-        private void Clear()
+        private void ClearTask()
         {
             TimerHelper.SetIntervalLong(() =>
             {
@@ -437,6 +461,7 @@ namespace linker.nat
                     *PayloadPtr = value;
                 }
             }
+            public readonly uint IcmpId => BinaryPrimitives.ReverseEndianness(*(uint*)(ptr + 4));
 
             /// <summary>
             /// IP头长度
