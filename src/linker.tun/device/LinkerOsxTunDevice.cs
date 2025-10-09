@@ -11,7 +11,7 @@ namespace linker.tun.device
     /// <summary>
     /// osx网卡实现，未测试
     /// </summary>
-    internal sealed class LocaltonetVPNMacTunDevice : ILinkerTunDevice
+    internal sealed class LinkerOsxTunDevice : ILinkerTunDevice
     {
         private string name = string.Empty;
         public string Name => name;
@@ -27,7 +27,7 @@ namespace linker.tun.device
         private int tunUnit = -1;
 
 
-        public LocaltonetVPNMacTunDevice()
+        public LinkerOsxTunDevice()
         {
         }
 
