@@ -12,7 +12,6 @@ using System.Text;
 using linker.tunnel.wanport;
 using System.Security.Cryptography.X509Certificates;
 using linker.libs.timer;
-using System;
 using System.Buffers;
 
 namespace linker.tunnel.transport
@@ -20,6 +19,7 @@ namespace linker.tunnel.transport
     /// <summary>
     /// 与UDP打洞同理，只是打洞成功后多包装一个msquic，用于保证消息准确到达
     /// </summary>
+    [System.Runtime.Versioning.RequiresPreviewFeatures]
     public sealed class TransportMsQuic : ITunnelTransport
     {
         public string Name => "msquic";

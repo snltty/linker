@@ -1,6 +1,4 @@
-﻿using linker.libs.extends;
-using System.Net;
-using System.Text;
+﻿using System.Net;
 
 namespace linker.tunnel.wanport
 {
