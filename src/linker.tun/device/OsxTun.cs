@@ -5,18 +5,8 @@ namespace linker.tun.device
 {
     internal static class OsxAPI
     {
-
-        // 定义 macOS 的 ioctl 命令（来自 <net/if_utun.h>）
-        private const uint UTUN_CONTROL = 0x80000000; // 'u' << 24
-        private const uint UTUN_CTRL_SET_IFNAME = UTUN_CONTROL | 1;
-
-        // P/Invoke 声明
-        [DllImport("libc", EntryPoint = "ioctl", SetLastError = true)]
-        private static extern int Ioctl(SafeFileHandle fd, uint request, nint arg);
-
-        public static int Ioctl(SafeFileHandle fd, nint arg)
-        {
-            return Ioctl(fd, UTUN_CTRL_SET_IFNAME, arg);
-        }
+        // Required P/Invoke for macOS UTUN API
+        [DllImport("libutunshim.dylib", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int open_utun(int unit, IntPtr ifnameBuf, UIntPtr ifnameLen, out int out_errno);
     }
 }
