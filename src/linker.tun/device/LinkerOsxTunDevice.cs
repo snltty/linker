@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 namespace linker.tun.device
 {
     /// <summary>
-    /// macOS network adapter implementation (untested)
+    /// macOS network adapter implementation
     /// </summary>
     internal sealed class LinkerOsxTunDevice : ILinkerTunDevice
     {
