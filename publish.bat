@@ -28,10 +28,6 @@ for %%r in (win-x86,win-x64,win-arm64) do (
 	echo F|xcopy "src\\linker\\msquic-%%r.dll" "public\\extends\\%%r\\linker-%%r\\msquic.dll"  /s /f /h /y
 	echo F|xcopy "src\\linker\\msquic-openssl3-%%r.dll" "public\\extends\\%%r\\linker-%%r\\msquic-openssl.dll"  /s /f /h /y
 	echo F|xcopy "src\\linker\\wintun-%%r.dll" "public\\extends\\%%r\\linker-%%r\\wintun.dll"  /s /f /h /y
-
-    echo F|xcopy "src\\linker\\WinDivert-%%r.dll" "public\\extends\\%%r\\linker-%%r\\WinDivert.dll"  /s /f /h /y
-    echo F|xcopy "src\\linker\\WinDivert-%%r.sys" "public\\extends\\%%r\\linker-%%r\\WinDivert.sys"  /s /f /h /y
-    echo F|xcopy "src\\linker\\WinDivert64-%%r.sys" "public\\extends\\%%r\\linker-%%r\\WinDivert64.sys"  /s /f /h /y
 )
 
 for %%r in (win-x86,win-x64,win-arm64,linux-x64,linux-arm,linux-arm64,linux-musl-x64,linux-musl-arm,linux-musl-arm64) do (

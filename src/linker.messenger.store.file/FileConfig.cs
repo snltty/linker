@@ -13,20 +13,19 @@ namespace linker.messenger.store.file
     public sealed class FileConfigInitParams
     {
         public bool UseMemory { get; set; } = false;
-
-        public Dictionary<string, string> InitialData { get; set; } = new Dictionary<string, string>();
+        public Dictionary<string, string> InitialData { get; set; } = [];
     }
     public sealed class FileConfig
     {
-        private SemaphoreSlim slim = new SemaphoreSlim(1);
-        private string configPath = "./configs/";
+        private readonly SemaphoreSlim slim = new(1);
+        private readonly string configPath = "./configs/";
 
-        private Dictionary<string, FileReadWrite> fsDic = new Dictionary<string, FileReadWrite>();
-        private List<string[]> saveJsonIgnorePaths = new List<string[]>();
+        private readonly Dictionary<string, FileReadWrite> fsDic = [];
+        private List<string[]> saveJsonIgnorePaths = [];
 
         public static bool ForceInMemory { get; set; } = false;
-        private bool useMemory = false;
-        private readonly Dictionary<string, string> memoryStore = new Dictionary<string, string>();
+        private readonly bool useMemory = false;
+        private readonly Dictionary<string, string> memoryStore = [];
 
         public ConfigInfo Data { get; private set; } = new ConfigInfo();
 
@@ -158,12 +157,12 @@ namespace linker.messenger.store.file
                         object value = item.Value.PropertyMethod.Deserialize(text);
                         item.Value.Property.SetValue(Data, value);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
             finally
@@ -228,12 +227,12 @@ namespace linker.messenger.store.file
                             File.Move($"{item.Value.Path}.temp", item.Value.Path, true);
                         }
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
             finally

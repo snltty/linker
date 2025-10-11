@@ -134,13 +134,13 @@ namespace linker.nat
             }
             finally
             {
-                if (connections.TryRemove(key, out ConnectionState connection))
+                if (connections.TryRemove(key, out ConnectionState state))
                 {
-                    connection.ReadPacket.Flags = LinkerSrcProxyFlags.Rst;
-                    connection.ReadPacket.TotalLength = 40;
-                    connection.ReadPacket.Length = 44;
-                    await callback.Callback(connection.ReadPacket).ConfigureAwait(false);
-                    connection.Disponse();
+                    state.ReadPacket.Flags = LinkerSrcProxyFlags.Rst;
+                    state.ReadPacket.TotalLength = 40;
+                    state.ReadPacket.Length = 44;
+                    await callback.Callback(state.ReadPacket).ConfigureAwait(false);
+                    state.Disponse();
                 }
 
                 ArrayPool<byte>.Shared.Return(buffer);
@@ -245,7 +245,6 @@ namespace linker.nat
                     connection.ReadPacket.TotalLength = 40;
                     connection.ReadPacket.Length = 44;
                     await callback.Callback(connection.ReadPacket).ConfigureAwait(false);
-
                     connection.Disponse();
                 }
                 ArrayPool<byte>.Shared.Return(buffer);
@@ -380,6 +379,7 @@ namespace linker.nat
                     if (srcMap.TryGetValue((srcProxyPacket.SrcAddr, srcProxyPacket.DstPort), out SrcCacheInfo cache))
                     {
                         if (srcProxyPacket.TcpFinOrRst) cache.Fin = true;
+                        cache.LastTime = Environment.TickCount64;
                         //3、10.18.18.2:33333->10.18.18.2:22222 改为 10.18.18.3:5201->10.18.18.2:11111 
                         srcProxyPacket.DstAddr = srcProxyPacket.SrcAddr;
                         srcProxyPacket.DstPort = cache.SrcPort;
@@ -412,6 +412,8 @@ namespace linker.nat
                         srcMap.AddOrUpdate((srcProxyPacket.SrcAddr, cache.NewPort), cache, (a, b) => cache);
                     }
                     if (srcProxyPacket.TcpFinOrRst) cache.Fin = true;
+                    cache.LastTime = Environment.TickCount64;
+
                     //2、10.18.18.2:11111->10.18.18.3:5201 改为 10.18.18.0:22222->10.18.18.2:33333 包括[SYN/PSH+ACK/ACK/FIN/RST]的任意包
                     srcProxyPacket.DstAddr = srcProxyPacket.SrcAddr;
                     srcProxyPacket.DstPort = proxyPort;

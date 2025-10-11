@@ -20,7 +20,6 @@ using linker.nat;
 using linker.tun.device;
 using linker.tunnel.connection;
 using System.Net;
-using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 
@@ -360,8 +359,8 @@ namespace linker.app
         }
 
 
-        byte[] buffer = new byte[128 * 1024];
-        byte[] bufferWrite = new byte[128 * 1024];
+       private readonly byte[] buffer = new byte[128 * 1024];
+        private readonly byte[] bufferWrite = new byte[128 * 1024];
         public byte[] Read(out int length)
         {
             length = 0;
@@ -383,7 +382,7 @@ namespace linker.app
             catch (Exception ex)
             {
                 fd = 0;
-                System.Console.WriteLine($"vpn read {ex.ToString()}");
+                System.Console.WriteLine($"vpn read {ex}");
             }
             return Helper.EmptyArray;
         }
@@ -405,7 +404,7 @@ namespace linker.app
             catch (Exception ex)
             {
                 fd = 0;
-                System.Console.WriteLine($"vpn write {ex.ToString()}");
+                System.Console.WriteLine($"vpn write {ex}");
             }
             return false;
         }

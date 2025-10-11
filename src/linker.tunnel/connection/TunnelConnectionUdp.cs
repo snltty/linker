@@ -43,9 +43,8 @@ namespace linker.tunnel.connection
         public long SendBufferFree { get => maxRemaining - sendRemaining; }
         private const long maxRemaining = 128 * 1024;
 
-        private long recvRemaining = 500 * 1024;
-        public long RecvBufferRemaining { get => recvRemaining; }
-        public long RecvBufferFree { get => maxRemaining - recvRemaining; }
+        public long RecvBufferRemaining { get; }
+        public long RecvBufferFree { get => maxRemaining; }
 
         public LastTicksManager LastTicks { get; private set; } = new LastTicksManager();
 
