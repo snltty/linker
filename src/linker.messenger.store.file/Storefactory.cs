@@ -30,20 +30,27 @@ namespace linker.messenger.store.file
             bsonMapper.RegisterType<ITunnelConnection>(serialize: (a) => string.Empty, deserialize: (a) => null);
             bsonMapper.RegisterType<IConnection>(serialize: (a) => string.Empty, deserialize: (a) => null);
 
-            string db = Path.Join(Helper.CurrentDirectory, "./configs/db.db");
-            if (Directory.Exists(Path.GetDirectoryName(db)) == false)
-            {
-                Directory.CreateDirectory(Path.GetDirectoryName(db));
-            }
 
             try
             {
-                database = new LiteDatabase(new ConnectionString($"Filename={db};Password={Helper.GlobalString}"), bsonMapper);
+                if (FileConfig.ForceInMemory)
+                {
+                    database = new LiteDatabase(new ConnectionString($"Filename=:memory:;Password={Helper.GlobalString}"), bsonMapper);
+                }
+                else
+                {
+                    string db = Path.Join(Helper.CurrentDirectory, "./configs/db.db");
+                    if (Directory.Exists(Path.GetDirectoryName(db)) == false)
+                    {
+                        Directory.CreateDirectory(Path.GetDirectoryName(db));
+                    }
+
+                    database = new LiteDatabase(new ConnectionString($"Filename={db};Password={Helper.GlobalString}"), bsonMapper);
+                }
             }
             catch (Exception ex)
             {
                 LoggerHelper.Instance.Error(ex);
-                //让服务自动重启
                 Helper.AppExit(1);
             }
             TimerHelper.SetIntervalLong(database.Checkpoint, 3000);
