@@ -14,7 +14,6 @@ using System.Text.RegularExpressions;
 
 namespace linker.messenger.tunnel
 {
-    [System.Runtime.Versioning.RequiresPreviewFeatures]
     public sealed class TunnelNetworkTransfer
     {
         private readonly ISignInClientStore signInClientStore;

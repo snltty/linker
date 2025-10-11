@@ -360,8 +360,8 @@ namespace linker.app
         }
 
 
-        byte[] buffer = new byte[65 * 1024];
-        byte[] bufferWrite = new byte[65 * 1024];
+        byte[] buffer = new byte[128 * 1024];
+        byte[] bufferWrite = new byte[128 * 1024];
         public byte[] Read(out int length)
         {
             length = 0;

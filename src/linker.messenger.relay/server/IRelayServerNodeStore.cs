@@ -44,7 +44,6 @@ namespace linker.messenger.relay.server
         public void Confirm();
     }
 
-
     public sealed class RelayServerNodeInfo
     {
         private string id = Guid.NewGuid().ToString().ToUpper();
@@ -120,7 +119,6 @@ namespace linker.messenger.relay.server
     {
         public bool Sync2Server { get; set; }
     }
-
 
     public partial class RelayServerNodeReportInfo
     {

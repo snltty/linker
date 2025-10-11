@@ -313,7 +313,7 @@ namespace linker.tun.device
         }
 
 
-        private readonly byte[] buffer = new byte[65 * 1024];
+        private readonly byte[] buffer = new byte[128 * 1024];
         private readonly object writeLockObj = new object();
         public byte[] Read(out int length)
         {

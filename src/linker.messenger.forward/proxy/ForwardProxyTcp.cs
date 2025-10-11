@@ -7,8 +7,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.IO.Pipelines;
 using System.Data;
-using linker.tunnel.transport;
-using System;
 
 namespace linker.messenger.forward.proxy
 {

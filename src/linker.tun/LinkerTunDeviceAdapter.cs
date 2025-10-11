@@ -344,11 +344,13 @@ namespace linker.tun
         /// <returns></returns>
         public async ValueTask<bool> Write(string srcId, ReadOnlyMemory<byte> buffer)
         {
-            if (Status != LinkerTunDeviceStatus.Running || VerifyPacket(buffer) == false) return false;
+            uint dstIp = VerifyPacket(buffer);
+
+            if (Status != LinkerTunDeviceStatus.Running || dstIp == 0) return false;
             bool write = true;
             for (int i = 0; i < writeHooks.Length; i++)
             {
-                (bool next, bool _write) = await writeHooks[i].WriteAsync(buffer, srcId).ConfigureAwait(false);
+                (bool next, bool _write) = await writeHooks[i].WriteAsync(buffer, dstIp, srcId).ConfigureAwait(false);
                 if (next == false) break;
                 write &= _write;
             }
@@ -356,12 +358,16 @@ namespace linker.tun
 
             return write == false || linkerTunDevice.Write(buffer);
         }
-        private unsafe bool VerifyPacket(ReadOnlyMemory<byte> buffer)
+        private unsafe uint VerifyPacket(ReadOnlyMemory<byte> buffer)
         {
             fixed (byte* ptr = buffer.Span)
             {
-                return BinaryPrimitives.ReverseEndianness(*(ushort*)(ptr + 2)) == buffer.Length;
+                if (BinaryPrimitives.ReverseEndianness(*(ushort*)(ptr + 2)) == buffer.Length)
+                {
+                    return BinaryPrimitives.ReverseEndianness(*(uint*)(ptr + 16));
+                }
             }
+            return 0;
         }
 
         /// <summary>

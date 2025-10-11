@@ -28,7 +28,7 @@ namespace linker.nat
         {
             SrcMapClearTask();
         }
-        public bool Setup(IPAddress dstAddr, byte prefixLength, ILinkerSrcProxyCallback callback, ref string error)
+        public bool Setup(IPAddress srcAddr, byte prefixLength, ILinkerSrcProxyCallback callback, ref string error)
         {
             this.callback = callback;
             Shutdown();
@@ -39,8 +39,8 @@ namespace linker.nat
                 listenSocketTcp.Listen(int.MaxValue);
                 _ = AcceptAsync().ConfigureAwait(false);
 
-                proxySrc = NetworkHelper.ToNetworkValue(dstAddr, prefixLength);
-                tunIp = NetworkHelper.ToValue(dstAddr);
+                proxySrc = NetworkHelper.ToNetworkValue(srcAddr, prefixLength);
+                tunIp = NetworkHelper.ToValue(srcAddr);
                 proxyPort = (ushort)(listenSocketTcp.LocalEndPoint as IPEndPoint).Port;
 
                 error = string.Empty;
@@ -160,7 +160,7 @@ namespace linker.nat
         }
 
 
-        public async ValueTask<bool> WriteAsync(ReadOnlyMemory<byte> packet)
+        public async ValueTask<bool> WriteAsync(ReadOnlyMemory<byte> packet, uint originDstIp)
         {
             using LinkerSrcProxyWritePacket writePacket = new LinkerSrcProxyWritePacket(packet);
             if (writePacket.Seq > 0 || writePacket.Cq > 0)
@@ -175,7 +175,7 @@ namespace linker.nat
                     await HandlePsh(packet, key, writePacket.WindowSize).ConfigureAwait(false);
                     break;
                 case LinkerSrcProxyFlags.Syn:
-                    _ = HandleSyn(key);
+                    _ = HandleSyn(key, originDstIp);
                     break;
                 case LinkerSrcProxyFlags.SynAck:
                     HandleSynAck(key);
@@ -188,7 +188,7 @@ namespace linker.nat
             }
             return false;
         }
-        private async Task HandleSyn(ConnectionKey key)
+        private async Task HandleSyn(ConnectionKey key,uint originDstIp)
         {
             byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024 + 40 + 4);
             try
@@ -209,7 +209,7 @@ namespace linker.nat
                 state.ReadPacket.FragmentOffset = 0;
                 state.ReadPacket.Ttl = 64;
                 state.ReadPacket.ProtocolType = ProtocolType.Tcp;
-                state.ReadPacket.SrcAddr = key.dstAddr;
+                state.ReadPacket.SrcAddr = originDstIp;
                 state.ReadPacket.DstAddr = key.srcAddr;
                 state.ReadPacket.IPChecksum = 1;
 
@@ -291,7 +291,7 @@ namespace linker.nat
             }
 
         }
-       
+
         private async Task SendWindow(ConnectionState state, ushort window)
         {
             byte[] buffer = ArrayPool<byte>.Shared.Rent(44);

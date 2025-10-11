@@ -22,10 +22,10 @@ namespace linker.tun.hook
             return true;
         }
 
-        public ValueTask<(bool next, bool write)> WriteAsync(ReadOnlyMemory<byte> packet, string srcId)
+        public ValueTask<(bool next, bool write)> WriteAsync(ReadOnlyMemory<byte> packet, uint originDstIp, string srcId)
         {
             linkerDstMapping.ToRealDst(packet);
             return ValueTask.FromResult((true, true));
         }
     }
-}
+} 

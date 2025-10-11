@@ -12,7 +12,6 @@ namespace linker.tunnel.connection
     /// <summary>
     /// msquic隧道
     /// </summary>
-    [System.Runtime.Versioning.RequiresPreviewFeatures]
     public sealed class TunnelConnectionMsQuic : ITunnelConnection
     {
         public TunnelConnectionMsQuic()

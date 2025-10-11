@@ -205,6 +205,7 @@ namespace linker.messenger.forward.proxy
         PshAck = Psh | Ack,
         RstAck = Rst | Ack,
     }
+    
     public unsafe sealed class ForwardReadPacket : IDisposable
     {
         private byte* ptr;
@@ -339,7 +340,6 @@ namespace linker.messenger.forward.proxy
             handle.Dispose();
         }
     }
-
 
     public sealed class AsyncUserToken
     {

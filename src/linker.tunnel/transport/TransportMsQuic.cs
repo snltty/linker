@@ -19,7 +19,6 @@ namespace linker.tunnel.transport
     /// <summary>
     /// 与UDP打洞同理，只是打洞成功后多包装一个msquic，用于保证消息准确到达
     /// </summary>
-    [System.Runtime.Versioning.RequiresPreviewFeatures]
     public sealed class TransportMsQuic : ITunnelTransport
     {
         public string Name => "msquic";

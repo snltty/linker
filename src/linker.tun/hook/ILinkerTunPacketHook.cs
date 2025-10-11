@@ -22,9 +22,10 @@
         /// 写入网卡前
         /// </summary>
         /// <param name="packet"></param>
+        /// <param name="originDstIp"></param>
         /// <param name="srcId"></param>
         /// <returns>next</returns>
-        public ValueTask<(bool next,bool write)> WriteAsync(ReadOnlyMemory<byte> packet, string srcId);
+        public ValueTask<(bool next,bool write)> WriteAsync(ReadOnlyMemory<byte> packet,uint originDstIp, string srcId);
     }
     /// <summary>
     /// 回调处理级别

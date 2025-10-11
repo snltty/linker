@@ -21,7 +21,7 @@ namespace linker.messenger.firewall.hooks
             return true;
         }
 
-        public ValueTask<(bool next, bool write)> WriteAsync(ReadOnlyMemory<byte> packet, string srcId)
+        public ValueTask<(bool next, bool write)> WriteAsync(ReadOnlyMemory<byte> packet, uint originDstIp, string srcId)
         {
             bool res = linkerFirewall.Check(srcId, packet);
             return ValueTask.FromResult((res, res));

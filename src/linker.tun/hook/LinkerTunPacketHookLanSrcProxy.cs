@@ -7,7 +7,7 @@ namespace linker.tun.hook
     {
         public string Name => "SrcProxy";
         public LinkerTunPacketHookLevel ReadLevel => LinkerTunPacketHookLevel.Low9;
-        public LinkerTunPacketHookLevel WriteLevel => LinkerTunPacketHookLevel.Normal;
+        public LinkerTunPacketHookLevel WriteLevel => LinkerTunPacketHookLevel.High9;
         private readonly LinkerSrcProxy LinkerSrcProxy = new LinkerSrcProxy();
 
         public bool Running => LinkerSrcProxy.Running;
@@ -37,9 +37,9 @@ namespace linker.tun.hook
             LinkerSrcProxy.Read(packet, ref send, ref writeBack);
             return send;
         }
-        public async ValueTask<(bool next, bool write)> WriteAsync(ReadOnlyMemory<byte> packet, string srcId)
+        public async ValueTask<(bool next, bool write)> WriteAsync(ReadOnlyMemory<byte> packet, uint originDstIp, string srcId)
         {
-            bool write = await LinkerSrcProxy.WriteAsync(packet).ConfigureAwait(false);
+            bool write = await LinkerSrcProxy.WriteAsync(packet,originDstIp).ConfigureAwait(false);
             return await ValueTask.FromResult((write, write));
         }
     }

@@ -11,7 +11,6 @@ using System.Buffers;
 
 namespace linker.tunnel
 {
-    [System.Runtime.Versioning.RequiresPreviewFeatures]
     public sealed class TunnelTransfer
     {
         private readonly NetworkInfo networkInfo = new NetworkInfo();
