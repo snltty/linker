@@ -295,15 +295,7 @@ namespace linker.tunnel.connection
                         }
                         else
                         {
-                            int sendt = 0;
-                            do
-                            {
-                                ReadOnlyMemory<byte> sendBlock = memoryBlock.Slice(sendt);
-                                int remaining = await Socket.SendAsync(sendBlock, SocketFlags.None).ConfigureAwait(false);
-                                if (remaining == 0) break;
-
-                                sendt += remaining;
-                            } while (sendt < memoryBlock.Length);
+                            await Socket.SendAsync(memoryBlock, SocketFlags.None).ConfigureAwait(false);
                         }
                         Interlocked.Add(ref sendRemaining, -memoryBlock.Length);
                         SendBytes += memoryBlock.Length;

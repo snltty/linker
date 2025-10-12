@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Net.Sockets;
 using System.IO.Pipelines;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace linker.tunnel.connection
 {
@@ -280,6 +281,8 @@ namespace linker.tunnel.connection
 
                         await UdpClient.SendToAsync(encodeBuffer.AsMemory(index, sendLength), IPEndPoint, cancellationTokenSource.Token).ConfigureAwait(false);
                         SendBytes += packetLength;
+
+                        Interlocked.Add(ref sendRemaining, -packetLength);
 
                         //移动位置
                         offset += 4 + packetLength;

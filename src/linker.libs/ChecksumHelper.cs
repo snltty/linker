@@ -135,18 +135,30 @@ namespace linker.libs
         /// <returns></returns>
         private static unsafe ushort Checksum(ushort* addr, uint length, ulong pseudoHeaderSum = 0)
         {
-            //每两个字节为一个数，之和
+            ulong* ptr64 = (ulong*)addr;
+            while (length > 31)
+            {
+                ulong value = BinaryPrimitives.ReverseEndianness(*ptr64++);
+                pseudoHeaderSum += (value & 0xFFFF) + ((value >> 16) & 0xFFFF) + ((value >> 32) & 0xFFFF) + ((value >> 48) & 0xFFFF);
+                value = BinaryPrimitives.ReverseEndianness(*ptr64++);
+                pseudoHeaderSum += (value & 0xFFFF) + ((value >> 16) & 0xFFFF) + ((value >> 32) & 0xFFFF) + ((value >> 48) & 0xFFFF);
+                value = BinaryPrimitives.ReverseEndianness(*ptr64++);
+                pseudoHeaderSum += (value & 0xFFFF) + ((value >> 16) & 0xFFFF) + ((value >> 32) & 0xFFFF) + ((value >> 48) & 0xFFFF);
+                value = BinaryPrimitives.ReverseEndianness(*ptr64++);
+                pseudoHeaderSum += (value & 0xFFFF) + ((value >> 16) & 0xFFFF) + ((value >> 32) & 0xFFFF) + ((value >> 48) & 0xFFFF);
+                length -= 32;
+                pseudoHeaderSum = (pseudoHeaderSum & 0xffff) + (pseudoHeaderSum >> 16);
+            }
+
+            ushort* ptr16 = (ushort*)ptr64;
             while (length > 1)
             {
-                pseudoHeaderSum += (ushort)((*addr >> 8) + (*addr << 8));
-                addr++;
+                pseudoHeaderSum += BinaryPrimitives.ReverseEndianness(*ptr16++);
                 length -= 2;
+                pseudoHeaderSum = (pseudoHeaderSum & 0xffff) + (pseudoHeaderSum >> 16);
             }
-            //奇数字节末尾补零
-            if (length > 0) pseudoHeaderSum += (ushort)((*addr) << 8);
-            //溢出处理
+            if (length > 0) pseudoHeaderSum += (ushort)((*ptr16) << 8);
             while ((pseudoHeaderSum >> 16) != 0) pseudoHeaderSum = (pseudoHeaderSum & 0xffff) + (pseudoHeaderSum >> 16);
-            //取反
             return BinaryPrimitives.ReverseEndianness((ushort)(~pseudoHeaderSum));
         }
         /// <summary>
@@ -157,14 +169,9 @@ namespace linker.libs
         /// <returns></returns>
         private static unsafe ulong PseudoHeaderSum(byte* addr, uint length)
         {
-            uint sum = 0;
-            //源IP+目的IP
-            for (byte i = 12; i < 20; i += 2) sum += (uint)((*(addr + i) << 8) | *(addr + i + 1));
-            //协议
-            sum += *(addr + 9);
-            //协议内容长度
-            sum += length;
-            return sum;
+            uint srcIp = BinaryPrimitives.ReverseEndianness(*(uint*)(addr + 12));
+            uint dstIp = BinaryPrimitives.ReverseEndianness(*(uint*)(addr + 16));
+            return (srcIp >> 16) + (srcIp & 0xFFFF) + (dstIp >> 16) + (dstIp & 0xFFFF) + *(addr + 9) + length;
         }
     }
 }

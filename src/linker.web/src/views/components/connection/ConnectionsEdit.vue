@@ -1,5 +1,5 @@
 <template>
-    <el-dialog v-model="state.show" append-to=".app-wrap" :title="`与[${state.machineName}]的链接`" top="1vh" width="780">
+    <el-dialog v-model="state.show" append-to=".app-wrap" :title="`与[${state.machineName}]的链接`" top="1vh" width="98%">
         <div>
             <el-table :data="state.data" size="small" border height="500">
                 <el-table-column property="RemoteMachineId" label="目标/服务器">
@@ -15,7 +15,7 @@
                         <span>{{ state.transactions[scope.row.TransactionId] }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column property="TransportName" label="协议"  width="120">
+                <el-table-column property="TransportName" label="协议" >
                     <template #default="scope">
                         <div>
                             <p>{{ scope.row.TransportName }}({{ state.protocolTypes[scope.row.ProtocolType] }})</p>
@@ -41,7 +41,7 @@
                 <el-table-column property="relay" label="中继节点">
                     <template #default="scope">
                         <div>
-                            <p>
+                            <p class="ellipsis">
                                 <span>中继 : </span>
                                 <a v-if="state.relayOperatings[scope.row.RemoteMachineId]" href="javascript:;" class="a-line">
                                     <span>操作中.</span><el-icon size="14" class="loading"><Loading /></el-icon>

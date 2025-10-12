@@ -37,11 +37,12 @@ namespace linker.nat
                 listenSocketTcp = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 listenSocketTcp.Bind(new IPEndPoint(IPAddress.Any, 0));
                 listenSocketTcp.Listen(int.MaxValue);
-                _ = AcceptAsync().ConfigureAwait(false);
-
+                
                 proxySrc = NetworkHelper.ToNetworkValue(srcAddr, prefixLength);
                 tunIp = NetworkHelper.ToValue(srcAddr);
                 proxyPort = (ushort)(listenSocketTcp.LocalEndPoint as IPEndPoint).Port;
+
+                _ = AcceptAsync().ConfigureAwait(false);
 
                 error = string.Empty;
             }
@@ -81,6 +82,7 @@ namespace linker.nat
                     Shutdown();
             }
         }
+
         private async Task ConnectAsync(Socket source, SrcCacheInfo cache)
         {
             byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024 + 40 + 4);
@@ -162,17 +164,13 @@ namespace linker.nat
 
         public async ValueTask<bool> WriteAsync(ReadOnlyMemory<byte> packet, uint originDstIp)
         {
-            using LinkerSrcProxyWritePacket writePacket = new LinkerSrcProxyWritePacket(packet);
-            if (writePacket.Seq > 0 || writePacket.Cq > 0)
-            {
-                return true;
-            }
+            (ConnectionKey key, LinkerSrcProxyFlags flag, ushort win, bool next) = GetKeyAndFlag(packet);
+            if (next == false) return true;
 
-            ConnectionKey key = new() { srcAddr = writePacket.SrcAddr, srcPort = writePacket.SrcPort, dstAddr = writePacket.DstAddr, dstPort = writePacket.DstPort };
-            switch (writePacket.Flag)
+            switch (flag)
             {
                 case LinkerSrcProxyFlags.Psh:
-                    await HandlePsh(packet, key, writePacket.WindowSize).ConfigureAwait(false);
+                    await HandlePsh(packet, key, win).ConfigureAwait(false);
                     break;
                 case LinkerSrcProxyFlags.Syn:
                     _ = HandleSyn(key, originDstIp);
@@ -188,7 +186,17 @@ namespace linker.nat
             }
             return false;
         }
-        private async Task HandleSyn(ConnectionKey key,uint originDstIp)
+        private unsafe (ConnectionKey key, LinkerSrcProxyFlags flag, ushort win, bool next) GetKeyAndFlag(ReadOnlyMemory<byte> packet)
+        {
+            fixed (byte* ptr = packet.Span)
+            {
+                LinkerSrcProxyWritePacket writePacket = new LinkerSrcProxyWritePacket(ptr);
+                return (new() { srcAddr = writePacket.SrcAddr, srcPort = writePacket.SrcPort, dstAddr = writePacket.DstAddr, dstPort = writePacket.DstPort },
+                    writePacket.Flag, writePacket.WindowSize, writePacket.Seq == 0 && writePacket.Cq == 0);
+            }
+        }
+
+        private async Task HandleSyn(ConnectionKey key, uint originDstIp)
         {
             byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024 + 40 + 4);
             try
@@ -488,7 +496,7 @@ namespace linker.nat
                 ReadPacket?.Dispose();
             }
         }
-        readonly unsafe struct LinkerSrcProxyWritePacket : IDisposable
+        readonly unsafe struct LinkerSrcProxyWritePacket
         {
             private readonly byte* ptr;
             public readonly byte Version => (byte)((*ptr >> 4) & 0b1111);
@@ -511,16 +519,9 @@ namespace linker.nat
 
             public ushort WindowSize => BinaryPrimitives.ReverseEndianness(*(ushort*)(PayloadPtr + 14));
 
-            public unsafe LinkerSrcProxyWritePacket(ReadOnlyMemory<byte> packet)
+            public unsafe LinkerSrcProxyWritePacket(byte* ptr)
             {
-                handle = packet.Pin();
-                this.ptr = (byte*)handle.Pointer;
-            }
-
-            readonly MemoryHandle handle;
-            public void Dispose()
-            {
-                handle.Dispose();
+                this.ptr = ptr;
             }
         }
 
@@ -926,7 +927,7 @@ namespace linker.nat
         public LinkerSrcProxyReadPacket(byte[] buffer)
         {
             Buffer = buffer;
-            MemoryHandle handle = buffer.AsMemory().Pin();
+            handle = buffer.AsMemory().Pin();
             this.ptr = (byte*)handle.Pointer + 4;
         }
 

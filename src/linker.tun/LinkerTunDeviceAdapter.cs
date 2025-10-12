@@ -80,6 +80,7 @@ namespace linker.tun
                 else if (OperatingSystem.IsMacOS())
                 {
                     linkerTunDevice = new LinkerOsxTunDevice();
+                    return true;
                 }
 
             }
