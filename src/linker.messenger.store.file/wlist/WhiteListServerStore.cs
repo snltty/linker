@@ -36,10 +36,10 @@ namespace linker.messenger.store.file.wlist
             return await Task.FromResult(liteCollection.Delete(id)).ConfigureAwait(false);
         }
 
-        public async Task<List<string>> Get(string type, string userid)
+        public async Task<List<WhiteListInfo>> Get(string type, string userid)
         {
             if (string.IsNullOrWhiteSpace(type) || string.IsNullOrWhiteSpace(userid)) return [];
-            return await Task.FromResult(liteCollection.Find(c => c.Type == type && c.UserId == userid).SelectMany(c => c.Nodes).ToList()).ConfigureAwait(false);
+            return await Task.FromResult(liteCollection.Find(c => c.Type == type && c.UserId == userid).ToList()).ConfigureAwait(false);
         }
 
         public async Task<WhiteListPageResultInfo> Page(WhiteListPageRequestInfo info)

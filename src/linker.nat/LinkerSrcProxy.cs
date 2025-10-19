@@ -37,7 +37,7 @@ namespace linker.nat
                 listenSocketTcp = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 listenSocketTcp.Bind(new IPEndPoint(IPAddress.Any, 0));
                 listenSocketTcp.Listen(int.MaxValue);
-                
+
                 proxySrc = NetworkHelper.ToNetworkValue(srcAddr, prefixLength);
                 tunIp = NetworkHelper.ToValue(srcAddr);
                 proxyPort = (ushort)(listenSocketTcp.LocalEndPoint as IPEndPoint).Port;
@@ -118,7 +118,6 @@ namespace linker.nat
                 state.ReadPacket.PayloadChecksum = 1;
                 connections.TryAdd(key, state);
 
-
                 state.ReadPacket.Flags = LinkerSrcProxyFlags.Syn;
                 state.ReadPacket.TotalLength = 40;
                 state.ReadPacket.Length = 44;
@@ -127,7 +126,7 @@ namespace linker.nat
                 await state.Tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(15000)).ConfigureAwait(false);
 
                 state.ReadPacket.Flags = LinkerSrcProxyFlags.Psh;
-                await Task.WhenAll(Sender(state), Rcver(state, buffer)).ConfigureAwait(false);
+                await Task.WhenAny(Rcver(state, buffer),Sender(state)).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -238,7 +237,7 @@ namespace linker.nat
                 await callback.Callback(state.ReadPacket).ConfigureAwait(false);
 
                 state.ReadPacket.Flags = LinkerSrcProxyFlags.Psh;
-                await Task.WhenAll(Sender(state), Rcver(state, buffer)).ConfigureAwait(false);
+                await Task.WhenAny(Rcver(state, buffer),Sender(state)).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -272,13 +271,9 @@ namespace linker.nat
                 try
                 {
                     state.Sending = window > 0;
-
                     ReadOnlyMemory<byte> memory = packet.Slice(40);
-                    if (memory.Length > 0)
-                    {
-                        await state.Pipe.Writer.WriteAsync(memory).ConfigureAwait(false);
-                        state.AddReceived(memory.Length);
-                    }
+                    await state.Pipe.Writer.WriteAsync(memory).ConfigureAwait(false);
+                    state.AddReceived(memory.Length);
 
                     if (state.NeedPause) await SendWindow(state, 0).ConfigureAwait(false);
                 }
@@ -296,7 +291,6 @@ namespace linker.nat
                         LoggerHelper.Instance.Error(ex);
                 }
             }
-
         }
 
         private async Task SendWindow(ConnectionState state, ushort window)
@@ -334,7 +328,7 @@ namespace linker.nat
                 ReadOnlySequence<byte> buffer = result.Buffer;
                 foreach (ReadOnlyMemory<byte> memoryBlock in result.Buffer)
                 {
-                    await state.Socket.SendAsync(memoryBlock, SocketFlags.None).ConfigureAwait(false);
+                    int length = await state.Socket.SendAsync(memoryBlock, SocketFlags.None).ConfigureAwait(false);
                     state.AddReceived(-memoryBlock.Length);
                     if (state.NeedResume) await SendWindow(state, 1).ConfigureAwait(false);
                 }
@@ -350,7 +344,7 @@ namespace linker.nat
                 state.ReadPacket.TotalLength = bytesRead + 40;
                 state.ReadPacket.Length = bytesRead + 44;
                 await callback.Callback(state.ReadPacket).ConfigureAwait(false);
-
+                
                 if (state.Sending == false)
                 {
                     while (state.Sending == false && state.Socket != null)
@@ -368,7 +362,6 @@ namespace linker.nat
                 state.Disponse();
             }
         }
-
 
         public unsafe bool Read(ReadOnlyMemory<byte> packet, ref bool send, ref bool writeBack)
         {
@@ -407,6 +400,7 @@ namespace linker.nat
                     {
                         if (srcProxyPacket.TcpOnlySyn == false) return true; //往下走
                         if (callback.Callback(srcProxyPacket.DstAddr) == false) return true;//不支持代理
+
                         //1、10.18.18.2:11111->10.18.18.3:5201 [SYN] 新连接
                         cache = new SrcCacheInfo
                         {
@@ -421,7 +415,6 @@ namespace linker.nat
                     }
                     if (srcProxyPacket.TcpFinOrRst) cache.Fin = true;
                     cache.LastTime = Environment.TickCount64;
-
                     //2、10.18.18.2:11111->10.18.18.3:5201 改为 10.18.18.0:22222->10.18.18.2:33333 包括[SYN/PSH+ACK/ACK/FIN/RST]的任意包
                     srcProxyPacket.DstAddr = srcProxyPacket.SrcAddr;
                     srcProxyPacket.DstPort = proxyPort;
@@ -440,9 +433,9 @@ namespace linker.nat
         {
             TimerHelper.SetIntervalLong(() =>
             {
-                foreach (var item in srcMap.Where(c => c.Value.Fin && Environment.TickCount64 - c.Value.LastTime > 60 * 1000).Select(c => c.Key).ToList())
+                foreach (var item in srcMap.Where(c => c.Value.Fin && Environment.TickCount64 - c.Value.LastTime > 60 * 1000).ToList())
                 {
-                    srcMap.TryRemove(item, out _);
+                    srcMap.TryRemove(item.Key, out _);
                 }
             }, 30000);
         }
@@ -486,7 +479,6 @@ namespace linker.nat
             public bool NeedPause => Received > 512 * 1024 && Receiving;
             public bool NeedResume => Received < 128 * 1024 && Receiving == false;
 
-
             public void Disponse()
             {
                 Pipe?.Writer.Complete();
@@ -509,13 +501,13 @@ namespace linker.nat
             public readonly uint DstAddr => BinaryPrimitives.ReverseEndianness(*(uint*)(ptr + 16));
             public readonly ushort DstPort => BinaryPrimitives.ReverseEndianness(*(ushort*)(PayloadPtr + 2));
 
-            public readonly uint Seq => BinaryPrimitives.ReverseEndianness(*(uint*)(ptr + IPHeadLength + 4));
-            public readonly uint Cq => BinaryPrimitives.ReverseEndianness(*(uint*)(ptr + IPHeadLength + 8));
+            public readonly uint Seq => BinaryPrimitives.ReverseEndianness(*(uint*)(PayloadPtr + 4));
+            public readonly uint Cq => BinaryPrimitives.ReverseEndianness(*(uint*)(PayloadPtr + 8));
 
 
             public byte DataOffset => (byte)((*(PayloadPtr + 12) >> 4) & 0b1111);
             public int HeadLength => DataOffset * 4;
-            public readonly LinkerSrcProxyFlags Flag => (LinkerSrcProxyFlags)(*(ptr + IPHeadLength + 13));
+            public readonly LinkerSrcProxyFlags Flag => (LinkerSrcProxyFlags)(*(PayloadPtr + 13));
 
             public ushort WindowSize => BinaryPrimitives.ReverseEndianness(*(ushort*)(PayloadPtr + 14));
 
@@ -553,17 +545,6 @@ namespace linker.nat
                     *(uint*)(ptr + 12) = BinaryPrimitives.ReverseEndianness(value);
                 }
             }
-            public readonly ushort SrcPort
-            {
-                get
-                {
-                    return BinaryPrimitives.ReverseEndianness(*(ushort*)(PayloadPtr));
-                }
-                set
-                {
-                    *(ushort*)(PayloadPtr) = BinaryPrimitives.ReverseEndianness(value);
-                }
-            }
             public readonly uint DstAddr
             {
                 get
@@ -575,6 +556,41 @@ namespace linker.nat
                     *(uint*)(ptr + 16) = BinaryPrimitives.ReverseEndianness(value);
                 }
             }
+            public readonly ushort SrcPort
+            {
+                get
+                {
+                    return BinaryPrimitives.ReverseEndianness(*(ushort*)(PayloadPtr));
+                }
+                set
+                {
+                    *(ushort*)(PayloadPtr) = BinaryPrimitives.ReverseEndianness(value);
+                }
+            }
+            public readonly ushort DstPort
+            {
+                get
+                {
+                    return BinaryPrimitives.ReverseEndianness(*(ushort*)(PayloadPtr + 2));
+                }
+                set
+                {
+                    *(ushort*)(PayloadPtr + 2) = BinaryPrimitives.ReverseEndianness(value);
+                }
+            }
+
+            public byte DataOffset
+            {
+                get
+                {
+                    return (byte)((*(PayloadPtr + 12) >> 4) & 0b1111);
+                }
+                set
+                {
+                    *(PayloadPtr + 12) = (byte)((*(PayloadPtr + 12) & 0b00001111) | ((value & 0b1111) << 4));
+                }
+            }
+
 
             const byte fin = 1;
             const byte syn = 2;
@@ -582,7 +598,17 @@ namespace linker.nat
             const byte psh = 8;
             const byte ack = 16;
             const byte urg = 32;
-            public readonly byte TcpFlag => *(ptr + IPHeadLength + 13);
+            public readonly byte TcpFlag
+            {
+                get
+                {
+                    return *(PayloadPtr + 13);
+                }
+                set
+                {
+                    *(PayloadPtr + 13) = value;
+                }
+            }
             public readonly bool TcpFlagFin => (TcpFlag & fin) != 0;
             public readonly bool TcpFlagSyn => (TcpFlag & syn) != 0;
             public readonly bool TcpFlagRst => (TcpFlag & rst) != 0;
@@ -596,17 +622,7 @@ namespace linker.nat
             public readonly bool TcpSynAck => TcpFlag == (syn | ack);
             public readonly bool TcpFinOrRst => (TcpFlag & (fin | rst)) != 0;
 
-            public readonly ushort DstPort
-            {
-                get
-                {
-                    return BinaryPrimitives.ReverseEndianness(*(ushort*)(PayloadPtr + 2));
-                }
-                set
-                {
-                    *(ushort*)(PayloadPtr + 2) = BinaryPrimitives.ReverseEndianness(value);
-                }
-            }
+
             public readonly ushort IPChecksum
             {
                 get
@@ -726,7 +742,7 @@ namespace linker.nat
             }
             set
             {
-                *(ptr + 6) = (byte)((*ptr & 0b00011111) | ((value & 0b111) << 5));
+                *(ptr + 6) = (byte)((*(ptr + 6) & 0b00011111) | ((value & 0b111) << 5));
             }
         }
         public ushort FragmentOffset
@@ -853,7 +869,7 @@ namespace linker.nat
             }
             set
             {
-                *(PayloadPtr + 12) = (byte)((*ptr & 0b00001111) | ((value & 0b1111) << 4));
+                *(PayloadPtr + 12) = (byte)((*(PayloadPtr + 12) & 0b00001111) | ((value & 0b1111) << 4));
             }
         }
         public int HeadLength
@@ -875,7 +891,7 @@ namespace linker.nat
             }
             set
             {
-                *(PayloadPtr + 12) = (byte)((*ptr & 0b11110001) | ((value & 0b111) << 1));
+                *(PayloadPtr + 12) = (byte)((*(PayloadPtr + 12) & 0b11110001) | ((value & 0b111) << 1));
             }
         }
         public LinkerSrcProxyFlags Flags

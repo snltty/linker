@@ -111,7 +111,6 @@ namespace linker.messenger.sforward.server
         /// <returns></returns>
         public bool NeedLimit(SForwardTrafficCacheInfo relayCache)
         {
-            if (relayCache.Cache.Validated) return false;
             return limitTotal.NeedLimit();
         }
         /// <summary>
@@ -135,13 +134,16 @@ namespace linker.messenger.sforward.server
         /// <summary>
         /// 开始计算流量
         /// </summary>
-        /// <param name="validated"></param>
+        /// <param name="super"></param>
         /// <param name="cdkeys"></param>
         /// <returns></returns>
-        public SForwardTrafficCacheInfo AddTrafficCache(bool validated, List<SForwardCdkeyInfo> cdkeys)
+        public SForwardTrafficCacheInfo AddTrafficCache(bool super, double bandwidth, List<SForwardCdkeyInfo> cdkeys)
         {
-            SForwardTrafficCacheInfo cache = new SForwardTrafficCacheInfo { Cache = new SForwardCacheInfo { Cdkey = cdkeys, FlowId = ns.Increment(), Validated = validated }, Limit = new SForwardSpeedLimit(), Sendt = 0, SendtCache = 0 };
-
+            SForwardTrafficCacheInfo cache = new SForwardTrafficCacheInfo { Cache = new SForwardCacheInfo { Cdkey = cdkeys, FlowId = ns.Increment(), Super = super, Bandwidth = bandwidth }, Limit = new SForwardSpeedLimit(), Sendt = 0, SendtCache = 0 };
+            if (cache.Cache.Bandwidth < 0)
+            {
+                cache.Cache.Bandwidth = Node.MaxBandwidth;
+            }
             SetLimit(cache);
             trafficDict.TryAdd(cache.Cache.FlowId, cache);
 
@@ -160,9 +162,6 @@ namespace linker.messenger.sforward.server
         {
             Interlocked.Add(ref bytes, length);
 
-            //验证过的，不消耗流量
-            if (cache.Cache.Validated) return true;
-            //节点无流量限制的，不消耗流量
             if (Node.MaxGbTotal == 0) return true;
 
             Interlocked.Add(ref cache.Sendt, length);
@@ -176,26 +175,27 @@ namespace linker.messenger.sforward.server
         /// <summary>
         /// 设置限速
         /// </summary>
-        /// <param name="relayCache"></param>
-        private void SetLimit(SForwardTrafficCacheInfo relayCache)
+        /// <param name="cache"></param>
+        private void SetLimit(SForwardTrafficCacheInfo cache)
         {
-            //无限制
-            if (relayCache.Cache.Validated || Node.MaxBandwidth == 0)
+            cache.CurrentCdkey = cache.Cache.Cdkey.Where(c => c.LastBytes > 0).OrderByDescending(c => c.Bandwidth).FirstOrDefault();
+            //黑白名单
+            if (cache.Cache.Bandwidth >= 0)
             {
-                relayCache.Limit.SetLimit(0);
+                cache.Limit.SetLimit((uint)Math.Ceiling(cache.Cache.Bandwidth * 1024 * 1024 / 8.0));
                 return;
             }
 
-            SForwardCdkeyInfo currentCdkey = relayCache.Cache.Cdkey.Where(c => c.LastBytes > 0).OrderByDescending(c => c.Bandwidth).FirstOrDefault();
-            //有cdkey，且带宽大于节点带宽，就用cdkey的带宽
-            if (currentCdkey != null && (currentCdkey.Bandwidth == 0 || currentCdkey.Bandwidth >= Node.MaxBandwidth || Node.MaxGbTotalLastBytes == 0))
+            //无限制
+            if (cache.Cache.Super || Node.MaxBandwidth == 0)
             {
-                relayCache.CurrentCdkey = currentCdkey;
-                relayCache.Limit.SetLimit((uint)Math.Ceiling((relayCache.CurrentCdkey.Bandwidth * 1024 * 1024) / 8.0));
+                cache.Limit.SetLimit(0);
                 return;
             }
-            relayCache.CurrentCdkey = null;
-            relayCache.Limit.SetLimit((uint)Math.Ceiling((Node.MaxBandwidth * 1024 * 1024) / 8.0));
+
+            //配置或cdkey，最大的
+            double banwidth = double.Max(Node.MaxBandwidth, cache.CurrentCdkey?.Bandwidth ?? 1);
+            cache.Limit.SetLimit((uint)Math.Ceiling(banwidth * 1024 * 1024 / 8.0));
         }
 
 
@@ -460,7 +460,8 @@ namespace linker.messenger.sforward.server
     public sealed partial class SForwardCacheInfo
     {
         public ulong FlowId { get; set; }
-        public bool Validated { get; set; }
+        public bool Super { get; set; }
+        public double Bandwidth { get; set; } = double.MinValue;
         public List<SForwardCdkeyInfo> Cdkey { get; set; } = [];
     }
     public class SForwardSpeedLimit

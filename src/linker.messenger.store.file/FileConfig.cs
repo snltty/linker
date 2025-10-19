@@ -29,7 +29,7 @@ namespace linker.messenger.store.file
 
         public ConfigInfo Data { get; private set; } = new ConfigInfo();
 
-        public FileConfig(FileConfigInitParams? initParams = null)
+        public FileConfig(FileConfigInitParams initParams = null)
         {
             if (initParams != null)
             {

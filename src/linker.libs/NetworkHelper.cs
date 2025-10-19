@@ -56,7 +56,11 @@ namespace linker.libs
             using Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             socket.Bind(new IPEndPoint(IPAddress.Any, 0));
-            return (ushort)(socket.LocalEndPoint as IPEndPoint).Port;
+            ushort port = (ushort)(socket.LocalEndPoint as IPEndPoint).Port;
+
+            socket.SafeClose();
+
+            return port;
         }
 
         public static IPAddress GetDomainIp(string domain)

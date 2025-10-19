@@ -1,5 +1,4 @@
 ﻿using linker.libs;
-using linker.libs.extends;
 using linker.libs.timer;
 using linker.messenger.relay.client.transport;
 using linker.messenger.relay.messenger;
@@ -54,7 +53,7 @@ namespace linker.messenger.relay.server
                 ToId = to.Id,
                 ToName = to.MachineName,
                 GroupId = to.GroupId,
-                Validated = from.Super,
+                Super = from.Super,
                 UserId = from.UserId,
             };
             if (relayCaching.TryAdd($"{cache.FromId}->{cache.ToId}->{flowingId}", cache, 15000) == false)
@@ -68,11 +67,20 @@ namespace linker.messenger.relay.server
         {
             if (relayCaching.TryGetValue(key, out RelayCacheInfo cache) && reports.TryGetValue(nodeid, out var node))
             {
-                cache.Validated = cache.Validated || await relayServerWhiteListStore.Contains(cache.UserId, node.Id);
-                if (cache.Validated == false)
+                var bandwidth = await relayServerWhiteListStore.GetBandwidth(cache.UserId, node.Id);
+                if (bandwidth.Any(c => c < 0))
                 {
-                    cache.Cdkey = (await relayServerCdkeyStore.GetAvailable(cache.UserId).ConfigureAwait(false)).Select(c => new RelayCdkeyInfo { Bandwidth = c.Bandwidth, Id = c.Id, LastBytes = c.LastBytes }).ToList();
-                    if (cache.Cdkey.Count == 0 && node.Public == false) return null;
+                    return null;
+                }
+
+                cache.Bandwidth = bandwidth.Count > 0
+                ? bandwidth.Any(c => c == 0) ? 0 : bandwidth.Max()
+                : cache.Super ? 0 : node.MaxBandwidth;
+
+                cache.Cdkey = (await relayServerCdkeyStore.GetAvailable(cache.UserId).ConfigureAwait(false)).Select(c => new RelayCdkeyInfo { Bandwidth = c.Bandwidth, Id = c.Id, LastBytes = c.LastBytes }).ToList();
+                if (cache.Cdkey.Count == 0 && node.Public == false && cache.Super == false && bandwidth.Count == 0)
+                {
+                    return null;
                 }
                 return cache;
             }
@@ -179,7 +187,7 @@ namespace linker.messenger.relay.server
         /// <returns></returns>
         public async Task<List<RelayServerNodeReportInfo188>> GetNodes(bool validated, string userid)
         {
-            var nodes = await relayServerWhiteListStore.Get(userid);
+            var nodes = (await relayServerWhiteListStore.GetNodes(userid)).Where(c => c.Bandwidth >= 0).SelectMany(c => c.Nodes);
 
             var result = reports.Values
                 .Where(c => Environment.TickCount64 - c.LastTicks < 15000)
@@ -215,8 +223,6 @@ namespace linker.messenger.relay.server
                      .ThenByDescending(x => x.MaxGbTotalLastBytes == 0 ? long.MaxValue : x.MaxGbTotalLastBytes)
                      .ToList();
         }
-
-
 
         /// <summary>
         /// 消耗流量

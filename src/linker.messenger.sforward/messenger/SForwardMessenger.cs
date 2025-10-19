@@ -168,7 +168,7 @@ namespace linker.plugins.sforward.messenger
                     result.Message = error;
                     return;
                 }
-                Add(sForwardAddInfo, cache.MachineId, cache.GroupId, result, false, []);
+                Add(sForwardAddInfo, cache.MachineId, cache.GroupId, result, sForwardAddInfo191.Super, sForwardAddInfo191.Bandwidth, []);
             }
             catch (Exception ex)
             {
@@ -369,7 +369,7 @@ namespace linker.plugins.sforward.messenger
         {
             Remove((SForwardAddInfo)sForwardAddInfo, sForwardAddInfo.MachineId, result);
         }
-        public void Add(SForwardAddInfo sForwardAddInfo, string machineId, string groupid, SForwardAddResultInfo result, bool validated, List<SForwardCdkeyInfo> cdkeys)
+        public void Add(SForwardAddInfo sForwardAddInfo, string machineId, string groupid, SForwardAddResultInfo result, bool super,double bandwidth, List<SForwardCdkeyInfo> cdkeys)
         {
             try
             {
@@ -384,7 +384,7 @@ namespace linker.plugins.sforward.messenger
                             if (sForwardServerCahing.TryAdd(port, machineId))
                             {
                                 proxy.Stop(port);
-                                result.Message = proxy.Start(port, 3, groupid, validated, cdkeys);
+                                result.Message = proxy.Start(port, 3, groupid, super, bandwidth, cdkeys);
                                 if (string.IsNullOrWhiteSpace(result.Message) == false)
                                 {
                                     LoggerHelper.Instance.Error(result.Message);
@@ -404,7 +404,7 @@ namespace linker.plugins.sforward.messenger
                         else
                         {
 
-                            proxy.AddHttp($"{sForwardAddInfo.Domain}.{sForwardServerNodeTransfer.Node.Domain}", validated, cdkeys);
+                            proxy.AddHttp($"{sForwardAddInfo.Domain}.{sForwardServerNodeTransfer.Node.Domain}", super, bandwidth, cdkeys);
                             result.Message = $"domain 【{sForwardAddInfo.Domain}】 add success";
                         }
                     }
@@ -423,7 +423,7 @@ namespace linker.plugins.sforward.messenger
                     else
                     {
                         proxy.Stop(sForwardAddInfo.RemotePort);
-                        string msg = proxy.Start(sForwardAddInfo.RemotePort, 3, groupid, validated, cdkeys);
+                        string msg = proxy.Start(sForwardAddInfo.RemotePort, 3, groupid, super,bandwidth, cdkeys);
                         if (string.IsNullOrWhiteSpace(msg) == false)
                         {
                             result.Success = false;
@@ -447,7 +447,7 @@ namespace linker.plugins.sforward.messenger
         }
         public void Add(SForwardAddInfo191 sForwardAddInfo, SForwardAddResultInfo result)
         {
-            Add((SForwardAddInfo)sForwardAddInfo, sForwardAddInfo.MachineId, sForwardAddInfo.GroupId, result, sForwardAddInfo.Validated, sForwardAddInfo.Cdkey);
+            Add((SForwardAddInfo)sForwardAddInfo, sForwardAddInfo.MachineId, sForwardAddInfo.GroupId, result, sForwardAddInfo.Super, sForwardAddInfo.Bandwidth, sForwardAddInfo.Cdkey);
         }
         private static bool PortRange(string str, out int min, out int max)
         {

@@ -532,14 +532,17 @@ namespace linker.messenger.serializer.memorypack
         string GroupId => info.GroupId;
 
         [MemoryPackInclude]
-        bool Validated => info.Validated;
+        bool Validated => info.Super;
 
 
         [MemoryPackInclude, MemoryPackAllowSerialize]
         List<SForwardCdkeyInfo> Cdkey => info.Cdkey;
 
+        [MemoryPackInclude]
+        double Bandwidth => info.Bandwidth;
+
         [MemoryPackConstructor]
-        SerializableSForwardAddInfo191(string domain, int remotePort, string nodeid, string machineid, string groupid, bool validated, List<SForwardCdkeyInfo> cdkey)
+        SerializableSForwardAddInfo191(string domain, int remotePort, string nodeid, string machineid, string groupid, bool validated, double bandwidth, List<SForwardCdkeyInfo> cdkey)
         {
             this.info = new SForwardAddInfo191
             {
@@ -549,7 +552,8 @@ namespace linker.messenger.serializer.memorypack
                 GroupId = groupid,
                 MachineId = machineid,
                 Cdkey = cdkey,
-                Validated = validated
+                Super = validated,
+                Bandwidth = bandwidth
             };
         }
 

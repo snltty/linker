@@ -54,7 +54,7 @@ namespace linker.messenger.relay.server
             {
                 return;
             }
-           
+
             RelayUdpStep step = (RelayUdpStep)memory.Span[0];
             memory = memory.Slice(1);
 
@@ -69,7 +69,7 @@ namespace linker.messenger.relay.server
                 return;
             }
 
-            
+
             using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(16);
             buffer.Memory.Span[0] = 0;
             buffer.Memory.Span[1] = 1;
@@ -78,7 +78,7 @@ namespace linker.messenger.relay.server
             byte flagLength = memory.Span[0];
             if (memory.Length < flagLength + 1 || memory.Slice(1, flagLength).Span.SequenceEqual(relayFlag) == false)
             {
-                await socket.SendToAsync(buffer.Memory.Slice(1,1), ep).ConfigureAwait(false);
+                await socket.SendToAsync(buffer.Memory.Slice(1, 1), ep).ConfigureAwait(false);
                 return;
             }
 
@@ -187,7 +187,7 @@ namespace linker.messenger.relay.server
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         LoggerHelper.Instance.Error($"relay {relayMessage.Type} get cache fail,flowid:{relayMessage.FlowId}");
-                    await socket.SendAsync(buffer.Memory.Slice(1,1)).ConfigureAwait(false);
+                    await socket.SendAsync(buffer.Memory.Slice(1, 1)).ConfigureAwait(false);
                     socket.SafeClose();
                     return;
                 }
@@ -430,8 +430,10 @@ namespace linker.messenger.relay.server
         public string ToId { get; set; }
         public string ToName { get; set; }
         public string GroupId { get; set; }
-        public bool Validated { get; set; }
+        public bool Super { get; set; }
         public List<RelayCdkeyInfo> Cdkey { get; set; } = [];
+
+        public double Bandwidth { get; set; }
 
         /// <summary>
         /// 仅本地缓存可用

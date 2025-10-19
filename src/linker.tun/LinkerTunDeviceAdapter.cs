@@ -313,7 +313,10 @@ namespace linker.tun
                         }
 
                         packet.Unpacket(buffer, 0, length);
-                        if (packet.DstIp.Length == 0 || packet.Version != 4) continue;
+                        if (packet.DstIp.Length == 0 || packet.Version != 4)
+                        {
+                            continue;
+                        }
 
                         bool send = true, writeBack = false;
                         for (int i = 0; i < readHooks.Length; i++)
@@ -323,9 +326,13 @@ namespace linker.tun
                         ChecksumHelper.ChecksumWithZero(packet.RawPacket);
 
                         if (writeBack)
+                        {
                             linkerTunDevice.Write(packet.RawPacket);
+                        }
                         if (send)
+                        {
                             await linkerTunDeviceCallback.Callback(packet).ConfigureAwait(false);
+                        }
 
                     }
                     catch (Exception ex)
@@ -352,8 +359,8 @@ namespace linker.tun
             for (int i = 0; i < writeHooks.Length; i++)
             {
                 (bool next, bool _write) = await writeHooks[i].WriteAsync(buffer, dstIp, srcId).ConfigureAwait(false);
-                if (next == false) break;
                 write &= _write;
+                if (next == false) break;
             }
             ChecksumHelper.ChecksumWithZero(buffer);
 

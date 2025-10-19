@@ -201,9 +201,9 @@ namespace linker.plugins.sforward.proxy
         }
 
 
-        public void AddHttp(string host, bool validated, List<SForwardCdkeyInfo> cdkeys)
+        public void AddHttp(string host, bool super,double bandwidth, List<SForwardCdkeyInfo> cdkeys)
         {
-            SForwardTrafficCacheInfo sForwardTrafficCacheInfo = sForwardServerNodeTransfer.AddTrafficCache(validated, cdkeys);
+            SForwardTrafficCacheInfo sForwardTrafficCacheInfo = sForwardServerNodeTransfer.AddTrafficCache(super, bandwidth, cdkeys);
             httpCaches.AddOrUpdate(host, sForwardTrafficCacheInfo, (a, b) => sForwardTrafficCacheInfo);
         }
         public void RemoveHttp(string host)

@@ -752,14 +752,17 @@ namespace linker.messenger.serializer.memorypack
         string GroupId => info.GroupId;
 
         [MemoryPackInclude]
-        bool Validated => info.Validated;
+        bool Super => info.Super;
 
 
         [MemoryPackInclude, MemoryPackAllowSerialize]
         List<RelayCdkeyInfo> Cdkey => info.Cdkey;
 
+        [MemoryPackInclude]
+        double Bandwidth => info.Bandwidth;
+
         [MemoryPackConstructor]
-        SerializableRelayCacheInfo(ulong flowId, string fromId, string fromName, string toId, string toName, string groupId, bool validated, List<RelayCdkeyInfo> cdkey)
+        SerializableRelayCacheInfo(ulong flowId, string fromId, string fromName, string toId, string toName, string groupId, bool super, List<RelayCdkeyInfo> cdkey, double bandwidth)
         {
             var info = new RelayCacheInfo
             {
@@ -770,7 +773,8 @@ namespace linker.messenger.serializer.memorypack
                 ToId = toId,
                 ToName = toName,
                 Cdkey = cdkey,
-                Validated = validated
+                Super = super,
+                Bandwidth = bandwidth
             };
             this.info = info;
         }

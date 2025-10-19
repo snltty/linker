@@ -9,16 +9,13 @@ namespace linker.messenger.wlist
         {
             this.whiteListServerStore = whiteListServerStore;
         }
-
-        public async Task<bool> Contains(string userid, string nodeid)
+        public async Task<List<RelayWhiteListItem>> GetNodes(string userid)
         {
-            var list = await whiteListServerStore.Get("Relay", userid).ConfigureAwait(false);
-            return list.Contains(nodeid);
+            return (await whiteListServerStore.Get("Relay", userid).ConfigureAwait(false)).Select(c => new RelayWhiteListItem { Nodes = c.Nodes, Bandwidth = c.Bandwidth }).ToList();
         }
-
-        public async Task<List<string>> Get(string userid)
+        public async Task<List<double>> GetBandwidth(string userid, string nodeid)
         {
-            return await whiteListServerStore.Get("Relay", userid).ConfigureAwait(false);
+            return (await whiteListServerStore.Get("Relay", userid).ConfigureAwait(false)).Where(c => c.Nodes.Contains(nodeid)).Select(c => c.Bandwidth).ToList();
         }
     }
 }

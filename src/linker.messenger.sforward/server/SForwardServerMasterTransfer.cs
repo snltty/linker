@@ -3,6 +3,7 @@ using linker.libs.timer;
 using linker.messenger.signin;
 using linker.plugins.sforward.messenger;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Net;
 
 namespace linker.messenger.sforward.server
@@ -109,25 +110,37 @@ namespace linker.messenger.sforward.server
                 };
             }
 
-            List<string> sforward = await sForwardServerWhiteListStore.Get(from.UserId);
+            List<SForwardWhiteListItem> sforward = await sForwardServerWhiteListStore.GetNodes(from.UserId);
             string target = string.IsNullOrWhiteSpace(info.Domain) ? info.RemotePort.ToString() : info.Domain;
-            info.Validated = from.Super || (sforward.Contains($"sfp->{target}") || sforward.Contains($"sfp->*")) && (sforward.Contains(info.NodeId) || sforward.Contains($"*"));
+            info.Super = from.Super;
 
-            if (info.Validated == false)
+            var bandwidth = sforward.Where(c => (c.Nodes.Contains($"sfp->{target}") || c.Nodes.Contains($"sfp->*")) && (c.Nodes.Contains(info.NodeId) || c.Nodes.Contains($"*"))).ToList();
+            if(bandwidth.Any(c=>c.Bandwidth < 0))
             {
-                var cdkeys = await sForwardServerCdkeyStore.GetAvailable(from.UserId, $"sfp->{target}").ConfigureAwait(false);
-                var anyCdkeys = await sForwardServerCdkeyStore.GetAvailable(from.UserId, $"sfp->*").ConfigureAwait(false);
-                info.Cdkey = cdkeys.Concat(anyCdkeys).Select(c => new SForwardCdkeyInfo { Bandwidth = c.Bandwidth, Id = c.Id, LastBytes = c.LastBytes }).ToList();
-
-                if (info.Cdkey.Count <= 0 && node.Public == false)
+                return new SForwardAddResultInfo
                 {
-                    return new SForwardAddResultInfo
-                    {
-                        BufferSize = 1,
-                        Message = "need super key or white list or cdkey",
-                        Success = false
-                    };
-                }
+                    BufferSize = 1,
+                    Message = "white list deney",
+                    Success = false
+                };
+            }
+
+            info.Bandwidth = bandwidth.Count > 0
+                ? bandwidth.Any(c => c.Bandwidth == 0) ? 0 : bandwidth.Max(c => c.Bandwidth)
+                : info.Super ? 0 : node.MaxBandwidth;
+
+            var cdkeys = await sForwardServerCdkeyStore.GetAvailable(from.UserId, $"sfp->{target}").ConfigureAwait(false);
+            var anyCdkeys = await sForwardServerCdkeyStore.GetAvailable(from.UserId, $"sfp->*").ConfigureAwait(false);
+            info.Cdkey = cdkeys.Concat(anyCdkeys).Select(c => new SForwardCdkeyInfo { Bandwidth = c.Bandwidth, Id = c.Id, LastBytes = c.LastBytes }).ToList();
+
+            if (info.Cdkey.Count ==0 && node.Public == false && info.Super == false && bandwidth.Count == 0)
+            {
+                return new SForwardAddResultInfo
+                {
+                    BufferSize = 1,
+                    Message = "need super key or white list or cdkey",
+                    Success = false
+                };
             }
 
 
@@ -175,7 +188,7 @@ namespace linker.messenger.sforward.server
                 Success = false
             };
         }
-        
+
 
         /// <summary>
         /// 获取节点列表
@@ -184,7 +197,7 @@ namespace linker.messenger.sforward.server
         /// <returns></returns>
         public async Task<List<SForwardServerNodeReportInfo>> GetNodes(bool validated, string userid)
         {
-            List<string> sforward = await sForwardServerWhiteListStore.Get(userid);
+            List<string> sforward = (await sForwardServerWhiteListStore.GetNodes(userid)).Where(c=>c.Bandwidth>=0).SelectMany(c=>c.Nodes).ToList();
 
             var result = reports.Values
                 .Where(c => Environment.TickCount64 - c.LastTicks < 15000)

@@ -6,7 +6,7 @@
         public Task<bool> Add(WhiteListInfo info);
         public Task<bool> Del(int id);
 
-        public Task<List<string>> Get(string type, string userid);
+        public Task<List<WhiteListInfo>> Get(string type, string userid);
     }
     public sealed partial class WhiteListDelInfo
     {
@@ -42,5 +42,9 @@
         public DateTime AddTime { get; set; } = DateTime.Now;
 
         public string[] Nodes { get; set; } = [];
+
+        public double Bandwidth { get; set; } = 0;
+
+
     }
 }

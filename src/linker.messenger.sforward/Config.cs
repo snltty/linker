@@ -105,7 +105,8 @@ namespace linker.messenger.sforward
         public string MachineId { get; set; } = string.Empty;
         public string GroupId { get; set; } = string.Empty;
 
-        public bool Validated { get; set; }
+        public bool Super { get; set; }
+        public double Bandwidth { get; set; }
         public List<SForwardCdkeyInfo> Cdkey { get; set; } = [];
     }
 

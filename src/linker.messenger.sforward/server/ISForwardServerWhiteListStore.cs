@@ -10,26 +10,20 @@
         /// </summary>
         /// <param name="userid"></param>
         /// <returns></returns>
-        public Task<List<string>> Get(string userid);
-        /// <summary>
-        /// 是否存在于白名单
-        /// </summary>
-        /// <param name="userid"></param>
-        /// <param name="nodeid"></param>
-        /// <returns></returns>
-        public Task<bool> Contains(string userid, string nodeid);
+        public Task<List<SForwardWhiteListItem>> GetNodes(string userid);
     }
 
     public sealed class SForwardServerWhiteListStore : ISForwardServerWhiteListStore
     {
-        public async Task<bool> Contains(string userid, string nodeid)
+        public async Task<List<SForwardWhiteListItem>> GetNodes(string userid)
         {
-            return await Task.FromResult(false);
+            return await Task.FromResult(new List<SForwardWhiteListItem>());
         }
+    }
 
-        public async Task<List<string>> Get(string userid)
-        {
-            return await Task.FromResult(new List<string>());
-        }
+    public sealed class SForwardWhiteListItem
+    {
+        public string[] Nodes { get; set; } = [];
+        public double Bandwidth { get; set; } = 0;
     }
 }

@@ -39,8 +39,8 @@ namespace linker.tun.hook
         }
         public async ValueTask<(bool next, bool write)> WriteAsync(ReadOnlyMemory<byte> packet, uint originDstIp, string srcId)
         {
-            bool write = await LinkerSrcProxy.WriteAsync(packet,originDstIp).ConfigureAwait(false);
-            return await ValueTask.FromResult((write, write));
+            bool write = await LinkerSrcProxy.WriteAsync(packet, originDstIp).ConfigureAwait(false);
+            return (write, write);
         }
     }
 }

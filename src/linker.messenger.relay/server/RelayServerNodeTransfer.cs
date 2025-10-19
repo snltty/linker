@@ -72,7 +72,12 @@ namespace linker.messenger.relay.server
                 }).ConfigureAwait(false);
                 if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
                 {
-                    return serializer.Deserialize<RelayCacheInfo>(resp.Data.Span);
+                    RelayCacheInfo result = serializer.Deserialize<RelayCacheInfo>(resp.Data.Span);
+                    if (result.Bandwidth < 0)
+                    {
+                        result.Bandwidth = Node.MaxBandwidth;
+                    }
+                    return result;
                 }
             }
             catch (Exception ex)
@@ -136,12 +141,6 @@ namespace linker.messenger.relay.server
         /// <returns></returns>
         public bool Validate(RelayCacheInfo relayCache)
         {
-            //已认证的没有流量限制
-            if (relayCache.Validated) return true;
-            if (Node.Public == false) return false;
-            //流量卡有的，就能继续用
-            if (relayCache.Cdkey.Any(c => c.LastBytes > 0)) return true;
-
             return ValidateConnection(relayCache) && ValidateBytes(relayCache);
         }
         /// <summary>
@@ -192,8 +191,6 @@ namespace linker.messenger.relay.server
         /// <returns></returns>
         public bool NeedLimit(RelayTrafficCacheInfo relayCache)
         {
-            if (relayCache.Cache.Validated) return false;
-            //if (relayCache.CurrentCdkey != null) return false;
             return limitTotal.NeedLimit();
         }
         /// <summary>
@@ -242,9 +239,6 @@ namespace linker.messenger.relay.server
         {
             Interlocked.Add(ref bytes, length);
 
-            //验证过的，不消耗流量
-            if (cache.Cache.Validated) return true;
-            //节点无流量限制的，不消耗流量
             if (Node.MaxGbTotal == 0) return true;
 
             Interlocked.Add(ref cache.Sendt, length);
@@ -261,23 +255,24 @@ namespace linker.messenger.relay.server
         /// <param name="relayCache"></param>
         private void SetLimit(RelayTrafficCacheInfo relayCache)
         {
+            relayCache.CurrentCdkey = relayCache.Cache.Cdkey.Where(c => c.LastBytes > 0).OrderByDescending(c => c.Bandwidth).FirstOrDefault();
+            //黑白名单
+            if (relayCache.Cache.Bandwidth >= 0)
+            {
+                relayCache.Limit.SetLimit((uint)Math.Ceiling(relayCache.Cache.Bandwidth * 1024 * 1024 / 8.0));
+                return;
+            }
+
             //无限制
-            if (relayCache.Cache.Validated || Node.MaxBandwidth == 0)
+            if (relayCache.Cache.Super || Node.MaxBandwidth == 0)
             {
                 relayCache.Limit.SetLimit(0);
                 return;
             }
 
-            RelayCdkeyInfo currentCdkey = relayCache.Cache.Cdkey.Where(c => c.LastBytes > 0).OrderByDescending(c => c.Bandwidth).FirstOrDefault();
-            //有cdkey，且带宽大于节点带宽，就用cdkey的带宽
-            if (currentCdkey != null && (currentCdkey.Bandwidth == 0 || currentCdkey.Bandwidth >= Node.MaxBandwidth || Node.MaxGbTotalLastBytes == 0))
-            {
-                relayCache.CurrentCdkey = currentCdkey;
-                relayCache.Limit.SetLimit((uint)Math.Ceiling((relayCache.CurrentCdkey.Bandwidth * 1024 * 1024) / 8.0));
-                return;
-            }
-            relayCache.CurrentCdkey = null;
-            relayCache.Limit.SetLimit((uint)Math.Ceiling((Node.MaxBandwidth * 1024 * 1024) / 8.0));
+            //配置或cdkey，最大的
+            double banwidth = double.Max(Node.MaxBandwidth, relayCache.CurrentCdkey?.Bandwidth ?? 1);
+            relayCache.Limit.SetLimit((uint)Math.Ceiling(banwidth * 1024 * 1024 / 8.0));
         }
 
         /// <summary>
@@ -319,7 +314,7 @@ namespace linker.messenger.relay.server
         }
         private async Task UploadBytes()
         {
-            var cdkeys = trafficDict.Values.Where(c => c.CurrentCdkey != null && c.Sendt > 0).ToList();
+            var cdkeys = trafficDict.Values.Where(c => c.CurrentCdkey != null && c.Sendt > 0 && c.CurrentCdkey.Id > 0).ToList();
             Dictionary<int, long> id2sent = cdkeys.GroupBy(c => c.CurrentCdkey.Id).ToDictionary(c => c.Key, d => d.Sum(d => { d.SendtCache = d.Sendt; return d.SendtCache; }));
             if (id2sent.Count == 0) return;
 
