@@ -10,12 +10,12 @@
         /// </summary>
         /// <param name="userid"></param>
         /// <returns></returns>
-        public Task<List<SForwardWhiteListItem>> GetNodes(string userid);
+        public Task<List<SForwardWhiteListItem>> GetNodes(string userid, string machineid);
     }
 
     public sealed class SForwardServerWhiteListStore : ISForwardServerWhiteListStore
     {
-        public async Task<List<SForwardWhiteListItem>> GetNodes(string userid)
+        public async Task<List<SForwardWhiteListItem>> GetNodes(string userid, string machineid)
         {
             return await Task.FromResult(new List<SForwardWhiteListItem>());
         }

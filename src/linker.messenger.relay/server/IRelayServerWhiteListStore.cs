@@ -9,24 +9,26 @@
         /// 获取白名单
         /// </summary>
         /// <param name="userid"></param>
+        /// <param name="machineid"></param>
         /// <returns></returns>
-        public Task<List<RelayWhiteListItem>> GetNodes(string userid);
+        public Task<List<RelayWhiteListItem>> GetNodes(string userid, string machineid);
         /// <summary>
         /// 获取白名单
         /// </summary>
         /// <param name="userid"></param>
+        /// <param name="machineid"></param>
         /// <param name="nodeid"></param>
         /// <returns></returns>
-        public Task<List<double>> GetBandwidth(string userid,string nodeid);
+        public Task<List<double>> GetBandwidth(string userid, string machineid, string nodeid);
     }
 
     public sealed class RelayServerWhiteListStore : IRelayServerWhiteListStore
     {
-        public async Task<List<RelayWhiteListItem>> GetNodes(string userid)
+        public async Task<List<RelayWhiteListItem>> GetNodes(string userid, string machineid)
         {
             return await Task.FromResult(new List<RelayWhiteListItem>());
         }
-        public async Task<List<double>> GetBandwidth(string userid, string nodeid)
+        public async Task<List<double>> GetBandwidth(string userid, string machineid, string nodeid)
         {
             return await Task.FromResult(new List<double>());
         }

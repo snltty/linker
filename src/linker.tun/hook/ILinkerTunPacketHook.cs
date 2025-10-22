@@ -11,22 +11,38 @@
         public LinkerTunPacketHookLevel WriteLevel { get; }
 
         /// <summary>
-        /// 从网卡读取到数据包后
+        /// 从网卡读取到数据包后,flags 默认带 next send
         /// </summary>
         /// <param name="packet"></param>
-        /// <param name="send"></param>
-        /// <param name="writeBack"></param>
         /// <returns></returns>
-        public bool Read(ReadOnlyMemory<byte> packet, ref bool send, ref bool writeBack);
+        public (LinkerTunPacketHookFlags add, LinkerTunPacketHookFlags del) Read(ReadOnlyMemory<byte> packet);
         /// <summary>
-        /// 写入网卡前
+        /// 写入网卡前, flasgs 默认带 next write
         /// </summary>
         /// <param name="packet"></param>
         /// <param name="originDstIp"></param>
         /// <param name="srcId"></param>
         /// <returns>next</returns>
-        public ValueTask<(bool next,bool write)> WriteAsync(ReadOnlyMemory<byte> packet,uint originDstIp, string srcId);
+        public ValueTask<(LinkerTunPacketHookFlags add, LinkerTunPacketHookFlags del)> WriteAsync(ReadOnlyMemory<byte> packet, uint originDstIp, string srcId);
     }
+
+    [Flags]
+    public enum LinkerTunPacketHookFlags : byte
+    {
+        None = 0,
+
+        //是否继续下一个钩子
+        Next = 1,
+
+        //读取端，是否发送到对端
+        Send = 2,
+        //读取端，是否写回网卡
+        WriteBack = 4,
+
+        //接收端，是否写入网卡
+        Write = 8
+    }
+
     /// <summary>
     /// 回调处理级别
     /// </summary>

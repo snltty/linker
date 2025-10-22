@@ -3,7 +3,6 @@
     <div class="group-wrap">
         <div class="head">
             <div class="search flex">
-                <div><span>{{$t('server.wlistUserId')}}</span> <el-input v-trim v-model="state.page.UserId" style="width:8rem" size="small" clearable @change="handleSearch" /></div>
                 <div><span>{{$t('server.wlistName')}}</span> <el-input v-trim v-model="state.page.Name" style="width:8rem" size="small" clearable @change="handleSearch" /></div>
                 <div><span>{{$t('server.wlistRemark')}}</span> <el-input v-trim v-model="state.page.Remark" style="width:8rem" size="small" clearable @change="handleSearch" /></div>
                 <div>
@@ -31,9 +30,11 @@
                     <span>{{ scope.row.Nodes.filter(c=>c.indexOf(state.prefix)>=0).map(c=>c.replace(state.prefix,'')).join(',') }}</span>
                 </template>
             </el-table-column>
+            <el-table-column prop="Bandwidth" label="Mbps" width="80"></el-table-column>
             <el-table-column prop="Remark" :label="$t('server.wlistRemark')"></el-table-column>
-            <el-table-column prop="AddTime" :label="`${$t('server.wlistAddTime')}`" width="140" sortable="custom">
-            </el-table-column>
+            <el-table-column prop="UseTime" :label="`${$t('server.wlistUseTime')}`" width="140"></el-table-column>
+            <el-table-column prop="EndTime" :label="`${$t('server.wlistEndTime')}`" width="140"></el-table-column>
+            <el-table-column prop="AddTime" :label="`${$t('server.wlistAddTime')}`" width="140"></el-table-column>
             <el-table-column fixed="right" prop="Oper" :label="$t('server.wlistOper')" width="110">
                 <template #default="scope">
                     <el-button size="small" @click="handleEdit(scope.row)">
@@ -82,7 +83,7 @@ export default {
                 Page:1,
                 Size:10,
                 Type:props.type,
-                UserId:'',
+                MachineId:'',
                 Name:'',
                 Remark:''
             },

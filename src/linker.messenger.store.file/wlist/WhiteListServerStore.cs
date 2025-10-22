@@ -1,5 +1,6 @@
 ﻿using LiteDB;
 using linker.messenger.wlist;
+using linker.libs.extends;
 
 namespace linker.messenger.store.file.wlist
 {
@@ -27,6 +28,11 @@ namespace linker.messenger.store.file.wlist
                     Name = info.Name,
                     Remark = info.Remark,
                     Nodes = info.Nodes,
+                    Bandwidth = info.Bandwidth,
+                    UseTime = info.UseTime,
+                    EndTime = info.EndTime,
+                    UserId = info.UserId,
+                    MachineId = info.MachineId
                 }, c => c.Id == info.Id);
             }
             return await Task.FromResult(true).ConfigureAwait(false);
@@ -36,10 +42,11 @@ namespace linker.messenger.store.file.wlist
             return await Task.FromResult(liteCollection.Delete(id)).ConfigureAwait(false);
         }
 
-        public async Task<List<WhiteListInfo>> Get(string type, string userid)
+        public async Task<List<WhiteListInfo>> Get(string type, string userid, string machineId)
         {
             if (string.IsNullOrWhiteSpace(type) || string.IsNullOrWhiteSpace(userid)) return [];
-            return await Task.FromResult(liteCollection.Find(c => c.Type == type && c.UserId == userid).ToList()).ConfigureAwait(false);
+
+            return await Task.FromResult(liteCollection.Find(c => c.Type == type && c.UseTime <= DateTime.Now && c.EndTime > DateTime.Now && (c.UserId == userid || c.MachineId == machineId)).ToList()).ConfigureAwait(false);
         }
 
         public async Task<WhiteListPageResultInfo> Page(WhiteListPageRequestInfo info)
@@ -56,9 +63,9 @@ namespace linker.messenger.store.file.wlist
             }
 
             ILiteQueryable<WhiteListInfo> query = liteCollection.Query().Where(c => c.Type == info.Type);
-            if (string.IsNullOrWhiteSpace(info.UserId) == false)
+            if (string.IsNullOrWhiteSpace(info.MachineId) == false)
             {
-                query = query.Where(x => x.UserId == info.UserId);
+                query = query.Where(x => x.MachineId == info.MachineId);
             }
             if (string.IsNullOrWhiteSpace(info.Name) == false)
             {

@@ -85,7 +85,13 @@
 
 ## [🎁]为爱发电
 
-若此项目对您有用，可以考虑通过 **[🔋为爱发电](https://afdian.com/a/snltty)** 对作者稍加支持，让作者更有动力，在项目上投入更多时间和精力
+若此项目对您有用，可以考虑对作者稍加支持，让作者更有动力，在项目上投入更多时间和精力
+
+**[🔋为爱发电](https://afdian.com/a/snltty)**
+
+或
+
+![pay](readme/pay.jpg)
 
 <details>
 <summary><strong>感谢名单</strong></summary>
@@ -106,6 +112,7 @@
 - 坦然
 - littleexe
 - 黄品(Pim Hwang)
+- GoodGoodStudy
 
 </div>
 </details>

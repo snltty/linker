@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.libs.extends;
 using linker.libs.timer;
 using linker.messenger.relay.client.transport;
 using linker.messenger.relay.messenger;
@@ -67,7 +68,7 @@ namespace linker.messenger.relay.server
         {
             if (relayCaching.TryGetValue(key, out RelayCacheInfo cache) && reports.TryGetValue(nodeid, out var node))
             {
-                var bandwidth = await relayServerWhiteListStore.GetBandwidth(cache.UserId, node.Id);
+                List<double> bandwidth = await relayServerWhiteListStore.GetBandwidth(cache.UserId, cache.FromId, node.Id);
                 if (bandwidth.Any(c => c < 0))
                 {
                     return null;
@@ -75,7 +76,7 @@ namespace linker.messenger.relay.server
 
                 cache.Bandwidth = bandwidth.Count > 0
                 ? bandwidth.Any(c => c == 0) ? 0 : bandwidth.Max()
-                : cache.Super ? 0 : node.MaxBandwidth;
+                : cache.Super ? 0 : -1;
 
                 cache.Cdkey = (await relayServerCdkeyStore.GetAvailable(cache.UserId).ConfigureAwait(false)).Select(c => new RelayCdkeyInfo { Bandwidth = c.Bandwidth, Id = c.Id, LastBytes = c.LastBytes }).ToList();
                 if (cache.Cdkey.Count == 0 && node.Public == false && cache.Super == false && bandwidth.Count == 0)
@@ -185,9 +186,9 @@ namespace linker.messenger.relay.server
         /// </summary>
         /// <param name="validated">是否已认证</param>
         /// <returns></returns>
-        public async Task<List<RelayServerNodeReportInfo188>> GetNodes(bool validated, string userid)
+        public async Task<List<RelayServerNodeReportInfo188>> GetNodes(bool validated, string userid, string machineId)
         {
-            var nodes = (await relayServerWhiteListStore.GetNodes(userid)).Where(c => c.Bandwidth >= 0).SelectMany(c => c.Nodes);
+            var nodes = (await relayServerWhiteListStore.GetNodes(userid, machineId)).Where(c => c.Bandwidth >= 0).SelectMany(c => c.Nodes);
 
             var result = reports.Values
                 .Where(c => Environment.TickCount64 - c.LastTicks < 15000)

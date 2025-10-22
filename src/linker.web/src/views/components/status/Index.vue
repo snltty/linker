@@ -1,8 +1,8 @@
 <template>
     <div class="status-wrap flex">
         <div class="copy flex">
-            <!-- <a href="javascript:;" class="memory" :title="$t('status.support')" @click="state.showPay = true"> -->
-            <a href="https://afdian.com/a/snltty" class="memory" :title="$t('status.support')" target="_blank">
+            <a href="javascript:;" class="memory" :title="$t('status.support')" @click="state.showPay = true">
+            <!-- <a href="https://afdian.com/a/snltty" class="memory" :title="$t('status.support')" target="_blank"> -->
                 <img src="@/assets/dianchi.svg" alt="memory" />
                 <span>{{$t('status.support')}}</span>
             </a>
@@ -17,9 +17,20 @@
         <div class="api" v-if="globalData.isPc"><Api :config="config"></Api></div>
         <div class="server"><Server :config="config"></Server></div>
 
-        <el-dialog v-model="state.showPay" :title="$t('status.support')" width="400">
+        <el-dialog v-model="state.showPay" :title="$t('status.support')" width="80%">
             <div class="pay">
-                <img src="@/assets/qr.jpg" alt=""/>
+                <p class="t-c">
+                    <a href="https://afdian.com/a/snltty" class="memory a-line" :title="$t('status.support')" target="_blank">
+                        <img src="@/assets/dianchi.svg" alt="memory" />
+                        <span>{{$t('status.support')}}</span>
+                    </a>
+                </p>
+                <p class="t-c">
+                    OR
+                </p>
+                <p>
+                    <img src="@/assets/pay.jpg" alt="pay" width="100%"/>
+                </p>
             </div>
         </el-dialog>
     </div>
@@ -57,12 +68,6 @@ html.dark .status-wrap .copy a{color:#ccc;}
     line-height:3rem;
     font-size:1.2rem;
     color:#555;
-
-    .pay{
-        font-size:xxx-large;
-        img{width:100%;margin:0;}
-    }
-    
 
     .copy{
         padding-left:.5rem;

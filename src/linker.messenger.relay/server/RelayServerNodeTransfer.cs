@@ -73,10 +73,6 @@ namespace linker.messenger.relay.server
                 if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
                 {
                     RelayCacheInfo result = serializer.Deserialize<RelayCacheInfo>(resp.Data.Span);
-                    if (result.Bandwidth < 0)
-                    {
-                        result.Bandwidth = Node.MaxBandwidth;
-                    }
                     return result;
                 }
             }

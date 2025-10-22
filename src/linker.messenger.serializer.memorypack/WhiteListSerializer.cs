@@ -16,6 +16,8 @@ namespace linker.messenger.serializer.memorypack
         string Type => info.Type;
         [MemoryPackInclude]
         string UserId => info.UserId;
+        [MemoryPackInclude]
+        string MachineId => info.MachineId;
 
         [MemoryPackInclude]
         string Name => info.Name;
@@ -24,22 +26,33 @@ namespace linker.messenger.serializer.memorypack
 
         [MemoryPackInclude]
         DateTime AddTime => info.AddTime;
+        [MemoryPackInclude]
+        DateTime UseTime => info.UseTime;
+        [MemoryPackInclude]
+        DateTime EndTime => info.EndTime;
 
         [MemoryPackInclude]
         string[] Nodes => info.Nodes;
 
+        [MemoryPackInclude]
+        double Bandwidth => info.Bandwidth;
+
         [MemoryPackConstructor]
-        SerializableWhiteListInfo(int id, string type, string userid, string name, string remark, DateTime addTime, string[] nodes)
+        SerializableWhiteListInfo(int id, string type, string userid, string machineId, string name, string remark, DateTime addTime, DateTime useTime, DateTime endTime, string[] nodes, double bandwidth)
         {
             var info = new WhiteListInfo
             {
                 Id = id,
                 Type = type,
                 UserId = userid,
+                MachineId = machineId,
                 AddTime = addTime,
+                UseTime = useTime,
+                EndTime = endTime,
                 Remark = remark,
                 Nodes = nodes,
-                Name = name
+                Name = name,
+                Bandwidth = bandwidth
             };
             this.info = info;
         }
@@ -196,7 +209,7 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         string Type => info.Type;
         [MemoryPackInclude]
-        string UserId => info.UserId;
+        string MachineId => info.MachineId;
         [MemoryPackInclude]
         string Name => info.Name;
         [MemoryPackInclude]
@@ -205,14 +218,14 @@ namespace linker.messenger.serializer.memorypack
         string SecretKey => string.Empty;
 
         [MemoryPackConstructor]
-        SerializableWhiteListPageRequestInfo(int page, int size, string type, string userid, string name, string remark, string secretKey)
+        SerializableWhiteListPageRequestInfo(int page, int size, string type, string machineid, string name, string remark, string secretKey)
         {
             var info = new WhiteListPageRequestInfo
             {
                 Size = size,
                 Page = page,
                 Type = type,
-                UserId = userid,
+                MachineId = machineid,
                 Remark = remark,
                 Name = name,
             };

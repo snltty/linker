@@ -761,8 +761,11 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         double Bandwidth => info.Bandwidth;
 
+        [MemoryPackInclude]
+        string UserId => info.UserId;
+
         [MemoryPackConstructor]
-        SerializableRelayCacheInfo(ulong flowId, string fromId, string fromName, string toId, string toName, string groupId, bool super, List<RelayCdkeyInfo> cdkey, double bandwidth)
+        SerializableRelayCacheInfo(ulong flowId, string fromId, string fromName, string toId, string toName, string groupId, bool super, List<RelayCdkeyInfo> cdkey, double bandwidth,string userid)
         {
             var info = new RelayCacheInfo
             {
@@ -774,7 +777,8 @@ namespace linker.messenger.serializer.memorypack
                 ToName = toName,
                 Cdkey = cdkey,
                 Super = super,
-                Bandwidth = bandwidth
+                Bandwidth = bandwidth,
+                 UserId = userid
             };
             this.info = info;
         }

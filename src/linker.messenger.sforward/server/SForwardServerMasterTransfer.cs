@@ -110,7 +110,7 @@ namespace linker.messenger.sforward.server
                 };
             }
 
-            List<SForwardWhiteListItem> sforward = await sForwardServerWhiteListStore.GetNodes(from.UserId);
+            List<SForwardWhiteListItem> sforward = await sForwardServerWhiteListStore.GetNodes(from.UserId, from.MachineId);
             string target = string.IsNullOrWhiteSpace(info.Domain) ? info.RemotePort.ToString() : info.Domain;
             info.Super = from.Super;
 
@@ -193,17 +193,17 @@ namespace linker.messenger.sforward.server
         /// <summary>
         /// 获取节点列表
         /// </summary>
-        /// <param name="validated">是否已认证</param>
+        /// <param name="super">是否已认证</param>
         /// <returns></returns>
-        public async Task<List<SForwardServerNodeReportInfo>> GetNodes(bool validated, string userid)
+        public async Task<List<SForwardServerNodeReportInfo>> GetNodes(bool super, string userid,string machineId)
         {
-            List<string> sforward = (await sForwardServerWhiteListStore.GetNodes(userid)).Where(c=>c.Bandwidth>=0).SelectMany(c=>c.Nodes).ToList();
+            List<string> sforward = (await sForwardServerWhiteListStore.GetNodes(userid, machineId)).Where(c=>c.Bandwidth>=0).SelectMany(c=>c.Nodes).ToList();
 
             var result = reports.Values
                 .Where(c => Environment.TickCount64 - c.LastTicks < 15000)
                 .Where(c =>
                 {
-                    return validated || c.Public || sforward.Contains(c.Id);
+                    return super || c.Public || sforward.Contains(c.Id);
                 })
                 .OrderByDescending(c => c.LastTicks);
 

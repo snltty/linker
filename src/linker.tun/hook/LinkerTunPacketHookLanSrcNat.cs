@@ -67,13 +67,13 @@ namespace linker.tun.hook
             GC.Collect();
         }
 
-        public bool Read(ReadOnlyMemory<byte> packet, ref bool send, ref bool writeBack)
+        public (LinkerTunPacketHookFlags add, LinkerTunPacketHookFlags del) Read(ReadOnlyMemory<byte> packet)
         {
-            return true;
+            return (LinkerTunPacketHookFlags.None, LinkerTunPacketHookFlags.None);
         }
-        public ValueTask<(bool next, bool write)> WriteAsync(ReadOnlyMemory<byte> packet, uint originDstIp, string srcId)
+        public ValueTask<(LinkerTunPacketHookFlags add, LinkerTunPacketHookFlags del)> WriteAsync(ReadOnlyMemory<byte> packet, uint originDstIp, string srcId)
         {
-            return ValueTask.FromResult((linkerSrcNat.Running == false || linkerSrcNat.Inject(packet) == false, true));
+            return ValueTask.FromResult((LinkerTunPacketHookFlags.None, LinkerTunPacketHookFlags.None));
         }
     }
 }

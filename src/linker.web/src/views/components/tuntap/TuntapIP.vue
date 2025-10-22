@@ -55,6 +55,7 @@ export default {
                 DisableNat: tuntap.value.current.DisableNat,
                 TcpMerge: tuntap.value.current.TcpMerge,
                 InterfaceOrder: tuntap.value.current.InterfaceOrder,
+                FakeAck: tuntap.value.current.FakeAck,
                 SrcProxy: tuntap.value.current.SrcProxy,
                 Forwards: tuntap.value.current.Forwards,
                 Name: tuntap.value.current.Name,
@@ -99,6 +100,7 @@ export default {
             json.DisableNat = state.ruleForm.DisableNat;
             json.TcpMerge = state.ruleForm.TcpMerge;
             json.InterfaceOrder = state.ruleForm.InterfaceOrder;
+            json.FakeAck = state.ruleForm.FakeAck;
             json.SrcProxy = state.ruleForm.SrcProxy;
             json.Name = state.ruleForm.Name;
 

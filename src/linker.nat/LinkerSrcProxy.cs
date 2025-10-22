@@ -363,7 +363,7 @@ namespace linker.nat
             }
         }
 
-        public unsafe bool Read(ReadOnlyMemory<byte> packet, ref bool send, ref bool writeBack)
+        public unsafe bool Read(ReadOnlyMemory<byte> packet)
         {
             if (Running == false) return true;
 
@@ -388,8 +388,6 @@ namespace linker.nat
                         srcProxyPacket.SrcPort = cache.DstPort;
                         srcProxyPacket.IPChecksum = 0; //需要重新计算IP头校验和
                         srcProxyPacket.PayloadChecksum = 0; //需要重新计算TCP校验和
-                        send = false; //拦截，不发送
-                        writeBack = true; //写回网卡
                     }
                 }
                 else //从访问端来的
@@ -422,10 +420,8 @@ namespace linker.nat
                     srcProxyPacket.SrcPort = cache.NewPort;
                     srcProxyPacket.IPChecksum = 0; //需要重新计算IP头校验和
                     srcProxyPacket.PayloadChecksum = 0;//需要重新计算TCP校验和
-                    send = false;//拦截，不发送
-                    writeBack = true;//写回网卡
                 }
-                return false; //不再往下走
+                return false;
             }
 
         }

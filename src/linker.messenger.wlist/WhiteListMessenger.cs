@@ -63,10 +63,14 @@ namespace linker.messenger.wlist
         public async Task Page(IConnection connection)
         {
             WhiteListPageRequestInfo info = serializer.Deserialize<WhiteListPageRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false || (cache.Super == false && string.IsNullOrWhiteSpace(info.UserId)))
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
             {
                 connection.Write(serializer.Serialize(new WhiteListPageResultInfo { }));
                 return;
+            }
+            if (cache.Super == false && string.IsNullOrWhiteSpace(info.MachineId))
+            {
+                info.MachineId = cache.MachineId;
             }
             var page = await whiteListServerStore.Page(info).ConfigureAwait(false);
 

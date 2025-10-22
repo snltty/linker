@@ -223,7 +223,7 @@ namespace linker.messenger.signin
                 return;
             }
 
-            List<SignInUserIdsResponseItemInfo> list = signCaching.Get(name, 10).Select(c => new SignInUserIdsResponseItemInfo { UserId = c.UserId, MachineName = c.MachineName, Online = c.Connected }).ToList();
+            List<SignInUserIdsResponseItemInfo> list = signCaching.Get(name, 10).Select(c => new SignInUserIdsResponseItemInfo { MachineId = c.MachineId, UserId = c.UserId, MachineName = c.MachineName, Online = c.Connected }).ToList();
             connection.Write(serializer.Serialize(list));
         }
 
@@ -402,8 +402,9 @@ namespace linker.messenger.signin
     }
     public sealed class SignInUserIdsResponseItemInfo
     {
-        public string UserId { get; set; }
+        public string MachineId { get; set; }
         public string MachineName { get; set; }
+        public string UserId { get; set; }
         public bool Online { get; set; }
     }
 

@@ -435,9 +435,6 @@ namespace linker.messenger.relay.server
 
         public double Bandwidth { get; set; }
 
-        /// <summary>
-        /// 仅本地缓存可用
-        /// </summary>
         public string UserId { get; set; } = string.Empty;
     }
     public sealed class RelayTrafficCacheInfo

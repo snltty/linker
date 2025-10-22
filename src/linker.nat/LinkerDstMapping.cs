@@ -107,12 +107,15 @@ namespace linker.nat
                     if (mapDic.TryGetValue(fakeDist & masks[i], out uint realNetwork))
                     {
                         uint realDist = realNetwork | (fakeDist & ~masks[i]);
-                        packet.DstAddr = realDist;
-                        packet.IPChecksum = 0;
-                        packet.PayloadChecksum = 0;
-                        if (natDic.TryGetValue(realDist, out uint value) == false || value != fakeDist)
+                        if (packet.DstAddr != realDist)
                         {
-                            natDic.AddOrUpdate(realDist, fakeDist, (a, b) => fakeDist);
+                            packet.DstAddr = realDist;
+                            packet.IPChecksum = 0;
+                            packet.PayloadChecksum = 0;
+                            if (natDic.TryGetValue(realDist, out uint value) == false || value != fakeDist)
+                            {
+                                natDic.AddOrUpdate(realDist, fakeDist, (a, b) => fakeDist);
+                            }
                         }
                         break;
                     }

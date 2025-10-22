@@ -16,16 +16,16 @@ namespace linker.tun.hook
             linkerDstMapping.SetDsts(maps);
         }
 
-        public bool Read(ReadOnlyMemory<byte> packet, ref bool send, ref bool writeBack)
+        public (LinkerTunPacketHookFlags add, LinkerTunPacketHookFlags del) Read(ReadOnlyMemory<byte> packet)
         {
             linkerDstMapping.ToFakeDst(packet);
-            return true;
+            return (LinkerTunPacketHookFlags.None, LinkerTunPacketHookFlags.None);
         }
 
-        public ValueTask<(bool next, bool write)> WriteAsync(ReadOnlyMemory<byte> packet, uint originDstIp, string srcId)
+        public ValueTask<(LinkerTunPacketHookFlags add, LinkerTunPacketHookFlags del)> WriteAsync(ReadOnlyMemory<byte> packet, uint originDstIp, string srcId)
         {
             linkerDstMapping.ToRealDst(packet);
-            return ValueTask.FromResult((true, true));
+            return ValueTask.FromResult((LinkerTunPacketHookFlags.None, LinkerTunPacketHookFlags.None));
         }
     }
-} 
+}

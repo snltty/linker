@@ -318,22 +318,27 @@ namespace linker.tun
                             continue;
                         }
 
-                        bool send = true, writeBack = false;
+                        LinkerTunPacketHookFlags flags = LinkerTunPacketHookFlags.Next | LinkerTunPacketHookFlags.Send;
                         for (int i = 0; i < readHooks.Length; i++)
                         {
-                            if (readHooks[i].Read(packet.RawPacket, ref send, ref writeBack) == false) break;
+                            (LinkerTunPacketHookFlags addFlags, LinkerTunPacketHookFlags delFlags) = readHooks[i].Read(packet.RawPacket);
+                            flags |= addFlags;
+                            flags &= ~delFlags;
+                            if ((flags & LinkerTunPacketHookFlags.Next) != LinkerTunPacketHookFlags.Next)
+                            {
+                                break;
+                            }
                         }
                         ChecksumHelper.ChecksumWithZero(packet.RawPacket);
 
-                        if (writeBack)
+                        if ((flags & LinkerTunPacketHookFlags.WriteBack) == LinkerTunPacketHookFlags.WriteBack)
                         {
                             linkerTunDevice.Write(packet.RawPacket);
                         }
-                        if (send)
+                        if ((flags & LinkerTunPacketHookFlags.Send) == LinkerTunPacketHookFlags.Send)
                         {
                             await linkerTunDeviceCallback.Callback(packet).ConfigureAwait(false);
                         }
-
                     }
                     catch (Exception ex)
                     {
@@ -354,17 +359,24 @@ namespace linker.tun
         {
             uint dstIp = VerifyPacket(buffer);
 
-            if (Status != LinkerTunDeviceStatus.Running || dstIp == 0) return false;
-            bool write = true;
+            if (Status != LinkerTunDeviceStatus.Running || dstIp == 0)
+            {
+                return false;
+            }
+            LinkerTunPacketHookFlags flags = LinkerTunPacketHookFlags.Next | LinkerTunPacketHookFlags.Write;
             for (int i = 0; i < writeHooks.Length; i++)
             {
-                (bool next, bool _write) = await writeHooks[i].WriteAsync(buffer, dstIp, srcId).ConfigureAwait(false);
-                write &= _write;
-                if (next == false) break;
+                (LinkerTunPacketHookFlags addFlags, LinkerTunPacketHookFlags delFlags) = await writeHooks[i].WriteAsync(buffer, dstIp, srcId).ConfigureAwait(false);
+                flags |= addFlags;
+                flags &= ~delFlags;
+                if ((flags & LinkerTunPacketHookFlags.Next) != LinkerTunPacketHookFlags.Next)
+                {
+                    break;
+                }
             }
             ChecksumHelper.ChecksumWithZero(buffer);
 
-            return write == false || linkerTunDevice.Write(buffer);
+            return (flags & LinkerTunPacketHookFlags.Write) != LinkerTunPacketHookFlags.Write || linkerTunDevice.Write(buffer);
         }
         private unsafe uint VerifyPacket(ReadOnlyMemory<byte> buffer)
         {

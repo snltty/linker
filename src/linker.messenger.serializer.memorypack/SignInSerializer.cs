@@ -500,18 +500,21 @@ namespace linker.messenger.serializer.memorypack
         public readonly SignInUserIdsResponseItemInfo info;
 
         [MemoryPackInclude]
-        string UserId => info.UserId;
+        string MachineId => info.MachineId;
 
         [MemoryPackInclude]
         string MachineName => info.MachineName;
 
         [MemoryPackInclude]
+        string UserId => info.UserId;
+
+        [MemoryPackInclude]
         bool Online => info.Online;
 
         [MemoryPackConstructor]
-        SerializableSignInUserIdsResponseItemInfo(string userId, string machineName, bool online)
+        SerializableSignInUserIdsResponseItemInfo(string machineid, string machineName, string userId, bool online)
         {
-            var info = new SignInUserIdsResponseItemInfo { UserId = userId, MachineName = machineName, Online = online };
+            var info = new SignInUserIdsResponseItemInfo { MachineId = machineid, UserId = userId, MachineName = machineName, Online = online };
             this.info = info;
         }
 

@@ -48,7 +48,11 @@
             </el-tab-pane>
         </el-tabs>
     </div>
-
+    <el-dialog class="options-center" title="" destroy-on-close v-model="state.show" width="98%" top="2vh">
+        <div>
+            <textarea class="logger-content">{{ state.content }}</textarea>
+        </div>
+    </el-dialog>
 </template>
 
 <script>
@@ -56,7 +60,6 @@ import { reactive,computed } from '@vue/reactivity'
 import { getLogger, clearLogger } from '@/apis/logger'
 import { onMounted } from '@vue/runtime-core'
 import Setting from './Setting.vue'
-import { ElMessageBox } from 'element-plus'
 import {  ref } from 'vue'
 import { injectGlobalData } from '@/provide'
 export default {
@@ -72,6 +75,9 @@ export default {
             page: { Page: 1, Size: 20, Count: 0, List: [] },
             types: ['debug', 'info', 'warning', 'error', 'fatal'],
             height:computed(()=>globalData.value.height - 180),
+
+            show:false,
+            content:''
         })
         const loadData = () => {
             state.loading = true;
@@ -110,11 +116,8 @@ export default {
             return `type-${row.Type}`;
         }
         const handleRowClick = (row, column, event) => {
-            let css = `padding:1rem;border:1px solid #ddd; resize:none;width:30rem;box-sizing: border-box;white-space: nowrap; height:30rem;`;
-            
-            ElMessageBox.alert(`<textarea class="scrollbar-4" style="${css}">${row.Content}</textarea>`, '', {
-                dangerouslyUseHTMLString: true,
-            }).catch(()=>{});
+            state.show = true;
+            state.content = row.Content;
         }
 
         onMounted(()=>{
@@ -147,6 +150,21 @@ export default {
     .head {
         margin-bottom: 1rem;
     }
+}
+.logger-content {
+    width: 100%;
+    height: 40rem;
+    box-sizing: border-box;
+    padding: 1rem;
+    margin-top:1rem;
+    background: #f5f5f5;
+    border:1px solid #eee;
+    border-radius: 4px;
+    font-size: 1.2rem;
+    resize: none;
+    outline: none;
+    overflow: auto;
+    white-space:nowrap;
 }
 </style>
 <style  lang="stylus">

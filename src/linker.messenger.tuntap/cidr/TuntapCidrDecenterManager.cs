@@ -123,13 +123,20 @@ namespace linker.messenger.tuntap.cidr
                     .Where(d =>
                     {
                         uint network = NetworkHelper.ToNetworkValue(d.IP, d.PrefixLength);
-                        //同个外网，且没有设置映射
-                        d.Exists = (wan.Equals(c.Wan) && IPAddress.Any.Equals(d.MapIP))
-                        //在排除列表中
-                        || excludeIps.Any(e => NetworkHelper.ToNetworkValue(e, d.PrefixLength) == network)
-                        //已经存在过
-                        || hashSet.Contains(network);
 
+                        if (d.IP.Equals(d.MapIP))
+                        {
+                            d.Exists = hashSet.Contains(network);
+                        }
+                        else
+                        {
+                            //同个外网，且没有设置映射
+                            d.Exists = (wan.Equals(c.Wan) && IPAddress.Any.Equals(d.MapIP))
+                            //在排除列表中
+                            || excludeIps.Any(e => NetworkHelper.ToNetworkValue(e, d.PrefixLength) == network)
+                            //已经存在过
+                            || hashSet.Contains(network);
+                        }
                         hashSet.Add(network);
 
                         return d.Exists == false;

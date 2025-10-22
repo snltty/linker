@@ -58,7 +58,7 @@ namespace linker.plugins.sforward.messenger
                 return;
             }
 
-            var nodes = await sForwardServerMasterTransfer.GetNodes(cache.Super, cache.UserId);
+            var nodes = await sForwardServerMasterTransfer.GetNodes(cache.Super, cache.UserId,cache.MachineId);
 
             connection.Write(serializer.Serialize(nodes));
         }

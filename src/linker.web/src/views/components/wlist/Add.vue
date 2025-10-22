@@ -1,21 +1,44 @@
 <template>
-   <el-dialog class="options-center" :title="$t('server.wlist')" destroy-on-close v-model="state.show" width="36rem" top="2vh">
+   <el-dialog class="options-center" :title="$t('server.wlist')" destroy-on-close v-model="state.show" width="40rem" top="2vh">
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="auto">
-                <el-form-item :label="$t('server.wlistUserId')" prop="UserId">
-                    <el-select v-model="state.ruleForm.UserId" filterable remote :loading="state.loading" :remote-method="handleUserIds" @change="handleUserIdChange">
-                        <el-option v-for="(item, index) in state.userids" :key="index" :label="item.MachineName" :value="item.UserId">
-                        </el-option>
-                    </el-select>
+                <el-form-item label="">
+                    <el-row class="w-100">
+                        <el-col :span="14">
+                            <el-form-item :label="$t('server.wlistMachineId')" prop="MachineId">
+                                <el-select v-model="state.ruleForm.MachineId" filterable remote :loading="state.loading" :remote-method="handleMachineIds" @change="handleMachineIdChange">
+                                    <el-option v-for="(item, index) in state.machineids" :key="index" :label="item.MachineName" :value="item.MachineId">
+                                    </el-option>
+                                </el-select>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="10">
+                            <el-form-item label-width="10">
+                                <el-checkbox v-model="state.apply2user">{{$t('server.wlistUserId')}}</el-checkbox>
+                            </el-form-item>
+                        </el-col>
+                    </el-row>
                 </el-form-item>
                 <el-form-item :label="$t('server.wlistName')" prop="Name">
                     <el-input v-trim v-model="state.ruleForm.Name" />
                 </el-form-item>
                 <el-form-item :label="$t(`server.wlistNodes`)" prop="Nodes">
-                    <el-input v-trim type="textarea" :value="state.nodesText" @click="handleShowNodes" readonly resize="none" :rows="4"></el-input>
+                    <el-input type="textarea" :value="state.nodesText" @click="handleShowNodes" readonly resize="none" :rows="4"></el-input>
                 </el-form-item>
                 <el-form-item v-if="state.prefix" :label="$t(`server.wlistNodes${state.ruleForm.Type}`)" prop="Domain">
                     <el-input v-trim type="textarea" v-model="state.ports" resize="none" :rows="2" @change="handlePortChange"></el-input>
+                </el-form-item>
+                <el-form-item :label="$t('server.wlistRangeTime')" prop="RangeTime">
+                    <el-date-picker
+                        v-model="state.timeRange"
+                        type="daterange"
+                        range-separator="->"
+                        :start-placeholder="$t('server.wlistUseTime')"
+                        :end-placeholder="$t('server.wlistEndTime')"
+                    />
+                </el-form-item>
+                <el-form-item :label="$t('server.wlistBandwidth')" prop="Bandwidth">
+                    <el-input-number v-model="state.ruleForm.Bandwidth" width="60" /> Mbps、&lt;0 禁用、0 不限制
                 </el-form-item>
                 <el-form-item :label="$t('server.wlistRemark')" prop="Remark">
                     <el-input v-trim v-model="state.ruleForm.Remark" />
@@ -53,6 +76,7 @@ import { computed, inject, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n';
 import { wlistAdd } from '@/apis/wlist';
 import { getSignInUserIds } from '@/apis/signin';
+import moment from 'moment/moment';
 export default {
     props: ['modelValue'],
     emits: ['update:modelValue','success'],
@@ -61,16 +85,30 @@ export default {
         const nodes = inject('nodes');
         const nodeJson =[{Id:'*',Name:'*'}].concat(nodes.value).reduce((json,item,index)=>{ json[item.Id] = item.Name; return json; },{});
         const editState = inject('edit');
+
+        const date = new Date();
+        const end = new Date(date.getFullYear()+1,date.getMonth(),date.getDate());
+        
         const state = reactive({
             show:true,
             
+            apply2user:!!editState.value.UserId,
+            timeRange:[
+                (editState.value.UseTime || moment(date).format('YYYY-MM-DD')).split(' ')[0],
+                (editState.value.EndTime || moment(end).format('YYYY-MM-DD')).split(' ')[0],
+            ],
+
             ruleForm:{
                 Id:editState.value.Id || 0,
                 Type:editState.value.Type || '',
+                MachineId:editState.value.MachineId || '',
                 UserId:editState.value.UserId || '',
                 Name:editState.value.Name || '',
                 Remark:editState.value.Remark || '',
                 Nodes:editState.value.Nodes || [],
+                Bandwidth:editState.value.Bandwidth || 0,
+                UseTime:editState.value.UseTime || '',
+                EndTime:editState.value.EndTime || '',
             },
             
             rules:{
@@ -84,7 +122,7 @@ export default {
             showNodes:false,
             nodeIds: [],
             ports: [],
-            userids:[],
+            machineids:[],
             prefix:editState.value.prefix
         });
         watch(() => state.show, (val) => {
@@ -114,18 +152,18 @@ export default {
         const handlePortChange = ()=>{
             formatNodes();        
         }
-        const handleUserIdChange = ()=>{
+        const handleMachineIdChange = ()=>{
             try{
-                state.ruleForm.Name = state.userids.filter(c=>c.UserId == state.ruleForm.UserId)[0].MachineName 
+                state.ruleForm.Name = state.machineids.filter(c=>c.MachineId == state.ruleForm.MachineId)[0].MachineName 
             }catch(e){
             }
         }
-        const handleUserIds = (query)=>{
+        const handleMachineIds = (query)=>{
             getSignInUserIds(query).then(data=>{
                 data.forEach(c=>{
-                    c.UserId = c.UserId || '';
+                    c.MachineId = c.MachineId || '';
                 })
-                state.userids = data;
+                state.machineids = data;
             }).catch(()=>{});
         }
 
@@ -135,6 +173,12 @@ export default {
                 if (!valid) return;
 
                 const json = JSON.parse(JSON.stringify(state.ruleForm));
+                if(state.apply2user){
+                    json.UserId = state.machineids.filter(c=>c.MachineId == state.ruleForm.MachineId)[0].UserId;
+                }
+                json.UseTime = `${state.timeRange[0]} 00:00:00`;
+                json.EndTime = `${state.timeRange[1]} 23:59:59`;
+
                 wlistAdd(json).then(()=>{
                     ElMessage.success(t('common.oper'));
                     state.show = false;
@@ -148,10 +192,10 @@ export default {
         onMounted(()=>{
             state.nodeIds = state.ruleForm.Nodes.filter(c=>!!!state.prefix ||c.indexOf(state.prefix) < 0).map(c=>c.replace(state.prefix,''));
             state.ports = state.ruleForm.Nodes.filter(c=>!!!state.prefix ||c.indexOf(state.prefix) >= 0).map(c=>c.replace(state.prefix,'')).join(',');
-            handleUserIds(state.ruleForm.UserId);
+            handleMachineIds(state.ruleForm.MachineId);
         });
 
-        return {state,handleShowNodes,srcFilterMethod,handleNodes,ruleFormRef,handleSave,handlePortChange,handleUserIdChange,handleUserIds}
+        return {state,handleShowNodes,srcFilterMethod,handleNodes,ruleFormRef,handleSave,handlePortChange,handleMachineIdChange,handleMachineIds}
     }
 }
 </script>

@@ -32,15 +32,21 @@ namespace linker.tun.hook
             GC.Collect();
         }
 
-        public bool Read(ReadOnlyMemory<byte> packet, ref bool send, ref bool writeBack)
+        public (LinkerTunPacketHookFlags add, LinkerTunPacketHookFlags del) Read(ReadOnlyMemory<byte> packet)
         {
-            LinkerSrcProxy.Read(packet, ref send, ref writeBack);
-            return send;
+            if (LinkerSrcProxy.Read(packet))
+            {
+                return (LinkerTunPacketHookFlags.None, LinkerTunPacketHookFlags.None);
+            }
+            return (LinkerTunPacketHookFlags.WriteBack, LinkerTunPacketHookFlags.Next | LinkerTunPacketHookFlags.Send);
         }
-        public async ValueTask<(bool next, bool write)> WriteAsync(ReadOnlyMemory<byte> packet, uint originDstIp, string srcId)
+        public async ValueTask<(LinkerTunPacketHookFlags add, LinkerTunPacketHookFlags del)> WriteAsync(ReadOnlyMemory<byte> packet, uint originDstIp, string srcId)
         {
-            bool write = await LinkerSrcProxy.WriteAsync(packet, originDstIp).ConfigureAwait(false);
-            return (write, write);
+            if (await LinkerSrcProxy.WriteAsync(packet, originDstIp).ConfigureAwait(false))
+            {
+                return await ValueTask.FromResult((LinkerTunPacketHookFlags.None, LinkerTunPacketHookFlags.None));
+            }
+            return await ValueTask.FromResult((LinkerTunPacketHookFlags.None, LinkerTunPacketHookFlags.Next | LinkerTunPacketHookFlags.Write));
         }
     }
 }

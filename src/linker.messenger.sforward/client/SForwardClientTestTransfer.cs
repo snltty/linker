@@ -51,7 +51,10 @@ namespace linker.messenger.sforward.client
                     Connection = signInClientState.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.Nodes
                 });
-                Nodes = serializer.Deserialize<List<SForwardServerNodeReportInfo>>(resp.Data.Span);
+                if(resp.Code == MessageResponeCodes.OK)
+                {
+                    Nodes = serializer.Deserialize<List<SForwardServerNodeReportInfo>>(resp.Data.Span);
+                }
             }
             catch (Exception ex)
             {

@@ -131,7 +131,7 @@ namespace linker.messenger.relay.messenger
 
         private async Task<List<RelayServerNodeReportInfo188>> GetNodes(SignCacheInfo from)
         {
-            return await relayServerTransfer.GetNodes(from.Super, from.UserId);
+            return await relayServerTransfer.GetNodes(from.Super, from.UserId, from.MachineId);
         }
 
 

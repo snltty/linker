@@ -79,9 +79,16 @@ namespace linker.messenger.socks5
                         uint maskValue = NetworkHelper.ToPrefixValue(d.PrefixLength);
                         uint network = ipInt & maskValue;
 
-                        d.Exists = (wan.Equals(c.Wan) && IPAddress.Any.Equals(d.MapIP))
-                        || excludeIps.Any(e => (e & maskValue) == network)
-                        || hashSet.Contains(network);
+                        if (d.IP.Equals(d.MapIP))
+                        {
+                            d.Exists = hashSet.Contains(network);
+                        }
+                        else
+                        {
+                            d.Exists = (wan.Equals(c.Wan) && IPAddress.Any.Equals(d.MapIP))
+                            || excludeIps.Any(e => (e & maskValue) == network)
+                            || hashSet.Contains(network);
+                        }
                         hashSet.Add(network);
                         return d.Exists == false;
                     });

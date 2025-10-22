@@ -15,16 +15,19 @@ namespace linker.messenger.firewall.hooks
             this.linkerFirewall = linkerFirewall;
         }
 
-        public bool Read(ReadOnlyMemory<byte> packet, ref bool send, ref bool writeBack)
+        public (LinkerTunPacketHookFlags add, LinkerTunPacketHookFlags del) Read(ReadOnlyMemory<byte> packet)
         {
             linkerFirewall.AddAllow(packet);
-            return true;
+            return (LinkerTunPacketHookFlags.None, LinkerTunPacketHookFlags.None);
         }
 
-        public ValueTask<(bool next, bool write)> WriteAsync(ReadOnlyMemory<byte> packet, uint originDstIp, string srcId)
+        public ValueTask<(LinkerTunPacketHookFlags add, LinkerTunPacketHookFlags del)> WriteAsync(ReadOnlyMemory<byte> packet, uint originDstIp, string srcId)
         {
-            bool res = linkerFirewall.Check(srcId, packet);
-            return ValueTask.FromResult((res, res));
+            if (linkerFirewall.Check(srcId, packet))
+            {
+                return ValueTask.FromResult((LinkerTunPacketHookFlags.None, LinkerTunPacketHookFlags.None));
+            }
+            return ValueTask.FromResult((LinkerTunPacketHookFlags.None, LinkerTunPacketHookFlags.Next | LinkerTunPacketHookFlags.Write));
         }
     }
 }
