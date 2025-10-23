@@ -9,9 +9,9 @@
  * @FilePath: \client.service.ui.webd:\desktop\linker\README.md
 -->
 <div align="center">
-<p><img src="./readme/logo.png" height="200"></p> 
+<p><img src="./readme/logo.png" height="180"></p> 
 
-# linker
+# Linker
 
 让你那些散落在世界各地的联网设备就像在隔壁房间一样轻松访问。
 
