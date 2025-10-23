@@ -52,12 +52,10 @@
 - **远程唤醒:** 可以通过`WOL魔术包、USB COM继电器、USB HID继电器`远程唤醒局域网内的设备
 
 ## [🖼️]管理页面
+
+linker 使用web页面进行管理，在 linker.tray.win.exe 打开管理页面，或者浏览器访问 http://localhost:1804
+
 <p><img src="./readme/home.png"></p> 
-
-## [⭐]星星历史
-
-[![Star History Chart](https://api.star-history.com/svg?repos=snltty/linker&type=Date)](https://www.star-history.com/#snltty/linker&Date)
-
 
 ## [🎁]为爱发电
 
@@ -90,6 +88,13 @@
 **[🔋为爱发电](https://afdian.com/a/snltty)**、或
 
 ![pay](readme/pay.png)
+
+## [⭐]星星历史
+
+[![Star History Chart](https://api.star-history.com/svg?repos=snltty/linker&type=Date)](https://www.star-history.com/#snltty/linker&Date)
+
+
+
 
 ## [👏]特别说明
 
