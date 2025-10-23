@@ -9,7 +9,7 @@
  * @FilePath: \client.service.ui.webd:\desktop\linker\README.md
 -->
 <div align="center">
-<p><img src="./readme/logo.png" height="256"></p> 
+<p><img src="./readme/logo.png" height="240"></p> 
 
 # Linker
 
