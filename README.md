@@ -96,9 +96,7 @@
 
 ## [👏]特别说明
 
-本项目已加入 [DotNetGuide](https://github.com/YSGStudyHards/DotNetGuide)  列表。<br/>
-本项目已加入 [dotNET China](https://gitee.com/dotnetchina)  组织。<br/>
-
+已加入[DotNetGuide](https://github.com/YSGStudyHards/DotNetGuide)列表、已加入[dotNET China](https://gitee.com/dotnetchina) 组织、
 ![dotnetchina](https://images.gitee.com/uploads/images/2021/0324/120117_2da9922c_416720.png "132645_21007ea0_974299.png")
 
 
