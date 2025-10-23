@@ -52,7 +52,7 @@
 - **远程唤醒:** 可以通过`WOL魔术包、USB COM继电器、USB HID继电器`远程唤醒局域网内的设备
 
 ## [🖼️]管理页面
-<p><img src="./readme/home.jpg"></p> 
+<p><img src="./readme/home.png"></p> 
 
 ## [⭐]星星历史
 
