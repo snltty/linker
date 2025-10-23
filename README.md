@@ -89,12 +89,6 @@ linker 使用web页面进行管理，在 linker.tray.win.exe 打开管理页面�
 
 ![pay](readme/pay.png)
 
-## [⭐]星星历史
-
-[![Star History Chart](https://api.star-history.com/svg?repos=snltty/linker&type=Date)](https://www.star-history.com/#snltty/linker&Date)
-
-
-
 
 ## [👏]特别说明
 
@@ -111,4 +105,10 @@ linker 使用web页面进行管理，在 linker.tray.win.exe 打开管理页面�
 **无任何保证**：本软件不提供任何明示或暗示的保证，包括但不限于对特定用途的适用性、无侵权性、商用性及可靠性的保证。
 
 **用户责任**：使用本软件即表示您理解并同意承担由此产生的一切风险及责任，使用人员有责任和义务遵守当地法律条规，请勿用于违法犯罪。
+
+
+## [⭐]星星历史
+
+[![Star History Chart](https://api.star-history.com/svg?repos=snltty/linker&type=Date)](https://www.star-history.com/#snltty/linker&Date)
+
 
