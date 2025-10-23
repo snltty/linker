@@ -89,7 +89,7 @@
 
 **[🔋为爱发电](https://afdian.com/a/snltty)**、或
 
-![pay](readme/pay.jpg)
+![pay](readme/pay.png)
 
 ## [👏]特别说明
 
