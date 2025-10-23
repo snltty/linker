@@ -68,6 +68,7 @@ html.dark .status-wrap .copy a{color:#ccc;}
     line-height:3rem;
     font-size:1.2rem;
     color:#555;
+    border-radius:0 0 .5rem .5rem;
 
     .copy{
         padding-left:.5rem;

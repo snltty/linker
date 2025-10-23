@@ -65,6 +65,7 @@ html.dark .head{background-color:#242526;border-color:#575c61;}
     border-bottom:1px solid #d0d7de;
     height:5rem;
     line-height:5rem;
+    border-radius:.5rem .5rem 0 0;
     .logo{
         padding:.5rem 0 0 1rem;
         height:4.5rem

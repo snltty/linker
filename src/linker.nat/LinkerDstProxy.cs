@@ -172,8 +172,8 @@ namespace linker.nat
                             Target = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp),
                             TargetEP = new IPEndPoint(NetworkHelper.ToIP(cache.IP), cache.Port)
                         };
+                        state.Target.WindowsUdpBug();
                         udpMap.AddOrUpdate(keyUdp, state, (a, b) => state);
-
                         await state.Target.SendToAsync(memory.Memory.Slice(0, result.ReceivedBytes), state.TargetEP);
                         ConnectCallback(keyUdp, state);
                     }

@@ -566,9 +566,7 @@ namespace linker.tunnel
                 {
                     RemoveBackground(remoteMachineId, transactionId);
                 }
-
             });
-
         }
         private bool AddBackground(string remoteMachineId, string transactionId)
         {

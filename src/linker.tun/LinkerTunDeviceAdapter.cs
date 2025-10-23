@@ -301,13 +301,14 @@ namespace linker.tun
                 LinkerTunDevicPacket packet = new LinkerTunDevicPacket();
                 while (cancellationTokenSource.IsCancellationRequested == false)
                 {
+                    int length = 0;
                     try
                     {
-                        byte[] buffer = linkerTunDevice.Read(out int length);
-                        if (length == 0)
+                        byte[] buffer = linkerTunDevice.Read(out length);
+                        if (length == 0 || length <= 4)
                         {
                             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                                LoggerHelper.Instance.Warning($"tuntap read buffer 0");
+                                LoggerHelper.Instance.Warning($"tuntap read buffer {length}");
                             await Task.Delay(1000);
                             continue;
                         }
@@ -343,7 +344,7 @@ namespace linker.tun
                     catch (Exception ex)
                     {
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                            LoggerHelper.Instance.Warning($"tuntap read buffer Exception {ex}");
+                            LoggerHelper.Instance.Warning($"tuntap read buffer Exception {length} {ex}");
                         setupError = ex.Message;
                         await Task.Delay(1000);
                     }

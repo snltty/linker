@@ -21,14 +21,9 @@
 
 <a href="https://linker.snltty.com">官方网站</a>、<a href="https://linker-doc.snltty.com">使用说明文档</a>、<a href="https://jq.qq.com/?_wv=1027&k=ucoIVfz4" target="_blank">加入组织：1121552990</a>
 
-</div>
-
-## [🪂]它在隔壁
-
 让你那些散落在世界各地的联网设备就像在隔壁房间一样轻松访问。
 
-<div align="center">
-<p><img src="./readme/linker.jpg"></p> 
+
 </div>
 
 ## [🎖️]主要功能
@@ -65,13 +60,11 @@
 - **使用文档：** 更多功能请阅读<a href="https://linker-doc.snltty.com">使用说明文档</a>
 
 ## [🖼️]管理页面
-<p><img src="./readme/full.jpg"></p> 
-<p><img src="./readme/plan.jpg"></p> 
-<p><img src="./readme/firewall.jpg"></p> 
+<p><img src="./readme/home.jpg"></p> 
 
 ## [⭐]星星历史
 
-[![Star History Chart](https://api.star-history.com/svg?repos=snltty/linker&type=Date&theme=dark)](https://www.star-history.com/#snltty/linker&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=snltty/linker&type=Date)](https://www.star-history.com/#snltty/linker&Date)
 
 ## [🚫]免责声明
 
@@ -116,7 +109,6 @@
 
 </div>
 </details>
-
 
 ## [👏]特别说明
 

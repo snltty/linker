@@ -6,7 +6,7 @@
                 <a href="javascript:;" class="a-line" @click="handleTuntapIP(tuntap.list[item.MachineId])" title="虚拟网卡IP">
                     <template v-if="item.Connected">
                         <template v-if="tuntap.list[item.MachineId].SetupError">
-                            <strong class="red" :title="tuntap.list[item.MachineId].SetupError">{{ tuntap.list[item.MachineId].IP }}</strong>
+                            <strong class="red" :title="`setup ${tuntap.list[item.MachineId].SetupError}`">{{ tuntap.list[item.MachineId].IP }}</strong>
                         </template>
                         <template v-else-if="tuntap.list[item.MachineId].Exists">
                             <strong class="red" title="IP存在冲突，请使用新IP">{{ tuntap.list[item.MachineId].IP }}</strong>
@@ -15,7 +15,7 @@
                             <strong class="disable" title="IP不生效，可能是设备不在线">{{ tuntap.list[item.MachineId].IP }}</strong>
                         </template>
                         <template v-else-if="tuntap.list[item.MachineId].NatError">
-                            <strong class="yellow" :title="tuntap.list[item.MachineId].NatError">{{ tuntap.list[item.MachineId].IP }}</strong>
+                            <strong class="yellow" :title="`nat ${tuntap.list[item.MachineId].NatError}`">{{ tuntap.list[item.MachineId].IP }}</strong>
                         </template>
                         <template v-else-if="tuntap.list[item.MachineId].AppNat && tuntap.list[item.MachineId].running">
                             <strong class="app-nat" :title="`虚拟网卡IP\r\n应用层DNAT`">{{ tuntap.list[item.MachineId].IP }}</strong>

@@ -54,32 +54,24 @@ export default {
 <style lang="stylus" scoped>
 @media screen and (max-width: 1000px) {
     body .app-wrap{
-        width:100%;
-        height:100%;
-        position:absolute;
-        left:0;
-        top:0;
-        right:auto;
-        bottom:auto;
-        height:100%;
-        width:100%;
-        transform:none;
-        max-width:100%;
-        border:0;
+        height:98%;
+        width:98%;
     }
 }
+
 .app-wrap{
     box-sizing:border-box;
     background-color:#fff;
-    border:1px solid #d0d7de;
+    border:1px solid #ccc;
     width:81rem;
-    max-width : 80%;
+    max-width : 98%;
     height:90%;
     position:absolute;
     left:50%;
     top:50%;
     transform:translateX(-50%) translateY(-50%);
-    box-shadow: 0 8px 50px rgba(0,0,0, 0.1);
+    box-shadow: 0 8px 50px rgba(0,0,0, 0.15);
+    border-radius: 0.5rem;
 }
 html.dark .app-wrap{
     background-color:#141414;
