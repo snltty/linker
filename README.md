@@ -21,6 +21,9 @@
 [![Release](https://img.shields.io/github/v/release/snltty/linker?sort=semver&style=for-the-badge)](https://github.com/snltty/linker/releases)
 [![License](https://img.shields.io/github/license/snltty/linker?style=for-the-badge)](https://mit-license.org/)
 
+[![GitHub Workflow][1]](https://github.com/snltty/linker/actions)
+[![GitHub License][5]](https://github.com/snltty/linker/blob/main/LICENSE)
+
 <a href="https://linker.snltty.com">官方网站</a>、<a href="https://linker-doc.snltty.com">使用说明文档</a>、<a href="https://jq.qq.com/?_wv=1027&k=ucoIVfz4" target="_blank">加入组织：1121552990</a>
 
 </div>
