@@ -85,9 +85,7 @@
 </div>
 </details>
 
-**[🔋为爱发电](https://afdian.com/a/snltty)**
-
-或
+**[🔋为爱发电](https://afdian.com/a/snltty)**、或
 
 ![pay](readme/pay.jpg)
 
