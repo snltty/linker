@@ -11,18 +11,17 @@
 <div align="center">
 <p><img src="./readme/logo.png" height="150"></p> 
 
-# linker、海内皆隔壁，天涯若比邻。
-
-[![Stars](https://img.shields.io/github/stars/snltty/linker?style=flat)](https://github.com/snltty/linker)
-[![Forks](https://img.shields.io/github/forks/snltty/linker?style=flat)](https://github.com/snltty/linker)
-[![Docker Pulls](https://img.shields.io/docker/pulls/snltty/linker-musl?style=flat)](https://hub.docker.com/r/snltty/linker-musl)
-[![Release](https://img.shields.io/github/v/release/snltty/linker?sort=semver)](https://github.com/snltty/linker/releases)
-[![License](https://img.shields.io/github/license/snltty/linker)](https://mit-license.org/)
-
-<a href="https://linker.snltty.com">官方网站</a>、<a href="https://linker-doc.snltty.com">使用说明文档</a>、<a href="https://jq.qq.com/?_wv=1027&k=ucoIVfz4" target="_blank">加入组织：1121552990</a>
+# linker
 
 让你那些散落在世界各地的联网设备就像在隔壁房间一样轻松访问。
 
+[![Stars](https://img.shields.io/github/stars/snltty/linker?style=for-the-badge)](https://github.com/snltty/linker)
+[![Forks](https://img.shields.io/github/forks/snltty/linker?style=for-the-badge)](https://github.com/snltty/linker)
+[![Docker Pulls](https://img.shields.io/docker/pulls/snltty/linker-musl?style=for-the-badge)](https://hub.docker.com/r/snltty/linker-musl)
+[![Release](https://img.shields.io/github/v/release/snltty/linker?sort=semver&style=for-the-badge)](https://github.com/snltty/linker/releases)
+[![License](https://img.shields.io/github/license/snltty/linker?style=for-the-badge)](https://mit-license.org/)
+
+<a href="https://linker.snltty.com">官方网站</a>、<a href="https://linker-doc.snltty.com">使用说明文档</a>、<a href="https://jq.qq.com/?_wv=1027&k=ucoIVfz4" target="_blank">加入组织：1121552990</a>
 
 </div>
 
