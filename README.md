@@ -76,6 +76,8 @@
 
 若此项目对您有用，可以考虑对作者稍加支持，让作者更有动力，在项目上投入更多时间和精力
 
+<img src="https://github.com/snltty/linker/raw/refs/heads/out/sponsor/afdian-sponsor.svg" alt="sponsor">
+
 <details>
 <summary><strong>感谢名单</strong></summary>
 <div>

@@ -1,0 +1,36 @@
+name: Sponsor Generation
+
+on:
+  schedule:
+    - cron: "0 */24 * * *"
+  workflow_dispatch:
+  push:
+
+jobs:
+  generate:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Create dist directory
+        run: mkdir dist
+
+      - name: Run afdian-sponsor action
+        uses: Sn0wo2/afdian-sponsor@v1
+        env:
+          AFDIAN_USER_ID: ${{ secrets.AFDIAN_USER_ID }}
+          AFDIAN_API_TOKEN: ${{ secrets.AFDIAN_API_TOKEN }}
+          AFDIAN_OUTPUT: "./dist/afdian-sponsor.svg"
+
+      - name: Push afdian-sponsor-svg to the out/sponsor branch
+        uses: crazy-max/ghaction-github-pages@v4
+        with:
+          target_branch: out/sponsor
+          build_dir: dist
+          commit_message: "ci(sponsor): deploy"
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
