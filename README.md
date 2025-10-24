@@ -18,6 +18,7 @@
 [![Stars](https://img.shields.io/github/stars/snltty/linker?style=for-the-badge)](https://github.com/snltty/linker)
 [![Forks](https://img.shields.io/github/forks/snltty/linker?style=for-the-badge)](https://github.com/snltty/linker)
 [![Docker Pulls](https://img.shields.io/docker/pulls/snltty/linker-musl?style=for-the-badge)](https://hub.docker.com/r/snltty/linker-musl)
+
 [![Release](https://img.shields.io/github/v/release/snltty/linker?sort=semver&style=for-the-badge)](https://github.com/snltty/linker/releases)
 [![License](https://img.shields.io/github/license/snltty/linker?style=for-the-badge)](https://mit-license.org/)
 [![Language](https://img.shields.io/github/languages/top/snltty/linker?style=for-the-badge)](https://github.com/snltty/linker)
@@ -35,21 +36,30 @@
 - **多平台支持:** 支持`windows、linux、android、docker、openwrt、各种NAS`。
 
 ### 2、打洞中继
+
+这些是隧道连接方式。
+
 - **打洞连接:** 支持`TCP、UDP、IPV4、IPV6`，内含多种打洞方法，总有一个适合你。
 - **中继连接:** 自建中继节点，支持多中继节点，承载海量设备。
 
 ### 3、通信方式
-- **异地组网:** 使用虚拟网卡，支持`点对点、点对网、网对网、自动分配虚拟IP`。
-- **端口转发:** 如果你不喜欢使用虚拟网卡的话。
-- **Socks5:** 区别于端口转发，端口转发两端一一对应，需要指定端口，而socks5代理可以代理所有端口，实现类似于点对网的效果。
-- **服务器穿透:** 使用端口或域名访问内网服务(支持`计划任务`，定时定长自动开启关闭，例如每天在上9点自动开启穿透，1小时后自动关闭穿透)。
+
+这些是在隧道建立后，客户端之间访问实际业务的通信方式。
+
+- **异地组网:** 使用虚拟网卡实现`点对点`、`点对网`、`网对网`，支持自动分配虚拟IP。
+- **端口转发:** 在无法使用虚拟网卡，或者不想使用虚拟网卡的时候，可以使用一对一端口转发实现相互访问，相关说明请查看[《关于单隧道实现多服务访问的端口转发状态管理的研究》](https://blog.snltty.com/2025/10/01/forward/)。
+- **Socks5:** 区别于端口转发，端口转发两端一一对应，需要指定端口，而Socks5代理可以代理所有端口，实现类似于点对网的效果。
 
 ### 4、特色功能
-- **TCP over TCP优化:** 不依赖第三方应用层协议栈，仅tun网卡内自转发实现转代理。
-- **网段映射:** 当多个设备不同的局域网使用相同的内网网段（如`192.168.1.0/24`）存在冲突时，网段映射可以让你继续顺利的使用点对网和网对网，例如配置`192.168.188.0/24->192.168.1.0/24`，就可以使用`192.168.188.2`访问`192.168.1.2`。
-- **应用层NAT:** 内置了使用应用层代理NAT，在无法使用系统NAT时也可以顺利使用点对网和网对网。
-- **应用层防火墙:** 内置了防火墙功能，应用于虚拟网卡、端口转发、socks5，可以精细控制客户端的访问权限，例如只允许A访问B的3389，其它客户端无法访问
+
+一些别人可能没有的，比较特色的创新功能。
+
+- **TCP over TCP优化:** 在tcp over tcp下，使用<a href="https://github.com/snltty/tun324">tun324</a>为通信提速，相关说明请查看[《关于TUN虚拟网卡内重定向实现TCP/IP三层转四层代理的技术原理研究》](https://blog.snltty.com/2025/09/27/tun2proxy/)。
+- **网段映射:** 对于家庭网络，一般使用192.168.1.0/24这样的网段，这样多个设备之间难免冲突，网段映射可以很好的解决这个问题。
+- **应用层NAT:** 默认使用`iptables`、`NetNat`建立NAT实现点/网点对网。在无法使用系统内置NAT的情况下，应用层NAT闪亮登场。
+- **应用层防火墙:** 内置了防火墙功能，应用于虚拟网卡、端口转发、Socks5等通信功能，可以精细控制客户端的访问权限，例如只允许A访问B的3389，其它客户端无法访问。
 - **远程唤醒:** 可以通过`WOL魔术包、USB COM继电器、USB HID继电器`远程唤醒局域网内的设备
+- **内网穿透:** 类似于FRP，使用端口或域名通过服务器访问内网服务(支持`计划任务`，定时定长自动开启关闭，例如每天在上9点自动开启穿透，1小时后自动关闭穿透)。
 
 ## [🖼️]管理页面
 
