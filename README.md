@@ -111,14 +111,6 @@
 已加入[DotNetGuide](https://github.com/YSGStudyHards/DotNetGuide)列表、已加入[dotNET China](https://gitee.com/dotnetchina) 组织、
 <img src="https://images.gitee.com/uploads/images/2021/0324/120117_2da9922c_416720.png" height="20">
 
-## [🚫]免责声明
-
-本软件基于 [GPL-2.0 License](https://opensource.org/licenses/GPL-2.0) 发布，完全免费提供，旨在“按现状”供用户使用。作者及贡献者不对使用本软件所产生的任何直接或间接后果承担责任，包括但不限于性能下降、数据丢失、服务中断、或任何其他类型的损害。
-
-**无任何保证**：本软件不提供任何明示或暗示的保证，包括但不限于对特定用途的适用性、无侵权性、商用性及可靠性的保证。
-
-**用户责任**：使用本软件即表示您理解并同意承担由此产生的一切风险及责任，使用人员有责任和义务遵守当地法律条规，请勿用于违法犯罪。
-
 [![Star History Chart](https://api.star-history.com/svg?repos=snltty/linker&type=Date)](https://www.star-history.com/#snltty/linker&Date)
 
 
