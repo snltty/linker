@@ -33,8 +33,8 @@
 ## [🎖️]主要功能
 
 ### 1、私有部署
-- **私有部署:** 私有部署服务端，信息更安全。
-- **多平台支持:** 支持`windows、linux、android、docker、openwrt、各种NAS`。
+- **私有部署:** 官方提供了公开服务器和一些免费中继节点，但会有所限制，建议私有部署属于你自己的服务器。
+- **多平台支持:** 支持`Windows`、`Linux`、`Android`、`Docker`、`OpenWrt`、`NAS`，对于ios、macos，我也没有苹果手机电脑，没有开发者账号，暂时不支持。
 
 ### 2、打洞中继
 
@@ -55,7 +55,7 @@
 
 一些别人可能没有的，比较特色的创新功能。
 
-- **TCP over TCP优化:** 在tcp over tcp下，使用<a href="https://github.com/snltty/tun324">tun324</a>为通信提速，相关说明请查看[《关于TUN虚拟网卡内重定向实现TCP/IP三层转四层代理的技术原理研究》](https://blog.snltty.com/2025/09/27/tun2proxy/)。
+- **TCP over TCP:** 在tcp over tcp下，使用<a href="https://github.com/snltty/tun324">tun324</a>为通信提速，相关说明请查看[《关于TUN虚拟网卡内重定向实现TCP/IP三层转四层代理的技术原理研究》](https://blog.snltty.com/2025/09/27/tun2proxy/)。
 - **网段映射:** 对于家庭网络，一般使用192.168.1.0/24这样的网段，这样多个设备之间难免冲突，网段映射可以很好的解决这个问题。
 - **应用层NAT:** 默认使用`iptables`、`NetNat`建立NAT实现点/网点对网。在无法使用系统内置NAT的情况下，应用层NAT闪亮登场。
 - **应用层防火墙:** 内置了防火墙功能，应用于虚拟网卡、端口转发、Socks5等通信功能，可以精细控制客户端的访问权限，例如只允许A访问B的3389，其它客户端无法访问。
