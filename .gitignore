@@ -6,6 +6,8 @@ node_modules
 /public/*
 /x64/*
 
+packages
+
 
 TestResults
 /VpnServer
