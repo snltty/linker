@@ -1,6 +1,5 @@
 ﻿using LiteDB;
 using linker.messenger.wlist;
-using linker.libs.extends;
 
 namespace linker.messenger.store.file.wlist
 {
@@ -42,11 +41,11 @@ namespace linker.messenger.store.file.wlist
             return await Task.FromResult(liteCollection.Delete(id)).ConfigureAwait(false);
         }
 
-        public async Task<List<WhiteListInfo>> Get(string type, string userid, string machineId)
+        public async Task<List<WhiteListInfo>> Get(string type, string userid, string[] machineIds)
         {
             if (string.IsNullOrWhiteSpace(type) || string.IsNullOrWhiteSpace(userid)) return [];
 
-            return await Task.FromResult(liteCollection.Find(c => c.Type == type && c.UseTime <= DateTime.Now && c.EndTime > DateTime.Now && (c.UserId == userid || c.MachineId == machineId)).ToList()).ConfigureAwait(false);
+            return await Task.FromResult(liteCollection.Find(c => c.Type == type && c.UseTime <= DateTime.Now && c.EndTime > DateTime.Now && (c.UserId == userid || machineIds.Contains( c.MachineId))).ToList()).ConfigureAwait(false);
         }
 
         public async Task<WhiteListPageResultInfo> Page(WhiteListPageRequestInfo info)

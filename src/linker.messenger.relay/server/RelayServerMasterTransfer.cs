@@ -42,7 +42,7 @@ namespace linker.messenger.relay.server
         }
 
 
-        public ulong AddRelay(SignCacheInfo from, SignCacheInfo to, RelayInfo170 info)
+        public ulong AddRelay(SignCacheInfo from, SignCacheInfo to)
         {
             ulong flowingId = Interlocked.Increment(ref relayFlowingId);
 
@@ -68,14 +68,14 @@ namespace linker.messenger.relay.server
         {
             if (relayCaching.TryGetValue(key, out RelayCacheInfo cache) && reports.TryGetValue(nodeid, out var node))
             {
-                List<double> bandwidth = await relayServerWhiteListStore.GetBandwidth(cache.UserId, cache.FromId, node.Id);
+                List<double> bandwidth = await relayServerWhiteListStore.GetBandwidth(cache.UserId, cache.FromId, cache.ToId, node.Id);
                 if (bandwidth.Any(c => c < 0))
                 {
                     return null;
                 }
 
                 cache.Bandwidth = bandwidth.Count > 0
-                ? bandwidth.Any(c => c == 0) ? 0 : bandwidth.Max()
+                ? bandwidth.Any(c => c == 0) ? 0 : bandwidth.Min()
                 : cache.Super ? 0 : -1;
 
                 cache.Cdkey = (await relayServerCdkeyStore.GetAvailable(cache.UserId).ConfigureAwait(false)).Select(c => new RelayCdkeyInfo { Bandwidth = c.Bandwidth, Id = c.Id, LastBytes = c.LastBytes }).ToList();

@@ -124,7 +124,7 @@ namespace linker.messenger.relay.messenger
             };
             if (result.Nodes.Count > 0)
             {
-                result.FlowingId = relayServerTransfer.AddRelay(from, to, info);
+                result.FlowingId = relayServerTransfer.AddRelay(from, to);
             }
             connection.Write(serializer.Serialize(result));
         }

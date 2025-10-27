@@ -6,7 +6,7 @@
         public Task<bool> Add(WhiteListInfo info);
         public Task<bool> Del(int id);
 
-        public Task<List<WhiteListInfo>> Get(string type, string userid, string machineId);
+        public Task<List<WhiteListInfo>> Get(string type, string userid, string[] machineIds);
     }
     public sealed partial class WhiteListDelInfo
     {

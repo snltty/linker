@@ -16,10 +16,11 @@
         /// 获取白名单
         /// </summary>
         /// <param name="userid"></param>
-        /// <param name="machineid"></param>
+        /// <param name="fromMachineId"></param>
+        /// <param name="toMachineId"></param>
         /// <param name="nodeid"></param>
         /// <returns></returns>
-        public Task<List<double>> GetBandwidth(string userid, string machineid, string nodeid);
+        public Task<List<double>> GetBandwidth(string userid, string fromMachineId,string toMachineId, string nodeid);
     }
 
     public sealed class RelayServerWhiteListStore : IRelayServerWhiteListStore
@@ -28,7 +29,7 @@
         {
             return await Task.FromResult(new List<RelayWhiteListItem>());
         }
-        public async Task<List<double>> GetBandwidth(string userid, string machineid, string nodeid)
+        public async Task<List<double>> GetBandwidth(string userid, string fromMachineId, string toMachineId, string nodeid)
         {
             return await Task.FromResult(new List<double>());
         }
