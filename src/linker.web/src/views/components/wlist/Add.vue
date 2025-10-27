@@ -146,10 +146,12 @@ export default {
             return item.Name.toLowerCase().includes(query.toLowerCase())
         }
         const handleNodes = ()=>{
+            state.ports = '';
             formatNodes();
             state.showNodes = false;
         }
         const handlePortChange = ()=>{
+            state.nodeIds = [];
             formatNodes();        
         }
         const handleMachineIdChange = ()=>{

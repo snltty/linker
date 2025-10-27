@@ -239,9 +239,6 @@ namespace linker.messenger.relay.server
 
             Interlocked.Add(ref cache.Sendt, length);
 
-            var current = cache.CurrentCdkey;
-            if (current != null) return current.LastBytes > 0;
-
             return Node.MaxGbTotalLastBytes > 0;
         }
 
@@ -332,6 +329,11 @@ namespace linker.messenger.relay.server
                 foreach (var cache in cdkeys)
                 {
                     Interlocked.Add(ref cache.Sendt, -cache.SendtCache);
+
+                    if (Node.MaxGbTotalLastBytes >= cache.SendtCache)
+                        relayServerNodeStore.SetMaxGbTotalLastBytes(Node.MaxGbTotalLastBytes - cache.SendtCache);
+                    else relayServerNodeStore.SetMaxGbTotalLastBytes(0);
+
                     Interlocked.Exchange(ref cache.SendtCache, 0);
                     //当前cdkey流量用完了，就重新找找新的cdkey
                     if (cache.CurrentCdkey.LastBytes <= 0)
@@ -339,6 +341,7 @@ namespace linker.messenger.relay.server
                         SetLimit(cache);
                     }
                 }
+                relayServerNodeStore.Confirm();
             }
         }
         private void TrafficTask()
