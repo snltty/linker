@@ -382,7 +382,7 @@ export default {
     'server.wlistSecretKey': '白名单密钥',
     'server.wlistText': '密钥正确时可管理白名单',
     'server.wlistMachineId': '客户端',
-    'server.wlistUserId': '应用于用户id',
+    'server.wlistUserId': '作用到用户id',
     'server.wlistName': '名称',
     'server.wlistBandwidth': '带宽',
     'server.wlistRemark': '备注',

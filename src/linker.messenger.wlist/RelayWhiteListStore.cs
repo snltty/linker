@@ -15,7 +15,7 @@ namespace linker.messenger.wlist
         }
         public async Task<List<double>> GetBandwidth(string userid, string machineid, string nodeid)
         {
-            return (await whiteListServerStore.Get("Relay", userid, machineid).ConfigureAwait(false)).Where(c => c.Nodes.Contains(nodeid)).Select(c => c.Bandwidth).ToList();
+            return (await whiteListServerStore.Get("Relay", userid, machineid).ConfigureAwait(false)).Where(c => c.Nodes.Contains(nodeid) || c.Nodes.Contains("*")).Select(c => c.Bandwidth).ToList();
         }
     }
 }

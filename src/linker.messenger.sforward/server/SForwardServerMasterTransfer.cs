@@ -115,7 +115,7 @@ namespace linker.messenger.sforward.server
             info.Super = from.Super;
 
             var bandwidth = sforward.Where(c => (c.Nodes.Contains($"sfp->{target}") || c.Nodes.Contains($"sfp->*")) && (c.Nodes.Contains(info.NodeId) || c.Nodes.Contains($"*"))).ToList();
-            if(bandwidth.Any(c=>c.Bandwidth < 0))
+            if (bandwidth.Any(c => c.Bandwidth < 0))
             {
                 return new SForwardAddResultInfo
                 {
@@ -133,7 +133,7 @@ namespace linker.messenger.sforward.server
             var anyCdkeys = await sForwardServerCdkeyStore.GetAvailable(from.UserId, $"sfp->*").ConfigureAwait(false);
             info.Cdkey = cdkeys.Concat(anyCdkeys).Select(c => new SForwardCdkeyInfo { Bandwidth = c.Bandwidth, Id = c.Id, LastBytes = c.LastBytes }).ToList();
 
-            if (info.Cdkey.Count ==0 && node.Public == false && info.Super == false && bandwidth.Count == 0)
+            if (info.Cdkey.Count == 0 && node.Public == false && info.Super == false && bandwidth.Count == 0)
             {
                 return new SForwardAddResultInfo
                 {
@@ -195,15 +195,15 @@ namespace linker.messenger.sforward.server
         /// </summary>
         /// <param name="super">是否已认证</param>
         /// <returns></returns>
-        public async Task<List<SForwardServerNodeReportInfo>> GetNodes(bool super, string userid,string machineId)
+        public async Task<List<SForwardServerNodeReportInfo>> GetNodes(bool super, string userid, string machineId)
         {
-            List<string> sforward = (await sForwardServerWhiteListStore.GetNodes(userid, machineId)).Where(c=>c.Bandwidth>=0).SelectMany(c=>c.Nodes).ToList();
+            List<string> sforward = (await sForwardServerWhiteListStore.GetNodes(userid, machineId)).Where(c => c.Bandwidth >= 0).SelectMany(c => c.Nodes).ToList();
 
             var result = reports.Values
                 .Where(c => Environment.TickCount64 - c.LastTicks < 15000)
                 .Where(c =>
                 {
-                    return super || c.Public || sforward.Contains(c.Id);
+                    return super || c.Public || sforward.Contains(c.Id) || sforward.Contains("*");
                 })
                 .OrderByDescending(c => c.LastTicks);
 
