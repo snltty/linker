@@ -1,6 +1,6 @@
 import win.ui;
 /*DSG{{*/
-var winform = win.form(text="linker 管理(简单)";right=399;bottom=639;border="thin";max=false;topmost=1)
+var winform = win.form(text="linker 管理(简单)";right=399;bottom=639;border="thin";max=false)
 winform.add()
 /*}}*/
 
@@ -20,6 +20,11 @@ catch(e){
 	
 }
 
+import fsys;
+if(fsys.searchFile("configs/topmost.txt"))
+{
+	win.setTopmost(winform.hwnd);
+}
 
 winform.show();
 win.loopMessage();
