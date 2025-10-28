@@ -686,9 +686,12 @@ namespace linker.plugins.sforward.messenger
             {
                 return false;
             }
-            host = host.Replace($".{sForwardServerNodeTransfer.Node.Domain}", "");
 
-            sForwardServerCahing.TryGet(host, out string machineId);
+            host = host.Substring(0, host.Length- sForwardServerNodeTransfer.Node.Domain.Length);
+            if (sForwardServerCahing.TryGet(host, out string machineId) == false)
+            {
+                return false;
+            }
             return await sForwardServerNodeTransfer.ProxyNode(new SForwardProxyInfo
             {
                 Domain = host,

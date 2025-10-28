@@ -131,15 +131,24 @@ namespace linker.plugins.sforward.proxy
                 //是web的，去获取host请求头，匹配不同的服务
                 if (token.IsWeb)
                 {
+
                     httpConnections.TryAdd(id, token);
                     key = token.Host = GetHost(buffer1.Memory.Slice(0, length));
                     if (string.IsNullOrWhiteSpace(token.Host))
                     {
+                        if (Write404(token, buffer1.Memory))
+                        {
+                            return;
+                        }
                         CloseClientSocket(token);
                         return;
                     }
                     if (await WebConnect(token.Host, token.ListenPort, id).ConfigureAwait(false) == false)
                     {
+                        if (Write404(token, buffer1.Memory))
+                        {
+                            return;
+                        }
                         CloseClientSocket(token);
                         return;
                     }
@@ -150,6 +159,10 @@ namespace linker.plugins.sforward.proxy
                     //纯TCP的，直接拿端口去匹配
                     if (await TunnelConnect(token.ListenPort, id).ConfigureAwait(false) == false)
                     {
+                        if (Write404(token, buffer1.Memory))
+                        {
+                            return;
+                        }
                         CloseClientSocket(token);
                         return;
                     }
@@ -200,8 +213,36 @@ namespace linker.plugins.sforward.proxy
             }
         }
 
+        private bool Write404(AsyncUserToken token, Memory<byte> buffer)
+        {
+            try
+            {
+                if (buffer.Slice(0, getBytes.Length).Span.SequenceEqual(getBytes) == false)
+                {
+                    return false;
+                }
 
-        public void AddHttp(string host, bool super,double bandwidth, List<SForwardCdkeyInfo> cdkeys)
+                string path404 = Path.Join(Helper.CurrentDirectory, "web", "404.html");
+                string path404Default = Path.Join(Helper.CurrentDirectory, "web", "404_default.html");
+
+                string f0f = File.Exists(path404) ? File.ReadAllText(path404) : File.Exists(path404Default) ? File.ReadAllText(path404Default) : string.Empty;
+                if (string.IsNullOrWhiteSpace(f0f))
+                {
+                    return false;
+                }
+
+                string response = $"HTTP/1.1 200 OK\r\nContent-Length: {f0f.Length}\r\nContent-type: text/html\r\nServer: linker\r\nConnection: close\r\n\r\n{f0f}";
+                byte[] responseBytes = Encoding.UTF8.GetBytes(response);
+                token.SourceSocket.Send(responseBytes);
+
+                return true;
+            }
+            catch (Exception)
+            {
+            }
+            return false;
+        }
+        public void AddHttp(string host, bool super, double bandwidth, List<SForwardCdkeyInfo> cdkeys)
         {
             SForwardTrafficCacheInfo sForwardTrafficCacheInfo = sForwardServerNodeTransfer.AddTrafficCache(super, bandwidth, cdkeys);
             httpCaches.AddOrUpdate(host, sForwardTrafficCacheInfo, (a, b) => sForwardTrafficCacheInfo);
@@ -222,6 +263,7 @@ namespace linker.plugins.sforward.proxy
         }
 
 
+        private readonly byte[] getBytes = Encoding.UTF8.GetBytes("GET / HTTP/");
         private readonly byte[] hostBytes = Encoding.UTF8.GetBytes("Host: ");
         private readonly byte[] wrapBytes = Encoding.UTF8.GetBytes("\r\n");
         private readonly byte[] colonBytes = Encoding.UTF8.GetBytes(":");
