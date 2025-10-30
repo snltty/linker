@@ -9,6 +9,7 @@ using linker.messenger.sforward.server;
 using linker.messenger.sforward.client;
 using System.Net.Sockets;
 using linker.libs.timer;
+using linker.libs.extends;
 
 namespace linker.plugins.sforward.messenger
 {

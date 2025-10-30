@@ -68,6 +68,7 @@ namespace linker.messenger.sforward.server
             if (serverDoamins.TryGetValue(domain, out CacheInfo cache))
             {
                 machineId = cache.MachineId;
+                return true;
             }
             return false;
         }
@@ -78,6 +79,7 @@ namespace linker.messenger.sforward.server
             if (serverPorts.TryGetValue(port, out CacheInfo cache))
             {
                 machineId = cache.MachineId;
+                return true;
             }
             return false;
         }
@@ -96,6 +98,7 @@ namespace linker.messenger.sforward.server
                 if (serverDoamins.TryRemove(domain, out CacheInfo cache1))
                 {
                     machineId = cache1.MachineId;
+                    return true;
                 }
             }
             return false;
@@ -106,6 +109,7 @@ namespace linker.messenger.sforward.server
             if (serverDoamins.TryRemove(domain, out CacheInfo cache))
             {
                 machineId = cache.MachineId;
+                return true;
             }
             return false;
         }
@@ -118,6 +122,7 @@ namespace linker.messenger.sforward.server
                 if (serverPorts.TryRemove(port, out CacheInfo cache1))
                 {
                     machineId = cache1.MachineId;
+                    return true;
                 }
             }
             return false;
@@ -128,6 +133,7 @@ namespace linker.messenger.sforward.server
             if (serverPorts.TryRemove(port, out CacheInfo cache1))
             {
                 machineId = cache1.MachineId;
+                return true;
             }
             return false;
         }
