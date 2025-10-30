@@ -203,7 +203,7 @@ export default {
 <style lang="stylus" scoped>
 html.dark .head{border-color:#575c61;}
 .head {
-    margin-bottom: 1rem;
+    margin-bottom: 0.6rem;
     color:#555;
     border:1px solid #eee;
     padding:0 1rem 1rem 1rem;

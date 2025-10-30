@@ -5,7 +5,6 @@
 </template>
 
 <script>
-import { injectGlobalData } from '@/provide';
 import { nextTick, onMounted, reactive } from 'vue';
 
 export default {
@@ -37,6 +36,11 @@ export default {
 .adv-wrap{
     padding:1rem 1rem 0 1rem;
 
-    .inner{border:1px solid #eee;padding:.6rem;border-radius.4rem;}
+    .inner{
+        border:1px solid #ddd;
+        padding:.6rem;
+        border-radius.4rem;
+        box-shadow: 0 0 6px 2px rgba(0, 0, 0, 0.05);
+    }
 }
 </style>

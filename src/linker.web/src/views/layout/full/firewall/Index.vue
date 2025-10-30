@@ -30,7 +30,6 @@ export default {
     font-size:1.3rem
 
     .inner {
-        padding: 1rem;
         width 100%;
         box-sizing: border-box;
     }
