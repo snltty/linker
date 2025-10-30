@@ -5,18 +5,25 @@
 </template>
 
 <script>
-import { reactive } from 'vue';
+import { injectGlobalData } from '@/provide';
+import { nextTick, onMounted, reactive } from 'vue';
 
 export default {
     setup () {
+
         const state = reactive({
             html:''      
         });
-        fetch('https://linker.snltty.com/adv.html').then(res=>res.text()).then(res=>{
-            console.log(res);
-            state.html = res;
-        }).catch((err)=>{
-            console.log(err);
+
+        onMounted(()=>{
+            fetch('https://linker.snltty.com/adv.html').then(res=>res.text()).then(res=>{
+                state.html = res;
+                nextTick(()=>{
+                    window.dispatchEvent(new Event('resize'));
+                });
+            }).catch((err)=>{
+                console.log(err);
+            });
         });
 
         return {

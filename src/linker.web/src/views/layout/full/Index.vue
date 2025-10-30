@@ -6,7 +6,7 @@
         <div class="adv">
             <Adv></Adv>
         </div>
-        <div class="body flex-1 relative" ref="wrap">
+        <div class="body flex-1 relative" ref="wrap" id="main-body">
             <div class="home absolute">
                 <router-view></router-view>
             </div>
@@ -46,7 +46,7 @@ export default {
                 router.push({name:'NoPermission'});
             }
             window.addEventListener('resize', resizeTable);
-            resizeTable();
+            nextTick(() => {window.dispatchEvent(new Event('resize'));});
         });
         onUnmounted(() => {
             window.removeEventListener('resize', resizeTable);
