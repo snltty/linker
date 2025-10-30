@@ -1,14 +1,6 @@
-name: Sponsor Generation
+name: Sponsor
 
 on:
-  push:
-    branches: [ "master" ]
-    paths:
-      - 'version.txt'
-  pull_request:
-    branches: [ "master" ]
-    paths:
-      - 'version.txt'
   workflow_dispatch:
 
 
