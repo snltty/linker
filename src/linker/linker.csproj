@@ -21,18 +21,16 @@
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Description>1. 一些累计更新，一些BUG修复
-2. 虚拟网卡TCP转代理，为TCP隧道提速
-3. 一些UI优化
-4. 优化白名单，可以禁用连接和针对限速
-5. 点/网对网，路由IP与目标IP相同则忽略排除列表和相同外网IP
-6. 测试中，暂不建议更新升级</Description>
+2. 管理窗口默认置顶改为可选
+3. 增加内网穿透HTTP协议默认404页面，在web文件夹中，当存在优先404.html，其次404_default.html
+4. 管理页面增加公告栏</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>1.9.4</Version>
-		<AssemblyVersion>1.9.4</AssemblyVersion>
-		<FileVersion>1.9.4</FileVersion>
+		<Version>1.9.5</Version>
+		<AssemblyVersion>1.9.5</AssemblyVersion>
+		<FileVersion>1.9.5</FileVersion>
 		<DelaySign>False</DelaySign>
 	</PropertyGroup>
 
