@@ -3,6 +3,9 @@
         <div class="head">
             <Head></Head>
         </div>
+        <div class="adv">
+            <Adv></Adv>
+        </div>
         <div class="body flex-1 relative" ref="wrap">
             <div class="home absolute">
                 <router-view></router-view>
@@ -23,9 +26,10 @@ import Install from './install/Index.vue'
 import { injectGlobalData } from '@/provide';
 import { nextTick, onMounted, onUnmounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import Adv from '../../components/adv/Index.vue'
 export default {
     name: 'Index',
-    components: {Head, Status, Install},
+    components: {Head, Status, Install,Adv},
     setup(props) {
         const globalData = injectGlobalData();
         const router = useRouter();
