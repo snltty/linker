@@ -38,6 +38,7 @@ hIcon = win.image.loadIconFromFile("/res/favicon.ico",true);
 hIcon1 = win.image.loadIconFromFile("/res/favicon1.ico",true);
 mainForm.myTray = null;
 mainForm.wndproc = function(hwnd,message,wParam,lParam){
+		
 		//托盘菜单
 		if(message === 0xACCF ){
 			//右键
@@ -52,7 +53,7 @@ mainForm.wndproc = function(hwnd,message,wParam,lParam){
 			//左键
 			if(lParam === 0x0202){
 				mainForm.show();
-				win.setTopmost(mainForm.hwnd);
+				mainForm.topmostExists();
 			} 
 		}
 		//关闭
@@ -268,16 +269,31 @@ mainForm.getUrl = function(){
 	return '';
 }
 
+mainForm.topmostExists = function(){
+	if(io.exist("configs/topmost.txt")) 
+	{
+		mainForm.ckTopMost.checked = true;
+		win.setTopmost(mainForm.hwnd,true);
+	}
+	else
+	{
+		mainForm.ckTopMost.checked = false;
+		win.setTopmost(mainForm.hwnd,false);
+	}
+}
 
 mainForm.ckTopMost.oncommand = function(id,event){
 	import fsys;
 	if(mainForm.ckTopMost.checked)
 	{
+		io.createDir("configs");
 		string.save("configs/topmost.txt", "1");
 	}else
 	{
 		fsys.delete("configs/topmost.txt");
 	}
+	mainForm.topmostExists();
+	
 }
 
 mainForm.checkService();
@@ -306,12 +322,8 @@ mainForm.setInterval(
 )
 mainForm.show();
 
-import fsys;
-if(fsys.searchFile("configs/topmost.txt"))
-{
-	mainForm.ckTopMost.checked = true;
-	win.setTopmost(mainForm.hwnd);
-}
+mainForm.topmostExists();
+
 if(_ARGV["task"])
 {
 	mainForm.show(false);
