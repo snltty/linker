@@ -687,8 +687,7 @@ namespace linker.plugins.sforward.messenger
             {
                 return false;
             }
-
-            host = host.Substring(0, host.Length- sForwardServerNodeTransfer.Node.Domain.Length);
+            host = host.Substring(0, host.Length-sForwardServerNodeTransfer.Node.Domain.Length-1);
             if (sForwardServerCahing.TryGet(host, out string machineId) == false)
             {
                 return false;
