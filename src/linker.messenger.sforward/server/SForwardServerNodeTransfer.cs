@@ -6,7 +6,6 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
-using System.Reflection;
 
 namespace linker.messenger.sforward.server
 {
@@ -348,7 +347,7 @@ namespace linker.messenger.sforward.server
         {
             try
             {
-
+                if (signInHost != Node.MasterHost) return;
                 var resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = Connection,
@@ -357,10 +356,7 @@ namespace linker.messenger.sforward.server
                 if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
                 {
                     string[] hosts = serializer.Deserialize<string[]>(resp.Data.Span);
-                    if (hosts != null && hosts.Length > 0)
-                    {
-                        sForwardServerNodeStore.SetMasterHosts(hosts);
-                    }
+                    sForwardServerNodeStore.SetMasterHosts(hosts);
                 }
             }
             catch (Exception)

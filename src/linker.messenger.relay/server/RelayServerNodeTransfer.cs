@@ -422,6 +422,7 @@ namespace linker.messenger.relay.server
         {
             try
             {
+                if (signInHost != Node.MasterHost) return;
                 var resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = Connection,
@@ -430,10 +431,7 @@ namespace linker.messenger.relay.server
                 if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
                 {
                     string[] hosts = serializer.Deserialize<string[]>(resp.Data.Span);
-                    if (hosts != null && hosts.Length > 0)
-                    {
-                        relayServerNodeStore.SetMasterHosts(hosts);
-                    }
+                    relayServerNodeStore.SetMasterHosts(hosts);
                 }
             }
             catch (Exception)
