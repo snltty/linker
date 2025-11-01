@@ -370,6 +370,7 @@ namespace linker.messenger.signin
         /// <returns></returns>
         public async Task Exp()
         {
+            if (signInHost != signInClientStore.Server.Host) return;
             var resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = clientSignInState.Connection,
