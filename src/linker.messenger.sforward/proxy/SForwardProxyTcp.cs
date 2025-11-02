@@ -11,10 +11,10 @@ namespace linker.plugins.sforward.proxy
 {
     public partial class SForwardProxy
     {
-        private ConcurrentDictionary<int, AsyncUserToken> tcpListens = new ConcurrentDictionary<int, AsyncUserToken>();
-        private ConcurrentDictionary<ulong, TaskCompletionSource<Socket>> tcpConnections = new ConcurrentDictionary<ulong, TaskCompletionSource<Socket>>();
-        private ConcurrentDictionary<ulong, AsyncUserToken> httpConnections = new ConcurrentDictionary<ulong, AsyncUserToken>();
-        private ConcurrentDictionary<string, SForwardTrafficCacheInfo> httpCaches = new ConcurrentDictionary<string, SForwardTrafficCacheInfo>();
+        private readonly ConcurrentDictionary<int, AsyncUserToken> tcpListens = new ConcurrentDictionary<int, AsyncUserToken>();
+        private readonly ConcurrentDictionary<ulong, TaskCompletionSource<Socket>> tcpConnections = new ConcurrentDictionary<ulong, TaskCompletionSource<Socket>>();
+        private readonly ConcurrentDictionary<ulong, AsyncUserToken> httpConnections = new ConcurrentDictionary<ulong, AsyncUserToken>();
+        private readonly ConcurrentDictionary<string, SForwardTrafficCacheInfo> httpCaches = new ConcurrentDictionary<string, SForwardTrafficCacheInfo>();
 
         public Func<int, ulong, Task<bool>> TunnelConnect { get; set; } = async (port, id) => { return await Task.FromResult(false).ConfigureAwait(false); };
         public Func<string, int, ulong, Task<bool>> WebConnect { get; set; } = async (host, port, id) => { return await Task.FromResult(false).ConfigureAwait(false); };
@@ -244,11 +244,20 @@ namespace linker.plugins.sforward.proxy
         }
         public void AddHttp(string host, bool super, double bandwidth, List<SForwardCdkeyInfo> cdkeys)
         {
+            if (host.Contains('.') == false)
+            {
+                host = $"{host}.{sForwardServerNodeTransfer.Node.Domain}";
+            }
+
             SForwardTrafficCacheInfo sForwardTrafficCacheInfo = sForwardServerNodeTransfer.AddTrafficCache(super, bandwidth, cdkeys);
             httpCaches.AddOrUpdate(host, sForwardTrafficCacheInfo, (a, b) => sForwardTrafficCacheInfo);
         }
         public void RemoveHttp(string host)
         {
+            if (host.Contains('.') == false)
+            {
+                host = $"{host}.{sForwardServerNodeTransfer.Node.Domain}";
+            }
             if (httpCaches.TryRemove(host, out var cache))
             {
                 sForwardServerNodeTransfer.RemoveTrafficCache(cache.Cache.FlowId);
@@ -261,7 +270,6 @@ namespace linker.plugins.sforward.proxy
                 }
             }
         }
-
 
         private readonly byte[] getBytes = Encoding.UTF8.GetBytes("GET / HTTP/");
         private readonly byte[] hostBytes = Encoding.UTF8.GetBytes("Host: ");

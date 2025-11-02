@@ -59,7 +59,7 @@ namespace linker.plugins.sforward.messenger
                 return;
             }
 
-            var nodes = await sForwardServerMasterTransfer.GetNodes(cache.Super, cache.UserId,cache.MachineId);
+            var nodes = await sForwardServerMasterTransfer.GetNodes(cache.Super, cache.UserId, cache.MachineId);
 
             connection.Write(serializer.Serialize(nodes));
         }
@@ -370,7 +370,7 @@ namespace linker.plugins.sforward.messenger
         {
             Remove((SForwardAddInfo)sForwardAddInfo, sForwardAddInfo.MachineId, result);
         }
-        public void Add(SForwardAddInfo sForwardAddInfo, string machineId, string groupid, SForwardAddResultInfo result, bool super,double bandwidth, List<SForwardCdkeyInfo> cdkeys)
+        public void Add(SForwardAddInfo sForwardAddInfo, string machineId, string groupid, SForwardAddResultInfo result, bool super, double bandwidth, List<SForwardCdkeyInfo> cdkeys)
         {
             try
             {
@@ -405,7 +405,7 @@ namespace linker.plugins.sforward.messenger
                         else
                         {
 
-                            proxy.AddHttp($"{sForwardAddInfo.Domain}.{sForwardServerNodeTransfer.Node.Domain}", super, bandwidth, cdkeys);
+                            proxy.AddHttp(sForwardAddInfo.Domain, super, bandwidth, cdkeys);
                             result.Message = $"domain 【{sForwardAddInfo.Domain}】 add success";
                         }
                     }
@@ -424,7 +424,7 @@ namespace linker.plugins.sforward.messenger
                     else
                     {
                         proxy.Stop(sForwardAddInfo.RemotePort);
-                        string msg = proxy.Start(sForwardAddInfo.RemotePort, 3, groupid, super,bandwidth, cdkeys);
+                        string msg = proxy.Start(sForwardAddInfo.RemotePort, 3, groupid, super, bandwidth, cdkeys);
                         if (string.IsNullOrWhiteSpace(msg) == false)
                         {
                             result.Success = false;
@@ -683,15 +683,20 @@ namespace linker.plugins.sforward.messenger
         /// <returns></returns>
         private async Task<bool> WebConnect(string host, int port, ulong id)
         {
-            if (string.IsNullOrWhiteSpace(sForwardServerNodeTransfer.Node.Domain))
-            {
-                return false;
-            }
-            host = host.Substring(0, host.Length-sForwardServerNodeTransfer.Node.Domain.Length-1);
             if (sForwardServerCahing.TryGet(host, out string machineId) == false)
             {
-                return false;
+                if (string.IsNullOrWhiteSpace(sForwardServerNodeTransfer.Node.Domain))
+                {
+                    return false;
+                }
+                host = host.Substring(0, host.Length - sForwardServerNodeTransfer.Node.Domain.Length - 1);
+                if (sForwardServerCahing.TryGet(host, out machineId) == false)
+                {
+                    return false;
+                }
             }
+
+
             return await sForwardServerNodeTransfer.ProxyNode(new SForwardProxyInfo
             {
                 Domain = host,
