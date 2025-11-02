@@ -46,12 +46,11 @@
                                     </template>
                                     <template v-else>
                                         <template v-if="state.nodesJson[scope.row.NodeId1]">
-                                            <template v-if="/^\d+$/.test(scope.row.Temp)">
-                                                <span :class="{green:scope.row.Started}">{{ state.nodesJson[scope.row.NodeId1].Domain || state.nodesJson[scope.row.NodeId1].Address }}:{{ scope.row.Temp }}</span>
-                                            </template>
-                                            <template v-else>
-                                                <span :class="{green:scope.row.Started}">{{ scope.row.Temp }}.{{ state.nodesJson[scope.row.NodeId1].Domain || state.nodesJson[scope.row.NodeId1].Address }}:{{state.nodesJson[scope.row.NodeId1].WebPort}}</span>
-                                            </template>
+                                            <span :class="{green:scope.row.Started}">
+                                            <template v-if="/^\d+$/.test(scope.row.Temp)">{{ state.nodesJson[scope.row.NodeId1].Domain || state.nodesJson[scope.row.NodeId1].Address }}:{{ scope.row.Temp }}</template>
+                                            <template v-else-if="scope.row.Temp.indexOf('.')>=0">{{ scope.row.Temp }}:{{state.nodesJson[scope.row.NodeId1].WebPort}}</template>
+                                            <template v-else>{{ scope.row.Temp }}.{{ state.nodesJson[scope.row.NodeId1].Domain || state.nodesJson[scope.row.NodeId1].Address }}:{{state.nodesJson[scope.row.NodeId1].WebPort}}</template>
+                                            </span>
                                         </template>
                                         <template v-else>
                                             <span>{{ scope.row.Temp }}</span>
