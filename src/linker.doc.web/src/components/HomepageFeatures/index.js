@@ -8,7 +8,7 @@ const FeatureList = [
         Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
         description: (
             <>
-                跨平台高性能的<code>.NET8</code>，简洁明了的web管理页面，安全的SSL加密通信
+                跨平台、高性能、web管理，SSL加密
             </>
         ),
     },
@@ -17,7 +17,7 @@ const FeatureList = [
         Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
         description: (
             <>
-                TCP+UDP打洞、服务器中继、服务器穿透，喜欢啥就用啥
+                TCP+UDP打洞、服务器中继、服务器穿透
             </>
         ),
     },
@@ -26,7 +26,7 @@ const FeatureList = [
         Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
         description: (
             <>
-                虚拟网卡组网，点对点，点对网，网对网，还有网段映射(多局域网网段冲突也不怕)
+                虚拟网卡组网，点/网对网、网段映射
             </>
         ),
     },

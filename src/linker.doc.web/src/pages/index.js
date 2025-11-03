@@ -18,18 +18,23 @@ function HomepageHeader() {
                 <p className="hero__subtitle">{siteConfig.tagline}</p>
                 <div className={styles.buttons}>
                     <Link
-                        className="button button--secondary button--lg button--info"
-                        to="https://linker.snltty.com">
-                        下载
-                    </Link>
-                    <Link
                         className="button button--secondary button--lg button--warning"
-                        to="/docs/home" style={{ marginLeft: '10px'} }>
+                        to="/docs/home">
                         文档
                     </Link>
                     <Link
+                        className="button button--secondary button--lg button--info"
+                        to="https://linker.snltty.com" style={{ marginLeft: '10px'} }>
+                        官网
+                    </Link>
+                    <Link
+                        className="button button--secondary button--lg"
+                        to="https://github.com/snltty/linker" style={{ marginLeft: '10px'} }>
+                        开源
+                    </Link>
+                    <Link
                         className="button button--secondary button--lg button--outline"
-                        to="https://afdian.com/a/snltty" style={{ marginLeft: '10px'} }>
+                        to="https://afdian.com/a/snltty" style={{ marginLeft: '10px',color:'#fff'} }>
                         捐助
                     </Link>
                 </div>

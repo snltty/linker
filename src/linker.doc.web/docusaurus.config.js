@@ -75,19 +75,14 @@ const config = {
                     src: 'img/logo.png',
                 },
                 items: [
-                    {
-                        type: 'docSidebar',
-                        sidebarId: 'tutorialSidebar',
-                        position: 'left',
-                        label: 'linker文档',
-                    },
-                    { href: 'https://linker.snltty.com', label: 'linker官网', position: 'left' },
+                    // {
+                    //     type: 'docSidebar',
+                    //     sidebarId: 'tutorialSidebar',
+                    //     position: 'left',
+                    //     label: '文档',
+                    // },
                     { href: 'https://blog.snltty.com', label: '博客', position: 'left' },
-                    {
-                        href: 'https://github.com/snltty/linker',
-                        label: 'GitHub',
-                        position: 'right',
-                    },
+                    { href: 'https://tun324.snltty.com', label: 'TUN转代理', position: 'left' },
                 ],
             },
             footer: {
