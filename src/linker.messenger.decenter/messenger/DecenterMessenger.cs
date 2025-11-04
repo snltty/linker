@@ -1,6 +1,7 @@
 ﻿using linker.libs;
 using linker.libs.timer;
 using linker.messenger.signin;
+using System;
 using System.Collections.Concurrent;
 
 namespace linker.messenger.decenter
@@ -44,7 +45,7 @@ namespace linker.messenger.decenter
                     dic.TryAdd(connection.Id, cache);
                 }
 
-                changed = cache.Data.Length != info.Data.Length || info.Data.Span.SequenceEqual(info.Data.Span) == false;
+                changed = cache.Data.Length != info.Data.Length || info.Data.Span.SequenceEqual(cache.Data.Span) == false;
 
                 cache.Data = info.Data;
                 cache.SignIn = signin;
