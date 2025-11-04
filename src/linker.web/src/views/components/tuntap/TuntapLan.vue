@@ -5,7 +5,7 @@
         </div>
         <div class="wrap">
             <el-table stripe  :data="state.lans" border size="small" width="100%" height="400px" @cell-dblclick="handleCellClick">
-                <el-table-column prop="IP" label="路由IP">
+                <el-table-column prop="IP" label="路由IP" width="130">
                     <template #default="scope">
                         <template v-if="scope.row.IPEditing">
                             <el-input v-trim autofocus size="small" v-model="scope.row.IP"
@@ -19,7 +19,7 @@
                         </template>
                     </template>
                 </el-table-column>
-                <el-table-column prop="PrefixLength" label="路由掩码" width="80">
+                <el-table-column prop="PrefixLength" label="路由掩码" width="70">
                     <template #default="scope">
                         <template v-if="scope.row.PrefixLengthEditing">
                             <el-input v-trim autofocus size="small" v-model="scope.row.PrefixLength"
@@ -33,7 +33,7 @@
                         </template>
                     </template>
                 </el-table-column>
-                <el-table-column prop="MapIP" label="目标IP">
+                <el-table-column prop="MapIP" label="目标IP" width="130">
                     <template #default="scope">
                         <template v-if="scope.row.MapIPEditing">
                             <el-input v-trim autofocus size="small" v-model="scope.row.MapIP"
@@ -47,7 +47,7 @@
                         </template>
                     </template>
                 </el-table-column>
-                <el-table-column prop="MapPrefixLength" label="目标掩码" width="80">
+                <el-table-column prop="MapPrefixLength" label="目标掩码" width="70">
                     <template #default="scope">
                         <template v-if="scope.row.MapPrefixLengthEditing">
                             <el-input v-trim autofocus size="small" v-model="scope.row.MapPrefixLength"
@@ -57,6 +57,19 @@
                             <a href="javascript:;" class="a-line" @click="handleEdit(scope.row, 'MapPrefixLength')">
                                 <strong v-if="scope.row.Error" :title="scope.row.Error" class="red">{{ scope.row.MapPrefixLength }}</strong>
                                 <span v-else>{{ scope.row.MapPrefixLength }}</span>
+                            </a>
+                        </template>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="Remark" label="备注">
+                    <template #default="scope">
+                        <template v-if="scope.row.RemarkEditing">
+                            <el-input v-trim autofocus size="small" v-model="scope.row.Remark"
+                                @blur="handleEditBlur(scope.row, 'Remark')"></el-input>
+                        </template>
+                        <template v-else>
+                            <a href="javascript:;" class="a-line" @click="handleEdit(scope.row, 'Remark')">
+                                <span>{{ scope.row.Remark }}</span>
                             </a>
                         </template>
                     </template>
@@ -101,7 +114,7 @@ export default {
             lans: tuntap.value.current.Lans.slice(0).map(c=>{ c.MapIP = c.MapIP || '0.0.0.0'; c.MapPrefixLength=c.MapPrefixLength || 24; return c; })
         });
         if (state.lans.length == 0) {
-            state.lans.push({ IP: '0.0.0.0', PrefixLength: 24,MapIP:'0.0.0.0',MapPrefixLength:24 });
+            state.lans.push({ IP: '0.0.0.0', PrefixLength: 24,MapIP:'0.0.0.0',MapPrefixLength:24,Remark:'' });
         }
 
         const handleCellClick = (row, column) => {
@@ -113,6 +126,7 @@ export default {
                 c[`PrefixLengthEditing`] = false;
                 c[`MapIPEditing`] = false;
                 c[`MapPrefixLengthEditing`] = false;
+                c[`RemarkEditing`] = false;
             })
             row[`${p}Editing`] = true;
             row[`__editing`] = true;

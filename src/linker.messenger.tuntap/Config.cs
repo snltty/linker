@@ -400,6 +400,8 @@ namespace linker.messenger.tuntap
 
         public IPAddress MapIP { get; set; } = IPAddress.Any;
         public byte MapPrefixLength { get; set; } = 24;
+
+        public string Rematk { get; set; } = string.Empty;
     }
 
     public enum TuntapStatus : byte

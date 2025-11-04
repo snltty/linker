@@ -81,8 +81,8 @@ namespace linker.messenger.decenter
             IEnumerable<Memory<byte>> data = dic.Where(c =>
             {
                 bool result = c.Key != connection.Id
-                && c.Value.SignIn.SameGroup(signin)
-                && (c.Value.Versions.TryGetValue(connection.Id, out ulong version) == false || c.Value.Version.Eq(version, out ulong newVersion) == false);
+                && c.Value.SignIn.SameGroup(signin);
+                //&& (c.Value.Versions.TryGetValue(connection.Id, out ulong version) == false || c.Value.Version.Eq(version, out ulong newVersion) == false);
 
                 c.Value.Versions.AddOrUpdate(connection.Id, c.Value.Version.Value, (a, b) => c.Value.Version.Value);
 
