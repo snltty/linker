@@ -242,14 +242,14 @@ namespace linker.plugins.sforward.proxy
             }
             return false;
         }
-        public void AddHttp(string host, bool super, double bandwidth, List<SForwardCdkeyInfo> cdkeys)
+        public void AddHttp(string host, bool super, double bandwidth)
         {
             if (host.Contains('.') == false)
             {
                 host = $"{host}.{sForwardServerNodeTransfer.Node.Domain}";
             }
 
-            SForwardTrafficCacheInfo sForwardTrafficCacheInfo = sForwardServerNodeTransfer.AddTrafficCache(super, bandwidth, cdkeys);
+            SForwardTrafficCacheInfo sForwardTrafficCacheInfo = sForwardServerNodeTransfer.AddTrafficCache(super, bandwidth);
             httpCaches.AddOrUpdate(host, sForwardTrafficCacheInfo, (a, b) => sForwardTrafficCacheInfo);
         }
         public void RemoveHttp(string host)

@@ -21,11 +21,11 @@ namespace linker.plugins.sforward.proxy
         {
         }
 
-        public string Start(int port, byte bufferSize, string groupid, bool super,double bandwidth, List<SForwardCdkeyInfo> cdkeys)
+        public string Start(int port, byte bufferSize, string groupid, bool super,double bandwidth)
         {
             try
             {
-                SForwardTrafficCacheInfo sForwardTrafficCacheInfo = sForwardServerNodeTransfer.AddTrafficCache(super, bandwidth, cdkeys);
+                SForwardTrafficCacheInfo sForwardTrafficCacheInfo = sForwardServerNodeTransfer.AddTrafficCache(super, bandwidth);
                 StartTcp(port, false, bufferSize, groupid, sForwardTrafficCacheInfo);
                 StartUdp(port, bufferSize, groupid, sForwardTrafficCacheInfo);
                 return string.Empty;

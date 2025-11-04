@@ -431,8 +431,6 @@ namespace linker.messenger.relay.server
         public string ToName { get; set; }
         public string GroupId { get; set; }
         public bool Super { get; set; }
-        public List<RelayCdkeyInfo> Cdkey { get; set; } = [];
-
         public double Bandwidth { get; set; }
 
         public string UserId { get; set; } = string.Empty;
@@ -443,7 +441,6 @@ namespace linker.messenger.relay.server
         public long SendtCache;
         public RelaySpeedLimit Limit { get; set; }
         public RelayCacheInfo Cache { get; set; }
-        public RelayCdkeyInfo CurrentCdkey { get; set; }
 
         public string Key { get; set; }
     }

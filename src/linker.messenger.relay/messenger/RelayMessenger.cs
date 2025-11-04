@@ -389,30 +389,7 @@ namespace linker.messenger.relay.messenger
             }
         }
 
-        /// <summary>
-        /// 消耗流量报告
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <returns></returns>
-        [MessengerId((ushort)RelayMessengerIds.TrafficReport)]
-        public void TrafficReport(IConnection connection)
-        {
-            relayServerReportResolver.Add(connection.ReceiveRequestWrap.Payload.Length, 0);
-            RelayTrafficUpdateInfo info = serializer.Deserialize<RelayTrafficUpdateInfo>(connection.ReceiveRequestWrap.Payload.Span);
-
-            relayServerTransfer.AddTraffic(info);
-        }
-        /// <summary>
-        /// 下发剩余流量
-        /// </summary>
-        /// <param name="connection"></param>
-        [MessengerId((ushort)RelayMessengerIds.SendLastBytes)]
-        public void SendLastBytes(IConnection connection)
-        {
-            relayServerReportResolver.Add(connection.ReceiveRequestWrap.Payload.Length, 0);
-            Dictionary<int, long> info = serializer.Deserialize<Dictionary<int, long>>(connection.ReceiveRequestWrap.Payload.Span);
-            relayServerNodeTransfer.UpdateLastBytes(info);
-        }
+       
 
         [MessengerId((ushort)RelayMessengerIds.Hosts)]
         public void Hosts(IConnection connection)

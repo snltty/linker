@@ -7,7 +7,6 @@
                 </a>
                 <WhiteList type="SForward" prefix="sfp->"  v-if="state.super && hasWhiteList"></WhiteList>
                 <Nodes v-if="state.showModes" v-model="state.showModes" :data="state.nodes"></Nodes>
-                <Cdkey type="SForward" prefix="sfp->"></Cdkey>
             </div>
         </div>
     </el-form-item>
@@ -16,13 +15,12 @@
 import { injectGlobalData } from '@/provide';
 import { computed, onMounted, onUnmounted,  provide,  reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n';
-import Cdkey from '../cdkey/Index.vue'
 import WhiteList from '../wlist/Index.vue';
 import Nodes from './Nodes.vue';
 import { setSForwardSubscribe } from '@/apis/sforward';
 
 export default {
-    components:{Cdkey,WhiteList,Nodes},
+    components:{WhiteList,Nodes},
     setup(props) {
         const {t} = useI18n();
         const globalData = injectGlobalData();

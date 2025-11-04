@@ -10,7 +10,6 @@
             <a v-if="globalData.isPc" href="https://github.com/snltty/linker" target="_blank">Github</a>
             <a v-if="globalData.isPc" href="https://linker.snltty.com" target="_blank">{{$t('status.website')}}</a>
             <a v-if="globalData.isPc" href="https://linker-doc.snltty.com" target="_blank">{{$t('status.doc')}}</a>
-            <a v-if="globalData.isPc" href="https://v.netzo123.com" target="_blank">{{$t('status.cdkey')}}</a>
         </div>
         <div class="flex-1"></div>
         <div class="export"><Export :config="config"></Export></div>

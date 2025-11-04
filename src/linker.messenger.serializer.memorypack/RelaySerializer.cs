@@ -755,9 +755,6 @@ namespace linker.messenger.serializer.memorypack
         bool Super => info.Super;
 
 
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        List<RelayCdkeyInfo> Cdkey => info.Cdkey;
-
         [MemoryPackInclude]
         double Bandwidth => info.Bandwidth;
 
@@ -765,7 +762,7 @@ namespace linker.messenger.serializer.memorypack
         string UserId => info.UserId;
 
         [MemoryPackConstructor]
-        SerializableRelayCacheInfo(ulong flowId, string fromId, string fromName, string toId, string toName, string groupId, bool super, List<RelayCdkeyInfo> cdkey, double bandwidth,string userid)
+        SerializableRelayCacheInfo(ulong flowId, string fromId, string fromName, string toId, string toName, string groupId, bool super, double bandwidth,string userid)
         {
             var info = new RelayCacheInfo
             {
@@ -775,7 +772,6 @@ namespace linker.messenger.serializer.memorypack
                 GroupId = groupId,
                 ToId = toId,
                 ToName = toName,
-                Cdkey = cdkey,
                 Super = super,
                 Bandwidth = bandwidth,
                  UserId = userid
@@ -880,63 +876,6 @@ namespace linker.messenger.serializer.memorypack
             value = wrapped.info;
         }
     }
-
-
-
-    [MemoryPackable]
-    public readonly partial struct SerializableRelayTrafficUpdateInfo
-    {
-        [MemoryPackIgnore]
-        public readonly RelayTrafficUpdateInfo info;
-
-        [MemoryPackInclude]
-        Dictionary<int, long> Dic => info.Dic;
-        [MemoryPackInclude]
-        string SecretKey => info.SecretKey;
-
-        [MemoryPackConstructor]
-        SerializableRelayTrafficUpdateInfo(Dictionary<int, long> dic, string secretKey)
-        {
-            var info = new RelayTrafficUpdateInfo
-            {
-                Dic = dic,
-                SecretKey = secretKey
-            };
-            this.info = info;
-        }
-
-        public SerializableRelayTrafficUpdateInfo(RelayTrafficUpdateInfo info)
-        {
-            this.info = info;
-        }
-    }
-    public class RelayTrafficUpdateInfoFormatter : MemoryPackFormatter<RelayTrafficUpdateInfo>
-    {
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref RelayTrafficUpdateInfo value)
-        {
-            if (value == null)
-            {
-                writer.WriteNullObjectHeader();
-                return;
-            }
-
-            writer.WritePackable(new SerializableRelayTrafficUpdateInfo(value));
-        }
-
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref RelayTrafficUpdateInfo value)
-        {
-            if (reader.PeekIsNull())
-            {
-                reader.Advance(1); // skip null block
-                value = null;
-                return;
-            }
-
-            var wrapped = reader.ReadPackable<SerializableRelayTrafficUpdateInfo>();
-            value = wrapped.info;
-        }
-    }
-
 
 
     [MemoryPackable]
@@ -1239,65 +1178,5 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-
-
-    [MemoryPackable]
-    public readonly partial struct SerializableRelayCdkeyInfo
-    {
-        [MemoryPackIgnore]
-        public readonly RelayCdkeyInfo info;
-
-        [MemoryPackInclude]
-        int Id => info.Id;
-
-        [MemoryPackInclude]
-        double Bandwidth => info.Bandwidth;
-        [MemoryPackInclude]
-        long LastBytes => info.LastBytes;
-
-        [MemoryPackConstructor]
-        SerializableRelayCdkeyInfo(int id, double bandwidth, long lastBytes)
-        {
-            var info = new RelayCdkeyInfo
-            {
-                Id = id,
-                Bandwidth = bandwidth,
-                LastBytes = lastBytes
-            };
-            this.info = info;
-        }
-
-        public SerializableRelayCdkeyInfo(RelayCdkeyInfo info)
-        {
-            this.info = info;
-        }
-    }
-    public class RelayCdkeyInfoFormatter : MemoryPackFormatter<RelayCdkeyInfo>
-    {
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref RelayCdkeyInfo value)
-        {
-            if (value == null)
-            {
-                writer.WriteNullObjectHeader();
-                return;
-            }
-
-            writer.WritePackable(new SerializableRelayCdkeyInfo(value));
-        }
-
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref RelayCdkeyInfo value)
-        {
-            if (reader.PeekIsNull())
-            {
-                reader.Advance(1); // skip null block
-                value = null;
-                return;
-            }
-
-            var wrapped = reader.ReadPackable<SerializableRelayCdkeyInfo>();
-            value = wrapped.info;
-        }
-    }
 
 }

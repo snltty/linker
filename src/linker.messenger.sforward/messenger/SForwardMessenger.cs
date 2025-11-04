@@ -169,7 +169,7 @@ namespace linker.plugins.sforward.messenger
                     result.Message = error;
                     return;
                 }
-                Add(sForwardAddInfo, cache.MachineId, cache.GroupId, result, sForwardAddInfo191.Super, sForwardAddInfo191.Bandwidth, []);
+                Add(sForwardAddInfo, cache.MachineId, cache.GroupId, result, sForwardAddInfo191.Super, sForwardAddInfo191.Bandwidth);
             }
             catch (Exception ex)
             {
@@ -370,7 +370,7 @@ namespace linker.plugins.sforward.messenger
         {
             Remove((SForwardAddInfo)sForwardAddInfo, sForwardAddInfo.MachineId, result);
         }
-        public void Add(SForwardAddInfo sForwardAddInfo, string machineId, string groupid, SForwardAddResultInfo result, bool super, double bandwidth, List<SForwardCdkeyInfo> cdkeys)
+        public void Add(SForwardAddInfo sForwardAddInfo, string machineId, string groupid, SForwardAddResultInfo result, bool super, double bandwidth)
         {
             try
             {
@@ -385,7 +385,7 @@ namespace linker.plugins.sforward.messenger
                             if (sForwardServerCahing.TryAdd(port, machineId))
                             {
                                 proxy.Stop(port);
-                                result.Message = proxy.Start(port, 3, groupid, super, bandwidth, cdkeys);
+                                result.Message = proxy.Start(port, 3, groupid, super, bandwidth);
                                 if (string.IsNullOrWhiteSpace(result.Message) == false)
                                 {
                                     LoggerHelper.Instance.Error(result.Message);
@@ -405,7 +405,7 @@ namespace linker.plugins.sforward.messenger
                         else
                         {
 
-                            proxy.AddHttp(sForwardAddInfo.Domain, super, bandwidth, cdkeys);
+                            proxy.AddHttp(sForwardAddInfo.Domain, super, bandwidth);
                             result.Message = $"domain 【{sForwardAddInfo.Domain}】 add success";
                         }
                     }
@@ -424,7 +424,7 @@ namespace linker.plugins.sforward.messenger
                     else
                     {
                         proxy.Stop(sForwardAddInfo.RemotePort);
-                        string msg = proxy.Start(sForwardAddInfo.RemotePort, 3, groupid, super, bandwidth, cdkeys);
+                        string msg = proxy.Start(sForwardAddInfo.RemotePort, 3, groupid, super, bandwidth);
                         if (string.IsNullOrWhiteSpace(msg) == false)
                         {
                             result.Success = false;
@@ -448,7 +448,7 @@ namespace linker.plugins.sforward.messenger
         }
         public void Add(SForwardAddInfo191 sForwardAddInfo, SForwardAddResultInfo result)
         {
-            Add((SForwardAddInfo)sForwardAddInfo, sForwardAddInfo.MachineId, sForwardAddInfo.GroupId, result, sForwardAddInfo.Super, sForwardAddInfo.Bandwidth, sForwardAddInfo.Cdkey);
+            Add((SForwardAddInfo)sForwardAddInfo, sForwardAddInfo.MachineId, sForwardAddInfo.GroupId, result, sForwardAddInfo.Super, sForwardAddInfo.Bandwidth);
         }
         private static bool PortRange(string str, out int min, out int max)
         {
@@ -626,30 +626,6 @@ namespace linker.plugins.sforward.messenger
                     MessengerId = (ushort)SForwardMessengerIds.TestClient
                 }).ConfigureAwait(false);
             }
-        }
-
-
-        /// <summary>
-        /// 消耗流量报告
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <returns></returns>
-        [MessengerId((ushort)SForwardMessengerIds.TrafficReport)]
-        public void TrafficReport(IConnection connection)
-        {
-            SForwardTrafficUpdateInfo info = serializer.Deserialize<SForwardTrafficUpdateInfo>(connection.ReceiveRequestWrap.Payload.Span);
-
-            sForwardServerMasterTransfer.AddTraffic(info);
-        }
-        /// <summary>
-        /// 下发剩余流量
-        /// </summary>
-        /// <param name="connection"></param>
-        [MessengerId((ushort)SForwardMessengerIds.SendLastBytes)]
-        public void SendLastBytes(IConnection connection)
-        {
-            Dictionary<int, long> info = serializer.Deserialize<Dictionary<int, long>>(connection.ReceiveRequestWrap.Payload.Span);
-            sForwardServerNodeTransfer.UpdateLastBytes(info);
         }
 
 

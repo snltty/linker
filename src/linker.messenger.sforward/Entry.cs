@@ -69,7 +69,6 @@ namespace linker.messenger.sforward
             serviceCollection.AddSingleton<SForwardServerReportResolver>();
 
             serviceCollection.AddSingleton<ISForwardServerWhiteListStore, SForwardServerWhiteListStore>();
-            serviceCollection.AddSingleton<ISForwardServerCdkeyStore, SForwardServerCdkeyStore>();
 
             return serviceCollection;
         }

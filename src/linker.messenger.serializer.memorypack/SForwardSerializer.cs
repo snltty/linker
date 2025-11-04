@@ -535,14 +535,11 @@ namespace linker.messenger.serializer.memorypack
         bool Validated => info.Super;
 
 
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        List<SForwardCdkeyInfo> Cdkey => info.Cdkey;
-
         [MemoryPackInclude]
         double Bandwidth => info.Bandwidth;
 
         [MemoryPackConstructor]
-        SerializableSForwardAddInfo191(string domain, int remotePort, string nodeid, string machineid, string groupid, bool validated, double bandwidth, List<SForwardCdkeyInfo> cdkey)
+        SerializableSForwardAddInfo191(string domain, int remotePort, string nodeid, string machineid, string groupid, bool validated, double bandwidth)
         {
             this.info = new SForwardAddInfo191
             {
@@ -551,7 +548,6 @@ namespace linker.messenger.serializer.memorypack
                 NodeId = nodeid,
                 GroupId = groupid,
                 MachineId = machineid,
-                Cdkey = cdkey,
                 Super = validated,
                 Bandwidth = bandwidth
             };
@@ -927,117 +923,4 @@ namespace linker.messenger.serializer.memorypack
     }
 
 
-
-
-    [MemoryPackable]
-    public readonly partial struct SerializableSForwardCdkeyInfo
-    {
-        [MemoryPackIgnore]
-        public readonly SForwardCdkeyInfo info;
-
-        [MemoryPackInclude]
-        int Id => info.Id;
-
-        [MemoryPackInclude]
-        double Bandwidth => info.Bandwidth;
-        [MemoryPackInclude]
-        long LastBytes => info.LastBytes;
-
-        [MemoryPackConstructor]
-        SerializableSForwardCdkeyInfo(int id, double bandwidth, long lastBytes)
-        {
-            var info = new SForwardCdkeyInfo
-            {
-                Id = id,
-                Bandwidth = bandwidth,
-                LastBytes = lastBytes
-            };
-            this.info = info;
-        }
-
-        public SerializableSForwardCdkeyInfo(SForwardCdkeyInfo info)
-        {
-            this.info = info;
-        }
-    }
-    public class SForwardCdkeyInfoFormatter : MemoryPackFormatter<SForwardCdkeyInfo>
-    {
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref SForwardCdkeyInfo value)
-        {
-            if (value == null)
-            {
-                writer.WriteNullObjectHeader();
-                return;
-            }
-
-            writer.WritePackable(new SerializableSForwardCdkeyInfo(value));
-        }
-
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref SForwardCdkeyInfo value)
-        {
-            if (reader.PeekIsNull())
-            {
-                reader.Advance(1); // skip null block
-                value = null;
-                return;
-            }
-
-            var wrapped = reader.ReadPackable<SerializableSForwardCdkeyInfo>();
-            value = wrapped.info;
-        }
-    }
-
-    [MemoryPackable]
-    public readonly partial struct SerializableSForwardTrafficUpdateInfo
-    {
-        [MemoryPackIgnore]
-        public readonly SForwardTrafficUpdateInfo info;
-
-        [MemoryPackInclude]
-        Dictionary<int, long> Dic => info.Dic;
-        [MemoryPackInclude]
-        string SecretKey => info.SecretKey;
-
-        [MemoryPackConstructor]
-        SerializableSForwardTrafficUpdateInfo(Dictionary<int, long> dic, string secretKey)
-        {
-            var info = new SForwardTrafficUpdateInfo
-            {
-                Dic = dic,
-                SecretKey = secretKey
-            };
-            this.info = info;
-        }
-
-        public SerializableSForwardTrafficUpdateInfo(SForwardTrafficUpdateInfo info)
-        {
-            this.info = info;
-        }
-    }
-    public class SForwardTrafficUpdateInfoFormatter : MemoryPackFormatter<SForwardTrafficUpdateInfo>
-    {
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref SForwardTrafficUpdateInfo value)
-        {
-            if (value == null)
-            {
-                writer.WriteNullObjectHeader();
-                return;
-            }
-
-            writer.WritePackable(new SerializableSForwardTrafficUpdateInfo(value));
-        }
-
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref SForwardTrafficUpdateInfo value)
-        {
-            if (reader.PeekIsNull())
-            {
-                reader.Advance(1); // skip null block
-                value = null;
-                return;
-            }
-
-            var wrapped = reader.ReadPackable<SerializableSForwardTrafficUpdateInfo>();
-            value = wrapped.info;
-        }
-    }
 }

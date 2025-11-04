@@ -136,9 +136,9 @@ namespace linker.messenger.sforward.server
         /// <param name="super"></param>
         /// <param name="cdkeys"></param>
         /// <returns></returns>
-        public SForwardTrafficCacheInfo AddTrafficCache(bool super, double bandwidth, List<SForwardCdkeyInfo> cdkeys)
+        public SForwardTrafficCacheInfo AddTrafficCache(bool super, double bandwidth)
         {
-            SForwardTrafficCacheInfo cache = new SForwardTrafficCacheInfo { Cache = new SForwardCacheInfo { Cdkey = cdkeys, FlowId = ns.Increment(), Super = super, Bandwidth = bandwidth }, Limit = new SForwardSpeedLimit(), Sendt = 0, SendtCache = 0 };
+            SForwardTrafficCacheInfo cache = new SForwardTrafficCacheInfo { Cache = new SForwardCacheInfo { FlowId = ns.Increment(), Super = super, Bandwidth = bandwidth }, Limit = new SForwardSpeedLimit(), Sendt = 0, SendtCache = 0 };
             if (cache.Cache.Bandwidth < 0)
             {
                 cache.Cache.Bandwidth = Node.MaxBandwidth;
@@ -165,9 +165,6 @@ namespace linker.messenger.sforward.server
 
             Interlocked.Add(ref cache.Sendt, length);
 
-            var current = cache.CurrentCdkey;
-            if (current != null) return current.LastBytes > 0;
-
             return Node.MaxGbTotalLastBytes > 0;
         }
 
@@ -177,7 +174,6 @@ namespace linker.messenger.sforward.server
         /// <param name="cache"></param>
         private void SetLimit(SForwardTrafficCacheInfo cache)
         {
-            cache.CurrentCdkey = cache.Cache.Cdkey.Where(c => c.LastBytes > 0).OrderByDescending(c => c.Bandwidth).FirstOrDefault();
             //黑白名单
             if (cache.Cache.Bandwidth >= 0)
             {
@@ -192,35 +188,15 @@ namespace linker.messenger.sforward.server
                 return;
             }
 
-            //配置或cdkey，最大的
-            double banwidth = double.Max(Node.MaxBandwidth, cache.CurrentCdkey?.Bandwidth ?? 1);
-            cache.Limit.SetLimit((uint)Math.Ceiling(banwidth * 1024 * 1024 / 8.0));
+            cache.Limit.SetLimit((uint)Math.Ceiling(Node.MaxBandwidth * 1024 * 1024 / 8.0));
         }
 
 
-        /// <summary>
-        /// 更新剩余流量
-        /// </summary>
-        /// <param name="dic"></param>
-        public void UpdateLastBytes(Dictionary<int, long> dic)
-        {
-            if (dic.Count == 0) return;
-
-            Dictionary<int, SForwardCdkeyInfo> cdkeys = trafficDict.Values.SelectMany(c => c.Cache.Cdkey).ToDictionary(c => c.Id, c => c);
-            //更新剩余流量
-            foreach (KeyValuePair<int, long> item in dic)
-            {
-                if (cdkeys.TryGetValue(item.Key, out SForwardCdkeyInfo info))
-                {
-                    info.LastBytes = item.Value;
-                }
-            }
-        }
         private void ResetNodeBytes()
         {
             if (Node.MaxGbTotal == 0) return;
 
-            foreach (var cache in trafficDict.Values.Where(c => c.CurrentCdkey == null))
+            foreach (var cache in trafficDict.Values)
             {
                 long length = Interlocked.Exchange(ref cache.Sendt, 0);
 
@@ -235,47 +211,14 @@ namespace linker.messenger.sforward.server
             }
             sForwardServerNodeStore.Confirm();
         }
-        private async Task UploadBytes()
-        {
-            var cdkeys = trafficDict.Values.Where(c => c.CurrentCdkey != null && c.Sendt > 0).ToList();
-            Dictionary<int, long> id2sent = cdkeys.GroupBy(c => c.CurrentCdkey.Id).ToDictionary(c => c.Key, d => d.Sum(d => { d.SendtCache = d.Sendt; return d.SendtCache; }));
-            if (id2sent.Count == 0) return;
-
-            bool result = await messengerSender.SendOnly(new MessageRequestWrap
-            {
-                Connection = connection,
-                MessengerId = (ushort)SForwardMessengerIds.TrafficReport,
-                Payload = serializer.Serialize(new SForwardTrafficUpdateInfo
-                {
-                    Dic = id2sent,
-                    SecretKey = Node.MasterSecretKey
-                }),
-                Timeout = 4000
-            }).ConfigureAwait(false);
-
-            if (result)
-            {
-                //成功报告了流量，就重新计数
-                foreach (var cache in cdkeys)
-                {
-                    Interlocked.Add(ref cache.Sendt, -cache.SendtCache);
-                    Interlocked.Exchange(ref cache.SendtCache, 0);
-                    //当前cdkey流量用完了，就重新找找新的cdkey
-                    if (cache.CurrentCdkey.LastBytes <= 0)
-                    {
-                        SetLimit(cache);
-                    }
-                }
-            }
-        }
+      
         private void TrafficTask()
         {
-            TimerHelper.SetIntervalLong(async () =>
+            TimerHelper.SetIntervalLong(() =>
             {
                 try
                 {
                     ResetNodeBytes();
-                    await UploadBytes().ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -458,7 +401,6 @@ namespace linker.messenger.sforward.server
         public ulong FlowId { get; set; }
         public bool Super { get; set; }
         public double Bandwidth { get; set; } = double.MinValue;
-        public List<SForwardCdkeyInfo> Cdkey { get; set; } = [];
     }
     public class SForwardSpeedLimit
     {
@@ -538,16 +480,5 @@ namespace linker.messenger.sforward.server
         public long SendtCache;
         public SForwardSpeedLimit Limit { get; set; }
         public SForwardCacheInfo Cache { get; set; }
-        public SForwardCdkeyInfo CurrentCdkey { get; set; }
     }
-
-    public sealed partial class SForwardTrafficUpdateInfo
-    {
-        /// <summary>
-        /// cdkey id  和 流量
-        /// </summary>
-        public Dictionary<int, long> Dic { get; set; }
-        public string SecretKey { get; set; }
-    }
-
 }

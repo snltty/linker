@@ -93,7 +93,6 @@ export default {
     'status.support': 'Support',
     'status.website': 'Website',
     'status.doc': 'Document',
-    'status.cdkey': 'CDKEY store',
 
     'status.export': 'Export',
     'status.exportText': 'Export the configuration to run elsewhere',

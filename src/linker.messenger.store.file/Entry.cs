@@ -2,7 +2,6 @@
 using linker.libs.web;
 using linker.messenger.action;
 using linker.messenger.api;
-using linker.messenger.cdkey;
 using linker.messenger.firewall;
 using linker.messenger.flow.history;
 using linker.messenger.forward;
@@ -18,7 +17,6 @@ using linker.messenger.signin;
 using linker.messenger.socks5;
 using linker.messenger.store.file.action;
 using linker.messenger.store.file.api;
-using linker.messenger.store.file.cdkey;
 using linker.messenger.store.file.common;
 using linker.messenger.store.file.firewall;
 using linker.messenger.store.file.flow;
@@ -73,9 +71,6 @@ namespace linker.messenger.store.file
             serviceCollection.AddSingleton<IRelayClientStore, RelayClientStore>();
             serviceCollection.AddSingleton<IRelayServerNodeStore, RelayServerNodeStore>();
             serviceCollection.AddSingleton<IRelayServerMasterStore, RelayServerMasterStore>();
-
-            serviceCollection.AddSingleton<ICdkeyServerStore, CdkeyServerStore>();
-
 
             serviceCollection.AddSingleton<ITunnelClientStore, TunnelClientStore>();
 

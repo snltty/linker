@@ -107,7 +107,6 @@ namespace linker.messenger.sforward
 
         public bool Super { get; set; }
         public double Bandwidth { get; set; }
-        public List<SForwardCdkeyInfo> Cdkey { get; set; } = [];
     }
 
     /// <summary>

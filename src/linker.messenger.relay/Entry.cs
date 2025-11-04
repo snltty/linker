@@ -53,7 +53,6 @@ namespace linker.messenger.relay
             serviceCollection.AddSingleton<RelayServerValidatorTransfer>();
 
             serviceCollection.AddSingleton<IRelayServerWhiteListStore, RelayServerWhiteListStore>();
-            serviceCollection.AddSingleton<IRelayServerCdkeyStore, RelayServerCdkeyStore>();
 
 
             serviceCollection.AddSingleton<WebApiRelayNodesController>();

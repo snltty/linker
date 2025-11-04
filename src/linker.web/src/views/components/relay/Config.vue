@@ -9,11 +9,10 @@
                 <a href="javascript:;" @click="state.showModes=true" class="mgr-1 delay a-line" :class="{red:state.nodes.length==0,green:state.nodes.length>0}">
                     {{$t('server.relayNodes')}} : {{state.nodes.length}}
                 </a>
-                 <Sync class="mgl-1" name="RelaySecretKey"></Sync>
+                <WhiteList type="Relay"></WhiteList>
+                <Sync class="mgl-1" name="RelaySecretKey"></Sync>
             </div>
             <div class="flex">
-                <WhiteList type="Relay"></WhiteList>
-                <Cdkey type="Relay"></Cdkey>
                 <Nodes v-if="state.showModes" v-model="state.showModes" :data="state.nodes"></Nodes>
             </div>
         </div>
@@ -26,12 +25,11 @@ import { ElMessage } from 'element-plus';
 import { onMounted, onUnmounted, provide, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n';
 import Sync from '../sync/Index.vue'
-import Cdkey from '../cdkey/Index.vue'
 import Nodes from './Nodes.vue';
 import WhiteList from '../wlist/Index.vue';
 
 export default {
-    components:{Sync,Cdkey,Nodes,WhiteList},
+    components:{Sync,Nodes,WhiteList},
     setup(props) {
         const {t} = useI18n();
         const globalData = injectGlobalData();

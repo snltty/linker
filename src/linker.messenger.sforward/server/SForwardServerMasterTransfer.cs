@@ -22,17 +22,15 @@ namespace linker.messenger.sforward.server
         private readonly IMessengerSender messengerSender;
         private readonly ISForwardServerWhiteListStore sForwardServerWhiteListStore;
         private readonly ISForwardServerNodeStore sForwardServerNodeStore;
-        private readonly ISForwardServerCdkeyStore sForwardServerCdkeyStore;
 
-        public SForwardServerMasterTransfer(ISerializer serializer, IMessengerSender messengerSender, ISForwardServerWhiteListStore sForwardServerWhiteListStore, ISForwardServerNodeStore sForwardServerNodeStore, ISForwardServerCdkeyStore sForwardServerCdkeyStore)
+        public SForwardServerMasterTransfer(ISerializer serializer, IMessengerSender messengerSender, ISForwardServerWhiteListStore sForwardServerWhiteListStore,
+            ISForwardServerNodeStore sForwardServerNodeStore)
         {
             this.serializer = serializer;
             this.messengerSender = messengerSender;
             this.sForwardServerWhiteListStore = sForwardServerWhiteListStore;
             this.sForwardServerNodeStore = sForwardServerNodeStore;
-            this.sForwardServerCdkeyStore = sForwardServerCdkeyStore;
 
-            TrafficTask();
         }
 
         public void SetNodeReport(IConnection connection, SForwardServerNodeReportInfo info)
@@ -129,20 +127,6 @@ namespace linker.messenger.sforward.server
                 ? bandwidth.Any(c => c.Bandwidth == 0) ? 0 : bandwidth.Max(c => c.Bandwidth)
                 : info.Super ? 0 : node.MaxBandwidth;
 
-            var cdkeys = await sForwardServerCdkeyStore.GetAvailable(from.UserId, $"sfp->{target}").ConfigureAwait(false);
-            var anyCdkeys = await sForwardServerCdkeyStore.GetAvailable(from.UserId, $"sfp->*").ConfigureAwait(false);
-            info.Cdkey = cdkeys.Concat(anyCdkeys).Select(c => new SForwardCdkeyInfo { Bandwidth = c.Bandwidth, Id = c.Id, LastBytes = c.LastBytes }).ToList();
-
-            if (info.Cdkey.Count == 0 && node.Public == false && info.Super == false && bandwidth.Count == 0)
-            {
-                return new SForwardAddResultInfo
-                {
-                    BufferSize = 1,
-                    Message = "need super key or white list or cdkey",
-                    Success = false
-                };
-            }
-
 
             if (reports.TryGetValue(info.NodeId, out SForwardServerNodeReportInfo cache))
             {
@@ -218,65 +202,5 @@ namespace linker.messenger.sforward.server
             return reports.TryGetValue(id, out node) && node != null && Environment.TickCount64 - node.LastTicks < 15000;
         }
 
-
-        /// <summary>
-        /// 消耗流量
-        /// </summary>
-        /// <param name="info"></param>
-        /// <returns></returns>
-        public void AddTraffic(SForwardTrafficUpdateInfo info)
-        {
-            if (info.Dic.Count == 0) return;
-            trafficQueue.Enqueue(info.Dic);
-        }
-        private void TrafficTask()
-        {
-            TimerHelper.SetIntervalLong(async () =>
-            {
-                while (trafficQueue.TryDequeue(out Dictionary<int, long> dic))
-                {
-                    try
-                    {
-                        await sForwardServerCdkeyStore.Traffic(dic).ConfigureAwait(false);
-
-                        var ids = dic.Keys.ToList();
-                        while (ids.Count > 0)
-                        {
-                            var id = ids.Take(100).ToList();
-                            trafficIdsQueue.Enqueue(id);
-                            ids.RemoveRange(0, id.Count);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        LoggerHelper.Instance.Error(ex);
-                    }
-                }
-            }, 500);
-            TimerHelper.SetIntervalLong(async () =>
-            {
-                while (trafficIdsQueue.TryDequeue(out List<int> ids))
-                {
-                    try
-                    {
-                        Dictionary<int, long> id2last = await sForwardServerCdkeyStore.GetLastBytes(ids).ConfigureAwait(false);
-                        if (id2last.Count == 0) continue;
-                        byte[] bytes = serializer.Serialize(id2last);
-
-                        await Task.WhenAll(reports.Values.Select(c => messengerSender.SendOnly(new MessageRequestWrap
-                        {
-                            Connection = c.Connection,
-                            MessengerId = (ushort)SForwardMessengerIds.SendLastBytes,
-                            Payload = bytes,
-                        })).ToList()).ConfigureAwait(false);
-                    }
-                    catch (Exception ex)
-                    {
-                        LoggerHelper.Instance.Error(ex);
-                    }
-                }
-            }, 500);
-
-        }
     }
 }

@@ -45,16 +45,10 @@ const config = {
             ({
                 docs: {
                     sidebarPath: './sidebars.js',
-                    // Please change this to your repo.
-                    // Remove this to remove the "edit this page" links.
-                    //editUrl: 'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
                 },
                 blog: {
                     showReadingTime: true,
-                    // Please change this to your repo.
-                    // Remove this to remove the "edit this page" links.
-                    editUrl:
-                        'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+                    editUrl:'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
                 },
                 theme: {
                     customCss: './src/css/custom.css',
@@ -66,8 +60,6 @@ const config = {
     themeConfig:
         /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
         ({
-            // Replace with your project's social card
-            image: 'img/docusaurus-social-card.jpg',
             navbar: {
                 title: 'linker-doc',
                 logo: {
@@ -75,14 +67,8 @@ const config = {
                     src: 'img/logo.png',
                 },
                 items: [
-                    // {
-                    //     type: 'docSidebar',
-                    //     sidebarId: 'tutorialSidebar',
-                    //     position: 'left',
-                    //     label: '文档',
-                    // },
                     { href: 'https://blog.snltty.com', label: '博客', position: 'left' },
-                    { href: 'https://tun324.snltty.com', label: 'TUN转代理', position: 'left' },
+                    { href: 'https://tun324.snltty.com', label: 'TUN转代理', position: 'left' }
                 ],
             },
             footer: {
@@ -96,6 +82,13 @@ const config = {
             prism: {
                 theme: prismThemes.github,
                 darkTheme: prismThemes.dracula,
+            },
+            announcementBar: {
+                id: 'support_us',
+                content: '<span style="font-size:14px;color:#f7033a;">Gitee<strong>[2025年度开源项目]</strong>评选,各位老板闲暇之余可以前往<a target="_blank" href="https://gitee.com/activity/2025opensource?category=basic_software&ident=IJZBXG">【🎫这里】</a>随便投个票，重在参与。</span>',
+                backgroundColor: '#f5f5f5',
+                textColor: '#ff0000',
+                isCloseable: false,
             },
         }),
 };

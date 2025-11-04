@@ -27,18 +27,16 @@ namespace linker.messenger.relay.server
         private readonly IRelayServerMasterStore relayServerMasterStore;
         private readonly IMessengerSender messengerSender;
         private readonly IRelayServerWhiteListStore relayServerWhiteListStore;
-        private readonly IRelayServerCdkeyStore relayServerCdkeyStore;
 
-        public RelayServerMasterTransfer(IRelayServerCaching relayCaching, ISerializer serializer, IRelayServerMasterStore relayServerMasterStore, IMessengerSender messengerSender, IRelayServerWhiteListStore relayServerWhiteListStore, IRelayServerCdkeyStore relayServerCdkeyStore)
+        public RelayServerMasterTransfer(IRelayServerCaching relayCaching, ISerializer serializer, IRelayServerMasterStore relayServerMasterStore, 
+            IMessengerSender messengerSender, IRelayServerWhiteListStore relayServerWhiteListStore)
         {
             this.relayCaching = relayCaching;
             this.serializer = serializer;
             this.relayServerMasterStore = relayServerMasterStore;
             this.messengerSender = messengerSender;
             this.relayServerWhiteListStore = relayServerWhiteListStore;
-            this.relayServerCdkeyStore = relayServerCdkeyStore;
 
-            TrafficTask();
         }
 
 
@@ -78,11 +76,6 @@ namespace linker.messenger.relay.server
                 ? bandwidth.Any(c => c == 0) ? 0 : bandwidth.Min()
                 : cache.Super ? 0 : -1;
 
-                cache.Cdkey = (await relayServerCdkeyStore.GetAvailable(cache.UserId).ConfigureAwait(false)).Select(c => new RelayCdkeyInfo { Bandwidth = c.Bandwidth, Id = c.Id, LastBytes = c.LastBytes }).ToList();
-                if (cache.Cdkey.Count == 0 && node.Public == false && cache.Super == false && bandwidth.Count == 0)
-                {
-                    return null;
-                }
                 return cache;
             }
             return null;
@@ -225,65 +218,5 @@ namespace linker.messenger.relay.server
                      .ToList();
         }
 
-        /// <summary>
-        /// 消耗流量
-        /// </summary>
-        /// <param name="info"></param>
-        /// <returns></returns>
-        public void AddTraffic(RelayTrafficUpdateInfo info)
-        {
-            if (info.Dic.Count == 0) return;
-
-            trafficQueue.Enqueue(info.Dic);
-        }
-        private void TrafficTask()
-        {
-            TimerHelper.SetIntervalLong(async () =>
-            {
-                while (trafficQueue.TryDequeue(out Dictionary<int, long> dic))
-                {
-                    try
-                    {
-                        await relayServerCdkeyStore.Traffic(dic).ConfigureAwait(false);
-
-                        var ids = dic.Keys.ToList();
-                        while (ids.Count > 0)
-                        {
-                            var id = ids.Take(100).ToList();
-                            trafficIdsQueue.Enqueue(id);
-                            ids.RemoveRange(0, id.Count);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        LoggerHelper.Instance.Error(ex);
-                    }
-                }
-            }, 500);
-            TimerHelper.SetIntervalLong(async () =>
-            {
-                while (trafficIdsQueue.TryDequeue(out List<int> ids))
-                {
-                    try
-                    {
-                        Dictionary<int, long> id2last = await relayServerCdkeyStore.GetLastBytes(ids).ConfigureAwait(false);
-                        if (id2last.Count == 0) continue;
-                        byte[] bytes = serializer.Serialize(id2last);
-
-                        await Task.WhenAll(reports.Values.Select(c => messengerSender.SendOnly(new MessageRequestWrap
-                        {
-                            Connection = c.Connection,
-                            MessengerId = (ushort)RelayMessengerIds.SendLastBytes,
-                            Payload = bytes,
-                        })).ToList()).ConfigureAwait(false);
-                    }
-                    catch (Exception ex)
-                    {
-                        LoggerHelper.Instance.Error(ex);
-                    }
-                }
-            }, 500);
-
-        }
     }
 }

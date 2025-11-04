@@ -77,23 +77,6 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new RelayCacheInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayMessageInfoFormatter());
 
-            MemoryPackFormatterProvider.Register(new RelayTrafficUpdateInfoFormatter());
-            MemoryPackFormatterProvider.Register(new RelayCdkeyInfoFormatter());
-
-
-
-
-
-            MemoryPackFormatterProvider.Register(new CdkeyInfoFormatter());
-            MemoryPackFormatterProvider.Register(new CdkeyStoreInfoFormatter());
-            MemoryPackFormatterProvider.Register(new CdkeyPageRequestInfoFormatter());
-            MemoryPackFormatterProvider.Register(new CdkeyPageResultInfoFormatter());
-            MemoryPackFormatterProvider.Register(new CdkeyAddInfoFormatter());
-            MemoryPackFormatterProvider.Register(new CdkeyDelInfoFormatter());
-            MemoryPackFormatterProvider.Register(new CdkeyImportInfoFormatter());
-            MemoryPackFormatterProvider.Register(new CdkeyTestResultInfoFormatter());
-            MemoryPackFormatterProvider.Register(new CdkeyOrderInfoFormatter());
-
 
             MemoryPackFormatterProvider.Register(new AccessUpdateInfoFormatter());
             MemoryPackFormatterProvider.Register(new AccessBitsUpdateInfoFormatter());
@@ -119,8 +102,6 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new SForwardServerNodeUpdateInfoFormatter());
             MemoryPackFormatterProvider.Register(new SForwardServerNodeUpdateWrapInfoFormatter());
             MemoryPackFormatterProvider.Register(new SForwardServerNodeReportInfoFormatter());
-            MemoryPackFormatterProvider.Register(new SForwardCdkeyInfoFormatter());
-            MemoryPackFormatterProvider.Register(new SForwardTrafficUpdateInfoFormatter());
 
 
             MemoryPackFormatterProvider.Register(new ForwardInfoFormatter());

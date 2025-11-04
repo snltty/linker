@@ -94,7 +94,6 @@ export default {
     'status.support': '为爱发电',
     'status.website': '官网',
     'status.doc': '文档',
-    'status.cdkey': 'CDKEY商城',
 
     'status.export': '导出配置',
     'status.exportText': '导出配置，客户端覆盖配置文件，或粘贴配置信息，或在线加载',

@@ -248,7 +248,6 @@ namespace linker.messenger.relay.server
         /// <param name="relayCache"></param>
         private void SetLimit(RelayTrafficCacheInfo relayCache)
         {
-            relayCache.CurrentCdkey = relayCache.Cache.Cdkey.Where(c => c.LastBytes > 0).OrderByDescending(c => c.Bandwidth).FirstOrDefault();
             //黑白名单
             if (relayCache.Cache.Bandwidth >= 0)
             {
@@ -263,34 +262,14 @@ namespace linker.messenger.relay.server
                 return;
             }
 
-            //配置或cdkey，最大的
-            double banwidth = double.Max(Node.MaxBandwidth, relayCache.CurrentCdkey?.Bandwidth ?? 1);
-            relayCache.Limit.SetLimit((uint)Math.Ceiling(banwidth * 1024 * 1024 / 8.0));
+            relayCache.Limit.SetLimit((uint)Math.Ceiling(Node.MaxBandwidth * 1024 * 1024 / 8.0));
         }
 
-        /// <summary>
-        /// 更新剩余流量
-        /// </summary>
-        /// <param name="dic"></param>
-        public void UpdateLastBytes(Dictionary<int, long> dic)
-        {
-            if (dic.Count == 0) return;
-
-            Dictionary<int, RelayCdkeyInfo> cdkeys = trafficDict.Values.SelectMany(c => c.Cache.Cdkey).ToDictionary(c => c.Id, c => c);
-            //更新剩余流量
-            foreach (KeyValuePair<int, long> item in dic)
-            {
-                if (cdkeys.TryGetValue(item.Key, out RelayCdkeyInfo info))
-                {
-                    info.LastBytes = item.Value;
-                }
-            }
-        }
         private void ResetNodeBytes()
         {
             if (Node.MaxGbTotal == 0) return;
 
-            foreach (var cache in trafficDict.Values.Where(c => c.CurrentCdkey == null))
+            foreach (var cache in trafficDict.Values)
             {
                 long length = Interlocked.Exchange(ref cache.Sendt, 0);
 
@@ -305,53 +284,13 @@ namespace linker.messenger.relay.server
             }
             relayServerNodeStore.Confirm();
         }
-        private async Task UploadBytes()
-        {
-            var cdkeys = trafficDict.Values.Where(c => c.CurrentCdkey != null && c.Sendt > 0 && c.CurrentCdkey.Id > 0).ToList();
-            Dictionary<int, long> id2sent = cdkeys.GroupBy(c => c.CurrentCdkey.Id).ToDictionary(c => c.Key, d => d.Sum(d => { d.SendtCache = d.Sendt; return d.SendtCache; }));
-            if (id2sent.Count == 0) return;
-
-            bool result = await messengerSender.SendOnly(new MessageRequestWrap
-            {
-                Connection = connection,
-                MessengerId = (ushort)RelayMessengerIds.TrafficReport,
-                Payload = serializer.Serialize(new RelayTrafficUpdateInfo
-                {
-                    Dic = id2sent,
-                    SecretKey = Node.MasterSecretKey
-                }),
-                Timeout = 4000
-            }).ConfigureAwait(false);
-
-            if (result)
-            {
-                //成功报告了流量，就重新计数
-                foreach (var cache in cdkeys)
-                {
-                    Interlocked.Add(ref cache.Sendt, -cache.SendtCache);
-
-                    if (Node.MaxGbTotalLastBytes >= cache.SendtCache)
-                        relayServerNodeStore.SetMaxGbTotalLastBytes(Node.MaxGbTotalLastBytes - cache.SendtCache);
-                    else relayServerNodeStore.SetMaxGbTotalLastBytes(0);
-
-                    Interlocked.Exchange(ref cache.SendtCache, 0);
-                    //当前cdkey流量用完了，就重新找找新的cdkey
-                    if (cache.CurrentCdkey.LastBytes <= 0)
-                    {
-                        SetLimit(cache);
-                    }
-                }
-                relayServerNodeStore.Confirm();
-            }
-        }
         private void TrafficTask()
         {
-            TimerHelper.SetIntervalLong(async () =>
+            TimerHelper.SetIntervalLong(() =>
             {
                 try
                 {
                     ResetNodeBytes();
-                    await UploadBytes().ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -524,15 +463,6 @@ namespace linker.messenger.relay.server
             }
             return null;
         }
-    }
-
-    public sealed partial class RelayTrafficUpdateInfo
-    {
-        /// <summary>
-        /// cdkey id  和 流量
-        /// </summary>
-        public Dictionary<int, long> Dic { get; set; }
-        public string SecretKey { get; set; }
     }
 
 }

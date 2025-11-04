@@ -121,7 +121,7 @@ namespace linker.app
         }
         public async ValueTask Close(ITunnelConnection connection)
         {
-            tuntapDecenter.Refresh();
+            //tuntapDecenter.Refresh();
             await ValueTask.CompletedTask.ConfigureAwait(false);
         }
         public async ValueTask Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer)
