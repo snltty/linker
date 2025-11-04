@@ -44,7 +44,7 @@ namespace linker.messenger.decenter
                     dic.TryAdd(connection.Id, cache);
                 }
 
-                changed = cache.Data.Length != info.Data.Length || info.Data.Span.SequenceEqual(info.Data.Span);
+                changed = cache.Data.Length != info.Data.Length || info.Data.Span.SequenceEqual(info.Data.Span) == false;
 
                 cache.Data = info.Data;
                 cache.SignIn = signin;
