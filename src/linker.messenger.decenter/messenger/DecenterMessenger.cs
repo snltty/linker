@@ -83,8 +83,8 @@ namespace linker.messenger.decenter
             {
                 c.Value.Versions.TryGetValue(connection.GetHashCode(), out DecenterCacheVersionInfo version);
                 bool result = c.Key != connection.Id
-                && c.Value.SignIn.SameGroup(signin)
-                && (version == null || c.Value.Version.Eq(version.Value, out ulong newVersion) == false);
+                && c.Value.SignIn.SameGroup(signin);
+                //&& (version == null || c.Value.Version.Eq(version.Value, out ulong newVersion) == false);
 
                 if (version == null)
                 {
