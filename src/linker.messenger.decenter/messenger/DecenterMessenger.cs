@@ -80,11 +80,17 @@ namespace linker.messenger.decenter
 
             IEnumerable<Memory<byte>> data = dic.Where(c =>
             {
+                c.Value.Versions.TryGetValue(connection.GetHashCode(), out DecenterCacheVersionInfo version);
                 bool result = c.Key != connection.Id
-                && c.Value.SignIn.SameGroup(signin);
-                //&& (c.Value.Versions.TryGetValue(connection.Id, out ulong version) == false || c.Value.Version.Eq(version, out ulong newVersion) == false);
+                && c.Value.SignIn.SameGroup(signin)
+                && (version == null || c.Value.Version.Eq(version.Value, out ulong newVersion) == false);
 
-                c.Value.Versions.AddOrUpdate(connection.Id, c.Value.Version.Value, (a, b) => c.Value.Version.Value);
+                if (version == null)
+                {
+                    version = new DecenterCacheVersionInfo { Connection = connection, Value = c.Value.Version.Value };
+                    c.Value.Versions.TryAdd(connection.GetHashCode(), version);
+                }
+                version.Value = c.Value.Version.Value;
 
                 return result;
             }).Select(c => c.Value.Data);
@@ -115,6 +121,15 @@ namespace linker.messenger.decenter
                         dic.TryRemove(id, out _);
                     }
                 }
+                List<DecenterCacheInfo> versions = decenters.Values.SelectMany(c => c.Values).Where(c=>c.Versions.Values.Any(c=>c.Connection.Connected == false)).ToList();
+                foreach (DecenterCacheInfo cache in versions)
+                {
+                    foreach (int hashcode in cache.Versions.Where(c => c.Value.Connection.Connected == false).Select(c=>c.Key).ToList())
+                    {
+                        cache.Versions.TryRemove(hashcode, out _);
+                    }
+                }
+
             }, 30000);
         }
     }
@@ -144,6 +159,12 @@ namespace linker.messenger.decenter
         public VersionManager Version { get; set; } = new VersionManager();
         public Memory<byte> Data { get; set; }
 
-        public ConcurrentDictionary<string, ulong> Versions { get; set; } = new ConcurrentDictionary<string, ulong>();
+        public ConcurrentDictionary<int, DecenterCacheVersionInfo> Versions { get; set; } = new ConcurrentDictionary<int, DecenterCacheVersionInfo>();
+    }
+
+    public sealed class DecenterCacheVersionInfo
+    {
+        public ulong Value { get; set; }
+        public IConnection Connection { get; set; }
     }
 }
