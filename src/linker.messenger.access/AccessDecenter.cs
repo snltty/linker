@@ -13,10 +13,14 @@ namespace linker.messenger.access
         public VersionManager PushVersion { get; } = new VersionManager();
         public VersionManager DataVersion { get; } = new VersionManager();
 
+        public bool Force => Accesss.Count < 2;
+
         /// <summary>
         /// 各个设备的权限列表
         /// </summary>
         public ConcurrentDictionary<string, BitArray> Accesss { get; } = new ConcurrentDictionary<string, BitArray>();
+
+       
 
         private readonly ISignInClientStore signInClientStore;
         private readonly IAccessStore accessStore;

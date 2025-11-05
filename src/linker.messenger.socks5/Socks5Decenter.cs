@@ -11,6 +11,7 @@ namespace linker.messenger.socks5
         public string Name => "socks5";
         public VersionManager PushVersion { get; } = new VersionManager();
         public VersionManager DataVersion { get; } = new VersionManager();
+        public bool Force => socks5Infos.Count < 2;
 
         private readonly ConcurrentDictionary<string, Socks5Info> socks5Infos = new ConcurrentDictionary<string, Socks5Info>();
         public ConcurrentDictionary<string, Socks5Info> Infos => socks5Infos;

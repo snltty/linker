@@ -149,7 +149,7 @@ namespace linker.messenger.decenter
                     {
                         Connection = signInClientState.Connection,
                         MessengerId = (ushort)DecenterMessengerIds.Pull,
-                        Payload = serializer.Serialize(c.Name),
+                        Payload = serializer.Serialize(new KeyValuePair<string, bool>(c.Name, c.Force)),
                         Timeout = 3000
                     })
                 };
@@ -160,6 +160,7 @@ namespace linker.messenger.decenter
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Debug($"decenter pull {task.Decenter.Name}->{task.Task.Result.Data.Length}");
                 List<ReadOnlyMemory<byte>> list = serializer.Deserialize<List<ReadOnlyMemory<byte>>>(task.Task.Result.Data.Span);
+                if (list.Count == 0) continue;
                 task.Decenter.AddData(list);
                 task.Decenter.DataVersion.Increment();
                 versionMultipleManager.Increment(task.Decenter.Name);

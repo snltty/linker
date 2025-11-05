@@ -13,6 +13,7 @@ namespace linker.messenger.forward
         public string Name => "forward";
         public VersionManager PushVersion { get; } = new VersionManager();
         public VersionManager DataVersion { get; } = new VersionManager();
+        public bool Force => CountDic.Count < 2;
         public ConcurrentDictionary<string, int> CountDic { get; } = new ConcurrentDictionary<string, int>();
 
 
@@ -27,7 +28,7 @@ namespace linker.messenger.forward
 
             forwardTransfer.OnReset += CountDic.Clear;
             forwardTransfer.OnChanged += Refresh;
-          
+
         }
         public void Refresh()
         {
@@ -48,6 +49,8 @@ namespace linker.messenger.forward
             List<ForwardCountInfo> list = data.Select(c => serializer.Deserialize<ForwardCountInfo>(c.Span)).ToList();
             foreach (var info in list)
             {
+                Console.WriteLine($"{info.MachineId}->{info.Count}");
+
                 CountDic.AddOrUpdate(info.MachineId, info.Count, (a, b) => info.Count);
             };
         }

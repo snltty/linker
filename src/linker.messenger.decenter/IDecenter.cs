@@ -16,6 +16,9 @@ namespace linker.messenger.decenter
         /// 数据版本，收到新数据则版本变化
         /// </summary>
         public VersionManager DataVersion { get; }
+
+        public bool Force { get; }
+
         /// <summary>
         /// 获取本地数据
         /// </summary>

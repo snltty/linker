@@ -10,6 +10,9 @@ namespace linker.messenger.sforward.client
         public string Name => "sforward";
         public VersionManager PushVersion { get; } = new VersionManager();
         public VersionManager DataVersion { get; } = new VersionManager();
+
+        public bool Force => CountDic.Count < 2;
+
         public ConcurrentDictionary<string, int> CountDic { get; } = new ConcurrentDictionary<string, int>();
 
         private readonly ISignInClientStore signInClientStore;
