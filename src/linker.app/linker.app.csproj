@@ -19,8 +19,6 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>disable</Nullable>
 
-		<EnablePreviewFeatures>true</EnablePreviewFeatures>
-
 		<!-- Display name -->
 		<ApplicationTitle>Linker</ApplicationTitle>
 

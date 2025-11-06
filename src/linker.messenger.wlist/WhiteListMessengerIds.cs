@@ -8,6 +8,9 @@
         Page = 3702,
         Del = 3703,
 
+        Status = 3704,
+        AddOrder = 3705,
+
         Max = 3599
     }
 }

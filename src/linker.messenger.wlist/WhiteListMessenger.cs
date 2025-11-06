@@ -1,5 +1,9 @@
 ﻿using linker.libs;
+using linker.libs.winapis;
+using linker.messenger.relay.server;
 using linker.messenger.signin;
+using linker.messenger.wlist.order;
+using System.Reflection.PortableExecutable;
 
 namespace linker.messenger.wlist
 {
@@ -10,13 +14,15 @@ namespace linker.messenger.wlist
         private readonly SignInServerCaching signCaching;
         private readonly ISerializer serializer;
         private readonly IWhiteListServerStore whiteListServerStore;
+        private readonly OrderTransfer orderTransfer;
 
-        public WhiteListServerMessenger(IMessengerSender messengerSender, SignInServerCaching signCaching, ISerializer serializer, IWhiteListServerStore whiteListServerStore)
+        public WhiteListServerMessenger(IMessengerSender messengerSender, SignInServerCaching signCaching, ISerializer serializer, IWhiteListServerStore whiteListServerStore, OrderTransfer orderTransfer)
         {
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;
             this.serializer = serializer;
             this.whiteListServerStore = whiteListServerStore;
+            this.orderTransfer = orderTransfer;
         }
 
         /// <summary>
@@ -75,6 +81,53 @@ namespace linker.messenger.wlist
             var page = await whiteListServerStore.Page(info).ConfigureAwait(false);
 
             connection.Write(serializer.Serialize(page));
+        }
+
+
+        /// <summary>
+        /// 状态
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        [MessengerId((ushort)WhiteListMessengerIds.Status)]
+        public async Task Status(IConnection connection)
+        {
+            string type = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
+            {
+                connection.Write(Helper.FalseArray);
+                return;
+            }
+
+            List<WhiteListInfo> list = await whiteListServerStore.Get(type, cache.UserId, [cache.MachineId]).ConfigureAwait(false);
+            WhiteListInfo info = list.FirstOrDefault(c => c.Bandwidth < 0) ?? list.FirstOrDefault(c => c.Bandwidth == 0) ?? list.OrderByDescending(c => c.Bandwidth).FirstOrDefault();
+
+            connection.Write(serializer.Serialize(new WhiteListOrderStatusInfo
+            {
+                Type = whiteListServerStore.Config.Type,
+                Enabled = orderTransfer.CheckEnabled(),
+                Info = info
+            }));
+        }
+
+
+        /// <summary>
+        /// 添加订单
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        [MessengerId((ushort)WhiteListMessengerIds.AddOrder)]
+        public async Task AddOrder(IConnection connection)
+        {
+            KeyValuePair<string, string> kvp = serializer.Deserialize<KeyValuePair<string,string>>(connection.ReceiveRequestWrap.Payload.Span);
+
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
+            {
+                connection.Write(serializer.Serialize("please sign in"));
+                return;
+            }
+
+            connection.Write(serializer.Serialize(await orderTransfer.AddOrder(cache.UserId, cache.MachineId, kvp.Key, kvp.Value)));
         }
     }
 }

@@ -171,7 +171,8 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new WhiteListDelInfoFormatter());
             MemoryPackFormatterProvider.Register(new WhiteListPageRequestInfoFormatter());
             MemoryPackFormatterProvider.Register(new WhiteListPageResultInfoFormatter());
-
+            MemoryPackFormatterProvider.Register(new WhiteListOrderStatusInfoFormatter());
+            
             return serviceCollection;
         }
         public static ServiceProvider UseSerializerMemoryPack(this ServiceProvider serviceProvider)

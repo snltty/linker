@@ -190,11 +190,12 @@ namespace linker.messenger.tunnel
             }).Where(c => c.Ips.Length > 0 && c.Ips.Any(d => d.Equals(IPAddress.Loopback)) == false).ToArray();
         }
 
-
+#pragma warning disable CA2252 // 此 API 需要选择加入预览功能
         private void TestQuic()
         {
             if (OperatingSystem.IsWindows())
             {
+
                 if (QuicListener.IsSupported == false)
                 {
                     try

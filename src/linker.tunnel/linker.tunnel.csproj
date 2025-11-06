@@ -7,7 +7,7 @@
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<PublishAot>false</PublishAot>
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
-		<EnablePreviewFeatures>True</EnablePreviewFeatures>
+		<!--<EnablePreviewFeatures>True</EnablePreviewFeatures>-->
 		<Title>linker tunnel</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>

@@ -2,11 +2,14 @@
 {
     public interface IWhiteListServerStore
     {
+        public WhiteListConfigServerInfo Config { get; }
+
         public Task<WhiteListPageResultInfo> Page(WhiteListPageRequestInfo request);
         public Task<bool> Add(WhiteListInfo info);
         public Task<bool> Del(int id);
 
         public Task<List<WhiteListInfo>> Get(string type, string userid, string[] machineIds);
+        public Task<WhiteListInfo> Get(string tradeNo);
     }
     public sealed partial class WhiteListDelInfo
     {
@@ -44,10 +47,20 @@
         public DateTime UseTime { get; set; } = DateTime.Now;
         public DateTime EndTime { get; set; } = DateTime.Now.AddYears(1);
 
+        public string TradeNo { get; set; } = string.Empty;
+
         public string[] Nodes { get; set; } = [];
 
         public double Bandwidth { get; set; } = 0;
 
+
+    }
+
+    public sealed class WhiteListOrderStatusInfo
+    {
+        public bool Enabled { get; set; }
+        public string Type { get; set; } = string.Empty;
+        public WhiteListInfo Info { get; set; }
 
     }
 }

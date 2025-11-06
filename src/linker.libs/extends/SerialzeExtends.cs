@@ -13,7 +13,7 @@ namespace linker.libs.extends
             AllowTrailingCommas = true,
             ReadCommentHandling = JsonCommentHandling.Skip,
             PropertyNameCaseInsensitive = true,
-            Converters = { new IPAddressJsonConverter(), new IPEndpointJsonConverter(), new DateTimeJsonConverter(), new BitArrayJsonConverter() }
+            Converters = { new IPAddressJsonConverter(), new IPEndpointJsonConverter(), new DateTimeJsonConverter(), new BitArrayJsonConverter(),new KeyValuePairJsonConverter<string,string>() }
         };
         private static JsonSerializerOptions jsonSerializerOptions = new JsonSerializerOptions
         {
@@ -22,7 +22,7 @@ namespace linker.libs.extends
             ReadCommentHandling = JsonCommentHandling.Skip,
             PropertyNameCaseInsensitive = true,
             WriteIndented = true,
-            Converters = { new IPAddressJsonConverter(), new IPEndpointJsonConverter(), new DateTimeJsonConverter(), new BitArrayJsonConverter()},
+            Converters = { new IPAddressJsonConverter(), new IPEndpointJsonConverter(), new DateTimeJsonConverter(), new BitArrayJsonConverter(), new KeyValuePairJsonConverter<string, string>() },
         };
         public static void AddAOT(JsonSerializerContext[] contexts)
         {

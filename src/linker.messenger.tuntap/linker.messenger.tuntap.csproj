@@ -7,7 +7,6 @@
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<PublishAot>false</PublishAot>
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
-		<EnablePreviewFeatures>True</EnablePreviewFeatures>
 		<Title>linker messenger tuntap</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>

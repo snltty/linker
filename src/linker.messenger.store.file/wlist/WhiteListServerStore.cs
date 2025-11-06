@@ -5,6 +5,8 @@ namespace linker.messenger.store.file.wlist
 {
     public sealed class WhiteListServerStore : IWhiteListServerStore
     {
+        public WhiteListConfigServerInfo Config => fileConfig.Data.Server.WhiteList;
+
         private readonly ILiteCollection<WhiteListInfo> liteCollection;
         private readonly FileConfig fileConfig;
         public WhiteListServerStore(Storefactory dBfactory, FileConfig fileConfig)
@@ -40,14 +42,16 @@ namespace linker.messenger.store.file.wlist
         {
             return await Task.FromResult(liteCollection.Delete(id)).ConfigureAwait(false);
         }
-
         public async Task<List<WhiteListInfo>> Get(string type, string userid, string[] machineIds)
         {
             if (string.IsNullOrWhiteSpace(type) || string.IsNullOrWhiteSpace(userid)) return [];
 
-            return await Task.FromResult(liteCollection.Find(c => c.Type == type && c.UseTime <= DateTime.Now && c.EndTime > DateTime.Now && (c.UserId == userid || machineIds.Contains( c.MachineId))).ToList()).ConfigureAwait(false);
+            return await Task.FromResult(liteCollection.Find(c => c.Type == type && c.UseTime <= DateTime.Now && c.EndTime > DateTime.Now && (c.UserId == userid || machineIds.Contains(c.MachineId))).ToList()).ConfigureAwait(false);
         }
-
+        public async Task<WhiteListInfo> Get(string tradeNo)
+        {
+            return await Task.FromResult(liteCollection.FindOne(c => c.TradeNo == tradeNo)).ConfigureAwait(false);
+        }
         public async Task<WhiteListPageResultInfo> Page(WhiteListPageRequestInfo info)
         {
             if (string.IsNullOrWhiteSpace(info.Type))

@@ -15,7 +15,6 @@
 		<PublishTrimmed>true</PublishTrimmed>
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
 		<SignAssembly>true</SignAssembly>
-		<EnablePreviewFeatures>true</EnablePreviewFeatures>
 		<ServerGarbageCollection>false</ServerGarbageCollection>
 		<Title>linker</Title>
 		<Authors>snltty</Authors>

@@ -7,6 +7,7 @@
                 </a>
                 <WhiteList type="SForward" prefix="sfp->"  v-if="state.super && hasWhiteList"></WhiteList>
                 <Nodes v-if="state.showModes" v-model="state.showModes" :data="state.nodes"></Nodes>
+                <Status type="SForward"></Status>
             </div>
         </div>
     </el-form-item>
@@ -18,9 +19,10 @@ import { useI18n } from 'vue-i18n';
 import WhiteList from '../wlist/Index.vue';
 import Nodes from './Nodes.vue';
 import { setSForwardSubscribe } from '@/apis/sforward';
+import Status from '../wlist/Status.vue';
 
 export default {
-    components:{WhiteList,Nodes},
+    components:{WhiteList,Nodes,Status},
     setup(props) {
         const {t} = useI18n();
         const globalData = injectGlobalData();

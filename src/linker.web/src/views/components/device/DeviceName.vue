@@ -8,7 +8,7 @@
         <template v-if="tuntap.list[item.MachineId] && tuntap.list[item.MachineId].systems">
             <template v-for="system in tuntap.list[item.MachineId].systems">
                 <span :title="tuntap.list[item.MachineId].SystemInfo">
-                    <img class="system":src="`./${system}.svg`" />
+                    <img class="system" :src="`./${system}.svg`" />
                 </span>
             </template>
         </template>

@@ -8,7 +8,6 @@
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<PublishAot>false</PublishAot>
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
-		<EnablePreviewFeatures>True</EnablePreviewFeatures>
 		<Title>linker messenger pcp</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>

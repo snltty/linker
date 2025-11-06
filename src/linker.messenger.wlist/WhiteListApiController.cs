@@ -81,6 +81,49 @@ namespace linker.messenger.wlist
 
             return new WhiteListPageResultInfo();
         }
+
+        /// <summary>
+        /// 状态
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public async Task<WhiteListOrderStatusInfo> Status(ApiControllerParamsInfo param)
+        {
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)WhiteListMessengerIds.Status,
+                Payload = serializer.Serialize(param.Content)
+            }).ConfigureAwait(false);
+            if (resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.FalseArray) == false)
+            {
+                return serializer.Deserialize<WhiteListOrderStatusInfo>(resp.Data.Span);
+            }
+
+            return new WhiteListOrderStatusInfo();
+        }
+        /// <summary>
+        /// 添加一个订单
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public async Task<string> AddOrder(ApiControllerParamsInfo param)
+        {
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)WhiteListMessengerIds.AddOrder,
+                Payload = serializer.Serialize(param.Content.DeJson<KeyValuePair<string,string>>())
+            }).ConfigureAwait(false);
+            if (resp.Code == MessageResponeCodes.OK)
+            {
+                return serializer.Deserialize<string>(resp.Data.Span);
+            }
+
+            return string.Empty;
+        }
+
+
     }
 
 }

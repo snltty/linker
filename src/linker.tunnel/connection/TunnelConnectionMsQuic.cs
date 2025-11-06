@@ -34,6 +34,7 @@ namespace linker.tunnel.connection
 
         public byte BufferSize { get; init; } = 3;
 
+#pragma warning disable CA2252 // 此 API 需要选择加入预览功能
         public bool Connected => Stream != null && Stream.CanWrite && LastTicks.HasValue();
         public int Delay { get; private set; }
         public long SendBytes { get; private set; }
@@ -48,7 +49,7 @@ namespace linker.tunnel.connection
         [JsonIgnore]
         public byte[] PacketBuffer { get; set; } = Helper.EmptyArray;
 
-
+#pragma warning disable CA2252 // 此 API 需要选择加入预览功能
         [JsonIgnore]
         public QuicStream Stream { get; init; }
         [JsonIgnore]
@@ -83,6 +84,7 @@ namespace linker.tunnel.connection
             _ = ProcessHeart();
 
         }
+#pragma warning disable CA2252 // 此 API 需要选择加入预览功能
         private async Task ProcessWrite()
         {
             using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent((1 << BufferSize) * 1024);
@@ -91,7 +93,6 @@ namespace linker.tunnel.connection
                 while (cancellationTokenSource.IsCancellationRequested == false)
                 {
                     int length = await Stream.ReadAsync(buffer.Memory, cancellationTokenSource.Token).ConfigureAwait(false);
-
                     if (length == 0)
                     {
                         break;
@@ -189,7 +190,8 @@ namespace linker.tunnel.connection
             {
             }
         }
-        private  async Task SendPingPong(byte[] data)
+#pragma warning disable CA2252 // 此 API 需要选择加入预览功能
+        private async Task SendPingPong(byte[] data)
         {
             int length = 4 + data.Length;
 
@@ -216,13 +218,15 @@ namespace linker.tunnel.connection
         }
 
         private readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
+
+
         public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
             await semaphoreSlim.WaitAsync().ConfigureAwait(false);
-
             try
             {
                 await Stream.WriteAsync(data, cancellationTokenSource.Token).ConfigureAwait(false);
+
                 SendBytes += data.Length;
                 return true;
             }
@@ -245,6 +249,7 @@ namespace linker.tunnel.connection
             return await SendAsync(buffer.AsMemory(offset, length)).ConfigureAwait(false);
         }
 
+#pragma warning disable CA2252 // 此 API 需要选择加入预览功能
         public void Dispose()
         {
             LastTicks.Clear();

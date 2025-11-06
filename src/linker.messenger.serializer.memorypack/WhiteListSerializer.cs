@@ -324,4 +324,61 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
+
+
+    [MemoryPackable]
+    public readonly partial struct SerializableWhiteListOrderStatusInfo
+    {
+        [MemoryPackIgnore]
+        public readonly WhiteListOrderStatusInfo info;
+
+        [MemoryPackInclude]
+        bool Enabled => info.Enabled;
+        [MemoryPackInclude]
+        string Type => info.Type;
+        [MemoryPackInclude,MemoryPackAllowSerialize]
+        WhiteListInfo Info => info.Info;
+
+        [MemoryPackConstructor]
+        SerializableWhiteListOrderStatusInfo(bool enabled, string type, WhiteListInfo info)
+        {
+            this.info = new WhiteListOrderStatusInfo
+            {
+                Enabled = enabled,
+                Type = type,
+                Info = info
+            };
+        }
+
+        public SerializableWhiteListOrderStatusInfo(WhiteListOrderStatusInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class WhiteListOrderStatusInfoFormatter : MemoryPackFormatter<WhiteListOrderStatusInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref WhiteListOrderStatusInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableWhiteListOrderStatusInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref WhiteListOrderStatusInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            var wrapped = reader.ReadPackable<SerializableWhiteListOrderStatusInfo>();
+            value = wrapped.info;
+        }
+    }
 }

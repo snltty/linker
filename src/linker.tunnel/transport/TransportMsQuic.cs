@@ -64,16 +64,19 @@ namespace linker.tunnel.transport
         /// </summary>
         /// <param name="tunnelTransportInfo"></param>
         /// <returns></returns>
+#pragma warning disable CA2252 // 此 API 需要选择加入预览功能
         public async Task<ITunnelConnection> ConnectAsync(TunnelTransportInfo tunnelTransportInfo)
         {
             if (OperatingSystem.IsWindows() || OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
             {
+
                 if (QuicListener.IsSupported == false)
                 {
                     LoggerHelper.Instance.Warning($"msquic not supported, need win11+,or linux");
                     await tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
                     return null;
                 }
+
                 if (certificate == null)
                 {
                     LoggerHelper.Instance.Warning($"msquic need ssl");
@@ -128,12 +131,15 @@ namespace linker.tunnel.transport
         {
             if (OperatingSystem.IsWindows() || OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
             {
+#pragma warning disable CA2252 // 此 API 需要选择加入预览功能
                 if (QuicListener.IsSupported == false)
+#pragma warning restore CA2252 // 此 API 需要选择加入预览功能
                 {
                     LoggerHelper.Instance.Warning($"msquic not supported, need win11+,or linux");
                     await tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
                     return;
                 }
+
                 if (certificate == null)
                 {
                     LoggerHelper.Instance.Warning($"msquic need ssl");
@@ -209,6 +215,7 @@ namespace linker.tunnel.transport
                 //绑定一个udp，用来给QUIC链接
                 Socket quicUdp = ListenQuicConnect(tunnelTransportInfo.BufferSize, remoteUdp, remoteEP);
 #pragma warning disable SYSLIB0039 // 类型或成员已过时
+#pragma warning disable CA2252 // 此 API 需要选择加入预览功能
                 QuicConnection connection = connection = await QuicConnection.ConnectAsync(new QuicClientConnectionOptions
                 {
                     RemoteEndPoint = new IPEndPoint(IPAddress.Loopback, (quicUdp.LocalEndPoint as IPEndPoint).Port),
@@ -226,8 +233,9 @@ namespace linker.tunnel.transport
                         }
                     }
                 }).AsTask().WaitAsync(TimeSpan.FromMilliseconds(1000)).ConfigureAwait(false);
-#pragma warning restore SYSLIB0039 // 类型或成员已过时
                 QuicStream quicStream = await connection.OpenOutboundStreamAsync(QuicStreamType.Bidirectional).ConfigureAwait(false);
+#pragma warning restore CA2252 // 此 API 需要选择加入预览功能
+#pragma warning restore SYSLIB0039 // 类型或成员已过时
                 return new TunnelConnectionMsQuic
                 {
                     QuicUdp = quicUdp,
@@ -625,7 +633,9 @@ namespace linker.tunnel.transport
             }
         }
 
+#pragma warning disable CA2252 // 此 API 需要选择加入预览功能
         private async Task OnUdpConnected(object _state, Socket remoteUdp, Socket quicUdp, IPEndPoint remoteEP, QuicConnection quicConnection, QuicStream stream)
+#pragma warning restore CA2252 // 此 API 需要选择加入预览功能
         {
             TunnelTransportInfo state = _state as TunnelTransportInfo;
             if (state.TransportName == Name)
@@ -673,10 +683,12 @@ namespace linker.tunnel.transport
         /// QUIC监听
         /// </summary>
         /// <returns></returns>
+#pragma warning disable CA2252 // 此 API 需要选择加入预览功能
         private async Task QuicListen()
         {
             if (OperatingSystem.IsWindows() || OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
             {
+
                 if (QuicListener.IsSupported == false)
                 {
                     LoggerHelper.Instance.Warning($"msquic not supported, need win11+,or linux, or try to restart linker");
@@ -687,7 +699,6 @@ namespace linker.tunnel.transport
                     LoggerHelper.Instance.Warning($"msquic need ssl");
                     return;
                 }
-
                 QuicListener listener = await QuicListener.ListenAsync(new QuicListenerOptions
                 {
                     ApplicationProtocols = new List<SslApplicationProtocol> { SslApplicationProtocol.Http3 },
@@ -713,13 +724,13 @@ namespace linker.tunnel.transport
 #pragma warning restore SYSLIB0039 // 类型或成员已过时
                     }
                 }).ConfigureAwait(false);
+
                 quicListenEP = new IPEndPoint(IPAddress.Loopback, listener.LocalEndPoint.Port);
                 while (true)
                 {
                     try
                     {
                         QuicConnection quicConnection = await listener.AcceptConnectionAsync().ConfigureAwait(false);
-
                         TimerHelper.Async(async () =>
                         {
                             while (true)

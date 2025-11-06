@@ -6,14 +6,15 @@
                     <el-checkbox class="mgr-1" v-model="state.list.Disabled" :label="$t('server.relayDisable')" @change="handleSave" />
                     <el-checkbox v-model="state.list.SSL" :label="$t('server.relaySSL')" @change="handleSave" />
                 </div>
+                <Sync class="mgl-1" name="RelaySecretKey"></Sync>
+            </div>
+            <div class="flex">
                 <a href="javascript:;" @click="state.showModes=true" class="mgr-1 delay a-line" :class="{red:state.nodes.length==0,green:state.nodes.length>0}">
                     {{$t('server.relayNodes')}} : {{state.nodes.length}}
                 </a>
                 <WhiteList type="Relay"></WhiteList>
-                <Sync class="mgl-1" name="RelaySecretKey"></Sync>
-            </div>
-            <div class="flex">
                 <Nodes v-if="state.showModes" v-model="state.showModes" :data="state.nodes"></Nodes>
+                <Status type="Relay"></Status>
             </div>
         </div>
     </el-form-item>
@@ -27,9 +28,10 @@ import { useI18n } from 'vue-i18n';
 import Sync from '../sync/Index.vue'
 import Nodes from './Nodes.vue';
 import WhiteList from '../wlist/Index.vue';
+import Status from '../wlist/Status.vue';
 
 export default {
-    components:{Sync,Nodes,WhiteList},
+    components:{Sync,Nodes,WhiteList,Status},
     setup(props) {
         const {t} = useI18n();
         const globalData = injectGlobalData();
