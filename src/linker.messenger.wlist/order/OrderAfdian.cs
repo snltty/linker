@@ -2,7 +2,6 @@
 using linker.libs.extends;
 using System.Net.Http.Json;
 using System.Text.Json;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace linker.messenger.wlist.order
 {
