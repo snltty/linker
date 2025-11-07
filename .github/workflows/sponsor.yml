@@ -23,10 +23,15 @@ jobs:
           AFDIAN_USER_ID: ${{ secrets.AFDIAN_USER_ID }}
           AFDIAN_API_TOKEN: ${{ secrets.AFDIAN_API_TOKEN }}
           AFDIAN_OUTPUT: "./dist/afdian-sponsor.svg"
-          AFDIAN_TOTAL_SPONSORS: 300
+          AFDIAN_TOTAL_SPONSORS: 100
           AFDIAN_AVATAR_SIZE: 300
-          AFDIAN_MARGIN: 30
+          AFDIAN_MARGIN: 50
           AFDIAN_AVATARS_PER_ROW: 10
+          AFDIAN_ACTIVE_SPONSOR_OPACITY: 1
+          AFDIAN_EXPIRED_SPONSOR_OPACITY: 0.7
+          AFDIAN_FONTSIZE_SCALE: 6
+          AFDIAN_PADDINGX_SCALE: 0
+          AFDIAN_PADDINGY_SCALE: 0
 
       - name: Push afdian-sponsor-svg to the out/sponsor branch
         uses: crazy-max/ghaction-github-pages@v4
