@@ -76,33 +76,6 @@
 
 若此项目对您有用，可以考虑对作者稍加支持，让作者更有动力，在项目上投入更多时间和精力
 
-<details>
-<summary><strong>感谢名单</strong></summary>
-<div>
-
-- 米多贝克&米多网络工程
-- 旋律 * 3
-- 阳阳
-- 谢幕____(海那边的白月光)
-- swayer.
-- 浅浅
-- 仰望 * 2
-- 李氏の天下
-- 小猪 * 2
-- 菜菜(木子) * 3
-- 杰米儿
-- Oasis
-- 坦然
-- littleexe
-- 黄品(Pim Hwang)
-- GoodGoodStudy
-- 无始无名
-- 小马0.0
-- Jafucong
-
-</div>
-</details>
-
 <img src="https://github.com/snltty/linker/raw/refs/heads/out/sponsor/afdian-sponsor.svg" alt="sponsor">
 
 使用 **[🔋为爱发电](https://afdian.com/a/snltty)**、或
