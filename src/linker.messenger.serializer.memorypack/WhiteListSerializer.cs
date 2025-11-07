@@ -32,13 +32,17 @@ namespace linker.messenger.serializer.memorypack
         DateTime EndTime => info.EndTime;
 
         [MemoryPackInclude]
+        string TradeNo => info.TradeNo;
+
+
+        [MemoryPackInclude]
         string[] Nodes => info.Nodes;
 
         [MemoryPackInclude]
         double Bandwidth => info.Bandwidth;
 
         [MemoryPackConstructor]
-        SerializableWhiteListInfo(int id, string type, string userid, string machineId, string name, string remark, DateTime addTime, DateTime useTime, DateTime endTime, string[] nodes, double bandwidth)
+        SerializableWhiteListInfo(int id, string type, string userid, string machineId, string name, string remark, DateTime addTime, DateTime useTime, DateTime endTime, string tradeNo, string[] nodes, double bandwidth)
         {
             var info = new WhiteListInfo
             {
@@ -50,6 +54,7 @@ namespace linker.messenger.serializer.memorypack
                 UseTime = useTime,
                 EndTime = endTime,
                 Remark = remark,
+                TradeNo = tradeNo,
                 Nodes = nodes,
                 Name = name,
                 Bandwidth = bandwidth
@@ -336,7 +341,7 @@ namespace linker.messenger.serializer.memorypack
         bool Enabled => info.Enabled;
         [MemoryPackInclude]
         string Type => info.Type;
-        [MemoryPackInclude,MemoryPackAllowSerialize]
+        [MemoryPackInclude, MemoryPackAllowSerialize]
         WhiteListInfo Info => info.Info;
 
         [MemoryPackConstructor]

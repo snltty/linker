@@ -20,16 +20,16 @@
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Description>1. 一些累计更新，一些BUG修复
-2. 管理窗口默认置顶改为可选
-3. 增加内网穿透HTTP协议默认404页面，在web文件夹中，当存在优先404.html，其次404_default.html
-4. 管理页面增加公告栏</Description>
+2. 优化客户端数据同步，减少服务器流量
+3. 去除cdkey，改为发电解锁中继速度
+4. 其它一些UI优化</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>1.9.5</Version>
-		<AssemblyVersion>1.9.5</AssemblyVersion>
-		<FileVersion>1.9.5</FileVersion>
+		<Version>1.9.6</Version>
+		<AssemblyVersion>1.9.6</AssemblyVersion>
+		<FileVersion>1.9.6</FileVersion>
 		<DelaySign>False</DelaySign>
 	</PropertyGroup>
 

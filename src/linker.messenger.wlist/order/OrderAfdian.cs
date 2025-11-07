@@ -2,6 +2,7 @@
 using linker.libs.extends;
 using System.Net.Http.Json;
 using System.Text.Json;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace linker.messenger.wlist.order
 {
@@ -36,7 +37,8 @@ namespace linker.messenger.wlist.order
             }
 
 
-            AfdianOrderData data = await Get(arr[0], arr[1], tradeNo).ConfigureAwait(false);
+            (AfdianOrderData data, string error) = await Get(arr[0], arr[1], tradeNo).ConfigureAwait(false);
+            if (string.IsNullOrWhiteSpace(error) == false) return $"Afdian query order error {error}";
             if (data == null || data.List.Length == 0) return "Afdian order not found";
 
             try
@@ -46,7 +48,7 @@ namespace linker.messenger.wlist.order
                     TradeNo = data.List[0].Out_trade_no,
                     UserId = userid,
                     MachineId = machineId,
-                    Remark = data.List[0].User_name,
+                    Remark = data.List[0].Remark,
                     AddTime = DateTime.Now,
                     Name = data.List[0].User_name,
                     Nodes = ["*"],
@@ -61,7 +63,7 @@ namespace linker.messenger.wlist.order
                 return ex.Message;
             }
 
-            return string.Empty;
+            return "success";
         }
 
         public bool CheckEnabled()
@@ -70,7 +72,7 @@ namespace linker.messenger.wlist.order
                 && whiteListServerStore.Config.Value.Split(new char[] { '&' }, StringSplitOptions.RemoveEmptyEntries).Length == 2;
         }
 
-        private async Task<AfdianOrderData> Get(string userid, string token, string tradeNo)
+        private async Task<(AfdianOrderData data, string error)> Get(string userid, string token, string tradeNo)
         {
             try
             {
@@ -90,8 +92,9 @@ namespace linker.messenger.wlist.order
                 {
                     string str = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
                     AfdianOrderResponse orderResp = str.DeJson<AfdianOrderResponse>();
-                    return orderResp.Data;
+                    return (orderResp.Data, orderResp.Ec == 200 ? string.Empty : orderResp.Em);
                 }
+                return (null, $"Afdian api http error {resp.StatusCode}");
             }
             catch (Exception ex)
             {
@@ -99,8 +102,8 @@ namespace linker.messenger.wlist.order
                 {
                     LoggerHelper.Instance.Error(ex);
                 }
+                return (null, ex.Message);
             }
-            return null;
         }
 
         public sealed class AfdianOrderResponse
@@ -114,7 +117,7 @@ namespace linker.messenger.wlist.order
         {
             public int Total_count { get; set; }
             public int Total_page { get; set; }
-            public AfdianOrderItem[] List { get; set; }
+            public AfdianOrderItem[] List { get; set; } = Array.Empty<AfdianOrderItem>();
         }
         public sealed class AfdianOrderItem
         {

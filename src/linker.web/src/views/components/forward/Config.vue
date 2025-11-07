@@ -7,7 +7,7 @@
                 </a>
                 <WhiteList type="SForward" prefix="sfp->"  v-if="state.super && hasWhiteList"></WhiteList>
                 <Nodes v-if="state.showModes" v-model="state.showModes" :data="state.nodes"></Nodes>
-                <Status type="SForward"></Status>
+                <!-- <Status type="SForward"></Status> -->
             </div>
         </div>
     </el-form-item>

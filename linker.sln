@@ -59,8 +59,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.tuntap", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.app", "src\linker.app\linker.app.csproj", "{60FFFE21-C8F2-4B3A-BB49-7FA2AE31C2B0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "linker.ics", "src\linker.ics\linker.ics.csproj", "{BBE91688-7734-4BEF-B957-54F8C17F47CE}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.plan", "src\linker.messenger.plan\linker.messenger.plan.csproj", "{5649D02E-200B-45E0-A82F-8EBE76CF96C6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.nat", "src\linker.nat\linker.nat.csproj", "{A1EA64AA-8C30-4616-B65D-8AF07641807E}"
@@ -425,18 +423,6 @@ Global
 		{60FFFE21-C8F2-4B3A-BB49-7FA2AE31C2B0}.Release|x86.ActiveCfg = Release|Any CPU
 		{60FFFE21-C8F2-4B3A-BB49-7FA2AE31C2B0}.Release|x86.Build.0 = Release|Any CPU
 		{60FFFE21-C8F2-4B3A-BB49-7FA2AE31C2B0}.Release|x86.Deploy.0 = Release|Any CPU
-		{BBE91688-7734-4BEF-B957-54F8C17F47CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BBE91688-7734-4BEF-B957-54F8C17F47CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BBE91688-7734-4BEF-B957-54F8C17F47CE}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{BBE91688-7734-4BEF-B957-54F8C17F47CE}.Debug|x64.Build.0 = Debug|Any CPU
-		{BBE91688-7734-4BEF-B957-54F8C17F47CE}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{BBE91688-7734-4BEF-B957-54F8C17F47CE}.Debug|x86.Build.0 = Debug|Any CPU
-		{BBE91688-7734-4BEF-B957-54F8C17F47CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BBE91688-7734-4BEF-B957-54F8C17F47CE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BBE91688-7734-4BEF-B957-54F8C17F47CE}.Release|x64.ActiveCfg = Release|Any CPU
-		{BBE91688-7734-4BEF-B957-54F8C17F47CE}.Release|x64.Build.0 = Release|Any CPU
-		{BBE91688-7734-4BEF-B957-54F8C17F47CE}.Release|x86.ActiveCfg = Release|Any CPU
-		{BBE91688-7734-4BEF-B957-54F8C17F47CE}.Release|x86.Build.0 = Release|Any CPU
 		{5649D02E-200B-45E0-A82F-8EBE76CF96C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5649D02E-200B-45E0-A82F-8EBE76CF96C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5649D02E-200B-45E0-A82F-8EBE76CF96C6}.Debug|x64.ActiveCfg = Debug|Any CPU
