@@ -39,6 +39,11 @@ export const provideGlobalData = () => {
         globalData.value.api.connected = state;
     });
 
+    window.addEventListener('resize', ()=>{
+        globalData.value.height = document.getElementById('main-body').offsetHeight;
+        globalData.value.width = window.innerWidth;
+    });
+
     provide(globalDataSymbol, globalData);
     return globalData;
 }

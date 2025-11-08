@@ -15,29 +15,15 @@
 </template>
 
 <script>
-import { onMounted } from 'vue';
 import Head from './Head.vue';
 import List from './List.vue';
 import Status from '@/views/components/status/Index.vue'
-import { injectGlobalData } from '@/provide';
-import { useRouter } from 'vue-router';
 export default {
     components:{Head,List,Status},
     setup () {
         document.addEventListener('contextmenu', function(event) {
             event.preventDefault();
         });
-
-        const globalData = injectGlobalData();
-        const router = useRouter();
-        onMounted(()=>{
-
-            if(globalData.value.hasAccess('NetManager') == false){
-                router.push({name:'NoPermission'});
-            }
-
-        })
-
         return {}
     }
 }

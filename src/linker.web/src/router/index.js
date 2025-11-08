@@ -47,13 +47,7 @@ const routes = [
         path: '/net/index.html',
         name: 'Network',
         component: () => import('@/views/layout/net/Index.vue')
-    },
-    {
-        path: '/no-permission.html',
-        name: 'NoPermission',
-        component: () => import('@/views/NoPermission.vue')
     }
-
 ]
 
 const router = createRouter({

@@ -2,7 +2,14 @@
     <div class="app-inner absolute" :class="{phone:globalData.isPhone}">
         <el-config-provider :locale="locale">
             <template v-if="configed">
-                <router-view />
+                <AccessBoolean value="NetManager,FullManager">
+                    <template #default="{values}">
+                        <template v-if="($route.path.indexOf('/net/')== 0 && values.NetManager == false) || ($route.path.indexOf('/full/')== 0 && values.FullManager == false)">
+                            <NoPermission></NoPermission>
+                        </template>
+                        <template v-else><router-view /></template>
+                    </template>
+                </AccessBoolean>
             </template>
             <Api></Api>
         </el-config-provider>
@@ -17,14 +24,14 @@ import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import en from 'element-plus/dist/locale/en.mjs'
 import useLocale from './lang/provide';
 import Refresh from './views/Refresh.vue';
+import NoPermission from './views/NoPermission.vue';
 export default {
-    components:{Api,Refresh},
+    components:{Api,Refresh,NoPermission},
     setup(props) {
         const globalData = provideGlobalData();
         const configed = computed(()=>globalData.value.config.configed);
 
         const {currentLocale} = useLocale();
-
         const locale = computed(() => (currentLocale.value == 'zh-CN' ? zhCn : en))
 
         return { configed,locale,globalData};

@@ -6,7 +6,7 @@
         <div class="adv">
             <Adv></Adv>
         </div>
-        <div class="body flex-1 relative" ref="wrap" id="main-body">
+        <div class="body flex-1 relative" id="main-body">
             <div class="home absolute">
                 <router-view></router-view>
             </div>
@@ -22,35 +22,16 @@
 import Head from './head/Index.vue'
 import Status from '../../components/status/Index.vue'
 import Install from './install/Index.vue'
-import { injectGlobalData } from '@/provide';
-import { nextTick, onMounted, onUnmounted, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { nextTick, onMounted} from 'vue';
 import Adv from '../../components/adv/Index.vue'
 export default {
     name: 'Index',
     components: {Head, Status, Install,Adv},
-    setup(props) {
-        const globalData = injectGlobalData();
-        const router = useRouter();
-
-        const wrap = ref(null);
-        const resizeTable = () => {
-            nextTick(() => {
-                globalData.value.height = wrap.value.offsetHeight;
-                globalData.value.width = window.innerWidth;
-            });
-        }
+    setup() {
         onMounted(() => {
-            if(globalData.value.hasAccess('FullManager') == false){
-                router.push({name:'NoPermission'});
-            }
-            window.addEventListener('resize', resizeTable);
             nextTick(() => {window.dispatchEvent(new Event('resize'));});
         });
-        onUnmounted(() => {
-            window.removeEventListener('resize', resizeTable);
-        });
-        return { wrap };
+        return { };
     }
 }
 </script>
