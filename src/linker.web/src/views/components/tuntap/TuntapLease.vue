@@ -25,30 +25,28 @@
                         <p><span class="label">IP数量</span><span class="value">{{ state.values.Count }}</span></p>
                     </div>
                 </el-form-item>
-                <el-form-item label="" prop="Btns" v-if="hasLease">
-                    <div>
-                        <el-button @click="state.show = false">取消</el-button>
-                        <el-button type="primary" @click="handleSave">确认</el-button>
-                    </div>
-                </el-form-item>
+                <AccessShow value="Lease">
+                    <el-form-item label="" prop="Btns">
+                        <div>
+                            <el-button @click="state.show = false">取消</el-button>
+                            <el-button type="primary" @click="handleSave">确认</el-button>
+                        </div>
+                    </el-form-item>
+                </AccessShow>
             </el-form>
         </div>
     </el-dialog>
 </template>
 <script>
 import {getNetwork,addNetwork,calcNetwork } from '@/apis/tuntap';
-import { injectGlobalData } from '@/provide';
 import { ElMessage } from 'element-plus';
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { onMounted, reactive, ref, watch } from 'vue';
 import { Delete, Plus } from '@element-plus/icons-vue'
 export default {
     props: ['modelValue'],
     emits: ['change','update:modelValue'],
     components: {Delete,Plus},
     setup(props, { emit }) {
-
-        const globalData = injectGlobalData();
-        const hasLease = computed(()=>globalData.value.hasAccess('Lease')); 
 
         const ruleFormRef = ref(null);
         const state = reactive({
@@ -123,7 +121,7 @@ export default {
         })
 
         return {
-           state,hasLease, ruleFormRef, handleSave,handlePrefixLengthChange,handleClear
+           state,ruleFormRef, handleSave,handlePrefixLengthChange,handleClear
         }
     }
 }

@@ -62,14 +62,16 @@
                 <el-table-column label="操作" width="54">
                     <template #default="scope">
                         <div>
-                            <el-popconfirm v-if="hasTunnelRemove" confirm-button-text="确认" cancel-button-text="取消"
-                                title="确定关闭此连接?" @confirm="handleDel(scope.row)">
-                                <template #reference>
-                                    <el-button type="danger" size="small"><el-icon>
-                                            <Delete />
-                                        </el-icon></el-button>
-                                </template>
-                            </el-popconfirm>
+                            <AccessShow value="TunnelRemove">
+                                <el-popconfirm confirm-button-text="确认" cancel-button-text="取消"
+                                    title="确定关闭此连接?" @confirm="handleDel(scope.row)">
+                                    <template #reference>
+                                        <el-button type="danger" size="small"><el-icon>
+                                                <Delete />
+                                            </el-icon></el-button>
+                                    </template>
+                                </el-popconfirm>
+                            </AccessShow>
                         </div>
                     </template>
                 </el-table-column>
@@ -149,7 +151,6 @@ export default {
 
         const { t } = useI18n();
         const globalData = injectGlobalData();
-        const hasTunnelRemove = computed(() => globalData.value.hasAccess('TunnelRemove'));
 
         const connections = useConnections();
         const forwardConnections = useForwardConnections();
@@ -187,10 +188,6 @@ export default {
             }
         });
         const handleDel = (row) => {
-            if (!hasTunnelRemove.value) {
-                ElMessage.success('无权限');
-                return;
-            }
             row.removeFunc(row.RemoteMachineId).then(() => {
                 ElMessage.success(t('common.oper'));
             }).catch(() => { });
@@ -246,7 +243,7 @@ export default {
         })
 
         return {
-            state, handleDel, hasTunnelRemove,handlep2p, handleNode, handleConnect
+            state, handleDel,handlep2p, handleNode, handleConnect
         }
     }
 }

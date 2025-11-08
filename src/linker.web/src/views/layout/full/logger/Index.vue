@@ -1,51 +1,55 @@
 <template>
     <div class="logger-setting-wrap flex flex-column h-100" ref="wrap">
         <el-tabs type="border-card" class="w-100">
-            <el-tab-pane :label="$t('logger.list')" v-if="hasLogger">
-                <div class="inner">
-                    <div class="head flex">
-                        <div>
-                            <el-select v-model="state.type" @change="loadData" size="small" class="mgr-1" style="width: 6rem;">
-                                <el-option :value="-1" label="all"></el-option>
-                                <el-option :value="0" label="debug"></el-option>
-                                <el-option :value="1" label="info"></el-option>
-                                <el-option :value="2" label="warning"></el-option>
-                                <el-option :value="3" label="error"></el-option>
-                                <el-option :value="4" label="fatal"></el-option>
-                            </el-select>
+            <AccessShow value="LoggerShow">
+                <el-tab-pane :label="$t('logger.list')">
+                    <div class="inner">
+                        <div class="head flex">
+                            <div>
+                                <el-select v-model="state.type" @change="loadData" size="small" class="mgr-1" style="width: 6rem;">
+                                    <el-option :value="-1" label="all"></el-option>
+                                    <el-option :value="0" label="debug"></el-option>
+                                    <el-option :value="1" label="info"></el-option>
+                                    <el-option :value="2" label="warning"></el-option>
+                                    <el-option :value="3" label="error"></el-option>
+                                    <el-option :value="4" label="fatal"></el-option>
+                                </el-select>
+                            </div>
+                            <el-button type="warning" size="small" :loading="state.loading" @click="clearData">{{$t('logger.clear')}}</el-button>
+                            <el-button size="small" :loading="state.loading" @click="loadData">{{$t('logger.refresh')}}</el-button>
+                            <span class="flex-1"></span>
                         </div>
-                        <el-button type="warning" size="small" :loading="state.loading" @click="clearData">{{$t('logger.clear')}}</el-button>
-                        <el-button size="small" :loading="state.loading" @click="loadData">{{$t('logger.refresh')}}</el-button>
-                        <span class="flex-1"></span>
-                    </div>
-                    <div class="body flex-1 relative">
-                        <el-table stripe border :data="state.page.List" size="small" :height="`${state.height}px`" width="100%" @row-click="handleRowClick" :row-class-name="tableRowClassName">
-                            <el-table-column type="index" width="50" />
-                            <el-table-column prop="Type" :label="$t('logger.level')" width="80">
-                                <template #default="scope">
-                                    <span>{{state.types[scope.row.Type]}} </span>
-                                </template>
-                            </el-table-column>
-                            <el-table-column prop="Time" :label="$t('logger.time')" width="160"></el-table-column>
-                            <el-table-column prop="content" :label="$t('logger.content')"></el-table-column>
-                        </el-table>
-                    </div>
-                    <div class="pages t-c">
-                        <div class="page-wrap">
-                            <el-pagination small :total="state.page.Count"
-                             v-model:currentPage="state.page.Page" :page-size="state.page.Size" 
-                             :pager-count="globalData.isPc?7:3"
-                             :layout="globalData.isPc?'total,prev, pager, next':'prev, pager, next'"
-                             @current-change="handlePageChange" background 
-                           >
-                            </el-pagination>
+                        <div class="body flex-1 relative">
+                            <el-table stripe border :data="state.page.List" size="small" :height="`${state.height}px`" width="100%" @row-click="handleRowClick" :row-class-name="tableRowClassName">
+                                <el-table-column type="index" width="50" />
+                                <el-table-column prop="Type" :label="$t('logger.level')" width="80">
+                                    <template #default="scope">
+                                        <span>{{state.types[scope.row.Type]}} </span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="Time" :label="$t('logger.time')" width="160"></el-table-column>
+                                <el-table-column prop="content" :label="$t('logger.content')"></el-table-column>
+                            </el-table>
+                        </div>
+                        <div class="pages t-c">
+                            <div class="page-wrap">
+                                <el-pagination small :total="state.page.Count"
+                                v-model:currentPage="state.page.Page" :page-size="state.page.Size" 
+                                :pager-count="globalData.isPc?7:3"
+                                :layout="globalData.isPc?'total,prev, pager, next':'prev, pager, next'"
+                                @current-change="handlePageChange" background 
+                            >
+                                </el-pagination>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </el-tab-pane>
-            <el-tab-pane :label="$t('common.setting')" v-if="hasLoggerLevel">
-                <Setting></Setting>
-            </el-tab-pane>
+                </el-tab-pane>
+            </AccessShow>
+            <AccessShow value="LoggerLevel">
+                <el-tab-pane :label="$t('common.setting')">
+                    <Setting></Setting>
+                </el-tab-pane>
+            </AccessShow>
         </el-tabs>
     </div>
     <el-dialog class="options-center" title="" destroy-on-close v-model="state.show" width="98%" top="2vh">
@@ -66,8 +70,6 @@ export default {
     components: { Setting },
     setup() {
         const globalData = injectGlobalData();
-        const hasLogger = computed(()=>globalData.value.hasAccess('LoggerShow'));
-        const hasLoggerLevel = computed(()=>globalData.value.hasAccess('LoggerLevel'));
         const wrap = ref(null);
         const state = reactive({
             loading: true,
@@ -125,7 +127,7 @@ export default {
         });
 
         return {
-            globalData,hasLogger,hasLoggerLevel,wrap,state, loadData, clearData, tableRowClassName, handleRowClick,handlePageChange
+            globalData,wrap,state, loadData, clearData, tableRowClassName, handleRowClick,handlePageChange
         }
     }
 }

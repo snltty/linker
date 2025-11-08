@@ -1,32 +1,35 @@
 <template>
     <el-dialog class="options-center" title="更新" destroy-on-close v-model="state.show" width="40rem" top="2vh">
         <div class="updater-wrap t-c">
-            <div class="t-l">
-                <ul>
-                    <li v-for="item in state.msg">{{ item }}</li>
-                </ul>
-            </div>
-            <div class="flex mgt-1">
-                <el-row class="w-100">
-                    <el-col :span="10">
-                        <el-select v-model="state.type" size="large">
-                            <el-option v-for="item in state.types" :key="item.value" :label="item.label" :value="item.value" />
-                        </el-select>
-                    </el-col>
-                    <el-col :span="4">
-                        ->
-                    </el-col>
-                    <el-col :span="10">
-                        <el-select v-model="state.version" size="large" filterable allow-create default-first-option>
-                            <el-option v-for="item in state.versions" :key="item.value" :label="item.label" :value="item.value" />
-                        </el-select>
-                    </el-col>
-                </el-row>
-            </div>
-            <div class="mgt-1 t-c">
-                <el-button type="success" @click="handleUpdate" plain>确 定</el-button>
-            </div>
-            
+            <AccessBoolean value="UpdateSelf,UpdateOther">
+                <template #default="{values}">
+                    <div class="t-l">
+                        <ul>
+                            <li v-for="item in state.msg">{{ item }}</li>
+                        </ul>
+                    </div>
+                    <div class="flex mgt-1">
+                        <el-row class="w-100">
+                            <el-col :span="10">
+                                <el-select v-model="state.type" size="large">
+                                    <el-option v-for="item in getTypes(values)" :key="item.value" :label="item.label" :value="item.value" />
+                                </el-select>
+                            </el-col>
+                            <el-col :span="4">
+                                ->
+                            </el-col>
+                            <el-col :span="10">
+                                <el-select v-model="state.version" size="large" filterable allow-create default-first-option>
+                                    <el-option v-for="item in state.versions" :key="item.value" :label="item.label" :value="item.value" />
+                                </el-select>
+                            </el-col>
+                        </el-row>
+                    </div>
+                    <div class="mgt-1 t-c">
+                        <el-button type="success" @click="handleUpdate(values)" plain>确 定</el-button>
+                    </div>
+                </template>
+            </AccessBoolean>
         </div>
     </el-dialog>
 </template>
@@ -43,26 +46,18 @@ export default {
     setup (props,{emit}) {
 
         const globalData = injectGlobalData();
-        const hasUpdateSelf = computed(()=>globalData.value.hasAccess('UpdateSelf')); 
-        const hasUpdateOther = computed(()=>globalData.value.hasAccess('UpdateOther')); 
         const updater = useUpdater();
         const serverVersion = computed(()=>globalData.value.signin.Version);
         const updaterVersion = computed(()=>updater.value.current.Version);
 
-        const types = [
-                {label:`仅【${updater.value.device.MachineName}】`,value:updater.value.device.MachineId},
-                hasUpdateOther.value ? {label:`本组所有`,value:'g-all'} : {},
-                hasUpdateOther.value ?  {label:`本服务器所有`,value:'s-all'} : {},
-            ].filter(c=>c.value);
         const versions = [
                 {label:`${updaterVersion.value}【最新版本】`,value:updaterVersion.value},
                 {label:`${serverVersion.value}【服务器版本】`,value:serverVersion.value},
             ].filter(c=>c.value);
         const state = reactive({
             show: true,
-            type:types[0] || '',
+            type:'',
             version:versions[0] || '',
-            types:types,
             versions:versions,
             msg:[]
         });
@@ -74,7 +69,19 @@ export default {
                 }, 300);
             }
         });
-        const handleUpdate = ()=>{   
+
+        const getTypes = (access)=>{
+            const types =  [
+                {label:`仅【${updater.value.device.MachineName}】`,value:updater.value.device.MachineId},
+                access.UpdateOther.value ? {label:`本组所有`,value:'g-all'} : {},
+                access.UpdateOther.value ?  {label:`本服务器所有`,value:'s-all'} : {},
+            ].filter(c=>c.value);
+            if(!state.type){
+                state.type = types[0] || '';
+            }
+            return types;
+        } 
+        const handleUpdate = (access)=>{   
             const data = {
                 MachineId:updater.value.device.MachineId,
                 Version:state.version.value || state.version,
@@ -97,7 +104,7 @@ export default {
         });
 
         return {
-            state,updater,handleUpdate
+            state,getTypes,updater,handleUpdate
         }
     }
 }

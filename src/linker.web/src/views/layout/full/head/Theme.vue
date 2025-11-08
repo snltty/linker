@@ -1,19 +1,19 @@
 <template>
-    <div class="image" v-if="globalData.isPc">
-        <a href="javascript:;" @click="changeMode('light')" v-if="state.mode == 'dark'"><el-icon><Moon /></el-icon></a>
-        <a href="javascript:;" @click="changeMode('dark')" v-else><el-icon><Sunny /></el-icon></a>
-    </div>
+    <PcShow>
+        <div class="image">
+            <a href="javascript:;" @click="changeMode('light')" v-if="state.mode == 'dark'"><el-icon><Moon /></el-icon></a>
+            <a href="javascript:;" @click="changeMode('dark')" v-else><el-icon><Sunny /></el-icon></a>
+        </div>
+    </PcShow>
 </template>
 
 <script>
-import { injectGlobalData } from '@/provide';
 import {Moon,Sunny} from '@element-plus/icons-vue'
 import { onMounted, reactive } from 'vue';
 export default {
     components:{Moon,Sunny},
     setup () {
 
-        const globalData = injectGlobalData();
         const isSystemDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
         const isSystemLightMode = window.matchMedia('(prefers-color-scheme: light)').matches;
         const cacheMode = localStorage.getItem('theme-mode') || (isSystemDarkMode?'dark':'light');
@@ -33,7 +33,7 @@ export default {
             setMode();
         })
 
-        return {globalData,state,changeMode}
+        return {state,changeMode}
     }
 }
 </script>

@@ -1,43 +1,47 @@
 <template>
-    <el-table-column prop="tunnel" :label="$t('home.tunnel')" width="86">
-        <template #default="scope">
-            <template v-if="tunnel.list[scope.row.MachineId]">
-                <div>
-                    <template v-if="tunnel.list[scope.row.MachineId].Net.CountryCode">
-                        <img 
-                        :title="`${tunnel.list[scope.row.MachineId].Net.CountryCode}、${tunnel.list[scope.row.MachineId].Net.City}`" 
-                        class="system" 
-                        :src="`https://unpkg.com/flag-icons@7.2.3/flags/4x3/${tunnel.list[scope.row.MachineId].Net.CountryCode.toLowerCase()}.svg`" />
+    <AccessBoolean value="TunnelChangeSelf,TunnelChangeOther">
+        <template #default="{values}">
+            <el-table-column prop="tunnel" :label="$t('home.tunnel')" width="86">
+                <template #default="scope">
+                    <template v-if="tunnel.list[scope.row.MachineId]">
+                        <div>
+                            <template v-if="tunnel.list[scope.row.MachineId].Net.CountryCode">
+                                <img 
+                                :title="`${tunnel.list[scope.row.MachineId].Net.CountryCode}、${tunnel.list[scope.row.MachineId].Net.City}`" 
+                                class="system" 
+                                :src="`https://unpkg.com/flag-icons@7.2.3/flags/4x3/${tunnel.list[scope.row.MachineId].Net.CountryCode.toLowerCase()}.svg`" />
+                            </template>
+                            <template v-else>
+                                <img title="?" class="system" src="/system.svg" />
+                            </template>
+                            <template v-if="tunnel.list[scope.row.MachineId].Net.Isp">
+                                <img 
+                                :title="`${tunnel.list[scope.row.MachineId].Net.Isp}`" 
+                                class="system" :src="netImg(tunnel.list[scope.row.MachineId].Net)" />
+                            </template>
+                            <template v-else>
+                                <img title="?" class="system" src="/system.svg" />
+                            </template>
+                            <template v-if="tunnel.list[scope.row.MachineId].Net.Nat">
+                                <span class="nat" :title="tunnel.list[scope.row.MachineId].Net.Nat">{{ natMap[tunnel.list[scope.row.MachineId].Net.Nat]  }}</span>
+                            </template>
+                            <template v-else>
+                                <img title="?" class="system" src="/system.svg" />
+                            </template>
+                        </div> 
+                        <div class="flex">
+                            <a href="javascript:;" class="a-line" 
+                            :class="{yellow:tunnel.list[scope.row.MachineId].NeedReboot}" 
+                            :title="$t('home.holeText')"
+                            @click="handleTunnel(tunnel.list[scope.row.MachineId],scope.row,values)">
+                                <span>{{$t('home.jump')}}:{{tunnel.list[scope.row.MachineId].RouteLevel}}+{{tunnel.list[scope.row.MachineId].RouteLevelPlus}}</span>
+                            </a>
+                        </div>
                     </template>
-                    <template v-else>
-                        <img title="?" class="system" src="/system.svg" />
-                    </template>
-                    <template v-if="tunnel.list[scope.row.MachineId].Net.Isp">
-                        <img 
-                        :title="`${tunnel.list[scope.row.MachineId].Net.Isp}`" 
-                        class="system" :src="netImg(tunnel.list[scope.row.MachineId].Net)" />
-                    </template>
-                    <template v-else>
-                        <img title="?" class="system" src="/system.svg" />
-                    </template>
-                    <template v-if="tunnel.list[scope.row.MachineId].Net.Nat">
-                        <span class="nat" :title="tunnel.list[scope.row.MachineId].Net.Nat">{{ natMap[tunnel.list[scope.row.MachineId].Net.Nat]  }}</span>
-                    </template>
-                    <template v-else>
-                        <img title="?" class="system" src="/system.svg" />
-                    </template>
-                </div> 
-                <div class="flex">
-                    <a href="javascript:;" class="a-line" 
-                    :class="{yellow:tunnel.list[scope.row.MachineId].NeedReboot}" 
-                    :title="$t('home.holeText')"
-                    @click="handleTunnel(tunnel.list[scope.row.MachineId],scope.row)">
-                        <span>{{$t('home.jump')}}:{{tunnel.list[scope.row.MachineId].RouteLevel}}+{{tunnel.list[scope.row.MachineId].RouteLevelPlus}}</span>
-                    </a>
-                </div>
-            </template>
+                </template>
+            </el-table-column>
         </template>
-    </el-table-column>
+    </AccessBoolean>
 </template>
 <script>
 import { useTunnel } from './tunnel';
@@ -54,8 +58,6 @@ export default {
         const t = useI18n();
         const globalData = injectGlobalData();
         const machineId = computed(() => globalData.value.config.Client.Id);
-        const hasTunnelChangeSelf = computed(()=>globalData.value.hasAccess('TunnelChangeSelf')); 
-        const hasTunnelChangeOther = computed(()=>globalData.value.hasAccess('TunnelChangeOther')); 
 
         const tunnel = useTunnel();
         const connections = useConnections();
@@ -108,14 +110,14 @@ export default {
                 return length;
         };
        
-        const handleTunnel = (_tunnel,row) => {
+        const handleTunnel = (_tunnel,row,access) => {
             if(machineId.value === _tunnel.MachineId){
-                if(!hasTunnelChangeSelf.value){
+                if(!access.TunnelChangeSelf){
                     ElMessage.success(t('common.access'));
                 return;
             }
             }else{
-                if(!hasTunnelChangeOther.value){
+                if(!access.TunnelChangeOther){
                     ElMessage.success(t('common.access'));
                 return;
             }

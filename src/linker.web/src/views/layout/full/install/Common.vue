@@ -1,7 +1,9 @@
 <template>
     <div class="t-c">
         <el-checkbox v-model="state.form.client" label="作为客户端" />
-        <el-checkbox v-model="state.form.server" label="作为服务端" v-if="globalData.isPc" />
+        <PcShow>
+            <el-checkbox v-model="state.form.server" label="作为服务端"/>
+        </PcShow>
     </div>
 </template>
 

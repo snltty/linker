@@ -5,7 +5,9 @@
                 <a href="javascript:;" @click="state.showModes = true" class="mgr-1 delay a-line" :class="{red:state.nodes.length==0,green:state.nodes.length>0}">
                     {{$t('server.sforwardNodes')}} : {{state.nodes.length}}
                 </a>
-                <WhiteList type="SForward" prefix="sfp->"  v-if="state.super && hasWhiteList"></WhiteList>
+                <AccessShow value="WhiteList">
+                    <WhiteList type="SForward" prefix="sfp->"  v-if="state.super"></WhiteList>
+                </AccessShow>
                 <Nodes v-if="state.showModes" v-model="state.showModes" :data="state.nodes"></Nodes>
                 <!-- <Status type="SForward"></Status> -->
             </div>
@@ -26,7 +28,6 @@ export default {
     setup(props) {
         const {t} = useI18n();
         const globalData = injectGlobalData();
-        const hasWhiteList = computed(()=>globalData.value.hasAccess('WhiteList')); 
         const state = reactive({
             super:computed(()=>globalData.value.signin.Super),
             type:props.type,
@@ -55,7 +56,7 @@ export default {
             clearTimeout(state.timer);
         });
 
-        return {globalData,state,hasWhiteList}
+        return {globalData,state}
     }
 }
 </script>

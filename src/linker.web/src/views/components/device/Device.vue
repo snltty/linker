@@ -34,12 +34,10 @@
 </el-table-column>
 </template>
 <script>
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 import {Search} from '@element-plus/icons-vue'
 import UpdaterBtn from '../updater/UpdaterBtn.vue';
 import DeviceName from './DeviceName.vue';
-import { injectGlobalData } from '@/provide';
-import { ElMessage } from 'element-plus';
 import { useI18n } from 'vue-i18n';
 
 export default {
@@ -48,15 +46,9 @@ export default {
     setup(props,{emit}) {
 
         const t = useI18n();
-        const globalData = injectGlobalData();
-        const hasExternal = computed(()=>globalData.value.hasAccess('ExternalShow')); 
         const name = ref(sessionStorage.getItem('search-name') || '');
         
         const handleExternal = (row)=>{
-            if(!hasExternal.value) {
-                ElMessage.success(t('common.access'));
-                return;
-            }
             row.showip=!row.showip;
         }
         const handleRefresh = ()=>{

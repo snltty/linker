@@ -1,26 +1,30 @@
 <template>
-   <a href="javascript:;"  @click="handleUpdate" class="download" :title="updateText()" :class="updateColor()">
-        <span>{{state.version}}</span>
-        <template v-if="updaterServer.Version">
-            <template v-if="updaterServer.Status == 1">
-                <el-icon size="14" class="loading"><Loading /></el-icon>
-            </template>
-            <template v-else-if="updaterServer.Status == 2">
-                <el-icon size="14"><Download /></el-icon>
-            </template>
-            <template v-else-if="updaterServer.Status == 3 || updaterServer.Status == 5">
-                <el-icon size="14" class="loading"><Loading /></el-icon>
-                <span class="progress" v-if="updaterServer.Length ==0">0%</span>
-                <span class="progress" v-else>{{parseInt(updaterServer.Current/updaterServer.Length*100)}}%</span>
-            </template>
-            <template v-else-if="updaterServer.Status == 6">
-                <el-icon size="14" class="yellow"><CircleCheck /></el-icon>
-            </template>
+    <AccessBoolean value="UpdateServer">
+        <template #default="{values}">
+            <a href="javascript:;"  @click="handleUpdate(values)" class="download" :title="updateText()" :class="updateColor()">
+                <span>{{state.version}}</span>
+                <template v-if="updaterServer.Version">
+                    <template v-if="updaterServer.Status == 1">
+                        <el-icon size="14" class="loading"><Loading /></el-icon>
+                    </template>
+                    <template v-else-if="updaterServer.Status == 2">
+                        <el-icon size="14"><Download /></el-icon>
+                    </template>
+                    <template v-else-if="updaterServer.Status == 3 || updaterServer.Status == 5">
+                        <el-icon size="14" class="loading"><Loading /></el-icon>
+                        <span class="progress" v-if="updaterServer.Length ==0">0%</span>
+                        <span class="progress" v-else>{{parseInt(updaterServer.Current/updaterServer.Length*100)}}%</span>
+                    </template>
+                    <template v-else-if="updaterServer.Status == 6">
+                        <el-icon size="14" class="yellow"><CircleCheck /></el-icon>
+                    </template>
+                </template>
+                <template v-else>
+                    <el-icon size="14"><Download /></el-icon>
+                </template>
+            </a>
         </template>
-        <template v-else>
-            <el-icon size="14"><Download /></el-icon>
-        </template>
-    </a>
+    </AccessBoolean>
 </template>
 <script>
 import { injectGlobalData } from '@/provide';
@@ -37,7 +41,6 @@ export default {
 
         const { t } = useI18n();
         const globalData = injectGlobalData();
-        const hasUpdateServer = computed(()=>globalData.value.hasAccess('UpdateServer')); 
         const updaterServer = ref({Version: '', Status: 0, Length: 0, Current: 0,Msg:[],DateTime:''});
 
         const state = reactive({
@@ -86,8 +89,8 @@ export default {
         const updateColor = ()=>{
             return state.version != updaterServer.value.Version  ? 'yellow' :'green'
         }
-        const handleUpdate = ()=>{
-            if(!props.config || !hasUpdateServer.value){
+        const handleUpdate = (access)=>{
+            if(!props.config || !access.UpdateServer){
                 return;
             }
             //未检测，检测中，下载中，解压中

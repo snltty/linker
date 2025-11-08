@@ -42,10 +42,7 @@ export default {
 
         const globalData = injectGlobalData();
         const state = reactive({
-            steps:computed(()=>['选择模式',
-            globalData.value.isPc ? '服务端' : '',
-            '客户端',
-            '完成'])
+            steps:computed(()=>['选择模式', globalData.value.isPc ? '服务端' : '','客户端','完成'])
         });
 
         const currentDom = ref(null);
@@ -78,7 +75,7 @@ export default {
             })
         }
 
-        return { state,globalData,currentDom,step,handlePrev,handleNext,handleSave};
+        return { state,currentDom,step,handlePrev,handleNext,handleSave};
     }
 }
 </script>

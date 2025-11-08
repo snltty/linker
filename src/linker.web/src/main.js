@@ -1,19 +1,30 @@
 import { createApp } from 'vue'
 import App from './App.vue'
-import router from './router'
-import i18n from './lang';
-
 const app = createApp(App);
+
+import i18n from './lang';
 app.use(i18n);
 
-import './assets/style.css'
+import router from './router'
+app.use(router);
 
+import AccessShow from './views/components/accesss/AccessShow.vue';
+app.component('AccessShow', AccessShow);
+import AccessBoolean from './views/components/accesss/AccessBoolean.vue';
+app.component('AccessBoolean', AccessBoolean);
+import PhoneShow from './views/components/global/PhoneShow.vue';
+app.component('PhoneShow', PhoneShow);
+import PcShow from './views/components/global/PcShow.vue';
+app.component('PcShow', PcShow);
+
+import './assets/style.css'
 import ElementPlus from 'element-plus';
 import 'element-plus/dist/index.css'
 import 'element-plus/theme-chalk/display.css'
 import 'element-plus/theme-chalk/dark/css-vars.css'
+app.use(ElementPlus, { size: 'default' });
 
-app.use(ElementPlus, { size: 'default' }).use(router).mount('#app');
+app.mount('#app');
 
 
 app.directive('trim', {
@@ -46,12 +57,10 @@ app.directive('trim', {
     }
 });
 
-
 const ignoreErrors = [
   "ResizeObserver loop completed with undelivered notifications",
   "ResizeObserver loop limit exceeded"
 ];
- 
 window.addEventListener('error', e => {
     let errorMsg = e.message;
     ignoreErrors.forEach(m => {

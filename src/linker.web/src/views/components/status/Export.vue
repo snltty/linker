@@ -1,88 +1,92 @@
 <template>
-    <div v-if="config && hasExport" class="status-export-wrap">
-        <a href="javascript:;" :title="$t('status.export')" @click="state.show = true">
-            <el-icon size="16"><Share /></el-icon>
-            <span v-if="globalData.isPc">{{$t('status.export')}}</span>
-        </a>
-        <el-dialog class="options-center" :title="$t('status.export')" destroy-on-close v-model="state.show" center  width="580" top="1vh">
-            <div class="port-wrap">
-                <div class="text">
-                    {{$t('status.exportText')}}
-                </div>
-                <div class="body">
-                    <el-card shadow="never">
-                        <template #header>
-                            <div class="card-header">
-                                <div>
-                                    <el-row>
-                                        <el-col :span="12"><el-checkbox :disabled="onlyNode" v-model="state.single" :label="$t('status.exportSingle')" /></el-col>
-                                        <el-col :span="12">
-                                            <div class="flex flex-nowrap">
-                                                <span style="width: 11rem;">{{$t('status.exportName')}} : </span><el-input v-trim :disabled="!state.single" v-model="state.name" maxlength="32" show-word-limit></el-input>
-                                            </div>
-                                        </el-col>
-                                    </el-row>
+    <AccessShow value="Export">
+        <div v-if="config" class="status-export-wrap">
+            <a href="javascript:;" :title="$t('status.export')" @click="state.show = true">
+                <el-icon size="16"><Share /></el-icon>
+                <PcShow>
+                    <span>{{$t('status.export')}}</span>
+                </PcShow>
+            </a>
+            <el-dialog class="options-center" :title="$t('status.export')" destroy-on-close v-model="state.show" center  width="580" top="1vh">
+                <div class="port-wrap">
+                    <div class="text">
+                        {{$t('status.exportText')}}
+                    </div>
+                    <div class="body">
+                        <el-card shadow="never">
+                            <template #header>
+                                <div class="card-header">
+                                    <div>
+                                        <el-row>
+                                            <el-col :span="12"><el-checkbox :disabled="onlyNode" v-model="state.single" :label="$t('status.exportSingle')" /></el-col>
+                                            <el-col :span="12">
+                                                <div class="flex flex-nowrap">
+                                                    <span style="width: 11rem;">{{$t('status.exportName')}} : </span><el-input v-trim :disabled="!state.single" v-model="state.name" maxlength="32" show-word-limit></el-input>
+                                                </div>
+                                            </el-col>
+                                        </el-row>
+                                    </div>
+                                    <div>
+                                        <el-row>
+                                            <el-col :span="12">
+                                                <div class="flex flex-nowrap mgt-1">
+                                                    <span style="width: 11rem;">{{$t('status.exportWebport')}} : </span><el-input v-trim :disabled="onlyNode" v-model="state.webport"></el-input>
+                                                </div>
+                                            </el-col>
+                                            <el-col :span="12">
+                                                <div class="flex flex-nowrap mgt-1">
+                                                    <span style="width: 11rem;">{{$t('status.exportApiPassword')}} : </span><el-input v-trim type="password" show-password :disabled="onlyNode" v-model="state.apipassword" maxlength="36" show-word-limit></el-input>
+                                                </div>
+                                            </el-col>
+                                        </el-row>
+                                    </div>
+                                    <div>
+                                        <el-row>
+                                            <el-col :xs="12" :sm="8"><el-checkbox v-model="state.relay" :label="$t('status.exportRelay')" /></el-col>
+                                            <el-col :xs="12" :sm="8"><el-checkbox v-model="state.updater" :label="$t('status.exportUpdater')" /></el-col>
+                                            <el-col :xs="12" :sm="8"><el-checkbox v-model="state.group" :label="$t('status.exportGroup')" /></el-col>
+                                            <el-col :xs="12" :sm="8"><el-checkbox v-model="state.server" :label="$t('status.exportServer')" /></el-col>
+                                            <el-col :xs="12" :sm="8"><el-checkbox v-model="state.super" :label="$t('status.exportSuper')" /></el-col>
+                                            <el-col :xs="12" :sm="8"><el-checkbox v-model="state.tunnel" :label="$t('status.exportTunnel')" /></el-col>
+                                            
+                                        </el-row>
+                                    </div>
                                 </div>
-                                <div>
-                                    <el-row>
-                                        <el-col :span="12">
-                                            <div class="flex flex-nowrap mgt-1">
-                                                <span style="width: 11rem;">{{$t('status.exportWebport')}} : </span><el-input v-trim :disabled="onlyNode" v-model="state.webport"></el-input>
-                                            </div>
-                                        </el-col>
-                                        <el-col :span="12">
-                                            <div class="flex flex-nowrap mgt-1">
-                                                <span style="width: 11rem;">{{$t('status.exportApiPassword')}} : </span><el-input v-trim type="password" show-password :disabled="onlyNode" v-model="state.apipassword" maxlength="36" show-word-limit></el-input>
-                                            </div>
-                                        </el-col>
-                                    </el-row>
-                                </div>
-                                <div>
-                                    <el-row>
-                                        <el-col :xs="12" :sm="8"><el-checkbox v-model="state.relay" :label="$t('status.exportRelay')" /></el-col>
-                                        <el-col :xs="12" :sm="8"><el-checkbox v-model="state.updater" :label="$t('status.exportUpdater')" /></el-col>
-                                        <el-col :xs="12" :sm="8"><el-checkbox v-model="state.group" :label="$t('status.exportGroup')" /></el-col>
-                                        <el-col :xs="12" :sm="8"><el-checkbox v-model="state.server" :label="$t('status.exportServer')" /></el-col>
-                                        <el-col :xs="12" :sm="8"><el-checkbox v-model="state.super" :label="$t('status.exportSuper')" /></el-col>
-                                        <el-col :xs="12" :sm="8"><el-checkbox v-model="state.tunnel" :label="$t('status.exportTunnel')" /></el-col>
-                                        
-                                    </el-row>
-                                </div>
-                            </div>
-                        </template>
-                        <Access ref="accessDom" :machineid="machineId" :height="30"></Access>
-                    </el-card>
+                            </template>
+                            <Access ref="accessDom" :machineid="machineId" :height="30"></Access>
+                        </el-card>
+                    </div>
                 </div>
-            </div>
-            <template #footer>
-                <el-button plain @click="state.show = false" :loading="state.loading">{{$t('common.cancel') }}</el-button>
-                <el-button type="default" plain @click="handleExport" :loading="state.loading">{{$t('status.exportDownload') }}</el-button>
-                <el-button type="info" plain @click="handleCopy" :loading="state.loading">{{$t('status.exportCopy') }}</el-button>
-                <el-button type="success" plain @click="handleSave" :loading="state.loading">{{$t('status.exportSave') }}</el-button>
-            </template>
-        </el-dialog>
-        <el-dialog class="options-center" :title="$t('status.export')" destroy-on-close v-model="state.showCopy" center  width="580" top="1vh">
-            <div class="port-wrap">
-                <el-input v-trim v-model="state.copyContent" type="textarea" :rows="10" resize="none" readonly></el-input>
-            </div>
-            <template #footer>
-                <el-button plain @click="copyToClipboard">{{$t('status.exportCopy') }}</el-button>
-            </template>
-        </el-dialog>
-        <el-dialog class="options-center" :title="$t('status.export')" destroy-on-close v-model="state.showSave" center  width="300" top="1vh">
-            <div class="port-wrap">
-                <div>
-                    <el-input v-trim v-model="state.saveServer" readonly></el-input>
+                <template #footer>
+                    <el-button plain @click="state.show = false" :loading="state.loading">{{$t('common.cancel') }}</el-button>
+                    <el-button type="default" plain @click="handleExport" :loading="state.loading">{{$t('status.exportDownload') }}</el-button>
+                    <el-button type="info" plain @click="handleCopy" :loading="state.loading">{{$t('status.exportCopy') }}</el-button>
+                    <el-button type="success" plain @click="handleSave" :loading="state.loading">{{$t('status.exportSave') }}</el-button>
+                </template>
+            </el-dialog>
+            <el-dialog class="options-center" :title="$t('status.export')" destroy-on-close v-model="state.showCopy" center  width="580" top="1vh">
+                <div class="port-wrap">
+                    <el-input v-trim v-model="state.copyContent" type="textarea" :rows="10" resize="none" readonly></el-input>
                 </div>
-                <div style="margin-top:1rem">
-                    <el-input v-trim v-model="state.saveContent" readonly></el-input>
+                <template #footer>
+                    <el-button plain @click="copyToClipboard">{{$t('status.exportCopy') }}</el-button>
+                </template>
+            </el-dialog>
+            <el-dialog class="options-center" :title="$t('status.export')" destroy-on-close v-model="state.showSave" center  width="300" top="1vh">
+                <div class="port-wrap">
+                    <div>
+                        <el-input v-trim v-model="state.saveServer" readonly></el-input>
+                    </div>
+                    <div style="margin-top:1rem">
+                        <el-input v-trim v-model="state.saveContent" readonly></el-input>
+                    </div>
                 </div>
-            </div>
-            <template #footer>
-                <el-button plain @click="copySaveToClipboard">{{$t('status.exportCopy') }}</el-button>
-            </template>
-        </el-dialog>
-    </div>
+                <template #footer>
+                    <el-button plain @click="copySaveToClipboard">{{$t('status.exportCopy') }}</el-button>
+                </template>
+            </el-dialog>
+        </div>
+    </AccessShow>
 </template>
 <script>
 import {  computed, reactive, ref } from 'vue';
@@ -99,7 +103,6 @@ export default {
 
         const { t } = useI18n();
         const globalData = injectGlobalData();
-        const hasExport = computed(()=>globalData.value.hasAccess('Export')); 
         const onlyNode = computed(()=>globalData.value.config.Client.OnlyNode);
         const machineId = computed(()=>globalData.value.config.Client.Id);
         const state = reactive({
@@ -128,10 +131,6 @@ export default {
       
         
         const getJson = ()=>{
-            if(!hasExport.value){
-                ElMessage.success('无权限');
-                return;
-            }
             const access = accessDom.value.getValue();
             const json = {
                 access:access[0],
@@ -260,7 +259,7 @@ export default {
             }
         }
 
-        return {globalData,config:props.config,onlyNode,hasExport,machineId, state,accessDom,
+        return {globalData,config:props.config,onlyNode,machineId, state,accessDom,
             handleSave,handleExport,handleCopy,copyToClipboard,copySaveToClipboard};
     }
 }

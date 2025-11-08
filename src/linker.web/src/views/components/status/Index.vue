@@ -7,13 +7,17 @@
                 <span>{{$t('status.support')}}</span>
             </a>
             <a href="javascript:;">©linker {{ self.Version }}</a>
-            <a v-if="globalData.isPc" href="https://github.com/snltty/linker" target="_blank">Github</a>
-            <a v-if="globalData.isPc" href="https://linker.snltty.com" target="_blank">{{$t('status.website')}}</a>
-            <a v-if="globalData.isPc" href="https://linker-doc.snltty.com" target="_blank">{{$t('status.doc')}}</a>
+            <PcShow>
+                <a href="https://github.com/snltty/linker" target="_blank">Github</a>
+                <a href="https://linker.snltty.com" target="_blank">{{$t('status.website')}}</a>
+                <a href="https://linker-doc.snltty.com" target="_blank">{{$t('status.doc')}}</a>
+            </PcShow>
         </div>
         <div class="flex-1"></div>
         <div class="export"><Export :config="config"></Export></div>
-        <div class="api" v-if="globalData.isPc"><Api :config="config"></Api></div>
+        <PcShow>
+            <div class="api"><Api :config="config"></Api></div>
+        </PcShow>
         <div class="server"><Server :config="config"></Server></div>
 
         <el-dialog v-model="state.showPay" :title="$t('status.support')" width="80%">
@@ -35,7 +39,7 @@
     </div>
 </template>
 <script>
-import { computed, reactive, ref } from 'vue';
+import { computed, reactive } from 'vue';
 import Api from './Api.vue'
 import Server from './server/Index.vue'
 import Export from './Export.vue'
@@ -52,7 +56,7 @@ export default {
             showPay:false
         });
         return {
-            globalData,state,config:props.config,self
+            state,config:props.config,self
         }
     }
 }

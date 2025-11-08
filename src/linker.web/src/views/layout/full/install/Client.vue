@@ -10,20 +10,23 @@
                     </el-col>
                 </el-row>
             </el-form-item>
-            <el-form-item label="" label-width="0" v-if="globalData.isPc">
-                <el-row class="w-100">
-                    <el-col :sm="12" :xs="24" v-if="globalData.isPc">
-                        <el-form-item label="管理端口" prop="web">
-                            <el-input v-trim  v-model="state.form.web" />
-                        </el-form-item>
-                    </el-col>
-                    <el-col :sm="12" :xs="24">
-                        <el-form-item label="管理密码" prop="password">
-                            <el-input v-trim  type="password" v-model="state.form.password" show-password maxlength="36" show-word-limit/>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-            </el-form-item>
+            <PcShow>
+                <el-form-item label="" label-width="0">
+                    <el-row class="w-100">
+                        <el-col :sm="12" :xs="24">
+                            <el-form-item label="管理端口" prop="web">
+                                <el-input v-trim  v-model="state.form.web" />
+                            </el-form-item>
+                        </el-col>
+                        <el-col :sm="12" :xs="24">
+                            <el-form-item label="管理密码" prop="password">
+                                <el-input v-trim  type="password" v-model="state.form.password" show-password maxlength="36" show-word-limit/>
+                            </el-form-item>
+                        </el-col>
+                    </el-row>
+                </el-form-item>
+            </PcShow>
+            
             <el-form-item label="" label-width="0">
                 <el-row class="w-100">
                     <el-col :sm="12" :xs="24">
@@ -160,7 +163,7 @@ export default {
             }
         })
 
-        return { state,globalData, handleValidate, formDom };
+        return { state,handleValidate, formDom };
     }
 }
 </script>

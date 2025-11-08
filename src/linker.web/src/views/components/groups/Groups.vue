@@ -31,8 +31,7 @@
                 </template>
                 <template v-else>
                     <a href="javascript:;" class="a-line" @click="handleEdit(scope.row, 'Password')">
-                        <template v-if="globalData.isPhone"><span>***</span></template>
-                        <template v-else><span>{{ scope.row.Password.replace(/.{1}/g,'*') }}</span></template>
+                        <template><span>***</span></template>
                     </a>
                 </template>
             </template>

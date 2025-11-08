@@ -6,10 +6,12 @@
             <el-icon class="right"><ArrowDown /></el-icon>
         </span>
         <template #dropdown>
-            <el-dropdown-menu v-if="hasGroup">
-                <el-dropdown-item v-for="item in state.groups" @click="handleGroupChange(item.Id)">{{item.Name || '未知'}}</el-dropdown-item>
-                <el-dropdown-item @click="state.showGroups = true">{{$t('status.group')}}</el-dropdown-item>
-            </el-dropdown-menu>
+            <AccessShow value="Group">
+                <el-dropdown-menu>
+                    <el-dropdown-item v-for="item in state.groups" @click="handleGroupChange(item.Id)">{{item.Name || '未知'}}</el-dropdown-item>
+                    <el-dropdown-item @click="state.showGroups = true">{{$t('status.group')}}</el-dropdown-item>
+                </el-dropdown-menu>
+            </AccessShow>
         </template>
     </el-dropdown>
     <Groups v-if="state.showGroups" v-model="state.showGroups"></Groups>
@@ -28,7 +30,6 @@ export default {
     setup(props) {
         const { t } = useI18n();
         const globalData = injectGlobalData();
-        const hasGroup = computed(()=>globalData.value.hasAccess('Group')); 
         const state = reactive({
             loading: false,
             connected: computed(() => globalData.value.signin.Connected),
@@ -66,7 +67,7 @@ export default {
             });
         }
         return {
-         config:props.config,hasGroup,  state,handleGroupChange
+         config:props.config,state,handleGroupChange
         }
     }
 }

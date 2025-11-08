@@ -16,7 +16,6 @@
             <Install></Install>
         </div>
     </div>
-    
 </template>
 
 <script>

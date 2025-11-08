@@ -8,7 +8,9 @@
                         <div class="flex">
                             <el-input v-trim style="width:20rem;" v-model="state.list.Host" @blur="handleSave" />
                             <Sync class="mgl-1" name="SignInServer"></Sync>
-                            <span class="mgl-1" v-if="globalData.isPc">{{$t('server.messengerText')}}</span>
+                            <PcShow>
+                                <span class="mgl-1">{{$t('server.messengerText')}}</span>
+                            </PcShow>
                         </div>
                     </el-form-item>
                     <el-form-item :label="`${$t('server.messengerAddr')}1`">
@@ -28,19 +30,14 @@
                             <el-input v-trim :class="{success:state.super,error:state.super==false}" style="width:20rem;" type="password" show-password maxlength="36" v-model="state.list.SuperPassword" @blur="handleSave" />
                         </div>
                     </el-form-item>
-                    <!-- <el-form-item :label="$t('server.messenger')" v-if="state.super && hasWhiteList">
-                        <div>
-                            <div class="flex">
-                                <WhiteList type="SignIn"></WhiteList>
-                            </div>
-                        </div>
-                    </el-form-item> -->
                     <el-form-item></el-form-item>   
                     <el-form-item :label="$t('server.messengerUserId')">
                         <div class="flex">
                             <el-input v-trim style="width:20rem;" type="password" show-password maxlength="36" v-model="state.list.UserId" @blur="handleSave" />
                             <Sync class="mgl-1" name="SignInUserId"></Sync>
-                            <span class="mgl-1" v-if="globalData.isPc">{{$t('server.messengerUserIdText')}}</span>
+                            <PcShow>
+                                <span class="mgl-1">{{$t('server.messengerUserIdText')}}</span>
+                            </PcShow>
                         </div>
                     </el-form-item>
                     <el-form-item></el-form-item>
@@ -74,7 +71,6 @@ export default {
     setup(props) {
         const {t} = useI18n();
         const globalData = injectGlobalData();
-        const hasWhiteList = computed(()=>globalData.value.hasAccess('WhiteList')); 
         const state = reactive({
             list:globalData.value.config.Client.Server,
             height: computed(()=>globalData.value.height-90),
@@ -99,7 +95,7 @@ export default {
             handleCheckKey();
         });
 
-        return {globalData,state,hasWhiteList,handleSave}
+        return {globalData,state,handleSave}
     }
 }
 </script>

@@ -1,31 +1,35 @@
 <template>
-    <div>
-        <slot>
-            <el-button class="btn" size="small" @click="handleShowSync"><el-icon><Share /></el-icon></el-button>
-        </slot>
-        <el-dialog class="options-center" :title="$t('server.sync')" destroy-on-close v-model="state.showNames" width="54rem" top="2vh">
+    <AccessBoolean value="Sync">
+        <template #default="{values}">
             <div>
-                <div class="t-c">
-                    {{ `${$t('server.sync')}【${$t(`server.async${state.name}`)}】${$t('server.asyncText')}` }}
-                </div>
-                <el-transfer class="src-tranfer mgt-1"
-                    v-model="state.srcIdValues"
-                    filterable
-                    :filter-method="srcFilterMethod"
-                    :data="state.srcIds"
-                    :titles="[$t('firewall.unselect'), $t('firewall.selected')]"
-                    :props="{
-                        key: 'MachineId',
-                        label: 'MachineName',
-                    }"
-                />
-                <div class="t-c w-100 mgt-1">
-                        <el-button @click="state.showNames = false">{{$t('common.cancel')}}</el-button>
-                        <el-button type="primary" @click="handleConfirm">{{$t('common.confirm')}}</el-button>
+                <slot>
+                    <el-button class="btn" size="small" @click="handleShowSync(values)"><el-icon><Share /></el-icon></el-button>
+                </slot>
+                <el-dialog class="options-center" :title="$t('server.sync')" destroy-on-close v-model="state.showNames" width="54rem" top="2vh">
+                    <div>
+                        <div class="t-c">
+                            {{ `${$t('server.sync')}【${$t(`server.async${state.name}`)}】${$t('server.asyncText')}` }}
+                        </div>
+                        <el-transfer class="src-tranfer mgt-1"
+                            v-model="state.srcIdValues"
+                            filterable
+                            :filter-method="srcFilterMethod"
+                            :data="state.srcIds"
+                            :titles="[$t('firewall.unselect'), $t('firewall.selected')]"
+                            :props="{
+                                key: 'MachineId',
+                                label: 'MachineName',
+                            }"
+                        />
+                        <div class="t-c w-100 mgt-1">
+                                <el-button @click="state.showNames = false">{{$t('common.cancel')}}</el-button>
+                                <el-button type="primary" @click="handleConfirm">{{$t('common.confirm')}}</el-button>
+                            </div>
                     </div>
+                </el-dialog>
             </div>
-        </el-dialog>
-    </div>
+        </template>
+    </AccessBoolean>
 </template>
 
 <script>
@@ -42,7 +46,6 @@ export default {
     setup (props) {
         const { t } = useI18n();
         const globalData = injectGlobalData();
-        const hasSync = computed(()=>globalData.value.hasAccess('Sync'));
         const state = reactive({
             name:props.name,
             loading:false,
@@ -60,8 +63,8 @@ export default {
                 state.showNames = false;
             });
         }
-        const handleShowSync = ()=>{
-            if(!hasSync.value){
+        const handleShowSync = (access)=>{
+            if(!access.Sync){
                 ElMessage.success(t('common.access'));
                 return;
             }

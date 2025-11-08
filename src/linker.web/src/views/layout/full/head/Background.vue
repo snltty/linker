@@ -1,12 +1,13 @@
 <template>
-    <div class="image" v-if="globalData.isPc">
-        <a href="javascript:;" @click="handleBg"><el-icon><PictureRounded /></el-icon></a>
-        <input type="file" id="file-input">
-    </div>
+    <PcShow>
+        <div class="image">
+            <a href="javascript:;" @click="handleBg"><el-icon><PictureRounded /></el-icon></a>
+            <input type="file" id="file-input">
+        </div>
+    </PcShow>
 </template>
 
 <script>
-import { injectGlobalData } from '@/provide';
 import {PictureRounded} from '@element-plus/icons-vue'
 import { ElMessageBox } from 'element-plus';
 import {  onMounted } from 'vue';
@@ -15,7 +16,6 @@ export default {
     props:['name'],
     setup(props) {
 
-        const globalData = injectGlobalData();
         const key = `bg-${props.name}`;
 
         const handleBg = ()=>{
@@ -67,7 +67,7 @@ export default {
         })
 
         return {
-            globalData,handleBg
+            handleBg
         }
     }
 }

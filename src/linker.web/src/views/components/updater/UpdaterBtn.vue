@@ -1,29 +1,33 @@
 <template>
-    <a href="javascript:;" class="download" @click="handleUpdate()" :title="updaterText" :class="updaterColor">
-        <span>
-            <span>{{item.Version}}</span>
-            <template v-if="updater.list[item.MachineId]">
-                <template v-if="updater.list[item.MachineId].Status == 1">
-                    <el-icon size="14" class="loading"><Loading /></el-icon>
-                </template>
-                <template v-else-if="updater.list[item.MachineId].Status == 2">
-                    <el-icon size="14"><Download /></el-icon>
-                </template>
-                <template v-else-if="updater.list[item.MachineId].Status == 3 || updater.list[item.MachineId].Status == 5">
-                    <el-icon size="14" class="loading"><Loading /></el-icon>
-                    <span class="progress" v-if="updater.list[item.MachineId].Length ==0">0%</span>
-                    <span class="progress" v-else>{{parseInt(updater.list[item.MachineId].Current/updater.list[item.MachineId].Length*100)}}%</span>
-                </template>
-                <template v-else-if="updater.list[item.MachineId].Status == 6">
-                    <el-icon size="14" class="yellow"><CircleCheck /></el-icon>
-                </template>
-            </template>
-            <template v-else>
-                <el-icon size="14"><Download /></el-icon>
-            </template>
-        </span>
-    </a>
-    <a href="javascript:;" class="download" title="检查更新" @click="handleCheck"><el-icon><Refresh /></el-icon></a>
+    <AccessBoolean value="UpdateSelf,UpdateOther">
+        <template #default="{values}">
+            <a href="javascript:;" class="download" @click="handleUpdate(values)" :title="updaterText" :class="updaterColor">
+                <span>
+                    <span>{{item.Version}}</span>
+                    <template v-if="updater.list[item.MachineId]">
+                        <template v-if="updater.list[item.MachineId].Status == 1">
+                            <el-icon size="14" class="loading"><Loading /></el-icon>
+                        </template>
+                        <template v-else-if="updater.list[item.MachineId].Status == 2">
+                            <el-icon size="14"><Download /></el-icon>
+                        </template>
+                        <template v-else-if="updater.list[item.MachineId].Status == 3 || updater.list[item.MachineId].Status == 5">
+                            <el-icon size="14" class="loading"><Loading /></el-icon>
+                            <span class="progress" v-if="updater.list[item.MachineId].Length ==0">0%</span>
+                            <span class="progress" v-else>{{parseInt(updater.list[item.MachineId].Current/updater.list[item.MachineId].Length*100)}}%</span>
+                        </template>
+                        <template v-else-if="updater.list[item.MachineId].Status == 6">
+                            <el-icon size="14" class="yellow"><CircleCheck /></el-icon>
+                        </template>
+                    </template>
+                    <template v-else>
+                        <el-icon size="14"><Download /></el-icon>
+                    </template>
+                </span>
+            </a>
+            <a href="javascript:;" class="download" title="检查更新" @click="handleCheck"><el-icon><Refresh /></el-icon></a>
+        </template>
+    </AccessBoolean>   
 </template>
 
 <script>
@@ -40,8 +44,6 @@ export default {
     setup (props) {
 
         const globalData = injectGlobalData();
-        const hasUpdateSelf = computed(()=>globalData.value.hasAccess('UpdateSelf')); 
-        const hasUpdateOther = computed(()=>globalData.value.hasAccess('UpdateOther')); 
         const updater = useUpdater();
         const serverVersion = computed(()=>globalData.value.signin.Version);
         const updaterVersion = computed(()=>updater.value.current.Version);
@@ -70,16 +72,16 @@ export default {
             : updater.value.list[props.item.MachineId] && updaterVersion.value != props.item.Version 
                 ? 'yellow' :'green'
         })
-        const handleUpdate = ()=>{
+        const handleUpdate = (access)=>{
             updater.value.device = props.item;
             if(!props.config){
                 return;
             }
-            if(!hasUpdateSelf.value){
+            if(!access.UpdateSelf){
                 ElMessage.error('无权限');
                 return;
             }
-            if(props.item.MachineId != globalData.value.self.MachineId && !hasUpdateOther.value){
+            if(props.item.MachineId != globalData.value.self.MachineId && !access.UpdateOther){
                 ElMessage.error('无权限');
                 return;
             }
