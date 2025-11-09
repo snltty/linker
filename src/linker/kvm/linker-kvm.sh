@@ -40,10 +40,11 @@ EOF
 sed -i 's/8080/1806/g' /etc/kvmd_backup/override.yaml
 sed -i 's/4430/1807/g' /etc/kvmd_backup/override.yaml
 
+
 rm -rf /usr/share/kvmd/web/linker 2>/dev/null
 mkdir -p /usr/share/kvmd/web/linker
 cp -rf /linker/kvm/index.html /usr/share/kvmd/web/linker/index.html
-
+cp -rf /linker/kvm/logo-linker.png /usr/share/kvmd/web/share/svg/logo-linker.png
 
 supervisord -c /linker/kvm/supervisord.conf &
 
