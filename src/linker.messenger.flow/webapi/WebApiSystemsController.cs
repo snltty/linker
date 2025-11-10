@@ -2,18 +2,18 @@
 using linker.libs.web;
 namespace linker.messenger.flow.webapi
 {
-    public sealed class WebApiCitysController : IWebApiController
+    public sealed class WebApiSystemsController : IWebApiController
     {
-        public string Path => "/flow/citys.json";
+        public string Path => "/flow/systems.json";
 
         private readonly FlowResolver flowResolver;
-        public WebApiCitysController(FlowResolver flowResolver)
+        public WebApiSystemsController(FlowResolver flowResolver)
         {
             this.flowResolver = flowResolver;
         }
         public Memory<byte> Handle(string query)
         {
-            return flowResolver.GetCitys().ToJson().ToBytes();
+            return flowResolver.GetSystems().ToJson().ToBytes();
         }
 
         public void Free()

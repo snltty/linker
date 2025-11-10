@@ -1,6 +1,9 @@
 ﻿using linker.libs.extends;
 using System;
 using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 namespace linker.libs
 {
     public static class SystemIdHelper
@@ -59,6 +62,66 @@ namespace linker.libs
             string cpu = CommandHelper.Osx(string.Empty, ["system_profiler SPHardwareDataType | grep \"Hardware UUID\""]).TrimNewLineAndWhiteSapce();
             string username = CommandHelper.Osx(string.Empty, ["whoami"]).TrimNewLineAndWhiteSapce();
             return $"{cpu}↓{username}↓{System.Runtime.InteropServices.RuntimeInformation.OSDescription}";
+        }
+
+
+
+        public static string GetSystemStr()
+        {
+            return $"{SystemName()}-{VersionNumber()}-{RuntimeInformation.OSArchitecture.ToString().ToLower()}";
+        }
+        private static string SystemName()
+        {
+            string pattern = @"iphone|samsung|vivo|oppo|google|huawei|xiaomi|ios|android|windows|ubuntu|openwrt|armbian|archlinux|fedora|centos|rocky|alpine|debian|linux|docker";
+            return Regex.Match(RuntimeInformation.OSDescription.ToLower(), pattern)?.Value ?? "unknow";
+        }
+        private static string VersionNumber()
+        {
+            var version = Environment.OSVersion.Version;
+            if (OperatingSystem.IsWindows())
+            {
+                return version.Major switch
+                {
+                    10 when version.Build >= 22000 => "11",
+                    10 when version.Build >= 10240 => "10",
+                    6 when version.Minor == 3 => "8.1",
+                    6 when version.Minor == 2 => "8",
+                    6 when version.Minor == 1 => "7",
+                    6 when version.Minor == 0 => "Vista",
+                    5 when version.Minor == 2 => "2003",
+                    5 when version.Minor == 1 => "XP",
+                    5 when version.Minor == 0 => "2000",
+                    _ => $"unknow"
+                };
+            }
+            if (OperatingSystem.IsAndroid())
+            {
+                return version.Major switch
+                {
+                    35 => "15",
+                    34 => "14",
+                    33 => "13",
+                    32 => "12L",
+                    31 => "12",
+                    30 => "11",
+                    29 => "10",
+                    28 => "9",
+                    27 => "8.1",
+                    26 => "8.0",
+                    25 => "7.1",
+                    24 => "7.0",
+                    23 => "6.0",
+                    22 => "5.1",
+                    21 => "5.0",
+                    _ => $"unknow"
+                };
+            }
+            if (OperatingSystem.IsLinux())
+            {
+                return $"{version.Major}.x";
+            }
+
+            return version.ToString();
         }
     }
 }

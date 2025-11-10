@@ -88,6 +88,7 @@ namespace linker.messenger.flow
 
             serviceCollection.AddSingleton<WebApiOnlineController>();
             serviceCollection.AddSingleton<WebApiCitysController>();
+            serviceCollection.AddSingleton<WebApiSystemsController>();
 
 
             return serviceCollection;
@@ -117,6 +118,7 @@ namespace linker.messenger.flow
             webApiServer.AddControllers(new List<IWebApiController> {
                 serviceProvider.GetService<WebApiOnlineController>(),
                 serviceProvider.GetService<WebApiCitysController>(),
+                serviceProvider.GetService<WebApiSystemsController>(),
             });
 
             return serviceProvider;

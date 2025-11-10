@@ -66,14 +66,26 @@ namespace linker.libs.web
             try
             {
                 response.Headers.Set("Server", Helper.GlobalString);
+                response.Headers.Set("Access-Control-Allow-Origin", "*");
+                response.Headers.Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+                response.Headers.Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
+                response.Headers.Set("Access-Control-Allow-Credentials", "true");
+                response.Headers.Set("Access-Control-Max-Age", "86400");
 
-                string path = request.Url.AbsolutePath.ToLower();
-                string query = request.Url.Query;
-                //默认页面
-                if (path == "/") path = "online.json";
+                if (context.Request.HttpMethod == "OPTIONS")
+                {
+                    response.StatusCode = (int)HttpStatusCode.OK;
+                    response.Close();
+                    return;
+                }
 
                 try
                 {
+                    string path = request.Url.AbsolutePath.ToLower();
+                    string query = request.Url.Query;
+                    //默认页面
+                    if (path == "/") path = "online.json";
+
                     if (dic.TryGetValue(path, out IWebApiController controller))
                     {
                         Memory<byte> memory = controller.Handle(query);
