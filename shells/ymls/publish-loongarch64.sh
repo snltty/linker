@@ -1,4 +1,6 @@
-target=$(cd $(dirname $0); pwd)
+target=$(cd $(dirname $0)/..; pwd)
+
+cd ../
 
 cd src/linker.web 
 npm install &&

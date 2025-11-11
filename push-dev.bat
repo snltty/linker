@@ -2,9 +2,9 @@
 
 SET comment=%1
 
-cd gen
+cd shells/gen
 node index.js
-cd ../
+cd ../../
 
 git add .
 git commit -m "%comment%"

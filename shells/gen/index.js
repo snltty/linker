@@ -7,7 +7,7 @@ const parser = new xml2js.Parser();
 
 function readVersionDesc() {
     return new Promise((resolve, reject) => {
-        const fileContents = fs.readFileSync('../src/linker/linker.csproj', 'utf8');
+        const fileContents = fs.readFileSync('../../src/linker/linker.csproj', 'utf8');
         parser.parseString(fileContents, (error, result) => {
             resolve(
                 { desc: result.Project.PropertyGroup[0].Description[0], version: result.Project.PropertyGroup[0].FileVersion[0] }
@@ -242,32 +242,32 @@ readVersionDesc().then((desc) => {
     while (publishText.indexOf('{{version}}') >= 0) {
         publishText = publishText.replace('{{version}}', desc.version);
     }
-    writeText('../shells/publish-docker.sh', publishText);
+    writeText('../publish-docker.sh', publishText);
 
     let publishIpkText = readText('../ymls/publish-ipk.sh');
     while (publishIpkText.indexOf('{{version}}') >= 0) {
         publishIpkText = publishIpkText.replace('{{version}}', desc.version);
     }
-    writeText('../shells/publish-ipk.sh', publishIpkText);
+    writeText('../publish-ipk.sh', publishIpkText);
 
 
     let dockerText = readText('../ymls/docker.yml');
     while (dockerText.indexOf('{{version}}') >= 0) {
         dockerText = dockerText.replace('{{version}}', desc.version);
     }
-    writeText('../.github/workflows/docker.yml', dockerText);
+    writeText('../../.github/workflows/docker.yml', dockerText);
 
 
     let nugetText = readText('../ymls/nuget.yml');
     while (nugetText.indexOf('{{version}}') >= 0) {
         nugetText = nugetText.replace('{{version}}', desc.version);
     }
-    writeText('../.github/workflows/nuget.yml', nugetText);
+    writeText('../../.github/workflows/nuget.yml', nugetText);
 
 
     const ipkData = readYaml('../ymls/ipk.yml');
     writeUploadIpk(ipkData, `v${desc.version}`);
-    writeYaml('../.github/workflows/ipk.yml', ipkData);
+    writeYaml('../../.github/workflows/ipk.yml', ipkData);
 
     /*
     const loongarch64Data = readYaml('../ymls/loongarch64.yml');
