@@ -236,7 +236,7 @@ readVersionDesc().then((desc) => {
     fs.writeFileSync('../version.txt', `v${desc.version}\n${moment().format('YYYY-MM-DD HH:mm:ss')}\n${desc.desc}`, 'utf8');
 
     writeUpload(data, `v${desc.version}`);
-    writeYaml('../.github/workflows/dotnet.yml', data);
+    writeYaml('../../.github/workflows/dotnet.yml', data);
 
     let publishText = readText('../ymls/publish-docker.sh');
     while (publishText.indexOf('{{version}}') >= 0) {
