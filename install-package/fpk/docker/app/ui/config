@@ -1,0 +1,13 @@
+{
+    ".url": {
+        "linker.Application": {
+            "title": "Linker",
+            "icon": "images/icon_{0}.png",
+            "type": "iframe",
+            "protocol": "http",
+            "port": "1804",
+            "url": "/",
+            "allUsers": false
+        }
+    }
+}

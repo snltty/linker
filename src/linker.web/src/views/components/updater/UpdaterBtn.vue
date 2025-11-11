@@ -25,24 +25,28 @@
                     </template>
                 </span>
             </a>
-            <a href="javascript:;" class="download" title="检查更新" @click="handleCheck"><el-icon><Refresh /></el-icon></a>
+            <AccessShow value="Reboot">
+                <a href="javascript:;" class="download" title="重启" @click="handleExit(item.MachineId,item.MachineName)"><el-icon><SwitchButton /></el-icon></a>
+            </AccessShow>
         </template>
     </AccessBoolean>   
 </template>
 
 <script>
 import { injectGlobalData } from '@/provide';
-import { computed, h, ref } from 'vue';
-import { ElMessage, ElMessageBox, ElOption, ElSelect } from 'element-plus';
-import { checkUpdater } from '@/apis/updater';
-import {Download,Loading,CircleCheck,Refresh} from '@element-plus/icons-vue'
+import { computed} from 'vue';
+import { ElMessage, ElMessageBox} from 'element-plus';
+import {  exit } from '@/apis/updater';
+import {Download,Loading,CircleCheck,SwitchButton} from '@element-plus/icons-vue'
 import { useUpdater } from './updater';
+import { useI18n } from 'vue-i18n';
 
 export default {
     props:['item','config'],
-    components:{Download,Loading,CircleCheck,Refresh},
+    components:{Download,Loading,CircleCheck,SwitchButton},
     setup (props) {
 
+         const {t} = useI18n();
         const globalData = injectGlobalData();
         const updater = useUpdater();
         const serverVersion = computed(()=>globalData.value.signin.Version);
@@ -109,31 +113,19 @@ export default {
             }
             updater.value.show = updateInfo.Status == 2;
         }
-        const handleCheck = ()=>{
-            const selectedValue = ref(props.item.MachineId);
-            const selectOptions = [
-                h(ElOption, { label: `仅检查[${props.item.MachineName}]`, value: props.item.MachineId }),
-                h(ElOption, { label: `仅检查[本组所有]`, value: 'g-all' }),
-            ];
-            ElMessageBox({
-                title: '选择检查对象',
-                message: () => h(ElSelect, {
-                    modelValue: selectedValue.value,
-                    placeholder: '请选择',
-                    style:'width:20rem;',
-                    'onUpdate:modelValue': (val) => {
-                        selectedValue.value = val
-                    }
-                }, selectOptions),
-                confirmButtonText: '确定',
-                cancelButtonText: '取消'
+
+        const handleExit = (machineId,machineName)=>{
+            ElMessageBox.confirm(t('home.closeSure',[machineName]), t('common.tips'), {
+                confirmButtonText: t('common.confirm'),
+                cancelButtonText: t('common.cancel'),
+                type: 'warning',
             }).then(() => {
-                checkUpdater(selectedValue.value == props.item.MachineId ? selectedValue.value : '');
+                exit(machineId);
             }).catch(() => {});
         }
 
         return {
-            item:computed(()=>props.item),updater,updaterText,updaterColor,handleUpdate,handleCheck
+            item:computed(()=>props.item),updater,updaterText,updaterColor,handleUpdate,handleExit
         }
     }
 }

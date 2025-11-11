@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+  linker:
+    image: snltty/linker-musl
+    container_name: linker
+    privileged: true
+    network_mode: host
+    restart: always
+    tty: true
+    stdin_open: true
+    volumes:
+      - "/var/apps/linker/shares/linker/configs:/app/configs"
+      - "/var/apps/linker/shares/linker/logs:/app/logs"
+    devices:
+      - /dev/net/tun:/dev/net/tun

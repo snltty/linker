@@ -242,13 +242,13 @@ readVersionDesc().then((desc) => {
     while (publishText.indexOf('{{version}}') >= 0) {
         publishText = publishText.replace('{{version}}', desc.version);
     }
-    writeText('../publish-docker.sh', publishText);
+    writeText('../shells/publish-docker.sh', publishText);
 
     let publishIpkText = readText('../ymls/publish-ipk.sh');
     while (publishIpkText.indexOf('{{version}}') >= 0) {
         publishIpkText = publishIpkText.replace('{{version}}', desc.version);
     }
-    writeText('../publish-ipk.sh', publishIpkText);
+    writeText('../shells/publish-ipk.sh', publishIpkText);
 
 
     let dockerText = readText('../ymls/docker.yml');

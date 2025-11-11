@@ -1,7 +1,7 @@
 <template>
    <el-table border style="width: 100%" height="32px" size="small" @sort-change="handleSortChange" class="table-sort">
-        <el-table-column prop="MachineId" :label="$t('home.device')" width="110" sortable="custom" ></el-table-column>
-        <el-table-column prop="Version" :label="$t('home.version')" width="110" sortable="custom"></el-table-column>
+        <el-table-column prop="MachineId" :label="$t('home.device')" width="90" sortable="custom" ></el-table-column>
+        <el-table-column prop="Version" :label="$t('home.version')" width="90" sortable="custom"></el-table-column>
         <el-table-column prop="tunnel" :label="$t('home.tunnel')" width="86" sortable="custom"></el-table-column>
         <el-table-column v-if="tuntap.show" prop="tuntap" :label="$t('home.tuntapIP')" width="160" sortable="custom"></el-table-column>
         <el-table-column v-if="socks5.show" prop="socks5" :label="$t('home.proxy')" width="160" sortable="custom"></el-table-column>

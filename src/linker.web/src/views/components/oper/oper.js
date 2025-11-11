@@ -3,7 +3,6 @@ const operSymbol = Symbol();
 export const provideOper = () => {
     const oper = ref({
         device: {id:'',name:''},
-        showRoutes:false,
         showFirewall:false,
         showWakeup:false,
         showTransport:false,

@@ -12,6 +12,9 @@
                 <el-tab-pane label="端口转发">
                     <TuntapForward ref="forwardDom"></TuntapForward>
                 </el-tab-pane>
+                <el-tab-pane label="路由">
+                    <TuntapRoutes></TuntapRoutes>
+                </el-tab-pane>
             </el-tabs>
             <div class="foot t-c">
                 <el-button @click="state.show = false" :loading="state.loading">取消</el-button>
@@ -28,10 +31,11 @@ import { useTuntap } from './tuntap';
 import TuntapForward from './TuntapForward.vue'
 import TuntapLan from './TuntapLan.vue'
 import TuntapIP from './TuntapIP.vue'
+import TuntapRoutes from './TuntapRoutes.vue';
 export default {
     props: ['modelValue'],
     emits: ['change', 'update:modelValue'],
-    components: { TuntapForward ,TuntapLan,TuntapIP},
+    components: { TuntapForward ,TuntapLan,TuntapIP,TuntapRoutes},
     setup(props, { emit }) {
 
         const tuntap = useTuntap();

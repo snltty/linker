@@ -1,12 +1,9 @@
 <template>
-<el-table-column prop="MachineId" :label="$t('home.device')" width="220">
+<el-table-column prop="MachineId" :label="$t('home.device')" width="180">
     <template #header>
         <div class="flex">
             <span class="flex-1">{{$t('home.device')}}</span>
             <span> <el-input v-trim size="small" v-model="name" clearable @input="handleRefresh" ></el-input> </span>
-            <span>
-                <el-button size="small" @click="handleRefresh"><el-icon><Search /></el-icon></el-button>
-            </span>
         </div>
     </template>
     <template #default="scope">
@@ -16,12 +13,15 @@
             </p>
             <p class="flex">
                 <template v-if="scope.row.Connected">
-                    <template v-if="scope.row.showip">
-                        <span :title="$t('home.deviceWanIP')" class="ipaddress" @click="handleExternal(scope.row)"><span>😀{{ scope.row.IP }}</span></span>
-                    </template>
-                    <template v-else>
-                        <span :title="$t('home.deviceWanIP')" class="ipaddress" @click="handleExternal(scope.row)"><span>😴㊙.㊙.㊙.㊙</span></span>
-                    </template>
+                    <div>
+                        <template v-if="tuntap.list[scope.row.MachineId] && tuntap.list[scope.row.MachineId].systems">
+                            <template v-for="system in tuntap.list[scope.row.MachineId].systems">
+                                <span :title="tuntap.list[scope.row.MachineId].SystemInfo">
+                                    <img class="system" :src="`./${system}.svg`" />
+                                </span>
+                            </template>
+                        </template>
+                    </div>
                     <span class="flex-1"></span>
                     <UpdaterBtn v-if="scope.row.showip == false" :config="true" :item="scope.row"></UpdaterBtn>
                 </template>
@@ -38,39 +38,39 @@ import { ref } from 'vue';
 import {Search} from '@element-plus/icons-vue'
 import UpdaterBtn from '../updater/UpdaterBtn.vue';
 import DeviceName from './DeviceName.vue';
-import { useI18n } from 'vue-i18n';
+import { useTuntap } from '../tuntap/tuntap';
 
 export default {
     emits:['refresh'],
     components:{Search,UpdaterBtn,DeviceName},
     setup(props,{emit}) {
 
-        const t = useI18n();
+        const tuntap = useTuntap();
         const name = ref(sessionStorage.getItem('search-name') || '');
         
-        const handleExternal = (row)=>{
-            row.showip=!row.showip;
-        }
         const handleRefresh = ()=>{
             sessionStorage.setItem('search-name',name.value);
             emit('refresh',name.value)
         }
 
         return {
-             handleRefresh,name,handleExternal
+            tuntap,name, handleRefresh
         }
     }
 }
 </script>
 <style lang="stylus" scoped>
 
-.ipaddress{
-    span{vertical-align:middle}
-}
-
 .el-input{
     width:12rem;
     margin-right:.6rem
 }
-
+img.system{
+    height:1.4rem;
+    vertical-align: sub;
+    margin-right:.4rem
+    border:1px solid rgba(0,0,0,.1);
+    border-radius:.2rem;
+    box-shadow:0 0 .2rem rgba(0,0,0,.1) inset;
+}
 </style>

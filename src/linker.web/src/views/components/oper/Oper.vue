@@ -1,63 +1,61 @@
 <template>
     <AccessBoolean value="Access">
         <template #default="{values}">
-            <el-table-column :label="$t('home.oper')"  fixed="right" width="75">
+            <el-table-column :label="$t('home.oper')"  fixed="right">
                 <template #default="scope">
-                    <el-dropdown size="small" >
-                        <div class="dropdown">
-                            <span>{{$t('home.oper')}}</span>
-                            <el-icon class="el-icon--right">
-                                <ArrowDown />
-                            </el-icon>
-                        </div>
-                        <template #dropdown>
-                            <el-dropdown-menu>
-                                <template v-if="scope.row.Connected">
-                                    <AccessShow value="Reboot">
-                                        <el-dropdown-item v-if="scope.row.showReboot" @click="handleExit(scope.row.MachineId,scope.row.MachineName)"><el-icon><SwitchButton /></el-icon>{{$t('home.reboot')}}</el-dropdown-item>
+                    <div>
+                        <el-dropdown size="small" >
+                            <div class="dropdown">
+                                <span>{{$t('home.oper')}}</span>
+                                <el-icon class="el-icon--right">
+                                    <ArrowDown />
+                                </el-icon>
+                            </div>
+                            <template #dropdown>
+                                <el-dropdown-menu>
+                                    <template v-if="scope.row.Connected">
+                                        <el-dropdown-item v-if="handleShowAccess(scope.row,accessList[scope.row.MachineId] || '0',values)" @click="handleAccess(scope.row)"><el-icon><Flag /></el-icon>{{$t('home.access')}}</el-dropdown-item>
+                                        <AccessShow value="ApiPassword">
+                                            <el-dropdown-item v-if="scope.row.isSelf" @click="handleApiPassword(scope.row)"><el-icon><HelpFilled /></el-icon>{{$t('home.managerApi')}}</el-dropdown-item>
+                                        </AccessShow>
+                                        <AccessShow value="ApiPasswordOther">
+                                            <el-dropdown-item v-if="scope.row.isSelf==false" @click="handleApiPassword(scope.row)"><el-icon><HelpFilled /></el-icon> {{$t('home.managerApi')}}</el-dropdown-item>
+                                        </AccessShow>
+                                        <el-dropdown-item @click="handleStopwatch(scope.row.MachineId,scope.row.MachineName)"><el-icon><Platform /></el-icon>{{$t('home.messenger',[scope.row.MachineName])}}</el-dropdown-item>
+                                        <el-dropdown-item @click="handleStopwatch('',$t('home.server'))"><el-icon><Platform /></el-icon>{{$t('home.messengerServer')}}</el-dropdown-item>
+                                       
+                                        <AccessShow value="FirewallSelf">
+                                            <el-dropdown-item v-if="scope.row.isSelf" @click="handleFirewall(scope.row.MachineId,scope.row.MachineName)"><el-icon><CircleCheck /></el-icon>{{$t('home.firewall')}}</el-dropdown-item>
+                                        </AccessShow>
+                                        <AccessShow value="FirewallOther">
+                                            <el-dropdown-item v-if="scope.row.isSelf==false" @click="handleFirewall(scope.row.MachineId,scope.row.MachineName)"><el-icon><CircleCheck /></el-icon>{{$t('home.firewall')}}</el-dropdown-item>
+                                        </AccessShow>
+                                        <AccessShow value="WakeupSelf">
+                                            <el-dropdown-item v-if="scope.row.isSelf" @click="handleWakeup(scope.row.MachineId,scope.row.MachineName)"><el-icon><VideoPlay /></el-icon>{{$t('home.wakeup')}}</el-dropdown-item>
+                                        </AccessShow>
+                                        <AccessShow value="WakeupOther">
+                                            <el-dropdown-item v-if="scope.row.isSelf==false" @click="handleWakeup(scope.row.MachineId,scope.row.MachineName)"><el-icon><VideoPlay /></el-icon>{{$t('home.wakeup')}}</el-dropdown-item>
+                                        </AccessShow>
+                                        <AccessShow value="Transport">
+                                            <el-dropdown-item @click="handleTransport(scope.row.MachineId,scope.row.MachineName)"><el-icon><Orange /></el-icon>{{$t('home.protocol')}}</el-dropdown-item>
+                                        </AccessShow>
+                                        <AccessShow value="ActionSelf">
+                                            <el-dropdown-item v-if="scope.row.isSelf" @click="handleAction(scope.row.MachineId,scope.row.MachineName)"><el-icon><Lock /></el-icon>{{$t('home.action')}}</el-dropdown-item>
+                                        </AccessShow>
+                                        <AccessShow value="ActionOther">
+                                            <el-dropdown-item v-if="scope.row.isSelf==false" @click="handleAction(scope.row.MachineId,scope.row.MachineName)"><el-icon><Lock /></el-icon>{{$t('home.action')}}</el-dropdown-item>
+                                        </AccessShow>
+                                        <AccessShow value="Flow">
+                                            <el-dropdown-item @click="handleFlow(scope.row.MachineId,scope.row.MachineName)"><el-icon><Histogram /></el-icon>{{$t('home.flowStatis')}}</el-dropdown-item>
+                                        </AccessShow>
+                                    </template>
+                                    <AccessShow value="Remove">
+                                        <el-dropdown-item v-if="scope.row.showDel" @click="handleDel(scope.row.MachineId,scope.row.MachineName)"><el-icon><Delete /></el-icon> {{$t('home.delete')}}</el-dropdown-item>
                                     </AccessShow>
-                                    <el-dropdown-item v-if="handleShowAccess(scope.row,accessList[scope.row.MachineId] || '0',values)" @click="handleAccess(scope.row)"><el-icon><Flag /></el-icon>{{$t('home.access')}}</el-dropdown-item>
-                                    <AccessShow value="ApiPassword">
-                                        <el-dropdown-item v-if="scope.row.isSelf" @click="handleApiPassword(scope.row)"><el-icon><HelpFilled /></el-icon>{{$t('home.managerApi')}}</el-dropdown-item>
-                                    </AccessShow>
-                                    <AccessShow value="ApiPasswordOther">
-                                        <el-dropdown-item v-if="scope.row.isSelf==false" @click="handleApiPassword(scope.row)"><el-icon><HelpFilled /></el-icon> {{$t('home.managerApi')}}</el-dropdown-item>
-                                    </AccessShow>
-                                    <el-dropdown-item @click="handleStopwatch(scope.row.MachineId,scope.row.MachineName)"><el-icon><Platform /></el-icon>{{$t('home.messenger',[scope.row.MachineName])}}</el-dropdown-item>
-                                    <el-dropdown-item @click="handleStopwatch('',$t('home.server'))"><el-icon><Platform /></el-icon>{{$t('home.messengerServer')}}</el-dropdown-item>
-                                    <el-dropdown-item @click="handleRoutes(scope.row.MachineId,scope.row.MachineName)"><el-icon><Paperclip /></el-icon>{{$t('home.tuntapRoute')}}</el-dropdown-item>
-                                    <AccessShow value="FirewallSelf">
-                                        <el-dropdown-item v-if="scope.row.isSelf" @click="handleFirewall(scope.row.MachineId,scope.row.MachineName)"><el-icon><CircleCheck /></el-icon>{{$t('home.firewall')}}</el-dropdown-item>
-                                    </AccessShow>
-                                    <AccessShow value="FirewallOther">
-                                        <el-dropdown-item v-if="scope.row.isSelf==false" @click="handleFirewall(scope.row.MachineId,scope.row.MachineName)"><el-icon><CircleCheck /></el-icon>{{$t('home.firewall')}}</el-dropdown-item>
-                                    </AccessShow>
-                                    <AccessShow value="WakeupSelf">
-                                        <el-dropdown-item v-if="scope.row.isSelf" @click="handleWakeup(scope.row.MachineId,scope.row.MachineName)"><el-icon><VideoPlay /></el-icon>{{$t('home.wakeup')}}</el-dropdown-item>
-                                    </AccessShow>
-                                    <AccessShow value="WakeupOther">
-                                        <el-dropdown-item v-if="scope.row.isSelf==false" @click="handleWakeup(scope.row.MachineId,scope.row.MachineName)"><el-icon><VideoPlay /></el-icon>{{$t('home.wakeup')}}</el-dropdown-item>
-                                    </AccessShow>
-                                    <AccessShow value="Transport">
-                                        <el-dropdown-item @click="handleTransport(scope.row.MachineId,scope.row.MachineName)"><el-icon><Orange /></el-icon>{{$t('home.protocol')}}</el-dropdown-item>
-                                    </AccessShow>
-                                    <AccessShow value="ActionSelf">
-                                        <el-dropdown-item v-if="scope.row.isSelf" @click="handleAction(scope.row.MachineId,scope.row.MachineName)"><el-icon><Lock /></el-icon>{{$t('home.action')}}</el-dropdown-item>
-                                    </AccessShow>
-                                    <AccessShow value="ActionOther">
-                                        <el-dropdown-item v-if="scope.row.isSelf==false" @click="handleAction(scope.row.MachineId,scope.row.MachineName)"><el-icon><Lock /></el-icon>{{$t('home.action')}}</el-dropdown-item>
-                                    </AccessShow>
-                                    <AccessShow value="Flow">
-                                        <el-dropdown-item @click="handleFlow(scope.row.MachineId,scope.row.MachineName)"><el-icon><Histogram /></el-icon>{{$t('home.flowStatis')}}</el-dropdown-item>
-                                    </AccessShow>
-                                </template>
-                                <AccessShow value="Remove">
-                                    <el-dropdown-item v-if="scope.row.showDel" @click="handleDel(scope.row.MachineId,scope.row.MachineName)"><el-icon><Delete /></el-icon> {{$t('home.delete')}}</el-dropdown-item>
-                                </AccessShow>
-                            </el-dropdown-menu>
-                        </template>
-                    </el-dropdown>
-                    
+                                </el-dropdown-menu>
+                            </template>
+                        </el-dropdown>
+                    </div>
                 </template>
             </el-table-column>
         </template>
@@ -66,7 +64,6 @@
 
 <script>
 import { signInDel } from '@/apis/signin';
-import { exit } from '@/apis/updater';
 import { injectGlobalData } from '@/provide';
 import { Delete,SwitchButton,ArrowDown, Flag,HelpFilled,Platform,Paperclip,CircleCheck,VideoPlay,Orange,Lock,Histogram } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus';
@@ -105,17 +102,7 @@ export default {
                 });
             }).catch(() => {});
         }
-        const handleExit = (machineId,machineName)=>{
-            ElMessageBox.confirm(t('home.closeSure',[machineName]), t('common.tips'), {
-                confirmButtonText: t('common.confirm'),
-                cancelButtonText: t('common.cancel'),
-                type: 'warning',
-            }).then(() => {
-                exit(machineId).then(()=>{
-                    emit('refresh');
-                })
-            }).catch(() => {});
-        }
+        
 
         const handleShowAccess = (row,rowAccess,access)=>{ 
             let maxLength = Math.max(myAccess.value.length,rowAccess.length);
@@ -153,11 +140,6 @@ export default {
             flow.value.device.name = name;
             flow.value.show = true;
         }
-        const handleRoutes = (id,name)=>{
-            oper.value.device.id = id;
-            oper.value.device.name = name;
-            oper.value.showRoutes = true;
-        }
         const handleFirewall = (id,name)=>{
             oper.value.device.id = id;
             oper.value.device.name = name;
@@ -185,8 +167,8 @@ export default {
             oper.value.showFlow = true;
         }
 
-        return {accessList,handleDel,handleExit,handleShowAccess,handleAccess,
-           handleApiPassword,handleStopwatch,handleRoutes,
+        return {accessList,handleDel,handleShowAccess,handleAccess,
+           handleApiPassword,handleStopwatch,
             handleFirewall,handleWakeup,
             handleTransport,handleAction,handleFlow
         }

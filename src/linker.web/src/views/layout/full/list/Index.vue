@@ -30,7 +30,6 @@
         <SForwardEdit v-if="sforward.showEdit" v-model="sforward.showEdit" ></SForwardEdit>
         <UpdaterConfirm v-if="updater.show" v-model="updater.show" ></UpdaterConfirm>
         <Stopwatch v-if="flow.show" v-model="flow.show" ></Stopwatch>
-        <OperRoutes v-if="oper.showRoutes" v-model="oper.showRoutes" ></OperRoutes>
         <OperFirewall v-if="oper.showFirewall" v-model="oper.showFirewall" ></OperFirewall>
         <OperWakeup v-if="oper.showWakeup" v-model="oper.showWakeup" ></OperWakeup>
         <OperTransport v-if="oper.showTransport" v-model="oper.showTransport" ></OperTransport>
@@ -84,7 +83,6 @@ import Stopwatch from '../../../components/stopwatch/Stopwatch.vue'
 
 import Oper from '../../../components/oper/Oper.vue'
 import { provideOper } from '../../../components/oper/oper'
-import OperRoutes from '../../../components/oper/OperRoutes.vue'
 import OperFirewall from '../../../components/oper/OperFirewall.vue'
 import OperWakeup from '../../../components/oper/OperWakeup.vue'
 import OperTransport from '../../../components/oper/OperTransport.vue'
@@ -103,7 +101,7 @@ export default {
         Forward,ForwardEdit,
         SForwardEdit ,UpdaterConfirm,
         Stopwatch,
-        Oper,OperRoutes,OperFirewall,OperWakeup ,OperTransport,OperAction,OperFlow
+        Oper,OperFirewall,OperWakeup ,OperTransport,OperAction,OperFlow
     },
     setup(props) {
 
