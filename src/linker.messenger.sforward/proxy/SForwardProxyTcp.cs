@@ -16,8 +16,8 @@ namespace linker.plugins.sforward.proxy
         private readonly ConcurrentDictionary<ulong, AsyncUserToken> httpConnections = new ConcurrentDictionary<ulong, AsyncUserToken>();
         private readonly ConcurrentDictionary<string, SForwardTrafficCacheInfo> httpCaches = new ConcurrentDictionary<string, SForwardTrafficCacheInfo>();
 
-        public Func<int, ulong, Task<bool>> TunnelConnect { get; set; } = async (port, id) => { return await Task.FromResult(false).ConfigureAwait(false); };
-        public Func<string, int, ulong, Task<bool>> WebConnect { get; set; } = async (host, port, id) => { return await Task.FromResult(false).ConfigureAwait(false); };
+        public Func<int, ulong, Task<string>> TunnelConnect { get; set; } = async (port, id) => { return await Task.FromResult(string.Empty).ConfigureAwait(false); };
+        public Func<string, int, ulong, Task<string>> WebConnect { get; set; } = async (host, port, id) => { return await Task.FromResult(string.Empty).ConfigureAwait(false); };
 
         #region 服务端
 
@@ -136,16 +136,17 @@ namespace linker.plugins.sforward.proxy
                     key = token.Host = GetHost(buffer1.Memory.Slice(0, length));
                     if (string.IsNullOrWhiteSpace(token.Host))
                     {
-                        if (Write404(token, buffer1.Memory))
+                        if (Write404(token, buffer1.Memory,"Http host not found"))
                         {
                             return;
                         }
                         CloseClientSocket(token);
                         return;
                     }
-                    if (await WebConnect(token.Host, token.ListenPort, id).ConfigureAwait(false) == false)
+                    string error = await WebConnect(token.Host, token.ListenPort, id).ConfigureAwait(false);
+                    if (string.IsNullOrWhiteSpace(error) == false)
                     {
-                        if (Write404(token, buffer1.Memory))
+                        if (Write404(token, buffer1.Memory, error))
                         {
                             return;
                         }
@@ -157,9 +158,10 @@ namespace linker.plugins.sforward.proxy
                 else
                 {
                     //纯TCP的，直接拿端口去匹配
-                    if (await TunnelConnect(token.ListenPort, id).ConfigureAwait(false) == false)
+                    string error = await TunnelConnect(token.ListenPort, id).ConfigureAwait(false);
+                    if (string.IsNullOrWhiteSpace(error) == false)
                     {
-                        if (Write404(token, buffer1.Memory))
+                        if (Write404(token, buffer1.Memory, error))
                         {
                             return;
                         }
@@ -213,7 +215,7 @@ namespace linker.plugins.sforward.proxy
             }
         }
 
-        private bool Write404(AsyncUserToken token, Memory<byte> buffer)
+        private bool Write404(AsyncUserToken token, Memory<byte> buffer,string error)
         {
             try
             {
@@ -230,7 +232,7 @@ namespace linker.plugins.sforward.proxy
                 {
                     return false;
                 }
-
+                f0f = f0f.Replace("{{error}}", error);
                 string response = $"HTTP/1.1 200 OK\r\nContent-Length: {f0f.Length}\r\nContent-type: text/html\r\nServer: linker\r\nConnection: close\r\n\r\n{f0f}";
                 byte[] responseBytes = Encoding.UTF8.GetBytes(response);
                 token.SourceSocket.Send(responseBytes);

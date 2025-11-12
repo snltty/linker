@@ -1,17 +1,14 @@
 ﻿using linker.plugins.sforward.proxy;
 using System.Net;
 using linker.libs;
-using linker.messenger;
 using linker.messenger.signin;
-using linker.messenger.sforward;
 using linker.messenger.sforward.server.validator;
 using linker.messenger.sforward.server;
 using linker.messenger.sforward.client;
 using System.Net.Sockets;
 using linker.libs.timer;
-using linker.libs.extends;
 
-namespace linker.plugins.sforward.messenger
+namespace linker.messenger.sforward.messenger
 {
     /// <summary>
     /// 穿透服务端
@@ -657,23 +654,23 @@ namespace linker.plugins.sforward.messenger
         /// <param name="port"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        private async Task<bool> WebConnect(string host, int port, ulong id)
+        private async Task<string> WebConnect(string host, int port, ulong id)
         {
             if (sForwardServerCahing.TryGet(host, out string machineId) == false)
             {
                 if (string.IsNullOrWhiteSpace(sForwardServerNodeTransfer.Node.Domain))
                 {
-                    return false;
+                    return "Node domain not found";
                 }
                 host = host.Substring(0, host.Length - sForwardServerNodeTransfer.Node.Domain.Length - 1);
                 if (sForwardServerCahing.TryGet(host, out machineId) == false)
                 {
-                    return false;
+                    return "Host to machine not found";
                 }
             }
 
 
-            return await sForwardServerNodeTransfer.ProxyNode(new SForwardProxyInfo
+            bool result = await sForwardServerNodeTransfer.ProxyNode(new SForwardProxyInfo
             {
                 Domain = host,
                 RemotePort = port,
@@ -683,6 +680,7 @@ namespace linker.plugins.sforward.messenger
                 ProtocolType = ProtocolType.Tcp,
                 MachineId = machineId,
             });
+            return result ? string.Empty : "Proxy node fail";
         }
         /// <summary>
         /// 服务器收到tcp连接
@@ -690,10 +688,10 @@ namespace linker.plugins.sforward.messenger
         /// <param name="port"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        private async Task<bool> TunnelConnect(int port, ulong id)
+        private async Task<string> TunnelConnect(int port, ulong id)
         {
             sForwardServerCahing.TryGet(port, out string machineId);
-            return await sForwardServerNodeTransfer.ProxyNode(new SForwardProxyInfo
+            bool result = await sForwardServerNodeTransfer.ProxyNode(new SForwardProxyInfo
             {
                 RemotePort = port,
                 Id = id,
@@ -702,6 +700,7 @@ namespace linker.plugins.sforward.messenger
                 ProtocolType = ProtocolType.Tcp,
                 MachineId = machineId,
             });
+            return result ? string.Empty : "Proxy node fail";
         }
         /// <summary>
         /// 服务器收到udp数据

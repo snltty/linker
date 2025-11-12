@@ -3,9 +3,9 @@ using linker.libs.web;
 using linker.messenger.decenter;
 using linker.messenger.plan;
 using linker.messenger.sforward.client;
+using linker.messenger.sforward.messenger;
 using linker.messenger.sforward.server;
 using linker.messenger.sforward.server.validator;
-using linker.plugins.sforward.messenger;
 using linker.plugins.sforward.proxy;
 using Microsoft.Extensions.DependencyInjection;
 namespace linker.messenger.sforward
