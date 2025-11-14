@@ -265,6 +265,13 @@ namespace linker.messenger.signin
             SignInConfigSetNameInfo info = serializer.Deserialize<SignInConfigSetNameInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, info.Id, out SignCacheInfo from, out SignCacheInfo to))
             {
+                // 【安全修复 P1】添加对象级授权检查
+                // 防止跨组织IDOR：只有Super用户或同组用户才能修改其他用户
+                if (from.Super == false && from.GroupId != to.GroupId)
+                {
+                    return;
+                }
+
                 if (info.Id != connection.Id)
                 {
                     await messengerSender.SendOnly(new MessageRequestWrap

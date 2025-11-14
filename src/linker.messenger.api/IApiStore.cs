@@ -5,8 +5,10 @@ namespace linker.messenger.api
     {
         /// <summary>
         /// 管理接口密码
+        /// 【安全修复 P0】不再使用硬编码的 "snltty" 密码
+        /// 必须通过环境变量或配置文件设置安全的密码
         /// </summary>
-        public string ApiPassword { get; set; } = Helper.GlobalString;
+        public string ApiPassword { get; set; } = Guid.NewGuid().ToString();
         /// <summary>
         /// 网站端口
         /// </summary>

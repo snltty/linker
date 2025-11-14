@@ -15,7 +15,12 @@ namespace linker.libs
         static readonly byte[] falseArray = [0];
         public static byte[] FalseArray => falseArray;
 
-        public const string GlobalString = "snltty";
+        /// <summary>
+        /// 【安全修复 P0】硬编码凭证已移除
+        /// 所有密钥现在应该从环境变量或配置文件读取
+        /// </summary>
+        [Obsolete("Do not use hardcoded credentials. Use environment variables instead.")]
+        public const string GlobalString = "DEPRECATED_DO_NOT_USE";
 
         private static string currentDirectory = "./";
         public static string CurrentDirectory => currentDirectory;

@@ -53,6 +53,12 @@ namespace linker.messenger.sync
                 List<Task> tasks = [];
                 foreach (SignCacheInfo item in caches.Where(c => c.MachineId != connection.Id && c.Connected && (ids.Contains(c.Id) || ids.Length == 0)))
                 {
+                    // 【安全修复 P1】添加授权检查：防止向无权限的机器推送数据
+                    if (cache.Super == false && cache.GroupId != item.GroupId)
+                    {
+                        continue; // 跳过无权限的目标
+                    }
+
                     tasks.Add(sender.SendOnly(new MessageRequestWrap
                     {
                         Connection = item.Connection,

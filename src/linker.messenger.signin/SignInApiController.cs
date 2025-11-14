@@ -43,6 +43,18 @@ namespace linker.messenger.signin
         {
             SignInConfigSetNameInfo info = param.Content.DeJson<SignInConfigSetNameInfo>();
 
+            // 【安全修复 P1】添加对象级授权检查
+            // 用户只能修改自己的名称，除非有特殊权限
+            if (info.Id != signInClientStore.Id)
+            {
+                if (accessStore.HasAccess(AccessValue.RenameSelf) == false) return false;
+                // 【安全修复】添加额外检查：确保用户有权修改其他用户
+                if (accessStore.HasAccess(AccessValue.Group) == false)
+                {
+                    return false; // 没有权限修改其他用户
+                }
+            }
+
             if (info.Id == signInClientStore.Id)
             {
                 if (accessStore.HasAccess(AccessValue.RenameSelf) == false) return false;
@@ -51,7 +63,6 @@ namespace linker.messenger.signin
             }
             else
             {
-                if (accessStore.HasAccess(AccessValue.RenameSelf) == false) return false;
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = signInClientState.Connection,

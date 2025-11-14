@@ -318,6 +318,14 @@ namespace linker.messenger.updater
             string machineId = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, machineId, out SignCacheInfo from, out SignCacheInfo to))
             {
+                // 【安全修复 P1】添加授权检查：只有 Super 用户或同组用户可以关闭其他设备
+                // from = 当前用户，to = 目标设备用户
+                if (from.Super == false && from.GroupId != to.GroupId)
+                {
+                    // 拒绝操作
+                    return;
+                }
+
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = to.Connection,

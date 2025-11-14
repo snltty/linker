@@ -1,13 +1,16 @@
 import { ElMessage } from 'element-plus'
 
-let requestId = 0, ws = null, wsUrl = '', index = 1, apiPassword = 'snltty';
+// 【安全修复 P0】不再在前端硬编码 API 密码
+// 密码应该在应用加载时从服务器动态获取
+let requestId = 0, ws = null, wsUrl = '', index = 1, apiPassword = '';
 const requests = {};
 export const websocketState = { connected: false, connecting: false };
 
 // websocket 打开
 const onWebsocketOpen = () => {
     //发送密码验证
-    sendWebsocketMsg('password',apiPassword || 'snltty');
+    // 【安全修复】移除硬编码的备用密码 'snltty'
+    sendWebsocketMsg('password', apiPassword);
 }
 // websocket 关闭
 const onWebsocketClose = (e) => {

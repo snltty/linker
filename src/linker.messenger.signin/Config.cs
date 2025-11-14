@@ -7,13 +7,11 @@ namespace linker.messenger.signin
     {
         public SignInClientGroupInfo() { }
 
-        public string Name { get; set; } = Helper.GlobalString;
+        // 【安全修复 P0】移除硬编码默认值
+        public string Name { get; set; } = string.Empty;
 
-#if DEBUG
-        private string id = Helper.GlobalString;
-#else
+        // 【安全修复 P0】统一使用随机凭证，不再使用硬编码值
         private string id = string.Empty;
-#endif
         public string Id
         {
             get => id; set
@@ -22,11 +20,8 @@ namespace linker.messenger.signin
             }
         }
 
-#if DEBUG
-        private string passord = Helper.GlobalString;
-#else
+        // 【安全修复 P0】统一使用随机凭证，不再使用硬编码值
         private string passord = string.Empty;
-#endif
         public string Password
         {
             get => passord; set
@@ -47,13 +42,10 @@ namespace linker.messenger.signin
         public string SecretKey { get; set; } = string.Empty;
         public string UserId { get; set; } = Guid.NewGuid().ToString();
 
-#if DEBUG
-        public string SuperKey { get; set; } = Helper.GlobalString;
-        public string SuperPassword { get; set; } = Helper.GlobalString;
-#else
+        // 【安全修复 P0】DEBUG 和 Release 模式统一使用随机凭证
+        // 不再在 DEBUG 模式下使用硬编码的 "snltty"
         public string SuperKey { get; set; } = Guid.NewGuid().ToString().ToUpper();
         public string SuperPassword { get; set; } = Guid.NewGuid().ToString().ToUpper();
-#endif
     }
 
     public sealed class SignInConfigServerInfo
@@ -65,13 +57,9 @@ namespace linker.messenger.signin
         public bool Enabled { get; set; } = true;
         public bool Anonymous { get; set; } = true;
 
-#if DEBUG
-        public string SuperKey { get; set; } = Helper.GlobalString;
-        public string SuperPassword { get; set; } = Helper.GlobalString;
-#else
+        // 【安全修复 P0】移除硬编码凭证，统一使用随机生成
         public string SuperKey { get; set; } = Guid.NewGuid().ToString().ToUpper();
         public string SuperPassword { get; set; } = Guid.NewGuid().ToString().ToUpper();
-#endif
 
 
     }

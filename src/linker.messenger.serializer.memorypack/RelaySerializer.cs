@@ -14,16 +14,18 @@ namespace linker.messenger.serializer.memorypack
 
         [MemoryPackInclude]
         string MachineId => info.MachineId;
+        // 【安全修复 P0】SecretKey 现在正确存储和返回，而不是总是返回空字符串
         [MemoryPackInclude]
-        string SecretKey => string.Empty;
+        string SecretKey => info.SecretKey;
 
         [MemoryPackInclude, MemoryPackAllowSerialize]
         IPEndPoint Server => info.Server;
 
         [MemoryPackConstructor]
+        // 【安全修复】正确存储 secretKey 参数
         SerializableRelayTestInfo(string machineId, string secretKey, IPEndPoint server)
         {
-            var info = new RelayTestInfo { MachineId = machineId, Server = server };
+            var info = new RelayTestInfo { MachineId = machineId, Server = server, SecretKey = secretKey };
             this.info = info;
         }
 
@@ -68,8 +70,9 @@ namespace linker.messenger.serializer.memorypack
 
         [MemoryPackInclude]
         string MachineId => info.MachineId;
+        // 【安全修复 P0】SecretKey 现在正确存储和返回
         [MemoryPackInclude]
-        string SecretKey => string.Empty;
+        string SecretKey => info.SecretKey;
 
         [MemoryPackInclude, MemoryPackAllowSerialize]
         IPEndPoint Server => info.Server;
@@ -77,9 +80,10 @@ namespace linker.messenger.serializer.memorypack
         string UserId => info.UserId;
 
         [MemoryPackConstructor]
+        // 【安全修复】正确存储 secretKey 参数
         SerializableRelayTestInfo170(string machineId, string secretKey, IPEndPoint server, string userid)
         {
-            var info = new RelayTestInfo170 { MachineId = machineId, Server = server, UserId = userid };
+            var info = new RelayTestInfo170 { MachineId = machineId, Server = server, UserId = userid, SecretKey = secretKey };
             this.info = info;
         }
 

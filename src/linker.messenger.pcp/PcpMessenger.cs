@@ -62,6 +62,13 @@ namespace linker.messenger.pcp
 
             if (signCaching.TryGet(connection.Id, info.Remote.MachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
+                // 【安全修复 P1】添加授权检查：只有 Super 用户或同组用户可以进行 PCP 连接
+                if (from.Super == false && from.GroupId != to.GroupId)
+                {
+                    connection.Write(Helper.FalseArray);
+                    return;
+                }
+
                 info.Local.MachineName = from.MachineName;
                 info.Remote.MachineName = to.MachineName;
 
@@ -82,6 +89,12 @@ namespace linker.messenger.pcp
             TunnelTransportInfo info = serializer.Deserialize<TunnelTransportInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, info.Remote.MachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
+                // 【安全修复 P1】添加授权检查
+                if (from.Super == false && from.GroupId != to.GroupId)
+                {
+                    return;
+                }
+
                 info.Local.MachineName = from.MachineName;
                 info.Remote.MachineName = to.MachineName;
                 await messengerSender.SendOnly(new MessageRequestWrap
@@ -100,6 +113,12 @@ namespace linker.messenger.pcp
             TunnelTransportInfo info = serializer.Deserialize<TunnelTransportInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, info.Remote.MachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
+                // 【安全修复 P1】添加授权检查
+                if (from.Super == false && from.GroupId != to.GroupId)
+                {
+                    return;
+                }
+
                 info.Local.MachineName = from.MachineName;
                 info.Remote.MachineName = to.MachineName;
                 await messengerSender.SendOnly(new MessageRequestWrap
@@ -117,6 +136,12 @@ namespace linker.messenger.pcp
             string machineid = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, machineid, out SignCacheInfo from, out SignCacheInfo to))
             {
+                // 【安全修复 P1】添加授权检查：防止信息泄露
+                if (from.Super == false && from.GroupId != to.GroupId)
+                {
+                    return;
+                }
+
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
                 _ = messengerSender.SendReply(new MessageRequestWrap
                 {
