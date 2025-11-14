@@ -4,16 +4,14 @@
 <script>
 import { watch } from 'vue';
 import Flow from '../flow/Index.vue'
-import { useOper } from './oper';
-import { useFlow } from '../flow/flow';
+import { useFlow } from './flow';
 export default {
     props: ['modelValue'],
     emits: ['update:modelValue'],
     components: { Flow},
     setup(props, { emit }) {
-        const oper = useOper();
         const flow = useFlow();
-        flow.value.machineId = oper.value.device.id;
+        flow.value.machineId = flow.value.device.id;
         flow.value.count = true;
 
         watch(() => flow.value.count, (val) => {
@@ -25,7 +23,7 @@ export default {
             }
         });
         return {
-            machineName: oper.value.device.name
+            machineName: flow.value.device.name
         }
     }
 }

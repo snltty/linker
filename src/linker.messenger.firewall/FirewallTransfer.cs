@@ -1,20 +1,25 @@
-﻿using linker.messenger.signin;
+﻿using linker.messenger.decenter;
+using linker.messenger.signin;
 using linker.nat;
 
 namespace linker.messenger.firewall
 {
     public sealed class FirewallTransfer
     {
+        public int Count => firewallClientStore.GetAll().Count(c => c.GroupId == signInClientStore.Group.Id);
+
         private readonly IFirewallClientStore firewallClientStore;
         private readonly ISignInClientStore signInClientStore;
         private readonly LinkerFirewall linkerFirewall;
+        private readonly CounterDecenter counterDecenter;
 
-        public FirewallTransfer(IFirewallClientStore firewallClientStore, SignInClientState signInClientState, ISignInClientStore signInClientStore, LinkerFirewall linkerFirewall)
+        public FirewallTransfer(IFirewallClientStore firewallClientStore, SignInClientState signInClientState,
+            ISignInClientStore signInClientStore, LinkerFirewall linkerFirewall, CounterDecenter counterDecenter)
         {
             this.firewallClientStore = firewallClientStore;
             this.signInClientStore = signInClientStore;
             this.linkerFirewall = linkerFirewall;
-
+            this.counterDecenter = counterDecenter;
             signInClientState.OnSignInSuccess += Reset;
         }
         private void Reset(int times)
@@ -55,6 +60,7 @@ namespace linker.messenger.firewall
         {
             info.GroupId = signInClientStore.Group.Id;
             firewallClientStore.Add(info);
+            counterDecenter.SetValue("firewall", Count);
             BuildRules();
             return true;
         }
@@ -66,18 +72,21 @@ namespace linker.messenger.firewall
             }
 
             firewallClientStore.Add(infos);
+            counterDecenter.SetValue("firewall", Count);
             BuildRules();
             return true;
         }
         public bool Remove(string id)
         {
             firewallClientStore.Remove(id);
+            counterDecenter.SetValue("firewall", Count);
             BuildRules();
             return true;
         }
         public bool Remove(List<string> ids)
         {
             firewallClientStore.Remove(ids);
+            counterDecenter.SetValue("firewall", Count);
             BuildRules();
             return true;
         }

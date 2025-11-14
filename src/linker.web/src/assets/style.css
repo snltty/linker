@@ -90,7 +90,7 @@ a.a-line {
 }
 
 .w-100 {
-    width: 100%;
+    width: 100% !important;
 }
 
 .t-c {

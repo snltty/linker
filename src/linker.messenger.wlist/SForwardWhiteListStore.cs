@@ -11,7 +11,7 @@ namespace linker.messenger.wlist
         }
         public async Task<List<SForwardWhiteListItem>> GetNodes(string userid,string machineid)
         {
-            return (await whiteListServerStore.Get("SForward", userid, [machineid]).ConfigureAwait(false)).Select(c => new SForwardWhiteListItem { Nodes = c.Nodes, Bandwidth = c.Bandwidth }).ToList();
+            return (await whiteListServerStore.Get("SForward", [userid], [machineid]).ConfigureAwait(false)).Select(c => new SForwardWhiteListItem { Nodes = c.Nodes, Bandwidth = c.Bandwidth }).ToList();
         }
     }
 }

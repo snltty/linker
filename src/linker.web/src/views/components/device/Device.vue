@@ -2,8 +2,8 @@
 <el-table-column prop="MachineId" :label="$t('home.device')" width="180">
     <template #header>
         <div class="flex">
-            <span class="flex-1">{{$t('home.device')}}</span>
-            <span> <el-input v-trim size="small" v-model="name" clearable @input="handleRefresh" ></el-input> </span>
+            <span>{{$t('home.device')}}</span>
+            <span class="flex-1"> <el-input v-trim size="small" v-model="name" clearable @input="handleRefresh" class="w-100" ></el-input> </span>
         </div>
     </template>
     <template #default="scope">
@@ -22,6 +22,10 @@
                             </template>
                         </template>
                     </div>
+                    <span title="20Mbps">
+                        <a href="javascript:;"><img class="system" src="lightning.svg" /></a>
+                    </span>
+                    
                     <span class="flex-1"></span>
                     <UpdaterBtn v-if="scope.row.showip == false" :config="true" :item="scope.row"></UpdaterBtn>
                 </template>
@@ -67,10 +71,9 @@ export default {
 }
 img.system{
     height:1.4rem;
-    vertical-align: sub;
-    margin-right:.4rem
+    vertical-align: middle;
+    margin-right:.1rem
     border:1px solid rgba(0,0,0,.1);
     border-radius:.2rem;
-    box-shadow:0 0 .2rem rgba(0,0,0,.1) inset;
 }
 </style>

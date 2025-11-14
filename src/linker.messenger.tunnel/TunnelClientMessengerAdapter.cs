@@ -4,6 +4,7 @@ using System.Net;
 using linker.tunnel;
 using System.Security.Cryptography.X509Certificates;
 using linker.messenger.signin;
+using linker.messenger.decenter;
 
 namespace linker.messenger.tunnel
 {
@@ -12,6 +13,7 @@ namespace linker.messenger.tunnel
     /// </summary>
     public interface ITunnelClientStore
     {
+        public int TransportMachineIdCount { get; }
         /// <summary>
         /// 配置的额外网络层级
         /// </summary>
@@ -43,12 +45,12 @@ namespace linker.messenger.tunnel
         /// 获取打洞协议列表
         /// </summary>
         /// <returns></returns>
-        public Task<List<TunnelTransportItemInfo>> GetTunnelTransports();
+        public Task<List<TunnelTransportItemInfo>> GetTunnelTransports(string machineId);
         /// <summary>
         /// 保存打洞协议列表
         /// </summary>
-        /// <param name="transports"></param>
-        public Task<bool> SetTunnelTransports(List<TunnelTransportItemInfo> list);
+        /// <param name="list"></param>
+        public Task<bool> SetTunnelTransports(string machineId, List<TunnelTransportItemInfo> list);
 
 
         public Action OnChanged { get; set; }
@@ -85,9 +87,10 @@ namespace linker.messenger.tunnel
         private readonly ITunnelClientStore tunnelClientStore;
         private readonly SignInClientState signInClientState;
         private readonly IMessengerStore messengerStore;
+        private readonly CounterDecenter counterDecenter;
 
         public TunnelMessengerAdapter(IMessengerSender messengerSender, TunnelClientExcludeIPTransfer excludeIPTransfer,
-            ISerializer serializer, ITunnelClientStore tunnelClientStore, SignInClientState signInClientState, IMessengerStore messengerStore)
+            ISerializer serializer, ITunnelClientStore tunnelClientStore, SignInClientState signInClientState, IMessengerStore messengerStore, CounterDecenter counterDecenter)
         {
             this.messengerSender = messengerSender;
             this.excludeIPTransfer = excludeIPTransfer;
@@ -95,8 +98,9 @@ namespace linker.messenger.tunnel
             this.tunnelClientStore = tunnelClientStore;
             this.signInClientState = signInClientState;
             this.messengerStore = messengerStore;
+            this.counterDecenter = counterDecenter;
 
-            
+            SetCounter();
         }
 
         public List<TunnelExIPInfo> GetExcludeIps()
@@ -104,15 +108,22 @@ namespace linker.messenger.tunnel
             return excludeIPTransfer.Get();
         }
 
-        public async Task<List<TunnelTransportItemInfo>> GetTunnelTransports()
+        public async Task<List<TunnelTransportItemInfo>> GetTunnelTransports(string machineid)
         {
-            return await tunnelClientStore.GetTunnelTransports().ConfigureAwait(false);
+            return await tunnelClientStore.GetTunnelTransports(machineid).ConfigureAwait(false);
         }
 
-        public async Task<bool> SetTunnelTransports(List<TunnelTransportItemInfo> list)
+        public async Task<bool> SetTunnelTransports(string machineid, List<TunnelTransportItemInfo> list)
         {
-            return await tunnelClientStore.SetTunnelTransports(list).ConfigureAwait(false);
+            bool res = await tunnelClientStore.SetTunnelTransports(machineid, list).ConfigureAwait(false);
+            SetCounter();
+            return res;
         }
+        private void SetCounter()
+        {
+            counterDecenter.SetValue($"transport", tunnelClientStore.TransportMachineIdCount);
+        }
+
 
         public async Task<TunnelTransportWanPortInfo> GetRemoteWanPort(TunnelWanPortProtocolInfo info)
         {

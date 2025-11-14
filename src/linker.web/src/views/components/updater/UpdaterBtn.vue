@@ -25,9 +25,6 @@
                     </template>
                 </span>
             </a>
-            <AccessShow value="Reboot">
-                <a href="javascript:;" class="download" title="重启" @click="handleExit(item.MachineId,item.MachineName)"><el-icon><SwitchButton /></el-icon></a>
-            </AccessShow>
         </template>
     </AccessBoolean>   
 </template>
@@ -37,13 +34,13 @@ import { injectGlobalData } from '@/provide';
 import { computed} from 'vue';
 import { ElMessage, ElMessageBox} from 'element-plus';
 import {  exit } from '@/apis/updater';
-import {Download,Loading,CircleCheck,SwitchButton} from '@element-plus/icons-vue'
+import {Download,Loading,CircleCheck} from '@element-plus/icons-vue'
 import { useUpdater } from './updater';
 import { useI18n } from 'vue-i18n';
 
 export default {
     props:['item','config'],
-    components:{Download,Loading,CircleCheck,SwitchButton},
+    components:{Download,Loading,CircleCheck},
     setup (props) {
 
          const {t} = useI18n();
@@ -114,18 +111,9 @@ export default {
             updater.value.show = updateInfo.Status == 2;
         }
 
-        const handleExit = (machineId,machineName)=>{
-            ElMessageBox.confirm(t('home.closeSure',[machineName]), t('common.tips'), {
-                confirmButtonText: t('common.confirm'),
-                cancelButtonText: t('common.cancel'),
-                type: 'warning',
-            }).then(() => {
-                exit(machineId);
-            }).catch(() => {});
-        }
-
+       
         return {
-            item:computed(()=>props.item),updater,updaterText,updaterColor,handleUpdate,handleExit
+            item:computed(()=>props.item),updater,updaterText,updaterColor,handleUpdate
         }
     }
 }

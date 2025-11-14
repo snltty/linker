@@ -1,14 +1,16 @@
 ﻿using linker.libs;
-using System.Net.Sockets;
 using linker.libs.extends;
-using linker.messenger.signin;
 using linker.libs.timer;
+using linker.messenger.decenter;
 using linker.messenger.sforward.messenger;
+using linker.messenger.signin;
+using System.Net.Sockets;
 
 namespace linker.messenger.sforward.client
 {
     public sealed class SForwardClientTransfer
     {
+        public int Count => sForwardClientStore.Count();
         public Action OnChanged { get; set; } = () => { };
         public Action<long, string> OnOpen = (id, flag) => { };
         public Action<long, string> OnClose = (id, flag) => { };
@@ -18,8 +20,11 @@ namespace linker.messenger.sforward.client
         private readonly ISForwardClientStore sForwardClientStore;
         private readonly ISerializer serializer;
         private readonly SForwardClientTestTransfer sForwardClientTestTransfer;
+        private readonly CounterDecenter counterDecenter;
 
-        public SForwardClientTransfer(SignInClientState signInClientState, IMessengerSender messengerSender, ISForwardClientStore sForwardClientStore, ISerializer serializer, SForwardClientTestTransfer sForwardClientTestTransfer)
+        public SForwardClientTransfer(SignInClientState signInClientState, IMessengerSender messengerSender,
+            ISForwardClientStore sForwardClientStore, ISerializer serializer,
+            SForwardClientTestTransfer sForwardClientTestTransfer, CounterDecenter counterDecenter)
         {
             this.signInClientState = signInClientState;
             this.messengerSender = messengerSender;
@@ -27,7 +32,8 @@ namespace linker.messenger.sforward.client
 
             this.serializer = serializer;
             this.sForwardClientTestTransfer = sForwardClientTestTransfer;
-
+            this.counterDecenter = counterDecenter;
+            counterDecenter.SetValue("sforward", Count);
         }
 
         public void Start(long id, string flag = "")
@@ -132,6 +138,7 @@ namespace linker.messenger.sforward.client
         {
             sForwardClientStore.Add(forwardInfo);
             OnChanged();
+            counterDecenter.SetValue("sforward", Count);
             return true;
         }
         public bool Remove(int id)
@@ -139,6 +146,7 @@ namespace linker.messenger.sforward.client
             Stop(id);
             sForwardClientStore.Remove(id);
             OnChanged();
+            counterDecenter.SetValue("sforward", Count);
             return true;
         }
 

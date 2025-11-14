@@ -15,24 +15,23 @@ namespace linker.messenger.sforward.client
         private readonly IMessengerSender messengerSender;
         private readonly SignInClientState signInClientState;
         private readonly ISignInClientStore signInClientStore;
-        private readonly SForwardDecenter sForwardDecenter;
         private readonly ISForwardClientStore sForwardClientStore;
         private readonly ISerializer serializer;
         private readonly IAccessStore accessStore;
-        private readonly SForwardPlanHandle sForwardPlanHandle;
         private readonly SForwardClientTestTransfer sForwardClientTestTransfer;
 
-        public SForwardApiController(SForwardClientTransfer forwardTransfer, IMessengerSender messengerSender, SignInClientState signInClientState, ISignInClientStore signInClientStore, SForwardDecenter sForwardDecenter, ISForwardClientStore sForwardClientStore, ISerializer serializer, IAccessStore accessStore, SForwardPlanHandle sForwardPlanHandle, SForwardClientTestTransfer sForwardClientTestTransfer)
+        public SForwardApiController(SForwardClientTransfer forwardTransfer, IMessengerSender messengerSender,
+            SignInClientState signInClientState, ISignInClientStore signInClientStore,
+            ISForwardClientStore sForwardClientStore, ISerializer serializer, IAccessStore accessStore,
+            SForwardClientTestTransfer sForwardClientTestTransfer)
         {
             this.forwardTransfer = forwardTransfer;
             this.messengerSender = messengerSender;
             this.signInClientState = signInClientState;
             this.signInClientStore = signInClientStore;
-            this.sForwardDecenter = sForwardDecenter;
             this.sForwardClientStore = sForwardClientStore;
             this.serializer = serializer;
             this.accessStore = accessStore;
-            this.sForwardPlanHandle = sForwardPlanHandle;
             this.sForwardClientTestTransfer = sForwardClientTestTransfer;
         }
 
@@ -40,29 +39,6 @@ namespace linker.messenger.sforward.client
         {
             sForwardClientTestTransfer.Subscribe();
             return sForwardClientTestTransfer.Nodes;
-        }
-
-        public void Refresh(ApiControllerParamsInfo param)
-        {
-            sForwardDecenter.Refresh();
-        }
-        /// <summary>
-        /// 获取数量
-        /// </summary>
-        /// <param name="param"></param>
-        /// <returns></returns>
-        public SForwardListInfo GetCount(ApiControllerParamsInfo param)
-        {
-            ulong hashCode = ulong.Parse(param.Content);
-            if (sForwardDecenter.DataVersion.Eq(hashCode, out ulong version) == false)
-            {
-                return new SForwardListInfo
-                {
-                    List = sForwardDecenter.CountDic,
-                    HashCode = version
-                };
-            }
-            return new SForwardListInfo { HashCode = version };
         }
 
         /// <summary>

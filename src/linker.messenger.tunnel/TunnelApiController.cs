@@ -23,10 +23,11 @@ namespace linker.messenger.tunnel
         private readonly ISerializer serializer;
         private readonly TunnelNetworkTransfer tunnelNetworkTransfer;
         private readonly TunnelTransfer tunnelTransfer;
+        private readonly ITunnelMessengerAdapter tunnelMessengerAdapter;
 
         public TunnelApiController(SignInClientState signInClientState, IMessengerSender messengerSender, ISignInClientStore signInClientStore,
             TunnelDecenter tunnelDecenter, ITunnelClientStore tunnelClientStore, ISerializer serializer, TunnelNetworkTransfer tunnelNetworkTransfer,
-            TunnelTransfer tunnelTransfer)
+            TunnelTransfer tunnelTransfer, ITunnelMessengerAdapter tunnelMessengerAdapter)
         {
             this.signInClientState = signInClientState;
             this.messengerSender = messengerSender;
@@ -36,6 +37,7 @@ namespace linker.messenger.tunnel
             this.serializer = serializer;
             this.tunnelNetworkTransfer = tunnelNetworkTransfer;
             this.tunnelTransfer = tunnelTransfer;
+            this.tunnelMessengerAdapter = tunnelMessengerAdapter;
         }
 
         /// <summary>
@@ -122,7 +124,7 @@ namespace linker.messenger.tunnel
         {
             if (param.Content == signInClientStore.Id || string.IsNullOrWhiteSpace(param.Content))
             {
-                return await tunnelClientStore.GetTunnelTransports().ConfigureAwait(false);
+                return await tunnelMessengerAdapter.GetTunnelTransports("default").ConfigureAwait(false);
             }
 
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -150,9 +152,10 @@ namespace linker.messenger.tunnel
             TunnelTransportItemSetInfo info = param.Content.DeJson<TunnelTransportItemSetInfo>();
             if (info.MachineId == signInClientStore.Id || string.IsNullOrWhiteSpace(info.MachineId))
             {
-                await tunnelClientStore.SetTunnelTransports(info.Data).ConfigureAwait(false);
+                await tunnelMessengerAdapter.SetTunnelTransports("default", info.Data).ConfigureAwait(false);
                 return true;
             }
+            await tunnelMessengerAdapter.SetTunnelTransports(info.MachineId, info.Data).ConfigureAwait(false);
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,

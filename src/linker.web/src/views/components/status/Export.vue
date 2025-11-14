@@ -47,7 +47,7 @@
                                             <el-col :xs="12" :sm="8"><el-checkbox v-model="state.group" :label="$t('status.exportGroup')" /></el-col>
                                             <el-col :xs="12" :sm="8"><el-checkbox v-model="state.server" :label="$t('status.exportServer')" /></el-col>
                                             <el-col :xs="12" :sm="8"><el-checkbox v-model="state.super" :label="$t('status.exportSuper')" /></el-col>
-                                            <el-col :xs="12" :sm="8"><el-checkbox v-model="state.tunnel" :label="$t('status.exportTunnel')" /></el-col>
+                                            <!-- <el-col :xs="12" :sm="8"><el-checkbox v-model="state.tunnel" :label="$t('status.exportTunnel')" /></el-col> -->
                                             
                                         </el-row>
                                     </div>

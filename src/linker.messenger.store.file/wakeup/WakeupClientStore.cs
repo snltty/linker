@@ -54,5 +54,10 @@ namespace linker.messenger.store.file.wakeup
         {
             return liteCollection.Delete(id);
         }
+
+        public int Count()
+        {
+            return liteCollection.Count();
+        }
     }
 }

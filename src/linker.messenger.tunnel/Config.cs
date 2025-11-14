@@ -76,6 +76,9 @@ namespace linker.messenger.tunnel
 
     public sealed class TunnelTransportItemSetInfo
     {
+        /// <summary>
+        /// 发送方填对方ID，服务端会转换，接收方收到的也是对方ID
+        /// </summary>
         public string MachineId { get; set; }
         public List<TunnelTransportItemInfo> Data { get; set; }
     }

@@ -9,7 +9,9 @@ export const provideFlow = () => {
         overallOnline: '0/0',
         serverOnline: '',
         machineId:'',
-        device:{id:'',name:''}
+        device:{id:'',name:''},
+        showStopwatch:false,
+        show:false,
     });
     provide(flowSymbol, flow);
     return {

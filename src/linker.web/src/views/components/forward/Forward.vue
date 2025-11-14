@@ -7,13 +7,13 @@
                         <template v-if="values.ForwardOther || (values.ForwardSelf && scope.row.isSelf)">
                             <div class="nowrap">
                                 <ConnectionShow :data="connections.list[scope.row.MachineId]" :row="scope.row" transitionId="forward"></ConnectionShow>
-                                <a href="javascript:;" :class="{green:forward.list[scope.row.MachineId]>0}" @click="handleEdit(scope.row.MachineId,scope.row.MachineName,values)">
-                                    <span :class="{gateway:forward.list[scope.row.MachineId]>0}">{{$t('home.forwardPort')}}({{forward.list[scope.row.MachineId]>99 ? '99+' : forward.list[scope.row.MachineId]}})</span>
+                                <a href="javascript:;" :class="{green:forwardCounter[scope.row.MachineId]>0}" @click="handleEdit(scope.row.MachineId,scope.row.MachineName,values)">
+                                    <span :class="{gateway:forwardCounter[scope.row.MachineId]>0}">{{$t('home.forwardPort')}}({{forwardCounter[scope.row.MachineId]>99 ? '99+' : forwardCounter[scope.row.MachineId]||0}})</span>
                                 </a>
                             </div>
                             <div class="nowrap">
-                                <a href="javascript:;" :class="{green:sforward.list[scope.row.MachineId]>0}" @click="handleSEdit(scope.row.MachineId,scope.row.MachineName,values)">
-                                    <span :class="{gateway:sforward.list[scope.row.MachineId]>0 }">{{$t('home.forwardServer')}}({{sforward.list[scope.row.MachineId]>99 ? '99+' : sforward.list[scope.row.MachineId]}})</span>
+                                <a href="javascript:;" :class="{green:sforwardCounter[scope.row.MachineId]>0}" @click="handleSEdit(scope.row.MachineId,scope.row.MachineName,values)">
+                                    <span :class="{gateway:sforwardCounter[scope.row.MachineId]>0 }">{{$t('home.forwardServer')}}({{sforwardCounter[scope.row.MachineId]>99 ? '99+' : sforwardCounter[scope.row.MachineId]||0}})</span>
                                 </a>
                             </div>
                         </template>
@@ -31,14 +31,18 @@ import { computed } from 'vue';
 import { useForwardConnections } from '../connection/connections';
 import ConnectionShow from '../connection/ConnectionShow.vue';
 import { ElMessage } from 'element-plus';
+import { useDecenter } from '../decenter/decenter';
 
 export default {
-    emits: ['edit','sedit'],
     components:{ConnectionShow},
-    setup(props, { emit }) {
+    setup() {
 
+        const decenter = useDecenter();
+        const forwardCounter = computed(()=>decenter.value.list.forward || {});
+        const sforwardCounter = computed(()=>decenter.value.list.sforward || {});
         const forward = useForward()
         const sforward = useSforward()
+        
         const globalData = injectGlobalData();
         const machineId = computed(() => globalData.value.config.Client.Id);
         const connections = useForwardConnections();
@@ -75,12 +79,8 @@ export default {
             sforward.value.machineName = _machineName;
             sforward.value.showEdit = true;
         }
-        const handleForwardRefresh = ()=>{
-            emit('refresh');
-        }
-
         return {
-            forward,sforward,connections, handleEdit,handleSEdit,handleForwardRefresh
+           forwardCounter,sforwardCounter,forward,connections, handleEdit,handleSEdit
         }
     }
 }

@@ -1,27 +1,27 @@
 <template>
-    <el-dialog v-model="state.show" append-to=".app-wrap" :title="`[${state.machineName}]上的验证参数`" top="1vh" width="98%">
+    <el-dialog v-model="state.show" append-to=".app-wrap" :title="`[${state.machineName}]上的唤醒`" top="1vh" width="98%">
         <div>
-            <Action :machineId="state.machineId"></Action>
+            <Wakeup :machineId="state.machineId"></Wakeup>
         </div>
     </el-dialog>
 </template>
 <script>
 import { reactive, watch } from 'vue';
-import Action from '../action/Action.vue'
-import { useOper } from './oper';
+import Wakeup from '../wakeup/Wakeup.vue'
+import { useWakeup } from './wakeup';
 export default {
     props: ['modelValue'],
     emits: ['update:modelValue'],
     components: {
-        Action
+        Wakeup
     },
     setup(props, { emit }) {
-        const oper = useOper();
+        const wakeup = useWakeup();
         
         const state = reactive({
             show: true,
-            machineId: oper.value.device.id,
-            machineName: oper.value.device.name
+            machineId: wakeup.value.device.id,
+            machineName: wakeup.value.device.name
         });
         watch(() => state.show, (val) => {
             if (!val) {
@@ -38,4 +38,5 @@ export default {
 }
 </script>
 <style lang="stylus" scoped>
+
 </style>

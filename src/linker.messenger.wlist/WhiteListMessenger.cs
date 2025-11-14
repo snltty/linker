@@ -99,7 +99,7 @@ namespace linker.messenger.wlist
                 return;
             }
 
-            List<WhiteListInfo> list = await whiteListServerStore.Get(type, cache.UserId, [cache.MachineId]).ConfigureAwait(false);
+            List<WhiteListInfo> list = await whiteListServerStore.Get(type, [cache.UserId], [cache.MachineId]).ConfigureAwait(false);
             WhiteListInfo info = list.FirstOrDefault(c => c.Bandwidth < 0) ?? list.FirstOrDefault(c => c.Bandwidth == 0) ?? list.OrderByDescending(c => c.Bandwidth).FirstOrDefault();
 
             connection.Write(serializer.Serialize(new WhiteListOrderStatusInfo
@@ -119,7 +119,7 @@ namespace linker.messenger.wlist
         [MessengerId((ushort)WhiteListMessengerIds.AddOrder)]
         public async Task AddOrder(IConnection connection)
         {
-            KeyValuePair<string, string> kvp = serializer.Deserialize<KeyValuePair<string,string>>(connection.ReceiveRequestWrap.Payload.Span);
+            KeyValuePair<string, string> kvp = serializer.Deserialize<KeyValuePair<string, string>>(connection.ReceiveRequestWrap.Payload.Span);
 
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
             {
@@ -128,6 +128,30 @@ namespace linker.messenger.wlist
             }
 
             connection.Write(serializer.Serialize(await orderTransfer.AddOrder(cache.UserId, cache.MachineId, kvp.Key, kvp.Value)));
+        }
+
+
+        /// <summary>
+        /// 列表
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        [MessengerId((ushort)WhiteListMessengerIds.List)]
+        public async Task List(IConnection connection)
+        {
+            KeyValuePair<string, List<string>> info = serializer.Deserialize<KeyValuePair<string, List<string>>>(connection.ReceiveRequestWrap.Payload.Span);
+            List<string> userids = signCaching.GetUserIds(info.Value);
+
+            List<WhiteListInfo> whites = await whiteListServerStore.Get(info.Key, userids, info.Value).ConfigureAwait(false);
+
+            var result = whites.Where(c => string.IsNullOrWhiteSpace(c.UserId) == false).GroupBy(c => c.UserId).ToDictionary(c => $"u_{c.Key}", v =>
+            {
+                return v.Any(x => x.Bandwidth == 0) ? v.First(x => x.Bandwidth == 0).Bandwidth : v.OrderByDescending(x => x.Bandwidth).First().Bandwidth;
+            }).Concat(whites.Where(c => string.IsNullOrWhiteSpace(c.MachineId) == false).GroupBy(c => c.MachineId).ToDictionary(c => $"m_{c.Key}", v =>
+            {
+                return v.Any(x => x.Bandwidth == 0) ? v.First(x => x.Bandwidth == 0).Bandwidth : v.OrderByDescending(x => x.Bandwidth).First().Bandwidth;
+            })).ToDictionary();
+            connection.Write(serializer.Serialize(result));
         }
     }
 }

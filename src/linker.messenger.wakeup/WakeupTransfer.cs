@@ -1,6 +1,7 @@
 ﻿using HidSharp;
 using linker.libs;
 using linker.libs.extends;
+using linker.messenger.decenter;
 using System.Net;
 using System.Net.Sockets;
 
@@ -8,11 +9,17 @@ namespace linker.messenger.wakeup
 {
     public sealed class WakeupTransfer
     {
+        public int Count => wakeupClientStore.Count();
+
         private readonly IWakeupClientStore wakeupClientStore;
         private readonly OperatingMultipleManager operatingMultipleManager = new OperatingMultipleManager();
-        public WakeupTransfer(IWakeupClientStore wakeupClientStore)
+        private readonly CounterDecenter counterDecenter;
+        public WakeupTransfer(IWakeupClientStore wakeupClientStore, CounterDecenter counterDecenter)
         {
             this.wakeupClientStore = wakeupClientStore;
+            this.counterDecenter = counterDecenter;
+
+            counterDecenter.SetValue("wakeup", Count);
         }
 
         public List<WakeupInfo> Get(WakeupSearchInfo info)
@@ -29,11 +36,13 @@ namespace linker.messenger.wakeup
         public bool Add(WakeupInfo info)
         {
             wakeupClientStore.Add(info);
+            counterDecenter.SetValue("wakeup", Count);
             return true;
         }
         public bool Remove(string id)
         {
             wakeupClientStore.Remove(id);
+            counterDecenter.SetValue("wakeup", Count);
             return true;
         }
 

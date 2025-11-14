@@ -8,7 +8,7 @@
         public Task<bool> Add(WhiteListInfo info);
         public Task<bool> Del(int id);
 
-        public Task<List<WhiteListInfo>> Get(string type, string userid, string[] machineIds);
+        public Task<List<WhiteListInfo>> Get(string type, List<string> userids, List<string> machineIds);
         public Task<WhiteListInfo> Get(string tradeNo);
     }
     public sealed partial class WhiteListDelInfo

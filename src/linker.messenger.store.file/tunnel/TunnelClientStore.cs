@@ -1,6 +1,5 @@
-﻿using linker.tunnel.transport;
-using linker.messenger.signin;
-using linker.messenger.tunnel;
+﻿using linker.messenger.tunnel;
+using linker.tunnel.transport;
 
 namespace linker.messenger.store.file.tunnel
 {
@@ -14,31 +13,48 @@ namespace linker.messenger.store.file.tunnel
 
         public Action OnChanged { get; set; } = () => { };
 
-        private readonly SignInClientState signInClientState;
-        private readonly ISignInClientStore signInClientStore;
-        private readonly FileConfig config;
+        public int TransportMachineIdCount => runningConfig.Data.Tunnel.Transports.Count;
+
         private readonly RunningConfig runningConfig;
 
-        public TunnelClientStore(SignInClientState signInClientState, ISignInClientStore signInClientStore, FileConfig config, RunningConfig runningConfig)
+        public TunnelClientStore(FileConfig config, RunningConfig runningConfig)
         {
-            this.signInClientState = signInClientState;
-            this.signInClientStore = signInClientStore;
-            this.config = config;
             this.runningConfig = runningConfig;
+
+            var list = config.Data.Client.Tunnel.Transports;
+            if (list != null && list.Count > 0)
+            {
+
+                runningConfig.Data.Tunnel.Transports.AddOrUpdate("default", list, (a, b) => list);
+                runningConfig.Data.Update();
+
+                config.Data.Client.Tunnel.Transports = [];
+                config.Data.Update();
+            }
         }
-        public async Task<bool> SetTunnelTransports(List<TunnelTransportItemInfo> list)
+        public async Task<bool> SetTunnelTransports(string machineId, List<TunnelTransportItemInfo> list)
         {
-            config.Data.Client.Tunnel.Transports = list;
-            config.Data.Update();
+            if (string.IsNullOrWhiteSpace(machineId)) return false;
+
+            runningConfig.Data.Tunnel.Transports.AddOrUpdate(machineId, list, (a, b) => list);
+            runningConfig.Data.Update();
 
             OnChanged();
 
-            return await Task.FromResult(true).ConfigureAwait(false);
+            return true;
         }
 
-        public async Task<List<TunnelTransportItemInfo>> GetTunnelTransports()
+        public async Task<List<TunnelTransportItemInfo>> GetTunnelTransports(string machineId)
         {
-            return await Task.FromResult(config.Data.Client.Tunnel.Transports).ConfigureAwait(false);
+            if (runningConfig.Data.Tunnel.Transports.TryGetValue(machineId, out List<TunnelTransportItemInfo> list))
+            {
+                return list;
+            }
+            if (runningConfig.Data.Tunnel.Transports.TryGetValue("default", out list))
+            {
+                return list;
+            }
+            return [];
         }
 
         public async Task<bool> SetRouteLevelPlus(int level)
@@ -62,7 +78,7 @@ namespace linker.messenger.store.file.tunnel
         {
             runningConfig.Data.Update();
             OnChanged();
-            return await Task.FromResult(true).ConfigureAwait(false);
+            return false;
         }
     }
 }

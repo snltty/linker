@@ -60,11 +60,11 @@ namespace linker.tunnel
         /// 获取打洞协议列表
         /// </summary>
         /// <returns></returns>
-        public Task<List<TunnelTransportItemInfo>> GetTunnelTransports();
+        public Task<List<TunnelTransportItemInfo>> GetTunnelTransports(string machineId);
         /// <summary>
         /// 保存打洞协议列表
         /// </summary>
         /// <param name="transports"></param>
-        public Task<bool> SetTunnelTransports(List<TunnelTransportItemInfo> list);
+        public Task<bool> SetTunnelTransports(string machineid,List<TunnelTransportItemInfo> list);
     }
 }

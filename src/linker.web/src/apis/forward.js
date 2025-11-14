@@ -6,9 +6,6 @@ export const getForwardConnections = (hashcode = '0') => {
 export const removeForwardConnection = (id) => {
     return sendWebsocketMsg('forward/removeconnection', id);
 }
-export const getForwardCountInfo = (hashcode = '0') => {
-    return sendWebsocketMsg('forward/getcount', hashcode);
-}
 export const getForwardInfo = (hashcode = '0') => {
     return sendWebsocketMsg('forward/get', hashcode);
 }
@@ -20,9 +17,6 @@ export const removeForwardInfo = (data) => {
 }
 export const addForwardInfo = (data) => {
     return sendWebsocketMsg('forward/add', data);
-}
-export const refreshForward = () => {
-    return sendWebsocketMsg('forward/refresh');
 }
 
 export const testTargetForwardInfo = (machineid) => {

@@ -42,11 +42,11 @@ namespace linker.messenger.store.file.wlist
         {
             return await Task.FromResult(liteCollection.Delete(id)).ConfigureAwait(false);
         }
-        public async Task<List<WhiteListInfo>> Get(string type, string userid, string[] machineIds)
+        public async Task<List<WhiteListInfo>> Get(string type, List<string> userids, List<string> machineIds)
         {
-            if (string.IsNullOrWhiteSpace(type) || string.IsNullOrWhiteSpace(userid)) return [];
+            if (string.IsNullOrWhiteSpace(type)) return [];
 
-            return await Task.FromResult(liteCollection.Find(c => c.Type == type && c.UseTime <= DateTime.Now && c.EndTime > DateTime.Now && (c.UserId == userid || machineIds.Contains(c.MachineId))).ToList()).ConfigureAwait(false);
+            return await Task.FromResult(liteCollection.Find(c => c.Type == type && c.UseTime <= DateTime.Now && c.EndTime > DateTime.Now && (userids.Contains(c.UserId) || machineIds.Contains(c.MachineId))).ToList()).ConfigureAwait(false);
         }
         public async Task<WhiteListInfo> Get(string tradeNo)
         {

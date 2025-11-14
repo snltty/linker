@@ -1,4 +1,4 @@
-name: Ipk
+name: InstallPack
 'on':
   workflow_dispatch: null
 jobs:
@@ -16,16 +16,16 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
           dotnet-version: 8.0.x
-      - name: setup ipk
+      - name: setup install
         run: sudo apt-get install binutils tar gzip
+      - name: sed shell
+        run: sed -i 's/\r$//' publish-ipk.sh sed -i 's/\r$//' publish-fpk.sh
       - name: chmod shell
-        run: sed -i 's/\r$//' publish-ipk.sh
-      - name: chmod shell
-        run: chmod +x publish-ipk.sh
+        run: chmod +x publish-ipk.sh chmod +x publish-fpk.sh
       - name: publish projects
-        run: ./publish-ipk.sh
-      - name: Get latest release
-        id: get_release
+        run: ./publish-ipk.sh ./publish-fpk.sh
+      - name: get latest release
+        id: get-release
         run: |
           response=$(curl -s \
             -H "Accept: application/vnd.github+json" \
@@ -93,3 +93,23 @@ jobs:
           asset_path: ./public/publish-ipk/arm64/linker-arm64.ipk
           asset_name: linker-arm64.ipk
           asset_content_type: application/ipk
+      - name: upload-fpk-x64-oss
+        id: upload-fpk-x64-oss
+        uses: tvrcgo/oss-action@v0.1.1
+        with:
+          region: oss-cn-shenzhen
+          key-id: ${{ secrets.ALIYUN_OSS_ID }}
+          key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
+          bucket: ide-qbcode
+          asset-path: ./public/publish-fpk/docker/linker.fpk
+          target-path: /downloads/linker/v1.9.6/linker-docker-x64.fpk
+      - name: upload-fpk-x64
+        id: upload-fpk-x64
+        uses: actions/upload-release-asset@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: ./public/publish-fpk/docker/linker.fpk
+          asset_name: linker-docker-x64.fpk
+          asset_content_type: application/fpk

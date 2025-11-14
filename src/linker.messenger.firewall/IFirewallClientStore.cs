@@ -4,6 +4,8 @@ namespace linker.messenger.firewall
 {
     public interface IFirewallClientStore
     {
+
+
         public LinkerFirewallState State { get; }
         public void SetState(LinkerFirewallState state);
 

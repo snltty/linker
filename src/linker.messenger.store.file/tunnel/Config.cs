@@ -1,6 +1,7 @@
 ﻿using linker.messenger.tunnel;
 using linker.tunnel.transport;
 using LiteDB;
+using System.Collections.Concurrent;
 namespace linker.messenger.store.file
 {
     public sealed partial class RunningConfigInfo
@@ -24,6 +25,8 @@ namespace linker.messenger.store.file
         public int PortMapLan { get; set; }
 
         public TunnelPublicNetworkInfo Network { get; set; } = new TunnelPublicNetworkInfo();
+
+        public ConcurrentDictionary<string, List<TunnelTransportItemInfo>> Transports { get; set; } = new ConcurrentDictionary<string, List<TunnelTransportItemInfo>>();
     }
 
     public partial class ConfigClientInfo

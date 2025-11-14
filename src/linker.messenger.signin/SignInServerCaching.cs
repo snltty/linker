@@ -3,6 +3,7 @@ using linker.libs.timer;
 using linker.messenger.signin.args;
 using System.Collections.Concurrent;
 using System.Net;
+using System.Text.Json.Serialization;
 
 namespace linker.messenger.signin
 {
@@ -110,6 +111,10 @@ namespace linker.messenger.signin
         public List<SignCacheInfo> Get(SignCacheInfo other)
         {
             return Clients.Values.Where(c => c.GroupId == other.GroupId).ToList();
+        }
+        public List<string> GetUserIds(List<string> ids)
+        {
+            return Clients.Values.Where(c => ids.Contains(c.MachineId)).Select(c => c.UserId).Distinct().ToList();
         }
 
         public IEnumerable<string> GetOnline()
@@ -252,16 +257,18 @@ namespace linker.messenger.signin
             }
         }
 
-
+        [JsonIgnore]
         public bool Super { get; set; }
+        [JsonIgnore]
         public string UserId { get; set; } = string.Empty;
 
 
         /// <summary>
         /// 连接对象
         /// </summary>
+        [JsonIgnore]
         public IConnection Connection { get; set; }
-
+        [JsonIgnore]
         public uint Order { get; set; } = int.MaxValue;
 
         public bool SameGroup(SignCacheInfo other)

@@ -151,6 +151,7 @@ namespace linker.messenger.signin
                     MachineId = c.MachineId,
                     MachineName = c.MachineName,
                     Version = c.Version,
+                    Args = c.Args.Where(c => c.Key == "userid").ToDictionary(),
                 }).ToList();
 
 

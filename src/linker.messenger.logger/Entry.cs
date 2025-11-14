@@ -9,7 +9,7 @@ namespace linker.messenger.logger
     {
         public static ServiceCollection AddLogger(this ServiceCollection serviceCollection)
         {
-            
+
             return serviceCollection;
         }
         public static ServiceProvider UseLogger(this ServiceProvider serviceProvider)
@@ -20,7 +20,7 @@ namespace linker.messenger.logger
 
         public static ServiceCollection AddLoggerClient(this ServiceCollection serviceCollection)
         {
-            
+
             serviceCollection.AddSingleton<LoggerApiController>();
             return serviceCollection;
         }
@@ -29,11 +29,11 @@ namespace linker.messenger.logger
             linker.messenger.api.IWebServer apiServer = serviceProvider.GetService<linker.messenger.api.IWebServer>();
             apiServer.AddPlugins(new List<IApiController> { serviceProvider.GetService<LoggerApiController>() });
 
-            IAccessStore accessStore= serviceProvider.GetService<IAccessStore>();
-            ILoggerStore loggerStore= serviceProvider.GetService<ILoggerStore>();
+            IAccessStore accessStore = serviceProvider.GetService<IAccessStore>();
+            ILoggerStore loggerStore = serviceProvider.GetService<ILoggerStore>();
             if (accessStore.HasAccess(AccessValue.LoggerLevel) == false)
             {
-                loggerStore.SetLevel( libs.LoggerTypes.WARNING);
+                loggerStore.SetLevel(libs.LoggerTypes.WARNING);
                 loggerStore.Confirm();
             }
 
@@ -86,12 +86,12 @@ namespace linker.messenger.logger
             };
             TimerHelper.SetIntervalLong(() =>
             {
-                string[] files = Directory.GetFiles(Path.Combine(Helper.CurrentDirectory, "logs")).OrderBy(c => c).ToArray();
-                for (int i = 0; i < files.Length - 180; i++)
+                string path = Path.Join(Helper.CurrentDirectory, "logs", $"{DateTime.Now.AddMonths(-6):yyyy-MM-dd}.log");
+                if (File.Exists(path))
                 {
                     try
                     {
-                        File.Delete(files[i]);
+                        File.Delete(path);
                     }
                     catch (Exception)
                     {

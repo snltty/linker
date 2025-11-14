@@ -113,7 +113,7 @@ namespace linker.messenger.wlist
             {
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)WhiteListMessengerIds.AddOrder,
-                Payload = serializer.Serialize(param.Content.DeJson<KeyValuePair<string,string>>())
+                Payload = serializer.Serialize(param.Content.DeJson<KeyValuePair<string, string>>())
             }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK)
             {
@@ -123,7 +123,28 @@ namespace linker.messenger.wlist
             return string.Empty;
         }
 
+        public async Task<Dictionary<string, double>> List(ApiControllerParamsInfo param)
+        {
+            KeyValueInfo info = param.Content.DeJson<KeyValueInfo>();
 
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)WhiteListMessengerIds.List,
+                Payload = serializer.Serialize(new KeyValuePair<string, List<string>>(info.Key, info.Value))
+            }).ConfigureAwait(false);
+            if (resp.Code == MessageResponeCodes.OK)
+            {
+                return serializer.Deserialize<Dictionary<string, double>>(resp.Data.Span);
+            }
+
+            return new Dictionary<string, double>();
+        }
+        sealed class KeyValueInfo
+        {
+            public string Key { get; set; } = string.Empty;
+            public List<string> Value { get; set; } = [];
+        }
     }
 
 }

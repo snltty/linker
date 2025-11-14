@@ -1,27 +1,27 @@
 <template>
-    <el-dialog v-model="state.show" append-to=".app-wrap" :title="`[${state.machineName}]上的防火墙`" top="1vh" width="98%">
+    <el-dialog v-model="state.show" append-to=".app-wrap" :title="`本机与[${state.machineName}]之间的打洞协议`" top="1vh" width="98%">
         <div>
-            <Firewall :machineId="state.machineId"></Firewall>
+            <Transport :machineId="state.machineId"></Transport>
         </div>
     </el-dialog>
 </template>
 <script>
 import { reactive, watch } from 'vue';
-import Firewall from '../firewall/Firewall.vue'
-import { useOper } from './oper';
+import Transport from '../transport/Transport.vue'
+import { useTransport } from './transport';
 export default {
     props: ['modelValue'],
     emits: ['update:modelValue'],
     components: {
-        Firewall
+        Transport
     },
     setup(props, { emit }) {
-        const oper = useOper();
+        const transport = useTransport();
         
         const state = reactive({
             show: true,
-            machineId: oper.value.device.id,
-            machineName: oper.value.device.name
+            machineId: transport.value.device.id,
+            machineName: transport.value.device.name
         });
         watch(() => state.show, (val) => {
             if (!val) {

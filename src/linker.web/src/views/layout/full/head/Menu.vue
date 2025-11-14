@@ -2,78 +2,26 @@
 <div class="menu flex-1">
     <PcShow>
         <ul class="flex">
-            <li>
-                <router-link :to="{name:'FullIndex'}"><img src="@/assets/shouye.svg"/><span>{{$t('head.home')}}</span></router-link>
-            </li>
-            <AccessShow value="Config">
-                <li>
-                    <router-link :to="{name:'FullServers'}"><img src="@/assets/fuwuqi.svg"/><span>{{$t('head.server')}}</span></router-link>
-                </li>
-            </AccessShow>
-            <AccessShow value="Transport">
-                <li>
-                    <router-link :to="{name:'FullTransport'}"><img src="@/assets/dadong.svg"/><span>{{$t('head.protocol')}}</span></router-link>
-                </li>
-            </AccessShow>
-            <AccessShow value="Action">
-                <li>
-                    <router-link :to="{name:'FullAction'}"><img src="@/assets/login.svg"/><span>{{$t('head.action')}}</span></router-link>
-                </li>
-            </AccessShow>
-            <AccessShow value="FirewallSelf">
-                <li>
-                    <router-link :to="{name:'FullFirewall'}"><img src="@/assets/anquan.svg"/><span>{{$t('head.firewall')}}</span></router-link>
-                </li>
-            </AccessShow>
-            <AccessShow value="WakeupSelf">
-                <li>
-                    <router-link :to="{name:'FullWakeup'}"><img src="@/assets/qidong.svg"/><span>{{$t('head.wakeup')}}</span></router-link>
-                </li>
-            </AccessShow>
-            <AccessShow value="LoggerShow">
-                <li>
-                    <router-link :to="{name:'FullLogger'}"><img src="@/assets/rizhi.svg"/><span>{{$t('head.logger')}}</span></router-link>
-                </li>
-            </AccessShow>
+            <template v-for="item in routes">
+                <AccessShow :value="item.meta.access">
+                    <li>
+                        <router-link :to="{name:item.name}"><img :src="item.meta.icon"/><span>{{$t(item.meta.title)}}</span></router-link>
+                    </li>
+                </AccessShow>
+            </template>
         </ul>
     </PcShow>
     <PhoneShow>
         <ul class="flex">
-            <li v-if="route.name == 'FullIndex'">
-                <router-link :to="{name:'FullIndex'}"><img src="@/assets/shouye.svg"/><span>{{$t('head.home')}}</span></router-link>
-            </li>
-            <AccessShow value="Config">
-                <li v-if="route.name == 'FullServers'">
-                    <router-link :to="{name:'FullServers'}"><img src="@/assets/fuwuqi.svg"/><span>{{$t('head.server')}}</span></router-link>
-                </li>
-            </AccessShow>
-            <AccessShow value="Transport">
-                <li v-if="route.name == 'FullTransport'">
-                    <router-link :to="{name:'FullTransport'}"><img src="@/assets/dadong.svg"/><span>{{$t('head.protocol')}}</span></router-link>
-                </li>
-            </AccessShow>
-            <AccessShow value="Action">
-                <li v-if="route.name == 'FullAction'">
-                    <router-link :to="{name:'FullAction'}"><img src="@/assets/login.svg"/><span>{{$t('head.action')}}</span></router-link>
-                </li>
-            </AccessShow>
-            <AccessShow value="FirewallSelf">
-                <li v-if="route.name == 'FullFirewall'">
-                    <router-link :to="{name:'FullFirewall'}"><img src="@/assets/anquan.svg"/><span>{{$t('head.firewall')}}</span></router-link>
-                </li>
-            </AccessShow>
-            <AccessShow value="WakeupSelf">
-                <li v-if="route.name == 'FullWakeup'">
-                    <router-link :to="{name:'FullWakeup'}"><img src="@/assets/qidong.svg"/><span>{{$t('head.wakeup')}}</span></router-link>
-                </li>
-            </AccessShow>
-            <AccessShow value="LoggerShow">
-                <li v-if="route.name == 'FullLogger'">
-                    <router-link :to="{name:'FullLogger'}"><img src="@/assets/rizhi.svg"/> <span>{{$t('head.logger')}}</span></router-link>
-                </li>
-            </AccessShow>
+            <template v-for="item in routes">
+                <AccessShow :value="item.meta.access">
+                    <li v-if="route.name == item.name">
+                        <router-link :to="{name:item.name}"><img :src="item.meta.icon"/><span>{{$t(item.meta.title)}}</span></router-link>
+                    </li>
+                </AccessShow>
+            </template>
             <li>
-                <a href="javascript:void(0);" @click="refresh"><img src="@/assets/shuaxin2.svg"/><span>{{$t('head.refresh')}}</span></a>
+                <a href="javascript:void(0);" @click="refresh"><img src="refresh.svg"/><span>{{$t('head.refresh')}}</span></a>
             </li>
         </ul>
     </PhoneShow>
@@ -84,39 +32,13 @@
             <span class="el-dropdown-link"><el-icon><Operation /></el-icon></span>
             <template #dropdown>
                 <el-dropdown-menu class="select-menu">
-                    <el-dropdown-item>
-                        <router-link :to="{name:'FullIndex'}"><img src="@/assets/shouye.svg" height="20" style="vertical-align: text-top;"/> {{$t('head.home')}}</router-link>
-                    </el-dropdown-item>
-                    <AccessShow value="Config">
-                        <el-dropdown-item>
-                            <router-link :to="{name:'FullServers'}"><img src="@/assets/fuwuqi.svg"  height="20" style="vertical-align: text-top;"/> {{$t('head.server')}}</router-link>
-                        </el-dropdown-item>
-                    </AccessShow>
-                    <AccessShow value="Transport">
-                        <el-dropdown-item>
-                            <router-link :to="{name:'FullTransport'}"><img src="@/assets/dadong.svg"  height="20" style="vertical-align: text-top;"/> {{$t('head.protocol')}}</router-link>
-                        </el-dropdown-item>
-                    </AccessShow>
-                    <AccessShow value="Action">
-                        <el-dropdown-item>
-                            <router-link :to="{name:'FullAction'}"><img src="@/assets/login.svg"   height="20" style="vertical-align: text-top;"/> {{$t('head.action')}}</router-link>   
-                        </el-dropdown-item>
-                    </AccessShow>
-                    <AccessShow value="FirewallSelf">
-                        <el-dropdown-item>
-                            <router-link :to="{name:'FullFirewall'}"><img src="@/assets/anquan.svg"   height="20" style="vertical-align: text-top;"/> {{$t('head.firewall')}}</router-link>
-                        </el-dropdown-item>
-                    </AccessShow>
-                    <AccessShow value="WakeupSelf">
-                        <el-dropdown-item>
-                            <router-link :to="{name:'FullWakeup'}"><img src="@/assets/qidong.svg"   height="20" style="vertical-align: text-top;"/> {{$t('head.wakeup')}}</router-link>
-                        </el-dropdown-item>
-                    </AccessShow>
-                    <AccessShow value="LoggerShow">
-                        <el-dropdown-item>
-                            <router-link :to="{name:'FullLogger'}"><img src="@/assets/rizhi.svg"  height="20" style="vertical-align: text-top;"/> {{$t('head.logger')}}</router-link>
-                        </el-dropdown-item>
-                    </AccessShow>
+                    <template v-for="item in routes">
+                        <AccessShow :value="item.meta.access">
+                            <el-dropdown-item>
+                                <router-link :to="{name:item.name}"><img :src="item.meta.icon" height="20" style="vertical-align: text-top;"/><span>{{$t(item.meta.title)}}</span></router-link>
+                            </el-dropdown-item>
+                        </AccessShow>
+                    </template>
                 </el-dropdown-menu>
             </template>
         </el-dropdown>
@@ -128,18 +50,22 @@
 import {Operation,ArrowDown} from '@element-plus/icons-vue'
 import Background from './Background.vue';
 import Theme from './Theme.vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
+import { computed } from 'vue';
 export default {
     components:{Background,Theme,Operation,ArrowDown},
     setup() {
 
         const route = useRoute();
+        const router = useRouter();
+        const routes = computed(()=>router.options.routes.filter(c=>c.name == 'Full')[0].children);
+
         const refresh = () => {
             window.location.reload();
         }
 
         return {
-            route,refresh
+            route,routes,refresh
         }
     }
 }

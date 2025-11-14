@@ -193,36 +193,41 @@ function writeUploadIpk(data, tagName) {
             }
         });
     };
+
+    const platforms1 = ['x64'];
+    for (let i = 0; i < platforms1.length; i++) {
+        let arch = platforms1[i];
+
+        data.jobs.build.steps.push({
+            name: `upload-fpk-${arch}-oss`,
+            id: `upload-fpk-${arch}-oss`,
+            uses: 'tvrcgo/oss-action@v0.1.1',
+            with: {
+                'region': 'oss-cn-shenzhen',
+                'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
+                'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
+                'bucket': 'ide-qbcode',
+                'asset-path': `./public/publish-fpk/docker/linker.fpk`,
+                'target-path': `/downloads/linker/${tagName}/linker-docker-${arch}.fpk`
+            }
+        });
+        data.jobs.build.steps.push({
+            name: `upload-fpk-${arch}`,
+            id: `upload-fpk-${arch}`,
+            uses: 'actions/upload-release-asset@master',
+            env: {
+                'GITHUB_TOKEN': '${{ secrets.ACTIONS_TOKEN }}'
+            },
+            with: {
+                'upload_url': '${{ steps.get_release.outputs.upload_url }}',
+                'asset_path': `./public/publish-fpk/docker/linker.fpk`,
+                'asset_name': `linker-docker-${arch}.fpk`,
+                'asset_content_type': 'application/fpk'
+            }
+        });
+    };
 }
-function writeUploadLoongArch64(data, tagName) {
-    data.jobs.build.steps.push({
-        name: `upload-loongarch64-oss`,
-        id: `upload-loongarch64-oss`,
-        uses: 'tvrcgo/oss-action@v0.1.1',
-        with: {
-            'region': 'oss-cn-shenzhen',
-            'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
-            'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
-            'bucket': 'ide-qbcode',
-            'asset-path': `./linker-loongarch64.zip`,
-            'target-path': `/downloads/linker/${tagName}/linker-loongarch64.zip`
-        }
-    });
-    data.jobs.build.steps.push({
-        name: `upload-loongarch64`,
-        id: `upload-loongarch64`,
-        uses: 'actions/upload-release-asset@master',
-        env: {
-            'GITHUB_TOKEN': '${{ secrets.ACTIONS_TOKEN }}'
-        },
-        with: {
-            'upload_url': '${{ steps.get_release.outputs.upload_url }}',
-            'asset_path': `./linker-loongarch64.zip`,
-            'asset_name': `linker-loongarch64.zip`,
-            'asset_content_type': 'application/zip'
-        }
-    });
-}
+
 
 readVersionDesc().then((desc) => {
 
@@ -238,24 +243,20 @@ readVersionDesc().then((desc) => {
     writeUpload(data, `v${desc.version}`);
     writeYaml('../../.github/workflows/dotnet.yml', data);
 
+
+
     let publishText = readText('../ymls/publish-docker.sh');
     while (publishText.indexOf('{{version}}') >= 0) {
         publishText = publishText.replace('{{version}}', desc.version);
     }
     writeText('../publish-docker.sh', publishText);
 
-    let publishIpkText = readText('../ymls/publish-ipk.sh');
-    while (publishIpkText.indexOf('{{version}}') >= 0) {
-        publishIpkText = publishIpkText.replace('{{version}}', desc.version);
-    }
-    writeText('../publish-ipk.sh', publishIpkText);
-
-
     let dockerText = readText('../ymls/docker.yml');
     while (dockerText.indexOf('{{version}}') >= 0) {
         dockerText = dockerText.replace('{{version}}', desc.version);
     }
     writeText('../../.github/workflows/docker.yml', dockerText);
+
 
 
     let nugetText = readText('../ymls/nuget.yml');
@@ -265,13 +266,21 @@ readVersionDesc().then((desc) => {
     writeText('../../.github/workflows/nuget.yml', nugetText);
 
 
-    const ipkData = readYaml('../ymls/ipk.yml');
-    writeUploadIpk(ipkData, `v${desc.version}`);
-    writeYaml('../../.github/workflows/ipk.yml', ipkData);
 
-    /*
-    const loongarch64Data = readYaml('../ymls/loongarch64.yml');
-    writeUploadLoongArch64(loongarch64Data, `v${desc.version}`);
-    writeYaml('../.github/workflows/loongarch64.yml', loongarch64Data);
-    */
+    let publishIpkText = readText('../ymls/publish-ipk.sh');
+    while (publishIpkText.indexOf('{{version}}') >= 0) {
+        publishIpkText = publishIpkText.replace('{{version}}', desc.version);
+    }
+    writeText('../publish-ipk.sh', publishIpkText);
+    let publishFpkText = readText('../ymls/publish-fpk.sh');
+    while (publishFpkText.indexOf('{{version}}') >= 0) {
+        publishFpkText = publishFpkText.replace('{{version}}', desc.version);
+    }
+    writeText('../publish-fpk.sh', publishIpkText);
+
+    const ipkData = readYaml('../ymls/install.yml');
+    writeUploadIpk(ipkData, `v${desc.version}`);
+    writeYaml('../../.github/workflows/install.yml', ipkData);
+
+
 });

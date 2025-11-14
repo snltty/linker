@@ -52,7 +52,7 @@ namespace linker.tunnel
         }
         private async Task RebuildTransports()
         {
-            var transportItems = (await tunnelMessengerAdapter.GetTunnelTransports().ConfigureAwait(false)).ToList();
+            var transportItems = (await tunnelMessengerAdapter.GetTunnelTransports("default").ConfigureAwait(false)).ToList();
             //有新的协议
             var newTransportNames = transports.Select(c => c.Name).Except(transportItems.Select(c => c.Name));
             if (newTransportNames.Any())
@@ -103,7 +103,7 @@ namespace linker.tunnel
                 }
             }
 
-            await tunnelMessengerAdapter.SetTunnelTransports(transportItems).ConfigureAwait(false);
+            await tunnelMessengerAdapter.SetTunnelTransports("default",transportItems).ConfigureAwait(false);
 
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Info($"load tunnel transport:{string.Join(",", transports.Select(c => c.GetType().Name))}");
@@ -220,7 +220,8 @@ namespace linker.tunnel
 
             try
             {
-                var _transports = await tunnelMessengerAdapter.GetTunnelTransports().ConfigureAwait(false);
+                var _transports = await tunnelMessengerAdapter.GetTunnelTransports(remoteMachineId).ConfigureAwait(false);
+
                 foreach (TunnelTransportItemInfo transportItem in _transports.OrderBy(c => c.Order).Where(c => c.Disabled == false))
                 {
                     ITunnelTransport transport = transports.FirstOrDefault(c => c.Name == transportItem.Name);
@@ -339,7 +340,8 @@ namespace linker.tunnel
             }
             try
             {
-                var _transports = await tunnelMessengerAdapter.GetTunnelTransports().ConfigureAwait(false);
+                var _transports = await tunnelMessengerAdapter.GetTunnelTransports(tunnelTransportInfo.Remote.MachineId).ConfigureAwait(false);
+
                 ITunnelTransport transport = transports.FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.ProtocolType == tunnelTransportInfo.TransportType);
                 TunnelTransportItemInfo item = _transports.FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.Disabled == false);
                 if (transport != null && item != null)

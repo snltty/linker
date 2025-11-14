@@ -15,14 +15,18 @@ namespace linker.messenger.tunnel
         private readonly ISerializer serializer;
         private readonly ITunnelClientStore tunnelClientStore;
         private readonly TunnelNetworkTransfer tunnelNetworkTransfer;
+        private readonly ITunnelMessengerAdapter tunnelMessengerAdapter;
 
-        public TunnelClientMessenger(TunnelTransfer tunnel, IMessengerSender messengerSender, ISerializer serializer, ITunnelClientStore tunnelClientStore, TunnelNetworkTransfer tunnelNetworkTransfer)
+        public TunnelClientMessenger(TunnelTransfer tunnel, IMessengerSender messengerSender,
+            ISerializer serializer, ITunnelClientStore tunnelClientStore,
+            TunnelNetworkTransfer tunnelNetworkTransfer, ITunnelMessengerAdapter tunnelMessengerAdapter)
         {
             this.tunnel = tunnel;
             this.messengerSender = messengerSender;
             this.serializer = serializer;
             this.tunnelClientStore = tunnelClientStore;
             this.tunnelNetworkTransfer = tunnelNetworkTransfer;
+            this.tunnelMessengerAdapter = tunnelMessengerAdapter;
         }
 
         [MessengerId((ushort)TunnelMessengerIds.Begin)]
@@ -108,12 +112,14 @@ namespace linker.messenger.tunnel
         [MessengerId((ushort)TunnelMessengerIds.TransportGet)]
         public async Task TransportGet(IConnection connection)
         {
-            connection.Write(serializer.Serialize(await tunnelClientStore.GetTunnelTransports()));
+            string machineid = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            connection.Write(serializer.Serialize(await tunnelMessengerAdapter.GetTunnelTransports(machineid)));
         }
         [MessengerId((ushort)TunnelMessengerIds.TransportSet)]
         public async Task TransportSet(IConnection connection)
         {
-            await tunnelClientStore.SetTunnelTransports(serializer.Deserialize<List<TunnelTransportItemInfo>>(connection.ReceiveRequestWrap.Payload.Span));
+            TunnelTransportItemSetInfo info = serializer.Deserialize<TunnelTransportItemSetInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            await tunnelMessengerAdapter.SetTunnelTransports(info.MachineId, info.Data);
         }
     }
 
@@ -270,7 +276,8 @@ namespace linker.messenger.tunnel
                 _ = messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = to.Connection,
-                    MessengerId = (ushort)TunnelMessengerIds.TransportGet
+                    MessengerId = (ushort)TunnelMessengerIds.TransportGet,
+                     Payload = serializer.Serialize(connection.Id)
                 }).ContinueWith(async (result) =>
                 {
                     if (result.Result.Code == MessageResponeCodes.OK && result.Result.Data.Length > 0)
@@ -292,11 +299,12 @@ namespace linker.messenger.tunnel
             if (signCaching.TryGet(connection.Id, info.MachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
+                info.MachineId = connection.Id;
                 _ = messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = to.Connection,
                     MessengerId = (ushort)TunnelMessengerIds.TransportSet,
-                    Payload = serializer.Serialize(info.Data)
+                    Payload = serializer.Serialize(info)
                 }).ContinueWith(async (result) =>
                 {
                     if (result.Result.Code == MessageResponeCodes.OK && result.Result.Data.Length > 0)

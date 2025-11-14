@@ -18,10 +18,9 @@ namespace linker.messenger.forward
         private readonly SignInClientState signInClientState;
         private readonly IAccessStore accessStore;
         private readonly ISignInClientStore signInClientStore;
-        private readonly ForwardDecenter forwardDecenter;
         private readonly ISerializer serializer;
 
-        public ForwardApiController(ForwardTransfer forwardTransfer, ForwardProxy forwardProxy, IMessengerSender messengerSender, SignInClientState signInClientState, IAccessStore accessStore, ISignInClientStore signInClientStore, ForwardDecenter forwardDecenter, ISerializer serializer)
+        public ForwardApiController(ForwardTransfer forwardTransfer, ForwardProxy forwardProxy, IMessengerSender messengerSender, SignInClientState signInClientState, IAccessStore accessStore, ISignInClientStore signInClientStore, ISerializer serializer)
         {
             this.forwardTransfer = forwardTransfer;
             this.forwardProxy = forwardProxy;
@@ -29,7 +28,6 @@ namespace linker.messenger.forward
             this.signInClientState = signInClientState;
             this.accessStore = accessStore;
             this.signInClientStore = signInClientStore;
-            this.forwardDecenter = forwardDecenter;
             this.serializer = serializer;
         }
 
@@ -70,34 +68,6 @@ namespace linker.messenger.forward
         public IPAddress[] BindIPs(ApiControllerParamsInfo param)
         {
             return NetworkHelper.GetIPV4();
-        }
-
-        /// <summary>
-        /// 刷新分布式数据
-        /// </summary>
-        /// <param name="param"></param>
-        public void Refresh(ApiControllerParamsInfo param)
-        {
-            forwardDecenter.Refresh();
-        }
-
-        /// <summary>
-        /// 获取所有客户端的端口转发数量
-        /// </summary>
-        /// <param name="param"></param>
-        /// <returns></returns>
-        public ForwardListInfo GetCount(ApiControllerParamsInfo param)
-        {
-            ulong hashCode = ulong.Parse(param.Content);
-            if (forwardDecenter.DataVersion.Eq(hashCode, out ulong version) == false)
-            {
-                return new ForwardListInfo
-                {
-                    List = forwardDecenter.CountDic,
-                    HashCode = version
-                };
-            }
-            return new ForwardListInfo { HashCode = version };
         }
 
         /// <summary>

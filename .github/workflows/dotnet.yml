@@ -19,7 +19,7 @@ jobs:
           release_name: v1.9.6.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 一些累计更新，一些BUG修复\r\n2. 优化客户端数据同步，减少服务器流量\r\n3. 去除cdkey，改为发电解锁中继速度\r\n4. 其它一些UI优化"
+          body: "1. 一些累计更新，一些BUG修复\r\n2. 优化客户端数据同步，减少服务器流量\r\n3. 去除cdkey，改为发电解锁中继速度\r\n4. 新增飞牛OS的fpk程序包支持\r\n5. 打洞协议设置，可一对一单独调整所需协议及顺序\r\n6. 其它一些UI调整"
       - name: setup node.js
         uses: actions/setup-node@v2
         with:

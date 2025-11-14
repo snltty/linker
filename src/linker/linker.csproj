@@ -22,7 +22,9 @@
 		<Description>1. 一些累计更新，一些BUG修复
 2. 优化客户端数据同步，减少服务器流量
 3. 去除cdkey，改为发电解锁中继速度
-4. 其它一些UI优化</Description>
+4. 新增飞牛OS的fpk程序包支持
+5. 打洞协议设置，可一对一单独调整所需协议及顺序
+6. 其它一些UI调整</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>

@@ -1,4 +1,4 @@
-name: Ipk
+name: InstallPack
 
 on:
   workflow_dispatch:
@@ -20,18 +20,24 @@ jobs:
         with:
           dotnet-version: 8.0.x
       
-      - name: setup ipk
+      - name: setup install
         run: sudo apt-get install binutils tar gzip
 
+      - name: sed shell
+        run: 
+          sed -i 's/\r$//' publish-ipk.sh
+          sed -i 's/\r$//' publish-fpk.sh
       - name: chmod shell
-        run: sed -i 's/\r$//' publish-ipk.sh
-      - name: chmod shell
-        run: chmod +x publish-ipk.sh
+        run: 
+          chmod +x publish-ipk.sh
+          chmod +x publish-fpk.sh
       - name: publish projects
-        run: ./publish-ipk.sh
+        run: 
+          ./publish-ipk.sh
+          ./publish-fpk.sh
     
-      - name: Get latest release
-        id: get_release
+      - name: get latest release
+        id: get-release
         run: |
           response=$(curl -s \
             -H "Accept: application/vnd.github+json" \

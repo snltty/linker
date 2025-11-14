@@ -5,9 +5,7 @@
                 <a href="javascript:;" @click="handleEdit(values)" :title="item.IP" class="a-line">
                     <strong class="gateway" :class="{green:item.Connected}">{{item.MachineName || 'null' }}</strong>
                 </a>
-                
                 <strong class="self gateway" v-if="item.isSelf">(<el-icon size="16"><StarFilled /></el-icon>)</strong>
-                
             </div>
         </template>
     </AccessBoolean>

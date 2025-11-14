@@ -15,9 +15,6 @@ namespace linker.messenger.forward
 
             serviceCollection.AddSingleton<ForwardClientMessenger>();
 
-            serviceCollection.AddSingleton<ForwardDecenter>();
-
-
             serviceCollection.AddSingleton<ForwardProxy>();
 
             return serviceCollection;
@@ -31,9 +28,6 @@ namespace linker.messenger.forward
 
             IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
             messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<ForwardClientMessenger>() });
-
-            DecenterClientTransfer decenterClientTransfer = serviceProvider.GetService<DecenterClientTransfer>();
-            decenterClientTransfer.AddDecenters(new List<IDecenter> { serviceProvider.GetService<ForwardDecenter>() });
 
             ForwardProxy forwardProxy= serviceProvider.GetService<ForwardProxy>();
 

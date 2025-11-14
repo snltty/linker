@@ -40,6 +40,7 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\linker.messenger.api\linker.messenger.api.csproj" />
+	  <ProjectReference Include="..\linker.messenger.decenter\linker.messenger.decenter.csproj" />
 	  <ProjectReference Include="..\linker.messenger.signin\linker.messenger.signin.csproj" />
 	  <ProjectReference Include="..\linker.messenger\linker.messenger.csproj" />
 	</ItemGroup>

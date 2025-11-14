@@ -1,6 +1,7 @@
 ﻿using linker.libs;
 using linker.libs.extends;
 using linker.libs.timer;
+using linker.messenger.decenter;
 using linker.messenger.forward.proxy;
 using linker.messenger.signin;
 using System.Net.Sockets;
@@ -21,7 +22,9 @@ namespace linker.messenger.forward
         private readonly IMessengerSender messengerSender;
         private readonly ISignInClientStore signInClientStore;
         private readonly ISerializer serializer;
-        public ForwardTransfer(IForwardClientStore forwardClientStore, ForwardProxy forwardProxy, SignInClientState signInClientState, IMessengerSender messengerSender, ISignInClientStore signInClientStore, ISerializer serializer)
+        private readonly CounterDecenter counterDecenter;
+        public ForwardTransfer(IForwardClientStore forwardClientStore, ForwardProxy forwardProxy, SignInClientState signInClientState,
+            IMessengerSender messengerSender, ISignInClientStore signInClientStore, ISerializer serializer, CounterDecenter counterDecenter)
         {
             this.forwardClientStore = forwardClientStore;
             this.forwardProxy = forwardProxy;
@@ -29,6 +32,8 @@ namespace linker.messenger.forward
             this.messengerSender = messengerSender;
             this.signInClientStore = signInClientStore;
             this.serializer = serializer;
+            this.counterDecenter = counterDecenter;
+            counterDecenter.SetValue("forward", Count);
 
             signInClientState.OnSignInSuccess += Reset;
         }
@@ -143,6 +148,7 @@ namespace linker.messenger.forward
         {
             forwardInfo.GroupId = signInClientStore.Group.Id;
             forwardClientStore.Add(forwardInfo);
+            counterDecenter.SetValue("forward",Count);
             Start();
 
             return true;
@@ -152,6 +158,7 @@ namespace linker.messenger.forward
             forwardClientStore.Update(id, false);
             Start();
             forwardClientStore.Remove(id);
+            counterDecenter.SetValue("forward", Count);
             return true;
         }
 

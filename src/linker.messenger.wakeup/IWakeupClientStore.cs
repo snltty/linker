@@ -5,6 +5,7 @@
     /// </summary>
     public interface IWakeupClientStore
     {
+        public int Count();
         public IEnumerable<WakeupInfo> GetAll(WakeupSearchInfo info);
         public bool Add(WakeupInfo rule);
         public bool Remove(string id);

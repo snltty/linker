@@ -51,17 +51,14 @@ namespace linker.messenger.store.file
             Load();
             Save();
             SaveTask();
-
-            Helper.OnAppExit += Helper_OnAppExit;
         }
-
-        private void Helper_OnAppExit(object sender, EventArgs e)
-        {
-            Save();
-        }
-
         private void Init()
         {
+            if (Directory.Exists(Path.Combine(Helper.CurrentDirectory, configPath)) == false && useMemory == false)
+            {
+                Directory.CreateDirectory(Path.Combine(Helper.CurrentDirectory, configPath));
+            }
+
             Type saveAttr = typeof(SaveJsonIgnore);
             saveJsonIgnorePaths = FindPathsWithSaveJsonIgnore(Data);
             List<string[]> FindPathsWithSaveJsonIgnore(object obj)
@@ -89,16 +86,14 @@ namespace linker.messenger.store.file
                             object value = property.GetValue(obj);
                             FindPathsRecursive(value, propertyPath, resultPaths);
                         }
-                        catch (Exception)
+                        catch (Exception ex)
                         {
+                            LoggerHelper.Instance.Error(ex);
                         }
                     }
                 }
             }
-            if (Directory.Exists(Path.Combine(Helper.CurrentDirectory, configPath)) == false && !useMemory)
-            {
-                Directory.CreateDirectory(Path.Combine(Helper.CurrentDirectory, configPath));
-            }
+
 
             Type type = Data.GetType();
             Type typeAttr = typeof(JsonIgnoreAttribute);
@@ -114,12 +109,31 @@ namespace linker.messenger.store.file
                 });
             }
         }
+
+        private string ToText(KeyValuePair<string, FileReadWrite> item)
+        {
+            if (useMemory)
+            {
+                if (memoryStore.TryGetValue(item.Key.ToLower(), out var memText))
+                {
+                    return memText;
+                }
+            }
+            else
+            {
+                if (File.Exists(item.Value.Path))
+                {
+                    return File.ReadAllText(item.Value.Path, encoding: System.Text.Encoding.UTF8);
+                }
+            }
+            return string.Empty;
+        }
         private void Load()
         {
             slim.Wait();
             try
             {
-                foreach (var item in fsDic)
+                foreach (KeyValuePair<string, FileReadWrite> item in fsDic)
                 {
                     try
                     {
@@ -127,43 +141,25 @@ namespace linker.messenger.store.file
                         {
                             continue;
                         }
-                        string text = string.Empty;
-                        if (useMemory)
-                        {
-                            if (memoryStore.TryGetValue(item.Key.ToLower(), out var memText))
-                            {
-                                text = memText;
-                            }
-                            else
-                            {
-                                continue;
-                            }
-                        }
-                        else
-                        {
-                            if (File.Exists(item.Value.Path))
-                            {
-                                text = File.ReadAllText(item.Value.Path, encoding: System.Text.Encoding.UTF8);
-                            }
-                        }
+
+                        string text = ToText(item);
                         if (string.IsNullOrWhiteSpace(text))
                         {
-                            if (!useMemory)
-                            {
-                                LoggerHelper.Instance.Error($"{item.Value.Path} empty");
-                                continue;
-                            }
+                            LoggerHelper.Instance.Error($"{item.Value.Path} empty");
+                            continue;
                         }
                         object value = item.Value.PropertyMethod.Deserialize(text);
                         item.Value.Property.SetValue(Data, value);
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
+                        LoggerHelper.Instance.Error(ex);
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                LoggerHelper.Instance.Error(ex);
             }
             finally
             {
@@ -171,13 +167,53 @@ namespace linker.messenger.store.file
             }
 
         }
+
+        private void IgnorePaths(KeyValuePair<string, FileReadWrite> item, JsonNode jsonNode)
+        {
+            try
+            {
+                foreach (string[] path in saveJsonIgnorePaths.Where(c => c.Length > 0 && c[0] == item.Value.Property.Name))
+                {
+                    if (path.Length == 0) continue;
+
+                    JsonNode root = jsonNode;
+                    for (int i = 1; i < path.Length - 1; i++)
+                    {
+                        if (root.AsObject().TryGetPropertyValue(path[i], out root) == false || root == null) break;
+                        if (root == null) break;
+                    }
+                    root?.AsObject().Remove(path[^1]);
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggerHelper.Instance.Error(ex);
+            }
+        }
+        private string ToText(JsonDocument json, KeyValuePair<string, FileReadWrite> item, JsonNode jsonNode)
+        {
+            string text = item.Value.PropertyMethod.Serialize(jsonNode);
+            if (json != null && json.RootElement.TryGetProperty(item.Value.Property.Name, out JsonElement import))
+            {
+                text = item.Value.PropertyMethod.Deserialize(text).ToJson();
+                text = MergeJson(text, import.ToJson());
+
+                object value = item.Value.PropertyMethod.Deserialize(text);
+                text = item.Value.PropertyMethod.Serialize(value);
+
+                item.Value.Property.SetValue(Data, value);
+            }
+            return text;
+
+        }
         public void Save(JsonDocument json = null)
         {
             slim.Wait();
             try
             {
-                foreach (var item in fsDic)
+                foreach (KeyValuePair<string, FileReadWrite> item in fsDic)
                 {
+                    string tempFilePath = $"{item.Value.Path}.temp";
                     try
                     {
                         if (item.Value.PropertyObject == null)
@@ -186,36 +222,8 @@ namespace linker.messenger.store.file
                         }
 
                         JsonNode jsonNode = JsonNode.Parse(item.Value.Property.GetValue(Data).ToJson());
-                        try
-                        {
-                            foreach (string[] path in saveJsonIgnorePaths.Where(c => c.Length > 0 && c[0] == item.Value.Property.Name))
-                            {
-                                if (path.Length == 0) continue;
-
-                                JsonNode root = jsonNode;
-                                for (int i = 1; i < path.Length - 1; i++)
-                                {
-                                    if (root.AsObject().TryGetPropertyValue(path[i], out root) == false || root == null) break;
-                                    if (root == null) break;
-                                }
-                                root?.AsObject().Remove(path[^1]);
-                            }
-                        }
-                        catch (Exception)
-                        {
-                        }
-
-                        string text = item.Value.PropertyMethod.Serialize(jsonNode);
-                        if (json != null && json.RootElement.TryGetProperty(item.Value.Property.Name, out JsonElement import))
-                        {
-                            text = item.Value.PropertyMethod.Deserialize(text).ToJson();
-                            text = MergeJson(text, import.ToJson());
-
-                            object value = item.Value.PropertyMethod.Deserialize(text);
-                            text = item.Value.PropertyMethod.Serialize(value);
-
-                            item.Value.Property.SetValue(Data, value);
-                        }
+                        IgnorePaths(item, jsonNode);
+                        string text = ToText(json, item, jsonNode);
 
                         if (useMemory)
                         {
@@ -223,24 +231,33 @@ namespace linker.messenger.store.file
                         }
                         else
                         {
-                            File.WriteAllText($"{item.Value.Path}.temp", text, encoding: System.Text.Encoding.UTF8);
-                            File.Move($"{item.Value.Path}.temp", item.Value.Path, true);
+                            File.WriteAllText(tempFilePath, text, encoding: System.Text.Encoding.UTF8);
+                            using (var fileStream = new FileStream(tempFilePath, FileMode.Open, FileAccess.ReadWrite))
+                            {
+                                fileStream.Flush(true);
+                                fileStream.Dispose();
+                            }
+
+                            File.Move(tempFilePath, item.Value.Path, true);
                         }
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
+                        if (File.Exists(tempFilePath))
+                            File.Delete(tempFilePath);
+                        LoggerHelper.Instance.Error(ex);
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                LoggerHelper.Instance.Error(ex);
             }
             finally
             {
                 GC.Collect();
                 slim.Release();
             }
-
         }
 
         private void SaveTask()
@@ -309,7 +326,6 @@ namespace linker.messenger.store.file
                 return list;
             }
         }
-
         public IReadOnlyDictionary<string, string> GetMemoryStore() => new Dictionary<string, string>(memoryStore);
     }
 

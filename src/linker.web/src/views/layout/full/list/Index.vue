@@ -29,12 +29,13 @@
         <ForwardEdit v-if="forward.showEdit" v-model="forward.showEdit" ></ForwardEdit>
         <SForwardEdit v-if="sforward.showEdit" v-model="sforward.showEdit" ></SForwardEdit>
         <UpdaterConfirm v-if="updater.show" v-model="updater.show" ></UpdaterConfirm>
-        <Stopwatch v-if="flow.show" v-model="flow.show" ></Stopwatch>
-        <OperFirewall v-if="oper.showFirewall" v-model="oper.showFirewall" ></OperFirewall>
-        <OperWakeup v-if="oper.showWakeup" v-model="oper.showWakeup" ></OperWakeup>
-        <OperTransport v-if="oper.showTransport" v-model="oper.showTransport" ></OperTransport>
-        <OperAction v-if="oper.showAction" v-model="oper.showAction" ></OperAction>
-        <OperFlow v-if="oper.showFlow" v-model="oper.showFlow" ></OperFlow>
+        
+        <OperFirewall v-if="firewall.show" v-model="firewall.show" ></OperFirewall>
+        <OperWakeup v-if="wakeup.show" v-model="wakeup.show" ></OperWakeup>
+        <OperTransport v-if="transport.show" v-model="transport.show" ></OperTransport>
+        <OperAction v-if="action.show" v-model="action.show" ></OperAction>
+        <Stopwatch v-if="flow.showStopwatch" v-model="flow.showStopwatch" ></Stopwatch>
+        <OperFlow v-if="flow.show" v-model="flow.show" ></OperFlow>
     </div>
 </template>
 <script>
@@ -79,15 +80,21 @@ import { provideUpdater } from '../../../components/updater/updater'
 import UpdaterConfirm from '../../../components/updater/UpdaterConfirm.vue'
 
 import { provideFlow } from '../../../components/flow/flow'
-import Stopwatch from '../../../components/stopwatch/Stopwatch.vue'
+import Stopwatch from '../../../components/flow/stopwatch/Index.vue'
+import OperFlow from '../../../components/flow/OperDialog.vue'
 
 import Oper from '../../../components/oper/Oper.vue'
 import { provideOper } from '../../../components/oper/oper'
-import OperFirewall from '../../../components/oper/OperFirewall.vue'
-import OperWakeup from '../../../components/oper/OperWakeup.vue'
-import OperTransport from '../../../components/oper/OperTransport.vue'
-import OperAction from '../../../components/oper/OperAction.vue'
-import OperFlow from '../../../components/oper/OperFlow.vue'
+import OperFirewall from '../../../components/firewall/OperDialog.vue'
+import OperWakeup from '../../../components/wakeup/OperDialog.vue'
+import OperTransport from '../../../components/transport/OperDialog.vue'
+import OperAction from '../../../components/action/OperDialog.vue'
+
+import { provideDecenter } from '@/views/components/decenter/decenter'
+import { provideFirewall } from '@/views/components/firewall/firewall'
+import { provideWakeup } from '@/views/components/wakeup/wakeup'
+import { provideTransport } from '@/views/components/transport/transport'
+import { provideAction } from '@/views/components/action/action'
 
 
 export default {
@@ -114,13 +121,18 @@ export default {
         const {tuntap,_getTuntapInfo,handleTuntapRefresh,clearTuntapTimeout,getTuntapMachines,sortTuntapIP}  = provideTuntap();
         const {socks5,_getSocks5Info,handleSocks5Refresh,clearSocks5Timeout,getSocks5Machines,sortSocks5}  = provideSocks5();
         const {tunnel,_getTunnelInfo,getTunnelOperating,getRelayOperating,handleTunnelRefresh,clearTunnelTimeout,sortTunnel} = provideTunnel();
-        const {forward,_getForwardCountInfo,clearForwardTimeout,handleForwardRefresh} = provideForward();
-        const {sforward,_getSForwardCountInfo,clearSForwardTimeout,handleSForwardRefresh} = provideSforward();
+        const {forward} = provideForward();
+        const {sforward} = provideSforward();
         const {connections,_getForwardConnections,_getTuntapConnections,_getSocks5Connections, clearConnectionsTimeout } = provideConnections();
         const {updater,_getUpdater,_subscribeUpdater,clearUpdaterTimeout} = provideUpdater();
         const {flow} = provideFlow();
         const {_getAccessInfo,clearAccessTimeout,handleAccesssRefresh} = provideAccess();
         const {oper} = provideOper();
+        const {decenter,_getDecenterCounterInfo,handleDecenterRefresh,clearDecenterCounterTimeout} = provideDecenter();
+        const {firewall} = provideFirewall();
+        const {wakeup} = provideWakeup();
+        const {transport} = provideTransport();
+        const {action}  = provideAction();
 
         const handleSortChange = (row)=>{
 
@@ -182,6 +194,7 @@ export default {
             handleTuntapRefresh();
             handleSocks5Refresh();
             handleAccesssRefresh();
+            handleDecenterRefresh();
             ElMessage.success({message:'刷新成功',grouping:true});  
         }
 
@@ -190,9 +203,8 @@ export default {
             handleTunnelRefresh();
             handleTuntapRefresh();
             handleSocks5Refresh();
-            handleForwardRefresh();
-            handleSForwardRefresh();
             handleAccesssRefresh();
+            handleDecenterRefresh();
             
             _getSignList();
             _getSignList1();
@@ -204,12 +216,12 @@ export default {
             _getForwardConnections();
             _getTuntapConnections();
             _getSocks5Connections();
-            _getForwardCountInfo();
-            _getSForwardCountInfo();
             _getUpdater();
             _subscribeUpdater();
 
             _getAccessInfo();
+
+            _getDecenterCounterInfo();
         });
         onUnmounted(() => {
             clearDevicesTimeout();
@@ -217,12 +229,12 @@ export default {
             clearTuntapTimeout();
             clearSocks5Timeout();
             clearTunnelTimeout();
-            clearForwardTimeout();
-            clearSForwardTimeout();
 
             clearUpdaterTimeout();
 
             clearAccessTimeout();
+
+            clearDecenterCounterTimeout();
         });
 
         return {
@@ -233,7 +245,7 @@ export default {
             tunnel,connections, handleTunnelRefresh,
             forward,
             sforward,
-            updater,flow,oper
+            updater,flow,oper,firewall,wakeup,transport,action
         }
     }
 }
