@@ -272,6 +272,7 @@ readVersionDesc().then((desc) => {
         publishIpkText = publishIpkText.replace('{{version}}', desc.version);
     }
     writeText('../publish-ipk.sh', publishIpkText);
+    
     let publishFpkText = readText('../ymls/publish-fpk.sh');
     while (publishFpkText.indexOf('{{version}}') >= 0) {
         publishFpkText = publishFpkText.replace('{{version}}', desc.version);
