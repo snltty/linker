@@ -272,12 +272,12 @@ readVersionDesc().then((desc) => {
         publishIpkText = publishIpkText.replace('{{version}}', desc.version);
     }
     writeText('../publish-ipk.sh', publishIpkText);
-    
+
     let publishFpkText = readText('../ymls/publish-fpk.sh');
     while (publishFpkText.indexOf('{{version}}') >= 0) {
         publishFpkText = publishFpkText.replace('{{version}}', desc.version);
     }
-    writeText('../publish-fpk.sh', publishIpkText);
+    writeText('../publish-fpk.sh', publishFpkText);
 
     const ipkData = readYaml('../ymls/install.yml');
     writeUploadIpk(ipkData, `v${desc.version}`);

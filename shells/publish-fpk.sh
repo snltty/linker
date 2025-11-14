@@ -2,7 +2,24 @@ target=$(cd $(dirname $0)/..; pwd)
 
 cd ../
 
-rs=('x64' 'arm64' 'arm')
+mkdir -p public/publish-fpk/docker
+cp -rf install-package/docker/* public/publish-fpk/docker/
+
+sed -i "s|{version}|1.9.6|g" public/publish-fpk/docker/manifest
+sed -i 's/\r$//' public/publish-fpk/docker/manifest
+sed -i 's/\r$//' public/publish-fpk/docker/cmd/main
+
+cd public/publish-fpk/docker
+
+chmod +x src/linker/fnpack
+sudo mv src/linker/fnpack /usr/local/bin/fnpack
+
+fnpack build
+
+cd ../../../
+
+: <<'EOF'
+rs=('x64')
 index=0
 
 cd src/linker.web 
@@ -18,29 +35,7 @@ do
     mkdir -p public/publish/${r}/logs
     cp -rf src/linker/libmsquic-musl-${r}.so public/publish/${r}/libmsquic.so
 
-    mkdir -p public/publish-ipk/${r}
-    cp -rf install-package/ipk/package/* public/publish-ipk/${r}/
-    cp -rf install-package/ipk/libs/${r}/* public/publish-ipk/${r}/data/   
-    mkdir -p public/publish-ipk/${r}/data/usr/bin/linker
-    cp -rf public/publish/${r}/* public/publish-ipk/${r}/data/usr/bin/linker/
-
-    sed -i "s|{version}|1.9.6|g" public/publish-ipk/${r}/control/control
-    sed -i 's/\r$//' public/publish-ipk/${r}/data/etc/init.d/linker
-    sed -i 's/\r$//' public/publish-ipk/${r}/control/control
-    sed -i 's/\r$//' public/publish-ipk/${r}/control/postinst
-    sed -i 's/\r$//' public/publish-ipk/${r}/control/prerm
-
-    chmod +x public/publish-ipk/${r}/data/etc/init.d/linker
-    chmod +x public/publish-ipk/${r}/control/control
-    chmod +x public/publish-ipk/${r}/control/postinst
-    chmod +x public/publish-ipk/${r}/control/prerm
-
-    cd public/publish-ipk/${r}
-    tar -czf data.tar.gz -C data/ .
-    tar -czf control.tar.gz -C control/ .
-    echo "2.0" > debian-binary
-    tar -czf linker-${r}.ipk debian-binary data.tar.gz control.tar.gz
-    cd ../../../
 
     ((index++))
 done
+EOF
