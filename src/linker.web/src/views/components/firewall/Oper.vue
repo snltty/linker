@@ -12,16 +12,13 @@
 
 <script>
 import { computed } from 'vue';
-import { useDecenter } from '../decenter/decenter';
 import { useFirewall } from './firewall';
 
 export default {
     props: ['item'],
     setup (props) {
         
-        console.log(props.item);
-        const decenter = useDecenter()
-        const firewallCounter = computed(()=>(decenter.value.list.firewall || {})[props.item.MachineId] || 0);
+        const firewallCounter = computed(()=>(props.hook_counter || {firewall:0}).firewall || 0);
         const firewall = useFirewall();
 
         const handleFirewall = ()=>{

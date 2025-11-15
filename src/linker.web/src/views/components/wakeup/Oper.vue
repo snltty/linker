@@ -12,15 +12,13 @@
 
 <script>
 import { computed } from 'vue';
-import { useDecenter } from '../decenter/decenter';
 import { useWakeup } from './wakeup';
 
 export default {
     props:['item'],
     setup (props) {
 
-        const decenter = useDecenter()
-        const wakeupCounter = computed(()=>(decenter.value.list.wakeup || {})[props.item.MachineId] || 0);
+        const wakeupCounter = computed(()=>(props.hook_counter || {wakeup:0}).wakeup || 0);
         const wakeup = useWakeup();
         const handleWakeup = ()=>{
             wakeup.value.device.id = props.item.MachineId;

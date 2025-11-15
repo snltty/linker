@@ -18,8 +18,9 @@ export const provideConnections = () => {
 
         _updateRealTime: false,
         updateRealTime: (value) => {
-            connections.value.hashcode = 0;
-            connections.value.hashcode1 = 0;
+            forwardConnections.value.hashcode = 0;
+            tuntapConnections.value.hashcode = 0;
+            socks5Connections.value.hashcode = 0;
             connections.value._updateRealTime = value;
         }
     });
@@ -28,13 +29,14 @@ export const provideConnections = () => {
     const forwardConnections = ref({
         timer: 0,
         list: {},
+        hashcode: 0,
     });
     provide(forwardConnectionsSymbol, forwardConnections);
     const _getForwardConnections = () => {
         clearTimeout(forwardConnections.value.timer)
-        getForwardConnections(connections.value.hashcode.toString()).then((res) => {
-            if (connections.value._updateRealTime == false)
-                connections.value.hashcode = res.HashCode;
+        getForwardConnections(forwardConnections.value.hashcode.toString()).then((res) => {
+            if (forwardConnections.value._updateRealTime == false)
+                forwardConnections.value.hashcode = res.HashCode;
             if (res.List) {
                 parseConnections(res.List, removeForwardConnection);
                 forwardConnections.value.list = res.List;
@@ -50,13 +52,14 @@ export const provideConnections = () => {
     const tuntapConnections = ref({
         timer: 0,
         list: {},
+        hashcode: 0,
     });
     provide(tuntapConnectionsSymbol, tuntapConnections);
     const _getTuntapConnections = () => {
         clearTimeout(tuntapConnections.value.timer)
-        getTuntapConnections(connections.value.hashcode1.toString()).then((res) => {
+        getTuntapConnections(tuntapConnections.value.hashcode.toString()).then((res) => {
             if (connections.value._updateRealTime == false)
-                connections.value.hashcode1 = res.HashCode;
+                tuntapConnections.value.hashcode = res.HashCode;
             if (res.List) {
                 parseConnections(res.List, removeTuntapConnection);
                 tuntapConnections.value.list = res.List;
@@ -71,13 +74,14 @@ export const provideConnections = () => {
     const socks5Connections = ref({
         timer: 0,
         list: {},
+        hashcode: 0,
     });
     provide(socks5ConnectionsSymbol, socks5Connections);
     const _getSocks5Connections = () => {
         clearTimeout(socks5Connections.value.timer)
-        getSocks5Connections(connections.value.hashcode1.toString()).then((res) => {
+        getSocks5Connections(socks5Connections.value.hashcode.toString()).then((res) => {
             if (connections.value._updateRealTime == false)
-                connections.value.hashcode1 = res.HashCode;
+                socks5Connections.value.hashcode = res.HashCode;
             if (res.List) {
                 parseConnections(res.List, removeSocks5Connection);
                 socks5Connections.value.list = res.List;

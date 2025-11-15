@@ -8,15 +8,13 @@
 
 <script>
 import { computed } from 'vue';
-import { useDecenter } from '../decenter/decenter';
 import { useTransport } from './transport';
 
 export default {
     props: ['item'],
     setup (props) {
         
-        const decenter = useDecenter()
-        const transportCounter = computed(()=>(decenter.value.list.transport || {})[props.item.MachineId] || 0);
+        const transportCounter = computed(()=>(props.hook_counter || {transport:0}).transport || 0);
         const transport = useTransport();
          const handleTransport = (ow)=>{
             transport.value.device.id = props.item.MachineId;

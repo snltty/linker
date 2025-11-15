@@ -1,8 +1,6 @@
-import { getSignInList, signInDel, setSignInOrder } from "@/apis/signin";
+import { getSignInList, setSignInOrder } from "@/apis/signin";
 import { injectGlobalData } from "@/provide";
 import { computed, inject, provide, reactive, ref } from "vue";
-
-const queue = [];
 
 const deviceSymbol = Symbol();
 export const provideDevices = () => {
@@ -23,28 +21,65 @@ export const provideDevices = () => {
         showAccessEdit: false,
         deviceInfo: null
     });
+
     provide(deviceSymbol, devices);
-    const _getSignList = () => {
-        getSignInList(devices.page.Request).then((res) => {
-            devices.page.Request = res.Request;
-            devices.page.Count = res.Count;
-            for (let j in res.List) {
-                Object.assign(res.List[j], {
-                    showDel: machineId.value != res.List[j].MachineId && res.List[j].Connected == false,
-                    showAccess: machineId.value != res.List[j].MachineId && res.List[j].Connected,
-                    showReboot: res.List[j].Connected,
-                    isSelf: machineId.value == res.List[j].MachineId,
-                    showip: false
-                });
-                if (res.List[j].isSelf) {
-                    globalData.value.self = res.List[j];
+
+    const hooks = {};
+    const addDeviceHook = (name,dataFn,processFn,refreshFn) => {
+        hooks[name] = {dataFn,processFn,refreshFn,changed:true};
+    }
+    const startHooks = () => { 
+        const fn = async ()=>{
+            for (let j in devices.page.List) {
+                for(let name in hooks) {
+                    const hook = hooks[name];
+                    if(hook.changed) {
+                        hook.changed = false;
+                        hook.refreshFn();
+                        hook.processFn(devices.page.List[j]);
+                    }
                 }
             }
-            devices.page.List = res.List;
-            for (let i = 0; i < devices.page.List.length; i++) {
-                queue.push(devices.page.List[i]);
+            for(let name in hooks) {
+                const hook = hooks[name];
+                hook.changed = await hook.dataFn();
             }
-        }).catch((err) => { });
+            setTimeout(fn,1000);
+        }
+        fn();
+    }
+    startHooks();
+
+    const startDeviceProcess = () => { 
+        _getSignList().then(()=>{
+            startHooks();
+            _getSignList1();
+        });
+    }
+    const _getSignList = () => {
+        return new Promise((resolve, reject) => { 
+            getSignInList(devices.page.Request).then((res) => {
+                devices.page.Request = res.Request;
+                devices.page.Count = res.Count;
+                for (let j in res.List) {
+                    Object.assign(res.List[j], {
+                        showDel: machineId.value != res.List[j].MachineId && res.List[j].Connected == false,
+                        showAccess: machineId.value != res.List[j].MachineId && res.List[j].Connected,
+                        showReboot: res.List[j].Connected,
+                        isSelf: machineId.value == res.List[j].MachineId,
+                        showip: false
+                    });
+                    if (res.List[j].isSelf) {
+                        globalData.value.self = res.List[j];
+                    }
+                }
+                devices.page.List = res.List;
+                for(let name in hooks) {
+                    hooks[name].changed = true;
+                }
+                resolve()
+            }).catch((err) => { resolve() });
+        });
     }
     const _getSignList1 = () => {
         clearTimeout(devices.timer);
@@ -72,14 +107,6 @@ export const provideDevices = () => {
             devices.timer = setTimeout(_getSignList1, 5000);
         });
     }
-    const handleDeviceEdit = (row) => {
-        devices.deviceInfo = row;
-        devices.showDeviceEdit = true;
-    }
-    const handleAccessEdit = (row) => {
-        devices.deviceInfo = row;
-        devices.showAccessEdit = true;
-    }
     const handlePageChange = (page) => {
         if (page) {
             devices.page.Request.Page = page;
@@ -93,11 +120,6 @@ export const provideDevices = () => {
         }
         _getSignList();
     }
-    const handleDel = (name) => {
-        signInDel(name).then(() => {
-            _getSignList();
-        });
-    }
     const clearDevicesTimeout = () => {
         clearTimeout(devices.timer);
         devices.timer = 0;
@@ -108,8 +130,7 @@ export const provideDevices = () => {
     }
 
     return {
-        devices, machineId, _getSignList, _getSignList1, handleDeviceEdit, handleAccessEdit, handlePageChange, handlePageSizeChange, handleDel, clearDevicesTimeout,
-        setSort
+        devices,addDeviceHook, startDeviceProcess, handlePageChange, handlePageSizeChange, clearDevicesTimeout, setSort
     }
 }
 export const useDevice = () => {

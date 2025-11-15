@@ -23,7 +23,7 @@
                                                     <AccessShow value="Reboot">
                                                         <el-dropdown-item @click="handleExit(scope.row)"><el-icon><SwitchButton /></el-icon>{{$t('home.reboot')}}</el-dropdown-item>
                                                     </AccessShow>
-                                                    <el-dropdown-item v-if="handleShowAccess(scope.row,accessList[scope.row.MachineId] || '0',values)" @click="handleAccess(scope.row)"><el-icon><Flag /></el-icon>{{$t('home.access')}}</el-dropdown-item>
+                                                    <el-dropdown-item v-if="handleShowAccess(scope.row,values)" @click="handleAccess(scope.row)"><el-icon><Flag /></el-icon>{{$t('home.access')}}</el-dropdown-item>
                                                     <AccessShow value="ApiPassword">
                                                         <el-dropdown-item v-if="scope.row.isSelf" @click="handleApiPassword(scope.row)"><el-icon><HelpFilled /></el-icon>{{$t('home.managerApi')}}</el-dropdown-item>
                                                     </AccessShow>
@@ -54,8 +54,6 @@ import { signInDel } from '@/apis/signin';
 import { injectGlobalData } from '@/provide';
 import { Delete,SwitchButton,ArrowDown, Flag,HelpFilled,Platform,Paperclip,CircleCheck,VideoPlay,Orange,Lock,Histogram } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { computed } from 'vue';
-import { useAccess } from '../accesss/access';
 import { setApiPassword } from '@/apis/access';
 import { useDevice } from '../device/devices';
 import { useI18n } from 'vue-i18n';
@@ -79,9 +77,6 @@ export default {
         const {t} = useI18n();
 
         const devices = useDevice();
-        const allAccess = useAccess();
-        const myAccess = computed(()=>globalData.value.config.Client.AccessBits);
-        const accessList = computed(()=>allAccess.value.list);
         
         const handleDel = (row)=>{
             ElMessageBox.confirm(t('home.deleteSure',[row.MachineName]), t('common.tips'), {
@@ -106,9 +101,11 @@ export default {
         }
 
 
-        const handleShowAccess = (row,rowAccess,access)=>{ 
-            let maxLength = Math.max(myAccess.value.length,rowAccess.length);
-            let myValue = myAccess.value.padEnd(maxLength,'0').split('');
+        const handleShowAccess = (row,access)=>{ 
+            const rowAccess = row.hook_accesss || '';
+            const myAccess = globalData.value.config.Client.AccessBits;
+            let maxLength = Math.max(myAccess.length,rowAccess.length);
+            let myValue = myAccess.padEnd(maxLength,'0').split('');
             let rowValue = rowAccess.padEnd(maxLength,'0').split('');
             return row.showAccess  && access.Access
             && myValue.map((v,i)=>{
@@ -138,7 +135,7 @@ export default {
 
 
 
-        return {accessList,handleDel,handleExit,handleShowAccess,handleAccess,
+        return {handleDel,handleExit,handleShowAccess,handleAccess,
            handleApiPassword
         }
     }

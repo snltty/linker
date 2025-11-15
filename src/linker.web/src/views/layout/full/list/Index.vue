@@ -117,7 +117,7 @@ export default {
             height: computed(()=>globalData.value.height-90)
         });
 
-        const {devices, _getSignList, _getSignList1, handlePageChange, handlePageSizeChange,clearDevicesTimeout,setSort} = provideDevices();
+        const {devices,addDeviceHook, startDeviceProcess, handlePageChange, handlePageSizeChange,clearDevicesTimeout,setSort} = provideDevices();
         const {tuntap,_getTuntapInfo,handleTuntapRefresh,clearTuntapTimeout,getTuntapMachines,sortTuntapIP}  = provideTuntap();
         const {socks5,_getSocks5Info,handleSocks5Refresh,clearSocks5Timeout,getSocks5Machines,sortSocks5}  = provideSocks5();
         const {tunnel,_getTunnelInfo,getTunnelOperating,getRelayOperating,handleTunnelRefresh,clearTunnelTimeout,sortTunnel} = provideTunnel();
@@ -126,13 +126,16 @@ export default {
         const {connections,_getForwardConnections,_getTuntapConnections,_getSocks5Connections, clearConnectionsTimeout } = provideConnections();
         const {updater,_getUpdater,_subscribeUpdater,clearUpdaterTimeout} = provideUpdater();
         const {flow} = provideFlow();
-        const {_getAccessInfo,clearAccessTimeout,handleAccesssRefresh} = provideAccess();
+        const {accessDataFn,accessProcessFn,accessRefreshFn} = provideAccess();
         const {oper} = provideOper();
-        const {decenter,_getDecenterCounterInfo,handleDecenterRefresh,clearDecenterCounterTimeout} = provideDecenter();
+        const {decenter,counterDataFn,counterProcessFn,counterRefreshFn} = provideDecenter();
         const {firewall} = provideFirewall();
         const {wakeup} = provideWakeup();
         const {transport} = provideTransport();
         const {action}  = provideAction();
+
+        addDeviceHook('access',accessDataFn,accessProcessFn,accessRefreshFn)
+        addDeviceHook('counter',counterDataFn,counterProcessFn,counterRefreshFn)
 
         const handleSortChange = (row)=>{
 
@@ -188,26 +191,15 @@ export default {
             handleAccesssRefresh();
             ElMessage.success({message:'刷新成功',grouping:true});  
         }
-        const handlePageSearch = ()=>{
-            handlePageChange();
-            handleTunnelRefresh();
-            handleTuntapRefresh();
-            handleSocks5Refresh();
-            handleAccesssRefresh();
-            handleDecenterRefresh();
-            ElMessage.success({message:'刷新成功',grouping:true});  
-        }
 
         onMounted(() => {
             handlePageChange();
             handleTunnelRefresh();
             handleTuntapRefresh();
             handleSocks5Refresh();
-            handleAccesssRefresh();
-            handleDecenterRefresh();
             
-            _getSignList();
-            _getSignList1();
+            startDeviceProcess();
+            
             _getTuntapInfo();
             _getSocks5Info();
             _getTunnelInfo();
@@ -219,9 +211,6 @@ export default {
             _getUpdater();
             _subscribeUpdater();
 
-            _getAccessInfo();
-
-            _getDecenterCounterInfo();
         });
         onUnmounted(() => {
             clearDevicesTimeout();
@@ -232,14 +221,10 @@ export default {
 
             clearUpdaterTimeout();
 
-            clearAccessTimeout();
-
-            clearDecenterCounterTimeout();
         });
 
         return {
-            state,globalData,devices,handleSortChange,
-            handlePageRefresh,handlePageSearch, handlePageChange,handlePageSizeChange,
+            state,globalData,devices,handleSortChange, handlePageRefresh, handlePageChange,handlePageSizeChange,
             tuntap,
             socks5, handleSocks5Refresh,
             tunnel,connections, handleTunnelRefresh,

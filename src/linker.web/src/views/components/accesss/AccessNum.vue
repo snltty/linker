@@ -5,19 +5,13 @@
 <script>
 import { injectGlobalData } from '@/provide';
 import { computed } from 'vue';
-import { useAccess } from './access';
 
 export default {
     props:['item'],
     setup (props) {
         
         const globalData = injectGlobalData();
-        const accesss = useAccess();
-        const accessHasLength = computed(()=>{
-            if(accesss.value.list[props.item.MachineId])
-                return accesss.value.list[props.item.MachineId].split('').filter(c=>c==='1').length;
-            return 0
-        });
+        const accessHasLength = computed(()=>props.item.hook_accesss.split('').filter(c=>c==='1').length);
         const accessLength = computed(()=>{
             return Object.keys(globalData.value.config.Client.Accesss).length;
         });

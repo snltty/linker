@@ -22,13 +22,11 @@
 <script>
 import {  computed, onMounted, reactive } from 'vue'; 
 import { injectGlobalData } from '@/provide';
-import { useAccess } from './access';
 export default {
-    props:['machineid','height'],
+    props:['accesss','height'],
     setup(props) {
 
         const globalData = injectGlobalData();
-        const allAccess = useAccess();
         const access = computed(()=>{
             const json = globalData.value.config.Client.Accesss;
             return Object.keys(json).reduce((arr,key,index)=>{
@@ -90,10 +88,9 @@ export default {
         }
 
         onMounted(()=>{
-            if(allAccess && allAccess.value.list[props.machineid]){
-                const res = allAccess.value.list[props.machineid];
+            if(props.accesss){
                 state.checkList = access.value.reduce((arr,item)=>{
-                    if(res[item.Value] == '1'){
+                    if(props.accesss[item.Value] == '1'){
                         arr.push(item.Value);
                     }
                     return arr;

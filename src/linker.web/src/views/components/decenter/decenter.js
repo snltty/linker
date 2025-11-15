@@ -4,32 +4,37 @@ import { inject, provide, ref } from "vue";
 const decenterSymbol = Symbol();
 export const provideDecenter = () => {
     const decenter = ref({
-        timer: 0,
         list: {},
         hashcode: 0
     });
     provide(decenterSymbol, decenter);
 
-    const _getDecenterCounterInfo = () => {
-        clearTimeout(decenter.value.timer);
-        getCounterInfo(decenter.value.hashcode.toString()).then((res) => {
-            decenter.value.hashcode = res.HashCode;
-            if (res.List) {
-                decenter.value.list = res.List;
-            }
-            decenter.value.timer = setTimeout(_getDecenterCounterInfo, 1020);
-        }).catch(() => {
-            decenter.value.timer = setTimeout(_getDecenterCounterInfo, 1020);
+    const counterDataFn = () => {
+        return new Promise((resolve, reject) => { 
+            getCounterInfo(decenter.value.hashcode.toString()).then((res) => {
+                decenter.value.hashcode = res.HashCode;
+                if (res.List) {
+                    decenter.value.list = res.List;
+                    resolve(true);
+                    return;
+                }
+                resolve(false);
+            }).catch(() => {
+                resolve(false);
+            });
         });
+        
     }
-    const handleDecenterRefresh = () => {
+    const counterProcessFn = (device) => {
+        Object.assign(device,{
+            hook_counter: decenter.value.list[device.MachineId] || ''
+        })
+    }
+    const counterRefreshFn = () => {
         refreshCounter();
     }
-    const clearDecenterCounterTimeout = () => {
-        clearTimeout(decenter.value.timer);
-    }
     return {
-        decenter, _getDecenterCounterInfo,handleDecenterRefresh, clearDecenterCounterTimeout
+        decenter, counterDataFn,counterProcessFn,counterRefreshFn
     }
 }
 export const useDecenter = () => {

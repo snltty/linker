@@ -1,19 +1,19 @@
 <template>
-    <el-table-column prop="forward" :label="forward.show?$t('home.forward'):''" width="80">
+    <el-table-column prop="forward" :label="$t('home.forward')" width="80">
         <template #default="scope">
-            <template v-if="forward.show && scope.row.Connected">
+            <template v-if="scope.row.Connected">
                 <AccessBoolean value="ForwardOther,ForwardSelf">
                     <template #default="{values}">
                         <template v-if="values.ForwardOther || (values.ForwardSelf && scope.row.isSelf)">
                             <div class="nowrap">
                                 <ConnectionShow :data="connections.list[scope.row.MachineId]" :row="scope.row" transitionId="forward"></ConnectionShow>
-                                <a href="javascript:;" :class="{green:forwardCounter[scope.row.MachineId]>0}" @click="handleEdit(scope.row.MachineId,scope.row.MachineName,values)">
-                                    <span :class="{gateway:forwardCounter[scope.row.MachineId]>0}">{{$t('home.forwardPort')}}({{forwardCounter[scope.row.MachineId]>99 ? '99+' : forwardCounter[scope.row.MachineId]||0}})</span>
+                                <a href="javascript:;" :class="{green:(scope.row.hook_counter || {forward:0}).forward>0}" @click="handleEdit(scope.row.MachineId,scope.row.MachineName,values)">
+                                    <span :class="{gateway:(scope.row.hook_counter || {forward:0}).forward>0}">{{$t('home.forwardPort')}}({{(scope.row.hook_counter || {forward:0}).forward>99 ? '99+' : (scope.row.hook_counter || {forward:0}).forward}})</span>
                                 </a>
                             </div>
                             <div class="nowrap">
-                                <a href="javascript:;" :class="{green:sforwardCounter[scope.row.MachineId]>0}" @click="handleSEdit(scope.row.MachineId,scope.row.MachineName,values)">
-                                    <span :class="{gateway:sforwardCounter[scope.row.MachineId]>0 }">{{$t('home.forwardServer')}}({{sforwardCounter[scope.row.MachineId]>99 ? '99+' : sforwardCounter[scope.row.MachineId]||0}})</span>
+                                <a href="javascript:;" :class="{green:(scope.row.hook_counter || {sforward:0}).sforward>0}" @click="handleSEdit(scope.row.MachineId,scope.row.MachineName,values)">
+                                    <span :class="{gateway:(scope.row.hook_counter || {sforward:0}).sforward>0 }">{{$t('home.forwardServer')}}({{(scope.row.hook_counter || {sforward:0}).sforward>99 ? '99+' :(scope.row.hook_counter || {sforward:0}).sforward}})</span>
                                 </a>
                             </div>
                         </template>
@@ -31,15 +31,11 @@ import { computed } from 'vue';
 import { useForwardConnections } from '../connection/connections';
 import ConnectionShow from '../connection/ConnectionShow.vue';
 import { ElMessage } from 'element-plus';
-import { useDecenter } from '../decenter/decenter';
 
 export default {
     components:{ConnectionShow},
     setup() {
 
-        const decenter = useDecenter();
-        const forwardCounter = computed(()=>decenter.value.list.forward || {});
-        const sforwardCounter = computed(()=>decenter.value.list.sforward || {});
         const forward = useForward()
         const sforward = useSforward()
         
@@ -80,7 +76,7 @@ export default {
             sforward.value.showEdit = true;
         }
         return {
-           forwardCounter,sforwardCounter,forward,connections, handleEdit,handleSEdit
+           connections, handleEdit,handleSEdit
         }
     }
 }

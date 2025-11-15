@@ -1,7 +1,7 @@
 <template>
-     <el-dialog v-model="state.show" :close-on-click-modal="false" center append-to=".app-wrap" :title="`设置[${machineName}]的权限`" width="580" top="1vh">
+     <el-dialog v-model="state.show" :close-on-click-modal="false" center append-to=".app-wrap" :title="`设置[${state.machineName}]的权限`" width="580" top="1vh">
         <div>
-            <Access :machineid="machineid" ref="accessDom"></Access>
+            <Access :accesss="state.accesss" ref="accessDom"></Access>
         </div>
         <template #footer>
             <el-button plain @click="state.show = false" :loading="state.loading">取消</el-button>
@@ -23,6 +23,8 @@ export default {
         const state = reactive({
             show: true,
             loading: false,
+            machineName:props.data.MachineName,
+            accesss:props.data.hook_accesss
         });
         watch(() => state.show, (val) => {
             if (!val) {
@@ -53,8 +55,7 @@ export default {
         }
 
         return {
-          machineName:props.data.MachineName, 
-          machineid:props.data.MachineId, state, accessDom,  handleSave
+            state, accessDom,  handleSave
         }
     }
 }

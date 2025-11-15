@@ -5,7 +5,6 @@ import { inject, provide, ref } from "vue";
 
 const tunnelSymbol = Symbol();
 export const provideTunnel = () => {
-    const globalData = injectGlobalData();
     const tunnel = ref({
       
         timer1: 0,

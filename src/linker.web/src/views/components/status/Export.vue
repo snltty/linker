@@ -53,7 +53,7 @@
                                     </div>
                                 </div>
                             </template>
-                            <Access ref="accessDom" :machineid="machineId" :height="30"></Access>
+                            <Access ref="accessDom" :machineid="state.accesss" :height="30"></Access>
                         </el-card>
                     </div>
                 </div>
@@ -104,7 +104,6 @@ export default {
         const { t } = useI18n();
         const globalData = injectGlobalData();
         const onlyNode = computed(()=>globalData.value.config.Client.OnlyNode);
-        const machineId = computed(()=>globalData.value.config.Client.Id);
         const state = reactive({
             show: false,
             loading:false,
@@ -125,7 +124,9 @@ export default {
 
             saveServer:globalData.value.config.Client.Server.Host,
             saveContent:'',
-            showSave:false
+            showSave:false,
+
+            accesss:globalData.value.config.Client.AccessBits
         });
         const accessDom = ref(null); 
       
@@ -259,7 +260,7 @@ export default {
             }
         }
 
-        return {globalData,config:props.config,onlyNode,machineId, state,accessDom,
+        return {globalData,config:props.config,onlyNode, state,accessDom,
             handleSave,handleExport,handleCopy,copyToClipboard,copySaveToClipboard};
     }
 }
