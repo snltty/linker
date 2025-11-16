@@ -14,9 +14,9 @@
             <p class="flex">
                 <template v-if="scope.row.Connected">
                     <div>
-                        <template v-if="tuntap.list[scope.row.MachineId] && tuntap.list[scope.row.MachineId].systems">
-                            <template v-for="system in tuntap.list[scope.row.MachineId].systems">
-                                <span :title="tuntap.list[scope.row.MachineId].SystemInfo">
+                        <template v-if="scope.row.hook_tuntap && scope.row.hook_tuntap.systems">
+                            <template v-for="system in scope.row.hook_tuntap.systems">
+                                <span :title="scope.row.hook_tuntap.SystemInfo">
                                     <img class="system" :src="`./${system}.svg`" />
                                 </span>
                             </template>
@@ -27,7 +27,7 @@
                     </span>
                     
                     <span class="flex-1"></span>
-                    <UpdaterBtn v-if="scope.row.showip == false" :config="true" :item="scope.row"></UpdaterBtn>
+                    <UpdaterBtn :config="true" :item="scope.row"></UpdaterBtn>
                 </template>
                 <template v-else>
                     <span>{{ scope.row.LastSignIn }}</span>
@@ -42,14 +42,12 @@ import { ref } from 'vue';
 import {Search} from '@element-plus/icons-vue'
 import UpdaterBtn from '../updater/UpdaterBtn.vue';
 import DeviceName from './DeviceName.vue';
-import { useTuntap } from '../tuntap/tuntap';
 
 export default {
     emits:['refresh'],
     components:{Search,UpdaterBtn,DeviceName},
     setup(props,{emit}) {
 
-        const tuntap = useTuntap();
         const name = ref(sessionStorage.getItem('search-name') || '');
         
         const handleRefresh = ()=>{
@@ -58,7 +56,7 @@ export default {
         }
 
         return {
-            tuntap,name, handleRefresh
+            name, handleRefresh
         }
     }
 }

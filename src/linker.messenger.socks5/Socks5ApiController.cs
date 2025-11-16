@@ -30,26 +30,6 @@ namespace linker.messenger.socks5
             this.accessStore = accessStore;
         }
 
-        public ConnectionListInfo Connections(ApiControllerParamsInfo param)
-        {
-            ulong hashCode = ulong.Parse(param.Content);
-            if (tunnelProxy.Version.Eq(hashCode, out ulong version) == false)
-            {
-                return new ConnectionListInfo
-                {
-                    List = tunnelProxy.GetConnections(),
-                    HashCode = version
-                };
-            }
-            return new ConnectionListInfo { HashCode = version };
-        }
-
-        [Access(AccessValue.TunnelRemove)]
-        public void RemoveConnection(ApiControllerParamsInfo param)
-        {
-            tunnelProxy.RemoveConnection(param.Content);
-        }
-
         /// <summary>
         /// 获取所有客户端的信息
         /// </summary>
@@ -162,11 +142,6 @@ namespace linker.messenger.socks5
     public sealed class Socks5ListInfo
     {
         public ConcurrentDictionary<string, Socks5Info> List { get; set; }
-        public ulong HashCode { get; set; }
-    }
-    public sealed class ConnectionListInfo
-    {
-        public ConcurrentDictionary<string, ITunnelConnection> List { get; set; }
         public ulong HashCode { get; set; }
     }
 }

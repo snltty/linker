@@ -1,11 +1,5 @@
 import { sendWebsocketMsg } from './request'
 
-export const getForwardConnections = (hashcode = '0') => {
-    return sendWebsocketMsg('forward/connections', hashcode);
-}
-export const removeForwardConnection = (id) => {
-    return sendWebsocketMsg('forward/removeconnection', id);
-}
 export const getForwardInfo = (hashcode = '0') => {
     return sendWebsocketMsg('forward/get', hashcode);
 }

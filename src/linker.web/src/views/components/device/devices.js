@@ -9,6 +9,7 @@ export const provideDevices = () => {
     const machineId = computed(() => globalData.value.config.Client.Id);
     const devices = reactive({
         timer: 0,
+        timer1: 0,
         page: {
             Request: {
                 Page: 1, Size: +(localStorage.getItem('ps') || '10'), Name: '', Ids: [], Prop: '', Asc: true
@@ -25,18 +26,32 @@ export const provideDevices = () => {
     provide(deviceSymbol, devices);
 
     const hooks = {};
-    const addDeviceHook = (name,dataFn,processFn,refreshFn) => {
-        hooks[name] = {dataFn,processFn,refreshFn,changed:true};
+    const deviceAddHook = (name,dataFn,processFn,refreshFn) => {
+        hooks[name] = {dataFn,processFn,refreshFn,changed:true,refresh:true};
+    }
+    const deviceRefreshHook = (name) => {
+        if(hooks[name]) {
+            hooks[name].changed = true;
+        }
     }
     const startHooks = () => { 
         const fn = async ()=>{
-            for (let j in devices.page.List) {
-                for(let name in hooks) {
-                    const hook = hooks[name];
-                    if(hook.changed) {
-                        hook.changed = false;
-                        hook.refreshFn();
-                        hook.processFn(devices.page.List[j]);
+            clearTimeout(devices.timer1);
+            for(let name in hooks) {
+                const hook = hooks[name];
+                if(hook.refresh) {
+                    hook.refresh = false;
+                    hook.refreshFn();
+                }
+            }
+            for(let name in hooks) {
+                const hook = hooks[name];
+                if(hook.changed) {
+                    hook.changed = false;
+                    for (let i = 0; i< devices.page.List.length; i++) {
+                        const json = {}
+                        hook.processFn(devices.page.List[i],json);
+                        Object.assign(devices.page.List[i], json);
                     }
                 }
             }
@@ -44,13 +59,13 @@ export const provideDevices = () => {
                 const hook = hooks[name];
                 hook.changed = await hook.dataFn();
             }
-            setTimeout(fn,1000);
+            devices.timer1 = setTimeout(fn,1000);
         }
         fn();
     }
     startHooks();
 
-    const startDeviceProcess = () => { 
+    const deviceStartProcess = () => { 
         _getSignList().then(()=>{
             startHooks();
             _getSignList1();
@@ -66,8 +81,7 @@ export const provideDevices = () => {
                         showDel: machineId.value != res.List[j].MachineId && res.List[j].Connected == false,
                         showAccess: machineId.value != res.List[j].MachineId && res.List[j].Connected,
                         showReboot: res.List[j].Connected,
-                        isSelf: machineId.value == res.List[j].MachineId,
-                        showip: false
+                        isSelf: machineId.value == res.List[j].MachineId
                     });
                     if (res.List[j].isSelf) {
                         globalData.value.self = res.List[j];
@@ -120,9 +134,11 @@ export const provideDevices = () => {
         }
         _getSignList();
     }
-    const clearDevicesTimeout = () => {
+    const deviceClearTimeout = () => {
         clearTimeout(devices.timer);
+        clearTimeout(devices.timer1);
         devices.timer = 0;
+        devices.timer1 = 0;
     }
 
     const setSort = (ids) => {
@@ -130,7 +146,7 @@ export const provideDevices = () => {
     }
 
     return {
-        devices,addDeviceHook, startDeviceProcess, handlePageChange, handlePageSizeChange, clearDevicesTimeout, setSort
+        devices,deviceAddHook,deviceRefreshHook, deviceStartProcess, handlePageChange, handlePageSizeChange, deviceClearTimeout, setSort
     }
 }
 export const useDevice = () => {

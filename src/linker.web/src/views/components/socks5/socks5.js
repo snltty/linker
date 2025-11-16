@@ -13,35 +13,34 @@ export const provideSocks5 = () => {
     });
     provide(socks5Symbol, socks5);
 
-    const _getSocks5Info = () => {
-        clearTimeout(socks5.value.timer);
-        getSocks5Info(socks5.value.hashcode.toString()).then((res) => {
-            socks5.value.hashcode = res.HashCode;
-            if (res.List) {
-                for (let j in res.List) {
-                    Object.assign(res.List[j], {
-                        running: res.List[j].Status == 2,
-                        loading: res.List[j].Status == 1
-                    });
+    const socks5DataFn = () => {
+        return new Promise((resolve, reject) => { 
+            getSocks5Info(socks5.value.hashcode.toString()).then((res) => {
+                socks5.value.hashcode = res.HashCode;
+                if (res.List) {
+                    for (let j in res.List) {
+                        Object.assign(res.List[j], {
+                            running: res.List[j].Status == 2,
+                            loading: res.List[j].Status == 1
+                        });
+                    }
+                    socks5.value.list = res.List;
+                    resolve(true);
+                    return;
                 }
-                socks5.value.list = res.List;
-            }
-            socks5.value.timer = setTimeout(_getSocks5Info, 1100);
-        }).catch((e) => {
-            socks5.value.timer = setTimeout(_getSocks5Info, 1100);
+                resolve(false);
+            }).catch((e) => {
+                resolve(false);
+            });
         });
     }
-    const handleSocks5Edit = (_socks5) => {
-        socks5.value.current = _socks5;
-        socks5.value.showEdit = true;
-
+    const socks5ProcessFn = (device,json) => {
+        Object.assign(json,{
+            hook_socks5: socks5.value.list[device.MachineId] || ''
+        });
     }
-    const handleSocks5Refresh = () => {
+    const socks5RefreshFn = () => {
         refreshSocks5();
-    }
-    const clearSocks5Timeout = () => {
-        clearTimeout(socks5.value.timer);
-        socks5.value.timer = 0;
     }
     const getSocks5Machines = (name) => {
         return Object.values(socks5.value.list)
@@ -55,7 +54,7 @@ export const provideSocks5 = () => {
 
 
     return {
-        socks5, _getSocks5Info, handleSocks5Edit, handleSocks5Refresh, clearSocks5Timeout, getSocks5Machines, sortSocks5
+        socks5, socks5DataFn,socks5ProcessFn, socks5RefreshFn, getSocks5Machines, sortSocks5
     }
 }
 

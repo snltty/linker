@@ -4,7 +4,7 @@
             <div class="head">
                 <Head></Head>
             </div>
-            <div class="body flex-1 relative">
+            <div class="body flex-1 relative" id="main-body">
                 <List></List>
             </div>
             <div class="status">

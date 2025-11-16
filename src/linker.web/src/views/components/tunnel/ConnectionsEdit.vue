@@ -1,81 +1,60 @@
 <template>
-    <el-dialog v-model="state.show" append-to=".app-wrap" :title="`与[${state.machineName}]的链接`" top="1vh" width="98%">
+    <el-dialog v-model="state.show" append-to=".app-wrap" :title="`与[${state.device.MachineName}]的链接`" top="1vh" width="500">
         <div>
-            <el-table :data="state.data" size="small" border height="500">
-                <el-table-column property="RemoteMachineId" label="目标/服务器">
-                    <template #default="scope">
-                        <div :class="{ green: scope.row.Connected }">
-                            <p>{{ scope.row.IPEndPoint }}</p>
-                            <p>ssl : {{ scope.row.SSL }}</p>
-                        </div>
-                    </template>
-                </el-table-column>
-                <el-table-column property="TransactionId" label="事务" width="80">
-                    <template #default="scope">
-                        <span>{{ state.transactions[scope.row.TransactionId] }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column property="TransportName" label="协议" >
-                    <template #default="scope">
-                        <div>
-                            <p>{{ scope.row.TransportName }}({{ state.protocolTypes[scope.row.ProtocolType] }})</p>
-                            <p>{{ state.types[scope.row.Type] }} - {{ scope.row.SendBufferRemainingText }} - {{ scope.row.RecvBufferRemainingText }}</p>
-                        </div>
-                    </template>
-                </el-table-column>
-                <el-table-column property="Delay" label="延迟" width="60">
-                    <template #default="scope">
-                        <div>
-                            <p>{{ scope.row.Delay }}</p>
-                        </div>
-                    </template>
-                </el-table-column>
-                <el-table-column property="Bytes" label="通信">
-                    <template #default="scope">
-                        <div>
-                            <p>up : {{ scope.row.SendBytesText }}</p>
-                            <p>down : {{ scope.row.ReceiveBytesText }}</p>
-                        </div>
-                    </template>
-                </el-table-column>
-                <el-table-column property="relay" label="中继节点">
-                    <template #default="scope">
-                        <div>
-                            <p class="ellipsis">
-                                <span>中继 : </span>
-                                <a v-if="state.relayOperatings[scope.row.RemoteMachineId]" href="javascript:;" class="a-line">
-                                    <span>操作中.</span><el-icon size="14" class="loading"><Loading /></el-icon>
-                                </a>
-                                <a v-else href="javascript:;" class="a-line" @click="handleNode(scope.row)">{{
-                                state.nodesDic[scope.row.NodeId] || '选择节点' }}</a>
-                            </p>
-                            <p>
-                                <span>打洞 : </span>
-                                <a v-if="state.p2pOperatings[scope.row.RemoteMachineId]" href="javascript:;" class="a-line">
-                                    <span>操作中.</span><el-icon size="14" class="loading"><Loading /></el-icon>
-                                </a>
-                                <a v-else href="javascript:;" class="a-line" @click="handlep2p(scope.row)">尝试打洞</a>
-                            </p>
-                        </div>
-                    </template>
-                </el-table-column>
-                <el-table-column label="操作" width="54">
-                    <template #default="scope">
-                        <div>
-                            <AccessShow value="TunnelRemove">
-                                <el-popconfirm confirm-button-text="确认" cancel-button-text="取消"
-                                    title="确定关闭此连接?" @confirm="handleDel(scope.row)">
-                                    <template #reference>
-                                        <el-button type="danger" size="small"><el-icon>
-                                                <Delete />
-                                            </el-icon></el-button>
-                                    </template>
-                                </el-popconfirm>
-                            </AccessShow>
-                        </div>
-                    </template>
-                </el-table-column>
-            </el-table>
+            <el-descriptions border size="small" :column="2" column-max-width="120px" overlength-control="wrap">
+                <el-descriptions-item label="目标">{{ state.connection.IPEndPoint || '0.0.0.0:0' }}</el-descriptions-item>
+                <el-descriptions-item label="事务">{{ state.transactions[state.connection.TransactionId] }}</el-descriptions-item>
+                <el-descriptions-item label="协议">
+                    <div>
+                        <p>{{ state.connection.TransportName }}({{ state.protocolTypes[state.connection.ProtocolType] }}) - {{ state.types[state.connection.Type] }}</p>
+                        <!-- <p> - {{ state.connection.SendBufferRemainingText }} - {{ state.connection.RecvBufferRemainingText }}</p> -->
+                    </div>
+                </el-descriptions-item>
+                <el-descriptions-item label="SSL">{{ state.connection.SSL }}</el-descriptions-item>
+                
+                <el-descriptions-item label="上传">
+                    <div>
+                        <p><span>{{ state.connection.SendBytesText }}</span></p>
+                    </div>
+                </el-descriptions-item>
+                 <el-descriptions-item label="下载">
+                    <div>
+                        <p><span>{{ state.connection.ReceiveBytesText }}</span></p>
+                    </div>
+                </el-descriptions-item>
+                
+                <el-descriptions-item label="中继">
+                    <div>
+                        <a v-if="state.connecting" href="javascript:;" class="a-line">
+                            <span>操作中.</span><el-icon size="14" class="loading"><Loading /></el-icon>
+                        </a>
+                        <a v-else href="javascript:;" class="a-line" @click="handleNode">{{ state.nodesDic[state.connection.NodeId] || '选择节点' }}</a>
+                    </div>
+                </el-descriptions-item>
+                <el-descriptions-item label="打洞">
+                    <div>
+                        <a v-if="state.connecting" href="javascript:;" class="a-line">
+                            <span>操作中.</span><el-icon size="14" class="loading"><Loading /></el-icon>
+                        </a>
+                        <a v-else href="javascript:;" class="a-line" @click="handlep2p">尝试打洞</a>
+                    </div>
+                </el-descriptions-item>
+                <el-descriptions-item label="延迟">{{ state.connection.Delay }}</el-descriptions-item>
+                 <el-descriptions-item label="操作">
+                    <div>
+                        <AccessShow value="TunnelRemove">
+                            <el-popconfirm confirm-button-text="确认" cancel-button-text="取消"
+                                title="确定关闭此连接?" @confirm="handleDel">
+                                <template #reference>
+                                    <el-button type="danger" size="small"><el-icon>
+                                            <Delete />
+                                        </el-icon></el-button>
+                                </template>
+                            </el-popconfirm>
+                        </AccessShow>
+                    </div>
+                </el-descriptions-item>
+            </el-descriptions>
         </div>
     </el-dialog>
     <el-dialog v-model="state.showNodes" :title="$t('server.relayTitle')" width="98%" top="2vh">
@@ -136,13 +115,12 @@
 <script>
 import { reactive, watch, computed, onMounted, onUnmounted } from 'vue';
 import { ElMessage } from 'element-plus';
-import { useConnections, useForwardConnections, useSocks5Connections, useTuntapConnections } from './connections';
+import { useConnections} from './connections';
 import { Delete, Select, ArrowDown,Loading } from '@element-plus/icons-vue';
 import { injectGlobalData } from '@/provide';
 import { relayConnect, setRelaySubscribe } from '@/apis/relay';
 import { useI18n } from 'vue-i18n';
-import { useTunnel } from '../tunnel/tunnel';
-import { tunnelConnect } from '@/apis/tunnel';
+import { removeTunnelConnection, tunnelConnect } from '@/apis/tunnel';
 export default {
     props: ['modelValue'],
     emits: ['change', 'update:modelValue'],
@@ -153,31 +131,22 @@ export default {
         const globalData = injectGlobalData();
 
         const connections = useConnections();
-        const forwardConnections = useForwardConnections();
-        const tuntapConnections = useTuntapConnections();
-        const socks5Connections = useSocks5Connections();
-        const tunnel = useTunnel();
+        const connection =  computed(() =>connections.value.device.hook_connection? connections.value.device.hook_connection[connections.value.transactionId] || {} :{});
+
         const state = reactive({
             show: true,
             protocolTypes: { 1: 'tcp', 2: 'udp', 4: 'msquic' },
             types: { 0: '打洞', 1: '中继', 2: '节点' },
             transactions: { 'forward': '端口转发', 'tuntap': '虚拟网卡', 'socks5': '代理转发' },
-            machineName: connections.value.currentName,
-            currentRow: {},
-            data: computed(() => {
-                return [
-                    forwardConnections.value.list[connections.value.current],
-                    tuntapConnections.value.list[connections.value.current],
-                    socks5Connections.value.list[connections.value.current],
-                ].filter(c => !!c);
-            }),
+            device: connections.value.device,
+            transactionId: connections.value.transactionId,
+            connecting:computed(()=>connections.value.device.hook_operating[connections.value.transactionId]),
+            connection:connection,
+
             showNodes: false,
             nodes: [],
             nodesDic: {},
-            timer: 0,
-
-            relayOperatings:tunnel.value.relayOperatings,
-            p2pOperatings:tunnel.value.p2pOperatings,
+            timer: 0
         });
         watch(() => state.show, (val) => {
             if (!val) {
@@ -187,8 +156,8 @@ export default {
                 }, 300);
             }
         });
-        const handleDel = (row) => {
-            row.removeFunc(row.RemoteMachineId).then(() => {
+        const handleDel = () => {
+            removeTunnelConnection(state.device.MachineId,state.transactionId).then(() => {
                 ElMessage.success(t('common.oper'));
             }).catch(() => { });
         }
@@ -207,25 +176,24 @@ export default {
             });
         }
 
-        const handlep2p = (row)=>{
+        const handlep2p = ()=>{
             tunnelConnect({
-                ToMachineId:row.RemoteMachineId,
-                TransactionId:row.TransactionId,
-                DenyProtocols:row.TransactionId == 'tuntap' ? 4 : 2
+                ToMachineId:state.device.MachineId,
+                TransactionId:state.transactionId,
+                DenyProtocols:state.transactionId == 'tuntap' ? 4 : 2
             }).then(()=>{
                 ElMessage.success(t('common.oper'));
             }).catch(()=>{ElMessage.success(t('common.operFail'));})
         }
 
-        const handleNode = (row) => {
-            state.currentRow = row;
+        const handleNode = () => {
             state.showNodes = true;
         }
         const handleConnect = (id, protocol) => {
             const json = {
                 FromMachineId: globalData.value.config.Client.Id,
-                TransactionId: state.currentRow.TransactionId,
-                ToMachineId: state.currentRow.RemoteMachineId,
+                TransactionId: state.transactionId,
+                ToMachineId: state.device.MachineId,
                 NodeId: id,
                 Protocol: protocol
             };

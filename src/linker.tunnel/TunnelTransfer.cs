@@ -19,6 +19,7 @@ namespace linker.tunnel
         private readonly TunnelWanPortTransfer tunnelWanPortTransfer;
         private readonly TunnelUpnpTransfer tunnelUpnpTransfer;
 
+        public VersionManager OperatingVersion => operating.DataVersion;
         public ConcurrentDictionary<string, bool> Operating => operating.StringKeyValue;
         private readonly OperatingMultipleManager operating = new OperatingMultipleManager();
         private uint flowid = 1;

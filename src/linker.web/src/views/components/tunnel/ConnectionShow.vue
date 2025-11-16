@@ -1,15 +1,7 @@
 <template>
-   <div class="connect-point" @click="handleShow" v-if="state.isSelf == false">
-        <template v-if="state.connection && state.connection.Connected">
-            <template v-if="state.connection.Type == 0">
-                <span class="connect-point p2p" title="打洞直连" v-loading="state.connecting"></span>
-            </template>
-            <template v-else-if="state.connection.Type == 1">
-                <span class="connect-point relay" title="中继连接" v-loading="state.connecting"></span>
-            </template>
-            <template v-else-if="state.connection.Type == 2">
-                <span class="connect-point node" title="节点连接" v-loading="state.connecting"></span>
-            </template>
+   <div class="connect-point" @click="handleShow">
+        <template v-if="state.className">
+            <span :class="`connect-point ${state.className}`" :title="state.title" v-loading="state.connecting"></span>
         </template>
         <template v-else>
             <span class="connect-point default" title="未连接" v-loading="state.connecting"></span>
@@ -18,27 +10,22 @@
 </template>
 
 <script>
-import { computed, reactive, watch } from 'vue';
+import {  computed, reactive } from 'vue';
 import { useConnections } from './connections';
-import { useTunnel } from '../tunnel/tunnel';
 export default {
-    props: ['data','row'],
+    props: ['row','transactionId'],
     setup (props) {
-
         const connections = useConnections();
-        const tunnel = useTunnel();
+        const connection = computed(()=>props.row.hook_connection?props.row.hook_connection[props.transactionId] || {} : {});
         const state = reactive({
-            connection:props.data,
-            transitionId:props.transitionId,
-            connecting:computed(()=>tunnel.value.p2pOperatings[props.row.MachineId] || tunnel.value.relayOperatings[props.row.MachineId]),
-            isSelf:props.row.isSelf
-        });
-        watch(()=>props.data,()=>{
-            state.connection = props.data
+            transactionId:props.transactionId,
+            connecting:computed(()=>props.row.hook_operating[props.transactionId]),
+            className:computed(()=>['p2p','relay','node'][connection.value.Type]),
+            title:computed(()=>['打洞直连','中继连接','节点连接'][connection.value.Type]),
         });
         const handleShow = () => {
-            connections.value.current = props.row.MachineId;
-            connections.value.currentName = props.row.MachineName;
+            connections.value.device = props.row;
+            connections.value.transactionId = props.transactionId;
             connections.value.showEdit = true;
         }
         

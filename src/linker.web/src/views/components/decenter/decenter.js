@@ -25,10 +25,14 @@ export const provideDecenter = () => {
         });
         
     }
-    const counterProcessFn = (device) => {
-        Object.assign(device,{
-            hook_counter: decenter.value.list[device.MachineId] || ''
-        })
+    const counterProcessFn = (device,json) => {
+        const _json = {};
+        for (const key in decenter.value.list) {
+            _json[key] = decenter.value.list[key][device.MachineId] || 0;
+        }
+        Object.assign(json,{
+            hook_counter: _json
+        });
     }
     const counterRefreshFn = () => {
         refreshCounter();

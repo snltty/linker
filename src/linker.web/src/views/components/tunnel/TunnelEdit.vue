@@ -92,7 +92,7 @@ export default {
         });
 
         const handleSave = () => {
-            const json = JSON.parse(JSON.stringify(tunnel.value.current));
+            const json = JSON.parse(JSON.stringify(tunnel.value.current,(key,value)=> key =='device'?'':value));
             json.RouteLevel = +state.ruleForm.RouteLevel;
             json.RouteLevelPlus = +state.ruleForm.RouteLevelPlus;
             json.PortMapWan = +state.ruleForm.PortMapWan;

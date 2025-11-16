@@ -4,7 +4,6 @@ import { getTuntapInfo, refreshTuntap, subscribePing } from "@/apis/tuntap";
 const tuntapSymbol = Symbol();
 export const provideTuntap = () => {
     const tuntap = ref({
-        show: true,
         timer: 0,
         showEdit: false,
         current: null,
@@ -22,40 +21,39 @@ export const provideTuntap = () => {
 
     const reg = /iphone|samsung|vivo|oppo|google|huawei|xiaomi|ios|android|windows|ubuntu|openwrt|armbian|archlinux|fedora|centos|rocky|alpine|debian|linux|docker/g;
 
-    const _getTuntapInfo = () => {
-        clearTimeout(tuntap.value.timer);
-        getTuntapInfo(tuntap.value.hashcode.toString()).then((res) => {
-            tuntap.value.hashcode = res.HashCode;
-            if (res.List) {
-                for (let j in res.List) {
-                    const systemStr = res.List[j].SystemInfo.toLowerCase();
+    const tuntapDataFn = () => {
+        return new Promise((resolve, reject) => { 
+            getTuntapInfo(tuntap.value.hashcode.toString()).then((res) => {
 
-                    const match =[...new Set(systemStr.match(reg))];
-                    Object.assign(res.List[j], {
-                        running: res.List[j].Status == 2,
-                        loading: res.List[j].Status == 1,
-                        systems: match
-                    });
+                subscribePing();
+                tuntap.value.hashcode = res.HashCode;
+                if (res.List) {
+                    for (let j in res.List) {
+                        const systemStr = res.List[j].SystemInfo.toLowerCase();
+                        const match =[...new Set(systemStr.match(reg))];
+                        Object.assign(res.List[j], {
+                            running: res.List[j].Status == 2,
+                            loading: res.List[j].Status == 1,
+                            systems: match
+                        });
+                    }
+                    tuntap.value.list = res.List;
+                    resolve(true);
+                    return;
                 }
-                tuntap.value.list = res.List;
-            }
-            tuntap.value.timer = setTimeout(_getTuntapInfo, 1100);
-            subscribePing();
-        }).catch((e) => {
-            tuntap.value.timer = setTimeout(_getTuntapInfo, 1100);
+                resolve(false);
+            }).catch((e) => {
+                resolve(false);
+            });
         });
-    }
-    const handleTuntapEdit = (_tuntap) => {
-        tuntap.value.current = _tuntap;
-        tuntap.value.showEdit = true;
-
-    }
-    const handleTuntapRefresh = () => {
+    }  
+    const tuntapRefreshFn = () => {
         refreshTuntap();
     }
-    const clearTuntapTimeout = () => {
-        clearTimeout(tuntap.value.timer);
-        tuntap.value.timer = 0;
+    const tuntapProcessFn = (device,json) => { 
+        Object.assign(json,{
+            hook_tuntap: tuntap.value.list[device.MachineId]
+        });
     }
     const getTuntapMachines = (name) => {
         return Object.values(tuntap.value.list)
@@ -79,7 +77,7 @@ export const provideTuntap = () => {
 
 
     return {
-        tuntap, _getTuntapInfo, handleTuntapEdit, handleTuntapRefresh, clearTuntapTimeout, getTuntapMachines, sortTuntapIP
+        tuntap, tuntapDataFn, tuntapProcessFn, tuntapRefreshFn, getTuntapMachines, sortTuntapIP
     }
 }
 

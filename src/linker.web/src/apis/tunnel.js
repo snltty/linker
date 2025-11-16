@@ -6,8 +6,8 @@ export const getTunnelInfo = (hashcode = '0') => {
 export const tunnelRefresh = () => {
     return sendWebsocketMsg('tunnel/refresh');
 }
-export const tunnelOperating = () => {
-    return sendWebsocketMsg('tunnel/Operating');
+export const tunnelOperating = (data) => {
+    return sendWebsocketMsg('tunnel/Operating',data);
 }
 export const tunnelConnect = (data) => {
     return sendWebsocketMsg('tunnel/connect',data);
@@ -29,4 +29,11 @@ export const getTunnelRecords = () => {
 }
 export const getTunnelNetwork = (data) => {
     return sendWebsocketMsg('tunnel/GetNetwork',data);
+}
+
+export const getTunnelConnections = (hashcode) => {
+    return sendWebsocketMsg('channel/get',hashcode);
+}
+export const removeTunnelConnection = (machineid,transactionId) => {
+    return sendWebsocketMsg('channel/remove',{machineid,transactionId});
 }

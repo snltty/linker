@@ -15,7 +15,7 @@
                                 </div>
                             </dt>
                             <dd class="tuntap">
-                                <TuntapShow v-if="tuntap.list[item.MachineId]" :item="item"></TuntapShow>
+                                <TuntapShow v-if="item.hook_tuntap" :item="item"></TuntapShow>
                             </dd>
                         </dl>
                     </li>
@@ -32,53 +32,44 @@
     </div>
 </template>
 <script>
-import { injectGlobalData } from '@/provide.js'
 import { reactive, onMounted,  onUnmounted } from 'vue'
 import { StarFilled} from '@element-plus/icons-vue'
 import { provideTuntap } from '../../components/tuntap/tuntap'
 import { provideDevices } from '../../components/device/devices'
-import { provideUpdater } from '../../components/updater/updater'
 import UpdaterBtn from '../../components/updater/UpdaterBtn.vue'
 import DeviceName from '../../components/device/DeviceName.vue'
 import TuntapShow from '../../components/tuntap/TuntapShow.vue';
-import { provideConnections } from '../../components/connection/connections'
-import { provideTunnel } from '@/views/components/tunnel/tunnel'
+import { provideConnections } from '../../components/tunnel/connections'
+import { provideAccess } from '@/views/components/accesss/access'
+import { provideUpdater } from '@/views/components/updater/updater'
 export default {
     components: {StarFilled,UpdaterBtn,DeviceName,TuntapShow},
     setup(props) {
 
-        const globalData = injectGlobalData();
         const state = reactive({
         });
 
-        const {devices, machineId, _getSignList, _getSignList1,
-            handlePageChange, handlePageSizeChange, clearDevicesTimeout} = provideDevices();
-        const {tuntap,_getTuntapInfo,handleTuntapRefresh,clearTuntapTimeout,handleTuntapEdit,sortTuntapIP}  = provideTuntap();
-        const {_getUpdater,_subscribeUpdater,clearUpdaterTimeout} = provideUpdater();
-
-        provideTunnel();
-
-        const connections = provideConnections();
-
+        const {devices,deviceAddHook,deviceRefreshHook, deviceStartProcess, handlePageChange, handlePageSizeChange,deviceClearTimeout,setSort} = provideDevices();
+        const {accessDataFn,accessProcessFn,accessRefreshFn} = provideAccess();
+        deviceAddHook('access',accessDataFn,accessProcessFn,accessRefreshFn);
+        const {updater, updaterDataFn, updaterProcessFn,updaterRefreshFn,updaterSubscribe, updaterClearTimeout} = provideUpdater();
+        deviceAddHook('updater',updaterDataFn,updaterProcessFn,updaterRefreshFn);
+        const {tuntap,tuntapDataFn,tuntapProcessFn,tuntapRefreshFn,getTuntapMachines,sortTuntapIP}  = provideTuntap();
+        deviceAddHook('tuntap',tuntapDataFn,tuntapProcessFn,tuntapRefreshFn);
+        const {connections,connectionDataFn,connectionProcessFn,connectionRefreshFn } = provideConnections();
+        deviceAddHook('connection',connectionDataFn,connectionProcessFn,connectionRefreshFn);
         onMounted(() => {
             handlePageChange();
-            handleTuntapRefresh();
             
-            _getSignList();
-            _getSignList1();
-            _getTuntapInfo();
-
-            _getUpdater();
-            _subscribeUpdater();
+            deviceStartProcess();
         });
         onUnmounted(() => {
-            clearDevicesTimeout();
-            clearTuntapTimeout();
-            clearUpdaterTimeout();
+            deviceClearTimeout();
+            updaterClearTimeout();
         });
         
         return {
-            state,devices, machineId, handlePageChange,handlePageSizeChange,
+            state,devices, handlePageChange,handlePageSizeChange,
             tuntap
         }
     }

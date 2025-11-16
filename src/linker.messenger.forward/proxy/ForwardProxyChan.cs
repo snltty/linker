@@ -23,8 +23,8 @@ namespace linker.messenger.forward.proxy
         protected override string TransactionId => "forward";
 
         public ForwardProxy(ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer,
-            SignInClientTransfer signInClientTransfer, IRelayClientStore relayClientStore)
-            : base(tunnelTransfer, relayTransfer, pcpTransfer, signInClientTransfer, signInClientStore, relayClientStore)
+            SignInClientTransfer signInClientTransfer, ChannelConnectionCaching  channelConnectionCaching)
+            : base(tunnelTransfer, relayTransfer, pcpTransfer, signInClientTransfer, signInClientStore, channelConnectionCaching)
         {
             TaskUdp();
         }

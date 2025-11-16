@@ -1,13 +1,6 @@
 import { sendWebsocketMsg } from './request'
 
 
-export const getTuntapConnections = (hashcode = '0') => {
-    return sendWebsocketMsg('tuntap/connections', hashcode);
-}
-export const removeTuntapConnection = (id) => {
-    return sendWebsocketMsg('tuntap/removeconnection', id);
-}
-
 export const getTuntapRoutes = (machineid) => {
     return sendWebsocketMsg('tuntap/routes', machineid);
 }

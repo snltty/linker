@@ -7,6 +7,7 @@ using linker.messenger.relay.messenger;
 using linker.messenger.relay.server;
 using linker.messenger.signin;
 using linker.messenger.sync;
+using linker.tunnel;
 using linker.tunnel.connection;
 using System.Collections.Concurrent;
 
@@ -72,10 +73,20 @@ namespace linker.messenger.relay.client
         /// </summary>
         /// <param name="param"></param>
         /// <returns></returns>
-        public ConcurrentDictionary<string, bool> Operating(ApiControllerParamsInfo param)
+        public RelayOperatingInfo Operating(ApiControllerParamsInfo param)
         {
-            return relayTransfer.Operating;
+            ulong hashCode = ulong.Parse(param.Content);
+            if (relayTransfer.OperatingVersion.Eq(hashCode, out ulong version) == false)
+            {
+                return new RelayOperatingInfo
+                {
+                    List = relayTransfer.Operating,
+                    HashCode = version
+                };
+            }
+            return new RelayOperatingInfo { HashCode = version };
         }
+
         /// <summary>
         /// 连接
         /// </summary>
@@ -146,6 +157,14 @@ namespace linker.messenger.relay.client
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
     }
+
+
+    public sealed class RelayOperatingInfo
+    {
+        public ConcurrentDictionary<string, bool> List { get; set; }
+        public ulong HashCode { get; set; }
+    }
+
     public sealed class UpdateInfo
     {
         public string Key { get; set; }

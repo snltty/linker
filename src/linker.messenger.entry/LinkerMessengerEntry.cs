@@ -23,6 +23,7 @@ using System.Text.Json;
 using linker.messenger.firewall;
 using linker.messenger.wakeup;
 using linker.messenger.wlist;
+using linker.messenger.channel;
 
 namespace linker.messenger.entry
 {
@@ -68,7 +69,7 @@ namespace linker.messenger.entry
                 .AddPcpClient().AddPcpServer()
                 //中继
                 .AddRelayClient().AddRelayServer()
-                
+
                 //服务器穿透
                 .AddSForwardClient().AddSForwardServer()
                 //登录
@@ -104,7 +105,9 @@ namespace linker.messenger.entry
                 .AddWakeupClient().AddWakeupServer()
 
                 //白名单
-                .AddWhiteListClient().AddWhiteListServer();
+                .AddWhiteListClient().AddWhiteListServer()
+
+                .AddChannelClient();
 
         }
         /// <summary>
@@ -159,8 +162,6 @@ namespace linker.messenger.entry
                 serviceProvider.UseLogger();
 
             ICommonStore commonStore = serviceProvider.GetService<ICommonStore>();
-
-           
 
             serviceProvider.UseMessenger();
 
@@ -228,6 +229,8 @@ namespace linker.messenger.entry
                 serviceProvider.UseSignInClient();
 
                 serviceProvider.UsePlanClient();
+
+                serviceProvider.UseChannelClient();
             }
         }
 

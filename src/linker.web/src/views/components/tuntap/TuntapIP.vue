@@ -89,7 +89,8 @@ export default {
         }
 
         const getData = ()=>{
-            const json = JSON.parse(JSON.stringify(tuntap.value.current));
+            console.log(tuntap.value.current);
+            const json = JSON.parse(JSON.stringify(tuntap.value.current,(key,value)=> key =='device'?'':value ));
             json.IP = state.ruleForm.IP.replace(/\s/g, '') || '0.0.0.0';
             json.PrefixLength = +state.ruleForm.PrefixLength;
             json.Gateway = state.ruleForm.Gateway;

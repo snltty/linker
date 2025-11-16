@@ -47,36 +47,6 @@ namespace linker.messenger.tuntap
         }
 
         /// <summary>
-        /// 连接
-        /// </summary>
-        /// <param name="param"></param>
-        /// <returns></returns>
-        public ConnectionListInfo Connections(ApiControllerParamsInfo param)
-        {
-            ulong hashCode = ulong.Parse(param.Content);
-            if (tuntapProxy.Version.Eq(hashCode, out ulong version) == false)
-            {
-                return new ConnectionListInfo
-                {
-                    List = tuntapProxy.GetConnections(),
-                    HashCode = version
-                };
-            }
-            return new ConnectionListInfo { HashCode = version };
-        }
-
-        /// <summary>
-        /// 删除连接
-        /// </summary>
-        /// <param name="param"></param>
-        [Access(AccessValue.TunnelRemove)]
-        public void RemoveConnection(ApiControllerParamsInfo param)
-        {
-            tuntapProxy.RemoveConnection(param.Content);
-        }
-
-
-        /// <summary>
         /// 路由表
         /// </summary>
         /// <param name="param"></param>
@@ -363,12 +333,6 @@ namespace linker.messenger.tuntap
         public ConcurrentDictionary<string, TuntapInfo> List { get; set; }
         public ulong HashCode { get; set; }
     }
-    public sealed class ConnectionListInfo
-    {
-        public ConcurrentDictionary<string, ITunnelConnection> List { get; set; }
-        public ulong HashCode { get; set; }
-    }
-
     public sealed class NetworkParamInfo
     {
         public IPAddress IP { get; set; }

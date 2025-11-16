@@ -1,5 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.extends;
+using linker.messenger.channel;
 using linker.messenger.pcp;
 using linker.messenger.relay.client;
 using linker.messenger.signin;
@@ -18,11 +19,11 @@ namespace linker.messenger.flow
         private readonly FlowTunnel flowTunnel;
 
         public FlowTuntapProxy(FlowTunnel flowTunnel, ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer,
-            SignInClientTransfer signInClientTransfer, IRelayClientStore relayClientStore, TuntapConfigTransfer tuntapConfigTransfer,
+            SignInClientTransfer signInClientTransfer, TuntapConfigTransfer tuntapConfigTransfer,
             TuntapCidrConnectionManager tuntapCidrConnectionManager, TuntapCidrDecenterManager tuntapCidrDecenterManager,
-            TuntapCidrMapfileManager tuntapCidrMapfileManager,TuntapDecenter tuntapDecenter) 
-            : base(signInClientStore, tunnelTransfer, relayTransfer, pcpTransfer, signInClientTransfer, relayClientStore,
-                  tuntapConfigTransfer, tuntapCidrConnectionManager, tuntapCidrDecenterManager, tuntapCidrMapfileManager, tuntapDecenter)
+            TuntapCidrMapfileManager tuntapCidrMapfileManager,TuntapDecenter tuntapDecenter, ChannelConnectionCaching channelConnectionCaching) 
+            : base(signInClientStore, tunnelTransfer, relayTransfer, pcpTransfer, signInClientTransfer,
+                  tuntapConfigTransfer, tuntapCidrConnectionManager, tuntapCidrDecenterManager, tuntapCidrMapfileManager, tuntapDecenter, channelConnectionCaching)
         {
             this.flowTunnel = flowTunnel;
         }

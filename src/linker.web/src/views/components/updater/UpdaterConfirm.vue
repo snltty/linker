@@ -48,16 +48,14 @@ export default {
         const globalData = injectGlobalData();
         const updater = useUpdater();
         const serverVersion = computed(()=>globalData.value.signin.Version);
-        const updaterVersion = computed(()=>updater.value.current.Version);
-
         const versions = [
-                {label:`${updaterVersion.value}【最新版本】`,value:updaterVersion.value},
+                {label:`${updater.value.device.hook_updater.Version}【最新版本】`,value:updater.value.device.hook_updater.Version},
                 {label:`${serverVersion.value}【服务器版本】`,value:serverVersion.value},
             ].filter(c=>c.value);
         const state = reactive({
             show: true,
             type:'',
-            version:versions[0] || '',
+            version:versions[0] || {},
             versions:versions,
             msg:[]
         });
@@ -104,7 +102,7 @@ export default {
         });
 
         return {
-            state,getTypes,updater,handleUpdate
+            state,getTypes,handleUpdate
         }
     }
 }

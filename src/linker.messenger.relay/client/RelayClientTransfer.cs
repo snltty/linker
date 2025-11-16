@@ -14,9 +14,9 @@ namespace linker.messenger.relay.client
     {
         public List<IRelayClientTransport> Transports { get; private set; }
 
-
+        public VersionManager OperatingVersion => operating.DataVersion;
         public ConcurrentDictionary<string, bool> Operating => operating.StringKeyValue;
-        private OperatingMultipleManager operating = new OperatingMultipleManager();
+        private readonly OperatingMultipleManager operating = new OperatingMultipleManager();
 
         private Dictionary<string, List<Action<ITunnelConnection>>> OnConnected { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
 
@@ -76,7 +76,6 @@ namespace linker.messenger.relay.client
         {
             if (string.IsNullOrWhiteSpace(nodeId)) nodeId = relayClientStore.DefaultNodeId;
             if(protocol == TunnelProtocolType.None) protocol = relayClientStore.DefaultProtocol;
-
 
             if (operating.StartOperation(BuildKey(remoteMachineId, transactionId)) == false)
             {

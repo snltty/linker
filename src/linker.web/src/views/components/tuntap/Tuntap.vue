@@ -1,10 +1,10 @@
 <template>
-    <el-table-column prop="tuntap" :label="tuntap.show?$t('home.tuntap'):''" width="160">
+    <el-table-column prop="tuntap" :label="$t('home.tuntap')" width="160">
         <template #header>
-           <a v-if="tuntap.show" href="javascript:;" class="a-line" @click="handleShowLease">{{$t('home.tuntap')}}</a>
+           <a href="javascript:;" class="a-line" @click="handleShowLease">{{$t('home.tuntap')}}</a>
         </template>
         <template #default="scope">
-            <div v-if="tuntap.show && tuntap.list[scope.row.MachineId]">
+            <div v-if="scope.row.hook_tuntap">
                 <TuntapShow :config="true" :item="scope.row"></TuntapShow>
             </div> 
         </template>

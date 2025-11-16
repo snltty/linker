@@ -28,8 +28,8 @@ export const provideAccess = () => {
             });
         });
     }
-    const accessProcessFn = (device) => {
-        Object.assign(device,{
+    const accessProcessFn = (device,json) => {
+        Object.assign(json,{
             hook_accesss: access.value.list[device.MachineId] || ''
         })
     }

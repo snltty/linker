@@ -1,13 +1,5 @@
 import { sendWebsocketMsg } from './request'
 
-
-export const getSocks5Connections = (hashcode = '0') => {
-    return sendWebsocketMsg('socks5/connections', hashcode);
-}
-export const removeSocks5Connection = (id) => {
-    return sendWebsocketMsg('socks5/removeconnection', id);
-}
-
 export const getSocks5Info = (hashcode = '0') => {
     return sendWebsocketMsg('socks5/get', hashcode);
 }

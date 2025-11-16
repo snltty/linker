@@ -31,35 +31,7 @@ namespace linker.messenger.forward
             this.serializer = serializer;
         }
 
-        /// <summary>
-        /// 获取隧道连接
-        /// </summary>
-        /// <param name="param"></param>
-        /// <returns></returns>
-        public ConnectionListInfo Connections(ApiControllerParamsInfo param)
-        {
-            ulong hashCode = ulong.Parse(param.Content);
-            if (forwardProxy.Version.Eq(hashCode, out ulong version) == false)
-            {
-                return new ConnectionListInfo
-                {
-                    List = forwardProxy.GetConnections(),
-                    HashCode = version
-                };
-            }
-            return new ConnectionListInfo { HashCode = version };
-        }
-
-        /// <summary>
-        /// 移除隧道连接
-        /// </summary>
-        /// <param name="param"></param>
-        [Access(AccessValue.TunnelRemove)]
-        public void RemoveConnection(ApiControllerParamsInfo param)
-        {
-            forwardProxy.RemoveConnection(param.Content);
-        }
-
+        
         /// <summary>
         /// 获取绑定IP列表
         /// </summary>
@@ -165,14 +137,4 @@ namespace linker.messenger.forward
         }
     }
 
-    public sealed class ForwardListInfo
-    {
-        public ConcurrentDictionary<string, int> List { get; set; }
-        public ulong HashCode { get; set; }
-    }
-    public sealed class ConnectionListInfo
-    {
-        public ConcurrentDictionary<string, ITunnelConnection> List { get; set; }
-        public ulong HashCode { get; set; }
-    }
 }

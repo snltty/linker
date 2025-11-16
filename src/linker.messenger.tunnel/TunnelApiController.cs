@@ -72,9 +72,18 @@ namespace linker.messenger.tunnel
         /// </summary>
         /// <param name="param"></param>
         /// <returns></returns>
-        public ConcurrentDictionary<string, bool> Operating(ApiControllerParamsInfo param)
+        public TunnelOperatingInfo Operating(ApiControllerParamsInfo param)
         {
-            return tunnelTransfer.Operating;
+            ulong hashCode = ulong.Parse(param.Content);
+            if (tunnelTransfer.OperatingVersion.Eq(hashCode, out ulong version) == false)
+            {
+                return new TunnelOperatingInfo
+                {
+                    List = tunnelTransfer.Operating,
+                    HashCode = version
+                };
+            }
+            return new TunnelOperatingInfo { HashCode = version };
         }
         /// <summary>
         /// 连接
@@ -187,6 +196,11 @@ namespace linker.messenger.tunnel
             return new TunnelLocalNetworkInfo();
         }
 
+        public sealed class TunnelOperatingInfo
+        {
+            public ConcurrentDictionary<string, bool> List { get; set; }
+            public ulong HashCode { get; set; }
+        }
         public sealed class TunnelListInfo
         {
             public ConcurrentDictionary<string, TunnelRouteLevelInfo> List { get; set; }

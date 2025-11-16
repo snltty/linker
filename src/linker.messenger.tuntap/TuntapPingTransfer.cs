@@ -50,7 +50,7 @@ namespace linker.messenger.tuntap
                 var items = tuntapDecenter.Infos.Values.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false && (c.Status & TuntapStatus.Running) == TuntapStatus.Running);
                 if ((tuntapConfigTransfer.Info.Switch & TuntapSwitch.AutoConnect) != TuntapSwitch.AutoConnect)
                 {
-                    var connections = tuntapProxy.GetConnections();
+                    var connections = tuntapProxy.Connections;
                     items = items.Where(c => connections.TryGetValue(c.MachineId, out ITunnelConnection connection) && connection.Connected || c.MachineId == signInClientStore.Id);
                 }
 
