@@ -1,25 +1,19 @@
 ﻿using linker.libs;
-using linker.libs.extends;
-using linker.libs.winapis;
-using linker.messenger.relay.server;
 using linker.messenger.signin;
 using linker.messenger.wlist.order;
-using System.Reflection.PortableExecutable;
 
 namespace linker.messenger.wlist
 {
 
     public class WhiteListServerMessenger : IMessenger
     {
-        private readonly IMessengerSender messengerSender;
         private readonly SignInServerCaching signCaching;
         private readonly ISerializer serializer;
         private readonly IWhiteListServerStore whiteListServerStore;
         private readonly OrderTransfer orderTransfer;
 
-        public WhiteListServerMessenger(IMessengerSender messengerSender, SignInServerCaching signCaching, ISerializer serializer, IWhiteListServerStore whiteListServerStore, OrderTransfer orderTransfer)
+        public WhiteListServerMessenger( SignInServerCaching signCaching, ISerializer serializer, IWhiteListServerStore whiteListServerStore, OrderTransfer orderTransfer)
         {
-            this.messengerSender = messengerSender;
             this.signCaching = signCaching;
             this.serializer = serializer;
             this.whiteListServerStore = whiteListServerStore;
@@ -39,7 +33,6 @@ namespace linker.messenger.wlist
                 connection.Write(Helper.FalseArray);
                 return;
             }
-            Console.WriteLine(info.Data.ToJson());
             await whiteListServerStore.Add(info.Data).ConfigureAwait(false);
             connection.Write(Helper.TrueArray);
         }
