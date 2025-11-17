@@ -105,7 +105,7 @@ export default {
                 UserId:editState.value.UserId || '',
                 Name:editState.value.Name || '',
                 Remark:editState.value.Remark || '',
-                Nodes:editState.value.Nodes || [],
+                Nodes:editState.value.Nodes || ['*'],
                 Bandwidth:editState.value.Bandwidth || 0,
                 UseTime:editState.value.UseTime || '',
                 EndTime:editState.value.EndTime || '',
@@ -138,7 +138,8 @@ export default {
             state.ruleForm.Nodes = state.nodeIds.concat(ports);
         }
 
-        const handleShowNodes = ()=>{     
+        const handleShowNodes = ()=>{  
+            return false;   
             state.nodeIds = state.ruleForm.Nodes.filter(c=>!!!state.prefix ||c.indexOf(state.prefix) < 0);
             state.showNodes = true;
         }

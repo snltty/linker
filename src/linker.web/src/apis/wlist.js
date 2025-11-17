@@ -14,3 +14,6 @@ export const wlistStatus = (type) => {
 export const wlistAddOrder = (data) => {
     return sendWebsocketMsg('whitelist/addorder', data);
 }
+export const wlistList = (data) => {
+    return sendWebsocketMsg('whitelist/list', data);
+}

@@ -20,12 +20,12 @@ namespace linker.messenger.tunnel
         }
         public Memory<byte> GetData()
         {
-            return serializer.Serialize(tunnelMessengerAdapter.GetTunnelTransports("default").Result);
+            return serializer.Serialize(tunnelMessengerAdapter.GetTunnelTransports(Helper.GlobalString).Result);
         }
 
         public void SetData(Memory<byte> data)
         {
-            tunnelMessengerAdapter.SetTunnelTransports("default", serializer.Deserialize<List<TunnelTransportItemInfo>>(data.Span));
+            tunnelMessengerAdapter.SetTunnelTransports(Helper.GlobalString, serializer.Deserialize<List<TunnelTransportItemInfo>>(data.Span));
         }
     }
 }

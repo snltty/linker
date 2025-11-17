@@ -111,7 +111,7 @@ export default {
         provide('edit',editState);
 
         const handleAdd = ()=>{
-            editState.value = {Id:0,Name:'',Nodes:[],Remark:'',UserId:'',Type:props.type,prefix:props.prefix || ''};
+            editState.value = {Id:0,Name:'',Nodes:['*'],Remark:'',UserId:'',Type:props.type,prefix:props.prefix || ''};
             state.showAdd = true;
         }
         const handleEdit = (row)=>{

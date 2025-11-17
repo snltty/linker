@@ -1,7 +1,7 @@
 <template>
-    <el-dialog v-model="state.show" append-to=".app-wrap" :title="`与[${state.device.MachineName}]的链接`" top="1vh" width="500">
+    <el-dialog v-model="state.show" append-to=".app-wrap" :title="`与[${state.device.MachineName}]的链接`" top="1vh" width="350">
         <div>
-            <el-descriptions border size="small" :column="2" column-max-width="120px" overlength-control="wrap">
+            <el-descriptions border size="small" :column="1" column-max-width="120px" overlength-control="wrap">
                 <el-descriptions-item label="目标">{{ state.connection.IPEndPoint || '0.0.0.0:0' }}</el-descriptions-item>
                 <el-descriptions-item label="事务">{{ state.transactions[state.connection.TransactionId] }}</el-descriptions-item>
                 <el-descriptions-item label="协议">
@@ -48,7 +48,7 @@
                                 <template #reference>
                                     <el-button type="danger" size="small"><el-icon>
                                             <Delete />
-                                        </el-icon></el-button>
+                                    </el-icon></el-button>
                                 </template>
                             </el-popconfirm>
                         </AccessShow>

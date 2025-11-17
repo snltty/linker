@@ -1,7 +1,7 @@
 <template>
-    <AccessBoolean value="WakeupOther">
+    <AccessBoolean value="WakeupSelf,WakeupOther">
         <template #default="{values}">
-            <template v-if="values.WakeupOther && !item.isSelf">
+            <template v-if="(values.WakeupSelf && item.isSelf) || (values.WakeupOther && !item.isSelf)">
                 <el-col :span="12">
                     <a href="javascript:;" :class="{green:wakeupCounter>0}" @click="handleWakeup"><img src="wakeup.svg" alt="wakeup"> ({{ wakeupCounter }})</a>
                 </el-col>

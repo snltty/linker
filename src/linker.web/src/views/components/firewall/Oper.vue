@@ -1,7 +1,7 @@
 <template>
-    <AccessBoolean value="FirewallOther">
+    <AccessBoolean value="FirewallSelf,FirewallOther">
         <template #default="{values}">
-            <template v-if="values.FirewallOther && !item.isSelf">
+            <template v-if="(values.FirewallSelf && item.isSelf) || (values.FirewallOther && !item.isSelf)">
                 <el-col :span="12">
                     <a href="javascript:;" :class="{green:firewallCounter>0}" @click="handleFirewall"><img src="firewall.svg" alt="firewall"> ({{firewallCounter}})</a>
                 </el-col>

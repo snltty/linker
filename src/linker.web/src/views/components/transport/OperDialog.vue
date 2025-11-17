@@ -1,5 +1,5 @@
 <template>
-    <el-dialog v-model="state.show" append-to=".app-wrap" :title="`本机与[${state.machineName}]之间的打洞协议`" top="1vh" width="98%">
+    <el-dialog v-model="state.show" append-to=".app-wrap" :title="state.title" top="1vh" width="98%">
         <div>
             <Transport :machineId="state.machineId"></Transport>
         </div>
@@ -9,6 +9,7 @@
 import { reactive, watch } from 'vue';
 import Transport from '../transport/Transport.vue'
 import { useTransport } from './transport';
+import { injectGlobalData } from '@/provide';
 export default {
     props: ['modelValue'],
     emits: ['update:modelValue'],
@@ -16,12 +17,16 @@ export default {
         Transport
     },
     setup(props, { emit }) {
+
+        const globalData = injectGlobalData();
         const transport = useTransport();
-        
+
+        const isSelf = globalData.value.config.Client.Id ==  transport.value.device.id || !transport.value.device.id;
+
         const state = reactive({
             show: true,
             machineId: transport.value.device.id,
-            machineName: transport.value.device.name
+            title:isSelf? `[${transport.value.device.name}]上的打洞协议` : `本机与[${transport.value.device.name}]之间的打洞协议`,
         });
         watch(() => state.show, (val) => {
             if (!val) {

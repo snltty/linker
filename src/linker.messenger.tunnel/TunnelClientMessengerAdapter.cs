@@ -51,7 +51,13 @@ namespace linker.messenger.tunnel
         /// </summary>
         /// <param name="list"></param>
         public Task<bool> SetTunnelTransports(string machineId, List<TunnelTransportItemInfo> list);
-
+        /// <summary>
+        /// 保存打洞协议列表
+        /// </summary>
+        /// <param name="machineId"></param>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        public Task<bool> SetTunnelTransports(string machineId, List<ITunnelTransport> list);
 
         public Action OnChanged { get; set; }
 
@@ -112,8 +118,13 @@ namespace linker.messenger.tunnel
         {
             return await tunnelClientStore.GetTunnelTransports(machineid).ConfigureAwait(false);
         }
-
         public async Task<bool> SetTunnelTransports(string machineid, List<TunnelTransportItemInfo> list)
+        {
+            bool res = await tunnelClientStore.SetTunnelTransports(machineid, list).ConfigureAwait(false);
+            SetCounter();
+            return res;
+        }
+        public async Task<bool> SetTunnelTransports(string machineid,  List<ITunnelTransport> list)
         {
             bool res = await tunnelClientStore.SetTunnelTransports(machineid, list).ConfigureAwait(false);
             SetCounter();

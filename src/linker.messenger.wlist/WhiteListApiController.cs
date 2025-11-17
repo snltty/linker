@@ -123,7 +123,7 @@ namespace linker.messenger.wlist
             return string.Empty;
         }
 
-        public async Task<Dictionary<string, double>> List(ApiControllerParamsInfo param)
+        public async Task<Dictionary<string, Dictionary<int, double>>> List(ApiControllerParamsInfo param)
         {
             KeyValueInfo info = param.Content.DeJson<KeyValueInfo>();
 
@@ -135,10 +135,10 @@ namespace linker.messenger.wlist
             }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK)
             {
-                return serializer.Deserialize<Dictionary<string, double>>(resp.Data.Span);
+                return serializer.Deserialize<Dictionary<string, Dictionary<int, double>>>(resp.Data.Span);
             }
 
-            return new Dictionary<string, double>();
+            return [];
         }
         sealed class KeyValueInfo
         {

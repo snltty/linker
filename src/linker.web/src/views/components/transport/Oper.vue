@@ -1,6 +1,6 @@
 <template>
     <AccessShow value="Transport">
-        <el-col :span="12" v-if="!item.isSelf">
+        <el-col :span="12">
             <a href="javascript:;" :class="{green:transportCounter>0}" @click="handleTransport"><img src="transport.svg" alt="transport"> ({{ transportCounter }})</a>
         </el-col>
     </AccessShow>

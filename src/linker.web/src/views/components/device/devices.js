@@ -31,6 +31,7 @@ export const provideDevices = () => {
     }
     const deviceRefreshHook = (name) => {
         if(hooks[name]) {
+            hooks[name].refresh = true;
             hooks[name].changed = true;
         }
     }
@@ -41,7 +42,7 @@ export const provideDevices = () => {
                 const hook = hooks[name];
                 if(hook.refresh) {
                     hook.refresh = false;
-                    hook.refreshFn();
+                    hook.refreshFn(devices.page.List);
                 }
             }
             for(let name in hooks) {
@@ -57,7 +58,7 @@ export const provideDevices = () => {
             }
             for(let name in hooks) {
                 const hook = hooks[name];
-                hook.changed = await hook.dataFn();
+                hook.changed = await hook.dataFn(devices.page.List);
             }
             devices.timer1 = setTimeout(fn,1000);
         }

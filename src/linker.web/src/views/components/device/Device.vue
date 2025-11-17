@@ -13,20 +13,9 @@
             </p>
             <p class="flex">
                 <template v-if="scope.row.Connected">
-                    <div>
-                        <template v-if="scope.row.hook_tuntap && scope.row.hook_tuntap.systems">
-                            <template v-for="system in scope.row.hook_tuntap.systems">
-                                <span :title="scope.row.hook_tuntap.SystemInfo">
-                                    <img class="system" :src="`./${system}.svg`" />
-                                </span>
-                            </template>
-                        </template>
-                    </div>
-                    <span title="20Mbps">
-                        <a href="javascript:;"><img class="system" src="lightning.svg" /></a>
-                    </span>
-                    
+                    <SystemInfo :item="scope.row"></SystemInfo>
                     <span class="flex-1"></span>
+                    <WlistShow type="Relay" :item="scope.row"></WlistShow>
                     <UpdaterBtn :config="true" :item="scope.row"></UpdaterBtn>
                 </template>
                 <template v-else>
@@ -42,10 +31,13 @@ import { ref } from 'vue';
 import {Search} from '@element-plus/icons-vue'
 import UpdaterBtn from '../updater/UpdaterBtn.vue';
 import DeviceName from './DeviceName.vue';
+import SystemInfo from '../tuntap/SystemInfo.vue'; 
+import WlistShow from '../wlist/Device.vue'
+
 
 export default {
     emits:['refresh'],
-    components:{Search,UpdaterBtn,DeviceName},
+    components:{Search,UpdaterBtn,DeviceName,SystemInfo,WlistShow},
     setup(props,{emit}) {
 
         const name = ref(sessionStorage.getItem('search-name') || '');
@@ -62,16 +54,8 @@ export default {
 }
 </script>
 <style lang="stylus" scoped>
-
 .el-input{
     width:12rem;
     margin-right:.6rem
-}
-img.system{
-    height:1.4rem;
-    vertical-align: middle;
-    margin-right:.1rem
-    border:1px solid rgba(0,0,0,.1);
-    border-radius:.2rem;
 }
 </style>

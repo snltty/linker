@@ -6,9 +6,11 @@
                     <div>
                         <div class="numbers">
                             <el-row>
-                                <FirewallOper :item="scope.row"></FirewallOper>
-                                <WakeupOper :item="scope.row"></WakeupOper>
-                                <TransportOper :item="scope.row"></TransportOper>
+                                <template v-if="scope.row.Connected">
+                                    <FirewallOper :item="scope.row"></FirewallOper>
+                                    <WakeupOper :item="scope.row"></WakeupOper>
+                                    <TransportOper :item="scope.row"></TransportOper>
+                                </template>
                                 <el-col :span="12">
                                      <el-dropdown size="small" >
                                         <div class="dropdown">

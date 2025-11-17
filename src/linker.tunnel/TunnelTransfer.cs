@@ -53,59 +53,7 @@ namespace linker.tunnel
         }
         private async Task RebuildTransports()
         {
-            var transportItems = (await tunnelMessengerAdapter.GetTunnelTransports("default").ConfigureAwait(false)).ToList();
-            //有新的协议
-            var newTransportNames = transports.Select(c => c.Name).Except(transportItems.Select(c => c.Name));
-            if (newTransportNames.Any())
-            {
-                transportItems.AddRange(transports.Where(c => newTransportNames.Contains(c.Name)).Select(c => new TunnelTransportItemInfo
-                {
-                    Label = c.Label,
-                    Name = c.Name,
-                    ProtocolType = c.ProtocolType.ToString(),
-                    Reverse = c.Reverse,
-                    DisableReverse = c.DisableReverse,
-                    SSL = c.SSL,
-                    DisableSSL = c.DisableSSL,
-                    Order = c.Order
-                }));
-            }
-            //有已移除的协议
-            var oldTransportNames = transportItems.Select(c => c.Name).Except(transports.Select(c => c.Name));
-            if (oldTransportNames.Any())
-            {
-                foreach (var item in transportItems.Where(c => oldTransportNames.Contains(c.Name)))
-                {
-                    transportItems.Remove(item);
-                }
-            }
-            //强制更新一些信息
-            foreach (var item in transportItems)
-            {
-                var transport = transports.FirstOrDefault(c => c.Name == item.Name);
-                if (transport != null)
-                {
-                    item.DisableReverse = transport.DisableReverse;
-                    item.DisableSSL = transport.DisableSSL;
-                    item.Name = transport.Name;
-                    item.Label = transport.Label;
-                    if (transport.DisableReverse)
-                    {
-                        item.Reverse = transport.Reverse;
-                    }
-                    if (transport.DisableSSL)
-                    {
-                        item.SSL = transport.SSL;
-                    }
-                    if (item.Order == 0)
-                    {
-                        item.Order = transport.Order;
-                    }
-                }
-            }
-
-            await tunnelMessengerAdapter.SetTunnelTransports("default",transportItems).ConfigureAwait(false);
-
+            await tunnelMessengerAdapter.SetTunnelTransports(Helper.GlobalString, transports).ConfigureAwait(false);
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Info($"load tunnel transport:{string.Join(",", transports.Select(c => c.GetType().Name))}");
         }

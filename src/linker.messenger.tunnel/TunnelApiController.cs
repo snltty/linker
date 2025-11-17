@@ -124,6 +124,7 @@ namespace linker.messenger.tunnel
 
             return true;
         }
+
         /// <summary>
         /// 获取打洞协议
         /// </summary>
@@ -133,7 +134,7 @@ namespace linker.messenger.tunnel
         {
             if (param.Content == signInClientStore.Id || string.IsNullOrWhiteSpace(param.Content))
             {
-                return await tunnelMessengerAdapter.GetTunnelTransports("default").ConfigureAwait(false);
+                return await tunnelMessengerAdapter.GetTunnelTransports(Helper.GlobalString).ConfigureAwait(false);
             }
 
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -161,7 +162,7 @@ namespace linker.messenger.tunnel
             TunnelTransportItemSetInfo info = param.Content.DeJson<TunnelTransportItemSetInfo>();
             if (info.MachineId == signInClientStore.Id || string.IsNullOrWhiteSpace(info.MachineId))
             {
-                await tunnelMessengerAdapter.SetTunnelTransports("default", info.Data).ConfigureAwait(false);
+                await tunnelMessengerAdapter.SetTunnelTransports(Helper.GlobalString, info.Data).ConfigureAwait(false);
                 return true;
             }
             await tunnelMessengerAdapter.SetTunnelTransports(info.MachineId, info.Data).ConfigureAwait(false);
@@ -173,6 +174,7 @@ namespace linker.messenger.tunnel
             }).ConfigureAwait(false);
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
+
 
         public async Task<TunnelLocalNetworkInfo> GetNetwork(ApiControllerParamsInfo param)
         {

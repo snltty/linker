@@ -36,6 +36,7 @@
         <OperAction v-if="action.show" v-model="action.show" ></OperAction>
         <Stopwatch v-if="flow.showStopwatch" v-model="flow.showStopwatch" ></Stopwatch>
         <OperFlow v-if="flow.show" v-model="flow.show" ></OperFlow>
+        <OperWlist v-if="wlist.show" v-model="wlist.show" @change="deviceRefreshHook('wlist')" ></OperWlist>
     </div>
 </template>
 <script>
@@ -95,6 +96,8 @@ import { provideFirewall } from '@/views/components/firewall/firewall'
 import { provideWakeup } from '@/views/components/wakeup/wakeup'
 import { provideTransport } from '@/views/components/transport/transport'
 import { provideAction } from '@/views/components/action/action'
+import { provideWlist } from '@/views/components/wlist/wlist'
+import OperWlist from '../../../components/wlist/OperDialog.vue'
 
 
 export default {
@@ -108,7 +111,7 @@ export default {
         Forward,ForwardEdit,
         SForwardEdit ,UpdaterConfirm,
         Stopwatch,
-        Oper,OperFirewall,OperWakeup ,OperTransport,OperAction,OperFlow
+        Oper,OperFirewall,OperWakeup ,OperTransport,OperAction,OperFlow,OperWlist
     },
     setup(props) {
 
@@ -144,6 +147,9 @@ export default {
         deviceAddHook('tuntap',tuntapDataFn,tuntapProcessFn,tuntapRefreshFn);
         const {connections,connectionDataFn,connectionProcessFn,connectionRefreshFn } = provideConnections();
         deviceAddHook('connection',connectionDataFn,connectionProcessFn,connectionRefreshFn);
+        const {wlist,wlistDataFn,wlistProcessFn,wlistRefreshFn} = provideWlist();
+        deviceAddHook('wlist',wlistDataFn,wlistProcessFn,wlistRefreshFn);
+        
         
         const handleSortChange = (row)=>{
 
@@ -212,7 +218,7 @@ export default {
             tunnel,connections,
             forward,
             sforward,
-            updater,flow,oper,firewall,wakeup,transport,action
+            updater,flow,oper,firewall,wakeup,transport,action,wlist
         }
     }
 }

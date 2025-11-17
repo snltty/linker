@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.libs.extends;
 using linker.libs.winapis;
 using linker.messenger.relay.server;
 using linker.messenger.signin;
@@ -38,6 +39,7 @@ namespace linker.messenger.wlist
                 connection.Write(Helper.FalseArray);
                 return;
             }
+            Console.WriteLine(info.Data.ToJson());
             await whiteListServerStore.Add(info.Data).ConfigureAwait(false);
             connection.Write(Helper.TrueArray);
         }
@@ -144,13 +146,11 @@ namespace linker.messenger.wlist
 
             List<WhiteListInfo> whites = await whiteListServerStore.Get(info.Key, userids, info.Value).ConfigureAwait(false);
 
-            var result = whites.Where(c => string.IsNullOrWhiteSpace(c.UserId) == false).GroupBy(c => c.UserId).ToDictionary(c => $"u_{c.Key}", v =>
-            {
-                return v.Any(x => x.Bandwidth == 0) ? v.First(x => x.Bandwidth == 0).Bandwidth : v.OrderByDescending(x => x.Bandwidth).First().Bandwidth;
-            }).Concat(whites.Where(c => string.IsNullOrWhiteSpace(c.MachineId) == false).GroupBy(c => c.MachineId).ToDictionary(c => $"m_{c.Key}", v =>
-            {
-                return v.Any(x => x.Bandwidth == 0) ? v.First(x => x.Bandwidth == 0).Bandwidth : v.OrderByDescending(x => x.Bandwidth).First().Bandwidth;
-            })).ToDictionary();
+            var result = whites.Where(c => string.IsNullOrWhiteSpace(c.UserId) == false).GroupBy(c => c.UserId)
+                .ToDictionary(c => $"u_{c.Key}", v => v.Select(c => c).ToDictionary(x => x.Id, x => x.Bandwidth))
+                .Concat(whites.Where(c => string.IsNullOrWhiteSpace(c.MachineId) == false).GroupBy(c => c.MachineId)
+                .ToDictionary(c => $"m_{c.Key}", v => v.Select(c => c).ToDictionary(x => x.Id, x => x.Bandwidth)))
+                .ToDictionary();
             connection.Write(serializer.Serialize(result));
         }
     }

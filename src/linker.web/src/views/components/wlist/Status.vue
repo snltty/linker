@@ -41,10 +41,8 @@ export default {
         }
 
         onMounted(()=>{
-
             wlistStatus(props.type).then(res=>{
                 state.status = res;
-                console.log(res);
             });
         });
 
