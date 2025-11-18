@@ -6,10 +6,13 @@ cp -rf install-package/fpk/docker/* public/publish-fpk/docker/
 sed -i "s|{version}|1.9.6|g" public/publish-fpk/docker/manifest
 sed -i 's/\r$//' public/publish-fpk/docker/manifest
 sed -i 's/\r$//' public/publish-fpk/docker/cmd/main
+sed -i 's/\r$//' public/publish-fpk/docker/cmd/uninstall_callback
 
 cd public/publish-fpk/docker
 
-tar -czf linker-docker-x64.fpk *
+tar -czf app.tgz --transform='s,app/,,g' app/docker app/ui config
+tar -czf linker.fpk --exclude='app' *
+mv linker.fpk linker-docker-x64.fpk
 
 cd ../../../
 

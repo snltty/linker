@@ -2,4 +2,8 @@
 
 ### This script is called after the user uninstalls the application.
 
+docker stop linker
+docker rm linker
+docker rmi -f snltty/linker-musl
+
 exit 0
