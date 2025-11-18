@@ -20,12 +20,12 @@ jobs:
         run: sudo apt-get install binutils tar gzip
       - name: sed shell
         run: >-
-          sed -i 's/\r$//' shells/publish-ipk.sh sed -i 's/\r$//'
+          sed -i 's/\r$//' shells/publish-ipk.sh ; sed -i 's/\r$//'
           shells/publish-fpk.sh
       - name: chmod shell
-        run: chmod +x shells/publish-ipk.sh chmod +x shells/publish-fpk.sh
+        run: chmod +x shells/publish-ipk.sh ; chmod +x shells/publish-fpk.sh
       - name: publish projects
-        run: ./shells/publish-ipk.sh ./shells/publish-fpk.sh
+        run: ./shells/publish-ipk.sh ; ./shells/publish-fpk.sh
       - name: get latest release
         id: get-release
         run: |

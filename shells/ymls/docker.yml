@@ -36,7 +36,9 @@ jobs:
     
     - name: docker buildx
       uses: docker/setup-buildx-action@v2.5.0
-      
+    
+    - name: sed shell
+      run:  sed -i 's/\r$//' ./shells/publish-docker.sh
     - name: chmod shell
       run: chmod +x ./shells/publish-docker.sh
     - name: publish projects
