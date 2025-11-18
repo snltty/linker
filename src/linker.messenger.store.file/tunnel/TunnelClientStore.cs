@@ -80,7 +80,7 @@ namespace linker.messenger.store.file.tunnel
             {
                 return list;
             }
-            return [];
+            return await Task.FromResult(new List<TunnelTransportItemInfo>()).ConfigureAwait(false);
         }
 
         private void ForceUpdate(List<TunnelTransportItemInfo> currents, List<ITunnelTransport> news)
