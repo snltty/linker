@@ -31,7 +31,7 @@ jobs:
         run: ./shells/publish-ipk.sh ; ./shells/publish-fpk.sh
     
       - name: get latest release
-        id: get-release
+        id: get_release
         run: |
           response=$(curl -s \
             -H "Accept: application/vnd.github+json" \
