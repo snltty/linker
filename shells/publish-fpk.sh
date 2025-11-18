@@ -1,7 +1,5 @@
 target=$(cd $(dirname $0)/..; pwd)
 
-cd ../
-
 mkdir -p public/publish-fpk/docker
 cp -rf install-package/docker/* public/publish-fpk/docker/
 

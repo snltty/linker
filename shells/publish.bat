@@ -3,7 +3,6 @@
 SET sdkpath=%1
 if "%sdkpath%"=="" (SET sdkpath="D:\\Android\\android-sdk")
 
-cd ../
 
 rd /s /q public\\extends
 rd /s /q public\\publish

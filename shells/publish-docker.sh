@@ -1,8 +1,6 @@
 target=$(cd $(dirname $0)/..; pwd)
 image="snltty/linker"
 
-cd ../
-
 fs=('linker')
 ps=('musl' 'debian' 'kvm')
 rs=('x64' 'arm64' 'arm')

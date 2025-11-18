@@ -1,7 +1,5 @@
 target=$(cd $(dirname $0)/..; pwd)
 
-cd ../
-
 rs=('x64' 'arm64' 'arm')
 index=0
 
