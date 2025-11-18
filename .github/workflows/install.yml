@@ -103,7 +103,7 @@ jobs:
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
-          asset-path: ./public/publish-fpk/docker/inker-docker-x64.fpk
+          asset-path: ./public/publish-fpk/docker/linker-docker-x64.fpk
           target-path: /downloads/linker/v1.9.6/linker-docker-x64.fpk
       - name: upload-fpk-x64
         id: upload-fpk-x64

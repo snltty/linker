@@ -40,7 +40,7 @@ namespace linker.messenger.store.file.tunnel
 
             OnChanged();
 
-            return true;
+            return await Task.FromResult(true).ConfigureAwait(false);
         }
         public async Task<bool> SetTunnelTransports(string machineId, List<ITunnelTransport> list)
         {
@@ -59,7 +59,7 @@ namespace linker.messenger.store.file.tunnel
 
             OnChanged();
 
-            return true;
+            return await Task.FromResult(true).ConfigureAwait(false);
         }
 
         public async Task<List<TunnelTransportItemInfo>> GetTunnelTransports(string machineId)

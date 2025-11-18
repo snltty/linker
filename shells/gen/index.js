@@ -207,7 +207,7 @@ function writeUploadIpk(data, tagName) {
                 'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
                 'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
                 'bucket': 'ide-qbcode',
-                'asset-path': `./public/publish-fpk/docker/inker-docker-${arch}.fpk`,
+                'asset-path': `./public/publish-fpk/docker/linker-docker-${arch}.fpk`,
                 'target-path': `/downloads/linker/${tagName}/linker-docker-${arch}.fpk`
             }
         });
@@ -279,9 +279,9 @@ readVersionDesc().then((desc) => {
     }
     writeText('../publish-fpk.sh', publishFpkText);
 
-    const ipkData = readYaml('../ymls/install.yml');
-    writeUploadIpk(ipkData, `v${desc.version}`);
-    writeYaml('../../.github/workflows/install.yml', ipkData);
+    const installData = readYaml('../ymls/install.yml');
+    writeUploadIpk(installData, `v${desc.version}`);
+    writeYaml('../../.github/workflows/install.yml', installData);
 
 
 });
