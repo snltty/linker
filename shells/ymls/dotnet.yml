@@ -37,4 +37,4 @@ jobs:
         run: dotnet workload install maui
 
       - name: publish projects
-        run: ./publish.bat "C:\\Android\\android-sdk"
+        run: ./shells/publish.bat "C:\\Android\\android-sdk"

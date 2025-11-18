@@ -38,9 +38,9 @@ jobs:
       uses: docker/setup-buildx-action@v2.5.0
       
     - name: chmod shell
-      run: chmod +x publish-docker.sh
+      run: chmod +x ./shells/publish-docker.sh
     - name: publish projects
-      run: ./publish-docker.sh
+      run: ./shells/publish-docker.sh
 
     - name: create docker image manifest
       run: |

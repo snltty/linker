@@ -33,7 +33,7 @@ jobs:
       - name: install dotnet maui
         run: dotnet workload install maui
       - name: publish projects
-        run: ./publish.bat "C:\\Android\\android-sdk"
+        run: ./shells/publish.bat "C:\\Android\\android-sdk"
       - name: upload-win-x86-oss
         id: upload-win-x86-oss
         uses: tvrcgo/oss-action@v0.1.1

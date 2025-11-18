@@ -25,16 +25,16 @@ jobs:
 
       - name: sed shell
         run: 
-          sed -i 's/\r$//' publish-ipk.sh
-          sed -i 's/\r$//' publish-fpk.sh
+          sed -i 's/\r$//' shells/publish-ipk.sh
+          sed -i 's/\r$//' shells/publish-fpk.sh
       - name: chmod shell
         run: 
-          chmod +x publish-ipk.sh
-          chmod +x publish-fpk.sh
+          chmod +x shells/publish-ipk.sh
+          chmod +x shells/publish-fpk.sh
       - name: publish projects
         run: 
-          ./publish-ipk.sh
-          ./publish-fpk.sh
+          ./shells/publish-ipk.sh
+          ./shells/publish-fpk.sh
     
       - name: get latest release
         id: get-release
