@@ -101,7 +101,7 @@ jobs:
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
-          asset-path: ./public/publish-fpk/docker/linker.fpk
+          asset-path: ./public/publish-fpk/docker/inker-docker-x64.fpk
           target-path: /downloads/linker/v1.9.6/linker-docker-x64.fpk
       - name: upload-fpk-x64
         id: upload-fpk-x64
@@ -110,6 +110,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: ./public/publish-fpk/docker/linker.fpk
+          asset_path: ./public/publish-fpk/docker/inker-docker-x64.fpk
           asset_name: linker-docker-x64.fpk
           asset_content_type: application/fpk

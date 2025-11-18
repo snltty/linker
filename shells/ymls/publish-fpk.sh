@@ -11,10 +11,7 @@ sed -i 's/\r$//' public/publish-fpk/docker/cmd/main
 
 cd public/publish-fpk/docker
 
-chmod +x src/linker/fnpack
-sudo mv src/linker/fnpack /usr/local/bin/fnpack
-
-fnpack build
+tar -czf linker-docker-x64.fpk *
 
 cd ../../../
 
