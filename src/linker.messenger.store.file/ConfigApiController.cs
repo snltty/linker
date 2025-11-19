@@ -15,40 +15,38 @@ namespace linker.messenger.store.file
         private readonly RunningConfig runningConfig;
         private readonly FileConfig config;
         private readonly SignInClientTransfer signInClientTransfer;
-        private readonly IMessengerSender sender;
         private readonly SignInClientState signInClientState;
-        private readonly IApiStore apiStore;
         private readonly ExportResolver exportResolver;
         private readonly IAccessStore accessStore;
 
-        public ConfigApiController(RunningConfig runningConfig, FileConfig config, SignInClientTransfer signInClientTransfer, IMessengerSender sender, SignInClientState signInClientState,
-            IApiStore apiStore, ExportResolver exportResolver, IAccessStore accessStore)
+        public ConfigApiController(RunningConfig runningConfig, FileConfig config, SignInClientTransfer signInClientTransfer,
+            SignInClientState signInClientState, ExportResolver exportResolver, IAccessStore accessStore)
         {
             this.runningConfig = runningConfig;
             this.config = config;
             this.signInClientTransfer = signInClientTransfer;
-            this.sender = sender;
             this.signInClientState = signInClientState;
-            this.apiStore = apiStore;
             this.exportResolver = exportResolver;
             this.accessStore = accessStore;
         }
 
         public ConfigListInfo Get(ApiControllerParamsInfo param)
         {
-            ulong hashCode = ulong.Parse(param.Content);
-            if (config.Data.DataVersion.Eq(hashCode, out ulong version) == false)
-            {
-                return new ConfigListInfo
-                {
-                    HashCode = version,
-                    List = new { Common = config.Data.Common, Client = config.Data.Client, Server = config.Data.Server, Running = runningConfig.Data }
-                };
-            }
+            GetConfigParamsInfo info = param.Content.DeJson<GetConfigParamsInfo>();
+
+            bool eq = config.Data.DataVersion.Eq(info.HashCode, out ulong version),
+                eq1 = runningConfig.Data.DataVersion.Eq(info.HashCode1, out ulong version1);
             return new ConfigListInfo
             {
                 HashCode = version,
-                List = new { Running = runningConfig.Data }
+                HashCode1 = version1,
+                List = new Dictionary<string, object>
+                {
+                    { "Common" ,eq ? null : config.Data.Common },
+                    { "Client" ,eq ? null : config.Data.Client },
+                    { "Server" ,eq ? null : config.Data.Server },
+                    { "Running" ,eq1 ? null : runningConfig.Data}
+                }
             };
         }
         public bool Install(ApiControllerParamsInfo param)
@@ -313,10 +311,17 @@ namespace linker.messenger.store.file
 
     }
 
+    public sealed class GetConfigParamsInfo
+    {
+        public ulong HashCode { get; set; }
+        public ulong HashCode1 { get; set; }
+    }
+
     public sealed class ConfigListInfo
     {
-        public object List { get; set; }
+        public Dictionary<string, object> List { get; set; }
         public ulong HashCode { get; set; }
+        public ulong HashCode1 { get; set; }
     }
 
     public sealed class InstallSaveInfo

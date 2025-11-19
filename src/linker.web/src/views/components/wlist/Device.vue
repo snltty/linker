@@ -58,7 +58,5 @@ img{
     height:1.4rem;
     vertical-align: middle;
     margin-right:.1rem
-    border:1px solid rgba(0,0,0,.1);
-    border-radius:.2rem;
 }
 </style>

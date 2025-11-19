@@ -262,6 +262,7 @@ namespace linker.messenger.store.file
 
         private void SaveTask()
         {
+            Data.Update();
             TimerHelper.SetIntervalLong(() =>
             {
                 while (Data.Updated > 0)

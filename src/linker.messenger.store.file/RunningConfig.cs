@@ -53,6 +53,7 @@ namespace linker.messenger.store.file
         }
         private void SaveTask()
         {
+            Data.Update();
             TimerHelper.SetIntervalLong(() =>
             {
                 while (Data.Updated > 0)
@@ -110,12 +111,12 @@ namespace linker.messenger.store.file
         [JsonIgnore, BsonIgnore]
         public uint Updated { get; set; } = 1;
         [JsonIgnore, BsonIgnore]
-        public VersionManager Version { get; set; } = new VersionManager();
+        public VersionManager DataVersion { get; set; } = new VersionManager();
 
         public void Update()
         {
             Updated++;
-            Version.Increment();
+            DataVersion.Increment();
         }
     }
 }
