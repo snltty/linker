@@ -38,5 +38,5 @@ for %%r in (win-x86,win-x64,win-arm64,linux-x64,linux-arm,linux-arm64,linux-musl
 
 	echo F|xcopy "public\\extends\\any\\*" "public\\publish\\%%r\\linker-%%r\\*"  /s /f /h /y
 
-	7z a -tzip public/publish-zip/linker-%%r.zip public/publish/%%r/*
+	7z a -tzip ./public/publish-zip/linker-%%r.zip ./public/publish/%%r/*
 )
