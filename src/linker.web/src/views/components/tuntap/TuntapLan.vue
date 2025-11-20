@@ -152,7 +152,7 @@ export default {
         }
 
         const handleAdd = (index) => {
-            state.lans.splice(index + 1, 0, { IP: '0.0.0.0', PrefixLength: 24 ,MapIP:'0.0.0.0',MapPrefixLength:24 });
+            state.lans.splice(index + 1, 0, { IP: '0.0.0.0', PrefixLength: 24 ,MapIP:'0.0.0.0',MapPrefixLength:24,Remark:'' });
         }
         const getData = ()=>{
             return state.lans.map(c => { c.PrefixLength = +c.PrefixLength; return c; });

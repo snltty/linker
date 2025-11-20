@@ -1,5 +1,5 @@
 <template>
-     <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap" :title="`设置[${state.machineName}]代理`" top="1vh" width="700">
+     <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap" :title="`设置[${state.machineName}]代理`" top="1vh" width="780">
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="140">
                 <el-form-item prop="gateway" style="margin-bottom:0">

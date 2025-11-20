@@ -15,19 +15,18 @@ namespace linker.messenger.updater
         private readonly SignInClientState signInClientState;
         private readonly UpdaterHelper updaterHelper;
         private readonly ISignInClientStore signInClientStore;
-        private readonly IUpdaterCommonStore updaterCommonTransfer;
         private readonly ISerializer serializer;
         private readonly IUpdaterClientStore updaterClientStore;
 
         public VersionManager Version { get; } = new VersionManager();
 
-        public UpdaterClientTransfer(IMessengerSender messengerSender, SignInClientState signInClientState, UpdaterHelper updaterHelper, ISignInClientStore signInClientStore, IUpdaterCommonStore updaterCommonTransfer, ISerializer serializer, IUpdaterClientStore updaterClientStore)
+        public UpdaterClientTransfer(IMessengerSender messengerSender, SignInClientState signInClientState, UpdaterHelper updaterHelper,
+            ISignInClientStore signInClientStore, ISerializer serializer, IUpdaterClientStore updaterClientStore)
         {
             this.messengerSender = messengerSender;
             this.signInClientState = signInClientState;
             this.updaterHelper = updaterHelper;
             this.signInClientStore = signInClientStore;
-            this.updaterCommonTransfer = updaterCommonTransfer;
             this.serializer = serializer;
             this.updaterClientStore = updaterClientStore;
 

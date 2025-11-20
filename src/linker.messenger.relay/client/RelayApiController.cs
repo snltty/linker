@@ -99,8 +99,8 @@ namespace linker.messenger.relay.client
             {
                 relayConnectInfo.Protocol = TunnelProtocolType.Tcp;
             }
-            relayClientStore.SetDefaultNodeId(relayConnectInfo.NodeId);
-            relayClientStore.SetDefaultProtocol(relayConnectInfo.Protocol);
+            //relayClientStore.SetDefaultNodeId(relayConnectInfo.NodeId);
+            //relayClientStore.SetDefaultProtocol(relayConnectInfo.Protocol);
             _ = relayTransfer.ConnectAsync(relayConnectInfo.FromMachineId, relayConnectInfo.ToMachineId, relayConnectInfo.TransactionId, relayConnectInfo.NodeId, relayConnectInfo.Protocol);
             return true;
         }

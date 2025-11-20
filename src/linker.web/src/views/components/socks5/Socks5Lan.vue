@@ -58,6 +58,19 @@
                         </template>
                     </template>
                 </el-table-column>
+                <el-table-column prop="Remark" label="备注">
+                    <template #default="scope">
+                        <template v-if="scope.row.RemarkEditing">
+                            <el-input v-trim autofocus size="small" v-model="scope.row.Remark"
+                                @blur="handleEditBlur(scope.row, 'Remark')"></el-input>
+                        </template>
+                        <template v-else>
+                            <a href="javascript:;" class="a-line" @click="handleEdit(scope.row, 'Remark')">
+                                <span>{{ scope.row.Remark }}</span>
+                            </a>
+                        </template>
+                    </template>
+                </el-table-column>
                 <el-table-column prop="Disabled" label="禁用">
                     <template #default="scope">
                         <el-checkbox v-model="scope.row.Disabled" label="禁用"/>
@@ -98,7 +111,7 @@ export default {
             lans: socks5.value.current.Lans.slice(0).map(c=>{ c.MapIP = c.MapIP || '0.0.0.0'; c.MapPrefixLength=c.MapPrefixLength || 24; return c; })
         });
         if (state.lans.length == 0) {
-            state.lans.push({ IP: '0.0.0.0', PrefixLength: 24,MapIP:'0.0.0.0',MapPrefixLength:24 });
+            state.lans.push({ IP: '0.0.0.0', PrefixLength: 24,MapIP:'0.0.0.0',MapPrefixLength:24,Remark:'' });
         }
 
         const handleCellClick = (row, column) => {
@@ -110,6 +123,7 @@ export default {
                 c[`PrefixLengthEditing`] = false;
                 c[`MapIPEditing`] = false;
                 c[`MapPrefixLengthEditing`] = false;
+                 c[`RemarkEditing`] = false;
             })
             row[`${p}Editing`] = true;
             row[`__editing`] = true;
@@ -135,7 +149,7 @@ export default {
         }
 
         const handleAdd = (index) => {
-            state.lans.splice(index + 1, 0, { IP: '0.0.0.0', PrefixLength: 24 ,MapIP:'0.0.0.0',MapPrefixLength:24 });
+            state.lans.splice(index + 1, 0, { IP: '0.0.0.0', PrefixLength: 24 ,MapIP:'0.0.0.0',MapPrefixLength:24,Remark:'' });
         }
         const getData = ()=>{
             return state.lans.map(c => { c.PrefixLength = +c.PrefixLength; return c; });

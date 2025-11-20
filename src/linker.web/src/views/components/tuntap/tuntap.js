@@ -34,7 +34,7 @@ export const provideTuntap = () => {
                         Object.assign(res.List[j], {
                             running: res.List[j].Status == 2,
                             loading: res.List[j].Status == 1,
-                            systems: match
+                            systems: match,
                         });
                     }
                     tuntap.value.list = res.List;

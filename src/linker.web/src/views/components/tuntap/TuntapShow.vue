@@ -48,16 +48,28 @@
                     <div>
                         <template v-for="(item1,index) in  item.hook_tuntap.Lans" :key="index">
                             <template v-if="item.hook_tuntap.Available == false">
-                                <div class="flex disable" title="IP不生效，可能是设备不在线">{{ item1.IP }}/{{ item1.PrefixLength }}</div>
+                                <div class="flex disable" title="IP不生效，可能是设备不在线">
+                                    <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
+                                    <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
+                                </div>
                             </template>
                             <template v-else-if="item1.Disabled">
-                                <div class="flex disable" title="已禁用">{{ item1.IP }}/{{ item1.PrefixLength }}</div>
+                                <div class="flex disable" title="已禁用">
+                                    <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
+                                    <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
+                                </div>
                             </template>
                             <template v-else-if="item1.Exists">
-                                <div class="flex yellow" title="与其它设备填写IP、或本机局域网IP有冲突、或与本机外网IP一致">{{ item1.IP }}/{{ item1.PrefixLength }}</div>
+                                <div class="flex yellow" title="与其它设备填写IP、或本机局域网IP有冲突、或与本机外网IP一致">
+                                    <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
+                                    <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
+                                </div>
                             </template>
                             <template v-else>
-                                <div class="flex green" title="正常使用">{{ item1.IP }}/{{ item1.PrefixLength }}</div>
+                                <div class="flex green" title="正常使用">
+                                    <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
+                                    <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
+                                </div>
                             </template>
                         </template>
                     </div>
@@ -169,6 +181,16 @@ export default {
     width:8rem;
 }
 
+.remark{
+    padding-left:.4rem;
+    text-align:right;
+    white-space: nowrap;      /* 禁止换行 */
+    overflow: hidden;         /* 隐藏超出部分 */
+    text-overflow: ellipsis;  /* 显示省略号 */
+    max-width: 100%;
+    color:#666;
+}
+
 .delay{position: absolute;right:0;bottom:0;line-height:normal}
 .switch-btn{
     font-size:1.5rem;
@@ -182,6 +204,5 @@ export default {
         -webkit-background-clip: text;
         -webkit-text-fill-color: hsla(0, 0%, 100%, 0);
     }
-
 }
 </style>

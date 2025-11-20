@@ -24,8 +24,9 @@
 3. 去除cdkey，改为发电解锁中继速度
 4. 新增飞牛OS的fpk程序包支持
 5. 打洞协议设置，可一对一单独调整所需协议及顺序
-6. 优化管理UI展示，更多数字及状态展示
-7. 重构管理UI代码，减少重绘</Description>
+6. 点对网可备注信息
+7. 优化管理UI展示，更多数字及状态展示
+8. 重构管理UI代码，减少重绘</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
