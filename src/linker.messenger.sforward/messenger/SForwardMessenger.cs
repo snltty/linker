@@ -152,21 +152,21 @@ namespace linker.messenger.sforward.messenger
                     result.Message = "need sign in";
                     return;
                 }
-                SForwardAddInfo191 sForwardAddInfo191 = new SForwardAddInfo191
+                SForwardAddInfo SForwardAddInfo = new SForwardAddInfo
                 {
                     Domain = sForwardAddInfo.Domain,
                     RemotePort = sForwardAddInfo.RemotePort,
                     MachineId = cache.MachineId,
                     GroupId = cache.GroupId
                 };
-                string error = await validator.Validate(cache, sForwardAddInfo191).ConfigureAwait(false);
+                string error = await validator.Validate(cache, SForwardAddInfo).ConfigureAwait(false);
                 if (string.IsNullOrWhiteSpace(error) == false)
                 {
                     result.Success = false;
                     result.Message = error;
                     return;
                 }
-                Add(sForwardAddInfo, cache.MachineId, cache.GroupId, result, sForwardAddInfo191.Super, sForwardAddInfo191.Bandwidth);
+                Add(sForwardAddInfo, cache.MachineId, cache.GroupId, result, SForwardAddInfo.Super, SForwardAddInfo.Bandwidth);
             }
             catch (Exception ex)
             {
@@ -183,7 +183,7 @@ namespace linker.messenger.sforward.messenger
         [MessengerId((ushort)SForwardMessengerIds.Add191)]
         public void Add191(IConnection connection)
         {
-            SForwardAddInfo191 sForwardAddInfo = serializer.Deserialize<SForwardAddInfo191>(connection.ReceiveRequestWrap.Payload.Span);
+            SForwardAddInfo sForwardAddInfo = serializer.Deserialize<SForwardAddInfo>(connection.ReceiveRequestWrap.Payload.Span);
             SForwardAddResultInfo result = new SForwardAddResultInfo { Success = true, BufferSize = 3 };
             try
             {
@@ -204,7 +204,7 @@ namespace linker.messenger.sforward.messenger
         [MessengerId((ushort)SForwardMessengerIds.AddForward191)]
         public async Task AddForward191(IConnection connection)
         {
-            SForwardAddInfo191 sForwardAddInfo = serializer.Deserialize<SForwardAddInfo191>(connection.ReceiveRequestWrap.Payload.Span);
+            SForwardAddInfo sForwardAddInfo = serializer.Deserialize<SForwardAddInfo>(connection.ReceiveRequestWrap.Payload.Span);
             SForwardAddResultInfo result = new SForwardAddResultInfo { Success = true, BufferSize = 3 };
             try
             {
@@ -281,7 +281,7 @@ namespace linker.messenger.sforward.messenger
         [MessengerId((ushort)SForwardMessengerIds.Remove191)]
         public void Remove191(IConnection connection)
         {
-            SForwardAddInfo191 sForwardAddInfo = serializer.Deserialize<SForwardAddInfo191>(connection.ReceiveRequestWrap.Payload.Span);
+            SForwardAddInfo sForwardAddInfo = serializer.Deserialize<SForwardAddInfo>(connection.ReceiveRequestWrap.Payload.Span);
             SForwardAddResultInfo result = new SForwardAddResultInfo { Success = true };
 
             try
@@ -299,7 +299,7 @@ namespace linker.messenger.sforward.messenger
         [MessengerId((ushort)SForwardMessengerIds.RemoveForward191)]
         public async Task RemoveForward191(IConnection connection)
         {
-            SForwardAddInfo191 sForwardAddInfo = serializer.Deserialize<SForwardAddInfo191>(connection.ReceiveRequestWrap.Payload.Span);
+            SForwardAddInfo sForwardAddInfo = serializer.Deserialize<SForwardAddInfo>(connection.ReceiveRequestWrap.Payload.Span);
             SForwardAddResultInfo result = new SForwardAddResultInfo { Success = true };
 
             try
@@ -363,7 +363,7 @@ namespace linker.messenger.sforward.messenger
                 result.Message = $"sforward fail : {ex.Message}";
             }
         }
-        public void Remove(SForwardAddInfo191 sForwardAddInfo, SForwardAddResultInfo result)
+        public void Remove(SForwardAddInfo sForwardAddInfo, SForwardAddResultInfo result)
         {
             Remove((SForwardAddInfo)sForwardAddInfo, sForwardAddInfo.MachineId, result);
         }
@@ -443,7 +443,7 @@ namespace linker.messenger.sforward.messenger
                 result.Message = $"sforward fail : {ex.Message}";
             }
         }
-        public void Add(SForwardAddInfo191 sForwardAddInfo, SForwardAddResultInfo result)
+        public void Add(SForwardAddInfo sForwardAddInfo, SForwardAddResultInfo result)
         {
             Add((SForwardAddInfo)sForwardAddInfo, sForwardAddInfo.MachineId, sForwardAddInfo.GroupId, result, sForwardAddInfo.Super, sForwardAddInfo.Bandwidth);
         }
@@ -520,7 +520,7 @@ namespace linker.messenger.sforward.messenger
         [MessengerId((ushort)SForwardMessengerIds.AddClientForward191)]
         public async Task AddClientForward191(IConnection connection)
         {
-            SForwardAddForwardInfo191 info = serializer.Deserialize<SForwardAddForwardInfo191>(connection.ReceiveRequestWrap.Payload.Span);
+            SForwardAddForwardInfo info = serializer.Deserialize<SForwardAddForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, info.MachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
@@ -781,7 +781,7 @@ namespace linker.messenger.sforward.messenger
         [MessengerId((ushort)SForwardMessengerIds.Get)]
         public void Get(IConnection connection)
         {
-            List<SForwardInfo191> result = sForwardClientStore.Get().ToList();
+            List<SForwardInfo> result = sForwardClientStore.Get().ToList();
             connection.Write(serializer.Serialize(result));
         }
         /// <summary>
@@ -791,14 +791,14 @@ namespace linker.messenger.sforward.messenger
         [MessengerId((ushort)SForwardMessengerIds.AddClient)]
         public void AddClient(IConnection connection)
         {
-            SForwardInfo191 sForwardInfo = serializer.Deserialize<SForwardInfo191>(connection.ReceiveRequestWrap.Payload.Span);
+            SForwardInfo sForwardInfo = serializer.Deserialize<SForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
             sForwardTransfer.Add(sForwardInfo);
             connection.Write(Helper.TrueArray);
         }
         [MessengerId((ushort)SForwardMessengerIds.AddClient191)]
         public void AddClient191(IConnection connection)
         {
-            SForwardInfo191 sForwardInfo = serializer.Deserialize<SForwardInfo191>(connection.ReceiveRequestWrap.Payload.Span);
+            SForwardInfo sForwardInfo = serializer.Deserialize<SForwardInfo>(connection.ReceiveRequestWrap.Payload.Span);
             sForwardTransfer.Add(sForwardInfo);
             connection.Write(Helper.TrueArray);
         }

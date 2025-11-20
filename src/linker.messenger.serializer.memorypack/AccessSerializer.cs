@@ -52,9 +52,11 @@ namespace linker.messenger.serializer.memorypack
                 value = null;
                 return;
             }
-
-            var wrapped = reader.ReadPackable<SerializableAccessUpdateInfo>();
-            value = wrapped.info;
+            value = new AccessUpdateInfo() ;
+            reader.TryReadObjectHeader(out byte count);
+            value.FromMachineId = reader.ReadValue<string>();
+            value.ToMachineId = reader.ReadValue<string>();
+            value.Access = reader.ReadValue<ulong>();
         }
     }
     [MemoryPackable]
@@ -106,8 +108,12 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableAccessBitsUpdateInfo>();
-            value = wrapped.info;
+            value = new AccessBitsUpdateInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.FromMachineId =  reader.ReadValue<string>();
+            value.ToMachineId = reader.ReadValue<string>();
+            value.Access = reader.ReadValue<BitArray>();
+
         }
     }
 
@@ -158,8 +164,10 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableAccessInfo>();
-            value = wrapped.info;
+            value = new AccessInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.MachineId = reader.ReadValue<string>();
+            value.Access = reader.ReadValue<AccessValue>();
         }
     }
     [MemoryPackable]
@@ -208,8 +216,10 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableAccessBitsInfo>();
-            value = wrapped.info;
+            value = new AccessBitsInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.MachineId = reader.ReadValue<string>();
+            value.Access = reader.ReadValue<BitArray>();
         }
     }
 
@@ -259,8 +269,10 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableApiPasswordUpdateInfo>();
-            value = wrapped.info;
+            value = new ApiPasswordUpdateInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.MachineId = reader.ReadValue<string>();
+            value.Password = reader.ReadValue<string>();
         }
     }
 

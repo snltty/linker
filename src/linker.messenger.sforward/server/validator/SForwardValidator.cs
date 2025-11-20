@@ -19,7 +19,7 @@ namespace linker.messenger.sforward.server.validator
             this.sForwardServerNodeStore = sForwardServerNodeStore;
         }
 
-        public async Task<string> Validate(SignCacheInfo signCacheInfo, SForwardAddInfo191 sForwardAddInfo)
+        public async Task<string> Validate(SignCacheInfo signCacheInfo, SForwardAddInfo sForwardAddInfo)
         {
             if (string.IsNullOrWhiteSpace(sForwardAddInfo.NodeId)) sForwardAddInfo.NodeId = sForwardServerNodeStore.Node.Id;
 

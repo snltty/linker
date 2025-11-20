@@ -216,7 +216,6 @@ namespace linker.messenger.serializer.memorypack
     }
 
 
-
     [MemoryPackable]
     public readonly partial struct SerializableUpdateInfo
     {
@@ -280,8 +279,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-
     [MemoryPackable]
     public readonly partial struct SerializableUpdaterInfo170
     {
@@ -302,10 +299,16 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         long Current => info.Current;
 
+        [MemoryPackInclude]
+        string ServerVersion => info.ServerVersion;
+
+        [MemoryPackInclude]
+        bool Sync2Server => info.Sync2Server;
+
         [MemoryPackConstructor]
-        SerializableUpdaterInfo170(string machineId, string version, UpdaterStatus status, long length, long current)
+        SerializableUpdaterInfo170(string machineId, string version, UpdaterStatus status, long length, long current, string serverVersion, bool sync2Server)
         {
-            this.info = new UpdaterInfo170 { MachineId = machineId, Version = version, Status = status, Length = length, Current = current };
+            this.info = new UpdaterInfo170 { MachineId = machineId, Version = version, Status = status, Length = length, Current = current, ServerVersion = serverVersion, Sync2Server = sync2Server };
         }
 
         public SerializableUpdaterInfo170(UpdaterInfo170 info)
@@ -335,135 +338,17 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableUpdaterInfo170>();
-            value = wrapped.info;
-        }
-    }
-
-
-    [MemoryPackable]
-    public readonly partial struct SerializableUpdater184Info
-    {
-        [MemoryPackIgnore]
-        public readonly Updater184Info info;
-
-        [MemoryPackInclude]
-        string MachineId => info.MachineId;
-        [MemoryPackInclude]
-        string Version => info.Version;
-
-        [MemoryPackInclude]
-        UpdaterStatus Status => info.Status;
-
-        [MemoryPackInclude]
-        long Length => info.Length;
-
-        [MemoryPackInclude]
-        long Current => info.Current;
-
-        [MemoryPackInclude]
-        string ServerVersion => info.ServerVersion;
-
-        [MemoryPackConstructor]
-        SerializableUpdater184Info(string machineId, string version, UpdaterStatus status, long length, long current, string serverVersion)
-        {
-            this.info = new Updater184Info { MachineId = machineId, Version = version, Status = status, Length = length, Current = current, ServerVersion = serverVersion };
-        }
-
-        public SerializableUpdater184Info(Updater184Info info)
-        {
-            this.info = info;
-        }
-    }
-    public class Updater184InfoFormatter : MemoryPackFormatter<Updater184Info>
-    {
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Updater184Info value)
-        {
-            if (value == null)
-            {
-                writer.WriteNullObjectHeader();
-                return;
-            }
-
-            writer.WritePackable(new SerializableUpdater184Info(value));
-        }
-
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref Updater184Info value)
-        {
-            if (reader.PeekIsNull())
-            {
-                reader.Advance(1); // skip null block
-                value = null;
-                return;
-            }
-
-            var wrapped = reader.ReadPackable<SerializableUpdater184Info>();
-            value = wrapped.info;
-        }
-    }
-
-
-    [MemoryPackable]
-    public readonly partial struct SerializableUpdater186Info
-    {
-        [MemoryPackIgnore]
-        public readonly Updater186Info info;
-
-        [MemoryPackInclude]
-        string MachineId => info.MachineId;
-        [MemoryPackInclude]
-        string Version => info.Version;
-
-        [MemoryPackInclude]
-        UpdaterStatus Status => info.Status;
-
-        [MemoryPackInclude]
-        long Length => info.Length;
-
-        [MemoryPackInclude]
-        long Current => info.Current;
-
-        [MemoryPackInclude]
-        string ServerVersion => info.ServerVersion;
-
-        [MemoryPackInclude]
-        bool Sync2Server => info.Sync2Server;
-
-        [MemoryPackConstructor]
-        SerializableUpdater186Info(string machineId, string version, UpdaterStatus status, long length, long current, string serverVersion, bool sync2Server)
-        {
-            this.info = new Updater186Info { MachineId = machineId, Version = version, Status = status, Length = length, Current = current, ServerVersion = serverVersion, Sync2Server = sync2Server };
-        }
-
-        public SerializableUpdater186Info(Updater186Info info)
-        {
-            this.info = info;
-        }
-    }
-    public class Updater186InfoFormatter : MemoryPackFormatter<Updater186Info>
-    {
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Updater186Info value)
-        {
-            if (value == null)
-            {
-                writer.WriteNullObjectHeader();
-                return;
-            }
-
-            writer.WritePackable(new SerializableUpdater186Info(value));
-        }
-
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref Updater186Info value)
-        {
-            if (reader.PeekIsNull())
-            {
-                reader.Advance(1); // skip null block
-                value = null;
-                return;
-            }
-
-            var wrapped = reader.ReadPackable<SerializableUpdater186Info>();
-            value = wrapped.info;
+            value = new UpdaterInfo170();
+            reader.TryReadObjectHeader(out byte count);
+            value.MachineId = reader.ReadValue<string>();
+            value.Version = reader.ReadValue<string>();
+            value.Status = reader.ReadValue<UpdaterStatus>();
+            value.Length = reader.ReadValue<long>();
+            value.Current = reader.ReadValue<long>();
+            if (count > 5)
+                value.ServerVersion = reader.ReadValue<string>();
+            if (count > 6)
+                value.Sync2Server = reader.ReadValue<bool>();
         }
     }
 

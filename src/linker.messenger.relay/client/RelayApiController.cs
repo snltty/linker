@@ -47,7 +47,7 @@ namespace linker.messenger.relay.client
             relayClientStore.SetServer(info);
             return true;
         }
-        public List<RelayServerNodeReportInfo188> Subscribe(ApiControllerParamsInfo param)
+        public List<RelayServerNodeReportInfo> Subscribe(ApiControllerParamsInfo param)
         {
             relayTestTransfer.Subscribe();
             return relayTestTransfer.Nodes;
@@ -112,12 +112,12 @@ namespace linker.messenger.relay.client
         /// <returns></returns>
         public async Task<bool> Edit(ApiControllerParamsInfo param)
         {
-            RelayServerNodeUpdateInfo188 info = param.Content.DeJson<RelayServerNodeUpdateInfo188>();
+            RelayServerNodeUpdateInfo info = param.Content.DeJson<RelayServerNodeUpdateInfo>();
             var resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)RelayMessengerIds.EditForward188,
-                Payload = serializer.Serialize(new RelayServerNodeUpdateWrapInfo188
+                Payload = serializer.Serialize(new RelayServerNodeUpdateWrapInfo
                 {
                     Info = info,
                 })

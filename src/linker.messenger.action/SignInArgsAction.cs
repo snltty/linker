@@ -197,7 +197,7 @@ namespace linker.messenger.action
             this.actionServerStore = actionServerStore;
         }
 
-        public async Task<string> Validate(linker.messenger.relay.client.transport.RelayInfo170 relayInfo, SignCacheInfo fromMachine, SignCacheInfo toMachine)
+        public async Task<string> Validate(linker.messenger.relay.client.transport.RelayInfo relayInfo, SignCacheInfo fromMachine, SignCacheInfo toMachine)
         {
             if (string.IsNullOrWhiteSpace(actionServerStore.RelayActionUrl) == false)
             {
@@ -236,7 +236,7 @@ namespace linker.messenger.action
             }
             return string.Empty;
         }
-        public async Task<List<RelayServerNodeReportInfo170>> Validate(string userid, SignCacheInfo fromMachine, List<RelayServerNodeReportInfo170> nodes)
+        public async Task<List<RelayServerNodeReportInfo>> Validate(string userid, SignCacheInfo fromMachine, List<RelayServerNodeReportInfo> nodes)
         {
             if (string.IsNullOrWhiteSpace(actionServerStore.RelayNodeUrl) == false)
             {
@@ -288,7 +288,7 @@ namespace linker.messenger.action
             this.actionServerStore = actionServerStore;
         }
 
-        public async Task<string> Validate(SignCacheInfo cache, SForwardAddInfo191 sForwardAddInfo)
+        public async Task<string> Validate(SignCacheInfo cache, SForwardAddInfo sForwardAddInfo)
         {
             if (string.IsNullOrWhiteSpace(actionServerStore.SForwardActionUrl) == false)
             {

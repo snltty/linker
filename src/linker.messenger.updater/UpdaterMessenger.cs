@@ -144,7 +144,7 @@ namespace linker.messenger.updater
         public void UpdateServer184(IConnection connection)
         {
             var info = updaterServerTransfer.Get();
-            Updater184Info result = new Updater184Info
+            UpdaterInfo170 result = new UpdaterInfo170
             {
                 MachineId = string.Empty,
                 Current = info.Current,
@@ -159,7 +159,7 @@ namespace linker.messenger.updater
         public void UpdateServer186(IConnection connection)
         {
             var info = updaterServerTransfer.Get();
-            Updater186Info result = new Updater186Info
+            UpdaterInfo170 result = new UpdaterInfo170
             {
                 MachineId = string.Empty,
                 Current = info.Current,

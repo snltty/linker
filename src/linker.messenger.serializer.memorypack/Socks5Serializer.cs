@@ -31,11 +31,24 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         byte MapPrefixLength => info.MapPrefixLength;
 
+        [MemoryPackInclude]
+        string Remark => info.Remark;
+
 
         [MemoryPackConstructor]
-        SerializableSocks5LanInfo(IPAddress ip, byte prefixLength, bool disabled, bool exists, string error, IPAddress mapip, byte mapprefixLength)
+        SerializableSocks5LanInfo(IPAddress ip, byte prefixLength, bool disabled, bool exists, string error, IPAddress mapip, byte mapprefixLength, string remark)
         {
-            var info = new Socks5LanInfo { Disabled = disabled, Error = error, Exists = exists, IP = ip, PrefixLength = prefixLength, MapIP = mapip, MapPrefixLength = mapprefixLength };
+            var info = new Socks5LanInfo
+            {
+                Disabled = disabled,
+                Error = error,
+                Exists = exists,
+                IP = ip,
+                PrefixLength = prefixLength,
+                MapIP = mapip,
+                MapPrefixLength = mapprefixLength,
+                Remark = remark
+            };
             this.info = info;
         }
 
@@ -65,9 +78,17 @@ namespace linker.messenger.serializer.memorypack
                 value = null;
                 return;
             }
-
-            var wrapped = reader.ReadPackable<SerializableSocks5LanInfo>();
-            value = wrapped.info;
+            reader.TryReadObjectHeader(out byte count);
+            value = new Socks5LanInfo();
+            value.IP = reader.ReadValue<IPAddress>();
+            value.PrefixLength = reader.ReadValue<byte>();
+            value.Disabled = reader.ReadValue<bool>();
+            value.Exists = reader.ReadValue<bool>();
+            value.Error = reader.ReadValue<string>();
+            value.MapIP = reader.ReadValue<IPAddress>();
+            value.MapPrefixLength = reader.ReadValue<byte>();
+            if (count > 7)
+                value.Remark = reader.ReadValue<string>();
         }
     }
 
@@ -93,14 +114,14 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         string SetupError => info.SetupError;
 
-        [MemoryPackInclude,MemoryPackAllowSerialize]
+        [MemoryPackInclude, MemoryPackAllowSerialize]
         IPAddress Wan => info.Wan;
 
 
         [MemoryPackConstructor]
         SerializableSocks5Info(string machineId, Socks5Status status, int port, List<Socks5LanInfo> lans, string setupError, IPAddress wan)
         {
-            var info = new Socks5Info { MachineId = machineId, Lans = lans, Port = port, SetupError = setupError, Status = status, Wan= wan };
+            var info = new Socks5Info { MachineId = machineId, Lans = lans, Port = port, SetupError = setupError, Status = status, Wan = wan };
             this.info = info;
         }
 

@@ -54,11 +54,9 @@ namespace linker.messenger.sforward
         /// </summary>
         public int RemotePortMax { get; set; }
 
-
-    }
-
-    public sealed class SForwardInfo191 : SForwardInfo
-    {
+        /// <summary>
+        /// 191+
+        /// </summary>
         public string NodeId { get; set; } = string.Empty;
         public string NodeId1 { get; set; } = string.Empty;
     }
@@ -95,11 +93,9 @@ namespace linker.messenger.sforward
         /// 或者端口。域名优先
         /// </summary>
         public int RemotePort { get; set; }
-    }
-    public sealed partial class SForwardAddInfo191 : SForwardAddInfo
-    {
+
         /// <summary>
-        /// 节点id
+        /// 191+
         /// </summary>
         public string NodeId { get; set; } = string.Empty;
         public string MachineId { get; set; } = string.Empty;
@@ -108,7 +104,6 @@ namespace linker.messenger.sforward
         public bool Super { get; set; }
         public double Bandwidth { get; set; }
     }
-
     /// <summary>
     /// 添加穿透结果
     /// </summary>
@@ -132,10 +127,6 @@ namespace linker.messenger.sforward
     {
         public string MachineId { get; set; }
         public SForwardInfo Data { get; set; }
-    }
-    public sealed partial class SForwardAddForwardInfo191 : SForwardAddForwardInfo
-    {
-        public new SForwardInfo191 Data { get; set; }
     }
     public sealed partial class SForwardRemoveForwardInfo
     {

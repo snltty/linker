@@ -16,7 +16,7 @@ namespace linker.messenger.relay.server
     {
 
         private ulong relayFlowingId = 0;
-        private readonly ConcurrentDictionary<string, RelayServerNodeReportInfo188> reports = new ConcurrentDictionary<string, RelayServerNodeReportInfo188>();
+        private readonly ConcurrentDictionary<string, RelayServerNodeReportInfo> reports = new ConcurrentDictionary<string, RelayServerNodeReportInfo>();
 
 
         private readonly ConcurrentQueue<Dictionary<int, long>> trafficQueue = new ConcurrentQueue<Dictionary<int, long>>();
@@ -80,29 +80,7 @@ namespace linker.messenger.relay.server
             }
             return null;
         }
-        public void SetNodeReport(IConnection connection, RelayServerNodeReportInfo170 info)
-        {
-            SetNodeReport(connection, new RelayServerNodeReportInfo188
-            {
-                Version = string.Empty,
-                Sync2Server = false,
-                Id = info.Id,
-                Name = info.Name,
-                MaxConnection = info.MaxConnection,
-                MaxBandwidth = info.MaxBandwidth,
-                MaxBandwidthTotal = info.MaxBandwidthTotal,
-                MaxGbTotal = info.MaxGbTotal,
-                MaxGbTotalLastBytes = info.MaxGbTotalLastBytes,
-                ConnectionRatio = info.ConnectionRatio,
-                BandwidthRatio = info.BandwidthRatio,
-                Public = info.Public,
-                EndPoint = info.EndPoint,
-                LastTicks = info.LastTicks,
-                Url = info.Url,
-                Connection = connection
-            });
-        }
-        public void SetNodeReport(IConnection connection, RelayServerNodeReportInfo188 info)
+        public void SetNodeReport(IConnection connection, RelayServerNodeReportInfo info)
         {
             try
             {
@@ -126,21 +104,10 @@ namespace linker.messenger.relay.server
                 }
             }
         }
+      
         public async Task Edit(RelayServerNodeUpdateInfo info)
         {
-            if (reports.TryGetValue(info.Id, out RelayServerNodeReportInfo188 cache))
-            {
-                await messengerSender.SendOnly(new MessageRequestWrap
-                {
-                    Connection = cache.Connection,
-                    MessengerId = (ushort)RelayMessengerIds.Edit,
-                    Payload = serializer.Serialize(info)
-                }).ConfigureAwait(false);
-            }
-        }
-        public async Task Edit(RelayServerNodeUpdateInfo188 info)
-        {
-            if (reports.TryGetValue(info.Id, out RelayServerNodeReportInfo188 cache))
+            if (reports.TryGetValue(info.Id, out RelayServerNodeReportInfo cache))
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -152,7 +119,7 @@ namespace linker.messenger.relay.server
         }
         public async Task Exit(string id)
         {
-            if (reports.TryGetValue(id, out RelayServerNodeReportInfo188 cache))
+            if (reports.TryGetValue(id, out RelayServerNodeReportInfo cache))
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -163,7 +130,7 @@ namespace linker.messenger.relay.server
         }
         public async Task Update(string id, string version)
         {
-            if (reports.TryGetValue(id, out RelayServerNodeReportInfo188 cache))
+            if (reports.TryGetValue(id, out RelayServerNodeReportInfo cache))
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -179,7 +146,7 @@ namespace linker.messenger.relay.server
         /// </summary>
         /// <param name="validated">是否已认证</param>
         /// <returns></returns>
-        public async Task<List<RelayServerNodeReportInfo188>> GetNodes(bool validated, string userid, string machineId)
+        public async Task<List<RelayServerNodeReportInfo>> GetNodes(bool validated, string userid, string machineId)
         {
             var nodes = (await relayServerWhiteListStore.GetNodes(userid, machineId)).Where(c => c.Bandwidth >= 0).SelectMany(c => c.Nodes);
 
@@ -201,7 +168,7 @@ namespace linker.messenger.relay.server
                      .ThenByDescending(x => x.MaxGbTotalLastBytes == 0 ? long.MaxValue : x.MaxGbTotalLastBytes)
                      .ToList();
         }
-        public List<RelayServerNodeReportInfo188> GetPublicNodes()
+        public List<RelayServerNodeReportInfo> GetPublicNodes()
         {
             var result = reports.Values
                 .Where(c => Environment.TickCount64 - c.LastTicks < 15000)

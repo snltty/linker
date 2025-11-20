@@ -442,8 +442,11 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude, MemoryPackAllowSerialize]
         byte MapPrefixLength => info.MapPrefixLength;
 
+        [MemoryPackInclude]
+        string Remark => info.Remark;
+
         [MemoryPackConstructor]
-        SerializableTuntapLanInfo(IPAddress ip, byte prefixLength, bool disabled, bool exists, string error, IPAddress mapip, byte mapprefixLength)
+        SerializableTuntapLanInfo(IPAddress ip, byte prefixLength, bool disabled, bool exists, string error, IPAddress mapip, byte mapprefixLength, string remark)
         {
             var info = new TuntapLanInfo
             {
@@ -454,6 +457,7 @@ namespace linker.messenger.serializer.memorypack
                 Error = error,
                 MapIP = mapip,
                 MapPrefixLength = mapprefixLength,
+                Remark = remark
             };
             this.info = info;
         }
@@ -485,8 +489,19 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableTuntapLanInfo>();
-            value = wrapped.info;
+            reader.TryReadObjectHeader(out byte count);
+            value = new TuntapLanInfo();
+            value.IP = reader.ReadValue<IPAddress>();
+            value.PrefixLength = reader.ReadValue<byte>();
+            value.Disabled = reader.ReadValue<bool>();
+            value.Exists = reader.ReadValue<bool>();
+            value.Error = reader.ReadValue<string>();
+            value.MapIP = reader.ReadValue<IPAddress>();
+            value.MapPrefixLength = reader.ReadValue<byte>();
+            if (count > 7)
+                value.Remark = reader.ReadValue<string>();
+
+            //reader.Advance(count);
         }
     }
 

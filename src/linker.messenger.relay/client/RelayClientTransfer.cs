@@ -103,7 +103,7 @@ namespace linker.messenger.relay.client
                         continue;
                     }
 
-                    transport.RelayInfo170 relayInfo = new transport.RelayInfo170
+                    RelayInfo relayInfo = new RelayInfo
                     {
                         FlowingId = 0,
                         FromMachineId = fromMachineId,
@@ -115,7 +115,6 @@ namespace linker.messenger.relay.client
                         SSL = relayClientStore.Server.SSL,
                         NodeId = nodeId,
                         UserId = signInClientStore.Server.UserId,
-                        UseCdkey = relayClientStore.Server.UseCdkey,
                     };
 
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
@@ -150,7 +149,7 @@ namespace linker.messenger.relay.client
         /// </summary>
         /// <param name="relayInfo"></param>
         /// <returns></returns>
-        public async Task<bool> OnBeginAsync(transport.RelayInfo170 relayInfo)
+        public async Task<bool> OnBeginAsync(transport.RelayInfo relayInfo)
         {
             if (operating.StartOperation(BuildKey(relayInfo.FromMachineId, relayInfo.TransactionId)) == false)
             {
@@ -197,7 +196,7 @@ namespace linker.messenger.relay.client
         /// </summary>
         /// <param name="relayInfo"></param>
         /// <param name="connection"></param>
-        private void ConnectedCallback(transport.RelayInfo170 relayInfo, ITunnelConnection connection)
+        private void ConnectedCallback(transport.RelayInfo relayInfo, ITunnelConnection connection)
         {
             if (OnConnected.TryGetValue(Helper.GlobalString, out List<Action<ITunnelConnection>> callbacks))
             {

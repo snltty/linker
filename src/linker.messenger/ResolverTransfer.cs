@@ -45,18 +45,24 @@ namespace linker.messenger
                     return;
                 }
 
-                int length = await socket.ReceiveAsync(buffer.AsMemory(0, 1), SocketFlags.None).ConfigureAwait(false);
+                int length = await socket.ReceiveAsync(buffer.AsMemory(0, 1), SocketFlags.None).AsTask().WaitAsync(TimeSpan.FromMilliseconds(1000)).ConfigureAwait(false);
                 byte type = buffer[0];
 
                 if (resolvers.TryGetValue(type, out IResolver resolver))
                 {
                     await resolver.Resolve(socket, buffer.AsMemory(1, length)).ConfigureAwait(false);
                 }
+                else
+                {
+                    socket.SafeClose();
+                }
             }
             catch (Exception ex)
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Error(ex);
+
+                socket.SafeClose();
             }
             finally
             {

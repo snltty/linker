@@ -48,16 +48,16 @@
                     <div>
                         <template v-for="(item1,index) in  item.hook_tuntap.Lans" :key="index">
                             <template v-if="item.hook_tuntap.Available == false">
-                                <div class="flex disable" title="IP不生效，可能是设备不在线">{{ item1.IP }} / {{ item1.PrefixLength }}</div>
+                                <div class="flex disable" title="IP不生效，可能是设备不在线">{{ item1.IP }}/{{ item1.PrefixLength }}</div>
                             </template>
                             <template v-else-if="item1.Disabled">
-                                <div class="flex disable" title="已禁用">{{ item1.IP }} / {{ item1.PrefixLength }}</div>
+                                <div class="flex disable" title="已禁用">{{ item1.IP }}/{{ item1.PrefixLength }}</div>
                             </template>
                             <template v-else-if="item1.Exists">
-                                <div class="flex yellow" title="与其它设备填写IP、或本机局域网IP有冲突、或与本机外网IP一致">{{ item1.IP }} / {{ item1.PrefixLength }}</div>
+                                <div class="flex yellow" title="与其它设备填写IP、或本机局域网IP有冲突、或与本机外网IP一致">{{ item1.IP }}/{{ item1.PrefixLength }}</div>
                             </template>
                             <template v-else>
-                                <div class="flex green" title="正常使用">{{ item1.IP }} / {{ item1.PrefixLength }}</div>
+                                <div class="flex green" title="正常使用">{{ item1.IP }}/{{ item1.PrefixLength }}</div>
                             </template>
                         </template>
                     </div>

@@ -49,8 +49,12 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableDecenterSyncInfo>();
-            value = wrapped.info;
+           
+            value = new DecenterSyncInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.Name = reader.ReadValue<string>();
+            value.Data = reader.ReadValue<Memory<byte>>();
+
         }
     }
 
@@ -104,8 +108,11 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableDecenterPullPageInfo>();
-            value = wrapped.info;
+            value =new DecenterPullPageInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.Name = reader.ReadValue<string>();
+            value.Page = reader.ReadValue<int>();
+            value.Size = reader.ReadValue<int>();
         }
     }
 
@@ -161,8 +168,12 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableDecenterPullPageResultInfo>();
-            value = wrapped.info;
+            value = new DecenterPullPageResultInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.Page = reader.ReadValue<int>();
+            value.Size = reader.ReadValue<int>();
+            value.Count = reader.ReadValue<int>();
+            value.List = reader.ReadValue<List<Memory<byte>>>();
         }
     }
 }

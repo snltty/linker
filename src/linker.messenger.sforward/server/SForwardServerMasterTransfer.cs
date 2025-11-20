@@ -95,7 +95,7 @@ namespace linker.messenger.sforward.server
             }
         }
 
-        public async Task<SForwardAddResultInfo> Add(SForwardAddInfo191 info, SignCacheInfo from)
+        public async Task<SForwardAddResultInfo> Add(SForwardAddInfo info, SignCacheInfo from)
         {
             if (string.IsNullOrWhiteSpace(info.NodeId)) info.NodeId = sForwardServerNodeStore.Node.Id;
             if (GetNode(info.NodeId, out var node) == false)
@@ -148,7 +148,7 @@ namespace linker.messenger.sforward.server
                 Success = false
             };
         }
-        public async Task<SForwardAddResultInfo> Remove(SForwardAddInfo191 info)
+        public async Task<SForwardAddResultInfo> Remove(SForwardAddInfo info)
         {
             if (string.IsNullOrWhiteSpace(info.NodeId)) info.NodeId = sForwardServerNodeStore.Node.Id;
 

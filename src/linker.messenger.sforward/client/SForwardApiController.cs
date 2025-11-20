@@ -46,15 +46,15 @@ namespace linker.messenger.sforward.client
         /// </summary>
         /// <param name="param"></param>
         /// <returns></returns>
-        public async Task<List<SForwardInfo191>> Get(ApiControllerParamsInfo param)
+        public async Task<List<SForwardInfo>> Get(ApiControllerParamsInfo param)
         {
             if (param.Content == signInClientStore.Id)
             {
-                if (accessStore.HasAccess(AccessValue.ForwardShowSelf) == false) return new List<SForwardInfo191>();
+                if (accessStore.HasAccess(AccessValue.ForwardShowSelf) == false) return new List<SForwardInfo>();
                 return sForwardClientStore.Get().ToList();
             }
 
-            if (accessStore.HasAccess(AccessValue.ForwardShowOther) == false) return new List<SForwardInfo191>();
+            if (accessStore.HasAccess(AccessValue.ForwardShowOther) == false) return new List<SForwardInfo>();
             var resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
@@ -63,9 +63,9 @@ namespace linker.messenger.sforward.client
             }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK)
             {
-                return serializer.Deserialize<List<SForwardInfo191>>(resp.Data.Span);
+                return serializer.Deserialize<List<SForwardInfo>>(resp.Data.Span);
             }
-            return new List<SForwardInfo191>();
+            return new List<SForwardInfo>();
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace linker.messenger.sforward.client
         /// <returns></returns>
         public async Task<bool> Add(ApiControllerParamsInfo param)
         {
-            SForwardAddForwardInfo191 info = param.Content.DeJson<SForwardAddForwardInfo191>();
+            SForwardAddForwardInfo info = param.Content.DeJson<SForwardAddForwardInfo>();
             if (info.MachineId == signInClientStore.Id)
             {
                 if (accessStore.HasAccess(AccessValue.ForwardSelf) == false) return false;

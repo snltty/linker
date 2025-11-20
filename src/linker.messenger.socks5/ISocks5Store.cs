@@ -68,6 +68,7 @@ namespace linker.messenger.socks5
         public bool Disabled { get; set; }
         public bool Exists { get; set; }
         public string Error { get; set; } = string.Empty;
+        public string Remark { get; set; } = string.Empty;
     }
 
     public enum Socks5Status : byte

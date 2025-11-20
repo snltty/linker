@@ -13,10 +13,7 @@ namespace linker.messenger.sync
         public SyncInfo() { }
         public string Name { get; set; }
         public Memory<byte> Data { get; set; }
-    }
-    public sealed partial class Sync184Info : SyncInfo
-    {
-        public Sync184Info() { }
         public string[] Ids { get; set; }
+
     }
 }

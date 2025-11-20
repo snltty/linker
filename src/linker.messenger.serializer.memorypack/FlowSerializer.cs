@@ -51,8 +51,10 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableFlowItemInfo>();
-            value = wrapped.info;
+            value = new FlowItemInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.ReceiveBytes = reader.ReadValue<long>();
+            value.SendtBytes = reader.ReadValue<long>();
         }
     }
 
@@ -113,8 +115,12 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableFlowReportNetInfo>();
-            value = wrapped.info;
+            value = new FlowReportNetInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.City = reader.ReadValue<string>();
+            value.Lat = reader.ReadValue<double>();
+            value.Lon = reader.ReadValue<double>();
+            value.Count = reader.ReadValue<int>();
         }
     }
 
@@ -168,8 +174,11 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableFlowInfo>();
-            value = wrapped.info;
+            value = new FlowInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.Items = reader.ReadValue<Dictionary<string, FlowItemInfo>>();
+            value.Start = reader.ReadValue<DateTime>();
+            value.Now = reader.ReadValue<DateTime>();
         }
     }
 
@@ -241,8 +250,14 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableRelayFlowItemInfo>();
-            value = wrapped.info;
+            value = new RelayFlowItemInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.ReceiveBytes = reader.ReadValue<long>();
+            value.SendtBytes = reader.ReadValue<long>();
+            value.DiffReceiveBytes = reader.ReadValue<long>();
+            value.DiffSendtBytes = reader.ReadValue<long>();
+            value.FromName = reader.ReadValue<string>();
+            value.ToName = reader.ReadValue<string>();
         }
     }
 
@@ -314,8 +329,14 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableRelayFlowRequestInfo>();
-            value = wrapped.info;
+            value = new RelayFlowRequestInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.Key = reader.ReadValue<string>();
+            value.SecretKey = reader.ReadValue<string>();
+            value.Page = reader.ReadValue<int>();
+            value.PageSize = reader.ReadValue<int>();
+            value.Order = reader.ReadValue<RelayFlowOrder>();
+            value.OrderType = reader.ReadValue<RelayFlowOrderType>();
         }
     }
 
@@ -379,8 +400,12 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableRelayFlowResponseInfo>();
-            value = wrapped.info;
+            value = new RelayFlowResponseInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.Page = reader.ReadValue<int>();
+            value.PageSize = reader.ReadValue<int>();
+            value.Count = reader.ReadValue<int>();
+            value.Data = reader.ReadValue<List<RelayFlowItemInfo>>();
         }
     }
 
@@ -450,8 +475,13 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableSForwardFlowItemInfo>();
-            value = wrapped.info;
+            value = new SForwardFlowItemInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.ReceiveBytes = reader.ReadValue<long>();
+            value.SendtBytes = reader.ReadValue<long>();
+            value.DiffReceiveBytes = reader.ReadValue<long>();
+            value.DiffSendtBytes = reader.ReadValue<long>();
+            value.Key = reader.ReadValue<string>();
         }
     }
 
@@ -521,8 +551,14 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableSForwardFlowRequestInfo>();
-            value = wrapped.info;
+            value = new SForwardFlowRequestInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.Key = reader.ReadValue<string>();
+            value.MachineId = reader.ReadValue<string>();
+            value.Page = reader.ReadValue<int>();
+            value.PageSize = reader.ReadValue<int>();
+            value.Order = reader.ReadValue<SForwardFlowOrder>();
+            value.OrderType = reader.ReadValue<SForwardFlowOrderType>();
         }
     }
 
@@ -584,8 +620,12 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableSForwardFlowResponseInfo>();
-            value = wrapped.info;
+            value = new SForwardFlowResponseInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.Page = reader.ReadValue<int>();
+            value.PageSize = reader.ReadValue<int>();
+            value.Count = reader.ReadValue<int>();
+            value.Data = reader.ReadValue<List<SForwardFlowItemInfo>>();
         }
     }
 
@@ -658,8 +698,15 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableForwardFlowItemInfo>();
-            value = wrapped.info;
+            value = new ForwardFlowItemInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.ReceiveBytes = reader.ReadValue<long>();
+            value.SendtBytes = reader.ReadValue<long>();
+            value.DiffReceiveBytes = reader.ReadValue<long>();
+            value.DiffSendtBytes = reader.ReadValue<long>();
+            value.Key = reader.ReadValue<string>();
+            value.Target = reader.ReadValue<IPEndPoint>();
+
         }
     }
 
@@ -725,8 +772,13 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableForwardFlowRequestInfo>();
-            value = wrapped.info;
+            value = new ForwardFlowRequestInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.MachineId = reader.ReadValue<string>();
+            value.Page = reader.ReadValue<int>();
+            value.PageSize = reader.ReadValue<int>();
+            value.Order = reader.ReadValue<ForwardFlowOrder>();
+            value.OrderType = reader.ReadValue<ForwardFlowOrderType>();
         }
     }
 
@@ -788,8 +840,12 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableForwardFlowResponseInfo>();
-            value = wrapped.info;
+            value = new ForwardFlowResponseInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.Page = reader.ReadValue<int>();
+            value.PageSize = reader.ReadValue<int>();
+            value.Count = reader.ReadValue<int>();
+            value.Data = reader.ReadValue<List<ForwardFlowItemInfo>>();
         }
     }
 
@@ -863,8 +919,15 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableSocks5FlowItemInfo>();
-            value = wrapped.info;
+            value = new Socks5FlowItemInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.ReceiveBytes = reader.ReadValue<long>();
+            value.SendtBytes = reader.ReadValue<long>();
+            value.DiffReceiveBytes = reader.ReadValue<long>();
+            value.DiffSendtBytes = reader.ReadValue<long>();
+            value.Key = reader.ReadValue<string>();
+            value.Target = reader.ReadValue<IPEndPoint>();
+
         }
     }
 
@@ -930,8 +993,13 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableSocks5FlowRequestInfo>();
-            value = wrapped.info;
+            value = new Socks5FlowRequestInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.MachineId = reader.ReadValue<string>();
+            value.Page = reader.ReadValue<int>();
+            value.PageSize = reader.ReadValue<int>();
+            value.Order = reader.ReadValue<Socks5FlowOrder>();
+            value.OrderType = reader.ReadValue<Socks5FlowOrderType>();
         }
     }
 
@@ -993,8 +1061,12 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableSocks5FlowResponseInfo>();
-            value = wrapped.info;
+            value = new Socks5FlowResponseInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.Page = reader.ReadValue<int>();
+            value.PageSize = reader.ReadValue<int>();
+            value.Count = reader.ReadValue<int>();
+            value.Data = reader.ReadValue<List<Socks5FlowItemInfo>>();
         }
     }
 
@@ -1069,8 +1141,15 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableTunnelFlowItemInfo>();
-            value = wrapped.info;
+            value = new TunnelFlowItemInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.ReceiveBytes = reader.ReadValue<long>();
+            value.SendtBytes = reader.ReadValue<long>();
+            value.Key = reader.ReadValue<string>();
+            value.TransitionId = reader.ReadValue<string>();
+            value.Direction = reader.ReadValue<TunnelDirection>();
+            value.Type = reader.ReadValue<TunnelType>();
+            value.Mode = reader.ReadValue<TunnelMode>();
         }
     }
 
@@ -1136,8 +1215,13 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableTunnelFlowRequestInfo>();
-            value = wrapped.info;
+            value = new TunnelFlowRequestInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.MachineId = reader.ReadValue<string>();
+            value.Page = reader.ReadValue<int>();
+            value.PageSize = reader.ReadValue<int>();
+            value.Order = reader.ReadValue<TunnelFlowOrder>();
+            value.OrderType = reader.ReadValue<TunnelFlowOrderType>();
         }
     }
 
@@ -1199,8 +1283,12 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableTunnelFlowResponseInfo>();
-            value = wrapped.info;
+            value = new TunnelFlowResponseInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.Page = reader.ReadValue<int>();
+            value.PageSize = reader.ReadValue<int>();
+            value.Count = reader.ReadValue<int>();
+            value.Data = reader.ReadValue<List<TunnelFlowItemInfo>>();
         }
     }
 }

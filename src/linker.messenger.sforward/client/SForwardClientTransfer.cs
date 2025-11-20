@@ -38,7 +38,7 @@ namespace linker.messenger.sforward.client
 
         public void Start(long id, string flag = "")
         {
-            SForwardInfo191 forwardInfo = sForwardClientStore.Get(id);
+            SForwardInfo forwardInfo = sForwardClientStore.Get(id);
             if (forwardInfo != null)
             {
                 Start(forwardInfo, flag);
@@ -47,14 +47,14 @@ namespace linker.messenger.sforward.client
         }
         public void Stop(long id, string flag = "")
         {
-            SForwardInfo191 forwardInfo = sForwardClientStore.Get(id);
+            SForwardInfo forwardInfo = sForwardClientStore.Get(id);
             if (forwardInfo != null)
             {
                 Stop(forwardInfo, flag);
                 OnChanged();
             }
         }
-        private void Start(SForwardInfo191 forwardInfo, string flag = "")
+        private void Start(SForwardInfo forwardInfo, string flag = "")
         {
             if (forwardInfo.RemotePort == 0 && string.IsNullOrWhiteSpace(forwardInfo.Domain))
             {
@@ -78,7 +78,7 @@ namespace linker.messenger.sforward.client
                 {
                     Connection = signInClientState.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.AddForward191,
-                    Payload = serializer.Serialize(new SForwardAddInfo191 { Domain = forwardInfo.Domain, RemotePort = forwardInfo.RemotePort, NodeId = forwardInfo.NodeId1 })
+                    Payload = serializer.Serialize(new SForwardAddInfo { Domain = forwardInfo.Domain, RemotePort = forwardInfo.RemotePort, NodeId = forwardInfo.NodeId1 })
                 }).ContinueWith((result) =>
                 {
                     if (result.Result.Code == MessageResponeCodes.OK)
@@ -110,7 +110,7 @@ namespace linker.messenger.sforward.client
             }
 
         }
-        private void Stop(SForwardInfo191 forwardInfo, string flag = "")
+        private void Stop(SForwardInfo forwardInfo, string flag = "")
         {
             try
             {
@@ -120,7 +120,7 @@ namespace linker.messenger.sforward.client
                 {
                     Connection = signInClientState.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.RemoveForward191,
-                    Payload = serializer.Serialize(new SForwardAddInfo191 { Domain = forwardInfo.Domain, RemotePort = forwardInfo.RemotePort, NodeId = forwardInfo.NodeId1 })
+                    Payload = serializer.Serialize(new SForwardAddInfo { Domain = forwardInfo.Domain, RemotePort = forwardInfo.RemotePort, NodeId = forwardInfo.NodeId1 })
                 }).ContinueWith((result) =>
                 {
                     OnClose(forwardInfo.Id, flag);
@@ -134,7 +134,7 @@ namespace linker.messenger.sforward.client
 
         }
 
-        public bool Add(SForwardInfo191 forwardInfo)
+        public bool Add(SForwardInfo forwardInfo)
         {
             sForwardClientStore.Add(forwardInfo);
             OnChanged();

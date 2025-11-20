@@ -1,5 +1,4 @@
-﻿using linker.libs;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Text.Json.Serialization;
 namespace linker.messenger.updater
 {
@@ -81,16 +80,10 @@ namespace linker.messenger.updater
         public UpdaterStatus Status { get; set; }
         public long Length { get; set; }
         public long Current { get; set; }
-    }
-    public partial class Updater184Info : UpdaterInfo170
-    {
+
         public string ServerVersion { get; set; }
-    }
-    public sealed partial class Updater186Info : Updater184Info
-    {
         public bool Sync2Server { get; set; }
     }
-
 
     public enum UpdaterStatus : byte
     {

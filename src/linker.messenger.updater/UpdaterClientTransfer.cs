@@ -171,7 +171,7 @@ namespace linker.messenger.updater
             }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
             {
-                Updater186Info info = serializer.Deserialize<Updater186Info>(resp.Data.Span);
+                UpdaterInfo170 info = serializer.Deserialize<UpdaterInfo170>(resp.Data.Span);
 
                 //服务端不是已经开始下载，本地也不是已经开始下载，就更新一下本地状态
                 if (info.Status < UpdaterStatus.Downloading && updateInfo.Status < UpdaterStatus.Downloading)

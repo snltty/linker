@@ -48,7 +48,7 @@ namespace linker.messenger.relay.server.validator
         /// <param name="cache"></param>
         /// <param name="cache1"></param>
         /// <returns></returns>
-        public async Task<string> Validate(RelayInfo170 relayInfo, SignCacheInfo cache, SignCacheInfo cache1)
+        public async Task<string> Validate(RelayInfo relayInfo, SignCacheInfo cache, SignCacheInfo cache1)
         {
             foreach (var item in validators)
             {
@@ -60,7 +60,7 @@ namespace linker.messenger.relay.server.validator
             }
             return string.Empty;
         }
-        public async Task<List<RelayServerNodeReportInfo170>> Validate(string userid, SignCacheInfo fromMachine, List<RelayServerNodeReportInfo170> nodes)
+        public async Task<List<RelayServerNodeReportInfo>> Validate(string userid, SignCacheInfo fromMachine, List<RelayServerNodeReportInfo> nodes)
         {
             foreach (var item in validators)
             {

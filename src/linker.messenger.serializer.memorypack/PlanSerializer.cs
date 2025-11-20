@@ -76,8 +76,17 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializablePlanInfo>();
-            value = wrapped.info;
+            value = new PlanInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.Id = reader.ReadValue<int>();
+            value.Category = reader.ReadValue<string>();
+            value.Key = reader.ReadValue<string>();
+            value.Handle = reader.ReadValue<string>();
+            value.Value = reader.ReadValue<string>();
+            value.Disabled = reader.ReadValue<bool>();
+            value.TriggerHandle = reader.ReadValue<string>();
+            value.Method = reader.ReadValue<PlanMethod>();
+            value.Rule = reader.ReadValue<string>();
         }
     }
 
@@ -131,8 +140,10 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializablePlanGetInfo>();
-            value = wrapped.info;
+            value = new PlanGetInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.MachineId = reader.ReadValue<string>();
+            value.Category = reader.ReadValue<string>();
         }
     }
 
@@ -186,8 +197,10 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializablePlanAddInfo>();
-            value = wrapped.info;
+            value = new PlanAddInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.MachineId = reader.ReadValue<string>();
+            value.Plan = reader.ReadValue<PlanInfo>();
         }
     }
 
@@ -241,8 +254,10 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializablePlanRemoveInfo>();
-            value = wrapped.info;
+            value = new PlanRemoveInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.MachineId = reader.ReadValue<string>();
+            value.PlanId = reader.ReadValue<int>();
         }
     }
 }

@@ -16,7 +16,7 @@ namespace linker.messenger.relay.server.validator
         /// <param name="fromMachine">来源客户端</param>
         /// <param name="toMachine">目标客户端，可能为null</param>
         /// <returns></returns>
-        public Task<string> Validate(RelayInfo170 relayInfo, SignCacheInfo fromMachine, SignCacheInfo toMachine);
+        public Task<string> Validate(RelayInfo relayInfo, SignCacheInfo fromMachine, SignCacheInfo toMachine);
         /// <summary>
         /// 验证节点
         /// </summary>
@@ -24,6 +24,6 @@ namespace linker.messenger.relay.server.validator
         /// <param name="fromMachine"></param>
         /// <param name="nodes"></param>
         /// <returns></returns>
-        public Task<List<RelayServerNodeReportInfo170>> Validate(string userid, SignCacheInfo fromMachine, List<RelayServerNodeReportInfo170> nodes);
+        public Task<List<RelayServerNodeReportInfo>> Validate(string userid, SignCacheInfo fromMachine, List<RelayServerNodeReportInfo> nodes);
     }
 }

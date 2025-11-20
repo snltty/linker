@@ -7,153 +7,6 @@ using System.Net.Sockets;
 namespace linker.messenger.serializer.memorypack
 {
     [MemoryPackable]
-    public readonly partial struct SerializableSForwardInfo
-    {
-        [MemoryPackIgnore]
-        public readonly SForwardInfo info;
-
-        [MemoryPackInclude]
-        long Id => info.Id;
-
-        [MemoryPackInclude]
-        string Name => info.Name;
-
-        [MemoryPackInclude]
-        string Domain => info.Domain;
-
-        [MemoryPackInclude]
-        int RemotePort => info.RemotePort;
-
-        [MemoryPackInclude]
-        byte BufferSize => info.BufferSize;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        IPEndPoint LocalEP => info.LocalEP;
-
-        [MemoryPackInclude]
-        bool Started => info.Started;
-
-        [MemoryPackInclude]
-        string Msg => info.Msg;
-
-        [MemoryPackInclude]
-        string LocalMsg => info.LocalMsg;
-
-        [MemoryPackInclude]
-        int RemotePortMin => info.RemotePortMin;
-
-        [MemoryPackInclude]
-        int RemotePortMax => info.RemotePortMax;
-
-        [MemoryPackConstructor]
-        SerializableSForwardInfo(long id, string name, string domain, int remotePort, byte bufferSize, IPEndPoint localEP, bool started, string msg, string localMsg, int remotePortMin, int remotePortMax)
-        {
-            this.info = new SForwardInfo
-            {
-                LocalEP = localEP,
-                RemotePort = remotePort,
-                RemotePortMax = remotePortMax,
-                Name = name,
-                BufferSize = bufferSize,
-                Domain = domain,
-                Id = id,
-                LocalMsg = localMsg,
-                Msg = localMsg,
-                RemotePortMin = remotePortMin,
-                Started = started,
-            };
-        }
-
-        public SerializableSForwardInfo(SForwardInfo info)
-        {
-            this.info = info;
-        }
-    }
-    public class SForwardInfoFormatter : MemoryPackFormatter<SForwardInfo>
-    {
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref SForwardInfo value)
-        {
-            if (value == null)
-            {
-                writer.WriteNullObjectHeader();
-                return;
-            }
-
-            writer.WritePackable(new SerializableSForwardInfo(value));
-        }
-
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref SForwardInfo value)
-        {
-            if (reader.PeekIsNull())
-            {
-                reader.Advance(1); // skip null block
-                value = null;
-                return;
-            }
-
-            var wrapped = reader.ReadPackable<SerializableSForwardInfo>();
-            value = wrapped.info;
-        }
-    }
-
-
-    [MemoryPackable]
-    public readonly partial struct SerializableSForwardAddInfo
-    {
-        [MemoryPackIgnore]
-        public readonly SForwardAddInfo info;
-
-        [MemoryPackInclude]
-        string Domain => info.Domain;
-
-        [MemoryPackInclude]
-        int RemotePort => info.RemotePort;
-
-        [MemoryPackInclude]
-        string SecretKey => string.Empty;
-
-        [MemoryPackConstructor]
-        SerializableSForwardAddInfo(string domain, int remotePort, string secretKey)
-        {
-            this.info = new SForwardAddInfo
-            {
-                RemotePort = remotePort,
-                Domain = domain
-            };
-        }
-
-        public SerializableSForwardAddInfo(SForwardAddInfo info)
-        {
-            this.info = info;
-        }
-    }
-    public class SForwardAddInfoFormatter : MemoryPackFormatter<SForwardAddInfo>
-    {
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref SForwardAddInfo value)
-        {
-            if (value == null)
-            {
-                writer.WriteNullObjectHeader();
-                return;
-            }
-
-            writer.WritePackable(new SerializableSForwardAddInfo(value));
-        }
-
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref SForwardAddInfo value)
-        {
-            if (reader.PeekIsNull())
-            {
-                reader.Advance(1); // skip null block
-                value = null;
-                return;
-            }
-
-            var wrapped = reader.ReadPackable<SerializableSForwardAddInfo>();
-            value = wrapped.info;
-        }
-    }
-    [MemoryPackable]
     public readonly partial struct SerializableSForwardAddResultInfo
     {
         [MemoryPackIgnore]
@@ -206,8 +59,11 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableSForwardAddResultInfo>();
-            value = wrapped.info;
+            value = new SForwardAddResultInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.Success = reader.ReadValue<bool>();
+            value.Message = reader.ReadValue<string>();
+            value.BufferSize = reader.ReadValue<byte>();
         }
     }
 
@@ -262,8 +118,10 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableSForwardAddForwardInfo>();
-            value = wrapped.info;
+            value =new SForwardAddForwardInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.MachineId = reader.ReadValue<string>();
+            value.Data = reader.ReadValue<SForwardInfo>();
         }
     }
 
@@ -317,8 +175,11 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableSForwardRemoveForwardInfo>();
-            value = wrapped.info;
+            value =new SForwardRemoveForwardInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.MachineId = reader.ReadValue<string>();
+            value.Id = reader.ReadValue<int>();
+
         }
     }
 
@@ -368,7 +229,6 @@ namespace linker.messenger.serializer.memorypack
                 MachineId = machineId
             };
         }
-
         public SerializableSForwardProxyInfo(SForwardProxyInfo info)
         {
             this.info = info;
@@ -396,8 +256,16 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableSForwardProxyInfo>();
-            value = wrapped.info;
+            value = new SForwardProxyInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.Id = reader.ReadValue<ulong>();
+            value.Domain = reader.ReadValue<string>();
+            value.RemotePort = reader.ReadValue<int>();
+            value.BufferSize = reader.ReadValue<byte>();
+            value.MachineId = reader.ReadValue<string>();
+            value.NodeId = reader.ReadValue<string>();
+            value.ProtocolType = reader.ReadValue<ProtocolType>();
+            value.Addr = reader.ReadValue<IPAddress>();
         }
     }
 
@@ -451,72 +319,20 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableSForwardCountInfo>();
-            value = wrapped.info;
+            value = new SForwardCountInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.MachineId = reader.ReadValue<string>();
+            value.Count = reader.ReadValue<int>();
         }
     }
-
 
 
 
     [MemoryPackable]
-    public readonly partial struct SerializableSForwardAddForwardInfo191
+    public readonly partial struct SerializableSForwardAddInfo
     {
         [MemoryPackIgnore]
-        public readonly SForwardAddForwardInfo191 info;
-
-        [MemoryPackInclude]
-        string MachineId => info.MachineId;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        SForwardInfo191 Data => info.Data;
-
-        [MemoryPackConstructor]
-        SerializableSForwardAddForwardInfo191(string machineId, SForwardInfo191 data)
-        {
-            this.info = new SForwardAddForwardInfo191
-            {
-                MachineId = machineId,
-                Data = data
-            };
-        }
-
-        public SerializableSForwardAddForwardInfo191(SForwardAddForwardInfo191 info)
-        {
-            this.info = info;
-        }
-    }
-    public class SForwardAddForwardInfo191Formatter : MemoryPackFormatter<SForwardAddForwardInfo191>
-    {
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref SForwardAddForwardInfo191 value)
-        {
-            if (value == null)
-            {
-                writer.WriteNullObjectHeader();
-                return;
-            }
-
-            writer.WritePackable(new SerializableSForwardAddForwardInfo191(value));
-        }
-
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref SForwardAddForwardInfo191 value)
-        {
-            if (reader.PeekIsNull())
-            {
-                reader.Advance(1); // skip null block
-                value = null;
-                return;
-            }
-
-            var wrapped = reader.ReadPackable<SerializableSForwardAddForwardInfo191>();
-            value = wrapped.info;
-        }
-    }
-    [MemoryPackable]
-    public readonly partial struct SerializableSForwardAddInfo191
-    {
-        [MemoryPackIgnore]
-        public readonly SForwardAddInfo191 info;
+        public readonly SForwardAddInfo info;
 
         [MemoryPackInclude]
         string Domain => info.Domain;
@@ -532,35 +348,35 @@ namespace linker.messenger.serializer.memorypack
         string GroupId => info.GroupId;
 
         [MemoryPackInclude]
-        bool Validated => info.Super;
+        bool Super => info.Super;
 
 
         [MemoryPackInclude]
         double Bandwidth => info.Bandwidth;
 
         [MemoryPackConstructor]
-        SerializableSForwardAddInfo191(string domain, int remotePort, string nodeid, string machineid, string groupid, bool validated, double bandwidth)
+        SerializableSForwardAddInfo(string domain, int remotePort, string nodeid, string machineid, string groupid, bool super, double bandwidth)
         {
-            this.info = new SForwardAddInfo191
+            this.info = new SForwardAddInfo
             {
                 RemotePort = remotePort,
                 Domain = domain,
                 NodeId = nodeid,
                 GroupId = groupid,
                 MachineId = machineid,
-                Super = validated,
+                Super = super,
                 Bandwidth = bandwidth
             };
         }
 
-        public SerializableSForwardAddInfo191(SForwardAddInfo191 info)
+        public SerializableSForwardAddInfo(SForwardAddInfo info)
         {
             this.info = info;
         }
     }
-    public class SForwardAddInfo191Formatter : MemoryPackFormatter<SForwardAddInfo191>
+    public class SForwardAddInfoFormatter : MemoryPackFormatter<SForwardAddInfo>
     {
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref SForwardAddInfo191 value)
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref SForwardAddInfo value)
         {
             if (value == null)
             {
@@ -568,10 +384,10 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableSForwardAddInfo191(value));
+            writer.WritePackable(new SerializableSForwardAddInfo(value));
         }
 
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref SForwardAddInfo191 value)
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref SForwardAddInfo value)
         {
             if (reader.PeekIsNull())
             {
@@ -580,15 +396,26 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableSForwardAddInfo191>();
-            value = wrapped.info;
+            value = new SForwardAddInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.Domain = reader.ReadValue<string>();
+            value.RemotePort = reader.ReadValue<int>();
+            if(count > 2)
+            {
+                value.NodeId = reader.ReadValue<string>();
+                value.MachineId = reader.ReadValue<string>();
+                value.GroupId = reader.ReadValue<string>();
+                value.Super = reader.ReadValue<bool>();
+                value.Bandwidth = reader.ReadValue<double>();
+            }
+
         }
     }
     [MemoryPackable]
-    public readonly partial struct SerializableSForwardInfo191
+    public readonly partial struct SerializableSForwardInfo
     {
         [MemoryPackIgnore]
-        public readonly SForwardInfo191 info;
+        public readonly SForwardInfo info;
 
         [MemoryPackInclude]
         long Id => info.Id;
@@ -626,9 +453,10 @@ namespace linker.messenger.serializer.memorypack
         string NodeId => info.NodeId;
 
         [MemoryPackConstructor]
-        SerializableSForwardInfo191(long id, string name, string domain, int remotePort, byte bufferSize, IPEndPoint localEP, bool started, string msg, string localMsg, int remotePortMin, int remotePortMax, string nodeid)
+        SerializableSForwardInfo(long id, string name, string domain, int remotePort, byte bufferSize, IPEndPoint localEP,
+            bool started, string msg, string localMsg, int remotePortMin, int remotePortMax, string nodeid)
         {
-            this.info = new SForwardInfo191
+            this.info = new SForwardInfo
             {
                 LocalEP = localEP,
                 RemotePort = remotePort,
@@ -638,21 +466,21 @@ namespace linker.messenger.serializer.memorypack
                 Domain = domain,
                 Id = id,
                 LocalMsg = localMsg,
-                Msg = localMsg,
+                Msg = msg,
                 RemotePortMin = remotePortMin,
                 Started = started,
                 NodeId = nodeid
             };
         }
 
-        public SerializableSForwardInfo191(SForwardInfo191 info)
+        public SerializableSForwardInfo(SForwardInfo info)
         {
             this.info = info;
         }
     }
-    public class SForwardInfo191Formatter : MemoryPackFormatter<SForwardInfo191>
+    public class SForwardInfoFormatter : MemoryPackFormatter<SForwardInfo>
     {
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref SForwardInfo191 value)
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref SForwardInfo value)
         {
             if (value == null)
             {
@@ -660,10 +488,10 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableSForwardInfo191(value));
+            writer.WritePackable(new SerializableSForwardInfo(value));
         }
 
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref SForwardInfo191 value)
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref SForwardInfo value)
         {
             if (reader.PeekIsNull())
             {
@@ -672,10 +500,26 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableSForwardInfo191>();
-            value = wrapped.info;
+            value = new SForwardInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.Id = reader.ReadValue<long>();
+            value.Name = reader.ReadValue<string>();
+            value.Domain = reader.ReadValue<string>();
+            value.RemotePort = reader.ReadValue<int>();
+            value.BufferSize = reader.ReadValue<byte>();
+            value.LocalEP = reader.ReadValue<IPEndPoint>();
+            value.Started = reader.ReadValue<bool>();
+            value.Msg = reader.ReadValue<string>();
+            value.LocalMsg = reader.ReadValue<string>();
+            value.RemotePortMin = reader.ReadValue<int>();
+            value.RemotePortMax = reader.ReadValue<int>();
+            if (count > 11)
+            {
+                value.NodeId = reader.ReadValue<string>();
+            }
         }
     }
+
     [MemoryPackable]
     public readonly partial struct SerializableSForwardServerNodeUpdateInfo
     {

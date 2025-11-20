@@ -1,5 +1,4 @@
-﻿using linker.messenger;
-using MemoryPack;
+﻿using MemoryPack;
 
 namespace linker.messenger.serializer.memorypack
 {

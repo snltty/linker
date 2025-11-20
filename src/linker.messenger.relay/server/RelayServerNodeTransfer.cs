@@ -88,29 +88,6 @@ namespace linker.messenger.relay.server
         {
             if (info.Id == Node.Id)
             {
-                relayServerNodeStore.UpdateInfo(new RelayServerNodeUpdateInfo188
-                {
-                    AllowTcp = info.AllowTcp,
-                    AllowUdp = info.AllowUdp,
-                    Id = info.Id,
-                    Name = info.Name,
-                    MaxConnection = info.MaxConnection,
-                    MaxBandwidth = info.MaxBandwidth,
-                    MaxBandwidthTotal = info.MaxBandwidthTotal,
-                    MaxGbTotal = info.MaxGbTotal,
-                    MaxGbTotalLastBytes = info.MaxGbTotalLastBytes,
-                    Public = info.Public,
-                    Url = info.Url,
-                });
-                relayServerNodeStore.Confirm();
-
-                _ = Report();
-            }
-        }
-        public void Edit(RelayServerNodeUpdateInfo188 info)
-        {
-            if (info.Id == Node.Id)
-            {
                 relayServerNodeStore.UpdateInfo(info);
                 relayServerNodeStore.Confirm();
             }
@@ -315,7 +292,7 @@ namespace linker.messenger.relay.server
             try
             {
                 IPEndPoint endPoint = await NetworkHelper.GetEndPointAsync(Node.Host, relayServerNodeStore.ServicePort).ConfigureAwait(false) ?? new IPEndPoint(IPAddress.Any, relayServerNodeStore.ServicePort);
-                RelayServerNodeReportInfo188 relayNodeReportInfo = new RelayServerNodeReportInfo188
+                RelayServerNodeReportInfo relayNodeReportInfo = new RelayServerNodeReportInfo
                 {
                     Id = Node.Id,
                     Name = Node.Name,

@@ -45,7 +45,7 @@ namespace linker.messenger.sforward.server.validator
         /// <param name="signCacheInfo"></param>
         /// <param name="sForwardAddInfo"></param>
         /// <returns></returns>
-        public async Task<string> Validate(SignCacheInfo signCacheInfo, SForwardAddInfo191 sForwardAddInfo)
+        public async Task<string> Validate(SignCacheInfo signCacheInfo, SForwardAddInfo sForwardAddInfo)
         {
             foreach (var item in validators)
             {

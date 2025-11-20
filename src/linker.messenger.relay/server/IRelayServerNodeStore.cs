@@ -6,9 +6,6 @@ using linker.tunnel.connection;
 
 namespace linker.messenger.relay.server
 {
-    /// <summary>
-    /// 中继节点存储器
-    /// </summary>
     public interface IRelayServerNodeStore
     {
         /// <summary>
@@ -25,7 +22,7 @@ namespace linker.messenger.relay.server
         /// </summary>
         /// <param name="node"></param>
         public void SetInfo(RelayServerNodeInfo node);
-        public void UpdateInfo(RelayServerNodeUpdateInfo188 update);
+        public void UpdateInfo(RelayServerNodeUpdateInfo update);
         public void SetMasterHosts(string[] hosts);
 
         /// <summary>
@@ -89,10 +86,6 @@ namespace linker.messenger.relay.server
         public string[] MasterHosts { get; set; } = [];
     }
 
-    public partial class RelayServerNodeUpdateWrapInfo
-    {
-        public RelayServerNodeUpdateInfo Info { get; set; }
-    }
     public partial class RelayServerNodeUpdateInfo
     {
         public string Id { get; set; } = string.Empty;
@@ -109,15 +102,15 @@ namespace linker.messenger.relay.server
 
         public bool AllowTcp { get; set; } = true;
         public bool AllowUdp { get; set; }
-    }
 
-    public partial class RelayServerNodeUpdateWrapInfo188
-    {
-        public RelayServerNodeUpdateInfo188 Info { get; set; }
-    }
-    public partial class RelayServerNodeUpdateInfo188 : RelayServerNodeUpdateInfo
-    {
+        /// <summary>
+        /// 188+
+        /// </summary>
         public bool Sync2Server { get; set; }
+    }
+    public partial class RelayServerNodeUpdateWrapInfo
+    {
+        public RelayServerNodeUpdateInfo Info { get; set; }
     }
 
     public partial class RelayServerNodeReportInfo
@@ -141,29 +134,26 @@ namespace linker.messenger.relay.server
         public IPEndPoint EndPoint { get; set; }
 
         public long LastTicks { get; set; }
-    }
-    public partial class RelayServerNodeReportInfo170 : RelayServerNodeReportInfo
-    {
+
+        /// <summary>
+        /// 170+
+        /// </summary>
         public string Url { get; set; } = "https://linker-doc.snltty.com";
         public TunnelProtocolType AllowProtocol { get; set; } = TunnelProtocolType.Tcp;
+
+        /// <summary>
+        /// 188+
+        /// </summary>
+        public string Version { get; set; } = string.Empty;
+        public bool Sync2Server { get; set; }
 
         [JsonIgnore]
         public IConnection Connection { get; set; }
     }
-    public partial class RelayServerNodeReportInfo188 : RelayServerNodeReportInfo170
-    {
-        public string Version { get; set; } = string.Empty;
-        public bool Sync2Server { get; set; }
-    }
-
     public partial class RelayAskResultInfo
     {
         public ulong FlowingId { get; set; }
 
         public List<RelayServerNodeReportInfo> Nodes { get; set; } = new List<RelayServerNodeReportInfo>();
-    }
-    public partial class RelayAskResultInfo170 : RelayAskResultInfo
-    {
-        public new List<RelayServerNodeReportInfo170> Nodes { get; set; } = new List<RelayServerNodeReportInfo170>();
     }
 }

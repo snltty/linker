@@ -284,6 +284,10 @@ namespace linker.messenger.signin
             }
         }
 
+        /// <summary>
+        /// 检查超级权限
+        /// </summary>
+        /// <returns></returns>
         public async Task CheckSuper()
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap

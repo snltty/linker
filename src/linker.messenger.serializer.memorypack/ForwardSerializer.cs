@@ -47,7 +47,8 @@ namespace linker.messenger.serializer.memorypack
         string TargetMsg => info.TargetMsg;
 
         [MemoryPackConstructor]
-        SerializableForwardInfo(long id, string name, string machineId, string groupId, string machineName, IPAddress bindIPAddress, int port, IPEndPoint targetEP, bool started, byte bufferSize, string msg, string targetMsg)
+        SerializableForwardInfo(long id, string name, string machineId, string groupId, string machineName, IPAddress bindIPAddress, int port, IPEndPoint targetEP,
+            bool started, byte bufferSize, string msg, string targetMsg)
         {
             this.info = new ForwardInfo
             {
@@ -94,8 +95,20 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableForwardInfo>();
-            value = wrapped.info;
+            value = new ForwardInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.Id = reader.ReadValue<long>();
+            value.Name = reader.ReadValue<string>();
+            value.MachineId = reader.ReadValue<string>();
+            value.GroupId = reader.ReadValue<string>();
+            value.MachineName = reader.ReadValue<string>();
+            value.BindIPAddress = reader.ReadValue<IPAddress>();
+            value.Port = reader.ReadValue<int>();
+            value.TargetEP = reader.ReadValue<IPEndPoint>();
+            value.Started = reader.ReadValue<bool>();
+            value.BufferSize = reader.ReadValue<byte>();
+            value.Msg = reader.ReadValue<string>();
+            value.TargetMsg = reader.ReadValue<string>();
         }
     }
 
@@ -150,8 +163,10 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableForwardAddForwardInfo>();
-            value = wrapped.info;
+            value = new ForwardAddForwardInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.MachineId =  reader.ReadValue<string>();
+            value.Data = reader.ReadValue<ForwardInfo>();
         }
     }
 
@@ -206,8 +221,10 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableForwardRemoveForwardInfo>();
-            value = wrapped.info;
+            value = new ForwardRemoveForwardInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.MachineId = reader.ReadValue<string>();
+            value.Id = reader.ReadValue<int>();
         }
     }
 
@@ -262,8 +279,10 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableForwardCountInfo>();
-            value = wrapped.info;
+            value =new ForwardCountInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.MachineId = reader.ReadValue<string>();
+            value.Count = reader.ReadValue<int>();
         }
     }
 
@@ -318,8 +337,10 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableForwardTestInfo>();
-            value = wrapped.info;
+            value = new ForwardTestInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.Target = reader.ReadValue<IPEndPoint>();
+            value.Msg = reader.ReadValue<string>();
         }
     }
 

@@ -39,15 +39,15 @@ namespace linker.messenger.relay.client.transport
             this.messengerStore = messengerStore;
         }
 
-        public async Task<ITunnelConnection> RelayAsync(RelayInfo170 relayInfo)
+        public async Task<ITunnelConnection> RelayAsync(RelayInfo relayInfo)
         {
             byte[] buffer = ArrayPool<byte>.Shared.Rent(1024);
             try
             {
                 //问一下能不能中继
-                RelayAskResultInfo170 relayAskResultInfo = await RelayAsk(relayInfo).ConfigureAwait(false);
+                RelayAskResultInfo relayAskResultInfo = await RelayAsk(relayInfo).ConfigureAwait(false);
                 relayInfo.FlowingId = relayAskResultInfo.FlowingId;
-                List<RelayServerNodeReportInfo170> nodes = relayAskResultInfo.Nodes;
+                List<RelayServerNodeReportInfo> nodes = relayAskResultInfo.Nodes;
                 if (relayAskResultInfo.FlowingId == 0 || relayAskResultInfo.Nodes.Count == 0)
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
@@ -119,7 +119,7 @@ namespace linker.messenger.relay.client.transport
             return null;
         }
 
-        private async Task<RelayAskResultInfo170> RelayAsk(RelayInfo170 relayInfo)
+        private async Task<RelayAskResultInfo> RelayAsk(RelayInfo relayInfo)
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
@@ -130,15 +130,15 @@ namespace linker.messenger.relay.client.transport
             }).ConfigureAwait(false);
             if (resp.Code != MessageResponeCodes.OK)
             {
-                return new RelayAskResultInfo170();
+                return new RelayAskResultInfo();
             }
 
-            RelayAskResultInfo170 result = serializer.Deserialize<RelayAskResultInfo170>(resp.Data.Span);
+            RelayAskResultInfo result = serializer.Deserialize<RelayAskResultInfo>(resp.Data.Span);
 
             return result;
 
         }
-        private async Task<Socket> ConnectNodeServer(RelayInfo170 relayInfo, List<RelayServerNodeReportInfo170> nodes)
+        private async Task<Socket> ConnectNodeServer(RelayInfo relayInfo, List<RelayServerNodeReportInfo> nodes)
         {
             byte[] buffer = ArrayPool<byte>.Shared.Rent(1 * 1024);
 
@@ -214,7 +214,7 @@ namespace linker.messenger.relay.client.transport
             }
             return null;
         }
-        private async Task<bool> RelayConfirm(RelayInfo170 relayInfo)
+        private async Task<bool> RelayConfirm(RelayInfo relayInfo)
         {
             //通知对方去确认中继
             var resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -231,7 +231,7 @@ namespace linker.messenger.relay.client.transport
         {
             return true;
         }
-        public async Task<bool> OnBeginAsync(RelayInfo170 relayInfo, Action<ITunnelConnection> callback)
+        public async Task<bool> OnBeginAsync(RelayInfo relayInfo, Action<ITunnelConnection> callback)
         {
             using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(16);
             buffer.Memory.Span[0] = (byte)ResolverType.Relay;
@@ -284,7 +284,7 @@ namespace linker.messenger.relay.client.transport
             return false;
         }
 
-        private async Task<TunnelConnectionTcp> WaitSSL(Socket socket, RelayInfo170 relayInfo)
+        private async Task<TunnelConnectionTcp> WaitSSL(Socket socket, RelayInfo relayInfo)
         {
             try
             {
@@ -325,7 +325,7 @@ namespace linker.messenger.relay.client.transport
             return null;
         }
 
-        public async Task<List<RelayServerNodeReportInfo188>> RelayTestAsync()
+        public async Task<List<RelayServerNodeReportInfo>> RelayTestAsync()
         {
             try
             {
@@ -338,13 +338,13 @@ namespace linker.messenger.relay.client.transport
 
                 if (resp.Code == MessageResponeCodes.OK)
                 {
-                    return serializer.Deserialize<List<RelayServerNodeReportInfo188>>(resp.Data.Span);
+                    return serializer.Deserialize<List<RelayServerNodeReportInfo>>(resp.Data.Span);
                 }
             }
             catch (Exception)
             {
             }
-            return new List<RelayServerNodeReportInfo188>();
+            return new List<RelayServerNodeReportInfo>();
         }
     }
 
@@ -371,13 +371,13 @@ namespace linker.messenger.relay.client.transport
             this.messengerStore = messengerStore;
         }
 
-        public async Task<ITunnelConnection> RelayAsync(RelayInfo170 relayInfo)
+        public async Task<ITunnelConnection> RelayAsync(RelayInfo relayInfo)
         {
             byte[] buffer = ArrayPool<byte>.Shared.Rent(1024);
             try
             {
                 //问一下能不能中继
-                RelayAskResultInfo170 relayAskResultInfo = await RelayAsk(relayInfo).ConfigureAwait(false);
+                RelayAskResultInfo relayAskResultInfo = await RelayAsk(relayInfo).ConfigureAwait(false);
                 relayInfo.FlowingId = relayAskResultInfo.FlowingId;
                 var nodes = relayAskResultInfo.Nodes;
                 if (relayInfo.FlowingId == 0 || nodes.Count == 0)
@@ -437,7 +437,7 @@ namespace linker.messenger.relay.client.transport
             return null;
         }
 
-        private async Task<RelayAskResultInfo170> RelayAsk(RelayInfo170 relayInfo)
+        private async Task<RelayAskResultInfo> RelayAsk(RelayInfo relayInfo)
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
@@ -448,15 +448,15 @@ namespace linker.messenger.relay.client.transport
             }).ConfigureAwait(false);
             if (resp.Code != MessageResponeCodes.OK)
             {
-                return new RelayAskResultInfo170();
+                return new RelayAskResultInfo();
             }
 
-            RelayAskResultInfo170 result = serializer.Deserialize<RelayAskResultInfo170>(resp.Data.Span);
+            RelayAskResultInfo result = serializer.Deserialize<RelayAskResultInfo>(resp.Data.Span);
 
             return result;
 
         }
-        private async Task<(Socket, IPEndPoint)> ConnectNodeServer(RelayInfo170 relayInfo, List<RelayServerNodeReportInfo170> nodes)
+        private async Task<(Socket, IPEndPoint)> ConnectNodeServer(RelayInfo relayInfo, List<RelayServerNodeReportInfo> nodes)
         {
             byte[] buffer = ArrayPool<byte>.Shared.Rent(4 * 1024);
 
@@ -544,7 +544,7 @@ namespace linker.messenger.relay.client.transport
             return buffer.AsMemory(0, index);
         }
 
-        private async Task<bool> RelayConfirm(RelayInfo170 relayInfo)
+        private async Task<bool> RelayConfirm(RelayInfo relayInfo)
         {
             //通知对方去确认中继
             var resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -556,7 +556,7 @@ namespace linker.messenger.relay.client.transport
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
 
-        public async Task<bool> OnBeginAsync(RelayInfo170 relayInfo, Action<ITunnelConnection> callback)
+        public async Task<bool> OnBeginAsync(RelayInfo relayInfo, Action<ITunnelConnection> callback)
         {
             byte[] buffer = ArrayPool<byte>.Shared.Rent(4096);
             try
@@ -610,7 +610,7 @@ namespace linker.messenger.relay.client.transport
             return false;
         }
 
-        public async Task<List<RelayServerNodeReportInfo188>> RelayTestAsync()
+        public async Task<List<RelayServerNodeReportInfo>> RelayTestAsync()
         {
             try
             {
@@ -623,13 +623,13 @@ namespace linker.messenger.relay.client.transport
 
                 if (resp.Code == MessageResponeCodes.OK)
                 {
-                    return serializer.Deserialize<List<RelayServerNodeReportInfo188>>(resp.Data.Span);
+                    return serializer.Deserialize<List<RelayServerNodeReportInfo>>(resp.Data.Span);
                 }
             }
             catch (Exception)
             {
             }
-            return new List<RelayServerNodeReportInfo188>();
+            return new List<RelayServerNodeReportInfo>();
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using linker.libs;
-using linker.messenger.relay.server;
+﻿using linker.messenger.relay.server;
 using linker.tunnel.connection;
 using System.Net;
 
@@ -34,20 +33,20 @@ namespace linker.messenger.relay.client.transport
         /// </summary>
         /// <param name="relayInfo"></param>
         /// <returns></returns>
-        public Task<ITunnelConnection> RelayAsync(RelayInfo170 relayInfo);
+        public Task<ITunnelConnection> RelayAsync(RelayInfo relayInfo);
         /// <summary>
         /// 收到别人的中继请求
         /// </summary>
         /// <param name="relayInfo"></param>
         /// <returns></returns>
-        public Task<bool> OnBeginAsync(RelayInfo170 relayInfo, Action<ITunnelConnection> callback);
+        public Task<bool> OnBeginAsync(RelayInfo relayInfo, Action<ITunnelConnection> callback);
 
         /// <summary>
         /// 测试一下中继通不通
         /// </summary>
         /// <param name="relayTestInfo"></param>
         /// <returns></returns>
-        public Task<List<RelayServerNodeReportInfo188>> RelayTestAsync();
+        public Task<List<RelayServerNodeReportInfo>> RelayTestAsync();
     }
 
     /// <summary>
@@ -57,27 +56,8 @@ namespace linker.messenger.relay.client.transport
     {
         public string MachineId { get; set; }
         public IPEndPoint Server { get; set; }
-    }
-    public partial class RelayTestInfo170: RelayTestInfo
-    {
-        /// <summary>
-        /// UserId
-        /// </summary>
         public string UserId { get; set; }
     }
-    public class RelayTestInfo188 : RelayTestInfo170 { }
-
-
-    public partial class RelayInfo170 : RelayInfo
-    {
-        /// <summary>
-        /// UserId
-        /// </summary>
-        public string UserId { get; set; }
-        public bool UseCdkey { get; set; }
-    }
-   
-
     /// <summary>
     /// 中继交换数据
     /// </summary>
@@ -127,7 +107,9 @@ namespace linker.messenger.relay.client.transport
         /// </summary>
         public bool SSL { get; set; } = true;
 
-        
+
+
+        public string UserId { get; set; }
     }
 
 

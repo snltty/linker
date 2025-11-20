@@ -42,7 +42,7 @@ namespace linker.messenger.sync
         [MessengerId((ushort)ConfigMessengerIds.Sync184Forward)]
         public async Task Sync184Forward(IConnection connection)
         {
-            Sync184Info info = serializer.Deserialize<Sync184Info>(connection.ReceiveRequestWrap.Payload.Span);
+            SyncInfo info = serializer.Deserialize<SyncInfo>(connection.ReceiveRequestWrap.Payload.Span);
             string[] ids = info.Ids;
             info.Ids = [];
             Memory<byte> data = serializer.Serialize(info);
@@ -87,7 +87,7 @@ namespace linker.messenger.sync
         [MessengerId((ushort)ConfigMessengerIds.Sync184)]
         public void Sync184(IConnection connection)
         {
-            Sync184Info info = serializer.Deserialize<Sync184Info>(connection.ReceiveRequestWrap.Payload.Span);
+            SyncInfo info = serializer.Deserialize<SyncInfo>(connection.ReceiveRequestWrap.Payload.Span);
             syncTreansfer.Sync(info);
         }
 

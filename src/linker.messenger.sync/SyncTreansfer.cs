@@ -41,7 +41,7 @@ namespace linker.messenger.sync
                 {
                     Connection = signInClientState.Connection,
                     MessengerId = (ushort)ConfigMessengerIds.Sync184Forward,
-                    Payload = serializer.Serialize(new Sync184Info { Name = sync.Name, Data = data, Ids = ids }),
+                    Payload = serializer.Serialize(new SyncInfo { Name = sync.Name, Data = data, Ids = ids }),
                 }).ConfigureAwait(false);
             }
         }
@@ -56,7 +56,7 @@ namespace linker.messenger.sync
                     {
                         Connection = signInClientState.Connection,
                         MessengerId = (ushort)ConfigMessengerIds.Sync184Forward,
-                        Payload = serializer.Serialize(new Sync184Info { Name = sync.Name, Data = sync.GetData(), Ids = ids }),
+                        Payload = serializer.Serialize(new SyncInfo { Name = sync.Name, Data = sync.GetData(), Ids = ids }),
                     }).ConfigureAwait(false);
                 }
                 return;
@@ -73,7 +73,7 @@ namespace linker.messenger.sync
                          {
                              Connection = signInClientState.Connection,
                              MessengerId = (ushort)ConfigMessengerIds.Sync184Forward,
-                             Payload = serializer.Serialize(new Sync184Info { Name = c.Name, Data = c.GetData(), Ids = ids }),
+                             Payload = serializer.Serialize(new SyncInfo { Name = c.Name, Data = c.GetData(), Ids = ids }),
 
                          });
                      }).ToList();
