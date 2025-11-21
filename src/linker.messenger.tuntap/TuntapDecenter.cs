@@ -20,8 +20,6 @@ namespace linker.messenger.tuntap
         public Action OnClear { get; set; } = () => { };
         public Action OnChanged { get; set; } = () => { };
 
-        private readonly VersionManager listVersion = new VersionManager();
-
         private readonly ISignInClientStore signInClientStore;
         private readonly ISerializer serializer;
         private readonly TuntapConfigTransfer tuntapConfigTransfer;
@@ -87,7 +85,6 @@ namespace linker.messenger.tuntap
                 info.Delay = old.Delay;
             }
             tuntapInfos.AddOrUpdate(info.MachineId, info, (a, b) => info);
-            listVersion.Increment();
         }
         public void AddData(List<ReadOnlyMemory<byte>> data)
         {
@@ -102,7 +99,6 @@ namespace linker.messenger.tuntap
                 tuntapInfos.AddOrUpdate(item.MachineId, item, (a, b) => item);
             }
             DataVersion.Increment();
-            listVersion.Increment();
         }
         public void ClearData()
         {
@@ -121,10 +117,10 @@ namespace linker.messenger.tuntap
 
         private void CheckAvailableTask()
         {
-            ulong version = listVersion.Value;
+            ulong version = DataVersion.Value;
             TimerHelper.SetIntervalLong(async () =>
             {
-                if (listVersion.Eq(version, out ulong _version) == false)
+                if (DataVersion.Eq(version, out ulong _version) == false)
                 {
                     IEnumerable<string> availables = tuntapInfos.Values.Where(c => c.Available).Select(c => c.MachineId);
                     if (availables.Any())
@@ -143,24 +139,6 @@ namespace linker.messenger.tuntap
                 version = _version;
             }, 3000);
 
-            TimerHelper.SetIntervalLong(async () =>
-            {
-                IEnumerable<string> unAvailables = tuntapInfos.Values.Where(c => c.Available == false).Select(c => c.MachineId);
-                if (unAvailables.Any())
-                {
-                    List<string> offlines = await signInClientTransfer.GetOfflines(unAvailables.ToList()).ConfigureAwait(false);
-
-                    IEnumerable<string> onlines = unAvailables.Except(offlines);
-                    if (onlines.Any())
-                    {
-                        foreach (var item in tuntapInfos.Values.Where(c => onlines.Contains(c.MachineId)))
-                        {
-                            item.Available = true;
-                        }
-                        ProcData();
-                    }
-                }
-            }, 30000);
         }
 
     }
