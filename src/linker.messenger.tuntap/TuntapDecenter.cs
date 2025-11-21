@@ -122,24 +122,43 @@ namespace linker.messenger.tuntap
             {
                 if (DataVersion.Eq(version, out ulong _version) == false)
                 {
-                    IEnumerable<string> availables = tuntapInfos.Values.Where(c => c.Available).Select(c => c.MachineId);
-                    if (availables.Any())
+                    if(await CheckOffline() || await CheckOnline())
                     {
-                        List<string> offlines = await signInClientTransfer.GetOfflines(availables.ToList()).ConfigureAwait(false);
-                        if (offlines.Any())
-                        {
-                            foreach (var item in tuntapInfos.Values.Where(c => offlines.Contains(c.MachineId)))
-                            {
-                                item.Available = false;
-                            }
-                            ProcData();
-                        }
+                        ProcData();
                     }
                 }
                 version = _version;
             }, 3000);
 
         }
+        private async Task<bool> CheckOffline()
+        {
+            IEnumerable<string> availables = tuntapInfos.Values.Where(c => c.Available).Select(c => c.MachineId);
+            if (availables.Any() == false) return false;
 
+            List<string> offlines = await signInClientTransfer.GetOfflines(availables.ToList()).ConfigureAwait(false);
+            if (offlines.Any() == false) return false;
+
+            foreach (var item in tuntapInfos.Values.Where(c => offlines.Contains(c.MachineId)))
+            {
+                item.Available = false;
+            }
+            return true;
+        }
+        private async Task<bool> CheckOnline()
+        {
+            IEnumerable<string> unAvailables = tuntapInfos.Values.Where(c => c.Available == false).Select(c => c.MachineId);
+            if (unAvailables.Any() == false) return false;
+
+            List<string> offlines = await signInClientTransfer.GetOfflines(unAvailables.ToList()).ConfigureAwait(false);
+            IEnumerable<string> onlines = unAvailables.Except(offlines);
+            if (onlines.Any() == false) return false;
+
+            foreach (var item in tuntapInfos.Values.Where(c => onlines.Contains(c.MachineId)))
+            {
+                item.Available = true;
+            }
+            return true;
+        }
     }
 }
