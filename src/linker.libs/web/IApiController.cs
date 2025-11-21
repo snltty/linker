@@ -31,6 +31,9 @@ namespace linker.libs.web
         /// 数据
         /// </summary>
         public object Content { get; set; } = string.Empty;
+
+        [JsonIgnore]
+        public WebSocket Connection { get; set; }
     }
 
     /// <summary>

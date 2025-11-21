@@ -158,16 +158,16 @@ namespace linker.libs.web
             using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(8 * 1024);
             try
             {
-                ValueWebSocketReceiveResult result = await websocket.ReceiveAsync(buffer.Memory, CancellationToken.None);
+                ValueWebSocketReceiveResult result = await websocket.ReceiveAsync(buffer.Memory, CancellationToken.None).ConfigureAwait(false);
                 if (result.MessageType != WebSocketMessageType.Text)
                 {
-                    await websocket.CloseAsync(WebSocketCloseStatus.ProtocolError, "password fail", CancellationToken.None);
+                    await websocket.CloseAsync(WebSocketCloseStatus.ProtocolError, "only text frame", CancellationToken.None).ConfigureAwait(false);
                     return;
                 }
                 ApiControllerRequestInfo req = Encoding.UTF8.GetString(buffer.Memory.Slice(0, result.Count).Span).DeJson<ApiControllerRequestInfo>();
                 if (req.Path != "password" || req.Content != this.password)
                 {
-                    await websocket.CloseAsync(WebSocketCloseStatus.ProtocolError, "password fail", CancellationToken.None);
+                    await websocket.CloseAsync(WebSocketCloseStatus.ProtocolError, "password fail", CancellationToken.None).ConfigureAwait(false);
                     return;
                 }
                 await websocket.SendAsync(new ApiControllerResponseInfo
@@ -176,27 +176,28 @@ namespace linker.libs.web
                     Path = req.Path,
                     RequestId = req.RequestId,
                     Content = "password ok",
-                }.ToJson().ToBytes(), WebSocketMessageType.Text, true, CancellationToken.None);
+                }.ToJson().ToBytes(), WebSocketMessageType.Text, true, CancellationToken.None).ConfigureAwait(false);
 
                 while (websocket.State == WebSocketState.Open)
                 {
                     try
                     {
-                        result = await websocket.ReceiveAsync(buffer.Memory, CancellationToken.None);
-                        switch (result.MessageType)
+                       ValueWebSocketReceiveResult _result = await websocket.ReceiveAsync(buffer.Memory, CancellationToken.None);
+                        switch (_result.MessageType)
                         {
                             case WebSocketMessageType.Text:
                                 {
-                                    req = Encoding.UTF8.GetString(buffer.Memory.Slice(0, result.Count).Span).DeJson<ApiControllerRequestInfo>();
-                                    req.Connection = websocket;
-                                    ApiControllerResponseInfo resp = await OnMessage(req);
-                                    await websocket.SendAsync(resp.ToJson().ToBytes(), WebSocketMessageType.Text, true, CancellationToken.None);
+                                    req = Encoding.UTF8.GetString(buffer.Memory.Slice(0, _result.Count).Span).DeJson<ApiControllerRequestInfo>();
+                                    ApiControllerRequestInfo _req = req;
+                                    _req.Connection = websocket;
+                                    var resp = await OnMessage(_req).ConfigureAwait(false);
+                                    await resp.Connection.SendAsync(resp.ToJson().ToBytes(), WebSocketMessageType.Text, true, CancellationToken.None).ConfigureAwait(false);
                                 }
                                 break;
                             case WebSocketMessageType.Binary:
                                 break;
                             case WebSocketMessageType.Close:
-                                await websocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed by client", CancellationToken.None);
+                                await websocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed by client", CancellationToken.None).ConfigureAwait(false);
                                 break;
                             default:
                                 break;
@@ -223,7 +224,8 @@ namespace linker.libs.web
                     Content = $"{model.Path} not exists",
                     RequestId = model.RequestId,
                     Path = model.Path,
-                    Code = ApiControllerResponseCodes.NotFound
+                    Code = ApiControllerResponseCodes.NotFound,
+                    Connection = model.Connection
                 };
             }
             if (plugin.HasAccess(plugin.Access) == false)
@@ -233,7 +235,8 @@ namespace linker.libs.web
                     Content = "no permission",
                     RequestId = model.RequestId,
                     Path = model.Path,
-                    Code = ApiControllerResponseCodes.Error
+                    Code = ApiControllerResponseCodes.Error,
+                    Connection = model.Connection
                 };
             }
 
@@ -268,6 +271,7 @@ namespace linker.libs.web
                     Content = param.Code != ApiControllerResponseCodes.Error ? resultObject : param.ErrorMessage,
                     RequestId = model.RequestId,
                     Path = model.Path,
+                    Connection = model.Connection
                 };
             }
             catch (Exception ex)
@@ -278,7 +282,8 @@ namespace linker.libs.web
                     Content = ex.Message,
                     RequestId = model.RequestId,
                     Path = model.Path,
-                    Code = ApiControllerResponseCodes.Error
+                    Code = ApiControllerResponseCodes.Error,
+                    Connection = model.Connection
                 };
             }
         }

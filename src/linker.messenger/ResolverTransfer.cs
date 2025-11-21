@@ -45,7 +45,7 @@ namespace linker.messenger
                     return;
                 }
 
-                int length = await socket.ReceiveAsync(buffer.AsMemory(0, 1), SocketFlags.None).AsTask().WaitAsync(TimeSpan.FromMilliseconds(1000)).ConfigureAwait(false);
+                int length = await socket.ReceiveAsync(buffer.AsMemory(0, 1), SocketFlags.None).AsTask().WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
                 byte type = buffer[0];
 
                 if (resolvers.TryGetValue(type, out IResolver resolver))

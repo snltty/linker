@@ -3,7 +3,7 @@
         "linker.Application": {
             "title": "Linker",
             "icon": "images/icon_{0}.png",
-            "type": "iframe",
+            "type": "url",
             "protocol": "http",
             "port": "1804",
             "url": "/",
