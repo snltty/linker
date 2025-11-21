@@ -1,6 +1,5 @@
 ﻿using linker.libs.extends;
 using System.Collections.Concurrent;
-using linker.tunnel.connection;
 using System.Net;
 using linker.libs;
 using linker.messenger.signin;
@@ -218,7 +217,7 @@ namespace linker.messenger.tuntap
         }
         public async Task<bool> SetId(ApiControllerParamsInfo param)
         {
-            SetIdKeyValueInfo info = param.Content.DeJson<SetIdKeyValueInfo>();
+            KeyValueInfo<string, Guid> info = param.Content.DeJson<KeyValueInfo<string,Guid>>();
             if (info.Key == signInClientStore.Id)
             {
                 tuntapConfigTransfer.SetID(info.Value);
@@ -320,12 +319,6 @@ namespace linker.messenger.tuntap
             return tuntapForwardTestWrapInfo;
         }
 
-    }
-
-    public sealed class SetIdKeyValueInfo
-    {
-        public string Key { get; set; }
-        public Guid Value { get; set; }
     }
 
     public sealed class TuntabListInfo

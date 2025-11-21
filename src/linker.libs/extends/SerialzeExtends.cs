@@ -13,7 +13,7 @@ namespace linker.libs.extends
             AllowTrailingCommas = true,
             ReadCommentHandling = JsonCommentHandling.Skip,
             PropertyNameCaseInsensitive = true,
-            Converters = { new IPAddressJsonConverter(), new IPEndpointJsonConverter(), new DateTimeJsonConverter(), new BitArrayJsonConverter(),new KeyValuePairJsonConverter<string,string>() }
+            Converters = { new IPAddressJsonConverter(), new IPEndpointJsonConverter(), new DateTimeJsonConverter(), new BitArrayJsonConverter(), new KeyValuePairJsonConverter<string, string>() }
         };
         private static JsonSerializerOptions jsonSerializerOptions = new JsonSerializerOptions
         {
@@ -52,5 +52,9 @@ namespace linker.libs.extends
         }
     }
 
-
+    public sealed class KeyValueInfo<T1, T2>
+    {
+        public T1 Key { get; set; } = default(T1);
+         public T2 Value { get; set; } = default(T2);
+    }
 }

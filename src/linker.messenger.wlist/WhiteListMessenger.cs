@@ -12,7 +12,7 @@ namespace linker.messenger.wlist
         private readonly IWhiteListServerStore whiteListServerStore;
         private readonly OrderTransfer orderTransfer;
 
-        public WhiteListServerMessenger( SignInServerCaching signCaching, ISerializer serializer, IWhiteListServerStore whiteListServerStore, OrderTransfer orderTransfer)
+        public WhiteListServerMessenger(SignInServerCaching signCaching, ISerializer serializer, IWhiteListServerStore whiteListServerStore, OrderTransfer orderTransfer)
         {
             this.signCaching = signCaching;
             this.serializer = serializer;
@@ -87,21 +87,32 @@ namespace linker.messenger.wlist
         [MessengerId((ushort)WhiteListMessengerIds.Status)]
         public async Task Status(IConnection connection)
         {
-            string type = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
+            KeyValuePair<string, string> info;
+
+            try
+            {
+                info = serializer.Deserialize<KeyValuePair<string, string>>(connection.ReceiveRequestWrap.Payload.Span);
+            }
+            catch (Exception)
+            {
+                string type = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+                info = new KeyValuePair<string, string>(type, connection.Id);
+            }
+
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false || signCaching.TryGet(info.Value, out SignCacheInfo cacheTo) == false)
             {
                 connection.Write(Helper.FalseArray);
                 return;
             }
 
-            List<WhiteListInfo> list = await whiteListServerStore.Get(type, [cache.UserId], [cache.MachineId]).ConfigureAwait(false);
-            WhiteListInfo info = list.FirstOrDefault(c => c.Bandwidth < 0) ?? list.FirstOrDefault(c => c.Bandwidth == 0) ?? list.OrderByDescending(c => c.Bandwidth).FirstOrDefault();
+            List<WhiteListInfo> list = await whiteListServerStore.Get(info.Key, [cacheTo.UserId], [cacheTo.MachineId]).ConfigureAwait(false);
+            WhiteListInfo result = list.FirstOrDefault(c => c.Bandwidth < 0) ?? list.FirstOrDefault(c => c.Bandwidth == 0) ?? list.OrderByDescending(c => c.Bandwidth).FirstOrDefault();
 
             connection.Write(serializer.Serialize(new WhiteListOrderStatusInfo
             {
                 Type = whiteListServerStore.Config.Type,
                 Enabled = orderTransfer.CheckEnabled(),
-                Info = info
+                Info = result
             }));
         }
 

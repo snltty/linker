@@ -74,7 +74,8 @@ export default {
         });
 
         const handleRefreshData = ()=>{
-            wlistStatus(wlist.value.device.type).then(res=>{
+            wlistStatus(wlist.value.device.type,wlist.value.device.id).then(res=>{
+
                 state.status = res;
                 state.status.Info = res.Info || {}
             });
@@ -110,7 +111,6 @@ export default {
             handleRefreshData();
             emit('change');
         }
-
 
         onMounted(()=>{
             handleRefreshData();

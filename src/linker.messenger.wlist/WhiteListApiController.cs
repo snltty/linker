@@ -89,11 +89,12 @@ namespace linker.messenger.wlist
         /// <returns></returns>
         public async Task<WhiteListOrderStatusInfo> Status(ApiControllerParamsInfo param)
         {
+            KeyValueInfo<string, string> info = param.Content.DeJson<KeyValueInfo<string, string>>();
             var resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)WhiteListMessengerIds.Status,
-                Payload = serializer.Serialize(param.Content)
+                Payload = serializer.Serialize(new KeyValuePair<string, string>(info.Key,info.Value))
             }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.FalseArray) == false)
             {
@@ -125,7 +126,7 @@ namespace linker.messenger.wlist
 
         public async Task<Dictionary<string, Dictionary<int, double>>> List(ApiControllerParamsInfo param)
         {
-            KeyValueInfo info = param.Content.DeJson<KeyValueInfo>();
+            KeyValueInfo<string,List<string>> info = param.Content.DeJson<KeyValueInfo<string,List<string>>>();
 
             var resp = await messengerSender.SendReply(new MessageRequestWrap
             {
@@ -140,11 +141,7 @@ namespace linker.messenger.wlist
 
             return [];
         }
-        sealed class KeyValueInfo
-        {
-            public string Key { get; set; } = string.Empty;
-            public List<string> Value { get; set; } = [];
-        }
+
     }
 
 }

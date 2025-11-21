@@ -53,9 +53,9 @@ namespace linker.messenger.relay.client
             return relayTestTransfer.Nodes;
         }
 
-        public KeyValuePairInfo GetDefault(ApiControllerParamsInfo param)
+        public KeyValueInfo<string, TunnelProtocolType> GetDefault(ApiControllerParamsInfo param)
         {
-            return new KeyValuePairInfo { Key = relayClientStore.DefaultNodeId, Value = relayClientStore.DefaultProtocol };
+            return new KeyValueInfo<string, TunnelProtocolType> { Key = relayClientStore.DefaultNodeId, Value = relayClientStore.DefaultProtocol };
         }
         public async Task SyncDefault(ApiControllerParamsInfo param)
         {
@@ -147,7 +147,7 @@ namespace linker.messenger.relay.client
         /// <returns></returns>
         public async Task<bool> Update(ApiControllerParamsInfo param)
         {
-            UpdateInfo info = param.Content.DeJson<UpdateInfo>();
+            KeyValueInfo<string, string> info = param.Content.DeJson<KeyValueInfo<string,string>>();
             var resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
@@ -165,21 +165,10 @@ namespace linker.messenger.relay.client
         public ulong HashCode { get; set; }
     }
 
-    public sealed class UpdateInfo
-    {
-        public string Key { get; set; }
-        public string Value { get; set; }
-    }
     public sealed class SyncInfo
     {
         public string[] Ids { get; set; } = [];
-        public KeyValuePairInfo Data { get; set; } = new KeyValuePairInfo();
-    }
-
-    public sealed class KeyValuePairInfo
-    {
-        public string Key { get; set; } = string.Empty;
-        public TunnelProtocolType Value { get; set; } = TunnelProtocolType.Tcp;
+        public KeyValueInfo<string, TunnelProtocolType> Data { get; set; } = new KeyValueInfo<string, TunnelProtocolType> { Key=string.Empty, Value= TunnelProtocolType.Tcp };
     }
 
     public sealed class RelayConnectInfo

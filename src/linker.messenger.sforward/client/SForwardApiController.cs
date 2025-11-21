@@ -215,7 +215,7 @@ namespace linker.messenger.sforward.client
         /// <returns></returns>
         public async Task<bool> Update(ApiControllerParamsInfo param)
         {
-            UpdateInfo info = param.Content.DeJson<UpdateInfo>();
+            KeyValueInfo<string, string> info = param.Content.DeJson<KeyValueInfo<string,string>>();
             var resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
@@ -227,11 +227,6 @@ namespace linker.messenger.sforward.client
 
     }
 
-    public sealed class UpdateInfo
-    {
-        public string Key { get; set; }
-        public string Value { get; set; }
-    }
     public sealed class SForwardListInfo
     {
         public ConcurrentDictionary<string, int> List { get; set; }

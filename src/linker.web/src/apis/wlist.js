@@ -8,8 +8,8 @@ export const wlistAdd = (data) => {
 export const wlistDel = (data) => {
     return sendWebsocketMsg('whitelist/Del', data);
 }
-export const wlistStatus = (type) => {
-    return sendWebsocketMsg('whitelist/status', type);
+export const wlistStatus = (type,machineId) => {
+    return sendWebsocketMsg('whitelist/status', {Key:type,Value:machineId});
 }
 export const wlistAddOrder = (data) => {
     return sendWebsocketMsg('whitelist/addorder', data);

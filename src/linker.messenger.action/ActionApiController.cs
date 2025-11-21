@@ -53,7 +53,7 @@ namespace linker.messenger.action
         [Access(AccessValue.Action)]
         public async Task<bool> SetServerArgs(ApiControllerParamsInfo param)
         {
-            KeyValuePairInfo keyValue = param.Content.DeJson<KeyValuePairInfo>();
+            KeyValueInfo<string, string> keyValue = param.Content.DeJson<KeyValueInfo<string,string>>();
 
             if (keyValue.Key == signInClientStore.Id || string.IsNullOrWhiteSpace(keyValue.Key))
             {
@@ -67,12 +67,6 @@ namespace linker.messenger.action
             }).ConfigureAwait(false);
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
-    }
-
-    public sealed class KeyValuePairInfo
-    {
-        public string Key { get; set; } = string.Empty;
-        public string Value { get; set; } = string.Empty;
     }
 
 }

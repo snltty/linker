@@ -179,9 +179,8 @@ export default {
                 if(state.apply2user){
                     json.UserId = state.machineids.filter(c=>c.MachineId == state.ruleForm.MachineId)[0].UserId;
                 }
-                json.UseTime = `${state.timeRange[0]} 00:00:00`;
-                json.EndTime = `${state.timeRange[1]} 23:59:59`;
-
+                json.UseTime = `${moment(state.timeRange[0]).format('YYYY-MM-DD')} 00:00:00`;
+                json.EndTime = `${moment(state.timeRange[1]).format('YYYY-MM-DD')} 23:59:59`;
                 wlistAdd(json).then(()=>{
                     ElMessage.success(t('common.oper'));
                     state.show = false;
