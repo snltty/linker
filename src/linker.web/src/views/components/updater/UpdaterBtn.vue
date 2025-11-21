@@ -47,6 +47,7 @@ export default {
         const globalData = injectGlobalData();
         const updater = useUpdater();
         const serverVersion = computed(()=>globalData.value.signin.Version);
+        const updaterVersion = computed(()=>updater.value.current.Version);
         const updaterText = computed(()=>{
             if(!props.item.hook_updater){
                 return '未检测到更新';
@@ -55,8 +56,8 @@ export default {
             if(props.item.hook_updater.Status <= 2) {
                 return props.item.Version != serverVersion.value 
                 ? `与服务器版本(${serverVersion.value})不一致，建议更新` 
-                : props.item.hook_updater.Version != props.item.Version 
-                    ? `不是最新版本(${props.item.hook_updater.Version})，建议更新` 
+                : updaterVersion.value != props.item.Version 
+                    ? `不是最新版本(${updaterVersion.value})，建议更新` 
                     : `是最新版本，但我无法阻止你喜欢更新`
             }
             return {
@@ -69,12 +70,13 @@ export default {
         const updaterColor = computed(()=>{
             return props.item.Version != serverVersion.value 
             ? 'red' 
-            : props.item.hook_updater && props.item.hook_updater.Version != props.item.Version 
+            : props.item.hook_updater &&  updaterVersion.value != props.item.Version 
                 ? 'yellow' :'green'
         })
         const handleUpdate = (access)=>{
             updater.value.device = props.item;
             if(!props.config){
+                ElMessage.error('?');
                 return;
             }
             if(!access.UpdateSelf){

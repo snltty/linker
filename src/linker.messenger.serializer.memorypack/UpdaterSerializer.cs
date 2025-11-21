@@ -308,7 +308,16 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackConstructor]
         SerializableUpdaterInfo170(string machineId, string version, UpdaterStatus status, long length, long current, string serverVersion, bool sync2Server)
         {
-            this.info = new UpdaterInfo170 { MachineId = machineId, Version = version, Status = status, Length = length, Current = current, ServerVersion = serverVersion, Sync2Server = sync2Server };
+            this.info = new UpdaterInfo170
+            {
+                MachineId = machineId,
+                Version = version,
+                Status = status,
+                Length = length,
+                Current = current,
+                ServerVersion = serverVersion,
+                Sync2Server = sync2Server
+            };
         }
 
         public SerializableUpdaterInfo170(UpdaterInfo170 info)

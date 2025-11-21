@@ -4,11 +4,14 @@ import { inject, provide, ref } from "vue";
 
 const updaterSymbol = Symbol();
 export const provideUpdater = () => {
+    const globalData = injectGlobalData();
     const updater = ref({
         timer: 0,
         list: {},
         hashcode: 0,
         subscribeTimer: 0,
+
+        current: { Version: '', Msg: [], DateTime: '', Status: 0, Length: 0, Current: 0 },
 
         device: {},
         show: false,
@@ -20,6 +23,16 @@ export const provideUpdater = () => {
             getUpdater(updater.value.hashcode.toString()).then((res) => {
                 updater.value.hashcode = res.HashCode;
                 if (res.List) {
+                    const self = Object.values(res.List).filter(c => !!c.Version)[0];
+                    if (self) {
+                        Object.assign(updater.value.current, {
+                            Version: self.Version,
+                            Status: self.Status,
+                            Length: self.Length,
+                            Current: self.Current
+                        });
+                        globalData.value.updater = updater.value.current;
+                    }
                     updater.value.list = res.List;
                     resolve(true);
                     return;

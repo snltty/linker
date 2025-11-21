@@ -48,8 +48,9 @@ export default {
         const globalData = injectGlobalData();
         const updater = useUpdater();
         const serverVersion = computed(()=>globalData.value.signin.Version);
+        const updaterVersion = computed(()=>updater.value.current.Version);
         const versions = [
-                {label:`${updater.value.device.hook_updater.Version}【最新版本】`,value:updater.value.device.hook_updater.Version},
+                {label:`${updaterVersion.value}【最新版本】`,value:updaterVersion.value},
                 {label:`${serverVersion.value}【服务器版本】`,value:serverVersion.value},
             ].filter(c=>c.value);
         const state = reactive({
@@ -68,11 +69,11 @@ export default {
             }
         });
 
-        const getTypes = (access)=>{
+        const getTypes = (accesss)=>{
             const types =  [
                 {label:`仅【${updater.value.device.MachineName}】`,value:updater.value.device.MachineId},
-                access.UpdateOther.value ? {label:`本组所有`,value:'g-all'} : {},
-                access.UpdateOther.value ?  {label:`本服务器所有`,value:'s-all'} : {},
+                accesss.UpdateOther ? {label:`本组所有`,value:'g-all'} : {},
+                accesss.UpdateOther ?  {label:`本服务器所有`,value:'s-all'} : {},
             ].filter(c=>c.value);
             if(!state.type){
                 state.type = types[0] || '';
