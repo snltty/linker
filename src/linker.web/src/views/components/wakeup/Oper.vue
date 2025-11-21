@@ -18,7 +18,7 @@ export default {
     props:['item'],
     setup (props) {
 
-        const wakeupCounter = computed(()=>(props.hook_counter || {wakeup:0}).wakeup || 0);
+        const wakeupCounter = computed(()=>(props.item.hook_counter || {wakeup:0}).wakeup || 0);
         const wakeup = useWakeup();
         const handleWakeup = ()=>{
             wakeup.value.device.id = props.item.MachineId;

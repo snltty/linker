@@ -14,7 +14,7 @@ export default {
     props: ['item'],
     setup (props) {
         
-        const transportCounter = computed(()=>(props.hook_counter || {transport:0}).transport || 0);
+        const transportCounter = computed(()=>(props.item.hook_counter || {transport:0}).transport || 0);
         const transport = useTransport();
          const handleTransport = (ow)=>{
             transport.value.device.id = props.item.MachineId;

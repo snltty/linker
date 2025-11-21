@@ -45,7 +45,7 @@ namespace linker.messenger.serializer.memorypack
 
         [MemoryPackConstructor]
         SerializableFirewallRuleInfo(string id, string srcId, string srcName, string groupId, string dstCIDR, string dstPort,
-            nat.LinkerFirewallProtocolType protocol, nat.LinkerFirewallAction action, bool disabled, int orderby, string remark)
+            nat.LinkerFirewallProtocolType protocol, LinkerFirewallAction action, bool disabled, int orderby, string remark)
         {
             var info = new FirewallRuleInfo
             {
@@ -99,8 +99,8 @@ namespace linker.messenger.serializer.memorypack
             value.GroupId = reader.ReadValue<string>();
             value.DstCIDR = reader.ReadValue<string>();
             value.DstPort = reader.ReadValue<string>();
-            value.Protocol = reader.ReadValue<nat.LinkerFirewallProtocolType>();
-            value.Action = reader.ReadValue<nat.LinkerFirewallAction>();
+            value.Protocol = reader.ReadValue<LinkerFirewallProtocolType>();
+            value.Action = reader.ReadValue<LinkerFirewallAction>();
             value.Disabled = reader.ReadValue<bool>();
             value.OrderBy = reader.ReadValue<int>();
             value.Remark = reader.ReadValue<string>();
@@ -130,8 +130,8 @@ namespace linker.messenger.serializer.memorypack
         nat.LinkerFirewallAction Action => info.Action;
 
         [MemoryPackConstructor]
-        SerializableFirewallSearchInfo(string groupId, string str, nat.LinkerFirewallProtocolType protocol,
-            nat.LinkerFirewallAction action, int disabled)
+        SerializableFirewallSearchInfo(string groupId, string str, int disabled, nat.LinkerFirewallProtocolType protocol,
+            nat.LinkerFirewallAction action)
         {
             var info = new FirewallSearchInfo
             {
@@ -173,11 +173,11 @@ namespace linker.messenger.serializer.memorypack
 
             value = new FirewallSearchInfo();
             reader.TryReadObjectHeader(out byte count);
-            value.GroupId = reader.ReadValue<string>();
-            value.Str = reader.ReadValue<string>();
-            value.Protocol = reader.ReadValue<nat.LinkerFirewallProtocolType>();
-            value.Action = reader.ReadValue<nat.LinkerFirewallAction>();
+            value.GroupId = reader.ReadString();
+            value.Str = reader.ReadString();
             value.Disabled = reader.ReadValue<int>();
+            value.Protocol = reader.ReadValue<LinkerFirewallProtocolType>();
+            value.Action = reader.ReadValue<LinkerFirewallAction>();
         }
     }
 
@@ -217,7 +217,6 @@ namespace linker.messenger.serializer.memorypack
                 writer.WriteNullObjectHeader();
                 return;
             }
-
             writer.WritePackable(new SerializableFirewallSearchForwardInfo(value));
         }
 
@@ -229,7 +228,6 @@ namespace linker.messenger.serializer.memorypack
                 value = null;
                 return;
             }
-
             value = new FirewallSearchForwardInfo();
             reader.TryReadObjectHeader(out byte count);
             value.MachineId = reader.ReadValue<string>();

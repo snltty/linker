@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.libs.extends;
 using linker.messenger.signin;
 using linker.nat;
 
@@ -139,6 +140,7 @@ namespace linker.messenger.firewall
         public void Add(IConnection connection)
         {
             FirewallRuleInfo info = serializer.Deserialize<FirewallRuleInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            Console.WriteLine(info.ToJson());
             firewallTransfer.Add(info);
         }
         // <summary>

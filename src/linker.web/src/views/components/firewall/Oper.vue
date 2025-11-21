@@ -17,8 +17,7 @@ import { useFirewall } from './firewall';
 export default {
     props: ['item'],
     setup (props) {
-        
-        const firewallCounter = computed(()=>(props.hook_counter || {firewall:0}).firewall || 0);
+        const firewallCounter = computed(()=>(props.item.hook_counter || {firewall:0}).firewall || 0);
         const firewall = useFirewall();
 
         const handleFirewall = ()=>{
