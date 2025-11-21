@@ -19,6 +19,8 @@ namespace linker.messenger.signin
             Disponse();
         }
 
+        public string SignInHost { get; set; }
+
         /// <summary>
         /// 登入服务器的连接对象
         /// </summary>

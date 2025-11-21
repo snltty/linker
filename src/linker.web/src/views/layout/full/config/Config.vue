@@ -6,8 +6,9 @@
                 <el-form label-width="auto" :label-position="state.position">
                     <el-form-item :label="$t('server.messengerAddr')">
                         <div class="flex">
-                            <el-input v-trim style="width:20rem;" v-model="state.list.Host" @blur="handleSave" />
-                            <Sync class="mgl-1" name="SignInServer"></Sync>
+                            <el-input v-trim :class="{success:state.list.Host==state.signinHost}" style="width:20rem;" v-model="state.list.Host" @blur="handleSave" />
+                            <span class="mgl-1"></span>
+                            <Sync name="SignInServer"></Sync>
                             <PcShow>
                                 <span class="mgl-1">{{$t('server.messengerText')}}</span>
                             </PcShow>
@@ -15,14 +16,15 @@
                     </el-form-item>
                     <el-form-item :label="`${$t('server.messengerAddr')}1`">
                         <div class="flex">
-                            <el-input v-trim style="width:20rem;" v-model="state.list.Host1" @blur="handleSave" />
+                            <el-input v-trim :class="{success:state.list.Host1==state.signinHost}" style="width:20rem;" v-model="state.list.Host1" @blur="handleSave" />
                         </div>
                     </el-form-item>
                     <el-form-item></el-form-item>
                     <el-form-item :label="$t('server.messengerSuperKey')">
                         <div class="flex">
                             <el-input v-trim :class="{success:state.super,error:state.super==false}" style="width:20rem;" type="password" show-password maxlength="36" v-model="state.list.SuperKey" @blur="handleSave" />
-                            <Sync class="mgl-1" name="SignInSuperKey"></Sync>
+                            <span class="mgl-1"></span>
+                            <Sync name="SignInSuperKey"></Sync>
                         </div>
                     </el-form-item>
                     <el-form-item :label="$t('server.messengerSuperPassword')">
@@ -34,7 +36,8 @@
                     <el-form-item :label="$t('server.messengerUserId')">
                         <div class="flex">
                             <el-input v-trim style="width:20rem;" type="password" show-password maxlength="36" v-model="state.list.UserId" @blur="handleSave" />
-                            <Sync class="mgl-1" name="SignInUserId"></Sync>
+                            <span class="mgl-1"></span>
+                            <Sync name="SignInUserId"></Sync>
                             <PcShow>
                                 <span class="mgl-1">{{$t('server.messengerUserIdText')}}</span>
                             </PcShow>
@@ -76,6 +79,7 @@ export default {
             height: computed(()=>globalData.value.height-90),
             position: computed(()=>globalData.value.isPhone ? 'top':'right'),
             super:computed(()=>globalData.value.signin.Super),
+            signinHost:computed(()=>globalData.value.signin.SignInHost),
         });
 
         const handleSave = ()=>{

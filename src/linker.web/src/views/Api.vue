@@ -96,6 +96,7 @@ export default {
                     globalData.value.signin.Connected = res.Connected;
                     globalData.value.signin.Version = res.Version;
                     globalData.value.signin.Super = res.Super;
+                    globalData.value.signin.SignInHost = res.SignInHost;
                     resolve();
                 }).catch((err)=>{
                     resolve();

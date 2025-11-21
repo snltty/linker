@@ -24,7 +24,7 @@ export const provideGlobalData = () => {
             configed: false
         },
         //登录信息
-        signin: { Connected: false, Version: 'v1.0.0.0',Super:false },
+        signin: { Connected: false, Version: 'v1.0.0.0',Super:false,SignInHost:'' },
         self: {}, //本机
         //已连接
         api: { connected: false },
