@@ -142,6 +142,25 @@ namespace linker.messenger.tuntap
                 }
                 version = _version;
             }, 3000);
+
+            TimerHelper.SetIntervalLong(async () =>
+            {
+                IEnumerable<string> unAvailables = tuntapInfos.Values.Where(c => c.Available == false).Select(c => c.MachineId);
+                if (unAvailables.Any())
+                {
+                    List<string> offlines = await signInClientTransfer.GetOfflines(unAvailables.ToList()).ConfigureAwait(false);
+
+                    IEnumerable<string> onlines = unAvailables.Except(offlines);
+                    if (onlines.Any())
+                    {
+                        foreach (var item in tuntapInfos.Values.Where(c => onlines.Contains(c.MachineId)))
+                        {
+                            item.Available = true;
+                        }
+                        ProcData();
+                    }
+                }
+            }, 30000);
         }
 
     }
