@@ -232,7 +232,7 @@ namespace linker.plugins.sforward.proxy
                 {
                     return false;
                 }
-                f0f = f0f.Replace("{{error}}", error);
+                f0f = f0f.Replace("{{msg}}", error);
                 string response = $"HTTP/1.1 200 OK\r\nContent-Length: {f0f.Length}\r\nContent-type: text/html\r\nServer: linker\r\nConnection: close\r\n\r\n{f0f}";
                 byte[] responseBytes = Encoding.UTF8.GetBytes(response);
                 token.SourceSocket.Send(responseBytes);
