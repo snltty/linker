@@ -45,7 +45,7 @@ namespace linker.messenger.store.file
                     }
 
                     database = new LiteDatabase(new ConnectionString($"Filename={db};Password={Helper.GlobalString}"), bsonMapper);
-                    database.CheckpointSize = 1000;
+                    database.CheckpointSize = 10;
                 }
             }
             catch (Exception ex)
