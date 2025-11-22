@@ -94,12 +94,19 @@ namespace linker.messenger.store.file.signIn
         }
         public string[] Exp(string id)
         {
-            long start = Environment.TickCount64;
-            liteCollection.UpdateMany(p => new SignCacheInfo { LastSignIn = DateTime.Now }, c => c.Id == id);
-            long end = Environment.TickCount64;
-            if (end - start > 1000)
+            try
             {
-                LoggerHelper.Instance.Error("SignInServerStore Exp UpdateMany too long {0}ms", end - start);
+                long start = Environment.TickCount64;
+                liteCollection.UpdateMany(p => new SignCacheInfo { LastSignIn = DateTime.Now }, c => c.Id == id);
+                long end = Environment.TickCount64;
+                if (end - start > 1000)
+                {
+                    LoggerHelper.Instance.Error("SignInServerStore Exp UpdateMany too long {0}ms", end - start);
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggerHelper.Instance.Error("SignInServerStore Exp UpdateMany {0}", ex);
             }
             return fileConfig.Data.Server.Hosts;
         }
