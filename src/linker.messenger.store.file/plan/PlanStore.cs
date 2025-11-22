@@ -29,12 +29,12 @@ namespace linker.messenger.store.file.plan
 
         public IEnumerable<PlanInfo> Get()
         {
-            return liteCollection.FindAll();
+            return liteCollection.FindAll().ToList();
         }
 
         public IEnumerable<PlanInfo> Get(string category)
         {
-            return liteCollection.Find(c => c.Category == category);
+            return liteCollection.Find(c => c.Category == category).ToList();
         }
         public PlanInfo Get(string category, string key)
         {

@@ -22,7 +22,7 @@ namespace linker.messenger.store.file.forward
 
         public IEnumerable<ForwardInfo> Get()
         {
-            return liteCollection.FindAll();
+            return liteCollection.FindAll().ToList();
         }
 
         public ForwardInfo Get(long id)
@@ -32,7 +32,7 @@ namespace linker.messenger.store.file.forward
 
         public IEnumerable<ForwardInfo> Get(string groupid)
         {
-            return liteCollection.Find(x => x.GroupId == groupid);
+            return liteCollection.Find(x => x.GroupId == groupid).ToList();
         }
 
         public bool Add(ForwardInfo info)

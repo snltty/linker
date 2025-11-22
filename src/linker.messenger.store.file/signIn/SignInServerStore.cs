@@ -74,7 +74,7 @@ namespace linker.messenger.store.file.signIn
 
         public IEnumerable<SignCacheInfo> Find()
         {
-            return liteCollection.FindAll();
+            return liteCollection.FindAll().ToList().ToList();
         }
 
         public string Insert(SignCacheInfo value)

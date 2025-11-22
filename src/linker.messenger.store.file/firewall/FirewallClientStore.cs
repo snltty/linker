@@ -25,7 +25,7 @@ namespace linker.messenger.store.file.firewall
 
         public IEnumerable<FirewallRuleInfo> GetAll()
         {
-            return liteCollection.FindAll();
+            return liteCollection.FindAll().ToList();
         }
         public IEnumerable<FirewallRuleInfo> GetAll(FirewallSearchInfo info)
         {
@@ -49,12 +49,12 @@ namespace linker.messenger.store.file.firewall
                 );
             }
 
-            return list.OrderBy(c => c.OrderBy);
+            return list.OrderBy(c => c.OrderBy).ToList();
         }
 
         public IEnumerable<FirewallRuleInfo> GetEnabled(string groupId)
         {
-            return liteCollection.FindAll().Where(c => c.Disabled == false && c.GroupId == groupId).OrderBy(c => c.OrderBy);
+            return liteCollection.FindAll().Where(c => c.Disabled == false && c.GroupId == groupId).OrderBy(c => c.OrderBy).ToList();
         }
 
         public bool Add(FirewallRuleInfo rule)

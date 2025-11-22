@@ -89,6 +89,5 @@ namespace linker.messenger.store.file.wlist
                 List = query.Skip((info.Page - 1) * info.Size).Limit(info.Size).ToList()
             }).ConfigureAwait(false);
         }
-
     }
 }

@@ -35,6 +35,10 @@ namespace linker.messenger.flow
         {
             messengerFlow.Add(id, receiveBytes, sendtBytes);
         }
+        public override void AddStopwatch(ushort id, long time, MessageTypes type)
+        {
+            messengerFlow.AddStopwatch(id, time, type);
+        }
     }
 
     public sealed class FlowMessenger : IFlow

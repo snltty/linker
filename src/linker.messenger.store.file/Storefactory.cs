@@ -1,6 +1,5 @@
 ﻿using linker.libs;
 using linker.libs.extends;
-using linker.libs.timer;
 using linker.tunnel.connection;
 using LiteDB;
 using System.Net;
@@ -46,6 +45,7 @@ namespace linker.messenger.store.file
                     }
 
                     database = new LiteDatabase(new ConnectionString($"Filename={db};Password={Helper.GlobalString}"), bsonMapper);
+                    database.CheckpointSize = 10;
                 }
             }
             catch (Exception ex)
@@ -53,7 +53,6 @@ namespace linker.messenger.store.file
                 LoggerHelper.Instance.Error(ex);
                 Helper.AppExit(1);
             }
-            TimerHelper.SetIntervalLong(database.Checkpoint, 3000);
         }
 
         public ILiteCollection<T> GetCollection<T>(string name)

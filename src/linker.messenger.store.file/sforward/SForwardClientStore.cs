@@ -27,7 +27,7 @@ namespace linker.messenger.store.file.sforward
 
         public IEnumerable<SForwardInfo> Get()
         {
-            return liteCollection.FindAll();
+            return liteCollection.FindAll().ToList();
         }
 
         public SForwardInfo Get(long id)

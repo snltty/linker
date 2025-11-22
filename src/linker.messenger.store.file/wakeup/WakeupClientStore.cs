@@ -17,7 +17,7 @@ namespace linker.messenger.store.file.wakeup
         }
         public IEnumerable<WakeupInfo> GetAll(WakeupSearchInfo info)
         {
-            IEnumerable<WakeupInfo> list = liteCollection.FindAll().Where(c => (c.Type & info.Type) > 0);
+            IEnumerable<WakeupInfo> list = liteCollection.FindAll().Where(c => (c.Type & info.Type) > 0).ToList();
 
             if (string.IsNullOrWhiteSpace(info.Str) == false)
             {

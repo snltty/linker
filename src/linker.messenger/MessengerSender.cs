@@ -48,6 +48,8 @@ namespace linker.messenger
         }
 
         public virtual void Add(ushort id, long receiveBytes, long sendtBytes) { }
+        public virtual void AddStopwatch(ushort id, long time, MessageTypes type) { }
+
         public async Task<MessageResponeInfo> SendReply(MessageRequestWrap msg)
         {
             if (msg.Connection == null || msg.Connection.Connected == false)
@@ -84,7 +86,8 @@ namespace linker.messenger
             catch (Exception)
             {
                 tcs.TrySetResult(new MessageResponeInfo { Code = MessageResponeCodes.NOT_CONNECT });
-                sends.TryRemove(msg.RequestId, out _);
+                if (sends.TryRemove(msg.RequestId, out ReplyWrapInfo info))
+                    AddStopwatch(info.MessengerId, Environment.TickCount64 - info.SendTime, MessageTypes.REQUEST);
                 return new MessageResponeInfo { Code = MessageResponeCodes.TIMEOUT };
             }
         }
@@ -106,7 +109,7 @@ namespace linker.messenger
 
                 byte[] bytes = msg.ToArray(out int length);
 
-                Add(msg.MessengerId,0, bytes.Length);
+                Add(msg.MessengerId, 0, bytes.Length);
 
                 bool res = await msg.Connection.SendAsync(bytes.AsMemory(0, length)).ConfigureAwait(false);
                 msg.Return(bytes);
@@ -131,7 +134,7 @@ namespace linker.messenger
 
                 byte[] bytes = msg.ToArray(out int length);
 
-                Add(messengerId,0, length);
+                Add(messengerId, 0, length);
 
                 bool res = await msg.Connection.SendAsync(bytes.AsMemory(0, length)).ConfigureAwait(false);
                 msg.Return(bytes);
@@ -153,6 +156,7 @@ namespace linker.messenger
                 wrap.Payload.CopyTo(bytes);
 
                 Add(info.MessengerId, bytes.Length, 0);
+                AddStopwatch(info.MessengerId, Environment.TickCount64 - info.SendTime, MessageTypes.REQUEST);
                 info.Tcs.TrySetResult(new MessageResponeInfo { Code = wrap.Code, Data = bytes, Connection = wrap.Connection });
                 return info.MessengerId;
             }
@@ -164,6 +168,7 @@ namespace linker.messenger
     {
         public TaskCompletionSource<MessageResponeInfo> Tcs { get; set; }
         public ushort MessengerId { get; set; }
+        public long SendTime { get; set; } = Environment.TickCount64;
     }
     public sealed class MessageResponeInfo
     {

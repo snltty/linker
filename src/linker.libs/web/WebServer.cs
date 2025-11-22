@@ -2,6 +2,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.WebSockets;
@@ -182,7 +183,7 @@ namespace linker.libs.web
                 {
                     try
                     {
-                       ValueWebSocketReceiveResult _result = await websocket.ReceiveAsync(buffer.Memory, CancellationToken.None);
+                        ValueWebSocketReceiveResult _result = await websocket.ReceiveAsync(buffer.Memory, CancellationToken.None);
                         switch (_result.MessageType)
                         {
                             case WebSocketMessageType.Text:
