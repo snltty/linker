@@ -11,7 +11,7 @@ export const provideConnections = () => {
         transactionId:'',
 
         timer: 0,
-        list: {},
+        list: null,
         hashcode: 0,
 
         _updateRealTime: false,
@@ -76,8 +76,10 @@ export const provideConnections = () => {
     const connectionRefreshFn = () => { 
     }
     const connectionProcessFn = (device,json) => { 
+        if(!connections.value.list) return;
         Object.assign(json,{
-            hook_connection: connections.value.list[device.MachineId]
+            hook_connection: connections.value.list[device.MachineId],
+            hook_connection_load:true
         });
     }
 

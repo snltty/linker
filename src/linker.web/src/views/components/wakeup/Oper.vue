@@ -3,14 +3,14 @@
         <AccessBoolean value="WakeupSelf,WakeupOther">
             <template #default="{values}">
                 <template v-if="(values.WakeupSelf && item.isSelf) || (values.WakeupOther && !item.isSelf)">
-                    <el-col :span="12">
+                    <el-col :span="12" class="skeleton-animation" :style="`animation-delay:${item.animationDelay}ms`">
                         <a href="javascript:;" :class="{green:wakeupCounter>0}" @click="handleWakeup"><img src="wakeup.svg" alt="wakeup"> ({{ wakeupCounter }})</a>
                     </el-col>
                 </template>
             </template>
         </AccessBoolean>
     </template>
-    <template v-else>
+    <template v-else-if="!item.hook_counter_load">
         <el-col :span="12">
             <el-skeleton animated >
                 <template #template>

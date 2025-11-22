@@ -1,7 +1,7 @@
 <template>
     <AccessBoolean value="Socks5ChangeSelf,Socks5ChangeOther,Socks5StatusSelf,Socks5StatusOther">
         <template #default="{values}">
-            <div>
+            <div class="skeleton-animation" :style="`animation-delay:${item.animationDelay}ms`">
                 <div class="flex">
                     <div class="flex-1">
                         <ConnectionShow :row="item" transactionId="socks5"></ConnectionShow>

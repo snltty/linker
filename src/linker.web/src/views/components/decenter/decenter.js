@@ -4,7 +4,7 @@ import { inject, provide, ref } from "vue";
 const decenterSymbol = Symbol();
 export const provideDecenter = () => {
     const decenter = ref({
-        list: {},
+        list: null,
         hashcode: 0
     });
     provide(decenterSymbol, decenter);
@@ -26,12 +26,14 @@ export const provideDecenter = () => {
         
     }
     const counterProcessFn = (device,json) => {
+        if(!decenter.value.list) return;
         const _json = {};
         for (const key in decenter.value.list) {
             _json[key] = decenter.value.list[key][device.MachineId] || 0;
         }
         Object.assign(json,{
-            hook_counter: _json
+            hook_counter: _json,
+            hook_counter_load:true
         });
     }
     const counterRefreshFn = () => {

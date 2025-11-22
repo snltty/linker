@@ -1,7 +1,7 @@
 <template>
     <AccessBoolean value="TuntapChangeSelf,TuntapChangeOther,TuntapStatusSelf,TuntapStatusOther">
         <template #default="{values}">
-            <div> 
+            <div class="skeleton-animation" :style="`animation-delay:${item.animationDelay}ms`"> 
                 <div class="flex">
                     <div class="flex-1">
                         <ConnectionShow :row="item" transactionId="tuntap"></ConnectionShow>         

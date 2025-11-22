@@ -7,7 +7,7 @@ export const provideTunnel = () => {
     const tunnel = ref({
         
         timer: 0,
-        list: {},
+        list: null,
         hashcode: 0,
 
         timer1: 0,
@@ -95,6 +95,7 @@ export const provideTunnel = () => {
 
     
     const tunnelProcessFn = (device,json) => { 
+        if(!tunnel.value.list || !tunnel.value.p2pOperatings || !tunnel.value.relayOperatings) return;
         const p2p = tunnel.value.p2pOperatings[device.MachineId] || {};
         const relay = tunnel.value.relayOperatings[device.MachineId]|| {};
         const keys = [...new Set(Object.keys(p2p).concat(Object.keys(relay)))];
@@ -104,7 +105,9 @@ export const provideTunnel = () => {
         }
         Object.assign(json,{
             hook_tunnel: tunnel.value.list[device.MachineId],
+            hook_tunnel_load:true,
             hook_operating: _json,
+            hook_operating_load: true,
         });
     }
     

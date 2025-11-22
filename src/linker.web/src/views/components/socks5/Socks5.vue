@@ -5,7 +5,7 @@
                 <template v-if="scope.row.hook_socks5">
                     <Socks5Show :config="true" :item="scope.row"></Socks5Show>
                 </template>
-                <template v-else>
+                <template v-else-if="!scope.row.hook_socks5_load">
                     <el-skeleton animated >
                         <template #template>
                             <el-skeleton-item variant="text" style="width: 60%;" />

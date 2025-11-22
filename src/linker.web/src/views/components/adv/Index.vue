@@ -10,7 +10,7 @@
     </template>
     <template v-else>
         <div class="adv-wrap" v-if="state.html">
-            <div class="inner" v-html="state.html"></div>
+            <div class="inner skeleton-animation" v-html="state.html"></div>
         </div>
     </template>
 </template>

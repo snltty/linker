@@ -1,11 +1,11 @@
 <template>
     <div class="flex-1">
         <template v-if="item.hook_tuntap && item.hook_tuntap.systems">
-            <template v-for="system in item.hook_tuntap.systems">
-                <span :title="item.hook_tuntap.SystemInfo">
+            <div class="skeleton-animation" :style="`animation-delay:${item.animationDelay}ms`">
+                <span :title="item.hook_tuntap.SystemInfo" v-for="system in item.hook_tuntap.systems">
                     <img :src="`./${system}.svg`" />
                 </span>
-            </template>
+            </div>
         </template>
         <template v-else>
             <el-skeleton animated >

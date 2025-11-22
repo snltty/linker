@@ -7,7 +7,7 @@ export const provideUpdater = () => {
     const globalData = injectGlobalData();
     const updater = ref({
         timer: 0,
-        list: {},
+        list: null,
         hashcode: 0,
         subscribeTimer: 0,
 
@@ -46,8 +46,10 @@ export const provideUpdater = () => {
     const updaterRefreshFn = () => {
     }
     const updaterProcessFn = (device,json) => { 
+        if(!updater.value.list) return;
         Object.assign(json,{
-            hook_updater: updater.value.list[device.MachineId] || {}
+            hook_updater: updater.value.list[device.MachineId] || {},
+            hook_updater_load: true
         });
     }
 

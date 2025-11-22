@@ -4,41 +4,43 @@
             <el-table-column prop="tunnel" :label="$t('home.tunnel')" width="86">
                 <template #default="scope">
                     <template v-if="scope.row.hook_tunnel">
-                        <div>
-                            <template v-if="scope.row.hook_tunnel.Net.CountryCode">
-                                <img 
-                                :title="`${scope.row.hook_tunnel.Net.CountryCode}、${scope.row.hook_tunnel.Net.City}`" 
-                                class="system" 
-                                :src="`https://unpkg.com/flag-icons@7.2.3/flags/4x3/${scope.row.hook_tunnel.Net.CountryCode.toLowerCase()}.svg`" />
-                            </template>
-                            <template v-else>
-                                <img title="?" class="system" src="/system.svg" />
-                            </template>
-                            <template v-if="scope.row.hook_tunnel.Net.Isp">
-                                <img 
-                                :title="`${scope.row.hook_tunnel.Net.Isp}`" 
-                                class="system" :src="netImg(scope.row.hook_tunnel.Net)" />
-                            </template>
-                            <template v-else>
-                                <img title="?" class="system" src="/system.svg" />
-                            </template>
-                            <template v-if="scope.row.hook_tunnel.Net.Nat">
-                                <span class="nat" :title="scope.row.hook_tunnel.Net.Nat">{{ natMap[scope.row.hook_tunnel.Net.Nat]  }}</span>
-                            </template>
-                            <template v-else>
-                                <img title="?" class="system" src="/system.svg" />
-                            </template>
-                        </div> 
-                        <div class="flex">
-                            <a href="javascript:;" class="a-line" 
-                            :class="{yellow:scope.row.hook_tunnel.NeedReboot}" 
-                            :title="$t('home.holeText')"
-                            @click="handleTunnel(scope.row.hook_tunnel,scope.row,values)">
-                                <span>{{$t('home.jump')}}:{{scope.row.hook_tunnel.RouteLevel}}+{{scope.row.hook_tunnel.RouteLevelPlus}}</span>
-                            </a>
+                        <div class="skeleton-animation" :style="`animation-delay:${scope.row.animationDelay}ms`">
+                            <div>
+                                <template v-if="scope.row.hook_tunnel.Net.CountryCode">
+                                    <img 
+                                    :title="`${scope.row.hook_tunnel.Net.CountryCode}、${scope.row.hook_tunnel.Net.City}`" 
+                                    class="system" 
+                                    :src="`https://unpkg.com/flag-icons@7.2.3/flags/4x3/${scope.row.hook_tunnel.Net.CountryCode.toLowerCase()}.svg`" />
+                                </template>
+                                <template v-else>
+                                    <img title="?" class="system" src="/system.svg" />
+                                </template>
+                                <template v-if="scope.row.hook_tunnel.Net.Isp">
+                                    <img 
+                                    :title="`${scope.row.hook_tunnel.Net.Isp}`" 
+                                    class="system" :src="netImg(scope.row.hook_tunnel.Net)" />
+                                </template>
+                                <template v-else>
+                                    <img title="?" class="system" src="/system.svg" />
+                                </template>
+                                <template v-if="scope.row.hook_tunnel.Net.Nat">
+                                    <span class="nat" :title="scope.row.hook_tunnel.Net.Nat">{{ natMap[scope.row.hook_tunnel.Net.Nat]  }}</span>
+                                </template>
+                                <template v-else>
+                                    <img title="?" class="system" src="/system.svg" />
+                                </template>
+                            </div> 
+                            <div class="flex">
+                                <a href="javascript:;" class="a-line" 
+                                :class="{yellow:scope.row.hook_tunnel.NeedReboot}" 
+                                :title="$t('home.holeText')"
+                                @click="handleTunnel(scope.row.hook_tunnel,scope.row,values)">
+                                    <span>{{$t('home.jump')}}:{{scope.row.hook_tunnel.RouteLevel}}+{{scope.row.hook_tunnel.RouteLevelPlus}}</span>
+                                </a>
+                            </div>
                         </div>
                     </template>
-                    <template v-else>
+                    <template v-else-if="!scope.row.hook_tunnel_load">
                         <el-skeleton animated >
                             <template #template>
                                 <el-skeleton-item variant="text" class="el-skeleton-item" />

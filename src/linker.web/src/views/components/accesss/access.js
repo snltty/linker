@@ -4,7 +4,7 @@ import { inject, provide, ref } from "vue";
 const accessSymbol = Symbol();
 export const provideAccess = () => {
     const access = ref({
-        list: {},
+        list: null,
         timer: 0,
         hashcode: 0
     });
@@ -29,8 +29,10 @@ export const provideAccess = () => {
         });
     }
     const accessProcessFn = (device,json) => {
+        if(!access.value.list) return;
         Object.assign(json,{
-            hook_accesss: access.value.list[device.MachineId] || ''
+            hook_accesss: access.value.list[device.MachineId] || '',
+            hook_accesss_load:true
         })
     }
 

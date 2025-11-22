@@ -8,8 +8,8 @@
                 <template v-if="scope.row.hook_tuntap">
                     <TuntapShow :config="true" :item="scope.row"></TuntapShow>
                 </template>
-                <template v-else>
-                    <el-skeleton animated >
+                <template v-else-if="!scope.row.hook_tuntap_load">
+                    <el-skeleton animated>
                         <template #template>
                             <el-skeleton-item variant="text" style="width: 60%;" />
                             <el-skeleton-item variant="text" style="width: 20%;margin-left:20%" />

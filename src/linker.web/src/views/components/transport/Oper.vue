@@ -1,12 +1,12 @@
 <template>
     <template v-if="item.hook_counter">
         <AccessShow value="Transport">
-            <el-col :span="12">
+            <el-col :span="12" class="skeleton-animation" :style="`animation-delay:${item.animationDelay}ms`">
                 <a href="javascript:;" :class="{green:transportCounter>0}" @click="handleTransport"><img src="transport.svg" alt="transport"> ({{ transportCounter }})</a>
             </el-col>
         </AccessShow>
     </template>
-    <template v-else>
+    <template v-else-if="!item.hook_counter_load">
         <el-col :span="12">
             <el-skeleton animated >
                 <template #template>

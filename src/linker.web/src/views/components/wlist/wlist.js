@@ -29,12 +29,11 @@ export const provideWlist = () => {
         wlist.value.list = null;
     }
     const wlistProcessFn = (device,json) => { 
-        if(!device.MachineId) return;
-        if(wlist.value.list){
-            Object.assign(json,{
-                hook_wlist: wlist.value.list[`m_${device.MachineId}`] || wlist.value.list[`u_${device.Args.userid}`] || {}
-            });
-        }
+        if(!wlist.value.list) return;
+        Object.assign(json,{
+            hook_wlist: wlist.value.list[`m_${device.MachineId}`] || wlist.value.list[`u_${device.Args.userid}`] || {},
+            hook_wlist_load:true
+        });
     }
 
 

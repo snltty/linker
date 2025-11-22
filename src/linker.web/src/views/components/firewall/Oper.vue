@@ -3,14 +3,14 @@
         <AccessBoolean value="FirewallSelf,FirewallOther">
             <template #default="{values}">
                 <template v-if="(values.FirewallSelf && item.isSelf) || (values.FirewallOther && !item.isSelf)">
-                    <el-col :span="12">
+                    <el-col :span="12" class="skeleton-animation" :style="`animation-delay:${item.animationDelay}ms`">
                         <a href="javascript:;" :class="{green:firewallCounter>0}" @click="handleFirewall"><img src="firewall.svg" alt="firewall"> ({{firewallCounter}})</a>
                     </el-col>
                 </template>
             </template>
         </AccessBoolean>
     </template>
-    <template v-else>
+    <template v-else-if="!item.hook_counter_load">
         <el-col :span="12">
             <el-skeleton animated >
                 <template #template>

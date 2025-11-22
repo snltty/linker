@@ -7,7 +7,7 @@ export const provideTuntap = () => {
         timer: 0,
         showEdit: false,
         current: null,
-        list: {},
+        list: null,
         hashcode: 0,
 
         showLease: false,
@@ -51,8 +51,10 @@ export const provideTuntap = () => {
         refreshTuntap();
     }
     const tuntapProcessFn = (device,json) => { 
+        if(! tuntap.value.list) return;
         Object.assign(json,{
-            hook_tuntap: tuntap.value.list[device.MachineId]
+            hook_tuntap: tuntap.value.list[device.MachineId],
+            hook_tuntap_load:true
         });
     }
     const getTuntapMachines = (name) => {

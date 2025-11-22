@@ -8,7 +8,7 @@ export const provideSocks5 = () => {
         timer: 0,
         showEdit: false,
         current: null,
-        list: {},
+        list: null,
         hashcode: 0,
     });
     provide(socks5Symbol, socks5);
@@ -35,8 +35,10 @@ export const provideSocks5 = () => {
         });
     }
     const socks5ProcessFn = (device,json) => {
+        if(!socks5.value.list) return;
         Object.assign(json,{
-            hook_socks5: socks5.value.list[device.MachineId] || ''
+            hook_socks5: socks5.value.list[device.MachineId] || '',
+            hook_socks5_load:true
         });
     }
     const socks5RefreshFn = () => {

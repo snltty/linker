@@ -53,7 +53,7 @@ export const provideDevices = () => {
             chaneds.forEach(hook=>{ hook.changed=false });
             if(chaneds.length > 0){
                 for (let i = 0; i< devices.page.List.length; i++) {
-                    const json = {}
+                    const json = {_index:i};
                     for(let j = 0; j < chaneds.length; j++) {
                         const hook = chaneds[j];
                         hook.processFn(devices.page.List[i],json);
@@ -87,7 +87,8 @@ export const provideDevices = () => {
                         showDel: machineId.value != res.List[j].MachineId && res.List[j].Connected == false,
                         showAccess: machineId.value != res.List[j].MachineId && res.List[j].Connected,
                         showReboot: res.List[j].Connected,
-                        isSelf: machineId.value == res.List[j].MachineId
+                        isSelf: machineId.value == res.List[j].MachineId,
+                        animationDelay: Math.ceil(Math.random() * 500)
                     });
                     if (res.List[j].isSelf) {
                         globalData.value.self = res.List[j];

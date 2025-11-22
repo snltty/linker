@@ -1,10 +1,10 @@
 <template>
     <el-table-column prop="forward" :label="$t('home.forward')" width="80">
         <template #default="scope">
-            <template v-if="scope.row.Connected && scope.row.hook_counter">
+            <template v-if="scope.row.hook_counter">
                 <AccessBoolean value="ForwardOther,ForwardSelf">
                     <template #default="{values}">
-                        <template v-if="values.ForwardOther || (values.ForwardSelf && scope.row.isSelf)">
+                        <div class="skeleton-animation" :style="`animation-delay:${scope.row.animationDelay}ms`" v-if="values.ForwardOther || (values.ForwardSelf && scope.row.isSelf)">
                             <div class="nowrap">
                                 <ConnectionShow :row="scope.row" transactionId="forward"></ConnectionShow>
                                 <a href="javascript:;" :class="{green:scope.row.hook_counter.forward>0}" @click="handleEdit(scope.row.MachineId,scope.row.MachineName,values)">
@@ -16,11 +16,11 @@
                                     <span :class="{gateway:scope.row.hook_counter.sforward>0 }">{{$t('home.forwardServer')}}({{scope.row.hook_counter.sforward>99 ? '99+' :scope.row.hook_counter.sforward}})</span>
                                 </a>
                             </div>
-                        </template>
+                        </div>
                     </template>
                 </AccessBoolean>
             </template>
-            <template v-else>
+            <template v-else-if="!scope.row.hook_counter_load">
                 <el-skeleton animated >
                     <template #template>
                         <p><el-skeleton-item variant="text" style="width: 50%;" /></p>
