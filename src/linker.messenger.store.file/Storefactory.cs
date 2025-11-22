@@ -26,8 +26,7 @@ namespace linker.messenger.store.file
             bsonMapper.RegisterType<IPAddress[]>(serialize: (a) => a.ToJson(), deserialize: (a) => a.AsString.DeJson<IPAddress[]>());
             bsonMapper.RegisterType<ITunnelConnection>(serialize: (a) => string.Empty, deserialize: (a) => null);
             bsonMapper.RegisterType<IConnection>(serialize: (a) => string.Empty, deserialize: (a) => null);
-
-
+            
             try
             {
                 if (FileConfig.ForceInMemory)

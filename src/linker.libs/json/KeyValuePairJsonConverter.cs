@@ -28,4 +28,5 @@ namespace linker.libs.json
             writer.WriteEndObject();
         }
     }
+
 }

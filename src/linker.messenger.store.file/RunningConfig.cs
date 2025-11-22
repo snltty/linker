@@ -1,6 +1,7 @@
 ﻿using linker.libs;
 using linker.libs.timer;
 using LiteDB;
+using System.Security.Cryptography;
 using System.Text.Json.Serialization;
 
 namespace linker.messenger.store.file
