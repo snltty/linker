@@ -10,6 +10,8 @@ export const provideTunnel = () => {
         list: null,
         hashcode: 0,
 
+        operatings:null,
+
         timer1: 0,
         p2pOperatings:{},
         hashcode1: 0,
@@ -43,7 +45,7 @@ export const provideTunnel = () => {
         const json = {};
         for(let key in operatings){
             let arr = key.split('@');
-            if(!json[arr[0]]) json[arr[0]] = {};
+            json[arr[0]] = json[arr[0]] ||{};
             json[arr[0]][arr[1]] = operatings[key];
         } 
         return json;
@@ -83,7 +85,22 @@ export const provideTunnel = () => {
     const tunnelDataFn = () => { 
         return new Promise((resolve, reject) => { 
             Promise.all([_getTunnelInfo(), getTunnelOperating(), getRelayOperating()]).then((res) => {
-                resolve(res.filter(c=>c == true).length > 0);
+
+                const result = res.filter(c=>c == true).length > 0;
+                if(result){
+                    const p2p = tunnel.value.p2pOperatings;
+                    const relay = tunnel.value.relayOperatings;
+                    if(p2p && relay){
+                        const keys = [...new Set(Object.keys(p2p).concat(Object.keys(relay)))];
+                        const json = {};
+                        for(let key of keys) {
+                            json[key] = json[key] || {};
+                            Object.assign(json[key],p2p[key]||{},relay[key]||{});
+                        }
+                        tunnel.value.operatings = json;
+                    }
+                }
+                resolve(result);
             }).catch(() => {
                 resolve(false);
             });
@@ -95,18 +112,12 @@ export const provideTunnel = () => {
 
     
     const tunnelProcessFn = (device,json) => { 
-        if(!tunnel.value.list || !tunnel.value.p2pOperatings || !tunnel.value.relayOperatings) return;
-        const p2p = tunnel.value.p2pOperatings[device.MachineId] || {};
-        const relay = tunnel.value.relayOperatings[device.MachineId]|| {};
-        const keys = [...new Set(Object.keys(p2p).concat(Object.keys(relay)))];
-        const _json = {};
-        for(let key of keys) {
-            _json[key] = p2p[key] || relay[key] || false;
-        }
+        if(!tunnel.value.list || !tunnel.value.operatings) return;
+        
         Object.assign(json,{
             hook_tunnel: tunnel.value.list[device.MachineId],
             hook_tunnel_load:true,
-            hook_operating: _json,
+            hook_operating: tunnel.value.operatings[device.MachineId],
             hook_operating_load: true,
         });
     }

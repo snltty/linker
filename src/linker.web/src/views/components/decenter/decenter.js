@@ -14,7 +14,15 @@ export const provideDecenter = () => {
             getCounterInfo(decenter.value.hashcode.toString()).then((res) => {
                 decenter.value.hashcode = res.HashCode;
                 if (res.List) {
-                    decenter.value.list = res.List;
+                    const json = {};
+                    for (const key in res.List) {
+                        const machines = res.List[key];
+                        for (const machineId in machines) {
+                            json[machineId] = json[machineId] || {};
+                            json[machineId][key] = machines[machineId];
+                        }
+                    }
+                    decenter.value.list = json;
                     resolve(true);
                     return;
                 }
@@ -27,12 +35,8 @@ export const provideDecenter = () => {
     }
     const counterProcessFn = (device,json) => {
         if(!decenter.value.list) return;
-        const _json = {};
-        for (const key in decenter.value.list) {
-            _json[key] = decenter.value.list[key][device.MachineId] || 0;
-        }
         Object.assign(json,{
-            hook_counter: _json,
+            hook_counter:decenter.value.list[device.MachineId],
             hook_counter_load:true
         });
     }

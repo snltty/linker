@@ -7,7 +7,7 @@
                 <el-descriptions-item label="协议">
                     <div>
                         <p>{{ state.connection.TransportName }}({{ state.protocolTypes[state.connection.ProtocolType] }}) - {{ state.types[state.connection.Type] }}</p>
-                        <!-- <p> - {{ state.connection.SendBufferRemainingText }} - {{ state.connection.RecvBufferRemainingText }}</p> -->
+                        <p>{{ state.connection.SendBufferRemainingText }} - {{ state.connection.RecvBufferRemainingText }}</p>
                     </div>
                 </el-descriptions-item>
                 <el-descriptions-item label="SSL">{{ state.connection.SSL }}</el-descriptions-item>
@@ -140,7 +140,7 @@ export default {
             transactions: { 'forward': '端口转发', 'tuntap': '虚拟网卡', 'socks5': '代理转发' },
             device: connections.value.device,
             transactionId: connections.value.transactionId,
-            connecting:computed(()=>connections.value.device.hook_operating[connections.value.transactionId]),
+            connecting:computed(()=>connections.value.device.hook_operating?connections.value.device.hook_operating[connections.value.transactionId]:false),
             connection:connection,
 
             showNodes: false,
