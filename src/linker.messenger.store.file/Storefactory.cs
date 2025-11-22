@@ -13,8 +13,6 @@ namespace linker.messenger.store.file
     public sealed class Storefactory
     {
         LiteDatabase database;
-
-        
         public Storefactory()
         {
             Init();
@@ -45,7 +43,7 @@ namespace linker.messenger.store.file
                     }
 
                     database = new LiteDatabase(new ConnectionString($"Filename={db};Password={Helper.GlobalString}"), bsonMapper);
-                    database.CheckpointSize = 10;
+                    database.CheckpointSize = 100;
                 }
             }
             catch (Exception ex)
