@@ -19,7 +19,7 @@ export default {
         const connection = computed(()=>props.row.hook_connection?props.row.hook_connection[props.transactionId] || {} : {});
         const state = reactive({
             transactionId:props.transactionId,
-            connecting:computed(()=>props.row.hook_operating[props.transactionId]),
+            connecting:computed(()=>props.row.hook_operating?props.row.hook_operating[props.transactionId]:false),
             className:computed(()=>['p2p','relay','node'][connection.value.Type]),
             title:computed(()=>['打洞直连','中继连接','节点连接'][connection.value.Type]),
         });

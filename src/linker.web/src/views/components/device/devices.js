@@ -7,16 +7,20 @@ export const provideDevices = () => {
     //https://api.ipbase.com/v1/json/8.8.8.8
     const globalData = injectGlobalData();
     const machineId = computed(() => globalData.value.config.Client.Id);
+
+    const ps = +(localStorage.getItem('ps') || '10');
+    const count = +(localStorage.getItem('device-count') || '10');
     const devices = reactive({
         timer: 0,
         timer1: 0,
         page: {
             Request: {
-                Page: 1, Size: +(localStorage.getItem('ps') || '10'), Name: '', Ids: [], Prop: '', Asc: true
+                Page: 1, Size: ps, Name: '', Ids: [], Prop: '', Asc: true
             },
-            Count: 0,
-            List: []
+            Count: count,
+            List: Array(count).fill().map(c=>{ return {}})
         },
+        loadTimer:0,
 
         showDeviceEdit: false,
         showAccessEdit: false,
@@ -38,27 +42,28 @@ export const provideDevices = () => {
     const startHooks = () => { 
         const fn = async ()=>{
             clearTimeout(devices.timer1);
-            for(let name in hooks) {
-                const hook = hooks[name];
-                if(hook.refresh) {
-                    hook.refresh = false;
-                    hook.refreshFn(devices.page.List);
-                }
-            }
-            for(let name in hooks) {
-                const hook = hooks[name];
-                if(hook.changed) {
-                    hook.changed = false;
-                    for (let i = 0; i< devices.page.List.length; i++) {
-                        const json = {}
+
+            const refreshs = Object.values(hooks).filter(c=>c.refresh);
+            refreshs.forEach(hook=>{ 
+                hook.refresh = false;
+                hook.refreshFn(devices.page.List);
+            });
+
+            const chaneds = Object.values(hooks).filter(c=>c.changed);
+            chaneds.forEach(hook=>{ hook.changed=false });
+            if(chaneds.length > 0){
+                for (let i = 0; i< devices.page.List.length; i++) {
+                    const json = {}
+                    for(let j = 0; j < chaneds.length; j++) {
+                        const hook = chaneds[j];
                         hook.processFn(devices.page.List[i],json);
-                        Object.assign(devices.page.List[i], json);
                     }
+                    Object.assign(devices.page.List[i], json);
                 }
             }
             for(let name in hooks) {
                 const hook = hooks[name];
-                hook.changed = await hook.dataFn(devices.page.List);
+                hook.changed = hook.changed || await hook.dataFn(devices.page.List);
             }
             devices.timer1 = setTimeout(fn,1000);
         }
@@ -92,6 +97,8 @@ export const provideDevices = () => {
                 for(let name in hooks) {
                     hooks[name].changed = true;
                 }
+
+                localStorage.setItem('device-count',devices.page.Count);
                 resolve()
             }).catch((err) => { resolve() });
         });
@@ -126,14 +133,16 @@ export const provideDevices = () => {
         if (page) {
             devices.page.Request.Page = page;
         }
-        _getSignList();
+        clearTimeout(devices.loadTimer);
+        devices.loadTimer = setTimeout(_getSignList,300);
     }
     const handlePageSizeChange = (size) => {
         if (size) {
             devices.page.Request.Size = size;
             localStorage.setItem('ps', size);
         }
-        _getSignList();
+        clearTimeout(devices.loadTimer);
+        devices.loadTimer = setTimeout(_getSignList,300);
     }
     const deviceClearTimeout = () => {
         clearTimeout(devices.timer);

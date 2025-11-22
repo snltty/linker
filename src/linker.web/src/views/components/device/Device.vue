@@ -14,12 +14,23 @@
             <p class="flex">
                 <template v-if="scope.row.Connected">
                     <SystemInfo :item="scope.row"></SystemInfo>
-                    <span class="flex-1"></span>
                     <WlistShow type="Relay" :item="scope.row"></WlistShow>
                     <UpdaterBtn :config="true" :item="scope.row"></UpdaterBtn>
                 </template>
-                <template v-else>
+                <template v-else-if="scope.row.LastSignIn">
                     <span>{{ scope.row.LastSignIn }}</span>
+                </template>
+                <template v-else>
+                    <el-skeleton animated >
+                        <template #template>
+                            <div class="flex">
+                                <el-skeleton-item variant="text" class="el-skeleton-item" />
+                                <el-skeleton-item variant="text" class="el-skeleton-item" />
+                                <span class="flex-1"></span>
+                                <el-skeleton-item variant="text" class="el-skeleton-item" />
+                            </div>
+                        </template>
+                    </el-skeleton>
                 </template>
             </p>
         </div>
@@ -57,5 +68,8 @@ export default {
 .el-input{
     width:12rem;
     margin-right:.6rem
+}
+.el-skeleton-item{
+    vertical-align: middle;width: 20%;
 }
 </style>

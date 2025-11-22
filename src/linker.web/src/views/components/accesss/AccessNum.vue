@@ -11,7 +11,7 @@ export default {
     setup (props) {
         
         const globalData = injectGlobalData();
-        const accessHasLength = computed(()=>props.item.hook_accesss.split('').filter(c=>c==='1').length);
+        const accessHasLength = computed(()=>(props.item.hook_accesss || '').split('').filter(c=>c==='1').length);
         const accessLength = computed(()=>{
             return Object.keys(globalData.value.config.Client.Accesss).length;
         });

@@ -1,7 +1,18 @@
 <template>
-    <div class="adv-wrap" v-if="state.html">
-        <div class="inner" v-html="state.html"></div>
-    </div>
+    <template v-if="state.loading">
+        <div class="adv-wrap">
+            <el-skeleton animated >
+                <template #template>
+                    <el-skeleton-item/>
+                </template>
+            </el-skeleton>
+        </div>
+    </template>
+    <template v-else>
+        <div class="adv-wrap" v-if="state.html">
+            <div class="inner" v-html="state.html"></div>
+        </div>
+    </template>
 </template>
 
 <script>
@@ -11,17 +22,20 @@ export default {
     setup () {
 
         const state = reactive({
-            html:''      
+            html:'',
+            loading:true   
         });
 
         onMounted(()=>{
-            fetch('https://linker.snltty.com/adv.html').then(res=>res.text()).then(res=>{
+            fetch(`https://linker.snltty.com/adv.html?t=${Date.now()}`).then(res=>res.text()).then(res=>{
                 state.html = res;
+                state.loading = false;
                 nextTick(()=>{
                     window.dispatchEvent(new Event('resize'));
                 });
             }).catch((err)=>{
                 console.log(err);
+                state.loading = false;
             });
         });
 

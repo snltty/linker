@@ -1,9 +1,20 @@
 <template>
-    <AccessShow value="Transport">
+    <template v-if="item.hook_counter">
+        <AccessShow value="Transport">
+            <el-col :span="12">
+                <a href="javascript:;" :class="{green:transportCounter>0}" @click="handleTransport"><img src="transport.svg" alt="transport"> ({{ transportCounter }})</a>
+            </el-col>
+        </AccessShow>
+    </template>
+    <template v-else>
         <el-col :span="12">
-            <a href="javascript:;" :class="{green:transportCounter>0}" @click="handleTransport"><img src="transport.svg" alt="transport"> ({{ transportCounter }})</a>
+            <el-skeleton animated >
+                <template #template>
+                    <el-skeleton-item variant="text" style="vertical-align: middle;width: 50%;"/>
+                </template>
+            </el-skeleton>
         </el-col>
-    </AccessShow>
+    </template>
 </template>
 
 <script>
@@ -14,7 +25,7 @@ export default {
     props: ['item'],
     setup (props) {
         
-        const transportCounter = computed(()=>(props.item.hook_counter || {transport:0}).transport || 0);
+        const transportCounter = computed(()=>props.item.hook_counter.transport || 0);
         const transport = useTransport();
          const handleTransport = (ow)=>{
             transport.value.device.id = props.item.MachineId;

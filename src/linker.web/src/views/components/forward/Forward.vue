@@ -20,6 +20,14 @@
                     </template>
                 </AccessBoolean>
             </template>
+            <template v-else>
+                <el-skeleton animated >
+                    <template #template>
+                        <p><el-skeleton-item variant="text" style="width: 50%;" /></p>
+                        <p><el-skeleton-item variant="text" style="width: 50%" /></p>
+                    </template>
+                </el-skeleton>
+            </template>
         </template>
     </el-table-column>
 </template>

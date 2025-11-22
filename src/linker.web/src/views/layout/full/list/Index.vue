@@ -184,7 +184,6 @@ export default {
         const handlePageRefresh = (name)=>{
             devices.page.Request.Name = name || '';
             if(devices.page.Request.Name){
-                //从虚拟网卡里查找
                 devices.page.Request.Ids = getTuntapMachines(devices.page.Request.Name)
                 .concat(getSocks5Machines(devices.page.Request.Name))
                 .reduce((arr,id)=>{
@@ -197,7 +196,6 @@ export default {
                 devices.page.Request.Ids = [];
             }
             handlePageChange();
-            ElMessage.success({message:'刷新成功',grouping:true});  
         }
 
         onMounted(() => {

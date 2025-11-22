@@ -126,7 +126,5 @@ namespace linker.messenger.relay.client.transport
         public bool SSL { get; set; } = true;
 
         public RelayClientType RelayType { get; set; } = RelayClientType.Linker;
-
-        public bool UseCdkey { get; set; } = true;
     }
 }

@@ -38,7 +38,18 @@
                             </a>
                         </div>
                     </template>
+                    <template v-else>
+                        <el-skeleton animated >
+                            <template #template>
+                                <el-skeleton-item variant="text" class="el-skeleton-item" />
+                                <el-skeleton-item variant="text" class="el-skeleton-item" />
+                                <el-skeleton-item variant="text" class="el-skeleton-item-last"/>
+                                <el-skeleton-item variant="text" class="el-skeleton-item2" />
+                            </template>
+                        </el-skeleton>
+                    </template>
                 </template>
+
             </el-table-column>
         </template>
     </AccessBoolean>
@@ -122,6 +133,10 @@ export default {
 .el-switch.is-disabled{opacity :1;}
 
 .green{font-weight:bold;}
+
+.el-skeleton-item{width: 30%;margin-right:3%}
+.el-skeleton-item-last{width: 30%;}
+.el-skeleton-item2{width: 70%}
 
 
 img.system,span.nat{

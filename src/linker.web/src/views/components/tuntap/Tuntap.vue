@@ -4,8 +4,19 @@
            <a href="javascript:;" class="a-line" @click="handleShowLease">{{$t('home.tuntap')}}</a>
         </template>
         <template #default="scope">
-            <div v-if="scope.row.hook_tuntap">
-                <TuntapShow :config="true" :item="scope.row"></TuntapShow>
+            <div>
+                <template v-if="scope.row.hook_tuntap">
+                    <TuntapShow :config="true" :item="scope.row"></TuntapShow>
+                </template>
+                <template v-else>
+                    <el-skeleton animated >
+                        <template #template>
+                            <el-skeleton-item variant="text" style="width: 60%;" />
+                            <el-skeleton-item variant="text" style="width: 20%;margin-left:20%" />
+                            <el-skeleton-item variant="text" style="width: 70%" />
+                        </template>
+                    </el-skeleton>
+                </template>
             </div> 
         </template>
     </el-table-column>

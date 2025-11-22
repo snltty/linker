@@ -1,13 +1,24 @@
 <template>
-    <AccessBoolean value="FirewallSelf,FirewallOther">
-        <template #default="{values}">
-            <template v-if="(values.FirewallSelf && item.isSelf) || (values.FirewallOther && !item.isSelf)">
-                <el-col :span="12">
-                    <a href="javascript:;" :class="{green:firewallCounter>0}" @click="handleFirewall"><img src="firewall.svg" alt="firewall"> ({{firewallCounter}})</a>
-                </el-col>
+    <template v-if="item.hook_counter">
+        <AccessBoolean value="FirewallSelf,FirewallOther">
+            <template #default="{values}">
+                <template v-if="(values.FirewallSelf && item.isSelf) || (values.FirewallOther && !item.isSelf)">
+                    <el-col :span="12">
+                        <a href="javascript:;" :class="{green:firewallCounter>0}" @click="handleFirewall"><img src="firewall.svg" alt="firewall"> ({{firewallCounter}})</a>
+                    </el-col>
+                </template>
             </template>
-        </template>
-    </AccessBoolean>
+        </AccessBoolean>
+    </template>
+    <template v-else>
+        <el-col :span="12">
+            <el-skeleton animated >
+                <template #template>
+                    <el-skeleton-item variant="text" style="vertical-align: middle;width: 50%;"/>
+                </template>
+            </el-skeleton>
+        </el-col>
+    </template>
 </template>
 
 <script>
@@ -17,7 +28,7 @@ import { useFirewall } from './firewall';
 export default {
     props: ['item'],
     setup (props) {
-        const firewallCounter = computed(()=>(props.item.hook_counter || {firewall:0}).firewall || 0);
+        const firewallCounter = computed(()=>props.item.hook_counter.firewall || 0);
         const firewall = useFirewall();
 
         const handleFirewall = ()=>{
