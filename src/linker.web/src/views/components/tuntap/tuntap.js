@@ -27,7 +27,6 @@ export const provideTuntap = () => {
 
                 subscribePing();
                 tuntap.value.hashcode = res.HashCode;
-                console.log(res);
                 if (res.List) {
                     for (let j in res.List) {
                         const systemStr = res.List[j].SystemInfo.toLowerCase();

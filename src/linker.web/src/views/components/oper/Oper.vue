@@ -1,7 +1,7 @@
 <template>
     <AccessBoolean value="Access">
         <template #default="{values}">
-            <el-table-column :label="$t('home.oper')"  fixed="right">
+            <el-table-column :label="$t('home.oper')"  fixed="right" min-width="110">
                 <template #default="scope">
                     <div>
                         <div class="numbers">

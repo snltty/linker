@@ -5,7 +5,7 @@
         <el-table-column prop="tunnel" :label="$t('home.tunnel')" width="86" sortable="custom"></el-table-column>
         <el-table-column prop="tuntap" :label="$t('home.tuntapIP')" width="160" sortable="custom"></el-table-column>
         <el-table-column prop="socks5" :label="$t('home.proxy')" width="160" sortable="custom"></el-table-column>
-        <el-table-column label="..." fixed="right">
+        <el-table-column label="..." fixed="right"  min-width="110">
             <template #header>
             </template>
         </el-table-column>
