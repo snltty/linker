@@ -265,6 +265,7 @@ namespace linker.messenger.tuntap.lease
 
     public sealed partial class LeaseInfo
     {
+        public LeaseInfo() { }
         /// <summary>
         /// 网络号
         /// </summary>

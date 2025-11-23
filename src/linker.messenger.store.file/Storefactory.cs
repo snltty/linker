@@ -1,7 +1,9 @@
 ﻿using linker.libs;
 using linker.libs.extends;
+using linker.messenger.tuntap.lease;
 using linker.tunnel.connection;
 using LiteDB;
+using System.Collections.Concurrent;
 using System.Net;
 
 namespace linker.messenger.store.file
@@ -20,13 +22,14 @@ namespace linker.messenger.store.file
 
         private void Init()
         {
-            BsonMapper bsonMapper = new BsonMapper();
+            BsonMapper bsonMapper = BsonMapper.Global;
             bsonMapper.RegisterType<IPEndPoint>(serialize: (a) => a.ToString(), deserialize: (a) => IPEndPoint.Parse(a.AsString));
             bsonMapper.RegisterType<IPAddress>(serialize: (a) => a.ToString(), deserialize: (a) => IPAddress.Parse(a.AsString));
             bsonMapper.RegisterType<IPAddress[]>(serialize: (a) => a.ToJson(), deserialize: (a) => a.AsString.DeJson<IPAddress[]>());
             bsonMapper.RegisterType<ITunnelConnection>(serialize: (a) => string.Empty, deserialize: (a) => null);
             bsonMapper.RegisterType<IConnection>(serialize: (a) => string.Empty, deserialize: (a) => null);
-            
+            //bsonMapper.RegisterType<ConcurrentDictionary<string, LeaseInfo>>(serialize: (a) => a.ToJson(), deserialize: (a) => a.AsString.DeJson<ConcurrentDictionary<string, LeaseInfo>>());
+
             try
             {
                 if (FileConfig.ForceInMemory)
@@ -40,7 +43,7 @@ namespace linker.messenger.store.file
                     {
                         Directory.CreateDirectory(Path.GetDirectoryName(db));
                     }
-
+                    
                     database = new LiteDatabase(new ConnectionString($"Filename={db};Password={Helper.GlobalString}"), bsonMapper);
                     database.CheckpointSize = 100;
                 }

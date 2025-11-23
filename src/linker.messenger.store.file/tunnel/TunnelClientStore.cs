@@ -24,7 +24,8 @@ namespace linker.messenger.store.file.tunnel
 
             if (config.Data.Client.Tunnel.Transports != null && config.Data.Client.Tunnel.Transports.Count > 0)
             {
-                runningConfig.Data.Tunnel.Transports.AddOrUpdate(Helper.GlobalString, config.Data.Client.Tunnel.Transports, (a, b) => config.Data.Client.Tunnel.Transports);
+                runningConfig.Data.Tunnel.Transports[Helper.GlobalString] = config.Data.Client.Tunnel.Transports;
+                //.AddOrUpdate(Helper.GlobalString, config.Data.Client.Tunnel.Transports, (a, b) => config.Data.Client.Tunnel.Transports);
                 runningConfig.Data.Update();
 
                 config.Data.Client.Tunnel.Transports = [];
@@ -35,7 +36,8 @@ namespace linker.messenger.store.file.tunnel
         {
             if (string.IsNullOrWhiteSpace(machineId)) return false;
 
-            runningConfig.Data.Tunnel.Transports.AddOrUpdate(machineId, list, (a, b) => list);
+            runningConfig.Data.Tunnel.Transports[machineId] = list;
+            //   .AddOrUpdate(machineId, list, (a, b) => list);
             runningConfig.Data.Update();
 
             OnChanged();
@@ -54,7 +56,8 @@ namespace linker.messenger.store.file.tunnel
             Rebuild(transportItems, list);
             ForceUpdate(transportItems, list);
 
-            runningConfig.Data.Tunnel.Transports.AddOrUpdate(machineId, transportItems, (a, b) => transportItems);
+            runningConfig.Data.Tunnel.Transports[machineId] = transportItems;
+            //.AddOrUpdate(machineId, transportItems, (a, b) => transportItems);
             runningConfig.Data.Update();
 
             OnChanged();
@@ -68,9 +71,10 @@ namespace linker.messenger.store.file.tunnel
             {
                 if (runningConfig.Data.Tunnel.Transports.TryGetValue(Helper.GlobalString, out List<TunnelTransportItemInfo> defaults))
                 {
-                    if(Rebuild(list, defaults))
+                    if (Rebuild(list, defaults))
                     {
-                        runningConfig.Data.Tunnel.Transports.AddOrUpdate(machineId, list, (a, b) => list);
+                        runningConfig.Data.Tunnel.Transports[machineId] = list;
+                        //.AddOrUpdate(machineId, list, (a, b) => list);
                         runningConfig.Data.Update();
                     }
                 }
@@ -125,7 +129,7 @@ namespace linker.messenger.store.file.tunnel
                 Order = c.Order
             }).ToList());
         }
-        private bool Rebuild(List<TunnelTransportItemInfo> currents,List<TunnelTransportItemInfo> news)
+        private bool Rebuild(List<TunnelTransportItemInfo> currents, List<TunnelTransportItemInfo> news)
         {
             //有新的协议
             var newTransportNames = news.Select(c => c.Name).Except(currents.Select(c => c.Name));

@@ -2,6 +2,7 @@
 using linker.tunnel.transport;
 using LiteDB;
 using System.Collections.Concurrent;
+using System.Text.Json.Serialization;
 namespace linker.messenger.store.file
 {
     public sealed partial class RunningConfigInfo
@@ -15,7 +16,6 @@ namespace linker.messenger.store.file
     public sealed class TunnelRunningInfo
     {
         public TunnelRunningInfo() { }
-        public ObjectId Id { get; set; }
         /// <summary>
         /// 附加的网关层级
         /// </summary>
@@ -25,8 +25,7 @@ namespace linker.messenger.store.file
         public int PortMapLan { get; set; }
 
         public TunnelPublicNetworkInfo Network { get; set; } = new TunnelPublicNetworkInfo();
-
-        public ConcurrentDictionary<string, List<TunnelTransportItemInfo>> Transports { get; set; } = new ConcurrentDictionary<string, List<TunnelTransportItemInfo>>();
+        public Dictionary<string, List<TunnelTransportItemInfo>> Transports { get; set; } = new Dictionary<string, List<TunnelTransportItemInfo>>();
     }
 
     public partial class ConfigClientInfo

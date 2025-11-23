@@ -1,7 +1,8 @@
-﻿using linker.messenger.signin;
-using linker.messenger.tuntap;
+﻿using linker.messenger.tuntap;
 using linker.messenger.tuntap.lease;
+using LiteDB;
 using System.Collections.Concurrent;
+using System.Text.Json.Serialization;
 
 namespace linker.messenger.store.file
 {
@@ -11,7 +12,7 @@ namespace linker.messenger.store.file
         /// 虚拟网卡配置
         /// </summary>
         public TuntapConfigInfo Tuntap { get; set; } = new TuntapConfigInfo();
-        public ConcurrentDictionary<string, LeaseInfo> Leases { get; set; } = new ConcurrentDictionary<string, LeaseInfo>();
+        public Dictionary<string, LeaseInfo> Leases { get; set; } = new Dictionary<string, LeaseInfo>();
     }
 
     public partial class ConfigServerInfo

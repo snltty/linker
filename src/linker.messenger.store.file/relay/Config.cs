@@ -14,7 +14,7 @@ namespace linker.messenger.store.file
 
     public sealed class RelayInfo
     {
-        public string DefaultNodeId { get; set; }
+        public string DefaultNodeId { get; set; } = string.Empty;
         public TunnelProtocolType DefaultProtocol { get; set; } = TunnelProtocolType.None;
     }
 

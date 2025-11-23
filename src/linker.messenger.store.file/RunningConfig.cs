@@ -1,7 +1,7 @@
 ﻿using linker.libs;
+using linker.libs.extends;
 using linker.libs.timer;
 using LiteDB;
-using System.Security.Cryptography;
 using System.Text.Json.Serialization;
 
 namespace linker.messenger.store.file
@@ -70,6 +70,7 @@ namespace linker.messenger.store.file
             try
             {
                 RunningConfigInfo old = liteCollection.FindAll().FirstOrDefault();
+                
                 if (old == null)
                 {
                     liteCollection.Insert(Data);
@@ -89,6 +90,7 @@ namespace linker.messenger.store.file
                     };
                     liteCollection.Update(old.Id, old);
                 }
+                
             }
             catch (Exception ex)
             {
@@ -105,8 +107,6 @@ namespace linker.messenger.store.file
 
     public sealed partial class RunningConfigInfo
     {
-        public RunningConfigInfo() { }
-
         public ObjectId Id { get; set; }
 
         [JsonIgnore, BsonIgnore]

@@ -155,7 +155,8 @@ namespace linker.messenger.tuntap
         private void SetGroupIP()
         {
             TuntapGroup2IPInfo tuntapGroup2IPInfo = new TuntapGroup2IPInfo { IP = Info.IP, PrefixLength = Info.PrefixLength };
-            Info.Group2IP.AddOrUpdate(signInClientStore.Group.Id, tuntapGroup2IPInfo, (a, b) => tuntapGroup2IPInfo);
+            Info.Group2IP[signInClientStore.Group.Id] = tuntapGroup2IPInfo;
+            //  .AddOrUpdate(signInClientStore.Group.Id, tuntapGroup2IPInfo, (a, b) => tuntapGroup2IPInfo);
         }
 
     }

@@ -512,12 +512,10 @@ h3.title {
 }
 
 @keyframes skeleton {
-    0%{opacity: 0;  transform:scale(0)}
-    100%{opacity: 1;  transform:scale(1)}
+    0%{opacity: 0;  transform: scale(0);}
+    100%{opacity: 1;  transform:scale(1) ; }
 }
 .skeleton-animation{
-    opacity: 0;
     transform-origin: center center;
-    transform:scale(0);
-    animation:skeleton 0.3s cubic-bezier(0, 1.19, 0, 0.97)  forwards;
+    animation:skeleton 1s cubic-bezier(0, 1.03, 0, 0.99);
 }

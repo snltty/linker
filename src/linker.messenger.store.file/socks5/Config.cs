@@ -1,5 +1,7 @@
 ﻿
 using linker.messenger.socks5;
+using LiteDB;
+using System.Text.Json.Serialization;
 
 namespace linker.messenger.store.file
 {

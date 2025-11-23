@@ -97,7 +97,8 @@ namespace linker.messenger.tuntap
                         tuntapClientStore.Info.PrefixLength = prefixLength.GetByte();
 
                         TuntapGroup2IPInfo tuntapGroup2IPInfo = new TuntapGroup2IPInfo { IP = tuntapClientStore.Info.IP, PrefixLength= tuntapClientStore.Info.PrefixLength };
-                        tuntapClientStore.Info.Group2IP.AddOrUpdate(signInClientStore.Group.Id, tuntapGroup2IPInfo,(a,b)=> tuntapGroup2IPInfo);
+                        tuntapClientStore.Info.Group2IP[signInClientStore.Group.Id] = tuntapGroup2IPInfo;
+                           // .AddOrUpdate(signInClientStore.Group.Id, tuntapGroup2IPInfo,(a,b)=> tuntapGroup2IPInfo);
                     }
                     if (tuntap.TryGetProperty("Lans", out JsonElement lans))
                     {

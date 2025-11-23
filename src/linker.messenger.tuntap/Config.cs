@@ -20,7 +20,7 @@ namespace linker.messenger.tuntap
         /// </summary>
         public List<TuntapLanInfo> Lans { get; set; } = new List<TuntapLanInfo>();
 
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         public Guid Guid { get; set; } = Guid.Parse("771EF382-8718-5BC5-EBF0-A28B86142278");
 
@@ -39,7 +39,7 @@ namespace linker.messenger.tuntap
         /// </summary>
         public List<TuntapForwardInfo> Forwards { get; set; } = new List<TuntapForwardInfo>();
 
-        public ConcurrentDictionary<string, TuntapGroup2IPInfo> Group2IP { get; set; } = new ConcurrentDictionary<string, TuntapGroup2IPInfo>();
+        public Dictionary<string, TuntapGroup2IPInfo> Group2IP { get; set; } = new Dictionary<string, TuntapGroup2IPInfo>();
 
         public bool DisableNat => (Switch & TuntapSwitch.DisableNat) == TuntapSwitch.DisableNat;
         public bool TcpMerge => (Switch & TuntapSwitch.TcpMerge) == TuntapSwitch.TcpMerge;
@@ -125,6 +125,7 @@ namespace linker.messenger.tuntap
         /// <summary>
         /// 端口转发列表
         /// </summary>
+        
         public List<TuntapForwardInfo> Forwards { get; set; } = new List<TuntapForwardInfo>();
         /// <summary>
         /// 开关，多个bool集合
@@ -392,6 +393,7 @@ namespace linker.messenger.tuntap
 
     public sealed partial class TuntapLanInfo
     {
+        public TuntapLanInfo() { }
         public IPAddress IP { get; set; } = IPAddress.Any;
         public byte PrefixLength { get; set; } = 24;
         public bool Disabled { get; set; }
