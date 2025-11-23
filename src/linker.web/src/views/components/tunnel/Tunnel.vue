@@ -41,14 +41,16 @@
                         </div>
                     </template>
                     <template v-else-if="!scope.row.hook_tunnel_load">
-                        <el-skeleton animated >
-                            <template #template>
-                                <el-skeleton-item variant="text" class="el-skeleton-item" />
-                                <el-skeleton-item variant="text" class="el-skeleton-item" />
-                                <el-skeleton-item variant="text" class="el-skeleton-item-last"/>
-                                <el-skeleton-item variant="text" class="el-skeleton-item2" />
-                            </template>
-                        </el-skeleton>
+                        <div class="skeleton-animation">
+                            <el-skeleton animated >
+                                <template #template>
+                                    <el-skeleton-item variant="text" class="el-skeleton-item" />
+                                    <el-skeleton-item variant="text" class="el-skeleton-item" />
+                                    <el-skeleton-item variant="text" class="el-skeleton-item-last"/>
+                                    <el-skeleton-item variant="text" class="el-skeleton-item2" />
+                                </template>
+                            </el-skeleton>
+                        </div>
                     </template>
                 </template>
 
@@ -150,5 +152,5 @@ img.system,span.nat{
 }
 html.dark img.system,html.dark span.nat{border-color:#575c61;}
 
-span.nat{display:inline-block;padding:0 .2rem;margin-right:0;font-family: fantasy;}
+span.nat{display:inline-block;padding:0 .2rem;margin-right:0;font-family: cursive;}
 </style>

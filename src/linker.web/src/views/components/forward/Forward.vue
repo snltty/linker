@@ -21,12 +21,14 @@
                 </AccessBoolean>
             </template>
             <template v-else-if="!scope.row.hook_counter_load">
-                <el-skeleton animated >
-                    <template #template>
-                        <p><el-skeleton-item variant="text" style="width: 50%;" /></p>
-                        <p><el-skeleton-item variant="text" style="width: 50%" /></p>
-                    </template>
-                </el-skeleton>
+                <div class="skeleton-animation">
+                    <el-skeleton animated >
+                        <template #template>
+                            <p><el-skeleton-item variant="text" style="width: 50%;" /></p>
+                            <p><el-skeleton-item variant="text" style="width: 50%" /></p>
+                        </template>
+                    </el-skeleton>
+                </div>
             </template>
         </template>
     </el-table-column>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Page Not Found</title>
+    <script src="js/tailwindcss.js"></script>
+    <link href="css/font-awesome.min.css" rel="stylesheet">
+    
+    <!-- 配置Tailwind自定义颜色 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#008000',
+                        secondary: '#006600',
+                    }
+                }
+            }
+        }
+    </script>  
+    <style>
+        body {
+            background-color: #f9fafb;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        
+        .text-shadow {
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .transition-custom {
+            transition: all 0.3s ease;
+        }
+        .number-styling {
+            position: relative;
+            display: inline-block;
+        }
+        .number-styling::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0.3em;
+            background-color: rgba(0, 128, 0, 0.1);
+            z-index: -1;
+            transform: skew(-12deg) rotate(-1deg);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+    <!-- Logo图片 -->
+    <div class="transition-all duration-300 hover:scale-105">
+        <img src="img/logo.png" alt="Logo" class="w-32 h-auto mx-auto">
+    </div>
+    
+    <!-- 404标题 - 使用系统字体并添加特殊样式 -->
+    <div class="text-center mb-1">
+        <h1 class="text-[clamp(5rem,15vw,10rem)] leading-[1] font-extrabold text-primary number-styling">404</h1>
+        <p class="text-[clamp(1.2rem,3vw,1.5rem)] text-gray-600 mt-4">Page Not Found</p>
+    </div>
+    
+    <!-- 错误信息 -->
+    <p class="text-gray-500 text-center max-w-md mb-10">
+        <span id="msg">最大的可能是当前访问的域名没有被配置端口转发，请前往客户端检查是否已正确配置。</span>
+    </p>
+    
+    <!-- 链接列表 -->
+    <div class="flex flex-col sm:flex-row gap-6 justify-center items-center">
+        <a target="_blank" href="https://github.com/snltty/linker" class="flex items-center gap-2 px-5 py-3 bg-white text-gray-700 border border-gray-300 rounded-lg transition-custom hover:bg-gray-50">
+            <i class="fa fa-github text-primary text-xl"></i>
+            <span>GitHub</span>
+        </a>
+        
+        <a target="_blank" href="https://linker.snltty.com" class="flex items-center gap-2 px-5 py-3 bg-white text-gray-700 border border-gray-300 rounded-lg transition-custom hover:bg-gray-50">
+            <i class="fa fa-link text-primary"></i>
+            <span>Linker</span>
+        </a>
+        
+        <a target="_blank" href="https://blog.snltty.com" class="flex items-center gap-2 px-5 py-3 bg-white text-gray-700 border border-gray-300 rounded-lg transition-custom hover:bg-gray-50">
+            <i class="fa fa-book text-primary"></i>
+            <span>Blog</span>
+        </a>
+    </div>
+    
+    <!-- 装饰元素 -->
+    <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-[-1]">
+        <div class="absolute -top-20 -left-20 w-64 h-64 bg-primary/5 rounded-full"></div>
+        <div class="absolute -bottom-32 -right-32 w-96 h-96 bg-primary/5 rounded-full"></div>
+    </div>
+</body>
+<script>
+var _hmt = _hmt || [];
+(()=>{
+  const hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?17db275762360c458a92d8720d9e41a2";
+  const s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+
+(()=>{
+    document.addEventListener('DOMContentLoaded', ()=>{
+        const msg = document.getElementById('msg');
+        const params = decodeURIComponent(window.location.search.substring(1)).split('&').reduce((prev, curr)=> {
+            const kv = curr.split('=');
+            prev[kv[0]] = kv[1];
+            return prev;
+        }, {});
+        if(params['msg'])
+        {
+            msg.textContent = params['msg'];
+        }
+    });
+})();
+
+
+</script>
+</html>

@@ -7,33 +7,31 @@
         </div>
     </template>
     <template #default="scope">
-        <div>
-            <p>
-                <DeviceName :config="true" :item="scope.row"></DeviceName>
-            </p>
-            <p class="flex">
-                <template v-if="scope.row.Connected">
-                    <SystemInfo :item="scope.row"></SystemInfo>
-                    <WlistShow type="Relay" :item="scope.row"></WlistShow>
-                    <UpdaterBtn :config="true" :item="scope.row"></UpdaterBtn>
-                </template>
-                <template v-else-if="scope.row.LastSignIn">
-                    <span>{{ scope.row.LastSignIn }} - {{ scope.row.Version }}</span>
-                </template>
-                <template v-else>
-                    <el-skeleton animated >
-                        <template #template>
-                            <div class="flex">
-                                <el-skeleton-item variant="text" class="el-skeleton-item" />
-                                <el-skeleton-item variant="text" class="el-skeleton-item" />
-                                <span class="flex-1"></span>
-                                <el-skeleton-item variant="text" class="el-skeleton-item" />
-                            </div>
-                        </template>
-                    </el-skeleton>
-                </template>
-            </p>
-        </div>
+        <p>
+            <DeviceName :config="true" :item="scope.row"></DeviceName>
+        </p>
+        <p class="flex">
+            <template v-if="scope.row.Connected">
+                <SystemInfo :item="scope.row"></SystemInfo>
+                <WlistShow type="Relay" :item="scope.row"></WlistShow>
+                <UpdaterBtn :config="true" :item="scope.row"></UpdaterBtn>
+            </template>
+            <template v-else-if="scope.row.LastSignIn">
+                <span>{{ scope.row.LastSignIn }} - {{ scope.row.Version }}</span>
+            </template>
+            <template v-else>
+                <el-skeleton animated >
+                    <template #template>
+                        <div class="flex">
+                            <el-skeleton-item variant="text" class="el-skeleton-item" />
+                            <el-skeleton-item variant="text" class="el-skeleton-item" />
+                            <span class="flex-1"></span>
+                            <el-skeleton-item variant="text" class="el-skeleton-item" />
+                        </div>
+                    </template>
+                </el-skeleton>
+            </template>
+        </p>
     </template>
 </el-table-column>
 </template>

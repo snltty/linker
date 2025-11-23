@@ -199,6 +199,7 @@ export default {
         }
 
         onMounted(() => {
+            window.dispatchEvent(new Event('resize'));
             handlePageChange();
             
             deviceStartProcess();

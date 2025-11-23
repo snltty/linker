@@ -19,7 +19,7 @@
 <script>
 import {useRoute,useRouter} from 'vue-router'
 import {injectGlobalData} from '@/provide'
-import { computed, onMounted, reactive } from 'vue';
+import { computed, nextTick, onMounted, reactive } from 'vue';
 import { initWebsocket, subWebsocketState,closeWebsocket } from '@/apis/request'
 import { getSignInfo } from '@/apis/signin'
 import { getConfig } from '@/apis/config'
@@ -77,11 +77,14 @@ export default {
                         globalData.value.config.Server = res.List.Server;
                     if(res.List.Running)
                         globalData.value.config.Running = res.List.Running;
+                    
                     globalData.value.config.configed = true;
                     state.hashcode = res.HashCode;
                     state.hashcode1 = res.HashCode1;
 
                     document.title = `${globalData.value.config.Client.Name} - linker.web`;
+
+                    if(res.List.Running)window.dispatchEvent(new Event('resize'));
 
                     resolve();
                 }).catch((err)=>{
@@ -115,8 +118,8 @@ export default {
 
         onMounted(() => {
             setTimeout(() => { state.showPort = true; }, 500);
-            subWebsocketState((state) => { 
-                if (state)task();
+            subWebsocketState((connected) => { 
+                if (connected)task();
             });
             router.isReady().then(()=>{
                 state.api = route.query.api ? `${window.location.hostname}:${route.query.api}`  : state.api;

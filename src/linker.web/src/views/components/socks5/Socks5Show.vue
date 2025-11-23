@@ -1,59 +1,57 @@
 <template>
     <AccessBoolean value="Socks5ChangeSelf,Socks5ChangeOther,Socks5StatusSelf,Socks5StatusOther">
         <template #default="{values}">
-            <div class="skeleton-animation" :style="`animation-delay:${item.animationDelay}ms`">
-                <div class="flex">
-                    <div class="flex-1">
-                        <ConnectionShow :row="item" transactionId="socks5"></ConnectionShow>
-                        <a href="javascript:;" class="a-line" @click="handleSocks5Port(item.hook_socks5,values)" title="此设备的socks5代理">
-                            <template v-if="item.hook_socks5.SetupError">
-                                <strong class="red" :title="item.hook_socks5.SetupError">
-                                    socks5://*:{{ item.hook_socks5.Port }}
-                                </strong>
+            <div class="flex">
+                <div class="flex-1">
+                    <ConnectionShow :row="item" transactionId="socks5"></ConnectionShow>
+                    <a href="javascript:;" class="a-line" @click="handleSocks5Port(item.hook_socks5,values)" title="此设备的socks5代理">
+                        <template v-if="item.hook_socks5.SetupError">
+                            <strong class="red" :title="item.hook_socks5.SetupError">
+                                socks5://*:{{ item.hook_socks5.Port }}
+                            </strong>
+                        </template>
+                        <template v-else>
+                            <template v-if="item.Connected &&item.hook_socks5.running">
+                                <strong class="green gateway">socks5://*:{{ item.hook_socks5.Port }}</strong>
                             </template>
                             <template v-else>
-                                <template v-if="item.Connected &&item.hook_socks5.running">
-                                    <strong class="green gateway">socks5://*:{{ item.hook_socks5.Port }}</strong>
-                                </template>
-                                <template v-else>
-                                    <span>socks5://*:{{ item.hook_socks5.Port }}</span>
-                                </template>
-                            </template>
-                        </a>
-                    </div>
-                    <template v-if="item.hook_socks5.loading">
-                        <div>
-                            <el-icon size="14" class="loading"><Loading /></el-icon>
-                        </div>
-                    </template>
-                    <template v-else>
-                        <el-switch :model-value="item.Connected && item.hook_socks5.running" :loading="item.hook_socks5.loading" disabled @click="handleSocks5(item.hook_socks5,values)"  size="small" inline-prompt active-text="😀" inactive-text="😣" > 
-                        </el-switch>
-                    </template>
-                </div>
-                <div>
-                    <div>
-                        <template v-for="(item1,index) in  item.hook_socks5.Lans" :key="index">
-                            <template v-if="item1.Disabled">
-                                <div class="flex disable" title="已禁用">
-                                    <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
-                                    <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
-                                </div>
-                            </template>
-                            <template v-else-if="item1.Exists">
-                                <div class="flex yellow" title="与其它设备填写IP、或本机局域网IP有冲突">
-                                    <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
-                                    <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
-                                </div>
-                            </template>
-                            <template v-else>
-                                <div class="flex green" title="正常使用" :class="{green:item.Connected && item.hook_socks5.running}">
-                                    <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
-                                    <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
-                                </div>
+                                <span>socks5://*:{{ item.hook_socks5.Port }}</span>
                             </template>
                         </template>
+                    </a>
+                </div>
+                <template v-if="item.hook_socks5.loading">
+                    <div>
+                        <el-icon size="14" class="loading"><Loading /></el-icon>
                     </div>
+                </template>
+                <template v-else>
+                    <el-switch :model-value="item.Connected && item.hook_socks5.running" :loading="item.hook_socks5.loading" disabled @click="handleSocks5(item.hook_socks5,values)"  size="small" inline-prompt active-text="😀" inactive-text="😣" > 
+                    </el-switch>
+                </template>
+            </div>
+            <div>
+                <div>
+                    <template v-for="(item1,index) in  item.hook_socks5.Lans" :key="index">
+                        <template v-if="item1.Disabled">
+                            <div class="flex disable" title="已禁用">
+                                <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
+                                <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
+                            </div>
+                        </template>
+                        <template v-else-if="item1.Exists">
+                            <div class="flex yellow" title="与其它设备填写IP、或本机局域网IP有冲突">
+                                <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
+                                <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
+                            </div>
+                        </template>
+                        <template v-else>
+                            <div class="flex green" title="正常使用" :class="{green:item.Connected && item.hook_socks5.running}">
+                                <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
+                                <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
+                            </div>
+                        </template>
+                    </template>
                 </div>
             </div>
         </template>

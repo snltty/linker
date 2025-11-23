@@ -2,12 +2,10 @@
     <template v-if="item.MachineName">
         <AccessBoolean value="RenameSelf,RenameOther">
             <template #default="{values}">
-                <div>
-                    <a href="javascript:;" @click="handleEdit(values)" :title="item.IP" class="a-line">
-                        <strong class="gateway" :class="{green:item.Connected}">{{item.MachineName || 'null' }}</strong>
-                    </a>
-                    <strong class="self gateway" v-if="item.isSelf">(<el-icon size="16"><StarFilled /></el-icon>)</strong>
-                </div>
+                <a href="javascript:;" @click="handleEdit(values)" :title="item.IP" class="a-line">
+                    <strong class="gateway" :class="{green:item.Connected}">{{item.MachineName || 'null' }}</strong>
+                </a>
+                <strong class="self gateway" v-if="item.isSelf">(<el-icon size="16"><StarFilled /></el-icon>)</strong>
             </template>
         </AccessBoolean>
     </template>
@@ -68,6 +66,9 @@ export default {
 .self{
     color:#d400ff;
     .el-icon{vertical-align: text-bottom;}
+}
+strong{
+    font-weight:bold;
 }
 
 </style>

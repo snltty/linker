@@ -40,6 +40,15 @@ export const provideDevices = () => {
         }
     }
     const startHooks = () => { 
+
+        const dataFn = (hook)=>{
+            return new Promise((resolve, reject) => { 
+                hook.dataFn(devices.page.List).then(changed=>{
+                    hook.changed = hook.changed ||changed;
+                    resolve();
+                });
+            });
+        }
         const fn = async ()=>{
             clearTimeout(devices.timer1);
 
@@ -61,10 +70,7 @@ export const provideDevices = () => {
                     Object.assign(devices.page.List[i], json);
                 }
             }
-            for(let name in hooks) {
-                const hook = hooks[name];
-                hook.changed = hook.changed || await hook.dataFn(devices.page.List);
-            }
+            await Promise.all(Object.values(hooks).map(hook=>dataFn(hook)));
             devices.timer1 = setTimeout(fn,1000);
         }
         fn();
@@ -88,7 +94,7 @@ export const provideDevices = () => {
                         showAccess: machineId.value != res.List[j].MachineId && res.List[j].Connected,
                         showReboot: res.List[j].Connected,
                         isSelf: machineId.value == res.List[j].MachineId,
-                        animationDelay: Math.ceil(Math.random() * 500)
+                        animationDelay: j*50
                     });
                     if (res.List[j].isSelf) {
                         globalData.value.self = res.List[j];

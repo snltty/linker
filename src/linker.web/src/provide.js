@@ -40,8 +40,11 @@ export const provideGlobalData = () => {
     });
 
     window.addEventListener('resize', ()=>{
-        globalData.value.height = document.getElementById('main-body').offsetHeight;
-        globalData.value.width = window.innerWidth;
+        const body = document.getElementById('main-body');
+        if(body){
+            globalData.value.height = document.getElementById('main-body').offsetHeight;
+            globalData.value.width = window.innerWidth;
+        }
     });
 
     provide(globalDataSymbol, globalData);

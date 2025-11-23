@@ -1,20 +1,40 @@
 <template>
     <div class="app-wrap flex flex-column flex-nowrap" id="app-wrap">
-        <div class="head">
-            <Head></Head>
-        </div>
-        <div class="adv">
-            <Adv></Adv>
-        </div>
-        <div class="body flex-1 relative" id="main-body">
-            <div class="home absolute">
-                <router-view></router-view>
+        <template v-if="configed">
+            <div class="head">
+                <Head></Head>
             </div>
-        </div>
-        <div class="status">
-            <Status :config="true"></Status>
-            <Install></Install>
-        </div>
+            <div class="adv">
+                <Adv></Adv>
+            </div>
+            <div class="body flex-1 relative" id="main-body">
+                <div class="home absolute">
+                    <AccessBoolean value="NetManager,FullManager">
+                        <template #default="{values}">
+                            <template v-if="$route.path.indexOf('/full/')== 0 && values.FullManager == false">
+                                <NoPermission></NoPermission>
+                            </template>
+                            <template v-else><router-view /></template>
+                        </template>
+                    </AccessBoolean>
+                </div>
+            </div>
+            <div class="status">
+                <Status :config="true"></Status>
+                <Install></Install>
+            </div>
+        </template>
+        <template v-else>
+            <el-skeleton animated class="h-100">
+                <template #template>
+                    <div class="h-100 flex flex-column flex-nowrap">
+                        <div style="padding:0 0 1rem 0rem;"><el-skeleton-item style="height:5rem;"/></div>
+                        <div id="main-body" style="padding:0 1rem 0rem 1rem;" class="flex-1"><el-skeleton-item style="height: 100%;" /></div>
+                        <div style="padding: 1rem 0 0 0;font-size:0"><el-skeleton-item style="height: 3rem;"/></div>
+                    </div>
+                </template>
+            </el-skeleton>
+        </template>
     </div>
 </template>
 
@@ -22,16 +42,18 @@
 import Head from './head/Index.vue'
 import Status from '../../components/status/Index.vue'
 import Install from './install/Index.vue'
-import { nextTick, onMounted} from 'vue';
+import { computed} from 'vue';
 import Adv from '../../components/adv/Index.vue'
+import { injectGlobalData } from '@/provide';
+import NoPermission from '../../NoPermission.vue';
 export default {
     name: 'Index',
-    components: {Head, Status, Install,Adv},
+    components: {Head, Status, Install,Adv,NoPermission},
     setup() {
-        onMounted(() => {
-            nextTick(() => {window.dispatchEvent(new Event('resize'));});
-        });
-        return { };
+
+        const globalData = injectGlobalData();
+        const configed = computed(()=>globalData.value.config.configed);
+        return {configed };
     }
 }
 </script>

@@ -3,14 +3,14 @@
         <div class="adv-wrap">
             <el-skeleton animated >
                 <template #template>
-                    <el-skeleton-item/>
+                    <el-skeleton-item style="opacity: 0.5; height: 3rem;"/>
                 </template>
             </el-skeleton>
         </div>
     </template>
     <template v-else>
         <div class="adv-wrap" v-if="state.html">
-            <div class="inner skeleton-animation" v-html="state.html"></div>
+            <div class="inner" v-html="state.html"></div>
         </div>
     </template>
 </template>
@@ -23,10 +23,12 @@ export default {
 
         const state = reactive({
             html:'',
-            loading:true   
+            loading:true,
+            timer:0   
         });
 
-        onMounted(()=>{
+        const advFn = ()=>{ 
+            clearTimeout(state.timer);
             fetch(`https://linker.snltty.com/adv.html?t=${Date.now()}`).then(res=>res.text()).then(res=>{
                 state.html = res;
                 state.loading = false;
@@ -35,8 +37,12 @@ export default {
                 });
             }).catch((err)=>{
                 console.log(err);
-                state.loading = false;
+                setTimeout(advFn,1000);
             });
+        }
+
+        onMounted(()=>{
+            advFn();
         });
 
         return {

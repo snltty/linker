@@ -1,90 +1,88 @@
 <template>
     <AccessBoolean value="TuntapChangeSelf,TuntapChangeOther,TuntapStatusSelf,TuntapStatusOther">
         <template #default="{values}">
-            <div class="skeleton-animation skeleton-animation-cell" :style="`animation-delay:${item.animationDelay}ms`"> 
-                <div class="flex">
-                    <div class="flex-1">
-                        <ConnectionShow :row="item" transactionId="tuntap"></ConnectionShow>         
-                        <a href="javascript:;" class="a-line" @click="handleTuntapIP(item.hook_tuntap,values)" title="虚拟网卡IP">
-                            <template v-if="item.Connected">
-                                <template v-if="item.hook_tuntap.SetupError">
-                                    <strong class="red" :title="`setup ${item.hook_tuntap.SetupError}`">{{ item.hook_tuntap.IP }}</strong>
-                                </template>
-                                <template v-else-if="item.hook_tuntap.Exists">
-                                    <strong class="red" title="IP存在冲突，请使用新IP">{{ item.hook_tuntap.IP }}</strong>
-                                </template>
-                                <template v-else-if="item.hook_tuntap.Available == false">
-                                    <strong class="disable" title="IP不生效，可能是设备不在线">{{ item.hook_tuntap.IP }}</strong>
-                                </template>
-                                <template v-else-if="item.hook_tuntap.NatError">
-                                    <strong class="yellow" :title="`nat ${item.hook_tuntap.NatError}`">{{ item.hook_tuntap.IP }}</strong>
-                                </template>
-                                <template v-else-if="item.hook_tuntap.AppNat && item.hook_tuntap.running">
-                                    <strong class="app-nat" :title="`虚拟网卡IP\r\n应用层DNAT`">{{ item.hook_tuntap.IP }}</strong>
-                                </template>
-                                <template v-else-if="item.hook_tuntap.running">
-                                    <strong class="green gateway" :title="`虚拟网卡IP\r\n系统NAT`">{{ item.hook_tuntap.IP }}</strong>
-                                </template>
-                                <template v-else>
-                                    <strong>{{ item.hook_tuntap.IP }}</strong>
-                                </template>
+            <div class="flex">
+                <div class="flex-1">
+                    <ConnectionShow :row="item" transactionId="tuntap"></ConnectionShow>         
+                    <a href="javascript:;" class="a-line" @click="handleTuntapIP(item.hook_tuntap,values)" title="虚拟网卡IP">
+                        <template v-if="item.Connected">
+                            <template v-if="item.hook_tuntap.SetupError">
+                                <strong class="red" :title="`setup ${item.hook_tuntap.SetupError}`">{{ item.hook_tuntap.IP }}</strong>
                             </template>
-                            <template v-else>
+                            <template v-else-if="item.hook_tuntap.Exists">
+                                <strong class="red" title="IP存在冲突，请使用新IP">{{ item.hook_tuntap.IP }}</strong>
+                            </template>
+                            <template v-else-if="item.hook_tuntap.Available == false">
                                 <strong class="disable" title="IP不生效，可能是设备不在线">{{ item.hook_tuntap.IP }}</strong>
                             </template>
-                        </a>
-                    </div>
-                    <template v-if="item.hook_tuntap.loading">
-                        <div>
-                            <el-icon size="14" class="loading"><Loading /></el-icon>
-                        </div>
-                    </template>
-                    <template v-else>
-                        <el-switch :model-value="item.Connected && item.hook_tuntap.running" :loading="item.hook_tuntap.loading" disabled @click="handleTuntap(item.hook_tuntap,values)"  size="small" inline-prompt active-text="😀" inactive-text="😣" > 
-                        </el-switch>
-                    </template>
-                </div>
-                <div>
-                    <div>
-                        <template v-for="(item1,index) in  item.hook_tuntap.Lans" :key="index">
-                            <template v-if="item.hook_tuntap.Available == false">
-                                <div class="flex disable" title="IP不生效，可能是设备不在线">
-                                    <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
-                                    <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
-                                </div>
+                            <template v-else-if="item.hook_tuntap.NatError">
+                                <strong class="yellow" :title="`nat ${item.hook_tuntap.NatError}`">{{ item.hook_tuntap.IP }}</strong>
                             </template>
-                            <template v-else-if="item1.Disabled">
-                                <div class="flex disable" title="已禁用">
-                                    <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
-                                    <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
-                                </div>
+                            <template v-else-if="item.hook_tuntap.AppNat && item.hook_tuntap.running">
+                                <strong class="app-nat" :title="`虚拟网卡IP\r\n应用层DNAT`">{{ item.hook_tuntap.IP }}</strong>
                             </template>
-                            <template v-else-if="item1.Exists">
-                                <div class="flex yellow" title="与其它设备填写IP、或本机局域网IP有冲突、或与本机外网IP一致">
-                                    <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
-                                    <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
-                                </div>
+                            <template v-else-if="item.hook_tuntap.running">
+                                <strong class="green gateway" :title="`虚拟网卡IP\r\n系统NAT`">{{ item.hook_tuntap.IP }}</strong>
                             </template>
                             <template v-else>
-                                <div class="flex green" title="正常使用">
-                                    <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
-                                    <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
-                                </div>
+                                <strong>{{ item.hook_tuntap.IP }}</strong>
                             </template>
                         </template>
-                    </div>
-                    <template v-if="item.hook_tuntap.Any">
-                        <div class="any green"><el-icon><Share /></el-icon></div>
-                    </template>
-                    <template v-if="showDelay">
-                        <template v-if="item.hook_tuntap.Delay>=0 && item.hook_tuntap.Delay<=100">
-                            <div class="delay green">{{ item.hook_tuntap.Delay }}ms</div>
+                        <template v-else>
+                            <strong class="disable" title="IP不生效，可能是设备不在线">{{ item.hook_tuntap.IP }}</strong>
                         </template>
-                        <template>
-                            <div class="delay yellow">{{ item.hook_tuntap.Delay }}ms</div>
+                    </a>
+                </div>
+                <template v-if="item.hook_tuntap.loading">
+                    <div>
+                        <el-icon size="14" class="loading"><Loading /></el-icon>
+                    </div>
+                </template>
+                <template v-else>
+                    <el-switch :model-value="item.Connected && item.hook_tuntap.running" :loading="item.hook_tuntap.loading" disabled @click="handleTuntap(item.hook_tuntap,values)"  size="small" inline-prompt active-text="😀" inactive-text="😣" > 
+                    </el-switch>
+                </template>
+            </div>
+            <div>
+                <div>
+                    <template v-for="(item1,index) in  item.hook_tuntap.Lans" :key="index">
+                        <template v-if="item.hook_tuntap.Available == false">
+                            <div class="flex disable" title="IP不生效，可能是设备不在线">
+                                <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
+                                <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
+                            </div>
+                        </template>
+                        <template v-else-if="item1.Disabled">
+                            <div class="flex disable" title="已禁用">
+                                <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
+                                <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
+                            </div>
+                        </template>
+                        <template v-else-if="item1.Exists">
+                            <div class="flex yellow" title="与其它设备填写IP、或本机局域网IP有冲突、或与本机外网IP一致">
+                                <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
+                                <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
+                            </div>
+                        </template>
+                        <template v-else>
+                            <div class="flex green" title="正常使用">
+                                <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
+                                <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
+                            </div>
                         </template>
                     </template>
                 </div>
+                <template v-if="item.hook_tuntap.Any">
+                    <div class="any green"><el-icon><Share /></el-icon></div>
+                </template>
+                <template v-if="showDelay">
+                    <template v-if="item.hook_tuntap.Delay>=0 && item.hook_tuntap.Delay<=100">
+                        <div class="delay green">{{ item.hook_tuntap.Delay }}ms</div>
+                    </template>
+                    <template>
+                        <div class="delay yellow">{{ item.hook_tuntap.Delay }}ms</div>
+                    </template>
+                </template>
             </div>
         </template>
     </AccessBoolean>
