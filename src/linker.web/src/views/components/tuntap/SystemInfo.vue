@@ -1,5 +1,5 @@
 <template>
-    <div class="flex-1">
+    <div class="flex-1 relative">
         <template v-if="item.hook_tuntap && item.hook_tuntap.systems">
             <div class="skeleton-animation" :style="`animation-delay:${item.animationDelay}ms`">
                 <span :title="item.hook_tuntap.SystemInfo" v-for="system in item.hook_tuntap.systems">
