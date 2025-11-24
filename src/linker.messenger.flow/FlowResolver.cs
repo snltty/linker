@@ -67,10 +67,9 @@ namespace linker.messenger.flow
                 if (memory.Length > 8)
                 {
                     var nets = serializer.Deserialize<List<FlowReportNetInfo>>(memory.Slice(8).Span);
-                    onlineFlowInfo.Nets = nets.Where(c => c.Lon > 0 && c.Lat > 0 && c.City.IndexOf('-') < 0).ToList();
-                    onlineFlowInfo.Systems = nets.Where(c => c.Lon == 0 && c.Lat == 0 && c.City.IndexOf('-') > 0).ToList();
+                    onlineFlowInfo.Nets = nets.Where(c => c.Lon > 0 && c.Lat > 0 && (string.IsNullOrWhiteSpace(c.City) || c.City.IndexOf('-') < 0)).ToList();
+                    onlineFlowInfo.Systems = nets.Where(c => c.Lon == 0 && c.Lat == 0 && string.IsNullOrWhiteSpace(c.City) == false && c.City.IndexOf('-') > 0).ToList();
                 }
-
                 Version.Increment();
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)

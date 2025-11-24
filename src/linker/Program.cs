@@ -66,7 +66,7 @@ namespace linker
             LinkerMessengerEntry.Setup(ExcludeModule.None, json);
 
             LoggerHelper.Instance.Warning($"current version : {VersionHelper.Version}");
-            LoggerHelper.Instance.Warning($"linker env is docker : {Environment.GetEnvironmentVariable("SNLTTY_LINKER_IS_DOCKER")}");
+            LoggerHelper.Instance.Warning($"linker env docker : {Environment.GetEnvironmentVariable("SNLTTY_LINKER_IS_DOCKER")}");
             LoggerHelper.Instance.Warning($"linker env os : {System.Runtime.InteropServices.RuntimeInformation.OSDescription}");
             LoggerHelper.Instance.Debug($"linker are running....");
 
