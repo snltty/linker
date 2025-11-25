@@ -1,7 +1,6 @@
 ﻿using linker.libs;
 using linker.messenger.channel;
 using linker.messenger.pcp;
-using linker.messenger.relay.client;
 using linker.messenger.signin;
 using linker.messenger.tuntap.cidr;
 using linker.nat;
@@ -31,11 +30,11 @@ namespace linker.messenger.tuntap
         private readonly TuntapDecenter tuntapDecenter;
 
         public TuntapProxy(ISignInClientStore signInClientStore,
-            TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer,
+            TunnelTransfer tunnelTransfer, PcpTransfer pcpTransfer,
             SignInClientTransfer signInClientTransfer, TuntapConfigTransfer tuntapConfigTransfer,
             TuntapCidrConnectionManager tuntapCidrConnectionManager, TuntapCidrDecenterManager tuntapCidrDecenterManager, 
             TuntapCidrMapfileManager tuntapCidrMapfileManager, TuntapDecenter tuntapDecenter, ChannelConnectionCaching channelConnectionCaching)
-            : base(tunnelTransfer, relayTransfer, pcpTransfer, signInClientTransfer, signInClientStore, channelConnectionCaching)
+            : base(tunnelTransfer, pcpTransfer, signInClientTransfer, signInClientStore, channelConnectionCaching)
         {
             this.tuntapConfigTransfer = tuntapConfigTransfer;
             this.tuntapCidrConnectionManager = tuntapCidrConnectionManager;

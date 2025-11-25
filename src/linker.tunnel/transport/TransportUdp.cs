@@ -25,7 +25,7 @@ namespace linker.tunnel.transport
     /// </summary>
     public sealed class TransportUdp : ITunnelTransport
     {
-        public string Name => "udp";
+        public string Name => "Udp";
 
         public string Label => "UDP、非常纯";
 

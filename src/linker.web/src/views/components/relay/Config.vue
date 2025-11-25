@@ -1,30 +1,19 @@
 <template>
     <el-form-item :label="$t('server.relay')">
-        <div>
-            <div class="flex">
-                <div class="mgr-1">
-                    <el-checkbox class="mgr-1" v-model="state.list.Disabled" :label="$t('server.relayDisable')" @change="handleSave" />
-                    <el-checkbox v-model="state.list.SSL" :label="$t('server.relaySSL')" @change="handleSave" />
-                </div>
-                <Sync class="mgl-1" name="RelaySecretKey"></Sync>
-            </div>
-            <div class="flex">
-                <a href="javascript:;" @click="state.showModes=true" class="mgr-1 delay a-line" :class="{red:state.nodes.length==0,green:state.nodes.length>0}">
-                    {{$t('server.relayNodes')}} : {{state.nodes.length}}
-                </a>
-                <WhiteList type="Relay"></WhiteList>
-                <Nodes v-if="state.showModes" v-model="state.showModes" :data="state.nodes"></Nodes>
-                <Status type="Relay"></Status>
-            </div>
+        <div class="flex">
+            <a href="javascript:;" @click="state.showModes=true" class="mgr-1 delay a-line" :class="{red:state.nodes.length==0,green:state.nodes.length>0}">
+                {{$t('server.relayNodes')}} : {{state.nodes.length}}
+            </a>
+            <WhiteList type="Relay"></WhiteList>
+            <Nodes v-if="state.showModes" v-model="state.showModes" :data="state.nodes"></Nodes>
+            <Status type="Relay"></Status>
         </div>
     </el-form-item>
 </template>
 <script>
-import {  setRelayServers, setRelaySubscribe } from '@/apis/relay';
+import {  setRelaySubscribe } from '@/apis/relay';
 import { injectGlobalData } from '@/provide';
-import { ElMessage } from 'element-plus';
 import { onMounted, onUnmounted, provide, reactive, ref } from 'vue'
-import { useI18n } from 'vue-i18n';
 import Sync from '../sync/Index.vue'
 import Nodes from './Nodes.vue';
 import WhiteList from '../wlist/Index.vue';
@@ -33,22 +22,12 @@ import Status from '../wlist/Status.vue';
 export default {
     components:{Sync,Nodes,WhiteList,Status},
     setup(props) {
-        const {t} = useI18n();
         const globalData = injectGlobalData();
         const state = reactive({
-            list:globalData.value.config.Client.Relay.Server,
             showModes:false,
             nodes:[],
             timer:0
         });
-        const handleSave = ()=>{
-            setRelayServers(state.list).then(()=>{
-                ElMessage.success(t('common.oper'));
-            }).catch((err)=>{
-                console.log(err);
-                ElMessage.error(t('common.operFail'));
-            });
-        }
 
         const nodes = ref([]);
         provide('nodes',nodes);
@@ -70,7 +49,7 @@ export default {
             clearTimeout(state.timer);
         });
 
-        return {globalData,state,handleSave}
+        return {globalData,state}
     }
 }
 </script>

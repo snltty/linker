@@ -42,7 +42,6 @@
                                     </div>
                                     <div>
                                         <el-row>
-                                            <el-col :xs="12" :sm="8"><el-checkbox v-model="state.relay" :label="$t('status.exportRelay')" /></el-col>
                                             <el-col :xs="12" :sm="8"><el-checkbox v-model="state.updater" :label="$t('status.exportUpdater')" /></el-col>
                                             <el-col :xs="12" :sm="8"><el-checkbox v-model="state.group" :label="$t('status.exportGroup')" /></el-col>
                                             <el-col :xs="12" :sm="8"><el-checkbox v-model="state.server" :label="$t('status.exportServer')" /></el-col>
@@ -112,7 +111,6 @@ export default {
             apipassword:onlyNode.value? globalData.value.config.Client.CApi.ApiPassword :'',
             webport: globalData.value.config.Client.CApi.WebPort,
 
-            relay:true,
             updater:true,
             server:true,
             super:false,
@@ -140,7 +138,6 @@ export default {
                 name:state.name,
                 apipassword:state.apipassword,
                 webport:+state.webport,
-                relay:state.relay,
                 updater:state.updater,
                 server:state.server,
                 super:state.super,

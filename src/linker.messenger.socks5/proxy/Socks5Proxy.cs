@@ -3,7 +3,6 @@ using linker.tunnel.connection;
 using linker.libs;
 using System.Net;
 using System.Net.Sockets;
-using linker.messenger.relay.client;
 using linker.messenger.channel;
 using linker.messenger.signin;
 using linker.messenger.pcp;
@@ -21,9 +20,9 @@ namespace linker.messenger.socks5
 
         private readonly Socks5CidrDecenterManager socks5CidrDecenterManager;
 
-        public Socks5Proxy(ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer,
+        public Socks5Proxy(ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer, PcpTransfer pcpTransfer,
             SignInClientTransfer signInClientTransfer,  Socks5CidrDecenterManager socks5CidrDecenterManager, ChannelConnectionCaching channelConnectionCaching)
-             : base(tunnelTransfer, relayTransfer, pcpTransfer, signInClientTransfer, signInClientStore, channelConnectionCaching)
+             : base(tunnelTransfer, pcpTransfer, signInClientTransfer, signInClientStore, channelConnectionCaching)
         {
             this.socks5CidrDecenterManager = socks5CidrDecenterManager;
             TaskUdp();

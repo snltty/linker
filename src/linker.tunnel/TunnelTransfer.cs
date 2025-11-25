@@ -58,6 +58,21 @@ namespace linker.tunnel
                 LoggerHelper.Instance.Info($"load tunnel transport:{string.Join(",", transports.Select(c => c.GetType().Name))}");
         }
 
+        public void AddTransport(ITunnelTransport transport)
+        {
+            if (transports.Any(c => c.Name == transport.Name) == false)
+            {
+                transport.OnConnected = OnConnected;
+                transports.Add(transport);
+                _ = RebuildTransports();
+            }
+        }
+        public void AddProtocol(ITunnelWanPortProtocol protocol)
+        {
+            tunnelWanPortTransfer.AddProtocol(protocol);
+        }
+
+
         /// <summary>
         /// 刷新一下网络信息，比如路由级别，本机IP等
         /// </summary>
@@ -423,6 +438,8 @@ namespace linker.tunnel
 
         private void ParseRemoteEndPoint(TunnelTransportInfo tunnelTransportInfo)
         {
+            if (tunnelTransportInfo.Local == null || tunnelTransportInfo.Remote == null) return;
+
             //要连接哪些IP
             List<IPEndPoint> eps = new List<IPEndPoint>();
             var excludeips = tunnelMessengerAdapter.GetExcludeIps();

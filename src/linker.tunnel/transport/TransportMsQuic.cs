@@ -21,7 +21,7 @@ namespace linker.tunnel.transport
     /// </summary>
     public sealed class TransportMsQuic : ITunnelTransport
     {
-        public string Name => "msquic";
+        public string Name => "MsQuic";
 
         public string Label => "MsQuic，win10+、linux";
 

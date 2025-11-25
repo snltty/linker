@@ -4,7 +4,6 @@ using linker.libs;
 using linker.messenger.signin;
 using linker.messenger.api;
 using System.Text;
-using linker.messenger.relay.client.transport;
 using System.Text.Json;
 using System.Collections;
 using linker.libs.web;
@@ -263,9 +262,6 @@ namespace linker.messenger.store.file
             client.AccessBits = accessStore.AssignAccess(configExportInfo.Access);
             client.FullAccess = configExportInfo.FullAccess && config.Data.Client.FullAccess;
 
-            if (configExportInfo.Relay) client.Relay = new RelayClientInfo { Servers = [client.Relay.Servers[0]] };
-            else client.Relay = new RelayClientInfo { Servers = [new RelayServerInfo { }] };
-
             if (configExportInfo.Server)
             {
                 client.Server.Host = config.Data.Client.Server.Host;
@@ -304,7 +300,6 @@ namespace linker.messenger.store.file
                 Groups = new SignInClientGroupInfo[] { client.Group },
                 Servers = new SignInClientServerInfo[] { client.Server },
                 client.Updater,
-                Relay = new { Servers = new RelayServerInfo[] { client.Relay.Server } },
                 client.Tunnel,
             }, common, new { Install = true, Modes = new string[] { "client" } });
         }

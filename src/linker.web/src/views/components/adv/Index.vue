@@ -53,6 +53,9 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
+html.dark .adv-wrap .inner{
+    border-color:#333;
+}
 .adv-wrap{
     padding:1rem 1rem 0 1rem;
 

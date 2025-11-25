@@ -20,6 +20,14 @@ namespace linker.tunnel.wanport
         {
         }
 
+        public void AddProtocol(ITunnelWanPortProtocol protocol)
+        {
+            if (!tunnelWanPorts.Any(c => c.ProtocolType == protocol.ProtocolType))
+            {
+                tunnelWanPorts.Add(protocol);
+            }
+        }
+
         /// <summary>
         /// 获取外网端口
         /// </summary>

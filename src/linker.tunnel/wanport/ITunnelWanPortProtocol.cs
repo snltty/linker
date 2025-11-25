@@ -35,5 +35,6 @@ namespace linker.tunnel.wanport
     {
         Tcp = 1,
         Udp = 2,
+        Other = 4,
     }
 }

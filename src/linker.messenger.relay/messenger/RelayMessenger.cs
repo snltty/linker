@@ -1,11 +1,9 @@
 ﻿
 using linker.messenger.relay.client.transport;
 using linker.libs;
-using linker.messenger.relay.client;
 using linker.messenger.relay.server;
 using linker.messenger.signin;
 using linker.messenger.relay.server.validator;
-using linker.libs.extends;
 
 namespace linker.messenger.relay.messenger
 {
@@ -14,25 +12,8 @@ namespace linker.messenger.relay.messenger
     /// </summary>
     public class RelayClientMessenger : IMessenger
     {
-        private readonly RelayClientTransfer relayTransfer;
-        private readonly ISerializer serializer;
-        public RelayClientMessenger(RelayClientTransfer relayTransfer, ISerializer serializer)
+        public RelayClientMessenger()
         {
-            this.relayTransfer = relayTransfer;
-            this.serializer = serializer;
-        }
-
-        /// <summary>
-        /// 收到中继请求
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <returns></returns>
-        [MessengerId((ushort)RelayMessengerIds.Relay)]
-        public async Task Relay(IConnection connection)
-        {
-            client.transport.RelayInfo info = serializer.Deserialize<client.transport.RelayInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            bool res = await relayTransfer.OnBeginAsync(info).ConfigureAwait(false);
-            connection.Write(res ? Helper.TrueArray : Helper.FalseArray);
         }
     }
 
@@ -128,7 +109,6 @@ namespace linker.messenger.relay.messenger
             }
             connection.Write(serializer.Serialize(result));
         }
-
         private async Task<List<RelayServerNodeReportInfo>> GetNodes(SignCacheInfo from)
         {
             return await relayServerTransfer.GetNodes(from.Super, from.UserId, from.MachineId);

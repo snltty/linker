@@ -3,7 +3,6 @@ using linker.libs.extends;
 using linker.libs.timer;
 using linker.messenger.channel;
 using linker.messenger.pcp;
-using linker.messenger.relay.client;
 using linker.messenger.signin;
 using linker.messenger.socks5;
 using linker.tunnel;
@@ -19,9 +18,9 @@ namespace linker.messenger.flow
         private readonly FlowSocks5 flowSocks5;
         private readonly FlowTunnel flowTunnel;
 
-        public FlowSocks5Proxy(FlowSocks5 flowSocks5, FlowTunnel flowTunnel, ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer,
+        public FlowSocks5Proxy(FlowSocks5 flowSocks5, FlowTunnel flowTunnel, ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer, PcpTransfer pcpTransfer,
             SignInClientTransfer signInClientTransfer, Socks5CidrDecenterManager socks5CidrDecenterManager, ChannelConnectionCaching channelConnectionCaching) 
-            : base(signInClientStore, tunnelTransfer, relayTransfer, pcpTransfer, signInClientTransfer, socks5CidrDecenterManager, channelConnectionCaching)
+            : base(signInClientStore, tunnelTransfer, pcpTransfer, signInClientTransfer, socks5CidrDecenterManager, channelConnectionCaching)
         {
             this.flowSocks5 = flowSocks5;
             this.flowTunnel = flowTunnel;

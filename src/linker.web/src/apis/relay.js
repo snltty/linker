@@ -6,14 +6,8 @@ export const getDefault = () => {
 export const syncDefault = (data) => {
     return sendWebsocketMsg('relay/SyncDefault', data);
 }
-export const setRelayServers = (servers) => {
-    return sendWebsocketMsg('relay/SetServers', servers);
-}
 export const setRelaySubscribe = () => {
     return sendWebsocketMsg('relay/Subscribe');
-}
-export const relayOperating = (data) => {
-    return sendWebsocketMsg('relay/Operating',data);
 }
 export const relayConnect = (data) => {
     return sendWebsocketMsg('relay/Connect', data);

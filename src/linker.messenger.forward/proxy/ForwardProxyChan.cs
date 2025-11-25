@@ -2,12 +2,10 @@
 using linker.tunnel.connection;
 using System.Collections.Concurrent;
 using System.Net;
-using linker.messenger.relay.client;
 using linker.messenger.signin;
 using linker.messenger.channel;
 using linker.messenger.pcp;
 using linker.libs;
-using System.Net.Sockets;
 
 namespace linker.messenger.forward.proxy
 {
@@ -22,9 +20,9 @@ namespace linker.messenger.forward.proxy
 
         protected override string TransactionId => "forward";
 
-        public ForwardProxy(ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer,
-            SignInClientTransfer signInClientTransfer, ChannelConnectionCaching  channelConnectionCaching)
-            : base(tunnelTransfer, relayTransfer, pcpTransfer, signInClientTransfer, signInClientStore, channelConnectionCaching)
+        public ForwardProxy(ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer, PcpTransfer pcpTransfer,
+            SignInClientTransfer signInClientTransfer, ChannelConnectionCaching channelConnectionCaching)
+            : base(tunnelTransfer, pcpTransfer, signInClientTransfer, signInClientStore, channelConnectionCaching)
         {
             TaskUdp();
         }
@@ -107,7 +105,7 @@ namespace linker.messenger.forward.proxy
             Add(token.Connection.RemoteMachineId, token.IPEndPoint, token.ReadPacket.Length, 0);
             return true;
         }
-        private async Task<bool> SendToConnection(ITunnelConnection connection,ForwardReadPacket packet,IPEndPoint ep)
+        private async Task<bool> SendToConnection(ITunnelConnection connection, ForwardReadPacket packet, IPEndPoint ep)
         {
             if (connection == null)
             {

@@ -1,16 +1,14 @@
 <template>
     <el-form-item :label="$t('server.sforward')">
-        <div>
-            <div class="flex">
-                <a href="javascript:;" @click="state.showModes = true" class="mgr-1 delay a-line" :class="{red:state.nodes.length==0,green:state.nodes.length>0}">
-                    {{$t('server.sforwardNodes')}} : {{state.nodes.length}}
-                </a>
-                <AccessShow value="WhiteList">
-                    <WhiteList type="SForward" prefix="sfp->"  v-if="state.super"></WhiteList>
-                </AccessShow>
-                <Nodes v-if="state.showModes" v-model="state.showModes" :data="state.nodes"></Nodes>
-                <!-- <Status type="SForward"></Status> -->
-            </div>
+        <div class="flex">
+            <a href="javascript:;" @click="state.showModes = true" class="mgr-1 delay a-line" :class="{red:state.nodes.length==0,green:state.nodes.length>0}">
+                {{$t('server.sforwardNodes')}} : {{state.nodes.length}}
+            </a>
+            <AccessShow value="WhiteList">
+                <WhiteList type="SForward" prefix="sfp->"  v-if="state.super"></WhiteList>
+            </AccessShow>
+            <Nodes v-if="state.showModes" v-model="state.showModes" :data="state.nodes"></Nodes>
+            <!-- <Status type="SForward"></Status> -->
         </div>
     </el-form-item>
 </template>

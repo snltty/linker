@@ -1,6 +1,4 @@
-﻿using linker.libs;
-using linker.messenger.relay.client.transport;
-using linker.messenger.relay.server;
+﻿using linker.messenger.relay.server;
 using linker.tunnel.connection;
 
 
@@ -16,22 +14,6 @@ namespace linker.messenger.store.file
     {
         public string DefaultNodeId { get; set; } = string.Empty;
         public TunnelProtocolType DefaultProtocol { get; set; } = TunnelProtocolType.None;
-    }
-
-    public sealed partial class ConfigClientInfo
-    {
-        public RelayClientInfo Relay { get; set; } = new RelayClientInfo();
-    }
-    public sealed class RelayClientInfo
-    {
-        /// <summary>
-        /// 中继服务器列表
-        /// </summary>
-        public RelayServerInfo[] Servers { get; set; } = new RelayServerInfo[] { new RelayServerInfo { } };
-
-        [SaveJsonIgnore]
-        public RelayServerInfo Server => Servers[0];
-
     }
 
     public partial class ConfigServerInfo
@@ -52,12 +34,4 @@ namespace linker.messenger.store.file
         public RelayServerMasterInfo Master { get; set; } = new RelayServerMasterInfo { };
     }
 
-    public sealed class CdkeyConfigInfo
-    {
-#if DEBUG
-        public string SecretKey { get; set; } = Helper.GlobalString;
-#else
-        public string SecretKey { get; set; }  = Guid.NewGuid().ToString().ToUpper();
-#endif
-    }
 }

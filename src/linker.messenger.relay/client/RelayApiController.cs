@@ -7,7 +7,6 @@ using linker.messenger.relay.messenger;
 using linker.messenger.relay.server;
 using linker.messenger.signin;
 using linker.messenger.sync;
-using linker.tunnel;
 using linker.tunnel.connection;
 using System.Collections.Concurrent;
 
@@ -19,7 +18,6 @@ namespace linker.messenger.relay.client
     public sealed class RelayApiController : IApiController
     {
         private readonly RelayClientTestTransfer relayTestTransfer;
-        private readonly RelayClientTransfer relayTransfer;
         private readonly IRelayClientStore relayClientStore;
         private readonly SignInClientState signInClientState;
         private readonly IMessengerSender messengerSender;
@@ -27,11 +25,10 @@ namespace linker.messenger.relay.client
         private readonly ISignInClientStore signInClientStore;
         private readonly SyncTreansfer syncTreansfer;
 
-        public RelayApiController(RelayClientTestTransfer relayTestTransfer, RelayClientTransfer relayTransfer, IRelayClientStore relayClientStore,
+        public RelayApiController(RelayClientTestTransfer relayTestTransfer, IRelayClientStore relayClientStore,
             SignInClientState signInClientState, IMessengerSender messengerSender, ISerializer serializer, ISignInClientStore signInClientStore, SyncTreansfer syncTreansfer)
         {
             this.relayTestTransfer = relayTestTransfer;
-            this.relayTransfer = relayTransfer;
             this.relayClientStore = relayClientStore;
             this.signInClientState = signInClientState;
             this.messengerSender = messengerSender;
@@ -40,13 +37,6 @@ namespace linker.messenger.relay.client
             this.syncTreansfer = syncTreansfer;
         }
 
-        [Access(AccessValue.Config)]
-        public bool SetServers(ApiControllerParamsInfo param)
-        {
-            RelayServerInfo info = param.Content.DeJson<RelayServerInfo>();
-            relayClientStore.SetServer(info);
-            return true;
-        }
         public List<RelayServerNodeReportInfo> Subscribe(ApiControllerParamsInfo param)
         {
             relayTestTransfer.Subscribe();
@@ -69,25 +59,6 @@ namespace linker.messenger.relay.client
         }
 
         /// <summary>
-        /// 正在操作列表
-        /// </summary>
-        /// <param name="param"></param>
-        /// <returns></returns>
-        public RelayOperatingInfo Operating(ApiControllerParamsInfo param)
-        {
-            ulong hashCode = ulong.Parse(param.Content);
-            if (relayTransfer.OperatingVersion.Eq(hashCode, out ulong version) == false)
-            {
-                return new RelayOperatingInfo
-                {
-                    List = relayTransfer.Operating,
-                    HashCode = version
-                };
-            }
-            return new RelayOperatingInfo { HashCode = version };
-        }
-
-        /// <summary>
         /// 连接
         /// </summary>
         /// <param name="param"></param>
@@ -99,9 +70,7 @@ namespace linker.messenger.relay.client
             {
                 relayConnectInfo.Protocol = TunnelProtocolType.Tcp;
             }
-            //relayClientStore.SetDefaultNodeId(relayConnectInfo.NodeId);
-            //relayClientStore.SetDefaultProtocol(relayConnectInfo.Protocol);
-            _ = relayTransfer.ConnectAsync(relayConnectInfo.FromMachineId, relayConnectInfo.ToMachineId, relayConnectInfo.TransactionId, relayConnectInfo.NodeId, relayConnectInfo.Protocol);
+            //_ = relayTransfer.ConnectAsync(relayConnectInfo.FromMachineId, relayConnectInfo.ToMachineId, relayConnectInfo.TransactionId, relayConnectInfo.NodeId, relayConnectInfo.Protocol);
             return true;
         }
 

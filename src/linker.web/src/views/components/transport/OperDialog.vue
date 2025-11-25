@@ -26,7 +26,7 @@ export default {
         const state = reactive({
             show: true,
             machineId: transport.value.device.id,
-            title:isSelf? `[${transport.value.device.name}]上的打洞协议` : `本机与[${transport.value.device.name}]之间的打洞协议`,
+            title:isSelf? `[${transport.value.device.name}]上的隧道协议` : `本机与[${transport.value.device.name}]之间的隧道协议`,
         });
         watch(() => state.show, (val) => {
             if (!val) {

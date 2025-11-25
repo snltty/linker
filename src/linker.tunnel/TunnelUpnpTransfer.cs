@@ -62,7 +62,7 @@ namespace linker.tunnel
                     {
                         if (await HasMap(device, Protocol.Tcp, MapInfo.PublicPort).ConfigureAwait(false) == false)
                         {
-                            Mapping mapping = new Mapping(Protocol.Tcp, MapInfo.PrivatePort, MapInfo.PublicPort, 86400, $"linker-tcp-{MapInfo.PublicPort}-{MapInfo.PrivatePort}");
+                            Mapping mapping = new Mapping(Protocol.Tcp, MapInfo.PrivatePort, MapInfo.PublicPort, 7 * 24 * 60 * 60, $"linker-tcp-{MapInfo.PublicPort}-{MapInfo.PrivatePort}");
                             await device.CreatePortMapAsync(mapping).ConfigureAwait(false);
                             Mapping m = await device.GetSpecificMappingAsync(Protocol.Tcp, mapping.PublicPort).ConfigureAwait(false);
                         }
@@ -75,7 +75,7 @@ namespace linker.tunnel
                     {
                         if (await HasMap(device, Protocol.Udp, MapInfo.PublicPort).ConfigureAwait(false) == false)
                         {
-                            Mapping mapping = new Mapping(Protocol.Udp, MapInfo.PrivatePort, MapInfo.PublicPort, 86400, $"linker-udp-{MapInfo.PublicPort}-{MapInfo.PrivatePort}");
+                            Mapping mapping = new Mapping(Protocol.Udp, MapInfo.PrivatePort, MapInfo.PublicPort, 7 * 24 * 60 * 60, $"linker-udp-{MapInfo.PublicPort}-{MapInfo.PrivatePort}");
                             await device.CreatePortMapAsync(mapping).ConfigureAwait(false);
                             Mapping m = await device.GetSpecificMappingAsync(Protocol.Udp, mapping.PublicPort).ConfigureAwait(false);
                         }

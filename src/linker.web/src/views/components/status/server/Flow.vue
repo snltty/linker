@@ -33,7 +33,7 @@ html.dark .flow-wrap{
 }
 .flow-wrap{
     padding:.4rem;
-    font-weight:bold;position:absolute;right:1rem;bottom:80%;
+    font-weight:bold;position:absolute;right:0.5rem;bottom:80%;
     border:1px solid #ddd;
     background-color:#fff;
     z-index :9

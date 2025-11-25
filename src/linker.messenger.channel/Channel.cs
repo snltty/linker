@@ -2,7 +2,6 @@
 using linker.libs.extends;
 using linker.libs.timer;
 using linker.messenger.pcp;
-using linker.messenger.relay.client;
 using linker.messenger.signin;
 using linker.tunnel;
 using linker.tunnel.connection;
@@ -73,17 +72,15 @@ namespace linker.messenger.channel
         protected virtual string TransactionId { get; }
 
         private readonly TunnelTransfer tunnelTransfer;
-        private readonly RelayClientTransfer relayTransfer;
         private readonly PcpTransfer pcpTransfer;
         private readonly SignInClientTransfer signInClientTransfer;
         private readonly ISignInClientStore signInClientStore;
         private readonly ChannelConnectionCaching channelConnectionCaching;
 
-        public Channel(TunnelTransfer tunnelTransfer, RelayClientTransfer relayTransfer, PcpTransfer pcpTransfer,
+        public Channel(TunnelTransfer tunnelTransfer, PcpTransfer pcpTransfer,
             SignInClientTransfer signInClientTransfer, ISignInClientStore signInClientStore, ChannelConnectionCaching channelConnectionCaching)
         {
             this.tunnelTransfer = tunnelTransfer;
-            this.relayTransfer = relayTransfer;
             this.pcpTransfer = pcpTransfer;
             this.signInClientTransfer = signInClientTransfer;
             this.signInClientStore = signInClientStore;
@@ -91,8 +88,6 @@ namespace linker.messenger.channel
 
             //监听打洞成功
             tunnelTransfer.SetConnectedCallback(TransactionId, OnConnected);
-            //监听中继成功
-            relayTransfer.SetConnectedCallback(TransactionId, OnConnected);
             //监听节点中继成功回调
             pcpTransfer.SetConnectedCallback(TransactionId, OnConnected);
 
@@ -167,7 +162,6 @@ namespace linker.messenger.channel
                 {
                     channelConnectionCaching.Add(connection);
                 }
-
             }
             catch (Exception)
             {
@@ -181,55 +175,29 @@ namespace linker.messenger.channel
         }
         private async Task<ITunnelConnection> RelayAndP2P(string machineId, TunnelProtocolType denyProtocols)
         {
-            //中继
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{TransactionId} relay to {machineId}");
-            ITunnelConnection connection = await relayTransfer.ConnectAsync(signInClientStore.Id, machineId, TransactionId, denyProtocols).ConfigureAwait(false);
-            if (connection != null)
-            {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{TransactionId} relay success,{connection.ToString()}");
-            }
-
+            ITunnelConnection connection = null;
             //正在后台打洞
             if (tunnelTransfer.IsBackground(machineId, TransactionId))
             {
                 return connection;
             }
 
+            //隧道连接
+            connection = await tunnelTransfer.ConnectAsync(machineId, TransactionId, denyProtocols).ConfigureAwait(false);
             if (connection != null)
             {
-                //后台打洞
-                tunnelTransfer.StartBackground(machineId, TransactionId, denyProtocols, () =>
-                {
-                    return channelConnectionCaching.TryGetValue(machineId, TransactionId, out ITunnelConnection connection) && connection.Connected && connection.Type == TunnelType.P2P;
-                }, async (_connection) =>
-                {
-                    //后台打洞失败，pcp
-                    if (_connection == null)
-                    {
-                        await pcpTransfer.ConnectAsync(machineId, TransactionId, denyProtocols).ConfigureAwait(false);
-                    }
-                }, 3, 10000);
+                return connection;
             }
-            else
+
+            //后台打洞
+            tunnelTransfer.StartBackground(machineId, TransactionId, denyProtocols, () =>
             {
-                //打洞
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{TransactionId} p2p to {machineId}");
-                connection = await tunnelTransfer.ConnectAsync(machineId, TransactionId, denyProtocols).ConfigureAwait(false);
-                if (connection != null)
-                {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{TransactionId} p2p success,{connection.ToString()}");
-                }
-                if (connection == null)
-                {
-                    //pcp
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{TransactionId} pcp to {machineId}");
-                    connection = await pcpTransfer.ConnectAsync(machineId, TransactionId, denyProtocols).ConfigureAwait(false);
-                }
-                if (connection != null)
-                {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{TransactionId} pcp success,{connection.ToString()}");
-                }
-            }
+                return channelConnectionCaching.TryGetValue(machineId, TransactionId, out ITunnelConnection connection) && connection.Connected;
+            }, async (_connection) =>
+            {
+                await Task.CompletedTask;
+            }, 3, 10000);
+
             return connection;
         }
 

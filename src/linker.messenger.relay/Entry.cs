@@ -3,8 +3,12 @@ using linker.messenger.relay.client;
 using linker.messenger.relay.messenger;
 using linker.messenger.relay.server;
 using linker.messenger.relay.server.validator;
+using linker.messenger.relay.transport;
 using linker.messenger.relay.webapi;
 using linker.messenger.sync;
+using linker.tunnel;
+using linker.tunnel.transport;
+using linker.tunnel.wanport;
 using Microsoft.Extensions.DependencyInjection;
 namespace linker.messenger.relay
 {
@@ -12,7 +16,9 @@ namespace linker.messenger.relay
     {
         public static ServiceCollection AddRelayClient(this ServiceCollection serviceCollection)
         {
-            serviceCollection.AddSingleton<RelayClientTransfer>();
+            serviceCollection.AddSingleton<TransportRelay>();
+            serviceCollection.AddSingleton<TunnelWanPortProtocolRelay>();
+
             serviceCollection.AddSingleton<RelayClientMessenger>();
 
             serviceCollection.AddSingleton<RelaySyncDefault>();
@@ -25,11 +31,17 @@ namespace linker.messenger.relay
         }
         public static ServiceProvider UseRelayClient(this ServiceProvider serviceProvider)
         {
+            TunnelTransfer tunnelTransfer = serviceProvider.GetService<TunnelTransfer>();
+            tunnelTransfer.AddTransport(serviceProvider.GetService<TransportRelay>());
+            tunnelTransfer.AddProtocol(serviceProvider.GetService<TunnelWanPortProtocolRelay>());
+
+
+
             IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
             messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<RelayClientMessenger>() });
 
             SyncTreansfer syncTreansfer = serviceProvider.GetService<SyncTreansfer>();
-            syncTreansfer.AddSyncs(new List<ISync> {  serviceProvider.GetService<RelaySyncDefault>() });
+            syncTreansfer.AddSyncs(new List<ISync> { serviceProvider.GetService<RelaySyncDefault>() });
 
             linker.messenger.api.IWebServer apiServer = serviceProvider.GetService<linker.messenger.api.IWebServer>();
             apiServer.AddPlugins(new List<IApiController> { serviceProvider.GetService<RelayApiController>() });

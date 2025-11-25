@@ -112,19 +112,4 @@ namespace linker.messenger.relay.client.transport
         public string UserId { get; set; }
     }
 
-
-    public sealed partial class RelayServerInfo
-    {
-        public RelayServerInfo() { }
-        /// <summary>
-        /// 禁用
-        /// </summary>
-        public bool Disabled { get; set; }
-        /// <summary>
-        /// 开启ssl
-        /// </summary>
-        public bool SSL { get; set; } = true;
-
-        public RelayClientType RelayType { get; set; } = RelayClientType.Linker;
-    }
 }
