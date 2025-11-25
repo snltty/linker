@@ -88,7 +88,18 @@ namespace linker.messenger.tuntap
         }
         public void AddData(List<ReadOnlyMemory<byte>> data)
         {
-            List<TuntapInfo> list = data.Select(c => serializer.Deserialize<TuntapInfo>(c.Span)).ToList();
+            List<TuntapInfo> list = data.Select(c =>
+            {
+                try
+                {
+                    return serializer.Deserialize<TuntapInfo>(c.Span);
+                }
+                catch
+                {
+                }
+                return null;
+
+            }).Where(c => c != null).ToList();
             foreach (var item in list)
             {
                 item.Available = true;

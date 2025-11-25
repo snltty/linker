@@ -6,12 +6,12 @@
         <template #default="scope">
             <div>
                 <template v-if="scope.row.hook_tuntap">
-                    <div class="skeleton-animation skeleton-animation-cell" :style="`animation-delay:${scope.row.animationDelay}ms`">
+                    <div class="skeleton-animation" :style="`animation-delay:${scope.row.animationDelay}ms`">
                         <TuntapShow :config="true" :item="scope.row"></TuntapShow>
                     </div>
                 </template>
                 <template v-else-if="!scope.row.hook_tuntap_load">
-                    <div class="skeleton-animation skeleton-animation-cell">
+                    <div class="skeleton-animation">
                         <el-skeleton animated>
                             <template #template>
                                 <el-skeleton-item variant="text" style="width: 60%;" />

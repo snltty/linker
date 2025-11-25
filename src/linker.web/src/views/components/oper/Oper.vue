@@ -146,11 +146,6 @@ export default {
 
 <style lang="stylus" scoped>
 
-.numbers{
-    margin-bottom:.3rem;
-    
-}
-
 html.dark .dropdown{border-color:#575c61;}
 .dropdown{
     padding:.4rem;

@@ -44,46 +44,41 @@
                 </template>
             </div>
             <div>
-                <div>
-                    <template v-for="(item1,index) in  item.hook_tuntap.Lans" :key="index">
-                        <template v-if="item.hook_tuntap.Available == false">
-                            <div class="flex disable" title="IP不生效，可能是设备不在线">
-                                <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
-                                <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
-                            </div>
-                        </template>
-                        <template v-else-if="item1.Disabled">
-                            <div class="flex disable" title="已禁用">
-                                <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
-                                <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
-                            </div>
-                        </template>
-                        <template v-else-if="item1.Exists">
-                            <div class="flex yellow" title="与其它设备填写IP、或本机局域网IP有冲突、或与本机外网IP一致">
-                                <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
-                                <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
-                            </div>
-                        </template>
-                        <template v-else>
-                            <div class="flex green" title="正常使用">
-                                <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
-                                <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
-                            </div>
-                        </template>
+                <template v-for="(item1,index) in  item.hook_tuntap.Lans" :key="index">
+                    <template v-if="item.hook_tuntap.Available == false">
+                        <div class="lan flex disable" title="IP不生效，可能是设备不在线">
+                            <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
+                            <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
+                        </div>
                     </template>
-                </div>
-                <template v-if="item.hook_tuntap.Any">
-                    <div class="any green"><el-icon><Share /></el-icon></div>
-                </template>
-                <template v-if="showDelay">
-                    <template v-if="item.hook_tuntap.Delay>=0 && item.hook_tuntap.Delay<=100">
-                        <div class="delay green">{{ item.hook_tuntap.Delay }}ms</div>
+                    <template v-else-if="item1.Disabled">
+                        <div class="lan flex disable" title="已禁用">
+                            <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
+                            <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
+                        </div>
                     </template>
-                    <template>
-                        <div class="delay yellow">{{ item.hook_tuntap.Delay }}ms</div>
+                    <template v-else-if="item1.Exists">
+                        <div class="lan flex yellow" title="与其它设备填写IP、或本机局域网IP有冲突、或与本机外网IP一致">
+                            <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
+                            <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
+                        </div>
+                    </template>
+                    <template v-else>
+                        <div class="lan flex green" title="正常使用">
+                            <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
+                            <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
+                        </div>
                     </template>
                 </template>
             </div>
+            <template v-if="showDelay">
+                <template v-if="item.hook_tuntap.Delay>=0 && item.hook_tuntap.Delay<=100">
+                    <div class="delay green">{{ item.hook_tuntap.Delay }}ms</div>
+                </template>
+                <template v-else>
+                    <div class="delay yellow">{{ item.hook_tuntap.Delay }}ms</div>
+                </template>
+            </template>
         </template>
     </AccessBoolean>
 </template>
@@ -175,10 +170,10 @@ export default {
 }
 
 .el-switch.is-disabled{opacity :1;}
-.el-input{
-    width:8rem;
-}
+.el-input{width:8rem;}
+.switch-btn{ font-size:1.5rem;}
 
+.lan{line-height:2rem}
 .remark{
     padding-left:.4rem;
     text-align:right;
@@ -189,18 +184,6 @@ export default {
     color:#666;
 }
 
-.delay{position: absolute;right:0;bottom:0;line-height:normal}
-.switch-btn{
-    font-size:1.5rem;
-}
+.delay{position: absolute;right:-8px;bottom:-8px;line-height:normal}
 
-.any {
-    position: absolute;left:-7px;top:-2px;line-height:normal
-    &.green {
-        background: linear-gradient(270deg, #caff00, green, #0d6d23, #e38a00, green);
-        background-clip: text;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: hsla(0, 0%, 100%, 0);
-    }
-}
 </style>
