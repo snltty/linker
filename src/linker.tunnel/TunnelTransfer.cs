@@ -164,29 +164,29 @@ namespace linker.tunnel
         /// </summary>
         /// <param name="remoteMachineId">对方id</param>
         /// <param name="transactionId">事务id，随便起，你喜欢就好</param>
-        /// <param name="denyProtocols">本次连接排除那些打洞协议</param>
-        /// <returns></returns>
-        public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId, TunnelProtocolType denyProtocols)
-        {
-            return await ConnectAsync(remoteMachineId, transactionId, transactionId, denyProtocols).ConfigureAwait(false);
-        }
-        /// <summary>
-        /// 开始连接对方
-        /// </summary>
-        /// <param name="remoteMachineId">对方id</param>
-        /// <param name="transactionId">事务id，随便起，你喜欢就好</param>
         /// <param name="transactionTag">事务tag，随便起，你喜欢就好</param>
         /// <param name="denyProtocols">本次连接排除那些打洞协议</param>
+        /// <param name="transportNames">只要哪些协议名</param>
+        /// <param name="exTransportNames">排除哪些协议名</param>
         /// <returns></returns>
-        public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId, string transactionTag, TunnelProtocolType denyProtocols)
+        public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId,
+            TunnelProtocolType denyProtocols, string transactionTag = "", string[] transportNames = null, string[] exTransportNames = null)
         {
             if (operating.StartOperation(BuildKey(remoteMachineId, transactionId)) == false) return null;
 
             try
             {
-                var _transports = await tunnelMessengerAdapter.GetTunnelTransports(remoteMachineId).ConfigureAwait(false);
+                var query = (await tunnelMessengerAdapter.GetTunnelTransports(remoteMachineId).ConfigureAwait(false)).OrderBy(c => c.Order).Where(c => c.Disabled == false);
+                if (transportNames != null && transportNames.Length > 0)
+                {
+                    query = query.Where(c => transportNames.Contains(c.Name));
+                }
+                if (exTransportNames != null && exTransportNames.Length > 0)
+                {
+                    query = query.Where(c => exTransportNames.Contains(c.Name) == false);
+                }
 
-                foreach (TunnelTransportItemInfo transportItem in _transports.OrderBy(c => c.Order).Where(c => c.Disabled == false))
+                foreach (TunnelTransportItemInfo transportItem in query.ToList())
                 {
                     ITunnelTransport transport = transports.FirstOrDefault(c => c.Name == transportItem.Name);
 
@@ -517,7 +517,7 @@ namespace linker.tunnel
                     {
                         if (stopCallback()) break;
 
-                        connection = await ConnectAsync(remoteMachineId, transactionId, denyProtocols).ConfigureAwait(false);
+                        connection = await ConnectAsync(remoteMachineId, transactionId, denyProtocols, exTransportNames: ["TcpRelay"]).ConfigureAwait(false);
                         if (connection != null)
                         {
                             break;

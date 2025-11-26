@@ -15,15 +15,13 @@ namespace linker.messenger.relay.client
     {
         private readonly TransportRelay  transportRelay;
         private readonly SignInClientState signInClientState;
-        private readonly IRelayClientStore relayClientStore;
 
         public List<RelayServerNodeReportInfo> Nodes { get; private set; } = new List<RelayServerNodeReportInfo>();
 
-        public RelayClientTestTransfer(TransportRelay transportRelay, SignInClientState signInClientState, IRelayClientStore relayClientStore)
+        public RelayClientTestTransfer(TransportRelay transportRelay, SignInClientState signInClientState)
         {
             this.transportRelay = transportRelay;
             this.signInClientState = signInClientState;
-            this.relayClientStore = relayClientStore;
 
             TestTask();
         }

@@ -22,8 +22,6 @@ namespace linker.messenger.relay.server
         /// </summary>
         /// <param name="node"></param>
         public void SetInfo(RelayServerNodeInfo node);
-        public void UpdateInfo(RelayServerNodeUpdateInfo update);
-        public void SetMasterHosts(string[] hosts);
 
         /// <summary>
         /// 设置月份
@@ -86,33 +84,6 @@ namespace linker.messenger.relay.server
         public string[] MasterHosts { get; set; } = [];
     }
 
-    public partial class RelayServerNodeUpdateInfo
-    {
-        public string Id { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
-
-        public int MaxConnection { get; set; }
-        public double MaxBandwidth { get; set; }
-        public double MaxBandwidthTotal { get; set; }
-        public double MaxGbTotal { get; set; }
-        public long MaxGbTotalLastBytes { get; set; }
-        public bool Public { get; set; }
-
-        public string Url { get; set; } = "https://linker-doc.snltty.com";
-
-        public bool AllowTcp { get; set; } = true;
-        public bool AllowUdp { get; set; }
-
-        /// <summary>
-        /// 188+
-        /// </summary>
-        public bool Sync2Server { get; set; }
-    }
-    public partial class RelayServerNodeUpdateWrapInfo
-    {
-        public RelayServerNodeUpdateInfo Info { get; set; }
-    }
-
     public partial class RelayServerNodeReportInfo
     {
         public string Id { get; set; } = string.Empty;
@@ -150,10 +121,5 @@ namespace linker.messenger.relay.server
         [JsonIgnore]
         public IConnection Connection { get; set; }
     }
-    public partial class RelayAskResultInfo
-    {
-        public ulong FlowingId { get; set; }
-
-        public List<RelayServerNodeReportInfo> Nodes { get; set; } = new List<RelayServerNodeReportInfo>();
-    }
+    
 }

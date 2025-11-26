@@ -60,11 +60,7 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new UpdaterInfo170Formatter());
             MemoryPackFormatterProvider.Register(new UpdaterSyncInfoFormatter());
 
-            MemoryPackFormatterProvider.Register(new RelayTestInfoFormatter());
-            MemoryPackFormatterProvider.Register(new RelayInfoFormatter());
-            MemoryPackFormatterProvider.Register(new RelayServerNodeUpdateInfoFormatter());
-            MemoryPackFormatterProvider.Register(new RelayServerNodeUpdateWrapInfoFormatter());
-            MemoryPackFormatterProvider.Register(new RelayServerNodeReportInfoFormatter());
+
             MemoryPackFormatterProvider.Register(new RelayAskResultInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayCacheInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayMessageInfoFormatter());
@@ -161,7 +157,7 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new WhiteListPageRequestInfoFormatter());
             MemoryPackFormatterProvider.Register(new WhiteListPageResultInfoFormatter());
             MemoryPackFormatterProvider.Register(new WhiteListOrderStatusInfoFormatter());
-            
+
             return serviceCollection;
         }
         public static ServiceProvider UseSerializerMemoryPack(this ServiceProvider serviceProvider)

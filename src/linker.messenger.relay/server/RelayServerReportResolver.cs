@@ -14,13 +14,11 @@ namespace linker.messenger.relay.server
         public byte Type => (byte)ResolverType.RelayReport;
 
         private readonly RelayServerMasterTransfer relayServerTransfer;
-        private readonly IRelayServerMasterStore relayServerMasterStore;
         private readonly IMessengerResolver messengerResolver;
 
-        public RelayServerReportResolver(RelayServerMasterTransfer relayServerTransfer, IRelayServerMasterStore relayServerMasterStore, IMessengerResolver messengerResolver)
+        public RelayServerReportResolver(RelayServerMasterTransfer relayServerTransfer, IMessengerResolver messengerResolver)
         {
             this.relayServerTransfer = relayServerTransfer;
-            this.relayServerMasterStore = relayServerMasterStore;
             this.messengerResolver = messengerResolver;
         }
 
@@ -41,12 +39,12 @@ namespace linker.messenger.relay.server
                 await socket.ReceiveAsync(buffer.AsMemory(0, length), SocketFlags.None).ConfigureAwait(false);
 
                 string key = buffer.AsMemory(0, length).GetString();
-
+                /*
                 if (relayServerMasterStore.Master.SecretKey.Sha256() == key)
                 {
                     await messengerResolver.BeginReceiveServer(socket, Helper.EmptyArray).ConfigureAwait(false);
                 }
-                else
+                else*/
                 {
                     socket.SafeClose();
                 }

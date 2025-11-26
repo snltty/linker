@@ -1,7 +1,6 @@
 ﻿using linker.libs.extends;
 using System;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 namespace linker.libs
@@ -64,15 +63,13 @@ namespace linker.libs
             return $"{cpu}↓{username}↓{System.Runtime.InteropServices.RuntimeInformation.OSDescription}";
         }
 
-
-
         public static string GetSystemStr()
         {
             return $"{SystemName()}-{VersionNumber()}-{RuntimeInformation.OSArchitecture.ToString().ToLower()}";
         }
         private static string SystemName()
         {
-            string pattern = @"iphone|samsung|vivo|oppo|google|huawei|xiaomi|ios|android|windows|ubuntu|openwrt|armbian|archlinux|fedora|centos|rocky|alpine|debian|linux|docker";
+            string pattern = @"fnos|iphone|samsung|vivo|oppo|google|huawei|xiaomi|ios|android|windows|ubuntu|openwrt|armbian|archlinux|fedora|centos|rocky|alpine|debian|linux|docker";
             return Regex.Match(RuntimeInformation.OSDescription.ToLower(), pattern)?.Value ?? "unknow";
         }
         private static string VersionNumber()

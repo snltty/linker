@@ -1,5 +1,4 @@
-﻿using linker.messenger.relay.client.transport;
-using linker.messenger.signin;
+﻿using linker.messenger.signin;
 
 namespace linker.messenger.relay.server.validator
 {
@@ -12,11 +11,11 @@ namespace linker.messenger.relay.server.validator
         /// <summary>
         /// 验证
         /// </summary>
-        /// <param name="relayInfo">中继信息</param>
-        /// <param name="fromMachine">来源客户端</param>
-        /// <param name="toMachine">目标客户端，可能为null</param>
+        /// <param name="from"></param>
+        /// <param name="to"></param>
+        /// <param name="transactionId"></param>
         /// <returns></returns>
-        public Task<string> Validate(RelayInfo relayInfo, SignCacheInfo fromMachine, SignCacheInfo toMachine);
+        public Task<string> Validate(SignCacheInfo from, SignCacheInfo to,string transactionId);
         /// <summary>
         /// 验证节点
         /// </summary>
@@ -24,6 +23,6 @@ namespace linker.messenger.relay.server.validator
         /// <param name="fromMachine"></param>
         /// <param name="nodes"></param>
         /// <returns></returns>
-        public Task<List<RelayServerNodeReportInfo>> Validate(string userid, SignCacheInfo fromMachine, List<RelayServerNodeReportInfo> nodes);
+        public Task<List<RelayServerNodeReportInfo>> Validate(string userid, SignCacheInfo from, List<RelayServerNodeReportInfo> nodes);
     }
 }

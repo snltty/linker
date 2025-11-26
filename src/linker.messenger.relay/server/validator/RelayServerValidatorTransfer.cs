@@ -1,5 +1,4 @@
 ﻿using linker.messenger.signin;
-using linker.messenger.relay.client.transport;
 using linker.libs;
 using System.Diagnostics.CodeAnalysis;
 
@@ -44,15 +43,15 @@ namespace linker.messenger.relay.server.validator
         /// <summary>
         /// 验证
         /// </summary>
-        /// <param name="relayInfo"></param>
-        /// <param name="cache"></param>
-        /// <param name="cache1"></param>
+        /// <param name="from"></param>
+        /// <param name="to"></param>
+        /// <param name="transactionId"></param>
         /// <returns></returns>
-        public async Task<string> Validate(RelayInfo relayInfo, SignCacheInfo cache, SignCacheInfo cache1)
+        public async Task<string> Validate(SignCacheInfo from, SignCacheInfo to,string transactionId)
         {
             foreach (var item in validators)
             {
-                string result = await item.Validate(relayInfo, cache, cache1).ConfigureAwait(false);
+                string result = await item.Validate(from, to, transactionId).ConfigureAwait(false);
                 if (string.IsNullOrWhiteSpace(result) == false)
                 {
                     return result;

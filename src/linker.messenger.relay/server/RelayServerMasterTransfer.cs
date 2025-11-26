@@ -1,11 +1,6 @@
-﻿using linker.libs;
-using linker.libs.extends;
-using linker.libs.timer;
-using linker.messenger.relay.client.transport;
-using linker.messenger.relay.messenger;
+﻿
 using linker.messenger.signin;
 using System.Collections.Concurrent;
-using System.Net;
 
 namespace linker.messenger.relay.server
 {
@@ -15,38 +10,23 @@ namespace linker.messenger.relay.server
     public class RelayServerMasterTransfer
     {
 
-        private ulong relayFlowingId = 0;
         private readonly ConcurrentDictionary<string, RelayServerNodeReportInfo> reports = new ConcurrentDictionary<string, RelayServerNodeReportInfo>();
 
-
-        private readonly ConcurrentQueue<Dictionary<int, long>> trafficQueue = new ConcurrentQueue<Dictionary<int, long>>();
-        private readonly ConcurrentQueue<List<int>> trafficIdsQueue = new ConcurrentQueue<List<int>>();
-
         private readonly IRelayServerCaching relayCaching;
-        private readonly ISerializer serializer;
-        private readonly IRelayServerMasterStore relayServerMasterStore;
-        private readonly IMessengerSender messengerSender;
         private readonly IRelayServerWhiteListStore relayServerWhiteListStore;
 
-        public RelayServerMasterTransfer(IRelayServerCaching relayCaching, ISerializer serializer, IRelayServerMasterStore relayServerMasterStore, 
-            IMessengerSender messengerSender, IRelayServerWhiteListStore relayServerWhiteListStore)
+        public RelayServerMasterTransfer(IRelayServerCaching relayCaching, IRelayServerWhiteListStore relayServerWhiteListStore)
         {
             this.relayCaching = relayCaching;
-            this.serializer = serializer;
-            this.relayServerMasterStore = relayServerMasterStore;
-            this.messengerSender = messengerSender;
             this.relayServerWhiteListStore = relayServerWhiteListStore;
 
         }
 
-
-        public ulong AddRelay(SignCacheInfo from, SignCacheInfo to)
+        public bool AddRelay(SignCacheInfo from, SignCacheInfo to, uint flowid)
         {
-            ulong flowingId = Interlocked.Increment(ref relayFlowingId);
-
             RelayCacheInfo cache = new RelayCacheInfo
             {
-                FlowId = flowingId,
+                FlowId = flowid,
                 FromId = from.MachineId,
                 FromName = from.MachineName,
                 ToId = to.Id,
@@ -55,11 +35,7 @@ namespace linker.messenger.relay.server
                 Super = from.Super,
                 UserId = from.UserId,
             };
-            if (relayCaching.TryAdd($"{cache.FromId}->{cache.ToId}->{flowingId}", cache, 15000) == false)
-            {
-                return 0;
-            }
-            return flowingId;
+            return relayCaching.TryAdd($"{cache.FromId}->{cache.ToId}->{flowid}", cache, 15000);
         }
 
         public async Task<RelayCacheInfo> TryGetRelayCache(string key, string nodeid)
@@ -80,67 +56,6 @@ namespace linker.messenger.relay.server
             }
             return null;
         }
-        public void SetNodeReport(IConnection connection, RelayServerNodeReportInfo info)
-        {
-            try
-            {
-                if (info.EndPoint.Address.Equals(IPAddress.Any))
-                {
-                    info.EndPoint.Address = connection.Address.Address;
-                }
-                if (info.EndPoint.Address.Equals(IPAddress.Loopback))
-                {
-                    info.EndPoint = new IPEndPoint(IPAddress.Any, 0);
-                }
-                info.LastTicks = Environment.TickCount64;
-                info.Connection = connection;
-                reports.AddOrUpdate(info.Id, info, (a, b) => info);
-            }
-            catch (Exception ex)
-            {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Error(ex);
-                }
-            }
-        }
-      
-        public async Task Edit(RelayServerNodeUpdateInfo info)
-        {
-            if (reports.TryGetValue(info.Id, out RelayServerNodeReportInfo cache))
-            {
-                await messengerSender.SendOnly(new MessageRequestWrap
-                {
-                    Connection = cache.Connection,
-                    MessengerId = (ushort)RelayMessengerIds.Edit188,
-                    Payload = serializer.Serialize(info)
-                }).ConfigureAwait(false);
-            }
-        }
-        public async Task Exit(string id)
-        {
-            if (reports.TryGetValue(id, out RelayServerNodeReportInfo cache))
-            {
-                await messengerSender.SendOnly(new MessageRequestWrap
-                {
-                    Connection = cache.Connection,
-                    MessengerId = (ushort)RelayMessengerIds.Exit,
-                }).ConfigureAwait(false);
-            }
-        }
-        public async Task Update(string id, string version)
-        {
-            if (reports.TryGetValue(id, out RelayServerNodeReportInfo cache))
-            {
-                await messengerSender.SendOnly(new MessageRequestWrap
-                {
-                    Connection = cache.Connection,
-                    MessengerId = (ushort)RelayMessengerIds.Update,
-                    Payload = serializer.Serialize(version)
-                }).ConfigureAwait(false);
-            }
-        }
-
         /// <summary>
         /// 获取节点列表
         /// </summary>
@@ -185,5 +100,19 @@ namespace linker.messenger.relay.server
                      .ToList();
         }
 
+    }
+
+    public sealed partial class RelayCacheInfo
+    {
+        public ulong FlowId { get; set; }
+        public string FromId { get; set; }
+        public string FromName { get; set; }
+        public string ToId { get; set; }
+        public string ToName { get; set; }
+        public string GroupId { get; set; }
+        public bool Super { get; set; }
+        public double Bandwidth { get; set; }
+
+        public string UserId { get; set; } = string.Empty;
     }
 }

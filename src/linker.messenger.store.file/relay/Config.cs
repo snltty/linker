@@ -31,7 +31,6 @@ namespace linker.messenger.store.file
     public sealed class DistributedInfo
     {
         public RelayServerNodeInfo Node { get; set; } = new RelayServerNodeInfo { };
-        public RelayServerMasterInfo Master { get; set; } = new RelayServerMasterInfo { };
     }
 
 }

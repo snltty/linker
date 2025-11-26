@@ -8,7 +8,6 @@ using linker.messenger.relay.webapi;
 using linker.messenger.sync;
 using linker.tunnel;
 using linker.tunnel.transport;
-using linker.tunnel.wanport;
 using Microsoft.Extensions.DependencyInjection;
 namespace linker.messenger.relay
 {
@@ -59,6 +58,7 @@ namespace linker.messenger.relay
             serviceCollection.AddSingleton<RelayServerMasterTransfer>();
             serviceCollection.AddSingleton<RelayServerReportResolver>();
             serviceCollection.AddSingleton<RelayServerResolver>();
+            serviceCollection.AddSingleton<RelayServerConnectionTransfer>();
 
             serviceCollection.AddSingleton<IRelayServerCaching, RelayServerCachingMemory>();
 

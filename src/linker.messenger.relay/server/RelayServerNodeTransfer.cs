@@ -1,12 +1,10 @@
 ﻿using linker.libs;
-using linker.libs.extends;
 using linker.libs.timer;
 using linker.messenger.relay.messenger;
 using linker.tunnel.connection;
-using System.Buffers;
+using linker.tunnel.transport;
 using System.Collections.Concurrent;
 using System.Net;
-using System.Net.Sockets;
 
 namespace linker.messenger.relay.server
 {
@@ -21,52 +19,43 @@ namespace linker.messenger.relay.server
         public RelayServerNodeInfo Node => relayServerNodeStore.Node;
 
         private uint connectionNum = 0;
-        private IConnection connection;
-        public IConnection Connection => connection;
 
         private long bytes = 0;
-        private long lastBytes = 0;
         private readonly RelaySpeedLimit limitTotal = new RelaySpeedLimit();
         private readonly ConcurrentDictionary<ulong, RelayTrafficCacheInfo> trafficDict = new();
 
         private readonly ISerializer serializer;
         private readonly IRelayServerNodeStore relayServerNodeStore;
-        private readonly IMessengerResolver messengerResolver;
         private readonly IMessengerSender messengerSender;
+        private readonly RelayServerConnectionTransfer relayServerConnectionTransfer;
 
-        public RelayServerNodeTransfer(ISerializer serializer, IRelayServerNodeStore relayServerNodeStore,
-            IRelayServerMasterStore relayServerMasterStore, IMessengerResolver messengerResolver, IMessengerSender messengerSender)
+        public RelayServerNodeTransfer(ISerializer serializer, IRelayServerNodeStore relayServerNodeStore, IMessengerSender messengerSender, RelayServerConnectionTransfer relayServerConnectionTransfer)
         {
             this.serializer = serializer;
             this.relayServerNodeStore = relayServerNodeStore;
-            this.messengerResolver = messengerResolver;
             this.messengerSender = messengerSender;
-
-            if (string.IsNullOrWhiteSpace(relayServerNodeStore.Node.MasterHost))
-            {
-                relayServerNodeStore.Node.Host = new IPEndPoint(IPAddress.Any, relayServerNodeStore.ServicePort).ToString();
-                relayServerNodeStore.Node.MasterHost = new IPEndPoint(IPAddress.Loopback, relayServerNodeStore.ServicePort).ToString();
-                relayServerNodeStore.Node.MasterSecretKey = relayServerMasterStore.Master.SecretKey;
-                relayServerNodeStore.Node.Name = "default";
-                relayServerNodeStore.Node.Public = false;
-            }
+            this.relayServerConnectionTransfer = relayServerConnectionTransfer;
 
             limitTotal.SetLimit((uint)Math.Ceiling((Node.MaxBandwidthTotal * 1024 * 1024) / 8.0));
 
             TrafficTask();
-            ReportTask();
-            SignInTask();
-
         }
 
-        public async Task<RelayCacheInfo> TryGetRelayCache(string key)
+        public async Task<RelayCacheInfo> TryGetRelayCache(RelayMessageInfo relayMessage)
         {
             try
             {
+                if (relayServerConnectionTransfer.TryGet(relayMessage.MasterId, out IConnection connection) == false)
+                {
+                    return null;
+                }
+
+                //ask 是发起端来的，那key就是 发起端->目标端， answer的，目标和来源会交换，所以转换一下
+                string key = relayMessage.Type == RelayMessengerType.Ask ? $"{relayMessage.FromId}->{relayMessage.ToId}->{relayMessage.FlowId}" : $"{relayMessage.ToId}->{relayMessage.FromId}->{relayMessage.FlowId}";
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = connection,
-                    MessengerId = (ushort)RelayMessengerIds.NodeGetCache186,
+                    MessengerId = (ushort)RelayMessengerIds.NodeGetCache,
                     Payload = serializer.Serialize(new ValueTuple<string, string>(key, Node.Id)),
                     Timeout = 1000
                 }).ConfigureAwait(false);
@@ -82,23 +71,6 @@ namespace linker.messenger.relay.server
                     LoggerHelper.Instance.Error($"{ex}");
             }
             return null;
-        }
-
-        public void Edit(RelayServerNodeUpdateInfo info)
-        {
-            if (info.Id == Node.Id)
-            {
-                relayServerNodeStore.UpdateInfo(info);
-                relayServerNodeStore.Confirm();
-            }
-        }
-        public void Exit()
-        {
-            Helper.AppExit(1);
-        }
-        public void Update(string version)
-        {
-            Helper.AppUpdate(version);
         }
 
         public bool Validate(TunnelProtocolType tunnelProtocolType)
@@ -276,170 +248,6 @@ namespace linker.messenger.relay.server
             }, 3000);
         }
 
-        private void ReportTask()
-        {
-            TimerHelper.SetIntervalLong(async () =>
-            {
-                await Report();
-                await MasterHosts();
-            }, 5000);
-        }
-        private async Task Report()
-        {
-            double diff = (bytes - lastBytes) * 8 / 1024.0 / 1024.0;
-            lastBytes = bytes;
-
-            try
-            {
-                IPEndPoint endPoint = await NetworkHelper.GetEndPointAsync(Node.Host, relayServerNodeStore.ServicePort).ConfigureAwait(false) ?? new IPEndPoint(IPAddress.Any, relayServerNodeStore.ServicePort);
-                RelayServerNodeReportInfo relayNodeReportInfo = new RelayServerNodeReportInfo
-                {
-                    Id = Node.Id,
-                    Name = Node.Name,
-                    Public = Node.Public,
-                    MaxBandwidth = Node.MaxBandwidth,
-                    BandwidthRatio = Math.Round(diff / 5, 2),
-                    MaxBandwidthTotal = Node.MaxBandwidthTotal,
-                    MaxGbTotal = Node.MaxGbTotal,
-                    MaxGbTotalLastBytes = Node.MaxGbTotalLastBytes,
-                    MaxConnection = Node.MaxConnection,
-                    ConnectionRatio = connectionNum,
-                    EndPoint = endPoint,
-                    Url = Node.Url,
-                    AllowProtocol = (Node.AllowTcp ? TunnelProtocolType.Tcp : TunnelProtocolType.None)
-                     | (Node.AllowUdp ? TunnelProtocolType.Udp : TunnelProtocolType.None),
-                    Sync2Server = Node.Sync2Server,
-                    Version = VersionHelper.Version
-                };
-                var resp = await messengerSender.SendReply(new MessageRequestWrap
-                {
-                    Connection = connection,
-                    MessengerId = (ushort)RelayMessengerIds.NodeReport188,
-                    Payload = serializer.Serialize(relayNodeReportInfo)
-                }).ConfigureAwait(false);
-                if (Node.Sync2Server && resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
-                {
-                    string version = serializer.Deserialize<string>(resp.Data.Span);
-                    if (version != VersionHelper.Version)
-                    {
-                        Helper.AppUpdate(version);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Error($"relay report : {ex}");
-                }
-            }
-        }
-        private async Task MasterHosts()
-        {
-            try
-            {
-                if (signInHost != Node.MasterHost) return;
-                var resp = await messengerSender.SendReply(new MessageRequestWrap
-                {
-                    Connection = Connection,
-                    MessengerId = (ushort)RelayMessengerIds.Hosts,
-                }).ConfigureAwait(false);
-                if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
-                {
-                    string[] hosts = serializer.Deserialize<string[]>(resp.Data.Span);
-                    relayServerNodeStore.SetMasterHosts(hosts);
-                }
-            }
-            catch (Exception)
-            {
-            }
-        }
-
-
-        private string signInHost = string.Empty;
-        private void SignInTask()
-        {
-            TimerHelper.SetIntervalLong(async () =>
-            {
-                if (Connection == null || Connection.Connected == false)
-                {
-                    string[] hosts = [Node.MasterHost, .. Node.MasterHosts];
-                    foreach (var host in hosts.Where(c => string.IsNullOrWhiteSpace(c) == false))
-                    {
-                        connection = await SignIn(host, Node.MasterSecretKey).ConfigureAwait(false);
-                        if (connection != null && connection.Connected)
-                        {
-                            signInHost = host;
-                            break;
-                        }
-                    }
-                }
-                else
-                {
-                    if (await TestHost(Node.MasterHost))
-                    {
-                        connection = await SignIn(Node.MasterHost, Node.MasterSecretKey).ConfigureAwait(false);
-                        if (connection != null && connection.Connected)
-                        {
-                            signInHost = Node.MasterHost;
-                        }
-                    }
-                }
-            }, 3000);
-        }
-        private async Task<bool> TestHost(string host)
-        {
-            if (signInHost == Node.MasterHost) return false;
-            try
-            {
-                IPEndPoint ip = await NetworkHelper.GetEndPointAsync(host, 1802).ConfigureAwait(false);
-                using Socket socket = new Socket(ip.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                socket.KeepAlive();
-                await socket.ConnectAsync(ip).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
-
-                socket.SafeClose();
-                return true;
-            }
-            catch (Exception)
-            {
-            }
-            return false;
-        }
-        private async Task<IConnection> SignIn(string host, string secretKey)
-        {
-            byte[] bytes = ArrayPool<byte>.Shared.Rent(1024);
-            try
-            {
-                byte[] secretKeyBytes = secretKey.Sha256().ToBytes();
-
-                bytes[0] = (byte)secretKeyBytes.Length;
-                secretKeyBytes.AsSpan().CopyTo(bytes.AsSpan(1));
-
-
-                IPEndPoint remote = await NetworkHelper.GetEndPointAsync(host, 1802).ConfigureAwait(false);
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Warning($"relay node sign in to {remote}");
-                }
-
-                Socket socket = new Socket(remote.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                socket.KeepAlive();
-                await socket.ConnectAsync(remote).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
-                return await messengerResolver.BeginReceiveClient(socket, true, (byte)ResolverType.RelayReport, bytes.AsMemory(0, secretKeyBytes.Length + 1)).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Error(ex);
-                }
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(bytes);
-            }
-            return null;
-        }
     }
 
 }

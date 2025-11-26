@@ -32,7 +32,8 @@ namespace linker.messenger.flow
     public sealed class RelayReportResolverFlow : RelayServerReportResolver
     {
         private readonly RelayReportFlow relayReportFlow;
-        public RelayReportResolverFlow(RelayReportFlow relayReportFlow, RelayServerMasterTransfer relayServerTransfer, IRelayServerMasterStore relayServerMasterStore, IMessengerResolver messengerResolver) : base(relayServerTransfer, relayServerMasterStore, messengerResolver)
+        public RelayReportResolverFlow(RelayReportFlow relayReportFlow, RelayServerMasterTransfer relayServerTransfer, IMessengerResolver messengerResolver) 
+            : base(relayServerTransfer, messengerResolver)
         {
             this.relayReportFlow = relayReportFlow;
         }

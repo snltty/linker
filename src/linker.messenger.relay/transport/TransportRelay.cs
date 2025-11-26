@@ -1,10 +1,17 @@
 ﻿using linker.libs;
+using linker.libs.extends;
 using linker.messenger;
 using linker.messenger.relay.messenger;
 using linker.messenger.relay.server;
 using linker.messenger.signin;
 using linker.tunnel.connection;
 using linker.tunnel.wanport;
+using System;
+using System.Buffers;
+using System.Net;
+using System.Net.Security;
+using System.Net.Sockets;
+using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 
 namespace linker.tunnel.transport
@@ -19,9 +26,9 @@ namespace linker.tunnel.transport
 
         public TunnelWanPortProtocolType AllowWanPortProtocolType => TunnelWanPortProtocolType.Other;
 
-        public bool Reverse => true;
+        public bool Reverse => false;
 
-        public bool DisableReverse => false;
+        public bool DisableReverse => true;
 
         public bool SSL => true;
 
@@ -31,30 +38,310 @@ namespace linker.tunnel.transport
 
         public Action<ITunnelConnection> OnConnected { get; set; } = (state) => { };
 
+        private readonly ICrypto crypto = CryptoFactory.CreateSymmetric(Helper.GlobalString);
 
         private readonly IMessengerSender messengerSender;
         private readonly ISerializer serializer;
         private readonly SignInClientState signInClientState;
         private readonly IMessengerStore messengerStore;
+        private readonly ITunnelMessengerAdapter tunnelMessengerAdapter;
 
-        public TransportRelay(IMessengerSender messengerSender, ISerializer serializer, SignInClientState signInClientState, IMessengerStore messengerStore)
+        public TransportRelay(IMessengerSender messengerSender, ISerializer serializer, SignInClientState signInClientState, IMessengerStore messengerStore, ITunnelMessengerAdapter tunnelMessengerAdapter)
         {
             this.messengerSender = messengerSender;
             this.serializer = serializer;
             this.signInClientState = signInClientState;
             this.messengerStore = messengerStore;
+            this.tunnelMessengerAdapter = tunnelMessengerAdapter;
         }
-
 
         public virtual async Task<ITunnelConnection> ConnectAsync(TunnelTransportInfo tunnelTransportInfo)
         {
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(1024);
+            try
+            {
+                //问一下能不能中继
+                RelayAskResultInfo ask = await RelayAsk(tunnelTransportInfo).ConfigureAwait(false);
+                List<RelayServerNodeReportInfo> nodes = ask.Nodes;
+                if (ask.Nodes.Count == 0)
+                {
+                    return null;
+                }
+
+                //连接中继节点服务器
+                Socket socket = await ConnectNodeServer(tunnelTransportInfo, ask).ConfigureAwait(false);
+                if (socket == null)
+                {
+                    return null;
+                }
+
+                tunnelTransportInfo.TransactionTag = ask.Info.ToJson();
+
+                //让对方确认中继
+                if (await tunnelMessengerAdapter.SendConnectBegin(tunnelTransportInfo).ConfigureAwait(false) == false)
+                {
+                    return null;
+                }
+
+                //成功建立连接，
+                SslStream sslStream = null;
+                if (tunnelTransportInfo.SSL)
+                {
+                    sslStream = new SslStream(new NetworkStream(socket, false), false, ValidateServerCertificate, null);
+#pragma warning disable SYSLIB0039 // 类型或成员已过时
+                    await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
+                    {
+                        EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls,
+                        CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
+                        ClientCertificates = new X509CertificateCollection { messengerStore.Certificate }
+                    }).ConfigureAwait(false);
+#pragma warning restore SYSLIB0039 // 类型或成员已过时
+                }
+
+                return new TunnelConnectionTcp
+                {
+                    Direction = TunnelDirection.Forward,
+                    ProtocolType = TunnelProtocolType.Tcp,
+                    RemoteMachineId = tunnelTransportInfo.Remote.MachineId,
+                    RemoteMachineName = tunnelTransportInfo.Remote.MachineName,
+                    Stream = sslStream,
+                    Socket = socket,
+                    Mode = TunnelMode.Client,
+                    IPEndPoint = NetworkHelper.TransEndpointFamily(socket.RemoteEndPoint as IPEndPoint),
+                    TransactionId = tunnelTransportInfo.TransactionId,
+                    TransportName = Name,
+                    Type = TunnelType.Relay,
+                    NodeId = ask.Info.NodeId,
+                    SSL = tunnelTransportInfo.SSL,
+                    BufferSize = 3
+                };
+            }
+            catch (Exception ex)
+            {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
             return null;
         }
+        private async Task<RelayAskResultInfo> RelayAsk(TunnelTransportInfo tunnelTransportInfo)
+        {
+            RelayInfo relayInfo = new RelayInfo();
+            try
+            {
+                relayInfo = tunnelTransportInfo.TransactionTag.DeJson<RelayInfo>();
+            }
+            catch (Exception)
+            {
+            }
+
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)RelayMessengerIds.Ask,
+                Payload = serializer.Serialize((tunnelTransportInfo.Remote.MachineId, tunnelTransportInfo.TransactionId, tunnelTransportInfo.FlowId)),
+                Timeout = 2000
+            }).ConfigureAwait(false);
+            if (resp.Code != MessageResponeCodes.OK)
+            {
+                return new RelayAskResultInfo { Info = relayInfo, Nodes = new List<RelayServerNodeReportInfo>() };
+            }
+            RelayAskResultInfo ask = serializer.Deserialize<RelayAskResultInfo>(resp.Data.Span);
+            ask.Info = relayInfo;
+            ask.Info.MasterId = ask.MasterId;
+
+            return ask;
+
+        }
+        private async Task<Socket> ConnectNodeServer(TunnelTransportInfo tunnelTransportInfo, RelayAskResultInfo ask)
+        {
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(1 * 1024);
+
+            try
+            {
+                foreach (var node in ask.Nodes.Where(c => c.Id == ask.Info.NodeId).Concat(ask.Nodes.Where(c => c.Id != ask.Info.NodeId)))
+                {
+                    try
+                    {
+                        IPEndPoint ep = node.EndPoint;
+                        if (ep == null || ep.Address.Equals(IPAddress.Any))
+                        {
+                            ep = signInClientState.Connection.Address;
+                        }
+
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                            LoggerHelper.Instance.Debug($"connect relay server {ep}");
+
+                        //连接中继服务器
+                        Socket socket = new Socket(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
+                        socket.KeepAlive();
+                        socket.IPv6Only(ep.AddressFamily, false);
+                        await socket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        {
+                            LoggerHelper.Instance.Debug($"relay  connected {ep}");
+                        }
+
+                        //建立关联
+                        RelayMessageInfo relayMessage = new RelayMessageInfo
+                        {
+                            FlowId = tunnelTransportInfo.FlowId,
+                            Type = RelayMessengerType.Ask,
+                            FromId = tunnelTransportInfo.Local.MachineId,
+                            ToId = tunnelTransportInfo.Remote.MachineId,
+                            MasterId = ask.MasterId,
+                        };
+                        if(await SendMessage(socket, relayMessage).ConfigureAwait(false))
+                        {
+                            ask.Info.Node = node.EndPoint;
+                            ask.Info.NodeId = node.Id;
+                            return socket;
+                        }
+                        socket.SafeClose();
+                    }
+                    catch (Exception ex)
+                    {
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        {
+                            LoggerHelper.Instance.Error(ex);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
+            return null;
+        }
+        private bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+            return true;
+        }
+
+
+        private async Task<bool> SendMessage(Socket socket, RelayMessageInfo relayMessage)
+        {
+            try
+            {
+                byte[] sendBytes = crypto.Encode(serializer.Serialize(relayMessage));
+
+                IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(sendBytes.Length + 5);
+
+                buffer.Memory.Span[0] = (byte)ResolverType.Relay;
+                sendBytes.Length.ToBytes(buffer.Memory.Slice(1));
+
+                sendBytes.CopyTo(buffer.Memory.Slice(5));
+
+                await socket.SendAsync(buffer.Memory.Slice(0, sendBytes.Length + 5)).ConfigureAwait(false);
+
+                int length = await socket.ReceiveAsync(buffer.Memory.Slice(0, 1)).AsTask().WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+                return length == 1 && buffer.Memory.Span[0] == 0;
+            }
+            catch (Exception)
+            {
+            }
+            return false;
+        }
+
 
         public virtual async Task OnBegin(TunnelTransportInfo tunnelTransportInfo)
         {
+            try
+            {
+                RelayInfo relayInfo = tunnelTransportInfo.TransactionTag.DeJson<RelayInfo>();
 
+                IPEndPoint ep = relayInfo.Node == null || relayInfo.Node.Address.Equals(IPAddress.Any) ? signInClientState.Connection.Address : relayInfo.Node;
+                Socket socket = new Socket(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
+                socket.KeepAlive();
+                try
+                {
+                    await socket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+                    RelayMessageInfo relayMessage = new RelayMessageInfo
+                    {
+                        FlowId = tunnelTransportInfo.FlowId,
+                        Type = RelayMessengerType.Answer,
+                        FromId = tunnelTransportInfo.Local.MachineId,
+                        ToId = tunnelTransportInfo.Remote.MachineId,
+                        MasterId = relayInfo.MasterId,
+                    };
+                    if(await SendMessage(socket, relayMessage).ConfigureAwait(false))
+                    {
+                        ITunnelConnection connection = await WaitSSL(socket, tunnelTransportInfo, relayInfo);
+                        OnConnected(connection);
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Error($"relay connect server {ep} {ex}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
+            }
+            OnConnected(null);
         }
+        private async Task<TunnelConnectionTcp> WaitSSL(Socket socket, TunnelTransportInfo tunnelTransportInfo, RelayInfo relayInfo)
+        {
+            try
+            {
+                SslStream sslStream = null;
+                if (tunnelTransportInfo.SSL)
+                {
+                    sslStream = new SslStream(new NetworkStream(socket, false), false, ValidateServerCertificate, null);
+#pragma warning disable SYSLIB0039 // 类型或成员已过时
+                    await sslStream.AuthenticateAsServerAsync(messengerStore.Certificate, OperatingSystem.IsAndroid(), SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls, false).ConfigureAwait(false);
+#pragma warning restore SYSLIB0039 // 类型或成员已过时
+                }
+                return new TunnelConnectionTcp
+                {
+                    Direction = TunnelDirection.Reverse,
+                    ProtocolType = TunnelProtocolType.Tcp,
+                    RemoteMachineId = tunnelTransportInfo.Remote.MachineId,
+                    RemoteMachineName = tunnelTransportInfo.Remote.MachineName,
+                    Stream = sslStream,
+                    Socket = socket,
+                    Mode = TunnelMode.Server,
+                    IPEndPoint = NetworkHelper.TransEndpointFamily(socket.RemoteEndPoint as IPEndPoint),
+                    TransactionId = tunnelTransportInfo.TransactionId,
+                    TransportName = Name,
+                    Type = TunnelType.Relay,
+                    NodeId = relayInfo.NodeId,
+                    SSL = tunnelTransportInfo.SSL,
+                    BufferSize = 3,
+                };
+            }
+            catch (Exception ex)
+            {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error($"relay wait ssl {ex}");
+                }
+                socket.SafeClose();
+            }
+            return null;
+        }
+
 
         public virtual void OnFail(TunnelTransportInfo tunnelTransportInfo)
         {
@@ -75,7 +362,7 @@ namespace linker.tunnel.transport
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = signInClientState.Connection,
-                    MessengerId = (ushort)RelayMessengerIds.Nodes188,
+                    MessengerId = (ushort)RelayMessengerIds.Nodes,
                     Timeout = 2000
                 }).ConfigureAwait(false);
 
@@ -89,5 +376,29 @@ namespace linker.tunnel.transport
             }
             return new List<RelayServerNodeReportInfo>();
         }
+    }
+
+    /// <summary>
+    /// 中继交换数据
+    /// </summary>
+    public partial class RelayInfo
+    {
+        public string NodeId { get; set; }
+        public string MasterId { get; set; }
+        public IPEndPoint Node { get; set; }
+    }
+    public partial class RelayAskResultInfo
+    {
+        public RelayInfo Info { get; set; }
+        public string MasterId { get; set; }
+        public List<RelayServerNodeReportInfo> Nodes { get; set; } = new List<RelayServerNodeReportInfo>();
+    }
+    public sealed partial class RelayMessageInfo
+    {
+        public RelayMessengerType Type { get; set; }
+        public ulong FlowId { get; set; }
+        public string FromId { get; set; }
+        public string ToId { get; set; }
+        public string MasterId { get; set; }
     }
 }

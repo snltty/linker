@@ -19,7 +19,7 @@ export const provideTuntap = () => {
     });
     provide(tuntapSymbol, tuntap);
 
-    const reg = /iphone|samsung|vivo|oppo|google|huawei|xiaomi|ios|android|windows|ubuntu|openwrt|armbian|archlinux|fedora|centos|rocky|alpine|debian|linux|docker/g;
+    const reg = /fnos|iphone|samsung|vivo|oppo|google|huawei|xiaomi|ios|android|windows|ubuntu|openwrt|armbian|archlinux|fedora|centos|rocky|alpine|debian|linux|docker/g;
 
     const tuntapDataFn = () => {
         return new Promise((resolve, reject) => { 

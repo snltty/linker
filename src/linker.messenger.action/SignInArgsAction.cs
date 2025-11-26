@@ -82,14 +82,6 @@ namespace linker.messenger.action
         /// 事务id
         /// </summary>
         public string TransactionId { get; set; }
-        /// <summary>
-        /// 协议名
-        /// </summary>
-        public string TransportName { get; set; }
-        /// <summary>
-        /// 流水id
-        /// </summary>
-        public ulong FlowingId { get; set; }
     }
     public sealed class JsonArgRelayNodeInfo
     {
@@ -197,39 +189,37 @@ namespace linker.messenger.action
             this.actionServerStore = actionServerStore;
         }
 
-        public async Task<string> Validate(linker.messenger.relay.client.transport.RelayInfo relayInfo, SignCacheInfo fromMachine, SignCacheInfo toMachine)
+        public async Task<string> Validate(SignCacheInfo from, SignCacheInfo to,string transactionId)
         {
             if (string.IsNullOrWhiteSpace(actionServerStore.RelayActionUrl) == false)
             {
-                if (actionServerStore.TryGetActionArg(fromMachine.Args, out string str, out string machineKey) == false)
+                if (actionServerStore.TryGetActionArg(from.Args, out string str, out string machineKey) == false)
                 {
-                    return $"relay action URL exists, but [{fromMachine.MachineName}] action value is not configured";
+                    return $"relay action URL exists, but [{from.MachineName}] action value is not configured";
                 }
-                if (toMachine != null && actionServerStore.TryGetActionArg(toMachine.Args, out string str1, out string machineKey1) == false)
+                if (to != null && actionServerStore.TryGetActionArg(to.Args, out string str1, out string machineKey1) == false)
                 {
-                    return $"relay action URL exists, but [{toMachine.MachineName}] action value is not configured";
+                    return $"relay action URL exists, but [{to.MachineName}] action value is not configured";
                 }
                 JsonArgInfo replace = new JsonArgInfo
                 {
                     Relay = new JsonArgRelayInfo
                     {
-                        FromMachineId = relayInfo.FromMachineId ?? string.Empty,
-                        FromMachineName = relayInfo.FromMachineName ?? string.Empty,
-                        RemoteMachineId = relayInfo.RemoteMachineId ?? string.Empty,
-                        RemoteMachineName = relayInfo.RemoteMachineName ?? string.Empty,
-                        TransactionId = relayInfo.TransactionId ?? string.Empty,
-                        TransportName = relayInfo.TransportName ?? string.Empty,
-                        FlowingId = relayInfo.FlowingId,
+                        FromMachineId = from.MachineId,
+                        FromMachineName = from.MachineName ,
+                        RemoteMachineId = to.MachineId ,
+                        RemoteMachineName = to.MachineName,
+                        TransactionId = transactionId
                     },
                     Signin = new JsonArgSignInInfo
                     {
-                        GroupId = fromMachine.GroupId,
-                        MachineId = fromMachine.MachineId,
-                        MachineName = fromMachine.MachineName,
+                        GroupId = from.GroupId,
+                        MachineId = from.MachineId,
+                        MachineName = from.MachineName,
                         MachineKey = machineKey,
-                        IPAddress = fromMachine.Connection.Address.Address,
-                        Super = fromMachine.Super,
-                        UserId = fromMachine.UserId
+                        IPAddress = from.Connection.Address.Address,
+                        Super = from.Super,
+                        UserId = from.UserId
                     }
                 };
                 return await actionTransfer.ExcuteActions(Replace(replace, str), actionServerStore.RelayActionUrl).ConfigureAwait(false);
