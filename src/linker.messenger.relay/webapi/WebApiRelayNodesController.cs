@@ -13,29 +13,28 @@ namespace linker.messenger.relay.webapi
         {
             this.relayServerMasterTransfer = relayServerMasterTransfer;
         }
-        public Memory<byte> Handle(string query)
+        public async Task<Memory<byte>> Handle(string query)
         {
-            return relayServerMasterTransfer.GetPublicNodes().Select(c =>
+            return (await relayServerMasterTransfer.GetPublicNodes().ConfigureAwait(false)).Select(c =>
             {
                 return new
                 {
-                    AllowProtocol = c.AllowProtocol,
+                    AllowProtocol = c.Protocol,
                     Name = c.Name,
                     Version = c.Version,
 
-                    BandwidthMaxMbps = c.MaxBandwidthTotal,
-                    BandwidthConnMbps = c.MaxBandwidth,
+                    BandwidthMaxMbps = c.Bandwidth,
+                    BandwidthConnMbps = c.BandwidthEachConnection,
                     BandwidthCurrentMbps = c.BandwidthRatio,
 
-                    BandwidthGbMonth = c.MaxGbTotal,
-                    BandwidthByteAvailable = c.MaxGbTotalLastBytes,
+                    BandwidthGbMonth = c.DataEachMonth,
+                    BandwidthByteAvailable = c.DataRemain,
 
-                    ConnectionMaxNum = c.MaxConnection,
-                    ConnectionCurrentNum = c.ConnectionRatio,
+                    ConnectionMaxNum = c.Connections,
+                    ConnectionCurrentNum = c.ConnectionsRatio,
 
-                    EndPoint = c.EndPoint,
                     Url = c.Url,
-
+                    Logo = c.Logo,
                 };
             }).ToJson().ToBytes();
         }

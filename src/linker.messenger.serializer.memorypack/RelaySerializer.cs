@@ -1,6 +1,8 @@
 ﻿using linker.messenger.relay.server;
+using linker.tunnel.connection;
 using linker.tunnel.transport;
 using MemoryPack;
+using System.Net;
 
 namespace linker.messenger.serializer.memorypack
 {
@@ -14,10 +16,10 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         string MasterId => info.MasterId;
         [MemoryPackInclude]
-        List<RelayServerNodeReportInfo> Nodes => info.Nodes;
+        List<RelayNodeStoreInfo> Nodes => info.Nodes;
 
         [MemoryPackConstructor]
-        SerializableRelayAskResultInfo(string masterId, List<RelayServerNodeReportInfo> nodes)
+        SerializableRelayAskResultInfo(string masterId, List<RelayNodeStoreInfo> nodes)
         {
             var info = new RelayAskResultInfo { MasterId = masterId, Nodes = nodes };
             this.info = info;
@@ -53,7 +55,7 @@ namespace linker.messenger.serializer.memorypack
             reader.TryReadObjectHeader(out byte count);
             value.MasterId = reader.ReadValue<string>();
             if (count > 1)
-                value.Nodes = reader.ReadValue<List<RelayServerNodeReportInfo>>();
+                value.Nodes = reader.ReadValue<List<RelayNodeStoreInfo>>();
         }
     }
 
@@ -214,4 +216,134 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
+
+
+    [MemoryPackable]
+    public readonly partial struct SerializableRelayServerNodeReportInfo
+    {
+        [MemoryPackIgnore]
+        public readonly RelayServerNodeReportInfoOld info;
+
+        [MemoryPackInclude]
+        string Id => info.Id;
+        [MemoryPackInclude]
+        string Name => info.Name;
+        [MemoryPackInclude]
+        int MaxConnection => info.MaxConnection;
+        [MemoryPackInclude]
+        double MaxBandwidth => info.MaxBandwidth;
+        [MemoryPackInclude]
+        double MaxBandwidthTotal => info.MaxBandwidthTotal;
+        [MemoryPackInclude]
+        double MaxGbTotal => info.MaxGbTotal;
+        [MemoryPackInclude]
+        long MaxGbTotalLastBytes => info.MaxGbTotalLastBytes;
+        [MemoryPackInclude]
+        double ConnectionRatio => info.ConnectionRatio;
+        [MemoryPackInclude]
+        double BandwidthRatio => info.BandwidthRatio;
+        [MemoryPackInclude]
+        bool Public => info.Public;
+        [MemoryPackInclude]
+        int Delay => info.Delay;
+        [MemoryPackInclude, MemoryPackAllowSerialize]
+        IPEndPoint EndPoint => info.EndPoint;
+        [MemoryPackInclude]
+        long LastTicks => info.LastTicks;
+        [MemoryPackInclude]
+        string Url => info.Url;
+
+        [MemoryPackInclude]
+        TunnelProtocolType AllowProtocol => info.AllowProtocol;
+
+        [MemoryPackInclude]
+        bool Sync2Server => info.Sync2Server;
+        [MemoryPackInclude]
+        string Version => info.Version;
+
+
+        [MemoryPackConstructor]
+        SerializableRelayServerNodeReportInfo(
+            string id, string name,
+            int maxConnection, double maxBandwidth, double maxBandwidthTotal,
+            double maxGbTotal, long maxGbTotalLastBytes,
+            double connectionRatio, double bandwidthRatio,
+            bool Public, int delay,
+            IPEndPoint endPoint, long lastTicks, string url, TunnelProtocolType allowProtocol, bool sync2Server, string version)
+        {
+            var info = new RelayServerNodeReportInfoOld
+            {
+                BandwidthRatio = bandwidthRatio,
+                ConnectionRatio = connectionRatio,
+                Delay = delay,
+                EndPoint = endPoint,
+                Id = id,
+                LastTicks = lastTicks,
+                MaxBandwidth = maxBandwidth,
+                MaxBandwidthTotal = maxBandwidthTotal,
+                MaxConnection = maxConnection,
+                MaxGbTotal = maxGbTotal,
+                MaxGbTotalLastBytes = maxGbTotalLastBytes,
+                Name = name,
+                Public = Public,
+                Url = url,
+                AllowProtocol = allowProtocol,
+                Sync2Server = sync2Server,
+                Version = version
+            };
+            this.info = info;
+        }
+
+        public SerializableRelayServerNodeReportInfo(RelayServerNodeReportInfoOld info)
+        {
+            this.info = info;
+        }
+    }
+    public class RelayServerNodeReportInfoFormatter : MemoryPackFormatter<RelayServerNodeReportInfoOld>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref RelayServerNodeReportInfoOld value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableRelayServerNodeReportInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref RelayServerNodeReportInfoOld value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            value = new RelayServerNodeReportInfoOld();
+            reader.TryReadObjectHeader(out byte count);
+            value.Id = reader.ReadValue<string>();
+            value.Name = reader.ReadValue<string>();
+            value.MaxConnection = reader.ReadValue<int>();
+            value.MaxBandwidth = reader.ReadValue<double>();
+            value.MaxBandwidthTotal = reader.ReadValue<double>();
+            value.MaxGbTotal = reader.ReadValue<double>();
+            value.MaxGbTotalLastBytes = reader.ReadValue<long>();
+            value.ConnectionRatio = reader.ReadValue<double>();
+            value.BandwidthRatio = reader.ReadValue<double>();
+            value.Public = reader.ReadValue<bool>();
+            value.Delay = reader.ReadValue<int>();
+            value.EndPoint = reader.ReadValue<IPEndPoint>();
+            value.LastTicks = reader.ReadValue<long>();
+            if (count > 13)
+                value.Url = reader.ReadValue<string>();
+            if (count > 14)
+                value.AllowProtocol = reader.ReadValue<TunnelProtocolType>();
+            if (count > 15)
+                value.Sync2Server = reader.ReadValue<bool>();
+            if (count > 16)
+                value.Version = reader.ReadValue<string>();
+        }
+    }
 }

@@ -13,10 +13,10 @@ namespace linker.messenger.relay.client
     /// </summary>
     public sealed class RelayClientTestTransfer
     {
-        private readonly TransportRelay  transportRelay;
+        private readonly TransportRelay transportRelay;
         private readonly SignInClientState signInClientState;
 
-        public List<RelayServerNodeReportInfo> Nodes { get; private set; } = new List<RelayServerNodeReportInfo>();
+        public List<RelayNodeStoreInfo> Nodes { get; private set; } = new List<RelayNodeStoreInfo>();
 
         public RelayClientTestTransfer(TransportRelay transportRelay, SignInClientState signInClientState)
         {
@@ -39,10 +39,11 @@ namespace linker.messenger.relay.client
                 Nodes = await transportRelay.RelayTestAsync().ConfigureAwait(false);
                 var tasks = Nodes.Select(async (c) =>
                 {
-                    c.EndPoint = c.EndPoint == null || c.EndPoint.Address.Equals(IPAddress.Any) ? signInClientState.Connection.Address : c.EndPoint;
+                    IPEndPoint ep = NetworkHelper.GetEndPoint(c.Host, 1802);
+                    IPAddress ip = ep.Address.Equals(IPAddress.Any) || ep.Address.Equals(IPAddress.Loopback) ? signInClientState.Connection.Address.Address : ep.Address;
 
                     using Ping ping = new Ping();
-                    var resp = await ping.SendPingAsync(c.EndPoint.Address, 1000);
+                    var resp = await ping.SendPingAsync(ip, 1000);
                     c.Delay = resp.Status == IPStatus.Success ? (int)resp.RoundtripTime : -1;
                 });
                 await Task.WhenAll(tasks).ConfigureAwait(false);

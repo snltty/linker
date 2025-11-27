@@ -62,7 +62,7 @@ namespace linker.tunnel.transport
             {
                 //问一下能不能中继
                 RelayAskResultInfo ask = await RelayAsk(tunnelTransportInfo).ConfigureAwait(false);
-                List<RelayServerNodeReportInfo> nodes = ask.Nodes;
+                List<RelayNodeStoreInfo> nodes = ask.Nodes;
                 if (ask.Nodes.Count == 0)
                 {
                     return null;
@@ -149,7 +149,7 @@ namespace linker.tunnel.transport
             }).ConfigureAwait(false);
             if (resp.Code != MessageResponeCodes.OK)
             {
-                return new RelayAskResultInfo { Info = relayInfo, Nodes = new List<RelayServerNodeReportInfo>() };
+                return new RelayAskResultInfo { Info = relayInfo, Nodes = new List<RelayNodeStoreInfo>() };
             }
             RelayAskResultInfo ask = serializer.Deserialize<RelayAskResultInfo>(resp.Data.Span);
             ask.Info = relayInfo;
@@ -164,12 +164,12 @@ namespace linker.tunnel.transport
 
             try
             {
-                foreach (var node in ask.Nodes.Where(c => c.Id == ask.Info.NodeId).Concat(ask.Nodes.Where(c => c.Id != ask.Info.NodeId)))
+                foreach (var node in ask.Nodes.Where(c => c.NodeId == ask.Info.NodeId).Concat(ask.Nodes.Where(c => c.NodeId != ask.Info.NodeId)))
                 {
                     try
                     {
-                        IPEndPoint ep = node.EndPoint;
-                        if (ep == null || ep.Address.Equals(IPAddress.Any))
+                        IPEndPoint ep = NetworkHelper.GetEndPoint(node.Host,1802);
+                        if (ep == null || ep.Address.Equals(IPAddress.Any) || ep.Address.Equals(IPAddress.Loopback))
                         {
                             ep = signInClientState.Connection.Address;
                         }
@@ -198,8 +198,8 @@ namespace linker.tunnel.transport
                         };
                         if(await SendMessage(socket, relayMessage).ConfigureAwait(false))
                         {
-                            ask.Info.Node = node.EndPoint;
-                            ask.Info.NodeId = node.Id;
+                            ask.Info.Node = ep;
+                            ask.Info.NodeId = node.NodeId;
                             return socket;
                         }
                         socket.SafeClose();
@@ -355,7 +355,7 @@ namespace linker.tunnel.transport
         {
         }
 
-        public async Task<List<RelayServerNodeReportInfo>> RelayTestAsync()
+        public async Task<List<RelayNodeStoreInfo>> RelayTestAsync()
         {
             try
             {
@@ -368,13 +368,13 @@ namespace linker.tunnel.transport
 
                 if (resp.Code == MessageResponeCodes.OK)
                 {
-                    return serializer.Deserialize<List<RelayServerNodeReportInfo>>(resp.Data.Span);
+                    return serializer.Deserialize<List<RelayNodeStoreInfo>>(resp.Data.Span);
                 }
             }
             catch (Exception)
             {
             }
-            return new List<RelayServerNodeReportInfo>();
+            return new List<RelayNodeStoreInfo>();
         }
     }
 
@@ -391,7 +391,7 @@ namespace linker.tunnel.transport
     {
         public RelayInfo Info { get; set; }
         public string MasterId { get; set; }
-        public List<RelayServerNodeReportInfo> Nodes { get; set; } = new List<RelayServerNodeReportInfo>();
+        public List<RelayNodeStoreInfo> Nodes { get; set; } = new List<RelayNodeStoreInfo>();
     }
     public sealed partial class RelayMessageInfo
     {

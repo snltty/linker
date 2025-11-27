@@ -226,7 +226,7 @@ namespace linker.messenger.action
             }
             return string.Empty;
         }
-        public async Task<List<RelayServerNodeReportInfo>> Validate(string userid, SignCacheInfo fromMachine, List<RelayServerNodeReportInfo> nodes)
+        public async Task<List<RelayNodeStoreInfo>> Validate(string userid, SignCacheInfo fromMachine, List<RelayNodeStoreInfo> nodes)
         {
             if (string.IsNullOrWhiteSpace(actionServerStore.RelayNodeUrl) == false)
             {
@@ -242,7 +242,7 @@ namespace linker.messenger.action
                         FromMachineName = fromMachine.MachineName,
                         Nodes = nodes.Select(c => new JsonArgRelayNodeItemInfo
                         {
-                            Id = c.Id,
+                            Id = c.NodeId,
                             Name = c.Name,
                             Public = c.Public
                         }).ToList() ?? []
@@ -261,7 +261,7 @@ namespace linker.messenger.action
                 string ids = await actionTransfer.ExcuteActions(Replace(replace, str), actionServerStore.RelayNodeUrl).ConfigureAwait(false);
                 if (string.IsNullOrWhiteSpace(ids)) return [];
 
-                return nodes.Where(c => ids.Split(',').Contains(c.Id)).ToList();
+                return nodes.Where(c => ids.Split(',').Contains(c.NodeId)).ToList();
             }
             return nodes;
         }

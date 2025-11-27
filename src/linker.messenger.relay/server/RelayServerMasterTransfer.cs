@@ -1,6 +1,5 @@
 ﻿
 using linker.messenger.signin;
-using System.Collections.Concurrent;
 
 namespace linker.messenger.relay.server
 {
@@ -9,16 +8,15 @@ namespace linker.messenger.relay.server
     /// </summary>
     public class RelayServerMasterTransfer
     {
-
-        private readonly ConcurrentDictionary<string, RelayServerNodeReportInfo> reports = new ConcurrentDictionary<string, RelayServerNodeReportInfo>();
-
         private readonly IRelayServerCaching relayCaching;
         private readonly IRelayServerWhiteListStore relayServerWhiteListStore;
+        private readonly IRelayServerMasterStore relayServerMasterStore;
 
-        public RelayServerMasterTransfer(IRelayServerCaching relayCaching, IRelayServerWhiteListStore relayServerWhiteListStore)
+        public RelayServerMasterTransfer(IRelayServerCaching relayCaching, IRelayServerWhiteListStore relayServerWhiteListStore, IRelayServerMasterStore relayServerMasterStore)
         {
             this.relayCaching = relayCaching;
             this.relayServerWhiteListStore = relayServerWhiteListStore;
+            this.relayServerMasterStore = relayServerMasterStore;
 
         }
 
@@ -40,9 +38,9 @@ namespace linker.messenger.relay.server
 
         public async Task<RelayCacheInfo> TryGetRelayCache(string key, string nodeid)
         {
-            if (relayCaching.TryGetValue(key, out RelayCacheInfo cache) && reports.TryGetValue(nodeid, out var node))
+            if (relayCaching.TryGetValue(key, out RelayCacheInfo cache))
             {
-                List<double> bandwidth = await relayServerWhiteListStore.GetBandwidth(cache.UserId, cache.FromId, cache.ToId, node.Id);
+                List<double> bandwidth = await relayServerWhiteListStore.GetBandwidth(cache.UserId, cache.FromId, cache.ToId, nodeid);
                 if (bandwidth.Any(c => c < 0))
                 {
                     return null;
@@ -61,42 +59,42 @@ namespace linker.messenger.relay.server
         /// </summary>
         /// <param name="validated">是否已认证</param>
         /// <returns></returns>
-        public async Task<List<RelayServerNodeReportInfo>> GetNodes(bool validated, string userid, string machineId)
+        public async Task<List<RelayNodeStoreInfo>> GetNodes(bool validated, string userid, string machineId)
         {
             var nodes = (await relayServerWhiteListStore.GetNodes(userid, machineId)).Where(c => c.Bandwidth >= 0).SelectMany(c => c.Nodes);
 
-            var result = reports.Values
+            var result = (await relayServerMasterStore.GetAll())
                 .Where(c => Environment.TickCount64 - c.LastTicks < 15000)
                 .Where(c =>
                 {
-                    return validated || nodes.Contains(c.Id) || nodes.Contains("*")
-                    || (c.Public && c.ConnectionRatio < c.MaxConnection && (c.MaxGbTotal == 0 || (c.MaxGbTotal > 0 && c.MaxGbTotalLastBytes > 0)));
+                    return validated || nodes.Contains(c.NodeId) || nodes.Contains("*")
+                    || (c.Public && c.ConnectionsRatio < c.Connections && (c.DataEachMonth == 0 || (c.DataEachMonth > 0 && c.DataRemain > 0)));
                 })
                 .OrderByDescending(c => c.LastTicks);
 
-            return result.OrderByDescending(x => x.MaxConnection == 0 ? int.MaxValue : x.MaxConnection)
-                     .ThenBy(x => x.ConnectionRatio)
+            return result.OrderByDescending(x => x.Connections == 0 ? int.MaxValue : x.Connections)
+                     .ThenBy(x => x.ConnectionsRatio)
                      .ThenBy(x => x.BandwidthRatio)
-                     .ThenByDescending(x => x.MaxBandwidth == 0 ? double.MaxValue : x.MaxBandwidth)
-                     .ThenByDescending(x => x.MaxBandwidthTotal == 0 ? double.MaxValue : x.MaxBandwidthTotal)
-                     .ThenByDescending(x => x.MaxGbTotal == 0 ? double.MaxValue : x.MaxGbTotal)
-                     .ThenByDescending(x => x.MaxGbTotalLastBytes == 0 ? long.MaxValue : x.MaxGbTotalLastBytes)
+                     .ThenByDescending(x => x.BandwidthEachConnection == 0 ? int.MaxValue : x.BandwidthEachConnection)
+                     .ThenByDescending(x => x.Bandwidth == 0 ? int.MaxValue : x.Bandwidth)
+                     .ThenByDescending(x => x.DataEachMonth == 0 ? int.MaxValue : x.DataEachMonth)
+                     .ThenByDescending(x => x.DataRemain == 0 ? long.MaxValue : x.DataRemain)
                      .ToList();
         }
-        public List<RelayServerNodeReportInfo> GetPublicNodes()
+        public async Task<List<RelayNodeStoreInfo>> GetPublicNodes()
         {
-            var result = reports.Values
+            var result = (await relayServerMasterStore.GetAll())
                 .Where(c => Environment.TickCount64 - c.LastTicks < 15000)
                 .Where(c => c.Public)
                 .OrderByDescending(c => c.LastTicks);
 
-            return result.OrderByDescending(x => x.MaxConnection == 0 ? int.MaxValue : x.MaxConnection)
-                     .ThenBy(x => x.ConnectionRatio)
+            return result.OrderByDescending(x => x.Connections == 0 ? int.MaxValue : x.Connections)
+                     .ThenBy(x => x.ConnectionsRatio)
                      .ThenBy(x => x.BandwidthRatio)
-                     .ThenByDescending(x => x.MaxBandwidth == 0 ? double.MaxValue : x.MaxBandwidth)
-                     .ThenByDescending(x => x.MaxBandwidthTotal == 0 ? double.MaxValue : x.MaxBandwidthTotal)
-                     .ThenByDescending(x => x.MaxGbTotal == 0 ? double.MaxValue : x.MaxGbTotal)
-                     .ThenByDescending(x => x.MaxGbTotalLastBytes == 0 ? long.MaxValue : x.MaxGbTotalLastBytes)
+                     .ThenByDescending(x => x.BandwidthEachConnection == 0 ? int.MaxValue : x.BandwidthEachConnection)
+                     .ThenByDescending(x => x.Bandwidth == 0 ? int.MaxValue : x.Bandwidth)
+                     .ThenByDescending(x => x.DataEachMonth == 0 ? int.MaxValue : x.DataEachMonth)
+                     .ThenByDescending(x => x.DataRemain == 0 ? long.MaxValue : x.DataRemain)
                      .ToList();
         }
 

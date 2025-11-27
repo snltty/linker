@@ -1,5 +1,6 @@
 ﻿using linker.libs.extends;
 using linker.libs.web;
+using System.Threading.Tasks;
 namespace linker.messenger.flow.webapi
 {
     public sealed class WebApiCitysController : IWebApiController
@@ -11,9 +12,9 @@ namespace linker.messenger.flow.webapi
         {
             this.flowResolver = flowResolver;
         }
-        public Memory<byte> Handle(string query)
+        public async Task<Memory<byte>> Handle(string query)
         {
-            return flowResolver.GetCitys().ToJson().ToBytes();
+            return await Task.FromResult(flowResolver.GetCitys().ToJson().ToBytes()).ConfigureAwait(false);
         }
 
         public void Free()

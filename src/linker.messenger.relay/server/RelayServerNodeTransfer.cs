@@ -36,7 +36,7 @@ namespace linker.messenger.relay.server
             this.messengerSender = messengerSender;
             this.relayServerConnectionTransfer = relayServerConnectionTransfer;
 
-            limitTotal.SetLimit((uint)Math.Ceiling((Node.MaxBandwidthTotal * 1024 * 1024) / 8.0));
+            limitTotal.SetLimit((uint)Math.Ceiling((Node.Bandwidth * 1024 * 1024) / 8.0));
 
             TrafficTask();
         }
@@ -56,7 +56,7 @@ namespace linker.messenger.relay.server
                 {
                     Connection = connection,
                     MessengerId = (ushort)RelayMessengerIds.NodeGetCache,
-                    Payload = serializer.Serialize(new ValueTuple<string, string>(key, Node.Id)),
+                    Payload = serializer.Serialize(new ValueTuple<string, string>(key, Node.NodeId)),
                     Timeout = 1000
                 }).ConfigureAwait(false);
                 if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
@@ -75,9 +75,6 @@ namespace linker.messenger.relay.server
 
         public bool Validate(TunnelProtocolType tunnelProtocolType)
         {
-            if (tunnelProtocolType == TunnelProtocolType.Udp && Node.AllowUdp == false) return false;
-            if (tunnelProtocolType == TunnelProtocolType.Tcp && Node.AllowTcp == false) return false;
-
             return true;
         }
         /// <summary>
@@ -94,9 +91,9 @@ namespace linker.messenger.relay.server
         /// <returns></returns>
         private bool ValidateConnection(RelayCacheInfo relayCache)
         {
-            bool res = Node.MaxConnection == 0 || Node.MaxConnection * 2 > connectionNum;
+            bool res = Node.Connections == 0 || Node.Connections * 2 > connectionNum;
             if (res == false && LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                LoggerHelper.Instance.Debug($"relay  ValidateConnection false,{connectionNum}/{Node.MaxConnection * 2}");
+                LoggerHelper.Instance.Debug($"relay  ValidateConnection false,{connectionNum}/{Node.Connections * 2}");
 
             return res;
         }
@@ -106,11 +103,11 @@ namespace linker.messenger.relay.server
         /// <returns></returns>
         private bool ValidateBytes(RelayCacheInfo relayCache)
         {
-            bool res = Node.MaxGbTotal == 0
-                || (Node.MaxGbTotal > 0 && Node.MaxGbTotalLastBytes > 0);
+            bool res = Node.DataEachMonth == 0
+                || (Node.DataEachMonth > 0 && Node.DataRemain > 0);
 
             if (res == false && LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                LoggerHelper.Instance.Debug($"relay  ValidateBytes false,{Node.MaxGbTotalLastBytes}bytes/{Node.MaxGbTotal}gb");
+                LoggerHelper.Instance.Debug($"relay  ValidateBytes false,{Node.DataRemain}bytes/{Node.DataEachMonth}gb");
 
             return res;
         }
@@ -184,11 +181,11 @@ namespace linker.messenger.relay.server
         {
             Interlocked.Add(ref bytes, length);
 
-            if (Node.MaxGbTotal == 0) return true;
+            if (Node.DataEachMonth == 0) return true;
 
             Interlocked.Add(ref cache.Sendt, length);
 
-            return Node.MaxGbTotalLastBytes > 0;
+            return Node.DataRemain > 0;
         }
 
         /// <summary>
@@ -204,32 +201,25 @@ namespace linker.messenger.relay.server
                 return;
             }
 
-            //无限制
-            if (relayCache.Cache.Super || Node.MaxBandwidth == 0)
-            {
-                relayCache.Limit.SetLimit(0);
-                return;
-            }
-
-            relayCache.Limit.SetLimit((uint)Math.Ceiling(Node.MaxBandwidth * 1024 * 1024 / 8.0));
+            relayCache.Limit.SetLimit((uint)Math.Ceiling(Node.Bandwidth * 1024 * 1024 / 8.0));
         }
 
         private void ResetNodeBytes()
         {
-            if (Node.MaxGbTotal == 0) return;
+            if (Node.DataEachMonth == 0) return;
 
             foreach (var cache in trafficDict.Values)
             {
                 long length = Interlocked.Exchange(ref cache.Sendt, 0);
 
-                if (Node.MaxGbTotalLastBytes >= length)
-                    relayServerNodeStore.SetMaxGbTotalLastBytes(Node.MaxGbTotalLastBytes - length);
+                if (Node.DataRemain >= length)
+                    relayServerNodeStore.SetMaxGbTotalLastBytes(Node.DataRemain - length);
                 else relayServerNodeStore.SetMaxGbTotalLastBytes(0);
             }
-            if (Node.MaxGbTotalMonth != DateTime.Now.Month)
+            if (Node.DataMonth != DateTime.Now.Month)
             {
                 relayServerNodeStore.SetMaxGbTotalMonth(DateTime.Now.Month);
-                relayServerNodeStore.SetMaxGbTotalLastBytes((long)(Node.MaxGbTotal * 1024 * 1024 * 1024));
+                relayServerNodeStore.SetMaxGbTotalLastBytes((long)(Node.DataEachMonth * 1024 * 1024 * 1024));
             }
             relayServerNodeStore.Confirm();
         }

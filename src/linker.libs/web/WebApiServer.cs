@@ -88,7 +88,7 @@ namespace linker.libs.web
 
                     if (dic.TryGetValue(path, out IWebApiController controller))
                     {
-                        Memory<byte> memory = controller.Handle(query);
+                        Memory<byte> memory = await controller.Handle(query);
                         response.ContentLength64 = memory.Length;
                         response.ContentType = "application/json";
                         await response.OutputStream.WriteAsync(memory);

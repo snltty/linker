@@ -46,10 +46,10 @@ namespace linker.messenger.relay.messenger
         {
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
             {
-                connection.Write(serializer.Serialize(new List<RelayServerNodeReportInfo> { }));
+                connection.Write(serializer.Serialize(new List<RelayNodeStoreInfo> { }));
                 return;
             }
-            List<RelayServerNodeReportInfo> nodes = await GetNodes(cache);
+            List<RelayNodeStoreInfo> nodes = await GetNodes(cache);
             connection.Write(serializer.Serialize(nodes));
         }
 
@@ -72,9 +72,9 @@ namespace linker.messenger.relay.messenger
                 return;
             }
 
-            connection.Write(serializer.Serialize(new RelayAskResultInfo { Nodes = nodes, MasterId = relayServerNodeStore.Node.Id }));
+            connection.Write(serializer.Serialize(new RelayAskResultInfo { Nodes = nodes, MasterId = relayServerNodeStore.Node.NodeId }));
         }
-        private async Task<List<RelayServerNodeReportInfo>> GetNodes(SignCacheInfo from)
+        private async Task<List<RelayNodeStoreInfo>> GetNodes(SignCacheInfo from)
         {
             return await relayServerTransfer.GetNodes(from.Super, from.UserId, from.MachineId);
         }
@@ -97,5 +97,19 @@ namespace linker.messenger.relay.messenger
             }
         }
 
+
+        [MessengerId((ushort)RelayMessengerIds.NodeReport)]
+        public void NodeReport188(IConnection connection)
+        {
+            try
+            {
+                relayServerReportResolver.Add(connection.ReceiveRequestWrap.Payload.Length, 0);
+                RelayServerNodeReportInfoOld info = serializer.Deserialize<RelayServerNodeReportInfoOld>(connection.ReceiveRequestWrap.Payload.Span);
+            }
+            catch (Exception)
+            {
+            }
+            connection.Write(serializer.Serialize(VersionHelper.Version));
+        }
     }
 }

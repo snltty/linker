@@ -64,7 +64,8 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new RelayAskResultInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayCacheInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayMessageInfoFormatter());
-
+            MemoryPackFormatterProvider.Register(new RelayServerNodeReportInfoFormatter());
+            
 
             MemoryPackFormatterProvider.Register(new AccessUpdateInfoFormatter());
             MemoryPackFormatterProvider.Register(new AccessBitsUpdateInfoFormatter());

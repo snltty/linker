@@ -13,12 +13,10 @@ namespace linker.messenger.relay.server
     {
         public byte Type => (byte)ResolverType.RelayReport;
 
-        private readonly RelayServerMasterTransfer relayServerTransfer;
         private readonly IMessengerResolver messengerResolver;
 
-        public RelayServerReportResolver(RelayServerMasterTransfer relayServerTransfer, IMessengerResolver messengerResolver)
+        public RelayServerReportResolver(IMessengerResolver messengerResolver)
         {
-            this.relayServerTransfer = relayServerTransfer;
             this.messengerResolver = messengerResolver;
         }
 
@@ -31,23 +29,9 @@ namespace linker.messenger.relay.server
             byte[] buffer = ArrayPool<byte>.Shared.Rent(1024);
             try
             {
-               
+                await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false);
 
-                await socket.ReceiveAsync(buffer.AsMemory(0, 1), SocketFlags.None).ConfigureAwait(false);
-                int length = buffer[0];
-                Add(memory.Length,length);
-                await socket.ReceiveAsync(buffer.AsMemory(0, length), SocketFlags.None).ConfigureAwait(false);
-
-                string key = buffer.AsMemory(0, length).GetString();
-                /*
-                if (relayServerMasterStore.Master.SecretKey.Sha256() == key)
-                {
-                    await messengerResolver.BeginReceiveServer(socket, Helper.EmptyArray).ConfigureAwait(false);
-                }
-                else*/
-                {
-                    socket.SafeClose();
-                }
+                await messengerResolver.BeginReceiveServer(socket, Helper.EmptyArray).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

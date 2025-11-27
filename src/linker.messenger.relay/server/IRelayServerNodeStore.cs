@@ -39,52 +39,33 @@ namespace linker.messenger.relay.server
         public void Confirm();
     }
 
-    public sealed class RelayServerNodeInfo
+    public class RelayServerNodeInfo
     {
-        private string id = Guid.NewGuid().ToString().ToUpper();
-        public string Id
-        {
-            get => id; set
-            {
-                id = value.SubStr(0, 36);
-            }
-        }
+        private string nodeId = Guid.NewGuid().ToString().ToUpper();
+        public string NodeId { get => nodeId; set { nodeId = value.SubStr(0, 36); } }
 
         private string name = Dns.GetHostName().SubStr(0, 32);
-        public string Name
-        {
-            get => name; set
-            {
-                name = value.SubStr(0, 32);
-            }
-        }
+        public string Name { get => name; set { name = value.SubStr(0, 32); } }
         public string Host { get; set; } = string.Empty;
 
-        public int MaxConnection { get; set; }
-        public double MaxBandwidth { get; set; }
-        public double MaxBandwidthTotal { get; set; }
-        public double MaxGbTotal { get; set; }
-        public long MaxGbTotalLastBytes { get; set; }
-        public int MaxGbTotalMonth { get; set; }
-
-        public bool Public { get; set; }
-
-        public string MasterHost { get; set; } = string.Empty;
-#if DEBUG
-        public string MasterSecretKey { get; set; } = Helper.GlobalString;
-#else
-        public string MasterSecretKey { get; set; } = string.Empty;
-#endif
-        public string Url { get; set; } = "https://linker-doc.snltty.com";
-
-        public bool AllowTcp { get; set; } = true;
-        public bool AllowUdp { get; set; }
-        public bool Sync2Server { get; set; }
-
-        public string[] MasterHosts { get; set; } = [];
+        public TunnelProtocolType Protocol { get; set; } = TunnelProtocolType.Tcp;
+        public int Connections { get; set; } = 1000;
+        public int Bandwidth { get; set; } = 50;
+        public int DataEachMonth { get; set; } = 100;
+        public long DataRemain { get; set; }
+        public int DataMonth { get; set; }
+        public string Url { get; set; } = "https://linker.snltty.com";
+        public string Logo { get; set; } = "https://linker.snltty.com/img/logo.png";
     }
 
-    public partial class RelayServerNodeReportInfo
+    public class RelayServerNodeReportInfo : RelayServerNodeInfo
+    {
+        public string Version { get; set; } = string.Empty;
+        public int ConnectionsRatio { get; set; }
+        public int BandwidthRatio { get; set; }
+    }
+
+    public partial class RelayServerNodeReportInfoOld
     {
         public string Id { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
@@ -101,9 +82,7 @@ namespace linker.messenger.relay.server
         public bool Public { get; set; }
 
         public int Delay { get; set; }
-
         public IPEndPoint EndPoint { get; set; }
-
         public long LastTicks { get; set; }
 
         /// <summary>
@@ -121,5 +100,5 @@ namespace linker.messenger.relay.server
         [JsonIgnore]
         public IConnection Connection { get; set; }
     }
-    
+
 }

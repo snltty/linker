@@ -59,7 +59,7 @@ namespace linker.messenger.relay.server.validator
             }
             return string.Empty;
         }
-        public async Task<List<RelayServerNodeReportInfo>> Validate(string userid, SignCacheInfo fromMachine, List<RelayServerNodeReportInfo> nodes)
+        public async Task<List<RelayNodeStoreInfo>> Validate(string userid, SignCacheInfo fromMachine, List<RelayNodeStoreInfo> nodes)
         {
             foreach (var item in validators)
             {

@@ -24,12 +24,12 @@ namespace linker.messenger.store.file.relay
         }
         public void SetMaxGbTotalLastBytes(long value)
         {
-            config.Data.Server.Relay.Distributed.Node.MaxGbTotalLastBytes = value;
+            config.Data.Server.Relay.Distributed.Node.DataRemain = value;
         }
 
         public void SetMaxGbTotalMonth(int month)
         {
-            config.Data.Server.Relay.Distributed.Node.MaxGbTotalMonth = month;
+            config.Data.Server.Relay.Distributed.Node.DataMonth = month;
         }
 
 

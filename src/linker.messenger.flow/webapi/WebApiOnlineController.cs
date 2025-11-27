@@ -1,6 +1,7 @@
 ﻿using linker.libs.extends;
 using linker.libs.web;
 using linker.messenger.signin;
+using System.Threading.Tasks;
 namespace linker.messenger.flow.webapi
 {
     public sealed class WebApiOnlineController : IWebApiController
@@ -14,10 +15,10 @@ namespace linker.messenger.flow.webapi
             this.signCaching = signCaching;
             this.flowResolver = flowResolver;
         }
-        public Memory<byte> Handle(string query)
+        public async Task<Memory<byte>> Handle(string query)
         {
             signCaching.GetOnline(out int all, out int online);
-            return new
+            return await Task.FromResult(new
             {
                 CurrentServer = new
                 {
@@ -30,7 +31,7 @@ namespace linker.messenger.flow.webapi
                     Online = flowResolver.ReceiveBytes >> 32,
                     Server = flowResolver.SendtBytes,
                 }
-            }.ToJson().ToBytes();
+            }.ToJson().ToBytes()).ConfigureAwait(false);
         }
 
         public void Free()

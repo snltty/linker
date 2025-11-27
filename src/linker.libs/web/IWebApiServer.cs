@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace linker.libs.web
 {
@@ -20,7 +21,7 @@ namespace linker.libs.web
     public interface IWebApiController
     {
         public string Path { get; }
-        public Memory<byte> Handle(string query);
+        public Task<Memory<byte>> Handle(string query);
         public void Free();
     }
 
