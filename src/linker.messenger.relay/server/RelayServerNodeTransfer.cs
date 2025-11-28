@@ -12,28 +12,28 @@ namespace linker.messenger.relay.server
     /// </summary>
     public class RelayServerNodeTransfer
     {
-        public RelayServerConfigInfo Node => relayServerNodeStore.Config;
+        public RelayServerConfigInfo Config => relayServerConfigStore.Config;
 
 
         private readonly RelaySpeedLimit limitTotal = new RelaySpeedLimit();
         private readonly ConcurrentDictionary<ulong, RelayTrafficCacheInfo> trafficDict = new();
 
         private readonly ISerializer serializer;
-        private readonly IRelayServerConfigStore relayServerNodeStore;
+        private readonly IRelayServerConfigStore relayServerConfigStore;
         private readonly IMessengerSender messengerSender;
         private readonly RelayServerConnectionTransfer relayServerConnectionTransfer;
         private readonly RelayServerNodeReportTransfer relayServerNodeReportTransfer;
 
-        public RelayServerNodeTransfer(ISerializer serializer, IRelayServerConfigStore relayServerNodeStore, IMessengerSender messengerSender,
+        public RelayServerNodeTransfer(ISerializer serializer, IRelayServerConfigStore relayServerConfigStore, IMessengerSender messengerSender,
             RelayServerConnectionTransfer relayServerConnectionTransfer, RelayServerNodeReportTransfer relayServerNodeReportTransfer)
         {
             this.serializer = serializer;
-            this.relayServerNodeStore = relayServerNodeStore;
+            this.relayServerConfigStore = relayServerConfigStore;
             this.messengerSender = messengerSender;
             this.relayServerConnectionTransfer = relayServerConnectionTransfer;
             this.relayServerNodeReportTransfer = relayServerNodeReportTransfer;
 
-            limitTotal.SetLimit((uint)Math.Ceiling((Node.Bandwidth * 1024 * 1024) / 8.0));
+            limitTotal.SetLimit((uint)Math.Ceiling((Config.Bandwidth * 1024 * 1024) / 8.0));
             TrafficTask();
         }
 
@@ -52,7 +52,7 @@ namespace linker.messenger.relay.server
                 {
                     Connection = connection,
                     MessengerId = (ushort)RelayMessengerIds.GetCache,
-                    Payload = serializer.Serialize(new ValueTuple<string, string>(key, Node.NodeId)),
+                    Payload = serializer.Serialize(new ValueTuple<string, string>(key, Config.NodeId)),
                     Timeout = 1000
                 }).ConfigureAwait(false);
                 if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
@@ -71,7 +71,7 @@ namespace linker.messenger.relay.server
 
         public bool Validate(TunnelProtocolType tunnelProtocolType)
         {
-            return (Node.Protocol & tunnelProtocolType) == tunnelProtocolType;
+            return (Config.Protocol & tunnelProtocolType) == tunnelProtocolType;
         }
         /// <summary>
         /// 无效请求
@@ -87,9 +87,9 @@ namespace linker.messenger.relay.server
         /// <returns></returns>
         private bool ValidateConnection(RelayCacheInfo relayCache)
         {
-            bool res = Node.Connections == 0 || Node.Connections * 2 > relayServerNodeReportTransfer.ConnectionNum;
+            bool res = Config.Connections == 0 || Config.Connections * 2 > relayServerNodeReportTransfer.ConnectionNum;
             if (res == false && LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                LoggerHelper.Instance.Debug($"relay  validate connection false,{relayServerNodeReportTransfer.ConnectionNum}/{Node.Connections * 2}");
+                LoggerHelper.Instance.Debug($"relay  validate connection false,{relayServerNodeReportTransfer.ConnectionNum}/{Config.Connections * 2}");
 
             return res;
         }
@@ -99,11 +99,11 @@ namespace linker.messenger.relay.server
         /// <returns></returns>
         private bool ValidateBytes(RelayCacheInfo relayCache)
         {
-            bool res = Node.DataEachMonth == 0
-                || (Node.DataEachMonth > 0 && Node.DataRemain > 0);
+            bool res = Config.DataEachMonth == 0
+                || (Config.DataEachMonth > 0 && Config.DataRemain > 0);
 
             if (res == false && LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                LoggerHelper.Instance.Debug($"relay  ValidateBytes false,{Node.DataRemain}bytes/{Node.DataEachMonth}gb");
+                LoggerHelper.Instance.Debug($"relay  ValidateBytes false,{Config.DataRemain}bytes/{Config.DataEachMonth}gb");
 
             return res;
         }
@@ -177,11 +177,11 @@ namespace linker.messenger.relay.server
         {
             relayServerNodeReportTransfer.AddBytes(length);
 
-            if (Node.DataEachMonth == 0) return true;
+            if (Config.DataEachMonth == 0) return true;
 
             Interlocked.Add(ref cache.Sendt, length);
 
-            return Node.DataRemain > 0;
+            return Config.DataRemain > 0;
         }
 
         /// <summary>
@@ -190,34 +190,33 @@ namespace linker.messenger.relay.server
         /// <param name="relayCache"></param>
         private void SetLimit(RelayTrafficCacheInfo relayCache)
         {
-            //黑白名单
             if (relayCache.Cache.Bandwidth >= 0)
             {
                 relayCache.Limit.SetLimit((uint)Math.Ceiling(relayCache.Cache.Bandwidth * 1024 * 1024 / 8.0));
                 return;
             }
 
-            relayCache.Limit.SetLimit((uint)Math.Ceiling(Node.Bandwidth * 1024 * 1024 / 8.0));
+            relayCache.Limit.SetLimit((uint)Math.Ceiling(Config.Bandwidth * 1024 * 1024 / 8.0));
         }
 
         private void ResetNodeBytes()
         {
-            if (Node.DataEachMonth == 0) return;
+            if (Config.DataEachMonth == 0) return;
 
             foreach (var cache in trafficDict.Values)
             {
                 long length = Interlocked.Exchange(ref cache.Sendt, 0);
 
-                if (Node.DataRemain >= length)
-                    relayServerNodeStore.SetDataRemain(Node.DataRemain - length);
-                else relayServerNodeStore.SetDataRemain(0);
+                if (Config.DataRemain >= length)
+                    relayServerConfigStore.SetDataRemain(Config.DataRemain - length);
+                else relayServerConfigStore.SetDataRemain(0);
             }
-            if (Node.DataMonth != DateTime.Now.Month)
+            if (Config.DataMonth != DateTime.Now.Month)
             {
-                relayServerNodeStore.DataMonth(DateTime.Now.Month);
-                relayServerNodeStore.SetDataRemain((long)(Node.DataEachMonth * 1024 * 1024 * 1024));
+                relayServerConfigStore.SetDataMonth(DateTime.Now.Month);
+                relayServerConfigStore.SetDataRemain((long)(Config.DataEachMonth * 1024 * 1024 * 1024));
             }
-            relayServerNodeStore.Confirm();
+            relayServerConfigStore.Confirm();
         }
         private void TrafficTask()
         {
@@ -233,7 +232,5 @@ namespace linker.messenger.relay.server
                 }
             }, 3000);
         }
-
     }
-
 }

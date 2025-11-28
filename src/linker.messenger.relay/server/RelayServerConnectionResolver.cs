@@ -6,16 +6,13 @@ using System.Net.Sockets;
 
 namespace linker.messenger.relay.server
 {
-    /// <summary>
-    /// 中继节点报告处理器
-    /// </summary>
-    public class RelayServerReportResolver : IResolver
+    public class RelayServerConnectionResolver : IResolver
     {
-        public byte Type => (byte)ResolverType.RelayReport;
+        public byte Type => (byte)ResolverType.RelayConnection;
 
         private readonly IMessengerResolver messengerResolver;
 
-        public RelayServerReportResolver(IMessengerResolver messengerResolver)
+        public RelayServerConnectionResolver(IMessengerResolver messengerResolver)
         {
             this.messengerResolver = messengerResolver;
         }
@@ -29,8 +26,6 @@ namespace linker.messenger.relay.server
             byte[] buffer = ArrayPool<byte>.Shared.Rent(1024);
             try
             {
-                await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false);
-
                 await messengerResolver.BeginReceiveServer(socket, Helper.EmptyArray).ConfigureAwait(false);
             }
             catch (Exception ex)
@@ -52,5 +47,4 @@ namespace linker.messenger.relay.server
             await Task.CompletedTask.ConfigureAwait(false);
         }
     }
-
 }

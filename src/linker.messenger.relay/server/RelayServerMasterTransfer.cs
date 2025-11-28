@@ -10,13 +10,13 @@ namespace linker.messenger.relay.server
     {
         private readonly IRelayServerCaching relayCaching;
         private readonly IRelayServerWhiteListStore relayServerWhiteListStore;
-        private readonly IRelayServerNodeStore relayServerMasterStore;
+        private readonly IRelayServerNodeStore  relayServerNodeStore;
 
-        public RelayServerMasterTransfer(IRelayServerCaching relayCaching, IRelayServerWhiteListStore relayServerWhiteListStore, IRelayServerNodeStore relayServerMasterStore)
+        public RelayServerMasterTransfer(IRelayServerCaching relayCaching, IRelayServerWhiteListStore relayServerWhiteListStore, IRelayServerNodeStore relayServerNodeStore)
         {
             this.relayCaching = relayCaching;
             this.relayServerWhiteListStore = relayServerWhiteListStore;
-            this.relayServerMasterStore = relayServerMasterStore;
+            this.relayServerNodeStore = relayServerNodeStore;
 
         }
 
@@ -54,12 +54,11 @@ namespace linker.messenger.relay.server
             return null;
         }
     
-
         public async Task<List<RelayServerNodeStoreInfo>> GetNodes(bool validated, string userid, string machineId)
         {
             var nodes = (await relayServerWhiteListStore.GetNodes(userid, machineId)).Where(c => c.Bandwidth >= 0).SelectMany(c => c.Nodes);
 
-            var result = (await relayServerMasterStore.GetAll())
+            var result = (await relayServerNodeStore.GetAll())
                 .Where(c => Environment.TickCount64 - c.LastTicks < 15000)
                 .Where(c =>
                 {
@@ -79,7 +78,7 @@ namespace linker.messenger.relay.server
         }
         public async Task<List<RelayServerNodeStoreInfo>> GetPublicNodes()
         {
-            var result = (await relayServerMasterStore.GetAll())
+            var result = (await relayServerNodeStore.GetAll())
                 .Where(c => Environment.TickCount64 - c.LastTicks < 15000)
                 .Where(c => c.Public)
                 .OrderByDescending(c => c.LastTicks);
@@ -96,8 +95,9 @@ namespace linker.messenger.relay.server
 
         public async Task<bool> AddNode(RelayServerNodeStoreInfo info)
         {
-            return await relayServerMasterStore.Add(info).ConfigureAwait(false);
+            return await relayServerNodeStore.Add(info).ConfigureAwait(false);
         }
+       
     }
 
     public sealed partial class RelayCacheInfo

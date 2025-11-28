@@ -22,7 +22,7 @@ namespace linker.messenger.relay.server
         /// 设置月份
         /// </summary>
         /// <param name="month"></param>
-        public void DataMonth(int month);
+        public void SetDataMonth(int month);
         /// <summary>
         /// 设置剩余流量
         /// </summary>
@@ -48,7 +48,7 @@ namespace linker.messenger.relay.server
         public int Bandwidth { get; set; } = 50;
         public int DataEachMonth { get; set; } = 100;
         public long DataRemain { get; set; }
-        public int DataMonth { get; set; }
+       
         public string Url { get; set; } = "https://linker.snltty.com";
         public string Logo { get; set; } = "https://linker.snltty.com/img/logo.png";
     }
@@ -56,13 +56,14 @@ namespace linker.messenger.relay.server
     public sealed class RelayServerConfigInfo : RelayServerNodeInfo
     {
         public string ShareKey { get; set; } = string.Empty;
+        public int DataMonth { get; set; }
     }
 
     public class RelayServerNodeReportInfo : RelayServerNodeInfo
     {
         public string Version { get; set; } = string.Empty;
         public int ConnectionsRatio { get; set; }
-        public int BandwidthRatio { get; set; }
+        public double BandwidthRatio { get; set; }
     }
 
     public partial class RelayServerNodeReportInfoOld

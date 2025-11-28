@@ -26,9 +26,14 @@ namespace linker.messenger.store.file.relay
             config.Data.Server.Relay.DataRemain = value;
         }
 
-        public void DataMonth(int month)
+        public void SetDataMonth(int month)
         {
             config.Data.Server.Relay.DataMonth = month;
+        }
+
+        public void SetShareKey(string shareKey)
+        {
+            config.Data.Server.Relay.ShareKey = shareKey;
         }
     }
 }

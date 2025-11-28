@@ -59,6 +59,7 @@ namespace linker.messenger.relay
             
             serviceCollection.AddSingleton<RelayServerMasterTransfer>();
             serviceCollection.AddSingleton<RelayServerReportResolver>();
+            serviceCollection.AddSingleton<RelayServerConnectionResolver>();
             serviceCollection.AddSingleton<RelayServerResolver>();
             serviceCollection.AddSingleton<RelayServerConnectionTransfer>();
 
@@ -82,6 +83,7 @@ namespace linker.messenger.relay
             {
                 serviceProvider.GetService<RelayServerReportResolver>(),
                 serviceProvider.GetService<RelayServerResolver>(),
+                serviceProvider.GetService<RelayServerConnectionResolver>(),
             });
 
             RelayServerNodeTransfer relayServerNodeTransfer = serviceProvider.GetService<RelayServerNodeTransfer>();

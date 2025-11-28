@@ -11,7 +11,8 @@
         GetCache = 2112,
         NodeReport = 2128,
 
-        Hosts = 2133,
+        SignIn = 2134,
+        Report = 2135,
 
         Max = 2199
     }

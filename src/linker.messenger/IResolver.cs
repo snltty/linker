@@ -38,6 +38,11 @@ namespace linker.messenger
         /// 穿透节点报告
         /// </summary>
         SForwardReport = 8,
+
+        /// <summary>
+        /// 中继联机
+        /// </summary>
+        RelayConnection = 9,
     }
     public interface IResolver
     {

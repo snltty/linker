@@ -9,12 +9,12 @@ namespace linker.messenger.store.file.relay
 
         public RelayServerNodeStore(Storefactory storefactory)
         {
-            liteCollection  = storefactory.GetCollection<RelayServerNodeStoreInfo>("relay_server_master");
+            liteCollection = storefactory.GetCollection<RelayServerNodeStoreInfo>("relay_server_master");
         }
 
         public async Task<bool> Add(RelayServerNodeStoreInfo info)
         {
-            if(liteCollection.FindOne(c=>c.NodeId == info.NodeId) != null)
+            if (liteCollection.FindOne(c => c.NodeId == info.NodeId) != null)
             {
                 return false;
             }
@@ -30,6 +30,28 @@ namespace linker.messenger.store.file.relay
         public async Task<RelayServerNodeStoreInfo> GetByNodeId(string nodeId)
         {
             return await Task.FromResult(liteCollection.FindOne(c => c.NodeId == nodeId)).ConfigureAwait(false);
+        }
+
+        public async Task<bool> Report(RelayServerNodeReportInfo info)
+        {
+            int length = liteCollection.UpdateMany(p => new RelayServerNodeStoreInfo
+            {
+                LastTicks = Environment.TickCount64,
+                Bandwidth = info.Bandwidth,
+                Connections = info.Connections,
+                Version = info.Version,
+                ConnectionsRatio = info.ConnectionsRatio,
+                BandwidthRatio = info.BandwidthRatio,
+                Url = info.Url,
+                Logo = info.Logo,
+                Host = info.Host,
+                DataEachMonth = info.DataEachMonth,
+                DataRemain = info.DataRemain,
+                Name = info.Name,
+                Protocol = info.Protocol,
+            }, c => c.NodeId == info.NodeId);
+
+            return await Task.FromResult(length > 0).ConfigureAwait(false); ;
         }
     }
 }

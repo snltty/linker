@@ -4,6 +4,7 @@ using linker.messenger.relay.server;
 using linker.messenger.relay.server.validator;
 using linker.messenger.signin;
 using linker.tunnel.transport;
+using System.Net;
 
 namespace linker.messenger.relay.messenger
 {
@@ -28,10 +29,12 @@ namespace linker.messenger.relay.messenger
         private readonly RelayServerReportResolver relayServerReportResolver;
         private readonly RelayServerNodeTransfer relayServerNodeTransfer;
         private readonly RelayServerMasterTransfer relayServerMasterTransfer;
-
+        private readonly RelayServerConnectionTransfer relayServerConnectionTransfer;
+        private readonly RelayServerNodeReportTransfer relayServerNodeReportTransfer;
 
         public RelayServerMessenger(SignInServerCaching signCaching, ISerializer serializer, RelayServerValidatorTransfer relayValidatorTransfer,
-            RelayServerReportResolver relayServerReportResolver, RelayServerNodeTransfer relayServerNodeTransfer, RelayServerMasterTransfer relayServerMasterTransfer)
+            RelayServerReportResolver relayServerReportResolver, RelayServerNodeTransfer relayServerNodeTransfer, RelayServerMasterTransfer relayServerMasterTransfer,
+            RelayServerConnectionTransfer relayServerConnectionTransfer, RelayServerNodeReportTransfer relayServerNodeReportTransfer)
         {
             this.signCaching = signCaching;
             this.relayValidatorTransfer = relayValidatorTransfer;
@@ -39,6 +42,8 @@ namespace linker.messenger.relay.messenger
             this.relayServerReportResolver = relayServerReportResolver;
             this.relayServerNodeTransfer = relayServerNodeTransfer;
             this.relayServerMasterTransfer = relayServerMasterTransfer;
+            this.relayServerConnectionTransfer = relayServerConnectionTransfer;
+            this.relayServerNodeReportTransfer = relayServerNodeReportTransfer;
         }
 
 
@@ -73,7 +78,7 @@ namespace linker.messenger.relay.messenger
                 return;
             }
 
-            connection.Write(serializer.Serialize(new RelayAskResultInfo { Nodes = nodes, MasterId = relayServerNodeTransfer.Node.NodeId }));
+            connection.Write(serializer.Serialize(new RelayAskResultInfo { Nodes = nodes, MasterId = relayServerNodeTransfer.Config.NodeId }));
         }
 
         private async Task<List<RelayServerNodeStoreInfo>> GetNodes(SignCacheInfo from)
@@ -101,6 +106,21 @@ namespace linker.messenger.relay.messenger
             }
         }
 
+        [MessengerId((ushort)RelayMessengerIds.SignIn)]
+        public async Task SignIn(IConnection connection)
+        {
+            string id = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            connection.Id = id;
+            relayServerConnectionTransfer.TryAdd(connection.Id, connection);
+        }
+        [MessengerId((ushort)RelayMessengerIds.Report)]
+        public async Task Report(IConnection connection)
+        {
+            RelayServerNodeReportInfo info = serializer.Deserialize<RelayServerNodeReportInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            await relayServerNodeReportTransfer.Report(info).ConfigureAwait(false);
+        }
+
+
 
         [MessengerId((ushort)RelayMessengerIds.NodeReport)]
         public async Task NodeReport(IConnection connection)
@@ -109,10 +129,17 @@ namespace linker.messenger.relay.messenger
             {
                 relayServerReportResolver.Add(connection.ReceiveRequestWrap.Payload.Length, 0);
                 RelayServerNodeReportInfoOld info = serializer.Deserialize<RelayServerNodeReportInfoOld>(connection.ReceiveRequestWrap.Payload.Span);
+
+                if (info.EndPoint.Address.Equals(IPAddress.Any))
+                {
+                    info.EndPoint.Address = connection.Address.Address;
+                }
+
                 await relayServerMasterTransfer.AddNode(new RelayServerNodeStoreInfo
                 {
                     NodeId = info.Id,
                     Name = info.Name,
+                    Host = info.EndPoint.ToString(),
                 }).ConfigureAwait(false);
             }
             catch (Exception)
