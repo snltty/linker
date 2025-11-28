@@ -41,3 +41,10 @@ jobs:
           commit_message: "ci(sponsor): deploy"
         env:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
+
+      - name: Generate Contributors Images
+        uses: jaywcjlove/github-action-contributors@main
+        with:
+          filter-author: (renovate\[bot\]|renovate-bot|dependabot\[bot\])
+          output: dist/CONTRIBUTORS.svg
+          avatarSize: 42
