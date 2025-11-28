@@ -1,38 +1,33 @@
-﻿using linker.libs;
-using System.Net;
+﻿using System.Net;
 using linker.libs.extends;
 using System.Text.Json.Serialization;
 using linker.tunnel.connection;
 
 namespace linker.messenger.relay.server
 {
-    public interface IRelayServerNodeStore
+    public interface IRelayServerConfigStore
     {
-        /// <summary>
-        /// 服务端端口
-        /// </summary>
-        public int ServicePort { get; }
         /// <summary>
         /// 节点信息
         /// </summary>
-        public RelayServerNodeInfo Node { get; }
+        public RelayServerConfigInfo Config { get; }
 
         /// <summary>
         /// 设置
         /// </summary>
-        /// <param name="node"></param>
-        public void SetInfo(RelayServerNodeInfo node);
+        /// <param name="config"></param>
+        public void SetInfo(RelayServerConfigInfo config);
 
         /// <summary>
         /// 设置月份
         /// </summary>
         /// <param name="month"></param>
-        public void SetMaxGbTotalMonth(int month);
+        public void DataMonth(int month);
         /// <summary>
         /// 设置剩余流量
         /// </summary>
         /// <param name="value"></param>
-        public void SetMaxGbTotalLastBytes(long value);
+        public void SetDataRemain(long value);
         /// <summary>
         /// 提交保存
         /// </summary>
@@ -56,6 +51,11 @@ namespace linker.messenger.relay.server
         public int DataMonth { get; set; }
         public string Url { get; set; } = "https://linker.snltty.com";
         public string Logo { get; set; } = "https://linker.snltty.com/img/logo.png";
+    }
+
+    public sealed class RelayServerConfigInfo : RelayServerNodeInfo
+    {
+        public string ShareKey { get; set; } = string.Empty;
     }
 
     public class RelayServerNodeReportInfo : RelayServerNodeInfo

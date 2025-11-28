@@ -16,10 +16,10 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         string MasterId => info.MasterId;
         [MemoryPackInclude]
-        List<RelayNodeStoreInfo> Nodes => info.Nodes;
+        List<RelayServerNodeStoreInfo> Nodes => info.Nodes;
 
         [MemoryPackConstructor]
-        SerializableRelayAskResultInfo(string masterId, List<RelayNodeStoreInfo> nodes)
+        SerializableRelayAskResultInfo(string masterId, List<RelayServerNodeStoreInfo> nodes)
         {
             var info = new RelayAskResultInfo { MasterId = masterId, Nodes = nodes };
             this.info = info;
@@ -55,7 +55,7 @@ namespace linker.messenger.serializer.memorypack
             reader.TryReadObjectHeader(out byte count);
             value.MasterId = reader.ReadValue<string>();
             if (count > 1)
-                value.Nodes = reader.ReadValue<List<RelayNodeStoreInfo>>();
+                value.Nodes = reader.ReadValue<List<RelayServerNodeStoreInfo>>();
         }
     }
 

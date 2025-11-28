@@ -23,6 +23,6 @@ namespace linker.messenger.relay.server.validator
         /// <param name="fromMachine"></param>
         /// <param name="nodes"></param>
         /// <returns></returns>
-        public Task<List<RelayNodeStoreInfo>> Validate(string userid, SignCacheInfo from, List<RelayNodeStoreInfo> nodes);
+        public Task<List<RelayServerNodeStoreInfo>> Validate(string userid, SignCacheInfo from, List<RelayServerNodeStoreInfo> nodes);
     }
 }

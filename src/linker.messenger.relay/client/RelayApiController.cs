@@ -33,7 +33,7 @@ namespace linker.messenger.relay.client
             this.tunnelTransfer = tunnelTransfer;
         }
 
-        public List<RelayNodeStoreInfo> Subscribe(ApiControllerParamsInfo param)
+        public List<RelayServerNodeStoreInfo> Subscribe(ApiControllerParamsInfo param)
         {
             relayTestTransfer.Subscribe();
             return relayTestTransfer.Nodes;

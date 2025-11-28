@@ -6,7 +6,6 @@ using linker.messenger.relay.server;
 using linker.messenger.signin;
 using linker.tunnel.connection;
 using linker.tunnel.wanport;
-using System;
 using System.Buffers;
 using System.Net;
 using System.Net.Security;
@@ -55,6 +54,12 @@ namespace linker.tunnel.transport
             this.tunnelMessengerAdapter = tunnelMessengerAdapter;
         }
 
+        private X509Certificate certificate;
+        public void SetSSL(X509Certificate certificate)
+        {
+            this.certificate = certificate;
+        }
+
         public virtual async Task<ITunnelConnection> ConnectAsync(TunnelTransportInfo tunnelTransportInfo)
         {
             byte[] buffer = ArrayPool<byte>.Shared.Rent(1024);
@@ -62,25 +67,24 @@ namespace linker.tunnel.transport
             {
                 //问一下能不能中继
                 RelayAskResultInfo ask = await RelayAsk(tunnelTransportInfo).ConfigureAwait(false);
-                List<RelayNodeStoreInfo> nodes = ask.Nodes;
+                List<RelayServerNodeStoreInfo> nodes = ask.Nodes;
                 if (ask.Nodes.Count == 0)
                 {
-                    return null;
+                    throw new Exception("relay ask fail,no relay nodes");
                 }
 
                 //连接中继节点服务器
                 Socket socket = await ConnectNodeServer(tunnelTransportInfo, ask).ConfigureAwait(false);
-                if (socket == null)
+                if(socket == null)
                 {
-                    return null;
+                    throw new Exception("connect relay node server fail");
                 }
-
                 tunnelTransportInfo.TransactionTag = ask.Info.ToJson();
 
                 //让对方确认中继
                 if (await tunnelMessengerAdapter.SendConnectBegin(tunnelTransportInfo).ConfigureAwait(false) == false)
                 {
-                    return null;
+                    throw new Exception("relay begin fail");
                 }
 
                 //成功建立连接，
@@ -97,6 +101,8 @@ namespace linker.tunnel.transport
                     }).ConfigureAwait(false);
 #pragma warning restore SYSLIB0039 // 类型或成员已过时
                 }
+
+                await tunnelMessengerAdapter.SendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
 
                 return new TunnelConnectionTcp
                 {
@@ -127,6 +133,7 @@ namespace linker.tunnel.transport
             {
                 ArrayPool<byte>.Shared.Return(buffer);
             }
+            await tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
             return null;
         }
         private async Task<RelayAskResultInfo> RelayAsk(TunnelTransportInfo tunnelTransportInfo)
@@ -149,7 +156,7 @@ namespace linker.tunnel.transport
             }).ConfigureAwait(false);
             if (resp.Code != MessageResponeCodes.OK)
             {
-                return new RelayAskResultInfo { Info = relayInfo, Nodes = new List<RelayNodeStoreInfo>() };
+                return new RelayAskResultInfo { Info = relayInfo, Nodes = new List<RelayServerNodeStoreInfo>() };
             }
             RelayAskResultInfo ask = serializer.Deserialize<RelayAskResultInfo>(resp.Data.Span);
             ask.Info = relayInfo;
@@ -184,7 +191,7 @@ namespace linker.tunnel.transport
                         await socket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         {
-                            LoggerHelper.Instance.Debug($"relay  connected {ep}");
+                            LoggerHelper.Instance.Debug($"relay connected {ep}");
                         }
 
                         //建立关联
@@ -231,7 +238,6 @@ namespace linker.tunnel.transport
             return true;
         }
 
-
         private async Task<bool> SendMessage(Socket socket, RelayMessageInfo relayMessage)
         {
             try
@@ -256,11 +262,17 @@ namespace linker.tunnel.transport
             return false;
         }
 
-
         public virtual async Task OnBegin(TunnelTransportInfo tunnelTransportInfo)
         {
             try
             {
+                if (tunnelTransportInfo.SSL && certificate == null)
+                {
+                    LoggerHelper.Instance.Error($"{Name}->ssl Certificate not found");
+                    await tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
+                    return;
+                }
+
                 RelayInfo relayInfo = tunnelTransportInfo.TransactionTag.DeJson<RelayInfo>();
 
                 IPEndPoint ep = relayInfo.Node == null || relayInfo.Node.Address.Equals(IPAddress.Any) ? signInClientState.Connection.Address : relayInfo.Node;
@@ -281,6 +293,7 @@ namespace linker.tunnel.transport
                     {
                         ITunnelConnection connection = await WaitSSL(socket, tunnelTransportInfo, relayInfo);
                         OnConnected(connection);
+                        await tunnelMessengerAdapter.SendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
                         return;
                     }
                 }
@@ -300,6 +313,7 @@ namespace linker.tunnel.transport
                 }
             }
             OnConnected(null);
+            await tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
         }
         private async Task<TunnelConnectionTcp> WaitSSL(Socket socket, TunnelTransportInfo tunnelTransportInfo, RelayInfo relayInfo)
         {
@@ -346,16 +360,11 @@ namespace linker.tunnel.transport
         public virtual void OnFail(TunnelTransportInfo tunnelTransportInfo)
         {
         }
-
         public virtual void OnSuccess(TunnelTransportInfo tunnelTransportInfo)
         {
         }
 
-        public virtual void SetSSL(X509Certificate certificate)
-        {
-        }
-
-        public async Task<List<RelayNodeStoreInfo>> RelayTestAsync()
+        public async Task<List<RelayServerNodeStoreInfo>> RelayTestAsync()
         {
             try
             {
@@ -368,13 +377,13 @@ namespace linker.tunnel.transport
 
                 if (resp.Code == MessageResponeCodes.OK)
                 {
-                    return serializer.Deserialize<List<RelayNodeStoreInfo>>(resp.Data.Span);
+                    return serializer.Deserialize<List<RelayServerNodeStoreInfo>>(resp.Data.Span);
                 }
             }
             catch (Exception)
             {
             }
-            return new List<RelayNodeStoreInfo>();
+            return new List<RelayServerNodeStoreInfo>();
         }
     }
 
@@ -391,7 +400,7 @@ namespace linker.tunnel.transport
     {
         public RelayInfo Info { get; set; }
         public string MasterId { get; set; }
-        public List<RelayNodeStoreInfo> Nodes { get; set; } = new List<RelayNodeStoreInfo>();
+        public List<RelayServerNodeStoreInfo> Nodes { get; set; } = new List<RelayServerNodeStoreInfo>();
     }
     public sealed partial class RelayMessageInfo
     {

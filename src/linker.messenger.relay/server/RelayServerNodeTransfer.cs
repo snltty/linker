@@ -4,7 +4,6 @@ using linker.messenger.relay.messenger;
 using linker.tunnel.connection;
 using linker.tunnel.transport;
 using System.Collections.Concurrent;
-using System.Net;
 
 namespace linker.messenger.relay.server
 {
@@ -13,31 +12,28 @@ namespace linker.messenger.relay.server
     /// </summary>
     public class RelayServerNodeTransfer
     {
-        /// <summary>
-        /// 配置了就用配置的，每配置就用一个默认的
-        /// </summary>
-        public RelayServerNodeInfo Node => relayServerNodeStore.Node;
+        public RelayServerConfigInfo Node => relayServerNodeStore.Config;
 
-        private uint connectionNum = 0;
 
-        private long bytes = 0;
         private readonly RelaySpeedLimit limitTotal = new RelaySpeedLimit();
         private readonly ConcurrentDictionary<ulong, RelayTrafficCacheInfo> trafficDict = new();
 
         private readonly ISerializer serializer;
-        private readonly IRelayServerNodeStore relayServerNodeStore;
+        private readonly IRelayServerConfigStore relayServerNodeStore;
         private readonly IMessengerSender messengerSender;
         private readonly RelayServerConnectionTransfer relayServerConnectionTransfer;
+        private readonly RelayServerNodeReportTransfer relayServerNodeReportTransfer;
 
-        public RelayServerNodeTransfer(ISerializer serializer, IRelayServerNodeStore relayServerNodeStore, IMessengerSender messengerSender, RelayServerConnectionTransfer relayServerConnectionTransfer)
+        public RelayServerNodeTransfer(ISerializer serializer, IRelayServerConfigStore relayServerNodeStore, IMessengerSender messengerSender,
+            RelayServerConnectionTransfer relayServerConnectionTransfer, RelayServerNodeReportTransfer relayServerNodeReportTransfer)
         {
             this.serializer = serializer;
             this.relayServerNodeStore = relayServerNodeStore;
             this.messengerSender = messengerSender;
             this.relayServerConnectionTransfer = relayServerConnectionTransfer;
+            this.relayServerNodeReportTransfer = relayServerNodeReportTransfer;
 
             limitTotal.SetLimit((uint)Math.Ceiling((Node.Bandwidth * 1024 * 1024) / 8.0));
-
             TrafficTask();
         }
 
@@ -55,7 +51,7 @@ namespace linker.messenger.relay.server
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = connection,
-                    MessengerId = (ushort)RelayMessengerIds.NodeGetCache,
+                    MessengerId = (ushort)RelayMessengerIds.GetCache,
                     Payload = serializer.Serialize(new ValueTuple<string, string>(key, Node.NodeId)),
                     Timeout = 1000
                 }).ConfigureAwait(false);
@@ -75,7 +71,7 @@ namespace linker.messenger.relay.server
 
         public bool Validate(TunnelProtocolType tunnelProtocolType)
         {
-            return true;
+            return (Node.Protocol & tunnelProtocolType) == tunnelProtocolType;
         }
         /// <summary>
         /// 无效请求
@@ -91,9 +87,9 @@ namespace linker.messenger.relay.server
         /// <returns></returns>
         private bool ValidateConnection(RelayCacheInfo relayCache)
         {
-            bool res = Node.Connections == 0 || Node.Connections * 2 > connectionNum;
+            bool res = Node.Connections == 0 || Node.Connections * 2 > relayServerNodeReportTransfer.ConnectionNum;
             if (res == false && LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                LoggerHelper.Instance.Debug($"relay  ValidateConnection false,{connectionNum}/{Node.Connections * 2}");
+                LoggerHelper.Instance.Debug($"relay  validate connection false,{relayServerNodeReportTransfer.ConnectionNum}/{Node.Connections * 2}");
 
             return res;
         }
@@ -117,14 +113,14 @@ namespace linker.messenger.relay.server
         /// </summary>
         public void IncrementConnectionNum()
         {
-            Interlocked.Increment(ref connectionNum);
+            relayServerNodeReportTransfer.IncrementConnectionNum();
         }
         /// <summary>
         /// 减少连接数
         /// </summary>
         public void DecrementConnectionNum()
         {
-            Interlocked.Decrement(ref connectionNum);
+            relayServerNodeReportTransfer.DecrementConnectionNum();
         }
 
         /// <summary>
@@ -179,7 +175,7 @@ namespace linker.messenger.relay.server
         /// <returns></returns>
         public bool AddBytes(RelayTrafficCacheInfo cache, long length)
         {
-            Interlocked.Add(ref bytes, length);
+            relayServerNodeReportTransfer.AddBytes(length);
 
             if (Node.DataEachMonth == 0) return true;
 
@@ -213,13 +209,13 @@ namespace linker.messenger.relay.server
                 long length = Interlocked.Exchange(ref cache.Sendt, 0);
 
                 if (Node.DataRemain >= length)
-                    relayServerNodeStore.SetMaxGbTotalLastBytes(Node.DataRemain - length);
-                else relayServerNodeStore.SetMaxGbTotalLastBytes(0);
+                    relayServerNodeStore.SetDataRemain(Node.DataRemain - length);
+                else relayServerNodeStore.SetDataRemain(0);
             }
             if (Node.DataMonth != DateTime.Now.Month)
             {
-                relayServerNodeStore.SetMaxGbTotalMonth(DateTime.Now.Month);
-                relayServerNodeStore.SetMaxGbTotalLastBytes((long)(Node.DataEachMonth * 1024 * 1024 * 1024));
+                relayServerNodeStore.DataMonth(DateTime.Now.Month);
+                relayServerNodeStore.SetDataRemain((long)(Node.DataEachMonth * 1024 * 1024 * 1024));
             }
             relayServerNodeStore.Confirm();
         }

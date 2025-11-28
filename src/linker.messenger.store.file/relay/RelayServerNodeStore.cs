@@ -1,37 +1,35 @@
 ﻿using linker.messenger.relay.server;
+using LiteDB;
 
 namespace linker.messenger.store.file.relay
 {
     public sealed class RelayServerNodeStore : IRelayServerNodeStore
     {
-        public int ServicePort => config.Data.Server.ServicePort;
-        public RelayServerNodeInfo Node => config.Data.Server.Relay.Distributed.Node;
+        private readonly ILiteCollection<RelayServerNodeStoreInfo> liteCollection;
 
-        private readonly FileConfig config;
-        public RelayServerNodeStore(FileConfig config)
+        public RelayServerNodeStore(Storefactory storefactory)
         {
-            this.config = config;
+            liteCollection  = storefactory.GetCollection<RelayServerNodeStoreInfo>("relay_server_master");
         }
 
-        public void Confirm()
+        public async Task<bool> Add(RelayServerNodeStoreInfo info)
         {
-            config.Data.Update();
+            if(liteCollection.FindOne(c=>c.NodeId == info.NodeId) != null)
+            {
+                return false;
+            }
+            liteCollection.Insert(info);
+            return await Task.FromResult(true).ConfigureAwait(false);
         }
 
-        public void SetInfo(RelayServerNodeInfo node)
+        public async Task<List<RelayServerNodeStoreInfo>> GetAll()
         {
-            config.Data.Server.Relay.Distributed.Node = node;
-        }
-        public void SetMaxGbTotalLastBytes(long value)
-        {
-            config.Data.Server.Relay.Distributed.Node.DataRemain = value;
+            return await Task.FromResult(liteCollection.FindAll().ToList()).ConfigureAwait(false);
         }
 
-        public void SetMaxGbTotalMonth(int month)
+        public async Task<RelayServerNodeStoreInfo> GetByNodeId(string nodeId)
         {
-            config.Data.Server.Relay.Distributed.Node.DataMonth = month;
+            return await Task.FromResult(liteCollection.FindOne(c => c.NodeId == nodeId)).ConfigureAwait(false);
         }
-
-
     }
 }

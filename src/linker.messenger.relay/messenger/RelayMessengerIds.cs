@@ -8,7 +8,7 @@
 
         Nodes = 2105,
 
-        NodeGetCache = 2112,
+        GetCache = 2112,
         NodeReport = 2128,
 
         Hosts = 2133,

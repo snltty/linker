@@ -1,11 +1,13 @@
 ﻿namespace linker.messenger.relay.server
 {
-    public interface IRelayServerMasterStore
+    public interface IRelayServerNodeStore
     {
-        public Task<List<RelayNodeStoreInfo>> GetAll();
+        public Task<List<RelayServerNodeStoreInfo>> GetAll();
+        public Task<RelayServerNodeStoreInfo> GetByNodeId(string nodeId);
+        public Task<bool> Add(RelayServerNodeStoreInfo info);
     }
 
-    public sealed class RelayNodeStoreInfo : RelayServerNodeReportInfo
+    public sealed class RelayServerNodeStoreInfo : RelayServerNodeReportInfo
     {
         public int Id { get; set; }
 
@@ -14,7 +16,5 @@
 
         public int Delay { get; set; }
         public long LastTicks { get; set; }
-
-
     }
 }

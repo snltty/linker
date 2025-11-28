@@ -10,9 +10,9 @@ namespace linker.messenger.relay.server
     {
         private readonly IRelayServerCaching relayCaching;
         private readonly IRelayServerWhiteListStore relayServerWhiteListStore;
-        private readonly IRelayServerMasterStore relayServerMasterStore;
+        private readonly IRelayServerNodeStore relayServerMasterStore;
 
-        public RelayServerMasterTransfer(IRelayServerCaching relayCaching, IRelayServerWhiteListStore relayServerWhiteListStore, IRelayServerMasterStore relayServerMasterStore)
+        public RelayServerMasterTransfer(IRelayServerCaching relayCaching, IRelayServerWhiteListStore relayServerWhiteListStore, IRelayServerNodeStore relayServerMasterStore)
         {
             this.relayCaching = relayCaching;
             this.relayServerWhiteListStore = relayServerWhiteListStore;
@@ -35,7 +35,6 @@ namespace linker.messenger.relay.server
             };
             return relayCaching.TryAdd($"{cache.FromId}->{cache.ToId}->{flowid}", cache, 15000);
         }
-
         public async Task<RelayCacheInfo> TryGetRelayCache(string key, string nodeid)
         {
             if (relayCaching.TryGetValue(key, out RelayCacheInfo cache))
@@ -54,12 +53,9 @@ namespace linker.messenger.relay.server
             }
             return null;
         }
-        /// <summary>
-        /// 获取节点列表
-        /// </summary>
-        /// <param name="validated">是否已认证</param>
-        /// <returns></returns>
-        public async Task<List<RelayNodeStoreInfo>> GetNodes(bool validated, string userid, string machineId)
+    
+
+        public async Task<List<RelayServerNodeStoreInfo>> GetNodes(bool validated, string userid, string machineId)
         {
             var nodes = (await relayServerWhiteListStore.GetNodes(userid, machineId)).Where(c => c.Bandwidth >= 0).SelectMany(c => c.Nodes);
 
@@ -81,7 +77,7 @@ namespace linker.messenger.relay.server
                      .ThenByDescending(x => x.DataRemain == 0 ? long.MaxValue : x.DataRemain)
                      .ToList();
         }
-        public async Task<List<RelayNodeStoreInfo>> GetPublicNodes()
+        public async Task<List<RelayServerNodeStoreInfo>> GetPublicNodes()
         {
             var result = (await relayServerMasterStore.GetAll())
                 .Where(c => Environment.TickCount64 - c.LastTicks < 15000)
@@ -98,6 +94,10 @@ namespace linker.messenger.relay.server
                      .ToList();
         }
 
+        public async Task<bool> AddNode(RelayServerNodeStoreInfo info)
+        {
+            return await relayServerMasterStore.Add(info).ConfigureAwait(false);
+        }
     }
 
     public sealed partial class RelayCacheInfo

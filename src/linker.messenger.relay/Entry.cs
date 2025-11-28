@@ -55,6 +55,8 @@ namespace linker.messenger.relay
         {
             serviceCollection.AddSingleton<RelayServerMessenger>();
             serviceCollection.AddSingleton<RelayServerNodeTransfer>();
+            serviceCollection.AddSingleton<RelayServerNodeReportTransfer>();
+            
             serviceCollection.AddSingleton<RelayServerMasterTransfer>();
             serviceCollection.AddSingleton<RelayServerReportResolver>();
             serviceCollection.AddSingleton<RelayServerResolver>();
