@@ -45,12 +45,13 @@ jobs:
       - name: Generate Contributors Images
         uses: jaywcjlove/github-action-contributors@main
         with:
+          token: ${{ secrets.ACTIONS_TOKEN }}
           filter-author: (renovate\[bot\]|renovate-bot|dependabot\[bot\])
           output: dist/CONTRIBUTORS.svg
           avatarSize: 42
-          
+
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.ACTIONS_TOKEN }}
           publish_dir: ./build
