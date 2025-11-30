@@ -41,7 +41,7 @@ namespace linker.messenger.relay.server
         {
             try
             {
-                if (relayServerConnectionTransfer.TryGet(relayMessage.MasterId, out IConnection connection) == false)
+                if (relayServerConnectionTransfer.TryGet(ConnectionSideType.Master, relayMessage.MasterId, out IConnection connection) == false)
                 {
                     return null;
                 }

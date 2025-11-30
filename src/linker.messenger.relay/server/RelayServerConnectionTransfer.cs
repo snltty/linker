@@ -4,29 +4,38 @@ namespace linker.messenger.relay.server
 {
     public sealed class RelayServerConnectionTransfer
     {
-        private readonly ConcurrentDictionary<string, IConnection> connections = new();
+        private readonly ConcurrentDictionary<string, IConnection>[] connections = [
+            new ConcurrentDictionary<string, IConnection>()
+            ,new ConcurrentDictionary<string, IConnection>()
+        ];
 
         public RelayServerConnectionTransfer()
         {
 
         }
-        public List<IConnection> Get()
+        public List<IConnection> Get(ConnectionSideType type)
         {
-            return connections.Values.Where(c => c.Connected).ToList();
+            return connections[(byte)type].Values.Where(c => c.Connected).ToList();
         }
 
-        public bool TryGet(string id, out IConnection connection)
+        public bool TryGet(ConnectionSideType type, string id, out IConnection connection)
         {
-            return connections.TryGetValue(id, out connection);
+            return connections[(byte)type].TryGetValue(id, out connection);
         }
-        public bool TryAdd(string id, IConnection connection)
+        public bool TryAdd(ConnectionSideType type, string id, IConnection connection)
         {
-            if (connections.TryRemove(id, out IConnection _connection) && _connection.GetHashCode() != connection.GetHashCode())
+            if (connections[(byte)type].TryRemove(id, out IConnection _connection) && _connection.GetHashCode() != connection.GetHashCode())
             {
                 _connection.Disponse();
             }
 
-            return connections.TryAdd(id, connection);
+            return connections[(byte)type].TryAdd(id, connection);
         }
+    }
+
+    public enum ConnectionSideType : byte
+    {
+        Node = 0,
+        Master = 1
     }
 }

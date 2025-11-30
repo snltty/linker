@@ -67,7 +67,7 @@ namespace linker.messenger.relay.server
         }
         public async Task<bool> Report(RelayServerNodeReportInfo info)
         {
-            if (relayServerConnectionTransfer.TryGet(info.NodeId, out IConnection connection) == false) return false;
+            if (relayServerConnectionTransfer.TryGet(ConnectionSideType.Node, info.NodeId, out IConnection connection) == false) return false;
 
             return await relayServerNodeStore.Report(info).ConfigureAwait(false);
         }
@@ -79,7 +79,7 @@ namespace linker.messenger.relay.server
             }
 
             connection.Id = serverId;
-            relayServerConnectionTransfer.TryAdd(connection.Id, connection);
+            relayServerConnectionTransfer.TryAdd(ConnectionSideType.Master, connection.Id, connection);
             return true;
         }
 
@@ -167,7 +167,7 @@ namespace linker.messenger.relay.server
             {
                 try
                 {
-                    var connections = relayServerConnectionTransfer.Get();
+                    var connections = relayServerConnectionTransfer.Get(ConnectionSideType.Master);
                     if (connections.Any())
                     {
                         double diff = (bytes - lastBytes) * 8 / 1024.0 / 1024.0;
@@ -188,7 +188,7 @@ namespace linker.messenger.relay.server
                             ConnectionsRatio = connectionNum,
                             BandwidthRatio = Math.Round(diff / 5, 2),
                             Version = VersionHelper.Version,
-                            Servers = connections.Select(c => c.Address).ToArray()
+                            Masters = connections.Select(c => c.Address).ToArray()
                         };
                         byte[] memory = serializer.Serialize(info);
                         var tasks = connections.Select(c => messengerSender.SendOnly(new MessageRequestWrap
@@ -219,7 +219,7 @@ namespace linker.messenger.relay.server
                 {
                     var nodes = (await relayServerNodeStore.GetAll()).Where(c =>
                     {
-                        return relayServerConnectionTransfer.TryGet(c.NodeId, out IConnection connection) == false || connection == null || connection.Connected == false;
+                        return relayServerConnectionTransfer.TryGet(ConnectionSideType.Node, c.NodeId, out IConnection connection) == false || connection == null || connection.Connected == false;
                     }).ToList();
                     if (nodes.Count != 0)
                     {
@@ -241,7 +241,7 @@ namespace linker.messenger.relay.server
                             if (resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray))
                             {
                                 Console.WriteLine($"relay sign in to node {c.NodeId} success");
-                                relayServerConnectionTransfer.TryAdd(c.NodeId, connection);
+                                relayServerConnectionTransfer.TryAdd(ConnectionSideType.Node, c.NodeId, connection);
                             }
                             else
                             {

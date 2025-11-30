@@ -248,11 +248,11 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         double BandwidthRatio => info.BandwidthRatio;
         [MemoryPackInclude]
-        IPEndPoint[] Servers => info.Servers;
+        IPEndPoint[] Masters => info.Masters;
 
         [MemoryPackConstructor]
         SerializableRelayServerNodeReportInfo(string nodeId, string name, TunnelProtocolType protocol, int connections, int bandwidth, int dataEachMonth,
-            long dataRemain, string url, string logo, string version, int connectionsRatio, double bandwidthRatio, IPEndPoint[] servers)
+            long dataRemain, string url, string logo, string version, int connectionsRatio, double bandwidthRatio, IPEndPoint[] masters)
         {
             var info = new RelayServerNodeReportInfo
             {
@@ -268,7 +268,7 @@ namespace linker.messenger.serializer.memorypack
                 Version = version,
                 ConnectionsRatio = connectionsRatio,
                 BandwidthRatio = bandwidthRatio,
-                Servers = servers
+                Masters = masters
             };
             this.info = info;
         }
@@ -314,7 +314,7 @@ namespace linker.messenger.serializer.memorypack
             value.Version = reader.ReadValue<string>();
             value.ConnectionsRatio = reader.ReadValue<int>();
             value.BandwidthRatio = reader.ReadValue<double>();
-            value.Servers = reader.ReadValue<IPEndPoint[]>();
+            value.Masters = reader.ReadValue<IPEndPoint[]>();
         }
     }
 
@@ -350,7 +350,7 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         double BandwidthRatio => info.BandwidthRatio;
         [MemoryPackInclude]
-        IPEndPoint[] Servers => info.Servers;
+        IPEndPoint[] Servers => info.Masters;
 
 
         [MemoryPackInclude]
@@ -384,7 +384,7 @@ namespace linker.messenger.serializer.memorypack
                 Version = version,
                 ConnectionsRatio = connectionsRatio,
                 BandwidthRatio = bandwidthRatio,
-                Servers = servers,
+                Masters = servers,
                 Id = id,
                 Host = host,
                 BandwidthEachConnection = bandwidthEachConnection,
@@ -435,7 +435,7 @@ namespace linker.messenger.serializer.memorypack
             value.Version = reader.ReadValue<string>();
             value.ConnectionsRatio = reader.ReadValue<int>();
             value.BandwidthRatio = reader.ReadValue<double>();
-            value.Servers = reader.ReadValue<IPEndPoint[]>();
+            value.Masters = reader.ReadValue<IPEndPoint[]>();
             value.Id = reader.ReadValue<int>();
             value.Host = reader.ReadValue<string>();
             value.BandwidthEachConnection = reader.ReadValue<int>();

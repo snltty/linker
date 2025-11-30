@@ -70,7 +70,7 @@ namespace linker.messenger.relay.server
         public int ConnectionsRatio { get; set; }
         public double BandwidthRatio { get; set; }
 
-        public IPEndPoint[] Servers { get; set; } = Array.Empty<IPEndPoint>();
+        public IPEndPoint[] Masters { get; set; } = Array.Empty<IPEndPoint>();
     }
 
     public sealed class RelayServerNodeStoreInfo : RelayServerNodeReportInfo
