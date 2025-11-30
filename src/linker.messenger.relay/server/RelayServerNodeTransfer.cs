@@ -12,7 +12,7 @@ namespace linker.messenger.relay.server
     /// </summary>
     public class RelayServerNodeTransfer
     {
-        public RelayServerConfigInfo Config => relayServerConfigStore.Config;
+        private RelayServerConfigInfo Config => relayServerNodeReportTransfer.Config;
 
 
         private readonly RelaySpeedLimit limitTotal = new RelaySpeedLimit();

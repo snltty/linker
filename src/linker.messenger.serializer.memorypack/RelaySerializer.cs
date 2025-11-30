@@ -217,9 +217,297 @@ namespace linker.messenger.serializer.memorypack
     }
 
 
-
     [MemoryPackable]
     public readonly partial struct SerializableRelayServerNodeReportInfo
+    {
+        [MemoryPackIgnore]
+        public readonly RelayServerNodeReportInfo info;
+
+        [MemoryPackInclude]
+        string NodeId => info.NodeId;
+        [MemoryPackInclude]
+        string Name => info.Name;
+        [MemoryPackInclude]
+        TunnelProtocolType Protocol => info.Protocol;
+        [MemoryPackInclude]
+        int Connections => info.Connections;
+        [MemoryPackInclude]
+        int Bandwidth => info.Bandwidth;
+        [MemoryPackInclude]
+        int DataEachMonth => info.DataEachMonth;
+        [MemoryPackInclude]
+        long DataRemain => info.DataRemain;
+        [MemoryPackInclude]
+        string Url => info.Url;
+        [MemoryPackInclude]
+        string Logo => info.Logo;
+        [MemoryPackInclude]
+        string Version => info.Version;
+        [MemoryPackInclude]
+        int ConnectionsRatio => info.ConnectionsRatio;
+        [MemoryPackInclude]
+        double BandwidthRatio => info.BandwidthRatio;
+        [MemoryPackInclude]
+        IPEndPoint[] Servers => info.Servers;
+
+        [MemoryPackConstructor]
+        SerializableRelayServerNodeReportInfo(string nodeId, string name, TunnelProtocolType protocol, int connections, int bandwidth, int dataEachMonth,
+            long dataRemain, string url, string logo, string version, int connectionsRatio, double bandwidthRatio, IPEndPoint[] servers)
+        {
+            var info = new RelayServerNodeReportInfo
+            {
+                NodeId = nodeId,
+                Name = name,
+                Protocol = protocol,
+                Connections = connections,
+                Bandwidth = bandwidth,
+                DataEachMonth = dataEachMonth,
+                DataRemain = dataRemain,
+                Url = url,
+                Logo = logo,
+                Version = version,
+                ConnectionsRatio = connectionsRatio,
+                BandwidthRatio = bandwidthRatio,
+                Servers = servers
+            };
+            this.info = info;
+        }
+
+        public SerializableRelayServerNodeReportInfo(RelayServerNodeReportInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class RelayServerNodeReportInfoFormatter : MemoryPackFormatter<RelayServerNodeReportInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref RelayServerNodeReportInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableRelayServerNodeReportInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref RelayServerNodeReportInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            value = new RelayServerNodeReportInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.NodeId = reader.ReadValue<string>();
+            value.Name = reader.ReadValue<string>();
+            value.Protocol = reader.ReadValue<TunnelProtocolType>();
+            value.Connections = reader.ReadValue<int>();
+            value.Bandwidth = reader.ReadValue<int>();
+            value.DataEachMonth = reader.ReadValue<int>();
+            value.DataRemain = reader.ReadValue<long>();
+            value.Url = reader.ReadValue<string>();
+            value.Logo = reader.ReadValue<string>();
+            value.Version = reader.ReadValue<string>();
+            value.ConnectionsRatio = reader.ReadValue<int>();
+            value.BandwidthRatio = reader.ReadValue<double>();
+            value.Servers = reader.ReadValue<IPEndPoint[]>();
+        }
+    }
+
+
+    [MemoryPackable]
+    public readonly partial struct SerializableRelayServerNodeStoreInfo
+    {
+        [MemoryPackIgnore]
+        public readonly RelayServerNodeStoreInfo info;
+
+        [MemoryPackInclude]
+        string NodeId => info.NodeId;
+        [MemoryPackInclude]
+        string Name => info.Name;
+        [MemoryPackInclude]
+        TunnelProtocolType Protocol => info.Protocol;
+        [MemoryPackInclude]
+        int Connections => info.Connections;
+        [MemoryPackInclude]
+        int Bandwidth => info.Bandwidth;
+        [MemoryPackInclude]
+        int DataEachMonth => info.DataEachMonth;
+        [MemoryPackInclude]
+        long DataRemain => info.DataRemain;
+        [MemoryPackInclude]
+        string Url => info.Url;
+        [MemoryPackInclude]
+        string Logo => info.Logo;
+        [MemoryPackInclude]
+        string Version => info.Version;
+        [MemoryPackInclude]
+        int ConnectionsRatio => info.ConnectionsRatio;
+        [MemoryPackInclude]
+        double BandwidthRatio => info.BandwidthRatio;
+        [MemoryPackInclude]
+        IPEndPoint[] Servers => info.Servers;
+
+
+        [MemoryPackInclude]
+        int Id => info.Id;
+        [MemoryPackInclude]
+        string Host => info.Host;
+        [MemoryPackInclude]
+        int BandwidthEachConnection => info.BandwidthEachConnection;
+        [MemoryPackInclude]
+        bool Public => info.Public;
+        [MemoryPackInclude]
+        long LastTicks => info.LastTicks;
+
+
+        [MemoryPackConstructor]
+        SerializableRelayServerNodeStoreInfo(string nodeId, string name, TunnelProtocolType protocol, int connections, int bandwidth, int dataEachMonth,
+            long dataRemain, string url, string logo, string version, int connectionsRatio, double bandwidthRatio, IPEndPoint[] servers,
+           int id, string host, int bandwidthEachConnection, bool Public, long lastTicks)
+        {
+            var info = new RelayServerNodeStoreInfo
+            {
+                NodeId = nodeId,
+                Name = name,
+                Protocol = protocol,
+                Connections = connections,
+                Bandwidth = bandwidth,
+                DataEachMonth = dataEachMonth,
+                DataRemain = dataRemain,
+                Url = url,
+                Logo = logo,
+                Version = version,
+                ConnectionsRatio = connectionsRatio,
+                BandwidthRatio = bandwidthRatio,
+                Servers = servers,
+                Id = id,
+                Host = host,
+                BandwidthEachConnection = bandwidthEachConnection,
+                Public = Public,
+                LastTicks = lastTicks
+            };
+            this.info = info;
+        }
+
+        public SerializableRelayServerNodeStoreInfo(RelayServerNodeStoreInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class RelayServerNodeStoreInfoFormatter : MemoryPackFormatter<RelayServerNodeStoreInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref RelayServerNodeStoreInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableRelayServerNodeStoreInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref RelayServerNodeStoreInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            value = new RelayServerNodeStoreInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.NodeId = reader.ReadValue<string>();
+            value.Name = reader.ReadValue<string>();
+            value.Protocol = reader.ReadValue<TunnelProtocolType>();
+            value.Connections = reader.ReadValue<int>();
+            value.Bandwidth = reader.ReadValue<int>();
+            value.DataEachMonth = reader.ReadValue<int>();
+            value.DataRemain = reader.ReadValue<long>();
+            value.Url = reader.ReadValue<string>();
+            value.Logo = reader.ReadValue<string>();
+            value.Version = reader.ReadValue<string>();
+            value.ConnectionsRatio = reader.ReadValue<int>();
+            value.BandwidthRatio = reader.ReadValue<double>();
+            value.Servers = reader.ReadValue<IPEndPoint[]>();
+            value.Id = reader.ReadValue<int>();
+            value.Host = reader.ReadValue<string>();
+            value.BandwidthEachConnection = reader.ReadValue<int>();
+            value.Public = reader.ReadValue<bool>();
+            value.LastTicks = reader.ReadValue<long>();
+        }
+    }
+
+
+    [MemoryPackable]
+    public readonly partial struct SerializableRelayServerNodeShareInfo
+    {
+        [MemoryPackIgnore]
+        public readonly RelayServerNodeShareInfo info;
+
+        [MemoryPackInclude]
+        string NodeId => info.NodeId;
+        [MemoryPackInclude]
+        string Host => info.Host;
+        [MemoryPackInclude]
+        string Name => info.Name;
+
+        [MemoryPackConstructor]
+        SerializableRelayServerNodeShareInfo(string nodeId, string host, string name)
+        {
+            var info = new RelayServerNodeShareInfo
+            {
+                 NodeId= nodeId,
+                 Host= host,
+                 Name= name
+            };
+            this.info = info;
+        }
+
+        public SerializableRelayServerNodeShareInfo(RelayServerNodeShareInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class RelayServerNodeShareInfoFormatter : MemoryPackFormatter<RelayServerNodeShareInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref RelayServerNodeShareInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableRelayServerNodeShareInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref RelayServerNodeShareInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            value = new RelayServerNodeShareInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.NodeId = reader.ReadValue<string>();
+            value.Host = reader.ReadValue<string>();
+            value.Name = reader.ReadValue<string>();
+        }
+    }
+
+
+    [MemoryPackable]
+    public readonly partial struct SerializableRelayServerNodeReportInfoOld
     {
         [MemoryPackIgnore]
         public readonly RelayServerNodeReportInfoOld info;
@@ -263,7 +551,7 @@ namespace linker.messenger.serializer.memorypack
 
 
         [MemoryPackConstructor]
-        SerializableRelayServerNodeReportInfo(
+        SerializableRelayServerNodeReportInfoOld(
             string id, string name,
             int maxConnection, double maxBandwidth, double maxBandwidthTotal,
             double maxGbTotal, long maxGbTotalLastBytes,
@@ -294,12 +582,12 @@ namespace linker.messenger.serializer.memorypack
             this.info = info;
         }
 
-        public SerializableRelayServerNodeReportInfo(RelayServerNodeReportInfoOld info)
+        public SerializableRelayServerNodeReportInfoOld(RelayServerNodeReportInfoOld info)
         {
             this.info = info;
         }
     }
-    public class RelayServerNodeReportInfoFormatter : MemoryPackFormatter<RelayServerNodeReportInfoOld>
+    public class RelayServerNodeReportInfoFormatterOld : MemoryPackFormatter<RelayServerNodeReportInfoOld>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref RelayServerNodeReportInfoOld value)
         {
@@ -309,7 +597,7 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableRelayServerNodeReportInfo(value));
+            writer.WritePackable(new SerializableRelayServerNodeReportInfoOld(value));
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref RelayServerNodeReportInfoOld value)

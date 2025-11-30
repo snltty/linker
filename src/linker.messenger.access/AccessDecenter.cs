@@ -15,12 +15,9 @@ namespace linker.messenger.access
 
         public bool Force => Accesss.Count < 2;
 
-        /// <summary>
-        /// 各个设备的权限列表
-        /// </summary>
         public ConcurrentDictionary<string, BitArray> Accesss { get; } = new ConcurrentDictionary<string, BitArray>();
 
-       
+
 
         private readonly ISignInClientStore signInClientStore;
         private readonly IAccessStore accessStore;
@@ -33,11 +30,8 @@ namespace linker.messenger.access
 
             signInClientState.OnSignInSuccess += (times) => PushVersion.Increment();
             accessStore.OnChanged += PushVersion.Increment;
-           
+
         }
-        /// <summary>
-        /// 刷新同步
-        /// </summary>
         public void Refresh()
         {
             PushVersion.Increment();
@@ -53,7 +47,18 @@ namespace linker.messenger.access
         }
         public void AddData(List<ReadOnlyMemory<byte>> data)
         {
-            List<AccessBitsInfo> list = data.Select(c => serializer.Deserialize<AccessBitsInfo>(c.Span)).ToList();
+            List<AccessBitsInfo> list = data.Select(c =>
+            {
+                try
+                {
+                    return serializer.Deserialize<AccessBitsInfo>(c.Span);
+                }
+                catch (Exception)
+                {
+                }
+                return null;
+
+            }).Where(c => c != null).ToList();
             foreach (var item in list)
             {
                 Accesss.AddOrUpdate(item.MachineId, item.Access, (a, b) => item.Access);

@@ -76,6 +76,7 @@ namespace linker
 
         private static JsonDocument ParseArgs(string[] args)
         {
+
             JsonDocument json = null;
             try
             {

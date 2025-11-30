@@ -42,7 +42,17 @@ namespace linker.messenger.tunnel
         }
         public void AddData(List<ReadOnlyMemory<byte>> data)
         {
-            List<TunnelRouteLevelInfo> list = data.Select(c => serializer.Deserialize<TunnelRouteLevelInfo>(c.Span)).ToList();
+            List<TunnelRouteLevelInfo> list = data.Select(c =>
+            {
+                try
+                {
+                    return serializer.Deserialize<TunnelRouteLevelInfo>(c.Span);
+                }
+                catch (Exception)
+                {
+                }
+                return null;
+            }).Where(c => c != null).ToList();
             foreach (var item in list)
             {
                 Config.AddOrUpdate(item.MachineId, item, (a, b) => item);
@@ -67,7 +77,7 @@ namespace linker.messenger.tunnel
                 PortMapWan = tunnelClientStore.PortMapPublic,
                 RouteLevelPlus = tunnelClientStore.RouteLevelPlus,
                 Net = tunnelClientStore.Network.Net
-            }; 
+            };
         }
     }
 }

@@ -44,7 +44,6 @@ namespace linker.messenger.store.file.relay
                 BandwidthRatio = info.BandwidthRatio,
                 Url = info.Url,
                 Logo = info.Logo,
-                Host = info.Host,
                 DataEachMonth = info.DataEachMonth,
                 DataRemain = info.DataRemain,
                 Name = info.Name,

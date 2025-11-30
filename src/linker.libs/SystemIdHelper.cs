@@ -69,7 +69,7 @@ namespace linker.libs
         }
         private static string SystemName()
         {
-            string pattern = @"fnos|iphone|samsung|vivo|oppo|google|huawei|xiaomi|ios|android|windows|ubuntu|openwrt|armbian|archlinux|fedora|centos|rocky|alpine|debian|linux|docker";
+            string pattern = @"ikuai|fnos|iphone|samsung|vivo|oppo|google|huawei|xiaomi|ios|android|windows|ubuntu|openwrt|armbian|archlinux|fedora|centos|rocky|alpine|debian|linux|docker";
             return Regex.Match(RuntimeInformation.OSDescription.ToLower(), pattern)?.Value ?? "unknow";
         }
         private static string VersionNumber()

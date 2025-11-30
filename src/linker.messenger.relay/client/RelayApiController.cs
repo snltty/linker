@@ -10,9 +10,6 @@ using linker.tunnel.transport;
 
 namespace linker.messenger.relay.client
 {
-    /// <summary>
-    /// 中继管理接口
-    /// </summary>
     public sealed class RelayApiController : IApiController
     {
         private readonly RelayClientTestTransfer relayTestTransfer;
@@ -54,11 +51,6 @@ namespace linker.messenger.relay.client
             }
         }
 
-        /// <summary>
-        /// 连接
-        /// </summary>
-        /// <param name="param"></param>
-        /// <returns></returns>
         public bool Connect(ApiControllerParamsInfo param)
         {
             RelayConnectInfo relayConnectInfo = param.Content.DeJson<RelayConnectInfo>();
@@ -82,5 +74,4 @@ namespace linker.messenger.relay.client
         public string TransactionId { get; set; }
         public string NodeId { get; set; }
     }
-
 }

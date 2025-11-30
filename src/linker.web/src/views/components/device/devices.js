@@ -88,6 +88,7 @@ export const provideDevices = () => {
             getSignInList(devices.page.Request).then((res) => {
                 devices.page.Request = res.Request;
                 devices.page.Count = res.Count;
+                console.log(res);
                 for (let j in res.List) {
                     Object.assign(res.List[j], {
                         showDel: machineId.value != res.List[j].MachineId && res.List[j].Connected == false,

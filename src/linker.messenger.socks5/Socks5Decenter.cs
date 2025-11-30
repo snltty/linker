@@ -63,7 +63,18 @@ namespace linker.messenger.socks5
         }
         public void AddData(List<ReadOnlyMemory<byte>> data)
         {
-            List<Socks5Info> list = data.Select(c => serializer.Deserialize<Socks5Info>(c.Span)).ToList();
+            List<Socks5Info> list = data.Select(c =>
+            {
+                try
+                {
+                    return serializer.Deserialize<Socks5Info>(c.Span);
+                }
+                catch (Exception)
+                {
+                }
+                return null;
+
+            }).Where(c => c != null).ToList();
             foreach (var item in list)
             {
                 socks5Infos.AddOrUpdate(item.MachineId, item, (a, b) => item);

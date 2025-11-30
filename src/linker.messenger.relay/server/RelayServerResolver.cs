@@ -129,6 +129,8 @@ namespace linker.messenger.relay.server
                     Socket answerSocket = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(15000)).ConfigureAwait(false);
                     await answerSocket.SendAsync(Helper.TrueArray).ConfigureAwait(false);
 
+                    LoggerHelper.Instance.Error($"relay start {socket.RemoteEndPoint} to {answerSocket.RemoteEndPoint}");
+
                     string flowKey = relayMessage.Type == RelayMessengerType.Ask ? $"{relayMessage.FromId}->{relayMessage.ToId}" : $"{relayMessage.ToId}->{relayMessage.FromId}";
                     RelayTrafficCacheInfo trafficCacheInfo = new RelayTrafficCacheInfo { Cache = relayCache, Sendt = 0, Limit = new RelaySpeedLimit(), Key = flowKey };
                     relayServerNodeTransfer.AddTrafficCache(trafficCacheInfo);
@@ -136,6 +138,8 @@ namespace linker.messenger.relay.server
                     await Task.WhenAll(CopyToAsync(trafficCacheInfo, socket, answerSocket), CopyToAsync(trafficCacheInfo, answerSocket, socket)).ConfigureAwait(false);
                     relayServerNodeTransfer.DecrementConnectionNum();
                     relayServerNodeTransfer.RemoveTrafficCache(trafficCacheInfo);
+
+                    LoggerHelper.Instance.Error($"relay end {socket.RemoteEndPoint} to {answerSocket.RemoteEndPoint}");
                 }
                 catch (Exception ex)
                 {

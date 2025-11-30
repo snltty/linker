@@ -10,14 +10,12 @@ namespace linker.messenger.relay.server
     {
         private readonly IRelayServerCaching relayCaching;
         private readonly IRelayServerWhiteListStore relayServerWhiteListStore;
-        private readonly IRelayServerNodeStore  relayServerNodeStore;
-
-        public RelayServerMasterTransfer(IRelayServerCaching relayCaching, IRelayServerWhiteListStore relayServerWhiteListStore, IRelayServerNodeStore relayServerNodeStore)
+        private readonly RelayServerConnectionTransfer relayServerConnectionTransfer;
+        public RelayServerMasterTransfer(IRelayServerCaching relayCaching, IRelayServerWhiteListStore relayServerWhiteListStore, RelayServerConnectionTransfer relayServerConnectionTransfer)
         {
             this.relayCaching = relayCaching;
             this.relayServerWhiteListStore = relayServerWhiteListStore;
-            this.relayServerNodeStore = relayServerNodeStore;
-
+            this.relayServerConnectionTransfer = relayServerConnectionTransfer;
         }
 
         public bool AddRelay(SignCacheInfo from, SignCacheInfo to, uint flowid)
@@ -37,6 +35,11 @@ namespace linker.messenger.relay.server
         }
         public async Task<RelayCacheInfo> TryGetRelayCache(string key, string nodeid)
         {
+            if (relayServerConnectionTransfer.TryGet(nodeid, out IConnection connection) == false)
+            {
+                return null;
+            }
+
             if (relayCaching.TryGetValue(key, out RelayCacheInfo cache))
             {
                 List<double> bandwidth = await relayServerWhiteListStore.GetBandwidth(cache.UserId, cache.FromId, cache.ToId, nodeid);
@@ -53,51 +56,7 @@ namespace linker.messenger.relay.server
             }
             return null;
         }
-    
-        public async Task<List<RelayServerNodeStoreInfo>> GetNodes(bool validated, string userid, string machineId)
-        {
-            var nodes = (await relayServerWhiteListStore.GetNodes(userid, machineId)).Where(c => c.Bandwidth >= 0).SelectMany(c => c.Nodes);
 
-            var result = (await relayServerNodeStore.GetAll())
-                .Where(c => Environment.TickCount64 - c.LastTicks < 15000)
-                .Where(c =>
-                {
-                    return validated || nodes.Contains(c.NodeId) || nodes.Contains("*")
-                    || (c.Public && c.ConnectionsRatio < c.Connections && (c.DataEachMonth == 0 || (c.DataEachMonth > 0 && c.DataRemain > 0)));
-                })
-                .OrderByDescending(c => c.LastTicks);
-
-            return result.OrderByDescending(x => x.Connections == 0 ? int.MaxValue : x.Connections)
-                     .ThenBy(x => x.ConnectionsRatio)
-                     .ThenBy(x => x.BandwidthRatio)
-                     .ThenByDescending(x => x.BandwidthEachConnection == 0 ? int.MaxValue : x.BandwidthEachConnection)
-                     .ThenByDescending(x => x.Bandwidth == 0 ? int.MaxValue : x.Bandwidth)
-                     .ThenByDescending(x => x.DataEachMonth == 0 ? int.MaxValue : x.DataEachMonth)
-                     .ThenByDescending(x => x.DataRemain == 0 ? long.MaxValue : x.DataRemain)
-                     .ToList();
-        }
-        public async Task<List<RelayServerNodeStoreInfo>> GetPublicNodes()
-        {
-            var result = (await relayServerNodeStore.GetAll())
-                .Where(c => Environment.TickCount64 - c.LastTicks < 15000)
-                .Where(c => c.Public)
-                .OrderByDescending(c => c.LastTicks);
-
-            return result.OrderByDescending(x => x.Connections == 0 ? int.MaxValue : x.Connections)
-                     .ThenBy(x => x.ConnectionsRatio)
-                     .ThenBy(x => x.BandwidthRatio)
-                     .ThenByDescending(x => x.BandwidthEachConnection == 0 ? int.MaxValue : x.BandwidthEachConnection)
-                     .ThenByDescending(x => x.Bandwidth == 0 ? int.MaxValue : x.Bandwidth)
-                     .ThenByDescending(x => x.DataEachMonth == 0 ? int.MaxValue : x.DataEachMonth)
-                     .ThenByDescending(x => x.DataRemain == 0 ? long.MaxValue : x.DataRemain)
-                     .ToList();
-        }
-
-        public async Task<bool> AddNode(RelayServerNodeStoreInfo info)
-        {
-            return await relayServerNodeStore.Add(info).ConfigureAwait(false);
-        }
-       
     }
 
     public sealed partial class RelayCacheInfo

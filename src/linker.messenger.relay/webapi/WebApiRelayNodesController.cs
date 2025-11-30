@@ -8,14 +8,14 @@ namespace linker.messenger.relay.webapi
     {
         public string Path => "/relay/nodes.json";
 
-        private readonly RelayServerMasterTransfer relayServerMasterTransfer;
-        public WebApiRelayNodesController(RelayServerMasterTransfer relayServerMasterTransfer)
+        private readonly RelayServerNodeReportTransfer relayServerNodeReportTransfer;
+        public WebApiRelayNodesController(RelayServerNodeReportTransfer relayServerNodeReportTransfer)
         {
-            this.relayServerMasterTransfer = relayServerMasterTransfer;
+            this.relayServerNodeReportTransfer = relayServerNodeReportTransfer;
         }
         public async Task<Memory<byte>> Handle(string query)
         {
-            return (await relayServerMasterTransfer.GetPublicNodes().ConfigureAwait(false)).Select(c =>
+            return (await relayServerNodeReportTransfer.GetPublicNodes().ConfigureAwait(false)).Select(c =>
             {
                 return new
                 {

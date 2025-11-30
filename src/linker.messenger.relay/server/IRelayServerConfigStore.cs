@@ -7,6 +7,8 @@ namespace linker.messenger.relay.server
 {
     public interface IRelayServerConfigStore
     {
+        public int ServicePort { get; }
+
         /// <summary>
         /// 节点信息
         /// </summary>
@@ -28,6 +30,9 @@ namespace linker.messenger.relay.server
         /// </summary>
         /// <param name="value"></param>
         public void SetDataRemain(long value);
+
+        public void SetShareKey(string shareKey);
+
         /// <summary>
         /// 提交保存
         /// </summary>
@@ -41,14 +46,13 @@ namespace linker.messenger.relay.server
 
         private string name = Dns.GetHostName().SubStr(0, 32);
         public string Name { get => name; set { name = value.SubStr(0, 32); } }
-        public string Host { get; set; } = string.Empty;
 
         public TunnelProtocolType Protocol { get; set; } = TunnelProtocolType.Tcp;
         public int Connections { get; set; } = 1000;
-        public int Bandwidth { get; set; } = 50;
-        public int DataEachMonth { get; set; } = 100;
+        public int Bandwidth { get; set; }
+        public int DataEachMonth { get; set; }
         public long DataRemain { get; set; }
-       
+
         public string Url { get; set; } = "https://linker.snltty.com";
         public string Logo { get; set; } = "https://linker.snltty.com/img/logo.png";
     }
@@ -57,6 +61,7 @@ namespace linker.messenger.relay.server
     {
         public string ShareKey { get; set; } = string.Empty;
         public int DataMonth { get; set; }
+        public string Domain { get; set; } = string.Empty;
     }
 
     public class RelayServerNodeReportInfo : RelayServerNodeInfo
@@ -64,6 +69,30 @@ namespace linker.messenger.relay.server
         public string Version { get; set; } = string.Empty;
         public int ConnectionsRatio { get; set; }
         public double BandwidthRatio { get; set; }
+
+        public IPEndPoint[] Servers { get; set; } = Array.Empty<IPEndPoint>();
+    }
+
+    public sealed class RelayServerNodeStoreInfo : RelayServerNodeReportInfo
+    {
+        public int Id { get; set; }
+
+        public string Host { get; set; } = string.Empty;
+
+        public int BandwidthEachConnection { get; set; } = 50;
+        public bool Public { get; set; }
+
+        public long LastTicks { get; set; }
+
+        public int Delay { get; set; }
+    }
+
+
+    public class RelayServerNodeShareInfo
+    {
+        public string NodeId { get; set; } = string.Empty;
+        public string Host { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
     }
 
     public partial class RelayServerNodeReportInfoOld

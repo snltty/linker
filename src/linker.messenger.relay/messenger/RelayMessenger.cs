@@ -27,22 +27,17 @@ namespace linker.messenger.relay.messenger
         private readonly RelayServerValidatorTransfer relayValidatorTransfer;
         private readonly ISerializer serializer;
         private readonly RelayServerReportResolver relayServerReportResolver;
-        private readonly RelayServerNodeTransfer relayServerNodeTransfer;
         private readonly RelayServerMasterTransfer relayServerMasterTransfer;
-        private readonly RelayServerConnectionTransfer relayServerConnectionTransfer;
         private readonly RelayServerNodeReportTransfer relayServerNodeReportTransfer;
 
         public RelayServerMessenger(SignInServerCaching signCaching, ISerializer serializer, RelayServerValidatorTransfer relayValidatorTransfer,
-            RelayServerReportResolver relayServerReportResolver, RelayServerNodeTransfer relayServerNodeTransfer, RelayServerMasterTransfer relayServerMasterTransfer,
-            RelayServerConnectionTransfer relayServerConnectionTransfer, RelayServerNodeReportTransfer relayServerNodeReportTransfer)
+            RelayServerReportResolver relayServerReportResolver, RelayServerMasterTransfer relayServerMasterTransfer, RelayServerNodeReportTransfer relayServerNodeReportTransfer)
         {
             this.signCaching = signCaching;
             this.relayValidatorTransfer = relayValidatorTransfer;
             this.serializer = serializer;
             this.relayServerReportResolver = relayServerReportResolver;
-            this.relayServerNodeTransfer = relayServerNodeTransfer;
             this.relayServerMasterTransfer = relayServerMasterTransfer;
-            this.relayServerConnectionTransfer = relayServerConnectionTransfer;
             this.relayServerNodeReportTransfer = relayServerNodeReportTransfer;
         }
 
@@ -78,12 +73,12 @@ namespace linker.messenger.relay.messenger
                 return;
             }
 
-            connection.Write(serializer.Serialize(new RelayAskResultInfo { Nodes = nodes, MasterId = relayServerNodeTransfer.Config.NodeId }));
+            connection.Write(serializer.Serialize(new RelayAskResultInfo { Nodes = nodes, MasterId = relayServerNodeReportTransfer.Config.NodeId }));
         }
 
         private async Task<List<RelayServerNodeStoreInfo>> GetNodes(SignCacheInfo from)
         {
-            return await relayServerMasterTransfer.GetNodes(from.Super, from.UserId, from.MachineId);
+            return await relayServerNodeReportTransfer.GetNodes(from.Super, from.UserId, from.MachineId);
         }
 
 
@@ -109,9 +104,15 @@ namespace linker.messenger.relay.messenger
         [MessengerId((ushort)RelayMessengerIds.SignIn)]
         public async Task SignIn(IConnection connection)
         {
-            string id = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            connection.Id = id;
-            relayServerConnectionTransfer.TryAdd(connection.Id, connection);
+            KeyValuePair<string, string> kv = serializer.Deserialize<KeyValuePair<string, string>>(connection.ReceiveRequestWrap.Payload.Span);
+            if (await relayServerNodeReportTransfer.SignIn(kv.Key, kv.Value, connection).ConfigureAwait(false))
+            {
+                connection.Write(Helper.TrueArray);
+            }
+            else
+            {
+                connection.Write(Helper.FalseArray);
+            }
         }
         [MessengerId((ushort)RelayMessengerIds.Report)]
         public async Task Report(IConnection connection)
@@ -119,7 +120,6 @@ namespace linker.messenger.relay.messenger
             RelayServerNodeReportInfo info = serializer.Deserialize<RelayServerNodeReportInfo>(connection.ReceiveRequestWrap.Payload.Span);
             await relayServerNodeReportTransfer.Report(info).ConfigureAwait(false);
         }
-
 
 
         [MessengerId((ushort)RelayMessengerIds.NodeReport)]
@@ -135,12 +135,7 @@ namespace linker.messenger.relay.messenger
                     info.EndPoint.Address = connection.Address.Address;
                 }
 
-                await relayServerMasterTransfer.AddNode(new RelayServerNodeStoreInfo
-                {
-                    NodeId = info.Id,
-                    Name = info.Name,
-                    Host = info.EndPoint.ToString(),
-                }).ConfigureAwait(false);
+                await relayServerNodeReportTransfer.Report(info.Id, info.Name, info.EndPoint.ToString()).ConfigureAwait(false);
             }
             catch (Exception)
             {

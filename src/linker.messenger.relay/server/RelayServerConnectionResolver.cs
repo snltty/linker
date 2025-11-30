@@ -23,7 +23,6 @@ namespace linker.messenger.relay.server
 
         public async Task Resolve(Socket socket, Memory<byte> memory)
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(1024);
             try
             {
                 await messengerResolver.BeginReceiveServer(socket, Helper.EmptyArray).ConfigureAwait(false);
@@ -35,10 +34,6 @@ namespace linker.messenger.relay.server
                     LoggerHelper.Instance.Error(ex);
                 }
                 socket.SafeClose();
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
             }
         }
 

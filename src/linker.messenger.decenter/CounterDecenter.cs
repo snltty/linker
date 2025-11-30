@@ -47,14 +47,24 @@ namespace linker.messenger.decenter
             {
                 Addata(item);
             }
-           
+
         }
         public void AddData(List<ReadOnlyMemory<byte>> data)
         {
-            List<List<ValueTuple<string, string, int>>> list = data.Select(c => serializer.Deserialize<List<ValueTuple<string, string, int>>>(c.Span)).ToList();
+            List<List<ValueTuple<string, string, int>>> list = data.Select(c =>
+            {
+                try
+                {
+                    return serializer.Deserialize<List<ValueTuple<string, string, int>>>(c.Span);
+                }
+                catch (Exception)
+                {
+                }
+                return new List<ValueTuple<string, string, int>>();
+            }).ToList();
             foreach (var info in list)
             {
-                foreach (var item in info)
+                foreach (var item in info.Where(c => string.IsNullOrWhiteSpace(c.Item1) == false))
                 {
                     Addata(item);
                 }

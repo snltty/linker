@@ -1,5 +1,5 @@
 <template>
-    <template v-if="item.MachineName">
+    <template v-if="item.MachineName !== undefined">
         <AccessBoolean value="RenameSelf,RenameOther">
             <template #default="{values}">
                 <a href="javascript:;" @click="handleEdit(values)" :title="item.IP" class="a-line">

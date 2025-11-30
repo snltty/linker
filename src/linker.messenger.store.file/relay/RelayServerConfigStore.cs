@@ -4,7 +4,10 @@ namespace linker.messenger.store.file.relay
 {
     public sealed class RelayServerConfigStore : IRelayServerConfigStore
     {
+        public int ServicePort => config.Data.Server.ServicePort;
         public RelayServerConfigInfo Config => config.Data.Server.Relay;
+
+
 
         private readonly FileConfig config;
         public RelayServerConfigStore(FileConfig config)

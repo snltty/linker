@@ -8,15 +8,5 @@
         public Task<bool> Report(RelayServerNodeReportInfo info);
     }
 
-    public sealed class RelayServerNodeStoreInfo : RelayServerNodeReportInfo
-    {
-        public int Id { get; set; }
-
-        public int BandwidthEachConnection { get; set; } = 50;
-        public bool Public { get; set; }
-
-        public long LastTicks { get; set; }
-
-        public int Delay { get; set; }
-    }
+  
 }
