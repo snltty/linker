@@ -31,7 +31,8 @@ namespace linker.messenger.relay.messenger
         private readonly RelayServerNodeReportTransfer relayServerNodeReportTransfer;
 
         public RelayServerMessenger(SignInServerCaching signCaching, ISerializer serializer, RelayServerValidatorTransfer relayValidatorTransfer,
-            RelayServerReportResolver relayServerReportResolver, RelayServerMasterTransfer relayServerMasterTransfer, RelayServerNodeReportTransfer relayServerNodeReportTransfer)
+            RelayServerReportResolver relayServerReportResolver, RelayServerMasterTransfer relayServerMasterTransfer,
+            RelayServerNodeReportTransfer relayServerNodeReportTransfer)
         {
             this.signCaching = signCaching;
             this.relayValidatorTransfer = relayValidatorTransfer;
@@ -120,6 +121,46 @@ namespace linker.messenger.relay.messenger
             RelayServerNodeReportInfo info = serializer.Deserialize<RelayServerNodeReportInfo>(connection.ReceiveRequestWrap.Payload.Span);
             await relayServerNodeReportTransfer.Report(info).ConfigureAwait(false);
         }
+
+
+        [MessengerId((ushort)RelayMessengerIds.Share)]
+        public async Task Share(IConnection connection)
+        {
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo from) == false || from.Super == false)
+            {
+                connection.Write(serializer.Serialize("need super key"));
+                return;
+            }
+            connection.Write(serializer.Serialize(relayServerNodeReportTransfer.Config.ShareKey));
+        }
+        [MessengerId((ushort)RelayMessengerIds.Import)]
+        public async Task Import(IConnection connection)
+        {
+            string sharekey = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo from) == false || from.Super == false)
+            {
+                connection.Write(serializer.Serialize("need super key"));
+                return;
+            }
+
+            string result = await relayServerNodeReportTransfer.Import(sharekey).ConfigureAwait(false);
+            connection.Write(serializer.Serialize(result));
+        }
+        [MessengerId((ushort)RelayMessengerIds.Remove)]
+        public async Task Remove(IConnection connection)
+        {
+            int id = serializer.Deserialize<int>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo from) == false || from.Super == false)
+            {
+                connection.Write(serializer.Serialize("need super key"));
+                return;
+            }
+
+            bool result = await relayServerNodeReportTransfer.Remove(id).ConfigureAwait(false);
+            connection.Write(serializer.Serialize(result ? string.Empty : "remove fail"));
+        }
+
 
 
         [MessengerId((ushort)RelayMessengerIds.NodeReport)]

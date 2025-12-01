@@ -7,8 +7,6 @@ namespace linker.messenger.store.file.relay
         public int ServicePort => config.Data.Server.ServicePort;
         public RelayServerConfigInfo Config => config.Data.Server.Relay;
 
-
-
         private readonly FileConfig config;
         public RelayServerConfigStore(FileConfig config)
         {
@@ -37,6 +35,11 @@ namespace linker.messenger.store.file.relay
         public void SetShareKey(string shareKey)
         {
             config.Data.Server.Relay.ShareKey = shareKey;
+        }
+
+        public void SetMasterKey(string masterKey)
+        {
+            config.Data.Server.Relay.MasterKey = masterKey;
         }
     }
 }

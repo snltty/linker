@@ -24,7 +24,7 @@ namespace linker.messenger.relay.webapi
                     Version = c.Version,
 
                     BandwidthMaxMbps = c.Bandwidth,
-                    BandwidthConnMbps = c.BandwidthEachConnection,
+                    BandwidthConnMbps = c.BandwidthEach,
                     BandwidthCurrentMbps = c.BandwidthRatio,
 
                     BandwidthGbMonth = c.DataEachMonth,

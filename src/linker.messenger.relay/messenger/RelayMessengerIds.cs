@@ -14,6 +14,11 @@
         SignIn = 2134,
         Report = 2135,
 
+        Share = 2136,
+        Import = 2137,
+        Remove = 2138,
+
+
         Max = 2199
     }
 }

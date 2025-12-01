@@ -242,6 +242,8 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         string Logo => info.Logo;
         [MemoryPackInclude]
+        string MasterKey => info.MasterKey;
+        [MemoryPackInclude]
         string Version => info.Version;
         [MemoryPackInclude]
         int ConnectionsRatio => info.ConnectionsRatio;
@@ -252,7 +254,7 @@ namespace linker.messenger.serializer.memorypack
 
         [MemoryPackConstructor]
         SerializableRelayServerNodeReportInfo(string nodeId, string name, TunnelProtocolType protocol, int connections, int bandwidth, int dataEachMonth,
-            long dataRemain, string url, string logo, string version, int connectionsRatio, double bandwidthRatio, IPEndPoint[] masters)
+            long dataRemain, string url, string logo, string masterKey, string version, int connectionsRatio, double bandwidthRatio, IPEndPoint[] masters)
         {
             var info = new RelayServerNodeReportInfo
             {
@@ -265,6 +267,7 @@ namespace linker.messenger.serializer.memorypack
                 DataRemain = dataRemain,
                 Url = url,
                 Logo = logo,
+                MasterKey = masterKey,
                 Version = version,
                 ConnectionsRatio = connectionsRatio,
                 BandwidthRatio = bandwidthRatio,
@@ -311,6 +314,7 @@ namespace linker.messenger.serializer.memorypack
             value.DataRemain = reader.ReadValue<long>();
             value.Url = reader.ReadValue<string>();
             value.Logo = reader.ReadValue<string>();
+            value.MasterKey = reader.ReadValue<string>();
             value.Version = reader.ReadValue<string>();
             value.ConnectionsRatio = reader.ReadValue<int>();
             value.BandwidthRatio = reader.ReadValue<double>();
@@ -344,7 +348,10 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         string Logo => info.Logo;
         [MemoryPackInclude]
+        string MasterKey => info.MasterKey;
+        [MemoryPackInclude]
         string Version => info.Version;
+
         [MemoryPackInclude]
         int ConnectionsRatio => info.ConnectionsRatio;
         [MemoryPackInclude]
@@ -358,17 +365,19 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         string Host => info.Host;
         [MemoryPackInclude]
-        int BandwidthEachConnection => info.BandwidthEachConnection;
+        int BandwidthEachConnection => info.BandwidthEach;
         [MemoryPackInclude]
         bool Public => info.Public;
         [MemoryPackInclude]
         long LastTicks => info.LastTicks;
 
+        [MemoryPackInclude]
+        bool Manageable => info.Manageable;
 
         [MemoryPackConstructor]
         SerializableRelayServerNodeStoreInfo(string nodeId, string name, TunnelProtocolType protocol, int connections, int bandwidth, int dataEachMonth,
-            long dataRemain, string url, string logo, string version, int connectionsRatio, double bandwidthRatio, IPEndPoint[] servers,
-           int id, string host, int bandwidthEachConnection, bool Public, long lastTicks)
+            long dataRemain, string url, string logo, string masterKey, string version, int connectionsRatio, double bandwidthRatio, IPEndPoint[] servers,
+           int id, string host, int bandwidthEachConnection, bool Public, long lastTicks, bool manageable)
         {
             var info = new RelayServerNodeStoreInfo
             {
@@ -381,15 +390,17 @@ namespace linker.messenger.serializer.memorypack
                 DataRemain = dataRemain,
                 Url = url,
                 Logo = logo,
+                MasterKey = masterKey,
                 Version = version,
                 ConnectionsRatio = connectionsRatio,
                 BandwidthRatio = bandwidthRatio,
                 Masters = servers,
                 Id = id,
                 Host = host,
-                BandwidthEachConnection = bandwidthEachConnection,
+                BandwidthEach = bandwidthEachConnection,
                 Public = Public,
-                LastTicks = lastTicks
+                LastTicks = lastTicks,
+                Manageable = manageable
             };
             this.info = info;
         }
@@ -432,15 +443,17 @@ namespace linker.messenger.serializer.memorypack
             value.DataRemain = reader.ReadValue<long>();
             value.Url = reader.ReadValue<string>();
             value.Logo = reader.ReadValue<string>();
+            value.MasterKey = reader.ReadValue<string>();
             value.Version = reader.ReadValue<string>();
             value.ConnectionsRatio = reader.ReadValue<int>();
             value.BandwidthRatio = reader.ReadValue<double>();
             value.Masters = reader.ReadValue<IPEndPoint[]>();
             value.Id = reader.ReadValue<int>();
             value.Host = reader.ReadValue<string>();
-            value.BandwidthEachConnection = reader.ReadValue<int>();
+            value.BandwidthEach = reader.ReadValue<int>();
             value.Public = reader.ReadValue<bool>();
             value.LastTicks = reader.ReadValue<long>();
+            value.Manageable = reader.ReadValue<bool>();
         }
     }
 
@@ -463,9 +476,9 @@ namespace linker.messenger.serializer.memorypack
         {
             var info = new RelayServerNodeShareInfo
             {
-                 NodeId= nodeId,
-                 Host= host,
-                 Name= name
+                NodeId = nodeId,
+                Host = host,
+                Name = name
             };
             this.info = info;
         }

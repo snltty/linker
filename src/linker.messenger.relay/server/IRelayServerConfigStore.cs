@@ -32,6 +32,7 @@ namespace linker.messenger.relay.server
         public void SetDataRemain(long value);
 
         public void SetShareKey(string shareKey);
+        public void SetMasterKey(string masterKey);
 
         /// <summary>
         /// 提交保存
@@ -44,11 +45,11 @@ namespace linker.messenger.relay.server
         private string nodeId = Guid.NewGuid().ToString().ToUpper();
         public string NodeId { get => nodeId; set { nodeId = value.SubStr(0, 36); } }
 
-        private string name = Dns.GetHostName().SubStr(0, 32);
+        private string name = "default";
         public string Name { get => name; set { name = value.SubStr(0, 32); } }
 
         public TunnelProtocolType Protocol { get; set; } = TunnelProtocolType.Tcp;
-        public int Connections { get; set; } = 1000;
+        public int Connections { get; set; }
         public int Bandwidth { get; set; }
         public int DataEachMonth { get; set; }
         public long DataRemain { get; set; }
@@ -60,12 +61,14 @@ namespace linker.messenger.relay.server
     public sealed class RelayServerConfigInfo : RelayServerNodeInfo
     {
         public string ShareKey { get; set; } = string.Empty;
+        public string MasterKey { get; set; } = string.Empty;
         public int DataMonth { get; set; }
         public string Domain { get; set; } = string.Empty;
     }
 
     public class RelayServerNodeReportInfo : RelayServerNodeInfo
     {
+        public string MasterKey { get; set; } = string.Empty;
         public string Version { get; set; } = string.Empty;
         public int ConnectionsRatio { get; set; }
         public double BandwidthRatio { get; set; }
@@ -79,12 +82,14 @@ namespace linker.messenger.relay.server
 
         public string Host { get; set; } = string.Empty;
 
-        public int BandwidthEachConnection { get; set; } = 50;
+        public int BandwidthEach { get; set; } = 50;
         public bool Public { get; set; }
 
         public long LastTicks { get; set; }
 
         public int Delay { get; set; }
+
+        public bool Manageable { get; set; }
     }
 
 

@@ -11,7 +11,8 @@ namespace linker.messenger.relay.server
         private readonly IRelayServerCaching relayCaching;
         private readonly IRelayServerWhiteListStore relayServerWhiteListStore;
         private readonly RelayServerConnectionTransfer relayServerConnectionTransfer;
-        public RelayServerMasterTransfer(IRelayServerCaching relayCaching, IRelayServerWhiteListStore relayServerWhiteListStore, RelayServerConnectionTransfer relayServerConnectionTransfer)
+        public RelayServerMasterTransfer(IRelayServerCaching relayCaching, IRelayServerWhiteListStore relayServerWhiteListStore,
+            RelayServerConnectionTransfer relayServerConnectionTransfer)
         {
             this.relayCaching = relayCaching;
             this.relayServerWhiteListStore = relayServerWhiteListStore;

@@ -6,6 +6,7 @@
         public Task<RelayServerNodeStoreInfo> GetByNodeId(string nodeId);
         public Task<bool> Add(RelayServerNodeStoreInfo info);
         public Task<bool> Report(RelayServerNodeReportInfo info);
+        public Task<bool> Delete(int id);
     }
 
   

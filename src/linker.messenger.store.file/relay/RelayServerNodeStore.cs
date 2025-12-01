@@ -1,4 +1,5 @@
-﻿using linker.messenger.relay.server;
+﻿using linker.libs.extends;
+using linker.messenger.relay.server;
 using LiteDB;
 
 namespace linker.messenger.store.file.relay
@@ -7,9 +8,11 @@ namespace linker.messenger.store.file.relay
     {
         private readonly ILiteCollection<RelayServerNodeStoreInfo> liteCollection;
 
-        public RelayServerNodeStore(Storefactory storefactory)
+        private string md5 = string.Empty;
+        public RelayServerNodeStore(Storefactory storefactory, IRelayServerConfigStore relayServerConfigStore)
         {
             liteCollection = storefactory.GetCollection<RelayServerNodeStoreInfo>("relay_server_master");
+            md5 = relayServerConfigStore.Config.NodeId.Md5();
         }
 
         public async Task<bool> Add(RelayServerNodeStoreInfo info)
@@ -20,6 +23,11 @@ namespace linker.messenger.store.file.relay
             }
             liteCollection.Insert(info);
             return await Task.FromResult(true).ConfigureAwait(false);
+        }
+
+        public async Task<bool> Delete(int id)
+        {
+            return await Task.FromResult(liteCollection.Delete(id)).ConfigureAwait(false);
         }
 
         public async Task<List<RelayServerNodeStoreInfo>> GetAll()
@@ -48,6 +56,10 @@ namespace linker.messenger.store.file.relay
                 DataRemain = info.DataRemain,
                 Name = info.Name,
                 Protocol = info.Protocol,
+                MasterKey = info.MasterKey,
+                Masters = info.Masters,
+                //是我初始化的，可以管理
+                Manageable = info.MasterKey == md5
             }, c => c.NodeId == info.NodeId);
 
             return await Task.FromResult(length > 0).ConfigureAwait(false); ;

@@ -14,6 +14,7 @@ namespace linker.messenger.relay.server
         private int connectionNum = 0;
         private ulong bytes = 0;
         private ulong lastBytes = 0;
+        private string md5 = string.Empty;
 
         private readonly ICrypto crypto = CryptoFactory.CreateSymmetric(Helper.GlobalString);
 
@@ -37,6 +38,8 @@ namespace linker.messenger.relay.server
             this.relayServerNodeStore = relayServerNodeStore;
             this.relayServerWhiteListStore = relayServerWhiteListStore;
             this.messengerResolver = messengerResolver;
+
+            md5 = Config.NodeId.Md5();
 
             _ = ReportTask();
             SignInTask();
@@ -67,7 +70,7 @@ namespace linker.messenger.relay.server
         }
         public async Task<bool> Report(RelayServerNodeReportInfo info)
         {
-            if (relayServerConnectionTransfer.TryGet(ConnectionSideType.Node, info.NodeId, out IConnection connection) == false) return false;
+            if (relayServerConnectionTransfer.TryGet(ConnectionSideType.Node, info.NodeId, out _) == false) return false;
 
             return await relayServerNodeStore.Report(info).ConfigureAwait(false);
         }
@@ -80,16 +83,51 @@ namespace linker.messenger.relay.server
 
             connection.Id = serverId;
             relayServerConnectionTransfer.TryAdd(ConnectionSideType.Master, connection.Id, connection);
+
+            //未被配置，或默认配置的，设它为管理端
+            if (string.IsNullOrWhiteSpace(Config.MasterKey) || md5 == Config.MasterKey)
+            {
+                relayServerConfigStore.SetMasterKey(serverId.Md5());
+                relayServerConfigStore.Confirm();
+            }
             return true;
         }
 
+        public async Task<string> Import(string shareKey)
+        {
+            try
+            {
+                RelayServerNodeShareInfo info = serializer.Deserialize<RelayServerNodeShareInfo>(crypto.Decode(Convert.FromBase64String(shareKey)).Span);
+
+                bool result = await relayServerNodeStore.Add(new RelayServerNodeStoreInfo
+                {
+                    NodeId = info.NodeId,
+                    Host = info.Host,
+                    Name = info.Name,
+                    LastTicks = Environment.TickCount64
+                }).ConfigureAwait(false);
+                if (result == false)
+                {
+                    return "node already exists";
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
+            return string.Empty;
+        }
+        public async Task<bool> Remove(int id)
+        {
+            return await relayServerNodeStore.Delete(id).ConfigureAwait(false);
+        }
 
         public async Task<List<RelayServerNodeStoreInfo>> GetNodes(bool validated, string userid, string machineId)
         {
             var nodes = (await relayServerWhiteListStore.GetNodes(userid, machineId)).Where(c => c.Bandwidth >= 0).SelectMany(c => c.Nodes);
 
             var result = (await relayServerNodeStore.GetAll())
-                .Where(c => Environment.TickCount64 - c.LastTicks < 15000)
+                .Where(c => validated || Environment.TickCount64 - c.LastTicks < 15000)
                 .Where(c =>
                 {
                     return validated || nodes.Contains(c.NodeId) || nodes.Contains("*")
@@ -100,7 +138,7 @@ namespace linker.messenger.relay.server
             return result.OrderByDescending(x => x.Connections == 0 ? int.MaxValue : x.Connections)
                      .ThenBy(x => x.ConnectionsRatio)
                      .ThenBy(x => x.BandwidthRatio)
-                     .ThenByDescending(x => x.BandwidthEachConnection == 0 ? int.MaxValue : x.BandwidthEachConnection)
+                     .ThenByDescending(x => x.BandwidthEach == 0 ? int.MaxValue : x.BandwidthEach)
                      .ThenByDescending(x => x.Bandwidth == 0 ? int.MaxValue : x.Bandwidth)
                      .ThenByDescending(x => x.DataEachMonth == 0 ? int.MaxValue : x.DataEachMonth)
                      .ThenByDescending(x => x.DataRemain == 0 ? long.MaxValue : x.DataRemain)
@@ -116,7 +154,7 @@ namespace linker.messenger.relay.server
             return result.OrderByDescending(x => x.Connections == 0 ? int.MaxValue : x.Connections)
                      .ThenBy(x => x.ConnectionsRatio)
                      .ThenBy(x => x.BandwidthRatio)
-                     .ThenByDescending(x => x.BandwidthEachConnection == 0 ? int.MaxValue : x.BandwidthEachConnection)
+                     .ThenByDescending(x => x.BandwidthEach == 0 ? int.MaxValue : x.BandwidthEach)
                      .ThenByDescending(x => x.Bandwidth == 0 ? int.MaxValue : x.Bandwidth)
                      .ThenByDescending(x => x.DataEachMonth == 0 ? int.MaxValue : x.DataEachMonth)
                      .ThenByDescending(x => x.DataRemain == 0 ? long.MaxValue : x.DataRemain)
@@ -130,8 +168,8 @@ namespace linker.messenger.relay.server
             {
                 await relayServerNodeStore.Add(new RelayServerNodeStoreInfo
                 {
-                    NodeId = Config.NodeId,
-                    Name = Config.Name,
+                    NodeId = relayServerConfigStore.Config.NodeId,
+                    Name = "default",
                     Host = $"{IPAddress.Loopback}:{relayServerConfigStore.ServicePort}"
                 }).ConfigureAwait(false);
 
@@ -240,7 +278,7 @@ namespace linker.messenger.relay.server
                             }).ConfigureAwait(false);
                             if (resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray))
                             {
-                                Console.WriteLine($"relay sign in to node {c.NodeId} success");
+                                LoggerHelper.Instance.Debug($"relay sign in to node {c.NodeId} success");
                                 relayServerConnectionTransfer.TryAdd(ConnectionSideType.Node, c.NodeId, connection);
                             }
                             else
