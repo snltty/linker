@@ -9,7 +9,7 @@ maintainer_url=https://linker.snltty.com
 distributor=snltty
 distributor_url=https://linker.snltty.com
 desktop_uidir=ui
-desktop_applaunchname=linker.Application
+desktop_applaunchname=linker.docker.Application
 
 service_port=1804
 checkport=true

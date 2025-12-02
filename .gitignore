@@ -12,3 +12,5 @@ packages
 
 TestResults
 /VpnServer
+
+*.fpk

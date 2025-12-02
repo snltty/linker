@@ -1,0 +1,33 @@
+[
+    {
+        "stepTitle": "确认卸载",
+        "items": [
+            {
+                "type": "tips",
+                "helpText": "您即将卸载此应用。请选择如何处理应用数据，<strong>警告：</strong> 选择删除数据后，所有应用数据将永久丢失，无法恢复。"
+            },
+            {
+                "type": "radio",
+                "field": "wizard_data_action",
+                "label": "配置保留选项",
+                "initValue": "keep",
+                "options": [
+                    {
+                        "label": "保留配置",
+                        "value": "keep"
+                    },
+                    {
+                        "label": "删除配置",
+                        "value": "delete"
+                    }
+                ],
+                "rules": [
+                    {
+                        "required": true,
+                        "message": "请选择配置保留选项"
+                    }
+                ]
+            }
+        ]
+    }
+]

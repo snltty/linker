@@ -10,7 +10,7 @@ services:
     tty: true
     stdin_open: true
     volumes:
-      - "/var/apps/linker/shares/linker/configs:/app/configs"
-      - "/var/apps/linker/shares/linker/logs:/app/logs"
+      - "/$TRIM_APPDEST_VOL/@appshare/linker-docker/configs:/app/configs"
+      - "/$TRIM_APPDEST_VOL/@appshare/linker-docker/logs:/app/logs"
     devices:
       - /dev/net/tun:/dev/net/tun

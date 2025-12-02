@@ -3,6 +3,6 @@
     {
         "run-as": "package"
     },
-    "username": "docker-linker",
-    "groupname": "docker-linker"
+    "username": "linker-docker",
+    "groupname": "linker-docker"
 }

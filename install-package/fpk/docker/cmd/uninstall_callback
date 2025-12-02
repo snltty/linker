@@ -2,8 +2,8 @@
 
 ### This script is called after the user uninstalls the application.
 
-docker stop linker
-docker rm linker
-docker rmi -f snltty/linker-musl
+if [ "$wizard_data_action" = "delete" ]; then
+    rm -rf $TRIM_APPDEST_VOL/@appshare/linker-docker
+fi
 
 exit 0

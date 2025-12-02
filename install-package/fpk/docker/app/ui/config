@@ -1,6 +1,6 @@
 {
     ".url": {
-        "linker.Application": {
+        "linker.docker.Application": {
             "title": "Linker",
             "icon": "images/icon_{0}.png",
             "type": "url",
