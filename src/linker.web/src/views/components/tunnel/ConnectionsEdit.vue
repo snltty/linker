@@ -67,29 +67,27 @@
                         </div>
                     </template>
                 </el-table-column>
-                <el-table-column property="MaxGbTotal" :label="$t('server.relayFlow')" width="100">
+                <el-table-column property="ConnectionsRatio" :label="$t('server.relayConnection')" width="80">
                     <template #default="scope">
-                        <span v-if="scope.row.MaxGbTotal == 0">--</span>
+                        <span><strong>{{ scope.row.ConnectionsRatio }}</strong></span>
+                    </template>
+                </el-table-column>
+                <el-table-column property="BandwidthEach" :label="$t('server.relaySpeed')" width="140">
+                    <template #default="scope">
+                        <p>
+                            <span>{{ scope.row.BandwidthRatio }}Mbps</span>
+                            <span> / </span>
+                            <span v-if="scope.row.BandwidthEach == 0">--</span>
+                            <span v-else>{{ scope.row.BandwidthEach }}Mbps</span>
+                        </p>
+                    </template>
+                </el-table-column>
+                 <el-table-column property="DataEachMonth" :label="$t('server.relayFlow')" width="100">
+                    <template #default="scope">
+                        <span v-if="scope.row.DataEachMonth == 0">--</span>
                         <span v-else>
-                            {{ (scope.row.MaxGbTotalLastBytes / 1024 / 1024 / 1024).toFixed(2) }}GB
+                            {{ (scope.row.DataRemain / 1024 / 1024 / 1024).toFixed(2) }}GB
                         </span>
-                    </template>
-                </el-table-column>
-                <el-table-column property="MaxBandwidth" :label="$t('server.relaySpeed')" width="80">
-                    <template #default="scope">
-                        <span v-if="scope.row.MaxBandwidth == 0">--</span>
-                        <span v-else>{{ scope.row.MaxBandwidth }}Mbps</span>
-                    </template>
-                </el-table-column>
-                <el-table-column property="MaxBandwidthTotal"
-                    :label="$t('server.relaySpeed2')" width="80">
-                    <template #default="scope">
-                        <span>{{ scope.row.BandwidthRatio }}Mbps</span>
-                    </template>
-                </el-table-column>
-                <el-table-column property="ConnectionRatio" :label="$t('server.relayConnection')" width="80">
-                    <template #default="scope">
-                        <span><strong>{{ scope.row.ConnectionRatio }}</strong></span>
                     </template>
                 </el-table-column>
                 <el-table-column property="Delay" :label="$t('server.relayDelay')" width="60">
@@ -104,8 +102,8 @@
                 </el-table-column>
                 <el-table-column property="Oper" :label="$t('server.relayUse')" width="130">
                     <template #default="scope">
-                        <el-button size="small" v-if="(scope.row.AllowProtocol & 1) == 1" @click="handleConnect(scope.row.Id, 1)">TCP</el-button>
-                        <el-button size="small" v-if="(scope.row.AllowProtocol & 2) == 2" @click="handleConnect(scope.row.Id, 2)">UDP</el-button>
+                        <el-button size="small" v-if="(scope.row.Protocol & 1) == 1" @click="handleConnect(scope.row, 1)">TCP</el-button>
+                        <el-button size="small" v-if="(scope.row.Protocol & 2) == 2" @click="handleConnect(scope.row, 2)">UDP</el-button>
                     </template>
                 </el-table-column>
             </el-table>
@@ -189,12 +187,12 @@ export default {
         const handleNode = () => {
             state.showNodes = true;
         }
-        const handleConnect = (id, protocol) => {
+        const handleConnect = (row, protocol) => {
             const json = {
                 FromMachineId: globalData.value.config.Client.Id,
                 TransactionId: state.transactionId,
                 ToMachineId: state.device.MachineId,
-                NodeId: id,
+                NodeId: row.NodeId,
                 Protocol: protocol
             };
             relayConnect(json).then(() => {ElMessage.success(t('common.oper')); }).catch(() => {ElMessage.success(t('common.operFail')); });

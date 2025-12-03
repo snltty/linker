@@ -10,6 +10,8 @@ RUN echo "https://mirrors.ustc.edu.cn/alpine/latest-stable/main/" > /etc/apk/rep
 
 EXPOSE 1802/tcp
 EXPOSE 1802/udp
+EXPOSE 1803/tcp
+EXPOSE 1803/udp
 EXPOSE 1804/tcp
 EXPOSE 1804/udp
 

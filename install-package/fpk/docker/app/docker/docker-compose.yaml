@@ -14,3 +14,5 @@ services:
       - "/$TRIM_APPDEST_VOL/@appshare/linker-docker/logs:/app/logs"
     devices:
       - /dev/net/tun:/dev/net/tun
+    environment:
+      - SNLTTY_LINKER_IS_FNOS=linker

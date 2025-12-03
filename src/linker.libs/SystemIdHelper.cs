@@ -65,13 +65,32 @@ namespace linker.libs
 
         public static string GetSystemStr()
         {
-            return $"{SystemName()}-{VersionNumber()}-{RuntimeInformation.OSArchitecture.ToString().ToLower()}";
+            return $"{SystemName()}-{VersionNumber()}-any";
         }
         private static string SystemName()
         {
-            string pattern = @"ikuai|fnos|iphone|samsung|vivo|oppo|google|huawei|xiaomi|ios|android|windows|ubuntu|openwrt|armbian|archlinux|fedora|centos|rocky|alpine|debian|linux|docker";
-            return Regex.Match(RuntimeInformation.OSDescription.ToLower(), pattern)?.Value ?? "unknow";
+            string pattern = @"ikuai|fnos|iphone|samsung|vivo|oppo|google|huawei|xiaomi|ios|android|windows|docker|ubuntu|openwrt|armbian|archlinux|fedora|centos|rocky|alpine|debian|linux";
+            return Regex.Match(GetDesc(), pattern)?.Value ?? "unknow";
         }
+        private static string GetDesc()
+        {
+            if(string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("SNLTTY_LINKER_IS_FNOS")) == false)
+            {
+                return "fnos";
+            }
+            if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("SNLTTY_LINKER_IS_DOCKER")) == false)
+            {
+                return "docker";
+            }
+
+            if (File.Exists("/usr/trim/www/static/pong.html"))
+            {
+                return "fnos";
+            }
+
+            return RuntimeInformation.OSDescription.ToLower();
+        }
+
         private static string VersionNumber()
         {
             var version = Environment.OSVersion.Version;
@@ -91,34 +110,8 @@ namespace linker.libs
                     _ => $"unknow"
                 };
             }
-            if (OperatingSystem.IsAndroid())
-            {
-                return version.Major switch
-                {
-                    35 => "15",
-                    34 => "14",
-                    33 => "13",
-                    32 => "12L",
-                    31 => "12",
-                    30 => "11",
-                    29 => "10",
-                    28 => "9",
-                    27 => "8.1",
-                    26 => "8.0",
-                    25 => "7.1",
-                    24 => "7.0",
-                    23 => "6.0",
-                    22 => "5.1",
-                    21 => "5.0",
-                    _ => $"unknow"
-                };
-            }
-            if (OperatingSystem.IsLinux())
-            {
-                return $"{version.Major}.x";
-            }
 
-            return version.ToString();
+            return $"any";
         }
     }
 }

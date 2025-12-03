@@ -1,6 +1,6 @@
 import win.ui;
 /*DSG{{*/
-var winform = win.form(text="linker 管理";right=820;bottom=750;max=false)
+var winform = win.form(text="linker 管理";right=820;bottom=820;max=false)
 winform.add()
 /*}}*/
 

@@ -226,7 +226,8 @@ namespace linker.messenger.relay.server
                             ConnectionsRatio = connectionNum,
                             BandwidthRatio = Math.Round(diff / 5, 2),
                             Version = VersionHelper.Version,
-                            Masters = connections.Select(c => c.Address).ToArray()
+                            Masters = connections.Select(c => c.Address).ToArray(),
+                             MasterKey = config.MasterKey,
                         };
                         byte[] memory = serializer.Serialize(info);
                         var tasks = connections.Select(c => messengerSender.SendOnly(new MessageRequestWrap

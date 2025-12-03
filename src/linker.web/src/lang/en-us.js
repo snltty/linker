@@ -202,6 +202,7 @@ export default {
     'server.relayPublic': 'Public',
     'server.relayAllow': 'Allow',
     'server.relayUrl': 'Url',
+    'server.relayLogo': 'Logo',
     'server.relayOper': 'Oper',
     'server.relayUse': 'Use',
     'server.relayDefault': 'Default',

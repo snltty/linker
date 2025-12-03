@@ -10,18 +10,16 @@ namespace linker.messenger.sforward.server.validator
         public string Name => "default";
 
         private readonly ISForwardServerStore sForwardServerStore;
-        private readonly SForwardServerMasterTransfer sForwardServerMasterTransfer;
         private readonly ISForwardServerNodeStore sForwardServerNodeStore;
-        public SForwardValidator(ISForwardServerStore sForwardServerStore, SForwardServerMasterTransfer sForwardServerMasterTransfer, ISForwardServerNodeStore sForwardServerNodeStore)
+        public SForwardValidator(ISForwardServerStore sForwardServerStore, ISForwardServerNodeStore sForwardServerNodeStore)
         {
             this.sForwardServerStore = sForwardServerStore;
-            this.sForwardServerMasterTransfer = sForwardServerMasterTransfer;
             this.sForwardServerNodeStore = sForwardServerNodeStore;
         }
 
         public async Task<string> Validate(SignCacheInfo signCacheInfo, SForwardAddInfo sForwardAddInfo)
         {
-            if (string.IsNullOrWhiteSpace(sForwardAddInfo.NodeId)) sForwardAddInfo.NodeId = sForwardServerNodeStore.Node.Id;
+            //if (string.IsNullOrWhiteSpace(sForwardAddInfo.NodeId)) sForwardAddInfo.NodeId = sForwardServerNodeStore.Node.Id;
 
             if (sForwardAddInfo.RemotePort > 0)
             {

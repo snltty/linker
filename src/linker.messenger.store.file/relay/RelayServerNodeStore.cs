@@ -59,7 +59,7 @@ namespace linker.messenger.store.file.relay
                 MasterKey = info.MasterKey,
                 Masters = info.Masters,
                 //是我初始化的，可以管理
-                Manageable = info.MasterKey == md5
+                Manageable = false//info.MasterKey == md5
             }, c => c.NodeId == info.NodeId);
 
             return await Task.FromResult(length > 0).ConfigureAwait(false); ;

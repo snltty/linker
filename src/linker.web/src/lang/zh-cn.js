@@ -298,6 +298,7 @@ export default {
     'server.relayPublic': '公开',
     'server.relayAllow': '支持协议',
     'server.relayUrl': 'Url',
+    'server.relayLogo': 'Logo',
     'server.relayOper': '操作',
     'server.relayUse': '使用',
     'server.relayDefault': '默认',

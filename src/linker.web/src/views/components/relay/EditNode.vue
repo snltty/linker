@@ -3,35 +3,35 @@
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="auto">
                 <el-form-item :label="$t('server.relayName')" prop="Name">
-                    <el-input v-trim minlength="1" maxlength="32" show-word-limit v-model="state.ruleForm.Name" />
+                    <el-input :disabled="data.Manageable==false" v-trim minlength="1" maxlength="32" show-word-limit v-model="state.ruleForm.Name" />
                 </el-form-item>
-                <el-form-item :label="$t('server.relayConnection')" prop="MaxConnection">
-                    <el-input-number v-model="state.ruleForm.MaxConnection" :min="0" :max="65535"/>
+                <el-form-item :label="$t('server.relayConnection')" prop="Connections">
+                    <el-input-number :disabled="data.Manageable==false" v-model="state.ruleForm.Connections" :min="0" :max="65535"/>
                 </el-form-item>
-                <el-form-item :label="$t('server.relaySpeed')" prop="MaxBandwidth">
-                    <el-input-number v-model="state.ruleForm.MaxBandwidth" :min="0"/>Mbps
+                <el-form-item :label="$t('server.relaySpeed')" prop="BandwidthEach">
+                    <el-input-number v-model="state.ruleForm.BandwidthEach" :min="0"/>Mbps
                 </el-form-item>
-                <el-form-item :label="$t('server.relaySpeed1')" prop="MaxBandwidthTotal">
-                    <el-input-number v-model="state.ruleForm.MaxBandwidthTotal" :min="0"/>Mbps
+                <el-form-item :label="$t('server.relaySpeed1')" prop="Bandwidth">
+                    <el-input-number :disabled="data.Manageable==false" v-model="state.ruleForm.Bandwidth" :min="0"/>Mbps
                 </el-form-item>
-                <el-form-item :label="$t('server.relayFlow')" prop="MaxGbTotal">
-                    <el-input-number v-model="state.ruleForm.MaxGbTotal" :min="0"/>GB <el-button size="small" @click="handleRefresh"><el-icon><Refresh /></el-icon></el-button>
+                <el-form-item :label="$t('server.relayFlow')" prop="DataEachMonth">
+                    <el-input-number :disabled="data.Manageable==false" v-model="state.ruleForm.DataEachMonth" :min="0"/>GB <el-button size="small" @click="handleRefresh"><el-icon><Refresh /></el-icon></el-button>
                 </el-form-item>
-                <el-form-item :label="$t('server.relayFlowLast')" prop="MaxGbTotalLastBytes">
-                    <el-input-number v-model="state.ruleForm.MaxGbTotalLastBytes" :min="0" />byte
+                <el-form-item :label="$t('server.relayFlowLast')" prop="DataRemain">
+                    <el-input-number :disabled="data.Manageable==false" v-model="state.ruleForm.DataRemain" :min="0" />byte
                 </el-form-item>
                 <el-form-item :label="$t('server.relayUrl')" prop="Url">
-                    <el-input v-trim v-model="state.ruleForm.Url" />
+                    <el-input :disabled="data.Manageable==false" v-trim v-model="state.ruleForm.Url" />
+                </el-form-item>
+                 <el-form-item :label="$t('server.relayLogo')" prop="Logo">
+                    <el-input :disabled="data.Manageable==false" v-trim v-model="state.ruleForm.Logo" />
                 </el-form-item>
                 <el-form-item :label="$t('server.relayPublic')" prop="Public">
                     <el-switch v-model="state.ruleForm.Public " size="small" />
                 </el-form-item>
-                <el-form-item :label="$t('server.relaySync2Server')" prop="Sync2Server">
-                    <el-switch v-model="state.ruleForm.Sync2Server " size="small" />
-                </el-form-item>
                 <el-form-item :label="$t('server.relayAllow')" prop="Allow">
-                    <el-checkbox v-model="state.ruleForm.AllowTcp">TCP</el-checkbox>
-                    <el-checkbox v-model="state.ruleForm.AllowUdp">UDP</el-checkbox>
+                    <el-checkbox :disabled="data.Manageable==false" v-model="state.ruleForm.AllowTcp">TCP</el-checkbox>
+                    <el-checkbox :disabled="data.Manageable==false" v-model="state.ruleForm.AllowUdp">UDP</el-checkbox>
                 </el-form-item>
                 <el-form-item></el-form-item>
                 <el-form-item label="" prop="Btns">
@@ -62,16 +62,16 @@ export default {
             ruleForm:{
                 Id:props.data.Id,
                 Name:props.data.Name,
-                MaxConnection:props.data.MaxConnection,
-                MaxBandwidth:props.data.MaxBandwidth,
-                MaxBandwidthTotal:props.data.MaxBandwidthTotal,
-                MaxGbTotal:props.data.MaxGbTotal,
-                MaxGbTotalLastBytes:props.data.MaxGbTotalLastBytes,
+                Connections:props.data.Connections,
+                BandwidthEach:props.data.BandwidthEach,
+                Bandwidth:props.data.Bandwidth,
+                DataEachMonth:props.data.DataEachMonth,
+                DataRemain:props.data.DataRemain,
                 Public:props.data.Public,
                 Url:props.data.Url,
-                AllowTcp:(props.data.AllowProtocol & 1) == 1,
-                AllowUdp:(props.data.AllowProtocol & 2) == 2,
-                Sync2Server:props.data.Sync2Server || false,
+                Logo:props.data.Logo,
+                AllowTcp:(props.data.Protocol & 1) == 1,
+                AllowUdp:(props.data.Protocol & 2) == 2,
             },
             rules:{
             }
@@ -84,7 +84,7 @@ export default {
             }
         });
         const handleRefresh = ()=>{
-            state.ruleForm.MaxGbTotalLastBytes = state.ruleForm.MaxGbTotal * 1024*1024*1024;
+            state.ruleForm.DataRemain = state.ruleForm.DataEachMonth * 1024*1024*1024;
         }
 
         const ruleFormRef = ref(null);
@@ -93,7 +93,7 @@ export default {
                 if (!valid) return;
 
                 const json = JSON.parse(JSON.stringify(state.ruleForm));
-                json.AllowProtocol = (json.AllowTcp ? 1 : 0) | (json.AllowUdp ? 2 : 0);
+                json.Protocol = (json.AllowTcp ? 1 : 0) | (json.AllowUdp ? 2 : 0);
 
                 relayEdit(json).then((res)=>{
                     if(res){
