@@ -49,7 +49,7 @@
 import { ElMessage } from 'element-plus';
 import { reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n';
-import {  relayEdit } from '@/apis/relay';
+import {  relayUpdate } from '@/apis/relay';
 import { Refresh } from '@element-plus/icons-vue'
 export default {
     props: ['data','modelValue'],
@@ -57,22 +57,12 @@ export default {
     components:{Refresh},
     setup(props,{emit}) {
         const {t} = useI18n();
+        const json = JSON.parse(JSON.stringify(props.data));
+        json.AllowTcp = (json.Protocol & 1) == 1;
+        json.AllowUdp = (json.Protocol & 2) == 2;
         const state = reactive({
             show:true,
-            ruleForm:{
-                Id:props.data.Id,
-                Name:props.data.Name,
-                Connections:props.data.Connections,
-                BandwidthEach:props.data.BandwidthEach,
-                Bandwidth:props.data.Bandwidth,
-                DataEachMonth:props.data.DataEachMonth,
-                DataRemain:props.data.DataRemain,
-                Public:props.data.Public,
-                Url:props.data.Url,
-                Logo:props.data.Logo,
-                AllowTcp:(props.data.Protocol & 1) == 1,
-                AllowUdp:(props.data.Protocol & 2) == 2,
-            },
+            ruleForm:json,
             rules:{
             }
         });
@@ -95,7 +85,7 @@ export default {
                 const json = JSON.parse(JSON.stringify(state.ruleForm));
                 json.Protocol = (json.AllowTcp ? 1 : 0) | (json.AllowUdp ? 2 : 0);
 
-                relayEdit(json).then((res)=>{
+                relayUpdate(json).then((res)=>{
                     if(res){
                         ElMessage.success(t('common.oper'));
                         state.show = false;

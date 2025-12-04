@@ -290,7 +290,7 @@ export default {
     'server.relayName': '名称',
     'server.relayFlow': '月流量',
     'server.relayFlowLast': '剩余流量',
-    'server.relaySpeed': '带宽',
+    'server.relaySpeed': '单链带宽',
     'server.relaySpeed1': '总带宽',
     'server.relaySpeed2': '速率',
     'server.relayConnection': '连接数',
@@ -308,6 +308,9 @@ export default {
     'server.relayExit': '重启',
     'server.relayUpdate': '更新',
     'server.relayEdit': '编辑',
+    'server.relayRemove': '删除',
+    'server.relayImport': '导入中继节点',
+    'server.relayShare': '分享中继节点',
 
      'server.cdkeySecretKey': 'Cdkey密钥',
      'server.cdkeyText': '密钥正确时可管理cdkey',

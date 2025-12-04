@@ -2,6 +2,7 @@
 using linker.libs.extends;
 using linker.libs.timer;
 using linker.messenger.relay.messenger;
+using System;
 using System.Net;
 using System.Net.Sockets;
 
@@ -93,6 +94,32 @@ namespace linker.messenger.relay.server
             return true;
         }
 
+
+        public async Task<string> GetShareKeyForward(string nodeId)
+        {
+            RelayServerNodeStoreInfo store = await relayServerNodeStore.GetByNodeId(nodeId);
+
+            if (store != null && store.Manageable && relayServerConnectionTransfer.TryGet(ConnectionSideType.Node, nodeId, out var connection))
+            {
+                var resp = await messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = connection,
+                    MessengerId = (ushort)RelayMessengerIds.Share,
+                    Payload = serializer.Serialize(store.MasterKey)
+                });
+                if (resp.Code == MessageResponeCodes.OK)
+                {
+                    return serializer.Deserialize<string>(resp.Data.Span);
+                }
+            }
+            return string.Empty;
+        }
+        public async Task<string> GetShareKey(string masterKey)
+        {
+            if (masterKey != Config.MasterKey) return string.Empty;
+            return Config.ShareKey;
+        }
+
         public async Task<string> Import(string shareKey)
         {
             try
@@ -117,16 +144,110 @@ namespace linker.messenger.relay.server
             }
             return string.Empty;
         }
-        public async Task<bool> Remove(int id)
+        public async Task<bool> Remove(string nodeId)
         {
-            return await relayServerNodeStore.Delete(id).ConfigureAwait(false);
+            if (nodeId == Config.NodeId) return false;
+
+            return await relayServerNodeStore.Delete(nodeId).ConfigureAwait(false);
+        }
+        public async Task<bool> UpdateForward(RelayServerNodeStoreInfo info)
+        {
+            RelayServerNodeStoreInfo store = await relayServerNodeStore.GetByNodeId(info.NodeId);
+
+            if (store != null && store.Manageable && relayServerConnectionTransfer.TryGet(ConnectionSideType.Node, info.NodeId, out var connection))
+            {
+                info.MasterKey = store.MasterKey;
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = connection,
+                    MessengerId = (ushort)RelayMessengerIds.Update,
+                    Payload = serializer.Serialize(info)
+                });
+            }
+
+            return await relayServerNodeStore.Update(info).ConfigureAwait(false);
+        }
+        public async Task<bool> Update(RelayServerNodeStoreInfo info)
+        {
+            if (info.MasterKey != Config.MasterKey) return false;
+
+            Config.Connections = info.Connections;
+            Config.MasterKey = info.MasterKey;
+            Config.Bandwidth = info.Bandwidth;
+            Config.Protocol = info.Protocol;
+            Config.DataEachMonth = info.DataEachMonth;
+            Config.DataRemain = info.DataRemain;
+            Config.Logo = info.Logo;
+            Config.Name = info.Name;
+            Config.Url = info.Url;
+            Config.Domain = info.Domain;
+
+            relayServerConfigStore.Confirm();
+
+            return true;
+        }
+        public async Task<bool> UpgradeForward(string nodeId, string version)
+        {
+            RelayServerNodeStoreInfo store = await relayServerNodeStore.GetByNodeId(nodeId);
+
+            if (store != null && store.Manageable && relayServerConnectionTransfer.TryGet(ConnectionSideType.Node, nodeId, out var connection))
+            {
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = connection,
+                    MessengerId = (ushort)RelayMessengerIds.Update,
+                    Payload = serializer.Serialize(new KeyValuePair<string, string>(store.MasterKey, version))
+                });
+                return true;
+            }
+
+            return false;
+        }
+        public async Task<bool> Upgrade(string masterKey, string version)
+        {
+            if (masterKey != Config.MasterKey) return false;
+
+            Helper.AppUpdate(version);
+
+            return true;
+        }
+        public async Task<bool> ExitForward(string nodeId)
+        {
+            RelayServerNodeStoreInfo store = await relayServerNodeStore.GetByNodeId(nodeId);
+
+            if (store != null && store.Manageable && relayServerConnectionTransfer.TryGet(ConnectionSideType.Node, nodeId, out var connection))
+            {
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = connection,
+                    MessengerId = (ushort)RelayMessengerIds.Update,
+                    Payload = serializer.Serialize(new KeyValuePair<string, string>(store.MasterKey, nodeId))
+                });
+                return true;
+            }
+
+            return false;
+        }
+        public async Task<bool> Exit(string masterKey)
+        {
+            if (masterKey != Config.MasterKey) return false;
+
+            Helper.AppExit(-1);
+
+            return true;
         }
 
         public async Task<List<RelayServerNodeStoreInfo>> GetNodes(bool validated, string userid, string machineId)
         {
             var nodes = (await relayServerWhiteListStore.GetNodes(userid, machineId)).Where(c => c.Bandwidth >= 0).SelectMany(c => c.Nodes);
 
-            var result = (await relayServerNodeStore.GetAll())
+            var list = await relayServerNodeStore.GetAll();
+            list.ForEach(c =>
+            {
+                c.MasterKey = string.Empty;
+            });
+
+            var result = list
                 .Where(c => validated || Environment.TickCount64 - c.LastTicks < 15000)
                 .Where(c =>
                 {
@@ -146,7 +267,13 @@ namespace linker.messenger.relay.server
         }
         public async Task<List<RelayServerNodeStoreInfo>> GetPublicNodes()
         {
-            var result = (await relayServerNodeStore.GetAll())
+            var list = await relayServerNodeStore.GetAll();
+            list.ForEach(c =>
+            {
+                c.MasterKey = string.Empty;
+            });
+
+            var result = list
                 .Where(c => Environment.TickCount64 - c.LastTicks < 15000)
                 .Where(c => c.Public)
                 .OrderByDescending(c => c.LastTicks);
@@ -227,7 +354,7 @@ namespace linker.messenger.relay.server
                             BandwidthRatio = Math.Round(diff / 5, 2),
                             Version = VersionHelper.Version,
                             Masters = connections.Select(c => c.Address).ToArray(),
-                             MasterKey = config.MasterKey,
+                            MasterKey = config.MasterKey,
                         };
                         byte[] memory = serializer.Serialize(info);
                         var tasks = connections.Select(c => messengerSender.SendOnly(new MessageRequestWrap

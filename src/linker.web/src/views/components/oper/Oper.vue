@@ -106,13 +106,14 @@ export default {
         const handleShowAccess = (row,access)=>{ 
             const rowAccess = row.hook_accesss || '';
             const myAccess = globalData.value.config.Client.AccessBits;
+
             let maxLength = Math.max(myAccess.length,rowAccess.length);
-            let myValue = myAccess.padEnd(maxLength,'0').split('');
-            let rowValue = rowAccess.padEnd(maxLength,'0').split('');
+            let myValue = myAccess.padEnd(maxLength,'0').split('').map(c=>+c);
+            let rowValue = rowAccess.padEnd(maxLength,'0').split('').map(c=>+c);
             return row.showAccess  && access.Access
             && myValue.map((v,i)=>{
-                return (rowValue[i] == '1' && v == '1') || rowValue[i] == '0';
-            }).filter(c=>c).length > 0;
+                return (rowValue[i] + v >=1 && v == 1);
+            }).filter(c=>!c).length == 0;
         }
         const handleAccess = (row)=>{
             devices.deviceInfo = row;

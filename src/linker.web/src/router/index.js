@@ -9,7 +9,7 @@ const routes = [
             {
                 path: '/full/index.html',
                 name: 'FullIndex',
-                meta: { title: 'head.home',access:'FullIndex',icon:'home.svg' },
+                meta: { title: 'head.home',access:'FullManager',icon:'home.svg' },
                 component: () => import('@/views/layout/full/list/Index.vue')
             },
             {

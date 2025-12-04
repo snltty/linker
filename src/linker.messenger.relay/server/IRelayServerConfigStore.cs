@@ -74,6 +74,8 @@ namespace linker.messenger.relay.server
         public double BandwidthRatio { get; set; }
 
         public IPEndPoint[] Masters { get; set; } = Array.Empty<IPEndPoint>();
+
+        public string Domain { get; set; } = string.Empty;
     }
 
     public sealed class RelayServerNodeStoreInfo : RelayServerNodeReportInfo

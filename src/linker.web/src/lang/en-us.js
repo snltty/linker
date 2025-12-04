@@ -212,6 +212,9 @@ export default {
     'server.relayExit': 'Restart',
     'server.relayUpdate': 'Update',
     'server.relayEdit': 'Edit',
+    'server.relayRemove': 'Remove',
+    'server.relayImport': 'Import relay node',
+    'server.relayShare': 'Share relay node',
 
     'server.cdkeySecretKey': 'Cdkey secretKey',
     'server.cdkeyText': 'The cdkey manager can be used when the key is correct',

@@ -31,7 +31,7 @@ namespace linker.tunnel.transport
 
         public bool SSL => true;
 
-        public bool DisableSSL => false;
+        public bool DisableSSL => true;
 
         public byte Order => 0;
 
@@ -70,21 +70,21 @@ namespace linker.tunnel.transport
                 List<RelayServerNodeStoreInfo> nodes = ask.Nodes;
                 if (ask.Nodes.Count == 0)
                 {
-                    throw new Exception("relay ask fail,no relay nodes");
+                    throw new Exception("relay client ask fail,no relay nodes");
                 }
 
                 //连接中继节点服务器
                 Socket socket = await ConnectNodeServer(tunnelTransportInfo, ask).ConfigureAwait(false);
                 if(socket == null)
                 {
-                    throw new Exception("connect relay node server fail");
+                    throw new Exception("relay client connect node server fail");
                 }
                 tunnelTransportInfo.TransactionTag = ask.Info.ToJson();
 
                 //让对方确认中继
                 if (await tunnelMessengerAdapter.SendConnectBegin(tunnelTransportInfo).ConfigureAwait(false) == false)
                 {
-                    throw new Exception("relay begin fail");
+                    throw new Exception("relay client begin fail");
                 }
 
                 //成功建立连接，
@@ -182,7 +182,7 @@ namespace linker.tunnel.transport
                         }
 
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                            LoggerHelper.Instance.Debug($"connect relay server {ep}");
+                            LoggerHelper.Instance.Debug($"relay client connect server {ep}");
 
                         //连接中继服务器
                         Socket socket = new Socket(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
@@ -191,7 +191,7 @@ namespace linker.tunnel.transport
                         await socket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         {
-                            LoggerHelper.Instance.Debug($"relay connected {ep}");
+                            LoggerHelper.Instance.Debug($"relay client connected {ep}");
                         }
 
                         //建立关联
@@ -254,10 +254,15 @@ namespace linker.tunnel.transport
                 await socket.SendAsync(buffer.Memory.Slice(0, sendBytes.Length + 5)).ConfigureAwait(false);
 
                 int length = await socket.ReceiveAsync(buffer.Memory.Slice(0, 1)).AsTask().WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
-                return length == 1 && buffer.Memory.Span[0] == 0;
+
+                return length == 1 && buffer.Memory.Slice(0, 1).Span.SequenceEqual(Helper.TrueArray);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
             }
             return false;
         }
@@ -268,7 +273,7 @@ namespace linker.tunnel.transport
             {
                 if (tunnelTransportInfo.SSL && certificate == null)
                 {
-                    LoggerHelper.Instance.Error($"{Name}->ssl Certificate not found");
+                    LoggerHelper.Instance.Error($"relay client {Name}->ssl Certificate not found");
                     await tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
                     return;
                 }
@@ -301,7 +306,7 @@ namespace linker.tunnel.transport
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
-                        LoggerHelper.Instance.Error($"relay connect server {ep} {ex}");
+                        LoggerHelper.Instance.Error($"relay client connect server {ep} {ex}");
                     }
                 }
             }
@@ -349,7 +354,7 @@ namespace linker.tunnel.transport
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    LoggerHelper.Instance.Error($"relay wait ssl {ex}");
+                    LoggerHelper.Instance.Error($"relay client wait ssl {ex}");
                 }
                 socket.SafeClose();
             }

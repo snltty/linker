@@ -63,8 +63,12 @@ namespace linker.messenger.relay.server
 
                 return serializer.Deserialize<RelayMessageInfo>(crypto.Decode(buffer, 0, length).Span);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
             }
             finally
             {
@@ -93,7 +97,7 @@ namespace linker.messenger.relay.server
                 if (relayCache == null)
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        LoggerHelper.Instance.Error($"relay {relayMessage.Type} get cache fail,flowid:{relayMessage.FlowId}");
+                        LoggerHelper.Instance.Error($"relay server {relayMessage.Type} get cache fail,flowid:{relayMessage.FlowId}");
                     await socket.SendAsync(Helper.FalseArray).ConfigureAwait(false);
                     socket.SafeClose();
                     return;
@@ -102,7 +106,7 @@ namespace linker.messenger.relay.server
                 if (relayMessage.Type == RelayMessengerType.Ask && relayServerNodeTransfer.Validate(relayCache) == false)
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        LoggerHelper.Instance.Error($"relay {relayMessage.Type} validate false,flowid:{relayMessage.FlowId}");
+                        LoggerHelper.Instance.Error($"relay server {relayMessage.Type} validate false,flowid:{relayMessage.FlowId}");
                     await socket.SendAsync(Helper.FalseArray).ConfigureAwait(false);
                     socket.SafeClose();
                     return;
@@ -122,14 +126,17 @@ namespace linker.messenger.relay.server
                 }
 
                 TaskCompletionSource<Socket> tcs = new TaskCompletionSource<Socket>(TaskCreationOptions.RunContinuationsAsynchronously);
+                Socket answerSocket = null;
+                IPEndPoint fromep = socket.RemoteEndPoint as IPEndPoint,toep = null;
                 try
                 {
                     await socket.SendAsync(Helper.TrueArray).ConfigureAwait(false);
                     relayDic.TryAdd(relayCache.FlowId, tcs);
-                    Socket answerSocket = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(15000)).ConfigureAwait(false);
+                    answerSocket = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(15000)).ConfigureAwait(false);
                     await answerSocket.SendAsync(Helper.TrueArray).ConfigureAwait(false);
+                    toep = answerSocket.RemoteEndPoint as IPEndPoint;
 
-                    LoggerHelper.Instance.Error($"relay start {socket.RemoteEndPoint} to {answerSocket.RemoteEndPoint}");
+                    LoggerHelper.Instance.Info($"relay server start {fromep} to {toep}");
 
                     string flowKey = relayMessage.Type == RelayMessengerType.Ask ? $"{relayMessage.FromId}->{relayMessage.ToId}" : $"{relayMessage.ToId}->{relayMessage.FromId}";
                     RelayTrafficCacheInfo trafficCacheInfo = new RelayTrafficCacheInfo { Cache = relayCache, Sendt = 0, Limit = new RelaySpeedLimit(), Key = flowKey };
@@ -138,26 +145,26 @@ namespace linker.messenger.relay.server
                     await Task.WhenAll(CopyToAsync(trafficCacheInfo, socket, answerSocket), CopyToAsync(trafficCacheInfo, answerSocket, socket)).ConfigureAwait(false);
                     relayServerNodeTransfer.DecrementConnectionNum();
                     relayServerNodeTransfer.RemoveTrafficCache(trafficCacheInfo);
-
-                    LoggerHelper.Instance.Error($"relay end {socket.RemoteEndPoint} to {answerSocket.RemoteEndPoint}");
                 }
                 catch (Exception ex)
                 {
                     tcs.TrySetResult(null);
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        LoggerHelper.Instance.Error($"{ex},flowid:{relayMessage.FlowId}");
+                        LoggerHelper.Instance.Error($"relay server error {ex},flowid:{relayMessage.FlowId}");
                 }
                 finally
                 {
+                    LoggerHelper.Instance.Info($"relay server end {fromep} to {toep}");
                     relayDic.TryRemove(relayCache.FlowId, out _);
-                    socket.SafeClose();
+                    socket?.SafeClose();
+                    answerSocket?.SafeClose();
                 }
             }
             catch (Exception ex)
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Error(ex);
-                socket.SafeClose();
+                socket?.SafeClose();
             }
         }
         private async Task CopyToAsync(RelayTrafficCacheInfo trafficCacheInfo, Socket source, Socket destination)
