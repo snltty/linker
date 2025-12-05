@@ -283,9 +283,6 @@ namespace linker.messenger.store.file
             if (configExportInfo.Updater) client.Updater = new linker.messenger.updater.UpdaterConfigClientInfo { Sync2Server = client.Updater.Sync2Server };
             else client.Updater = new linker.messenger.updater.UpdaterConfigClientInfo { };
 
-            if (configExportInfo.Tunnel) client.Tunnel = new TunnelConfigClientInfo { Transports = client.Tunnel.Transports };
-            else client.Tunnel = new TunnelConfigClientInfo { Transports = new List<linker.tunnel.transport.TunnelTransportItemInfo>() };
-
             ConfigCommonInfo common = config.Data.Common.ToJson().DeJson<ConfigCommonInfo>();
             common.Install = true;
             common.Modes = ["client"];
@@ -300,7 +297,6 @@ namespace linker.messenger.store.file
                 Groups = new SignInClientGroupInfo[] { client.Group },
                 Servers = new SignInClientServerInfo[] { client.Server },
                 client.Updater,
-                client.Tunnel,
             }, common, new { Install = true, Modes = new string[] { "client" } });
         }
 

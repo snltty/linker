@@ -52,7 +52,7 @@ namespace linker.messenger.serializer.memorypack
                 value = null;
                 return;
             }
-            value = new AccessUpdateInfo() ;
+            value = new AccessUpdateInfo();
             reader.TryReadObjectHeader(out byte count);
             value.FromMachineId = reader.ReadValue<string>();
             value.ToMachineId = reader.ReadValue<string>();
@@ -74,10 +74,13 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         BitArray Access => info.Access;
 
+        [MemoryPackInclude]
+        bool FullAccess => info.FullAccess;
+
         [MemoryPackConstructor]
-        SerializableAccessBitsUpdateInfo(string fromMachineId, string toMachineId, BitArray access)
+        SerializableAccessBitsUpdateInfo(string fromMachineId, string toMachineId, BitArray access, bool fullAccess)
         {
-            var info = new AccessBitsUpdateInfo { FromMachineId = fromMachineId, ToMachineId = toMachineId, Access = access };
+            var info = new AccessBitsUpdateInfo { FromMachineId = fromMachineId, ToMachineId = toMachineId, Access = access, FullAccess = fullAccess };
             this.info = info;
         }
 
@@ -110,10 +113,13 @@ namespace linker.messenger.serializer.memorypack
 
             value = new AccessBitsUpdateInfo();
             reader.TryReadObjectHeader(out byte count);
-            value.FromMachineId =  reader.ReadValue<string>();
+            value.FromMachineId = reader.ReadValue<string>();
             value.ToMachineId = reader.ReadValue<string>();
             value.Access = reader.ReadValue<BitArray>();
-
+            if (count > 3)
+            {
+                value.FullAccess = reader.ReadValue<bool>();
+            }
         }
     }
 

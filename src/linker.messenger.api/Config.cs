@@ -162,6 +162,19 @@ namespace linker.messenger.api
         Socks5Flow = 51,
         [AccessDisplay("查看隧道流量")]
         TunnelFlow = 52,
+
+        [AccessDisplay("导入中继节点")]
+        ImportRelayNode = 53,
+        [AccessDisplay("删除中继节点")]
+        RemoveRelayNode = 54,
+        [AccessDisplay("修改中继节点")]
+        UpdateRelayNode = 55,
+        [AccessDisplay("分享中继节点")]
+        ShareRelayNode = 56,
+        [AccessDisplay("重启中继节点")]
+        RebootRelayNode = 57,
+        [AccessDisplay("更新中继节点")]
+        UpgradeRelayNode = 58,
     }
 
     public sealed class AccessTextInfo

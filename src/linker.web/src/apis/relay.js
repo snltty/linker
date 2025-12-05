@@ -12,12 +12,21 @@ export const setRelaySubscribe = () => {
 export const relayConnect = (data) => {
     return sendWebsocketMsg('relay/Connect', data);
 }
-export const relayEdit = (data) => {
-    return sendWebsocketMsg('relay/edit', data);
+export const relayUpdate= (data) => {
+    return sendWebsocketMsg('relay/update', data);
+}
+export const relayUpgrade= (data) => {
+    return sendWebsocketMsg('relay/upgrade', data);
 }
 export const relayExit = (id) => {
     return sendWebsocketMsg('relay/Exit', id);
 }
-export const relayUpdate = (id) => {
-    return sendWebsocketMsg('relay/Update', id);
+export const relayRemove = (id) => {
+    return sendWebsocketMsg('relay/Remove', id);
+}
+export const relayImport = (data) => {
+    return sendWebsocketMsg('relay/Import', data);
+}
+export const relayShare = (id) => {
+    return sendWebsocketMsg('relay/Share', id);
 }

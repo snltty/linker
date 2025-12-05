@@ -69,12 +69,16 @@ namespace linker.libs
         }
         private static string SystemName()
         {
-            string pattern = @"ikuai|fnos|iphone|samsung|vivo|oppo|google|huawei|xiaomi|ios|android|windows|docker|ubuntu|openwrt|armbian|archlinux|fedora|centos|rocky|alpine|debian|linux";
+            string pattern = @"pve|ikuai|fnos|iphone|samsung|vivo|oppo|google|huawei|xiaomi|ios|android|windows|docker|ubuntu|openwrt|armbian|archlinux|fedora|centos|rocky|alpine|debian|linux";
             return Regex.Match(GetDesc(), pattern)?.Value ?? "unknow";
         }
         private static string GetDesc()
         {
-            if(string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("SNLTTY_LINKER_IS_FNOS")) == false)
+            if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("SNLTTY_LINKER_IS_BT")) == false)
+            {
+                return "bt";
+            }
+            if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("SNLTTY_LINKER_IS_FNOS")) == false)
             {
                 return "fnos";
             }

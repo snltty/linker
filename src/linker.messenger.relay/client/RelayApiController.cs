@@ -61,6 +61,7 @@ namespace linker.messenger.relay.client
             {
                 relayClientStore.SetDefaultNodeId(info.Data.Key);
                 relayClientStore.SetDefaultProtocol(info.Data.Value);
+                relayClientStore.Confirm();
             }
         }
 
@@ -70,7 +71,8 @@ namespace linker.messenger.relay.client
             var resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
-                MessengerId = (ushort)RelayMessengerIds.Share,
+                MessengerId = (ushort)RelayMessengerIds.ShareForward,
+                Payload = serializer.Serialize(param.Content)
             });
             return resp.Code == MessageResponeCodes.OK ? serializer.Deserialize<string>(resp.Data.Span) : $"network error:{resp.Code}";
         }
@@ -90,9 +92,43 @@ namespace linker.messenger.relay.client
             {
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)RelayMessengerIds.Remove,
-                Payload = serializer.Serialize(int.Parse(param.Content))
+                Payload = serializer.Serialize(param.Content)
             });
             return resp.Code == MessageResponeCodes.OK ? serializer.Deserialize<string>(resp.Data.Span) : $"network error:{resp.Code}";
+        }
+
+        public async Task<bool> Update(ApiControllerParamsInfo param)
+        {
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)RelayMessengerIds.UpdateForward,
+                Payload = serializer.Serialize(param.Content.DeJson<RelayServerNodeStoreInfo>())
+            });
+            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
+        }
+
+        public async Task<bool> Upgrade(ApiControllerParamsInfo param)
+        {
+            KeyValueInfo<string, string> info = param.Content.DeJson<KeyValueInfo<string, string>>();
+
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)RelayMessengerIds.UpgradeForward,
+                Payload = serializer.Serialize(new KeyValuePair<string, string>(info.Key, info.Value))
+            });
+            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
+        }
+        public async Task<bool> Exit(ApiControllerParamsInfo param)
+        {
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)RelayMessengerIds.ExitForward,
+                Payload = serializer.Serialize(param.Content)
+            });
+            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
     }
 
