@@ -25,9 +25,9 @@ namespace linker.messenger.store.file.relay
             return await Task.FromResult(true).ConfigureAwait(false);
         }
 
-        public async Task<bool> Delete(int id)
+        public async Task<bool> Delete(string nodeId)
         {
-            return await Task.FromResult(liteCollection.Delete(id)).ConfigureAwait(false);
+            return await Task.FromResult(liteCollection.DeleteMany(c => c.NodeId == nodeId) > 0).ConfigureAwait(false);
         }
 
         public async Task<List<RelayServerNodeStoreInfo>> GetAll()
@@ -59,7 +59,18 @@ namespace linker.messenger.store.file.relay
                 MasterKey = info.MasterKey,
                 Masters = info.Masters,
                 //是我初始化的，可以管理
-                Manageable = false//info.MasterKey == md5
+                Manageable = info.MasterKey == md5
+            }, c => c.NodeId == info.NodeId);
+
+            return await Task.FromResult(length > 0).ConfigureAwait(false);
+        }
+
+        public async Task<bool> Update(RelayServerNodeStoreInfo info)
+        {
+            int length = liteCollection.UpdateMany(p => new RelayServerNodeStoreInfo
+            {
+                DataEachMonth = info.DataEachMonth,
+                Public = info.Public,
             }, c => c.NodeId == info.NodeId);
 
             return await Task.FromResult(length > 0).ConfigureAwait(false); ;

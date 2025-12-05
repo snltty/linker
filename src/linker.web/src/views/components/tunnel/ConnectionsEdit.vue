@@ -1,29 +1,29 @@
 <template>
     <el-dialog v-model="state.show" append-to=".app-wrap" :title="`与[${state.device.MachineName}]的链接`" top="1vh" width="350">
         <div>
-            <el-descriptions border size="small" :column="1" column-max-width="120px" overlength-control="wrap">
-                <el-descriptions-item label="目标">{{ state.connection.IPEndPoint || '0.0.0.0:0' }}</el-descriptions-item>
-                <el-descriptions-item label="事务">{{ state.transactions[state.connection.TransactionId] }}</el-descriptions-item>
-                <el-descriptions-item label="协议">
-                    <div>
+            <el-descriptions border size="small" :column="1" label-width="6rem"  overlength-control="wrap">
+                <el-descriptions-item label="目标" >{{ state.connection.IPEndPoint }}</el-descriptions-item>
+                <el-descriptions-item label="事务" >{{ state.transactions[state.connection.TransactionId] }}</el-descriptions-item>
+                <el-descriptions-item label="协议" >
+                    <div v-if="state.connection.Connected">
                         <p>{{ state.connection.TransportName }}({{ state.protocolTypes[state.connection.ProtocolType] }}) - {{ state.types[state.connection.Type] }}</p>
                         <p>{{ state.connection.SendBufferRemainingText }} - {{ state.connection.RecvBufferRemainingText }}</p>
                     </div>
                 </el-descriptions-item>
-                <el-descriptions-item label="SSL">{{ state.connection.SSL }}</el-descriptions-item>
+                <el-descriptions-item label="SSL" >{{ state.connection.SSL }}</el-descriptions-item>
                 
-                <el-descriptions-item label="上传">
+                <el-descriptions-item label="上传" >
                     <div>
                         <p><span>{{ state.connection.SendBytesText }}</span></p>
                     </div>
                 </el-descriptions-item>
-                 <el-descriptions-item label="下载">
+                 <el-descriptions-item label="下载" >
                     <div>
                         <p><span>{{ state.connection.ReceiveBytesText }}</span></p>
                     </div>
                 </el-descriptions-item>
                 
-                <el-descriptions-item label="中继">
+                <el-descriptions-item label="中继" >
                     <div>
                         <a v-if="state.connecting" href="javascript:;" class="a-line">
                             <span>操作中.</span><el-icon size="14" class="loading"><Loading /></el-icon>
@@ -31,7 +31,7 @@
                         <a v-else href="javascript:;" class="a-line" @click="handleNode">{{ state.nodesDic[state.connection.NodeId] || '选择节点' }}</a>
                     </div>
                 </el-descriptions-item>
-                <el-descriptions-item label="打洞">
+                <el-descriptions-item label="打洞" >
                     <div>
                         <a v-if="state.connecting" href="javascript:;" class="a-line">
                             <span>操作中.</span><el-icon size="14" class="loading"><Loading /></el-icon>
@@ -39,8 +39,8 @@
                         <a v-else href="javascript:;" class="a-line" @click="handlep2p">尝试打洞</a>
                     </div>
                 </el-descriptions-item>
-                <el-descriptions-item label="延迟">{{ state.connection.Delay }}</el-descriptions-item>
-                 <el-descriptions-item label="操作">
+                <el-descriptions-item label="延迟" >{{ state.connection.Delay }}</el-descriptions-item>
+                 <el-descriptions-item label="操作" >
                     <div>
                         <AccessShow value="TunnelRemove">
                             <el-popconfirm confirm-button-text="确认" cancel-button-text="取消"

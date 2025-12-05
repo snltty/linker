@@ -1,8 +1,5 @@
 ﻿using linker.messenger.tunnel;
 using linker.tunnel.transport;
-using LiteDB;
-using System.Collections.Concurrent;
-using System.Text.Json.Serialization;
 namespace linker.messenger.store.file
 {
     public sealed partial class RunningConfigInfo
@@ -28,16 +25,5 @@ namespace linker.messenger.store.file
         public Dictionary<string, List<TunnelTransportItemInfo>> Transports { get; set; } = new Dictionary<string, List<TunnelTransportItemInfo>>();
     }
 
-    public partial class ConfigClientInfo
-    {
-        public TunnelConfigClientInfo Tunnel { get; set; } = new TunnelConfigClientInfo();
-    }
-    public sealed class TunnelConfigClientInfo
-    {
-        /// <summary>
-        /// 打洞协议列表
-        /// </summary>
-        public List<TunnelTransportItemInfo> Transports { get; set; } = new List<TunnelTransportItemInfo>();
-    }
 }
 

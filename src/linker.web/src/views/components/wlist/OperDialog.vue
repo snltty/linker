@@ -1,7 +1,7 @@
 <template>
-    <el-dialog v-model="state.show" append-to=".app-wrap" :title="state.title" top="1vh" width="370">
+    <el-dialog v-model="state.show" append-to=".app-wrap" :title="state.title" top="1vh" width="400">
         <div>
-            <el-descriptions border size="small" :column="1" column-max-width="120px" overlength-control="wrap">
+            <el-descriptions border size="small" :column="1" label-width="8rem" overlength-control="wrap">
                 <el-descriptions-item label="名称">{{ state.status.Info.Name }}</el-descriptions-item>
                 <el-descriptions-item label="带宽">
                     <div>

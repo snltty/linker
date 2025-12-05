@@ -4,6 +4,7 @@ using System.Diagnostics;
 using linker.messenger.entry;
 using System.Text;
 using System.Text.Json;
+using linker.messenger.store.file;
 
 namespace linker
 {
@@ -63,6 +64,10 @@ namespace linker
             LinkerMessengerEntry.Build();
 
             using JsonDocument json = ParseArgs(args);
+            if (json == null && args.Length == 1)
+            {
+                ConfigureByType(args[0]);
+            }
             LinkerMessengerEntry.Setup(ExcludeModule.None, json);
 
             LoggerHelper.Instance.Warning($"current version : {VersionHelper.Version}");
@@ -72,6 +77,38 @@ namespace linker
 
             GCHelper.FlushMemory();
             GCHelper.EmptyWorkingSet();
+        }
+
+        private static void ConfigureByType(string type)
+        {
+            FileConfig config = LinkerMessengerEntry.GetService<FileConfig>();
+            switch (type)
+            {
+                case "client":
+                    {
+                        config.Data.Common.Modes = ["client"];
+                    }
+                    break;
+                case "server":
+                    {
+                        ConfigServerInfo temp = new ConfigServerInfo();
+                        config.Data.Common.Modes = ["server"];
+                        config.Data.Server.ApiPort = temp.ApiPort;
+                        config.Data.Server.SignIn.Anonymous = temp.SignIn.Anonymous;
+                        config.Data.Server.SignIn.Enabled = temp.SignIn.Enabled;
+                    }
+                    break;
+                case "node":
+                    {
+                        config.Data.Common.Modes = ["server"];
+                        config.Data.Server.ApiPort = 0;
+                        config.Data.Server.SignIn.Anonymous = false;
+                        config.Data.Server.SignIn.Enabled = false;
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
 
         private static JsonDocument ParseArgs(string[] args)
@@ -84,11 +121,9 @@ namespace linker
             }
             catch (Exception ex)
             {
-                if (args.Length > 0)
-                {
+                if (args.Length == 1)
                     LoggerHelper.Instance.Error(args[0]);
-                    LoggerHelper.Instance.Error($"args parse fail {ex}");
-                }
+                LoggerHelper.Instance.Warning($"args parse fail {ex}");
             }
             return json;
         }

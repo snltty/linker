@@ -244,11 +244,12 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         uint FlowId => tunnelTransportInfo.FlowId;
 
-        //[MemoryPackInclude]
-        //string TransactionTag => tunnelTransportInfo.TransactionTag;
+        [MemoryPackInclude]
+        string TransactionTag => tunnelTransportInfo.TransactionTag;
 
         [MemoryPackConstructor]
-        SerializableTunnelTransportInfo(TunnelTransportWanPortInfo local, TunnelTransportWanPortInfo remote, string transactionId, TunnelProtocolType transportType, string transportName, TunnelDirection direction, bool ssl, byte bufferSize, uint flowid/*, string transactionTag*/)
+        SerializableTunnelTransportInfo(TunnelTransportWanPortInfo local, TunnelTransportWanPortInfo remote, string transactionId,
+            TunnelProtocolType transportType, string transportName, TunnelDirection direction, bool ssl, byte bufferSize, uint flowid, string transactionTag)
         {
             var tunnelTransportInfo = new TunnelTransportInfo
             {
@@ -261,7 +262,7 @@ namespace linker.messenger.serializer.memorypack
                 SSL = ssl,
                 BufferSize = bufferSize,
                 FlowId = flowid,
-                // TransactionTag = transactionTag
+                TransactionTag = transactionTag
             };
             this.tunnelTransportInfo = tunnelTransportInfo;
         }
@@ -293,8 +294,19 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableTunnelTransportInfo>();
-            value = wrapped.tunnelTransportInfo;
+            value = new TunnelTransportInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.Local = reader.ReadValue<TunnelTransportWanPortInfo>();
+            value.Remote = reader.ReadValue<TunnelTransportWanPortInfo>();
+            value.TransactionId = reader.ReadValue<string>();
+            value.TransportType = reader.ReadValue<TunnelProtocolType>();
+            value.TransportName = reader.ReadValue<string>();
+            value.Direction = reader.ReadValue<TunnelDirection>();
+            value.SSL = reader.ReadValue<bool>();
+            value.BufferSize = reader.ReadValue<byte>();
+            value.FlowId = reader.ReadValue<uint>();
+            if (count > 9)
+                value.TransactionTag = reader.ReadValue<string>();
         }
     }
 

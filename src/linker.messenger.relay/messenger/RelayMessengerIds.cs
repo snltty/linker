@@ -15,9 +15,18 @@
         Report = 2135,
 
         Share = 2136,
-        Import = 2137,
-        Remove = 2138,
+        ShareForward = 2137,
+        Import = 2138,
+        Remove = 2139,
 
+        UpdateForward = 2140,
+        Update = 2141,
+
+        ExitForward = 2142,
+        Exit = 2143,
+
+        UpgradeForward = 2144,
+        Upgrade = 2145,
 
         Max = 2199
     }

@@ -13,8 +13,39 @@ namespace linker.messenger.relay.messenger
     /// </summary>
     public class RelayClientMessenger : IMessenger
     {
-        public RelayClientMessenger()
+        private readonly ISerializer serializer;
+        private readonly RelayServerNodeReportTransfer relayServerNodeReportTransfer;
+        public RelayClientMessenger(SignInServerCaching signCaching, ISerializer serializer, RelayServerNodeReportTransfer relayServerNodeReportTransfer)
         {
+            this.serializer = serializer;
+            this.relayServerNodeReportTransfer = relayServerNodeReportTransfer;
+        }
+        [MessengerId((ushort)RelayMessengerIds.Share)]
+        public async Task Share(IConnection connection)
+        {
+            string masterKey = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            connection.Write(serializer.Serialize(await relayServerNodeReportTransfer.GetShareKey(masterKey)));
+        }
+
+        [MessengerId((ushort)RelayMessengerIds.Update)]
+        public async Task Update(IConnection connection)
+        {
+            RelayServerNodeStoreInfo info = serializer.Deserialize<RelayServerNodeStoreInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            await relayServerNodeReportTransfer.Update(info).ConfigureAwait(false);
+        }
+
+        [MessengerId((ushort)RelayMessengerIds.Upgrade)]
+        public async Task Upgrade(IConnection connection)
+        {
+            KeyValuePair<string, string> info = serializer.Deserialize<KeyValuePair<string, string>>(connection.ReceiveRequestWrap.Payload.Span);
+            await relayServerNodeReportTransfer.Upgrade(info.Key, info.Value).ConfigureAwait(false);
+        }
+
+        [MessengerId((ushort)RelayMessengerIds.Exit)]
+        public async Task Exit(IConnection connection)
+        {
+            string masterKey = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            await relayServerNodeReportTransfer.Exit(masterKey).ConfigureAwait(false);
         }
     }
 
@@ -123,15 +154,16 @@ namespace linker.messenger.relay.messenger
         }
 
 
-        [MessengerId((ushort)RelayMessengerIds.Share)]
-        public async Task Share(IConnection connection)
+        [MessengerId((ushort)RelayMessengerIds.ShareForward)]
+        public async Task ShareForward(IConnection connection)
         {
+            string id = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, out SignCacheInfo from) == false || from.Super == false)
             {
                 connection.Write(serializer.Serialize("need super key"));
                 return;
             }
-            connection.Write(serializer.Serialize(relayServerNodeReportTransfer.Config.ShareKey));
+            connection.Write(serializer.Serialize(await relayServerNodeReportTransfer.GetShareKeyForward(id)));
         }
         [MessengerId((ushort)RelayMessengerIds.Import)]
         public async Task Import(IConnection connection)
@@ -150,7 +182,7 @@ namespace linker.messenger.relay.messenger
         [MessengerId((ushort)RelayMessengerIds.Remove)]
         public async Task Remove(IConnection connection)
         {
-            int id = serializer.Deserialize<int>(connection.ReceiveRequestWrap.Payload.Span);
+            string id = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, out SignCacheInfo from) == false || from.Super == false)
             {
                 connection.Write(serializer.Serialize("need super key"));
@@ -160,7 +192,47 @@ namespace linker.messenger.relay.messenger
             bool result = await relayServerNodeReportTransfer.Remove(id).ConfigureAwait(false);
             connection.Write(serializer.Serialize(result ? string.Empty : "remove fail"));
         }
+        [MessengerId((ushort)RelayMessengerIds.UpdateForward)]
+        public async Task UpdateForward(IConnection connection)
+        {
+            RelayServerNodeStoreInfo info = serializer.Deserialize<RelayServerNodeStoreInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo from) == false || from.Super == false)
+            {
+                connection.Write(Helper.FalseArray);
+                return;
+            }
 
+            bool result = await relayServerNodeReportTransfer.UpdateForward(info).ConfigureAwait(false);
+            connection.Write(result ? Helper.TrueArray : Helper.FalseArray);
+        }
+
+        [MessengerId((ushort)RelayMessengerIds.UpgradeForward)]
+        public async Task UpgradeForward(IConnection connection)
+        {
+            KeyValuePair<string, string> info = serializer.Deserialize<KeyValuePair<string, string>>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo from) == false || from.Super == false)
+            {
+                connection.Write(Helper.FalseArray);
+                return;
+            }
+
+            bool result = await relayServerNodeReportTransfer.UpgradeForward(info.Key, info.Value).ConfigureAwait(false);
+            connection.Write(result ? Helper.TrueArray : Helper.FalseArray);
+        }
+
+        [MessengerId((ushort)RelayMessengerIds.ExitForward)]
+        public async Task ExitForward(IConnection connection)
+        {
+            string nodeid = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo from) == false || from.Super == false)
+            {
+                connection.Write(Helper.FalseArray);
+                return;
+            }
+
+            bool result = await relayServerNodeReportTransfer.ExitForward(nodeid).ConfigureAwait(false);
+            connection.Write(result ? Helper.TrueArray : Helper.FalseArray);
+        }
 
 
         [MessengerId((ushort)RelayMessengerIds.NodeReport)]

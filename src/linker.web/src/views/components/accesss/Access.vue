@@ -6,6 +6,9 @@
         <el-col :span="8" v-if="globalData.config.Client.FullAccess">
             <el-checkbox v-model="state.full" ><span class="red">满权限(顶级管理权)</span></el-checkbox>
         </el-col>
+        <el-col :span="6">
+            <el-input size="small" v-model="state.search"></el-input>
+        </el-col>
     </el-row>
     <div class="access-wrap scrollbar" :style="{height:`${state.height}rem`}">
         <el-checkbox-group v-model="state.checkList" @change="handleCheckedChange">
@@ -27,16 +30,17 @@ export default {
     setup(props) {
 
         const globalData = injectGlobalData();
+        const exclude = ['ExternalShow','Cdkey']
         const access = computed(()=>{
             const json = globalData.value.config.Client.Accesss;
             return Object.keys(json).reduce((arr,key,index)=>{
-                if(globalData.value.hasAccess(key)){
+                if(globalData.value.hasAccess(key) && !exclude.includes(key)){
                     const value = json[key];
                     value.Key = key;
                     arr.push(value);
                 }
                 return arr;
-            },[]);
+            },[]).filter(c=>c.Text.includes(state.search));
         });
 
         const state = reactive({
@@ -63,7 +67,9 @@ export default {
             ],
             checkAll:false,
             full:false,
-            isIndeterminate:false
+            isIndeterminate:false,
+
+            search:''
         });
 
         const getValue = ()=>{
