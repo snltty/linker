@@ -44,7 +44,6 @@ namespace linker.messenger.signin
         public string Host1 { get; set; } = string.Empty;
         public string[] Hosts { get; set; } = [];
 
-        public string SecretKey { get; set; } = string.Empty;
         public string UserId { get; set; } = Guid.NewGuid().ToString();
 
 #if DEBUG
@@ -59,8 +58,6 @@ namespace linker.messenger.signin
     public sealed class SignInConfigServerInfo
     {
         public int CleanDays { get; set; } = 7;
-
-        public string SecretKey { get; set; } = string.Empty;
 
         public bool Enabled { get; set; } = true;
         public bool Anonymous { get; set; } = true;

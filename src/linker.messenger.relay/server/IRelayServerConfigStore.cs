@@ -64,6 +64,7 @@ namespace linker.messenger.relay.server
         public string MasterKey { get; set; } = string.Empty;
         public int DataMonth { get; set; }
         public string Domain { get; set; } = string.Empty;
+
     }
 
     public class RelayServerNodeReportInfo : RelayServerNodeInfo
@@ -92,6 +93,7 @@ namespace linker.messenger.relay.server
         public int Delay { get; set; }
 
         public bool Manageable { get; set; }
+        public string ShareKey { get; set; } = string.Empty;
     }
 
 
@@ -100,6 +102,8 @@ namespace linker.messenger.relay.server
         public string NodeId { get; set; } = string.Empty;
         public string Host { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
+        public string SystemId { get; set; } = string.Empty;
+
     }
 
     public partial class RelayServerNodeReportInfoOld

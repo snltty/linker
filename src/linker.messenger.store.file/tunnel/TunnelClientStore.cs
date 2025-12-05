@@ -21,16 +21,6 @@ namespace linker.messenger.store.file.tunnel
         public TunnelClientStore(FileConfig config, RunningConfig runningConfig)
         {
             this.runningConfig = runningConfig;
-
-            if (config.Data.Client.Tunnel.Transports != null && config.Data.Client.Tunnel.Transports.Count > 0)
-            {
-                runningConfig.Data.Tunnel.Transports[Helper.GlobalString] = config.Data.Client.Tunnel.Transports;
-                //.AddOrUpdate(Helper.GlobalString, config.Data.Client.Tunnel.Transports, (a, b) => config.Data.Client.Tunnel.Transports);
-                runningConfig.Data.Update();
-
-                config.Data.Client.Tunnel.Transports = [];
-                config.Data.Update();
-            }
         }
         public async Task<bool> SetTunnelTransports(string machineId, List<TunnelTransportItemInfo> list)
         {

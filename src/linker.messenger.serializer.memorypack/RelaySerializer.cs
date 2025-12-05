@@ -478,15 +478,18 @@ namespace linker.messenger.serializer.memorypack
         string Host => info.Host;
         [MemoryPackInclude]
         string Name => info.Name;
+        [MemoryPackInclude]
+        string SystemId => info.SystemId;
 
         [MemoryPackConstructor]
-        SerializableRelayServerNodeShareInfo(string nodeId, string host, string name)
+        SerializableRelayServerNodeShareInfo(string nodeId, string host, string name, string systemid)
         {
             var info = new RelayServerNodeShareInfo
             {
                 NodeId = nodeId,
                 Host = host,
-                Name = name
+                Name = name,
+                SystemId = systemid
             };
             this.info = info;
         }
@@ -523,6 +526,7 @@ namespace linker.messenger.serializer.memorypack
             value.NodeId = reader.ReadValue<string>();
             value.Host = reader.ReadValue<string>();
             value.Name = reader.ReadValue<string>();
+            value.SystemId = reader.ReadValue<string>();
         }
     }
 

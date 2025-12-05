@@ -19,7 +19,7 @@
                             <div class="flex"> 
                                 <div>
                                     <a :href="scope.row.Url" target="_blank" >
-                                        <img class="logo" :src="scope.row.Logo || 'https://linker.snltty.com/img/logo.png'" alt=""/>
+                                        <img class="logo" :class="{'gray': scope.row.LastTicks>15000}" :src="scope.row.Logo || 'https://linker.snltty.com/img/logo.png'" alt=""/>
                                     </a>
                                 </div>
                                 <div class="flex-1">
@@ -37,10 +37,10 @@
                                     <p class="flex">
                                         <div>
                                             <template v-if="state.syncData.Key == scope.row.NodeId">
-                                                <el-checkbox size="small" disabled checked>{{ $t('server.relayDefault') }}</el-checkbox>
+                                                <el-checkbox size="small" disabled checked>{{ scope.row.Host }}</el-checkbox>
                                             </template>
                                             <template v-else>
-                                                <el-checkbox size="small" disabled @click.stop="handleShowSync(scope.row, 1)">{{ $t('server.relayDefault') }}</el-checkbox>
+                                                <el-checkbox size="small" disabled @click.stop="handleShowSync(scope.row, 1)">{{ scope.row.Host }}</el-checkbox>
                                             </template>
                                         </div>
                                         <span class="flex-1"></span>
@@ -100,12 +100,12 @@
                                 <AccessBoolean v-if="state.super" value="RemoveRelayNode,UpdateRelayNode,ShareRelayNode,RebootRelayNode">
                                     <template #default="{values}">
                                         <p>
-                                            <el-button v-if="scope.row.Manageable && values.RebootRelayNode" type="warning" size="small" @click="handleExit(scope.row)"><el-icon><Refresh /></el-icon></el-button>
-                                            <el-button v-if="values.UpdateRelayNode" size="small" @click="handleEdit(scope.row)"><el-icon><Edit /></el-icon></el-button>
+                                            <el-button v-if="scope.row.Manageable && values.RebootRelayNode &&  scope.row.LastTicks<15000" type="warning" size="small" @click="handleExit(scope.row)"><el-icon><Refresh /></el-icon></el-button>
+                                            <el-button v-if="values.UpdateRelayNode &&  scope.row.LastTicks<15000" size="small" @click="handleEdit(scope.row)"><el-icon><Edit /></el-icon></el-button>
                                         </p>
                                         <p>
                                             <el-button v-if="values.RemoveRelayNode" type="danger" size="small" @click="handleRemove(scope.row)"><el-icon><CircleClose /></el-icon></el-button>
-                                            <el-button v-if="scope.row.Manageable && values.ShareRelayNode" type="info" size="small" @click="handleShare(scope.row)"><el-icon><Share /></el-icon></el-button>
+                                            <el-button v-if="scope.row.Manageable && values.ShareRelayNode &&  scope.row.LastTicks<15000" type="info" size="small" @click="handleShare(scope.row)"><el-icon><Share /></el-icon></el-button>
                                         </p>
                                     </template>
                                 </AccessBoolean>
@@ -306,5 +306,10 @@ a.a-edit{
     margin-right:1rem;
     height:4rem;
     vertical-align:text-top;
+
+    
 }
+.gray{
+        filter: grayscale(100%);
+    }
 </style>
