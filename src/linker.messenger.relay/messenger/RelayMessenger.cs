@@ -250,8 +250,9 @@ namespace linker.messenger.relay.messenger
 
                 await relayServerNodeReportTransfer.Report(info.Id, info.Name, info.EndPoint.ToString()).ConfigureAwait(false);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                LoggerHelper.Instance.Error(ex);
             }
             connection.Write(serializer.Serialize(VersionHelper.Version));
         }

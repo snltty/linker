@@ -100,12 +100,12 @@
                                 <AccessBoolean v-if="state.super" value="RemoveRelayNode,UpdateRelayNode,ShareRelayNode,RebootRelayNode">
                                     <template #default="{values}">
                                         <p>
-                                            <el-button v-if="scope.row.Manageable && values.RebootRelayNode &&  scope.row.LastTicks<15000" type="warning" size="small" @click="handleExit(scope.row)"><el-icon><Refresh /></el-icon></el-button>
-                                            <el-button v-if="values.UpdateRelayNode &&  scope.row.LastTicks<15000" size="small" @click="handleEdit(scope.row)"><el-icon><Edit /></el-icon></el-button>
+                                            <el-button v-if="scope.row.Manageable && values.RebootRelayNode &&  scope.row.LastTicks<15000" type="warning" plain size="small" @click="handleExit(scope.row)"><el-icon><Refresh /></el-icon></el-button>
+                                            <el-button v-if="values.UpdateRelayNode &&  scope.row.LastTicks<15000" plain size="small" @click="handleEdit(scope.row)"><el-icon><Edit /></el-icon></el-button>
                                         </p>
                                         <p>
-                                            <el-button v-if="values.RemoveRelayNode" type="danger" size="small" @click="handleRemove(scope.row)"><el-icon><CircleClose /></el-icon></el-button>
-                                            <el-button v-if="scope.row.Manageable && values.ShareRelayNode &&  scope.row.LastTicks<15000" type="info" size="small" @click="handleShare(scope.row)"><el-icon><Share /></el-icon></el-button>
+                                            <el-button v-if="values.RemoveRelayNode" type="danger" plain size="small" @click="handleRemove(scope.row)"><el-icon><CircleClose /></el-icon></el-button>
+                                            <el-button v-if="scope.row.Manageable && values.ShareRelayNode &&  scope.row.LastTicks<15000" type="info" plain size="small" @click="handleShare(scope.row)"><el-icon><Share /></el-icon></el-button>
                                         </p>
                                     </template>
                                 </AccessBoolean>

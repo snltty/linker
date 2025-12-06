@@ -1,4 +1,5 @@
-﻿using linker.messenger.relay.server;
+﻿using linker.libs;
+using linker.messenger.relay.server;
 
 namespace linker.messenger.store.file.relay
 {
@@ -11,6 +12,23 @@ namespace linker.messenger.store.file.relay
         public RelayServerConfigStore(FileConfig config)
         {
             this.config = config;
+
+            if (string.IsNullOrWhiteSpace(Config.Distributed.Node.Id) == false)
+            {
+                Config.NodeId = Config.Distributed.Node.Id;
+                Config.Connections = Config.Distributed.Node.MaxConnection;
+                Config.DataRemain = Config.Distributed.Node.MaxGbTotalLastBytes;
+                Config.DataMonth = Config.Distributed.Node.MaxGbTotalMonth;
+                Config.Bandwidth = (int)Config.Distributed.Node.MaxBandwidthTotal;
+                Config.DataEachMonth = (int)Config.Distributed.Node.MaxGbTotal;
+                Config.Name = Config.Distributed.Node.Name;
+                Config.Url = Config.Distributed.Node.Url;
+
+                Config.Domain = NetworkHelper.GetEndPoint(Config.Distributed.Node.Host, ServicePort).Address.ToString();
+
+                Config.Distributed.Node.Id = string.Empty;
+                config.Data.Update();
+            }
         }
 
         public void Confirm()

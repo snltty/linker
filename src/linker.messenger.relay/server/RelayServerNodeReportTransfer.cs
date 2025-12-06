@@ -82,7 +82,6 @@ namespace linker.messenger.relay.server
                 relayServerConfigStore.SetMasterKey(serverId.Md5());
                 relayServerConfigStore.Confirm();
             }
-
             if (shareKey != Config.ShareKey && serverId.Md5() != Config.MasterKey)
             {
                 return false;
@@ -264,7 +263,7 @@ namespace linker.messenger.relay.server
             list.ForEach(c =>
             {
                 c.MasterKey = string.Empty;
-                c.LastTicks = Environment.TickCount64 - c.LastTicks;
+                c.LastTicks = Math.Abs(Environment.TickCount64 - c.LastTicks);
             });
             return list;
         }
@@ -286,7 +285,7 @@ namespace linker.messenger.relay.server
             list.ForEach(c =>
             {
                 c.MasterKey = string.Empty;
-                c.LastTicks = Environment.TickCount64 - c.LastTicks;
+                c.LastTicks = Math.Abs(Environment.TickCount64 - c.LastTicks);
             });
             return list;
         }

@@ -425,9 +425,5 @@ namespace linker.messenger.store.file
         }
     }
 
-    [AttributeUsage(AttributeTargets.Property)]
-    public sealed class SaveJsonIgnore : Attribute
-    {
-    }
-
+   
 }

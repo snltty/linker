@@ -1,4 +1,5 @@
 ﻿using linker.libs.json;
+using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Unicode;
@@ -59,4 +60,10 @@ namespace linker.libs.extends
         public T1 Key { get; set; } = default(T1);
          public T2 Value { get; set; } = default(T2);
     }
+
+    [AttributeUsage(AttributeTargets.Property)]
+    public sealed class SaveJsonIgnore : Attribute
+    {
+    }
+
 }

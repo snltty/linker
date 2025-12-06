@@ -1,7 +1,8 @@
-﻿using System.Net;
+﻿using linker.libs;
 using linker.libs.extends;
-using System.Text.Json.Serialization;
 using linker.tunnel.connection;
+using System.Net;
+using System.Text.Json.Serialization;
 
 namespace linker.messenger.relay.server
 {
@@ -60,6 +61,9 @@ namespace linker.messenger.relay.server
 
     public sealed class RelayServerConfigInfo : RelayServerNodeInfo
     {
+        [SaveJsonIgnore]
+        public DistributedInfoOld Distributed { get; set; } = new DistributedInfoOld { };
+
         public string ShareKey { get; set; } = string.Empty;
         public string MasterKey { get; set; } = string.Empty;
         public int DataMonth { get; set; }
@@ -106,6 +110,27 @@ namespace linker.messenger.relay.server
 
     }
 
+
+    public sealed class DistributedInfoOld
+    {
+        public RelayServerNodeInfoOld Node { get; set; } = new RelayServerNodeInfoOld { };
+    }
+    public sealed class RelayServerNodeInfoOld
+    {
+        public string Id { get; set; }
+
+        public string Name{ get; set; }
+        public string Host { get; set; } = string.Empty;
+
+        public int MaxConnection { get; set; }
+        public double MaxBandwidthTotal { get; set; }
+        public double MaxGbTotal { get; set; }
+        public long MaxGbTotalLastBytes { get; set; }
+        public int MaxGbTotalMonth { get; set; }
+
+        public string Url { get; set; } = "https://linker-doc.snltty.com";
+
+    }
     public partial class RelayServerNodeReportInfoOld
     {
         public string Id { get; set; } = string.Empty;

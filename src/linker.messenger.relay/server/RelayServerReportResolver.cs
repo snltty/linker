@@ -29,7 +29,14 @@ namespace linker.messenger.relay.server
             byte[] buffer = ArrayPool<byte>.Shared.Rent(1024);
             try
             {
-                await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).ConfigureAwait(false);
+                Console.WriteLine("RelayReport");
+
+                await socket.ReceiveAsync(buffer.AsMemory(0, 1), SocketFlags.None).ConfigureAwait(false);
+                int length = buffer[0];
+                Add(memory.Length, length);
+                await socket.ReceiveAsync(buffer.AsMemory(0, length), SocketFlags.None).ConfigureAwait(false);
+
+                string key = buffer.AsMemory(0, length).GetString();
 
                 await messengerResolver.BeginReceiveServer(socket, Helper.EmptyArray).ConfigureAwait(false);
             }
