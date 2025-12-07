@@ -13,40 +13,10 @@ namespace linker.messenger.relay.messenger
     /// </summary>
     public class RelayClientMessenger : IMessenger
     {
-        private readonly ISerializer serializer;
-        private readonly RelayServerNodeReportTransfer relayServerNodeReportTransfer;
-        public RelayClientMessenger(SignInServerCaching signCaching, ISerializer serializer, RelayServerNodeReportTransfer relayServerNodeReportTransfer)
+        public RelayClientMessenger()
         {
-            this.serializer = serializer;
-            this.relayServerNodeReportTransfer = relayServerNodeReportTransfer;
         }
-        [MessengerId((ushort)RelayMessengerIds.Share)]
-        public async Task Share(IConnection connection)
-        {
-            string masterKey = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            connection.Write(serializer.Serialize(await relayServerNodeReportTransfer.GetShareKey(masterKey)));
-        }
-
-        [MessengerId((ushort)RelayMessengerIds.Update)]
-        public async Task Update(IConnection connection)
-        {
-            RelayServerNodeStoreInfo info = serializer.Deserialize<RelayServerNodeStoreInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            await relayServerNodeReportTransfer.Update(info).ConfigureAwait(false);
-        }
-
-        [MessengerId((ushort)RelayMessengerIds.Upgrade)]
-        public async Task Upgrade(IConnection connection)
-        {
-            KeyValuePair<string, string> info = serializer.Deserialize<KeyValuePair<string, string>>(connection.ReceiveRequestWrap.Payload.Span);
-            await relayServerNodeReportTransfer.Upgrade(info.Key, info.Value).ConfigureAwait(false);
-        }
-
-        [MessengerId((ushort)RelayMessengerIds.Exit)]
-        public async Task Exit(IConnection connection)
-        {
-            string masterKey = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            await relayServerNodeReportTransfer.Exit(masterKey).ConfigureAwait(false);
-        }
+       
     }
 
     /// <summary>
@@ -165,6 +135,13 @@ namespace linker.messenger.relay.messenger
             }
             connection.Write(serializer.Serialize(await relayServerNodeReportTransfer.GetShareKeyForward(id)));
         }
+        [MessengerId((ushort)RelayMessengerIds.Share)]
+        public async Task Share(IConnection connection)
+        {
+            string masterKey = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            connection.Write(serializer.Serialize(await relayServerNodeReportTransfer.GetShareKey(masterKey)));
+        }
+
         [MessengerId((ushort)RelayMessengerIds.Import)]
         public async Task Import(IConnection connection)
         {
@@ -205,6 +182,12 @@ namespace linker.messenger.relay.messenger
             bool result = await relayServerNodeReportTransfer.UpdateForward(info).ConfigureAwait(false);
             connection.Write(result ? Helper.TrueArray : Helper.FalseArray);
         }
+        [MessengerId((ushort)RelayMessengerIds.Update)]
+        public async Task Update(IConnection connection)
+        {
+            RelayServerNodeStoreInfo info = serializer.Deserialize<RelayServerNodeStoreInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            await relayServerNodeReportTransfer.Update(info).ConfigureAwait(false);
+        }
 
         [MessengerId((ushort)RelayMessengerIds.UpgradeForward)]
         public async Task UpgradeForward(IConnection connection)
@@ -218,6 +201,12 @@ namespace linker.messenger.relay.messenger
 
             bool result = await relayServerNodeReportTransfer.UpgradeForward(info.Key, info.Value).ConfigureAwait(false);
             connection.Write(result ? Helper.TrueArray : Helper.FalseArray);
+        }
+        [MessengerId((ushort)RelayMessengerIds.Upgrade)]
+        public async Task Upgrade(IConnection connection)
+        {
+            KeyValuePair<string, string> info = serializer.Deserialize<KeyValuePair<string, string>>(connection.ReceiveRequestWrap.Payload.Span);
+            await relayServerNodeReportTransfer.Upgrade(info.Key, info.Value).ConfigureAwait(false);
         }
 
         [MessengerId((ushort)RelayMessengerIds.ExitForward)]
@@ -233,6 +222,12 @@ namespace linker.messenger.relay.messenger
             bool result = await relayServerNodeReportTransfer.ExitForward(nodeid).ConfigureAwait(false);
             connection.Write(result ? Helper.TrueArray : Helper.FalseArray);
         }
+        [MessengerId((ushort)RelayMessengerIds.Exit)]
+        public async Task Exit(IConnection connection)
+        {
+            string masterKey = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            await relayServerNodeReportTransfer.Exit(masterKey).ConfigureAwait(false);
+        }
 
 
         [MessengerId((ushort)RelayMessengerIds.NodeReport)]
@@ -243,7 +238,7 @@ namespace linker.messenger.relay.messenger
                 relayServerReportResolver.Add(connection.ReceiveRequestWrap.Payload.Length, 0);
                 RelayServerNodeReportInfoOld info = serializer.Deserialize<RelayServerNodeReportInfoOld>(connection.ReceiveRequestWrap.Payload.Span);
 
-                if (info.EndPoint.Address.Equals(IPAddress.Any))
+                if (info.EndPoint.Address.Equals(IPAddress.Any) || info.EndPoint.Address.Equals(IPAddress.Loopback))
                 {
                     info.EndPoint.Address = connection.Address.Address;
                 }

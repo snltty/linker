@@ -61,25 +61,7 @@ namespace linker.messenger.sforward
         public string NodeId1 { get; set; } = string.Empty;
     }
 
-    public sealed class SForwardConfigServerInfo
-    {
-        /// <summary>
-        /// web端口
-        /// </summary>
-        public int WebPort { get; set; }
-        /// <summary>
-        /// 开放端口范围
-        /// </summary>
-        public int[] TunnelPortRange { get; set; } = new int[] { 10000, 60000 };
-
-        public DistributedInfo Distributed { get; set; } = new DistributedInfo { };
-    }
-    public sealed class DistributedInfo
-    {
-        public SForwardServerNodeInfo Node { get; set; } = new SForwardServerNodeInfo { };
-        public SForwardServerMasterInfo Master { get; set; } = new SForwardServerMasterInfo { };
-    }
-
+   
     /// <summary>
     /// 往服务器添加穿透
     /// </summary>
@@ -162,11 +144,4 @@ namespace linker.messenger.sforward
         public IPAddress Addr { get; set; }
     }
 
-
-
-    public sealed partial class SForwardCountInfo
-    {
-        public string MachineId { get; set; }
-        public int Count { get; set; }
-    }
 }

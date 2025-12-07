@@ -183,8 +183,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-
     [MemoryPackable]
     public readonly partial struct SerializableSForwardProxyInfo
     {
@@ -268,65 +266,6 @@ namespace linker.messenger.serializer.memorypack
             value.Addr = reader.ReadValue<IPAddress>();
         }
     }
-
-
-    [MemoryPackable]
-    public readonly partial struct SerializableSForwardCountInfo
-    {
-        [MemoryPackIgnore]
-        public readonly SForwardCountInfo info;
-
-        [MemoryPackInclude]
-        string MachineId => info.MachineId;
-
-        [MemoryPackInclude]
-        int Count => info.Count;
-
-        [MemoryPackConstructor]
-        SerializableSForwardCountInfo(string machineId, int count)
-        {
-            this.info = new SForwardCountInfo
-            {
-                MachineId = machineId,
-                Count = count
-            };
-        }
-
-        public SerializableSForwardCountInfo(SForwardCountInfo info)
-        {
-            this.info = info;
-        }
-    }
-    public class SForwardCountInfoFormatter : MemoryPackFormatter<SForwardCountInfo>
-    {
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref SForwardCountInfo value)
-        {
-            if (value == null)
-            {
-                writer.WriteNullObjectHeader();
-                return;
-            }
-
-            writer.WritePackable(new SerializableSForwardCountInfo(value));
-        }
-
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref SForwardCountInfo value)
-        {
-            if (reader.PeekIsNull())
-            {
-                reader.Advance(1); // skip null block
-                value = null;
-                return;
-            }
-
-            value = new SForwardCountInfo();
-            reader.TryReadObjectHeader(out byte count);
-            value.MachineId = reader.ReadValue<string>();
-            value.Count = reader.ReadValue<int>();
-        }
-    }
-
-
 
     [MemoryPackable]
     public readonly partial struct SerializableSForwardAddInfo
@@ -521,150 +460,10 @@ namespace linker.messenger.serializer.memorypack
     }
 
     [MemoryPackable]
-    public readonly partial struct SerializableSForwardServerNodeUpdateInfo
+    public readonly partial struct SerializableSForwardServerNodeReportInfoOld
     {
         [MemoryPackIgnore]
-        public readonly SForwardServerNodeUpdateInfo info;
-        [MemoryPackInclude]
-        string Id => info.Id;
-        [MemoryPackInclude]
-        string Name => info.Name;
-        [MemoryPackInclude]
-        double MaxBandwidth => info.MaxBandwidth;
-        [MemoryPackInclude]
-        double MaxBandwidthTotal => info.MaxBandwidthTotal;
-        [MemoryPackInclude]
-        double MaxGbTotal => info.MaxGbTotal;
-        [MemoryPackInclude]
-        long MaxGbTotalLastBytes => info.MaxGbTotalLastBytes;
-
-        [MemoryPackInclude]
-        string Domain => info.Domain;
-        [MemoryPackInclude]
-        string Host => info.Host;
-        [MemoryPackInclude]
-        bool Public => info.Public;
-        [MemoryPackInclude]
-        string Url => info.Url;
-        [MemoryPackInclude]
-        bool Sync2Server => info.Sync2Server;
-
-        [MemoryPackInclude]
-        int WebPort => info.WebPort;
-        [MemoryPackInclude]
-        int[] PortRange => info.PortRange;
-
-        [MemoryPackConstructor]
-        SerializableSForwardServerNodeUpdateInfo(
-            string id, string name, double maxBandwidth, double maxBandwidthTotal,
-            double maxGbTotal, long maxGbTotalLastBytes, string domain, string host,
-            bool Public, string url, bool sync2Server, int webport, int[] portrange)
-        {
-            var info = new SForwardServerNodeUpdateInfo
-            {
-                Id = id,
-                Name = name,
-                MaxBandwidth = maxBandwidth,
-                MaxBandwidthTotal = maxBandwidthTotal,
-                MaxGbTotal = maxGbTotal,
-                MaxGbTotalLastBytes = maxGbTotalLastBytes,
-                Domain = domain,
-                Host = host,
-                Public = Public,
-                Url = url,
-                Sync2Server = sync2Server,
-                WebPort = webport,
-                PortRange = portrange
-            };
-            this.info = info;
-        }
-
-        public SerializableSForwardServerNodeUpdateInfo(SForwardServerNodeUpdateInfo info)
-        {
-            this.info = info;
-        }
-    }
-    public class SForwardServerNodeUpdateInfoFormatter : MemoryPackFormatter<SForwardServerNodeUpdateInfo>
-    {
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref SForwardServerNodeUpdateInfo value)
-        {
-            if (value == null)
-            {
-                writer.WriteNullObjectHeader();
-                return;
-            }
-
-            writer.WritePackable(new SerializableSForwardServerNodeUpdateInfo(value));
-        }
-
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref SForwardServerNodeUpdateInfo value)
-        {
-            if (reader.PeekIsNull())
-            {
-                reader.Advance(1); // skip null block
-                value = null;
-                return;
-            }
-
-            var wrapped = reader.ReadPackable<SerializableSForwardServerNodeUpdateInfo>();
-            value = wrapped.info;
-        }
-    }
-    [MemoryPackable]
-    public readonly partial struct SerializableSForwardServerNodeUpdateWrapInfo
-    {
-        [MemoryPackIgnore]
-        public readonly SForwardServerNodeUpdateWrapInfo info;
-        [MemoryPackInclude]
-        string SecretKey => string.Empty;
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        SForwardServerNodeUpdateInfo Info => info.Info;
-
-        [MemoryPackConstructor]
-        SerializableSForwardServerNodeUpdateWrapInfo(string secretKey, SForwardServerNodeUpdateInfo info)
-        {
-            this.info = new SForwardServerNodeUpdateWrapInfo
-            {
-                Info = info
-            };
-        }
-
-        public SerializableSForwardServerNodeUpdateWrapInfo(SForwardServerNodeUpdateWrapInfo info)
-        {
-            this.info = info;
-        }
-    }
-    public class SForwardServerNodeUpdateWrapInfoFormatter : MemoryPackFormatter<SForwardServerNodeUpdateWrapInfo>
-    {
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref SForwardServerNodeUpdateWrapInfo value)
-        {
-            if (value == null)
-            {
-                writer.WriteNullObjectHeader();
-                return;
-            }
-
-            writer.WritePackable(new SerializableSForwardServerNodeUpdateWrapInfo(value));
-        }
-
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref SForwardServerNodeUpdateWrapInfo value)
-        {
-            if (reader.PeekIsNull())
-            {
-                reader.Advance(1); // skip null block
-                value = null;
-                return;
-            }
-
-            var wrapped = reader.ReadPackable<SerializableSForwardServerNodeUpdateWrapInfo>();
-            value = wrapped.info;
-        }
-    }
-    [MemoryPackable]
-    public readonly partial struct SerializableSForwardServerNodeReportInfo
-    {
-        [MemoryPackIgnore]
-        public readonly SForwardServerNodeReportInfo info;
+        public readonly SForwardServerNodeReportInfoOld info;
 
         [MemoryPackInclude]
         string Id => info.Id;
@@ -705,13 +504,13 @@ namespace linker.messenger.serializer.memorypack
 
 
         [MemoryPackConstructor]
-        SerializableSForwardServerNodeReportInfo(
+        SerializableSForwardServerNodeReportInfoOld(
             string id, string name, double maxBandwidth, double maxBandwidthTotal,
             double maxGbTotal, long maxGbTotalLastBytes, double bandwidthRatio,
             bool Public, int delay,
             string domain, IPAddress address, long lastTicks, string url, bool sync2Server, string version, int webport, int[] portrange)
         {
-            var info = new SForwardServerNodeReportInfo
+            var info = new SForwardServerNodeReportInfoOld
             {
                 BandwidthRatio = bandwidthRatio,
                 MaxBandwidth = maxBandwidth,
@@ -734,14 +533,14 @@ namespace linker.messenger.serializer.memorypack
             this.info = info;
         }
 
-        public SerializableSForwardServerNodeReportInfo(SForwardServerNodeReportInfo info)
+        public SerializableSForwardServerNodeReportInfoOld(SForwardServerNodeReportInfoOld info)
         {
             this.info = info;
         }
     }
-    public class SForwardServerNodeReportInfoFormatter : MemoryPackFormatter<SForwardServerNodeReportInfo>
+    public class SForwardServerNodeReportInfoOldFormatter : MemoryPackFormatter<SForwardServerNodeReportInfoOld>
     {
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref SForwardServerNodeReportInfo value)
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref SForwardServerNodeReportInfoOld value)
         {
             if (value == null)
             {
@@ -749,10 +548,10 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableSForwardServerNodeReportInfo(value));
+            writer.WritePackable(new SerializableSForwardServerNodeReportInfoOld(value));
         }
 
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref SForwardServerNodeReportInfo value)
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref SForwardServerNodeReportInfoOld value)
         {
             if (reader.PeekIsNull())
             {
@@ -761,7 +560,7 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableSForwardServerNodeReportInfo>();
+            var wrapped = reader.ReadPackable<SerializableSForwardServerNodeReportInfoOld>();
             value = wrapped.info;
         }
     }

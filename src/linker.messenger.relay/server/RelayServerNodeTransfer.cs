@@ -19,13 +19,14 @@ namespace linker.messenger.relay.server
         private readonly ConcurrentDictionary<ulong, RelayTrafficCacheInfo> trafficDict = new();
 
         private readonly ISerializer serializer;
-        private readonly IRelayServerConfigStore relayServerConfigStore;
         private readonly IMessengerSender messengerSender;
+
+        private readonly IRelayServerConfigStore relayServerConfigStore;
         private readonly RelayServerConnectionTransfer relayServerConnectionTransfer;
         private readonly RelayServerNodeReportTransfer relayServerNodeReportTransfer;
 
-        public RelayServerNodeTransfer(ISerializer serializer, IRelayServerConfigStore relayServerConfigStore, IMessengerSender messengerSender,
-            RelayServerConnectionTransfer relayServerConnectionTransfer, RelayServerNodeReportTransfer relayServerNodeReportTransfer)
+        public RelayServerNodeTransfer(ISerializer serializer, IMessengerSender messengerSender,
+            IRelayServerConfigStore relayServerConfigStore, RelayServerConnectionTransfer relayServerConnectionTransfer, RelayServerNodeReportTransfer relayServerNodeReportTransfer)
         {
             this.serializer = serializer;
             this.relayServerConfigStore = relayServerConfigStore;
@@ -188,15 +189,15 @@ namespace linker.messenger.relay.server
         /// 设置限速
         /// </summary>
         /// <param name="relayCache"></param>
-        private void SetLimit(RelayTrafficCacheInfo relayCache)
+        private void SetLimit(RelayTrafficCacheInfo cache)
         {
-            if (relayCache.Cache.Bandwidth >= 0)
+            if (cache.Cache.Bandwidth >= 0)
             {
-                relayCache.Limit.SetLimit((uint)Math.Ceiling(relayCache.Cache.Bandwidth * 1024 * 1024 / 8.0));
+                cache.Limit.SetLimit((uint)Math.Ceiling(cache.Cache.Bandwidth * 1024 * 1024 / 8.0));
                 return;
             }
 
-            relayCache.Limit.SetLimit((uint)Math.Ceiling(Config.Bandwidth * 1024 * 1024 / 8.0));
+            cache.Limit.SetLimit((uint)Math.Ceiling(Config.Bandwidth * 1024 * 1024 / 8.0));
         }
 
         private void ResetNodeBytes()

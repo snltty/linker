@@ -1,21 +1,17 @@
 ﻿using linker.libs;
 using linker.libs.extends;
-using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
 
 namespace linker.messenger.sforward.server
 {
-    /// <summary>
-    /// 穿透节点报告处理器
-    /// </summary>
-    public class SForwardServerReportResolver : IResolver
+    public class SForwardServerConnectionResolver : IResolver
     {
-        public byte Type => (byte)ResolverType.SForwardReport;
+        public byte Type => (byte)ResolverType.SForwardConnection;
 
         private readonly IMessengerResolver messengerResolver;
 
-        public SForwardServerReportResolver(IMessengerResolver messengerResolver)
+        public SForwardServerConnectionResolver(IMessengerResolver messengerResolver)
         {
             this.messengerResolver = messengerResolver;
         }
@@ -26,18 +22,8 @@ namespace linker.messenger.sforward.server
 
         public async Task Resolve(Socket socket, Memory<byte> memory)
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(1024);
             try
             {
-
-
-                await socket.ReceiveAsync(buffer.AsMemory(0, 1), SocketFlags.None).ConfigureAwait(false);
-                int length = buffer[0];
-                Add(memory.Length, length);
-                await socket.ReceiveAsync(buffer.AsMemory(0, length), SocketFlags.None).ConfigureAwait(false);
-
-                string key = buffer.AsMemory(0, length).GetString();
-
                 await messengerResolver.BeginReceiveServer(socket, Helper.EmptyArray).ConfigureAwait(false);
             }
             catch (Exception ex)
@@ -47,10 +33,6 @@ namespace linker.messenger.sforward.server
                     LoggerHelper.Instance.Error(ex);
                 }
                 socket.SafeClose();
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
             }
         }
 

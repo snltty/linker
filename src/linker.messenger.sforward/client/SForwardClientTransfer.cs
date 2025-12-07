@@ -77,7 +77,7 @@ namespace linker.messenger.sforward.client
                 messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = signInClientState.Connection,
-                    MessengerId = (ushort)SForwardMessengerIds.AddForward191,
+                    MessengerId = (ushort)SForwardMessengerIds.StartForward,
                     Payload = serializer.Serialize(new SForwardAddInfo { Domain = forwardInfo.Domain, RemotePort = forwardInfo.RemotePort, NodeId = forwardInfo.NodeId1 })
                 }).ContinueWith((result) =>
                 {
@@ -119,7 +119,7 @@ namespace linker.messenger.sforward.client
                 messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = signInClientState.Connection,
-                    MessengerId = (ushort)SForwardMessengerIds.RemoveForward191,
+                    MessengerId = (ushort)SForwardMessengerIds.StopForward,
                     Payload = serializer.Serialize(new SForwardAddInfo { Domain = forwardInfo.Domain, RemotePort = forwardInfo.RemotePort, NodeId = forwardInfo.NodeId1 })
                 }).ContinueWith((result) =>
                 {

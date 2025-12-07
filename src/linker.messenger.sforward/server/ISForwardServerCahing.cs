@@ -5,19 +5,23 @@ namespace linker.messenger.sforward.server
 {
     public interface ISForwardServerCahing
     {
-        public bool TryAdd(string domain, string machineId);
-        public bool TryAdd(int port, string machineId);
+        public bool TryAdd(string domain, string machineId, string masterNodeId);
+        public bool TryAdd(int port, string machineId, string masterNodeId);
 
-        public bool TryGet(string domain, out string machineId);
-        public bool TryGet(int port, out string machineId);
+        public bool TryGet(string domain, out string machineId, out string masterNodeId);
+        public bool TryGet(int port, out string machineId, out string masterNodeId);
         public bool TryGet(List<string> ids, out List<string> domains, out List<int> ports);
 
-        public bool TryRemove(string domain, string operMachineId, out string machineId);
-        public bool TryRemove(string domain, out string machineId);
-        public bool TryRemove(int port, string operMachineId, out string machineId);
-        public bool TryRemove(int port, out string machineId);
+        public bool TryRemove(string domain, string operMachineId, string masterNodeId, out string machineId);
+        public bool TryRemove(string domain, string masterNodeId, out string machineId);
+        public bool TryRemove(int port, string operMachineId, string masterNodeId, out string machineId);
+        public bool TryRemove(int port, string masterNodeId, out string machineId);
 
-        public List<string> GetMachineIds();
+        /// <summary>
+        /// 信标服务器id，客户端id列表
+        /// </summary>
+        /// <returns></returns>
+        public Dictionary<string, List<string>> GetMachineIds();
     }
 
     /// <summary>
@@ -34,7 +38,7 @@ namespace linker.messenger.sforward.server
             this.signCaching = signCaching;
         }
 
-        public bool TryAdd(string domain, string machineId)
+        public bool TryAdd(string domain, string machineId, string masterNodeId)
         {
             if (serverDoamins.TryGetValue(domain, out CacheInfo cache) && machineId == cache.MachineId)
             {
@@ -45,10 +49,10 @@ namespace linker.messenger.sforward.server
                 serverDoamins.TryRemove(domain, out _);
             }
 
-            return serverDoamins.TryAdd(domain, new CacheInfo { MachineId = machineId });
+            return serverDoamins.TryAdd(domain, new CacheInfo { MachineId = machineId, MasterNodeId = masterNodeId });
         }
 
-        public bool TryAdd(int port, string machineId)
+        public bool TryAdd(int port, string machineId, string masterNodeId)
         {
             if (serverPorts.TryGetValue(port, out CacheInfo cache) && machineId == cache.MachineId)
             {
@@ -59,26 +63,30 @@ namespace linker.messenger.sforward.server
                 serverPorts.TryRemove(port, out _);
             }
 
-            return serverPorts.TryAdd(port, new CacheInfo { MachineId = machineId });
+            return serverPorts.TryAdd(port, new CacheInfo { MachineId = machineId, MasterNodeId = masterNodeId });
         }
 
-        public bool TryGet(string domain, out string machineId)
+        public bool TryGet(string domain, out string machineId, out string masterNodeId)
         {
             machineId = string.Empty;
+            masterNodeId = string.Empty;
             if (serverDoamins.TryGetValue(domain, out CacheInfo cache))
             {
                 machineId = cache.MachineId;
+                masterNodeId = cache.MasterNodeId;
                 return true;
             }
             return false;
         }
 
-        public bool TryGet(int port, out string machineId)
+        public bool TryGet(int port, out string machineId, out string masterNodeId)
         {
             machineId = string.Empty;
+            masterNodeId = string.Empty;
             if (serverPorts.TryGetValue(port, out CacheInfo cache))
             {
                 machineId = cache.MachineId;
+                masterNodeId = cache.MasterNodeId;
                 return true;
             }
             return false;
@@ -90,10 +98,10 @@ namespace linker.messenger.sforward.server
             return domains.Count > 0 || ports.Count > 0;
         }
 
-        public bool TryRemove(string domain, string operMachineId, out string machineId)
+        public bool TryRemove(string domain, string operMachineId, string masterNodeId, out string machineId)
         {
             machineId = string.Empty;
-            if (serverDoamins.TryGetValue(domain, out CacheInfo cache) && cache.MachineId == operMachineId)
+            if (serverDoamins.TryGetValue(domain, out CacheInfo cache) && cache.MachineId == operMachineId && cache.MasterNodeId == masterNodeId)
             {
                 if (serverDoamins.TryRemove(domain, out CacheInfo cache1))
                 {
@@ -103,21 +111,25 @@ namespace linker.messenger.sforward.server
             }
             return false;
         }
-        public bool TryRemove(string domain, out string machineId)
+        public bool TryRemove(string domain, string masterNodeId, out string machineId)
         {
             machineId = string.Empty;
-            if (serverDoamins.TryRemove(domain, out CacheInfo cache))
+            if (serverDoamins.TryGetValue(domain, out CacheInfo cache) && cache.MasterNodeId == masterNodeId)
             {
-                machineId = cache.MachineId;
-                return true;
+                if (serverDoamins.TryRemove(domain, out _))
+                {
+                    machineId = cache.MachineId;
+                    return true;
+                }
             }
+
             return false;
         }
 
-        public bool TryRemove(int port, string operMachineId, out string machineId)
+        public bool TryRemove(int port, string operMachineId, string masterNodeId, out string machineId)
         {
             machineId = string.Empty;
-            if (serverPorts.TryGetValue(port, out CacheInfo cache) && cache.MachineId == operMachineId)
+            if (serverPorts.TryGetValue(port, out CacheInfo cache) && cache.MachineId == operMachineId && cache.MasterNodeId == masterNodeId)
             {
                 if (serverPorts.TryRemove(port, out CacheInfo cache1))
                 {
@@ -127,25 +139,32 @@ namespace linker.messenger.sforward.server
             }
             return false;
         }
-        public bool TryRemove(int port, out string machineId)
+        public bool TryRemove(int port, string masterNodeId, out string machineId)
         {
             machineId = string.Empty;
-            if (serverPorts.TryRemove(port, out CacheInfo cache1))
+            if (serverPorts.TryGetValue(port, out CacheInfo cache) && cache.MasterNodeId == masterNodeId)
             {
-                machineId = cache1.MachineId;
-                return true;
+                if (serverPorts.TryRemove(port, out _))
+                {
+                    machineId = cache.MachineId;
+                    return true;
+                }
             }
+
             return false;
         }
 
-        public List<string> GetMachineIds()
+        public Dictionary<string, List<string>> GetMachineIds()
         {
-            return serverDoamins.Values.Select(c => c.MachineId).Union(serverPorts.Values.Select(c => c.MachineId)).Distinct().ToList();
+            return serverDoamins.Values.Select(c => (c.MasterNodeId, c.MachineId))
+                .Union(serverPorts.Values.Select(c => (c.MasterNodeId, c.MachineId))).Distinct()
+                .GroupBy(c => c.MasterNodeId).ToDictionary(c => c.Key, d => d.Select(c => c.MachineId).ToList());
         }
 
         sealed class CacheInfo
         {
             public string MachineId { get; set; }
+            public string MasterNodeId { get; set; }
             public long LastTime { get; set; } = Environment.TickCount64;
         }
     }

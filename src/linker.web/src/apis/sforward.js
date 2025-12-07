@@ -1,36 +1,47 @@
 import { sendWebsocketMsg } from './request'
 
-export const getSForwardInfo = (data) => {
+export const getSForward = (data) => {
     return sendWebsocketMsg('sforward/get', data);
 }
-export const removeSForwardInfo = (data) => {
-    return sendWebsocketMsg('sforward/remove', data);
+export const removeSForward = (data) => {
+    return sendWebsocketMsg('sforward/removeclient', data);
 }
-export const addSForwardInfo = (data) => {
-    return sendWebsocketMsg('sforward/add', data);
+export const sforwardAddClient = (data) => {
+    return sendWebsocketMsg('sforward/addclient', data);
 }
 
-export const testLocalSForwardInfo = (data) => {
+export const sforwardTestLocal = (data) => {
     return sendWebsocketMsg('sforward/TestLocal', data);
 }
 
-export const startSForwardInfo = (data) => {
+export const sforwardStart = (data) => {
     return sendWebsocketMsg('sforward/start', data);
 }
-export const stopSForwardInfo = (data) => {
+export const sforwardStop = (data) => {
     return sendWebsocketMsg('sforward/stop', data);
 }
 
 
-export const setSForwardSubscribe = () => {
+export const sforwardSubscribe = () => {
     return sendWebsocketMsg('sforward/Subscribe');
 }
-export const sforwardEdit = (data) => {
-    return sendWebsocketMsg('sforward/edit', data);
+
+
+export const sforwardUpdate= (data) => {
+    return sendWebsocketMsg('sforward/update', data);
+}
+export const sforwardUpgrade= (data) => {
+    return sendWebsocketMsg('sforward/upgrade', data);
 }
 export const sforwardExit = (id) => {
     return sendWebsocketMsg('sforward/Exit', id);
 }
-export const sforwardUpdate = (id) => {
-    return sendWebsocketMsg('sforward/Update', id);
+export const sforwardRemove = (id) => {
+    return sendWebsocketMsg('sforward/Remove', id);
+}
+export const sforwardImport = (data) => {
+    return sendWebsocketMsg('sforward/Import', data);
+}
+export const sforwardShare = (id) => {
+    return sendWebsocketMsg('sforward/Share', id);
 }

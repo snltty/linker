@@ -15,19 +15,8 @@
                     </el-col>
                 </el-row>
             </el-form-item>
-            <el-form-item label="" label-width="0">
-                <el-row>
-                    <el-col :span="12">
-                        <el-form-item label="开放最小端口" prop="tunnelPort1">
-                            <el-input v-trim v-model="state.form.tunnelPort1" />
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item label="开放最大端口" prop="tunnelPort2">
-                            <el-input v-trim v-model="state.form.tunnelPort2" />
-                        </el-form-item>
-                    </el-col>
-                </el-row>
+             <el-form-item label="穿透端口" prop="TunnelPorts">
+                <el-input v-trim v-model="state.form.TunnelPorts" />
             </el-form-item>
             <el-form-item label="" label-width="0">
                 <el-row>
@@ -74,8 +63,7 @@ export default {
                 superKey:step.value.form.server.superKey ||globalData.value.config.Server.SignIn.SuperKey,
                 superPassword:step.value.form.server.superPassword ||globalData.value.config.Server.SignIn.SuperPassword,
                 webPort:step.value.form.server.webPort ||globalData.value.config.Server.SForward.WebPort,
-                tunnelPort1:step.value.form.server.tunnelPort1 ||globalData.value.config.Server.SForward.TunnelPortRange[0],
-                tunnelPort2:step.value.form.server.tunnelPort2 ||globalData.value.config.Server.SForward.TunnelPortRange[1],
+                TunnelPorts:step.value.form.server.TunnelPorts ||globalData.value.config.Server.SForward.TunnelPorts,
             },
             rules: {
                 superKey: [{ required: true, message: "必填", trigger: "blur" }],
@@ -105,33 +93,7 @@ export default {
                             return Number(value);
                         },
                     },
-                ],
-                tunnelPort1: [
-                    { required: true, message: "必填", trigger: "blur" },
-                    {
-                        type: "number",
-                        min: 0,
-                        max: 65535,
-                        message: "数字 0-65535",
-                        trigger: "blur",
-                        transform(value) {
-                            return Number(value);
-                        },
-                    },
-                ],
-                tunnelPort2: [
-                    { required: true, message: "必填", trigger: "blur" },
-                    {
-                        type: "number",
-                        min: 0,
-                        max: 65535,
-                        message: "数字 0-65535",
-                        trigger: "blur",
-                        transform(value) {
-                            return Number(value);
-                        },
-                    },
-                ],
+                ]
             },
         });
 
@@ -152,7 +114,7 @@ export default {
 
                                     SForward:{
                                         WebPort: +state.form.webPort,
-                                        TunnelPortRange: [+state.form.tunnelPort1, +state.form.tunnelPort2]
+                                        TunnelPorts:state.form.TunnelPorts
                                     }
                                 }  
                             },

@@ -1,5 +1,4 @@
 ﻿using linker.libs.extends;
-using System.Collections.Concurrent;
 using linker.messenger.signin;
 using linker.libs;
 using linker.messenger.api;
@@ -35,7 +34,7 @@ namespace linker.messenger.sforward.client
             this.sForwardClientTestTransfer = sForwardClientTestTransfer;
         }
 
-        public List<SForwardServerNodeReportInfo> Subscribe(ApiControllerParamsInfo param)
+        public List<SForwardServerNodeStoreInfo> Subscribe(ApiControllerParamsInfo param)
         {
             sForwardClientTestTransfer.Subscribe();
             return sForwardClientTestTransfer.Nodes;
@@ -73,7 +72,7 @@ namespace linker.messenger.sforward.client
         /// </summary>
         /// <param name="param"></param>
         /// <returns></returns>
-        public async Task<bool> Add(ApiControllerParamsInfo param)
+        public async Task<bool> AddClient(ApiControllerParamsInfo param)
         {
             SForwardAddForwardInfo info = param.Content.DeJson<SForwardAddForwardInfo>();
             if (info.MachineId == signInClientStore.Id)
@@ -85,7 +84,7 @@ namespace linker.messenger.sforward.client
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
-                MessengerId = (ushort)SForwardMessengerIds.AddClientForward191,
+                MessengerId = (ushort)SForwardMessengerIds.AddClientForward,
                 Payload = serializer.Serialize(info)
             }).ConfigureAwait(false);
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
@@ -96,7 +95,7 @@ namespace linker.messenger.sforward.client
         /// </summary>
         /// <param name="param"></param>
         /// <returns></returns>
-        public async Task<bool> Remove(ApiControllerParamsInfo param)
+        public async Task<bool> RemoveClient(ApiControllerParamsInfo param)
         {
             SForwardRemoveForwardInfo info = param.Content.DeJson<SForwardRemoveForwardInfo>();
             if (info.MachineId == signInClientStore.Id)
@@ -172,32 +171,60 @@ namespace linker.messenger.sforward.client
         }
 
 
-
-        /// <summary>
-        /// 更新节点
-        /// </summary>
-        /// <param name="param"></param>
-        /// <returns></returns>
-        public async Task<bool> Edit(ApiControllerParamsInfo param)
+        public async Task<string> Share(ApiControllerParamsInfo param)
         {
-            SForwardServerNodeUpdateInfo info = param.Content.DeJson<SForwardServerNodeUpdateInfo>();
             var resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
-                MessengerId = (ushort)SForwardMessengerIds.EditForward,
-                Payload = serializer.Serialize(new SForwardServerNodeUpdateWrapInfo
-                {
-                    Info = info,
-                })
-            }).ConfigureAwait(false);
+                MessengerId = (ushort)SForwardMessengerIds.ShareForward,
+                Payload = serializer.Serialize(param.Content)
+            });
+            return resp.Code == MessageResponeCodes.OK ? serializer.Deserialize<string>(resp.Data.Span) : $"network error:{resp.Code}";
+        }
+        public async Task<string> Import(ApiControllerParamsInfo param)
+        {
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)SForwardMessengerIds.Import,
+                Payload = serializer.Serialize(param.Content)
+            });
+            return resp.Code == MessageResponeCodes.OK ? serializer.Deserialize<string>(resp.Data.Span) : $"network error:{resp.Code}";
+        }
+        public async Task<string> Remove(ApiControllerParamsInfo param)
+        {
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)SForwardMessengerIds.Remove,
+                Payload = serializer.Serialize(param.Content)
+            });
+            return resp.Code == MessageResponeCodes.OK ? serializer.Deserialize<string>(resp.Data.Span) : $"network error:{resp.Code}";
+        }
+
+        public async Task<bool> Update(ApiControllerParamsInfo param)
+        {
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)SForwardMessengerIds.UpdateForward,
+                Payload = serializer.Serialize(param.Content.DeJson<SForwardServerNodeStoreInfo>())
+            });
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
 
-        /// <summary>
-        /// 重启节点
-        /// </summary>
-        /// <param name="param"></param>
-        /// <returns></returns>
+        public async Task<bool> Upgrade(ApiControllerParamsInfo param)
+        {
+            KeyValueInfo<string, string> info = param.Content.DeJson<KeyValueInfo<string, string>>();
+
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)SForwardMessengerIds.UpgradeForward,
+                Payload = serializer.Serialize(new KeyValuePair<string, string>(info.Key, info.Value))
+            });
+            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
+        }
         public async Task<bool> Exit(ApiControllerParamsInfo param)
         {
             var resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -205,31 +232,9 @@ namespace linker.messenger.sforward.client
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)SForwardMessengerIds.ExitForward,
                 Payload = serializer.Serialize(param.Content)
-            }).ConfigureAwait(false);
-            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
-        }
-        /// <summary>
-        /// 更新节点
-        /// </summary>
-        /// <param name="param"></param>
-        /// <returns></returns>
-        public async Task<bool> Update(ApiControllerParamsInfo param)
-        {
-            KeyValueInfo<string, string> info = param.Content.DeJson<KeyValueInfo<string,string>>();
-            var resp = await messengerSender.SendReply(new MessageRequestWrap
-            {
-                Connection = signInClientState.Connection,
-                MessengerId = (ushort)SForwardMessengerIds.UpdateForward,
-                Payload = serializer.Serialize(new KeyValuePair<string, string>(info.Key, info.Value))
-            }).ConfigureAwait(false);
+            });
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
 
-    }
-
-    public sealed class SForwardListInfo
-    {
-        public ConcurrentDictionary<string, int> List { get; set; }
-        public ulong HashCode { get; set; }
     }
 }

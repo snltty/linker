@@ -9,26 +9,42 @@ namespace linker.messenger.sforward.server.validator
     {
         public string Name => "default";
 
-        private readonly ISForwardServerStore sForwardServerStore;
-        private readonly ISForwardServerNodeStore sForwardServerNodeStore;
-        public SForwardValidator(ISForwardServerStore sForwardServerStore, ISForwardServerNodeStore sForwardServerNodeStore)
+        private readonly ISForwardServerConfigStore sForwardServerConfigStore;
+        public SForwardValidator(ISForwardServerConfigStore sForwardServerConfigStore)
         {
-            this.sForwardServerStore = sForwardServerStore;
-            this.sForwardServerNodeStore = sForwardServerNodeStore;
+            this.sForwardServerConfigStore = sForwardServerConfigStore;
         }
 
         public async Task<string> Validate(SignCacheInfo signCacheInfo, SForwardAddInfo sForwardAddInfo)
         {
-            //if (string.IsNullOrWhiteSpace(sForwardAddInfo.NodeId)) sForwardAddInfo.NodeId = sForwardServerNodeStore.Node.Id;
-
-            if (sForwardAddInfo.RemotePort > 0)
+            if (ValidatePort(sForwardAddInfo.RemotePort) == false)
             {
-                if (sForwardAddInfo.RemotePort < sForwardServerStore.TunnelPortRange[0] || sForwardAddInfo.RemotePort > sForwardServerStore.TunnelPortRange[1])
-                {
-                    return $"port out of range {string.Join("-", sForwardServerStore.TunnelPortRange)}";
-                }
+                return $"port out of range";
             }
             return await Task.FromResult(string.Empty);
+        }
+        private bool ValidatePort(int port)
+        {
+            if (port <= 0)
+            {
+                return true;
+            }
+
+            string ports = sForwardServerConfigStore.Config.TunnelPorts;
+            return string.IsNullOrWhiteSpace(ports)
+                || $",{ports},".Contains($",{port},")
+                || ports.Split(',').Where(c => c.Contains('-')).Any(c =>
+            {
+                try
+                {
+                    int[] p = c.Split('-').Select(c => int.Parse(c)).ToArray();
+                    return p.Length == 2 && port >= p[0] && port <= p[1];
+                }
+                catch (Exception)
+                {
+                }
+                return false;
+            });
         }
     }
 }

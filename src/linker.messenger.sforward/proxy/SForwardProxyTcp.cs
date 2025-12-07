@@ -136,7 +136,7 @@ namespace linker.plugins.sforward.proxy
                     key = token.Host = GetHost(buffer1.Memory.Slice(0, length));
                     if (string.IsNullOrWhiteSpace(token.Host))
                     {
-                        if (Write404(token, buffer1.Memory,"Http host not found"))
+                        if (Write404(token, buffer1.Memory, "Http host not found"))
                         {
                             return;
                         }
@@ -215,7 +215,7 @@ namespace linker.plugins.sforward.proxy
             }
         }
 
-        private bool Write404(AsyncUserToken token, Memory<byte> buffer,string error)
+        private bool Write404(AsyncUserToken token, Memory<byte> buffer, string error)
         {
             try
             {
@@ -248,7 +248,7 @@ namespace linker.plugins.sforward.proxy
         {
             if (host.Contains('.') == false)
             {
-                host = $"{host}.{sForwardServerNodeTransfer.Node.Domain}";
+                host = $"{host}.{sForwardServerNodeTransfer.Config.Domain}";
             }
 
             SForwardTrafficCacheInfo sForwardTrafficCacheInfo = sForwardServerNodeTransfer.AddTrafficCache(super, bandwidth);
@@ -258,7 +258,7 @@ namespace linker.plugins.sforward.proxy
         {
             if (host.Contains('.') == false)
             {
-                host = $"{host}.{sForwardServerNodeTransfer.Node.Domain}";
+                host = $"{host}.{sForwardServerNodeTransfer.Config.Domain}";
             }
             if (httpCaches.TryRemove(host, out var cache))
             {

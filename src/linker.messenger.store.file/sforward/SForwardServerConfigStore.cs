@@ -1,22 +1,21 @@
 ﻿using linker.libs;
-using linker.messenger.relay.server;
+using linker.messenger.sforward.server;
 
-namespace linker.messenger.store.file.relay
+namespace linker.messenger.store.file.sforward
 {
-    public sealed class RelayServerConfigStore : IRelayServerConfigStore
+    public sealed class SForwardServerConfigStore : ISForwardServerConfigStore
     {
         public int ServicePort => config.Data.Server.ServicePort;
-        public RelayServerConfigInfo Config => config.Data.Server.Relay;
+        public SForwardServerConfigInfo Config => config.Data.Server.SForward;
 
         private readonly FileConfig config;
-        public RelayServerConfigStore(FileConfig config)
+        public SForwardServerConfigStore(FileConfig config)
         {
             this.config = config;
 
             if (string.IsNullOrWhiteSpace(Config.Distributed.Node.Id) == false)
             {
                 Config.NodeId = Config.Distributed.Node.Id;
-                Config.Connections = Config.Distributed.Node.MaxConnection;
                 Config.DataRemain = Config.Distributed.Node.MaxGbTotalLastBytes;
                 Config.DataMonth = Config.Distributed.Node.MaxGbTotalMonth;
                 Config.Bandwidth = (int)Config.Distributed.Node.MaxBandwidthTotal;
@@ -36,28 +35,28 @@ namespace linker.messenger.store.file.relay
             config.Data.Update();
         }
 
-        public void SetInfo(RelayServerConfigInfo node)
+        public void SetInfo(SForwardServerConfigInfo node)
         {
-            config.Data.Server.Relay = node;
+            config.Data.Server.SForward = node;
         }
         public void SetDataRemain(long value)
         {
-            config.Data.Server.Relay.DataRemain = value;
+            config.Data.Server.SForward.DataRemain = value;
         }
 
         public void SetDataMonth(int month)
         {
-            config.Data.Server.Relay.DataMonth = month;
+            config.Data.Server.SForward.DataMonth = month;
         }
 
         public void SetShareKey(string shareKey)
         {
-            config.Data.Server.Relay.ShareKey = shareKey;
+            config.Data.Server.SForward.ShareKey = shareKey;
         }
 
         public void SetMasterKey(string masterKey)
         {
-            config.Data.Server.Relay.MasterKey = masterKey;
+            config.Data.Server.SForward.MasterKey = masterKey;
         }
     }
 }

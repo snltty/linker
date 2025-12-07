@@ -95,9 +95,9 @@ namespace linker.messenger.store.file
             serviceCollection.AddSingleton<ISocks5Store, Socks5Store>();
 
             serviceCollection.AddSingleton<ISForwardClientStore, SForwardClientStore>();
-            serviceCollection.AddSingleton<ISForwardServerStore, SForwardServerStore>();
+            serviceCollection.AddSingleton<ISForwardServerConfigStore, SForwardServerConfigStore>();
             serviceCollection.AddSingleton<ISForwardServerNodeStore, SForwardServerNodeStore>();
-            serviceCollection.AddSingleton<ISForwardServerMasterStore, SForwardServerMasterStore>();
+            serviceCollection.AddSingleton<ISForwardServerNodeStore, SForwardServerNodeStore>();
 
             serviceCollection.AddSingleton<ILoggerStore, LoggerStore>();
 

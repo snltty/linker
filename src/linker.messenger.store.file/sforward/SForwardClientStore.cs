@@ -8,15 +8,10 @@ namespace linker.messenger.store.file.sforward
 {
     public sealed class SForwardClientStore : ISForwardClientStore
     {
-        private readonly FileConfig fileConfig;
-        private readonly Storefactory dBfactory;
         private readonly ILiteCollection<SForwardInfo> liteCollection;
 
-        public SForwardClientStore(FileConfig fileConfig, Storefactory dBfactory)
+        public SForwardClientStore(Storefactory dBfactory)
         {
-            this.fileConfig = fileConfig;
-
-            this.dBfactory = dBfactory;
             liteCollection = dBfactory.GetCollection<SForwardInfo>("sforward");
             liteCollection.UpdateMany(c => new SForwardInfo { Started = false }, c => c.Started == true);
         }

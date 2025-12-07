@@ -43,6 +43,11 @@ namespace linker.messenger
         /// 中继联机
         /// </summary>
         RelayConnection = 9,
+
+        /// <summary>
+        /// 穿透联机
+        /// </summary>
+        SForwardConnection = 10,
     }
     public interface IResolver
     {

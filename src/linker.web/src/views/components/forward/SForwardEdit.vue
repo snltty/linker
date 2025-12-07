@@ -113,7 +113,7 @@
 </template>
 <script>
 import { onMounted, onUnmounted,  reactive, ref, watch } from 'vue';
-import { getSForwardInfo, removeSForwardInfo, addSForwardInfo,testLocalSForwardInfo, stopSForwardInfo, startSForwardInfo, setSForwardSubscribe } from '@/apis/sforward'
+import { getSForward, removeSForward, sforwardAddClient,sforwardTestLocal, sforwardStop, sforwardStart, sforwardSubscribe } from '@/apis/sforward'
 import { ElMessage } from 'element-plus';
 import {WarnTriangleFilled,Delete,Select,CloseBold} from '@element-plus/icons-vue'
 import { injectGlobalData } from '@/provide';
@@ -153,18 +153,18 @@ export default {
                 }, 300);
             }
         });
-        const _testLocalSForwardInfo = ()=>{
+        const _sforwardTestLocal = ()=>{
             clearTimeout(state.timer);
-            testLocalSForwardInfo(sforward.value.machineid).then((res)=>{
-                state.timer = setTimeout(_testLocalSForwardInfo,1000);
+            sforwardTestLocal(sforward.value.machineid).then((res)=>{
+                state.timer = setTimeout(_sforwardTestLocal,1000);
             }).catch(()=>{
-                state.timer = setTimeout(_testLocalSForwardInfo,1000);
+                state.timer = setTimeout(_sforwardTestLocal,1000);
             });
         }
-        const _getSForwardInfo = () => {
+        const _getSForward = () => {
             clearTimeout(state.timer1);
             if(state.editing==false){
-                getSForwardInfo(sforward.value.machineid).then((res) => {
+                getSForward(sforward.value.machineid).then((res) => {
                     res.forEach(c=>{
                         c.Temp = (c.Domain || c.RemotePort).toString();
                         c.RemotePort = 0;
@@ -172,34 +172,34 @@ export default {
                         c.NodeId1 = c.NodeId1 || c.NodeId;
                     });
                     state.data = res;
-                    state.timer1 = setTimeout(_getSForwardInfo,1000);
+                    state.timer1 = setTimeout(_getSForward,1000);
                 }).catch(() => {
-                    state.timer1 = setTimeout(_getSForwardInfo,1000);
+                    state.timer1 = setTimeout(_getSForward,1000);
                 });
             }else{
-                state.timer1 = setTimeout(_getSForwardInfo,1000);
+                state.timer1 = setTimeout(_getSForward,1000);
             }
         }
 
 
         const handleOnShowList = () => {
-            _getSForwardInfo();
+            _getSForward();
         }
 
         const handleCellClick = (row, column) => {
             handleEdit(row, column.property);
         }
         const handleRefresh = () => {
-            _getSForwardInfo();
+            _getSForward();
             ElMessage.success('已刷新')
         }
         const handleAdd = () => {
             state.loading = true;
             const row = { Id: 0, Name: '', RemotePort: 0, LocalEP: '127.0.0.1:80',Domain:'',Temp:'' };
-            addSForwardInfo({machineid:sforward.value.machineid,data:row}).then(() => {
+            sforwardAddClient({machineid:sforward.value.machineid,data:row}).then(() => {
                 state.loading = false;
                 setTimeout(()=>{
-                    _getSForwardInfo();
+                    _getSForward();
                 },100)
             }).catch((err) => {
                 state.loading = false;
@@ -236,10 +236,10 @@ export default {
         const handleDel = (id) => {
             planDom.value.remove(id,'start');
             planDom.value.remove(id,'stop');
-            removeSForwardInfo({machineid:sforward.value.machineid,id:id})
+            removeSForward({machineid:sforward.value.machineid,id:id})
             .then(() => {
                 state.loading = false;
-                _getSForwardInfo();
+                _getSForward();
             }).catch((err) => {
                 state.loading = false;
                 ElMessage.error(err);
@@ -248,12 +248,12 @@ export default {
         const handleStartChange = (row) => {
             state.loading = true;
             const func = row.Started 
-            ? stopSForwardInfo({machineid:sforward.value.machineid,id:row.Id}) 
-            : startSForwardInfo({machineid:sforward.value.machineid,id:row.Id});
+            ? sforwardStop({machineid:sforward.value.machineid,id:row.Id}) 
+            : sforwardStart({machineid:sforward.value.machineid,id:row.Id});
 
             func.then(() => {
                 state.loading = false;
-                _getSForwardInfo();
+                _getSForward();
             }).catch((err) => {
                 state.loading = false;
                 ElMessage.error(err);
@@ -268,12 +268,12 @@ export default {
                 row.Domain = row.Temp;
             }
             state.loading = true;
-            addSForwardInfo({machineid:sforward.value.machineid,data:row}).then((res) => {
+            sforwardAddClient({machineid:sforward.value.machineid,data:row}).then((res) => {
                 state.loading = false;
                 if(res == false){
                     ElMessage.error('操作失败，可能存在相同值');
                 }
-                _getSForwardInfo();
+                _getSForward();
             }).catch((err) => {
                 state.loading = false;
                 ElMessage.error(err);
@@ -281,24 +281,24 @@ export default {
         }
 
 
-        const _setSForwardSubscribe = ()=>{
+        const _sforwardSubscribe = ()=>{
             clearTimeout(state.timer2);
-            setSForwardSubscribe().then((res)=>{
+            sforwardSubscribe().then((res)=>{
                 res = [{Id:'*',Name:'*'}].concat(res);
                 state.nodes = res;
                 state.nodesNames = res.reduce((json,item)=>{ json[item.Id] = item.Name; return json; },{});
                 state.nodesJson = res.reduce((json,item)=>{ json[item.Id] = item; return json; },{});
-                state.timer2 = setTimeout(_setSForwardSubscribe,1000);
+                state.timer2 = setTimeout(_sforwardSubscribe,1000);
             }).catch(()=>{
-                state.timer2 = setTimeout(_setSForwardSubscribe,1000);
+                state.timer2 = setTimeout(_sforwardSubscribe,1000);
             });
         }
 
 
         onMounted(()=>{
-            _getSForwardInfo();
-            _testLocalSForwardInfo();
-            _setSForwardSubscribe();
+            _getSForward();
+            _sforwardTestLocal();
+            _sforwardSubscribe();
         });
         onUnmounted(()=>{
             clearTimeout(state.timer);

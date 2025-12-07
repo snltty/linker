@@ -1,6 +1,5 @@
 ﻿using linker.libs;
 using linker.libs.web;
-using linker.messenger.decenter;
 using linker.messenger.plan;
 using linker.messenger.sforward.client;
 using linker.messenger.sforward.messenger;
@@ -61,6 +60,11 @@ namespace linker.messenger.sforward
             serviceCollection.AddSingleton<SForwardServerNodeTransfer>();
             serviceCollection.AddSingleton<SForwardServerReportResolver>();
 
+            serviceCollection.AddSingleton<SForwardServerConnectionResolver>();
+            serviceCollection.AddSingleton<SForwardServerConnectionTransfer>();
+
+            serviceCollection.AddSingleton<SForwardServerNodeReportTransfer>();
+
             serviceCollection.AddSingleton<ISForwardServerWhiteListStore, SForwardServerWhiteListStore>();
 
             return serviceCollection;
@@ -76,15 +80,19 @@ namespace linker.messenger.sforward
             ResolverTransfer resolverTransfer = serviceProvider.GetService<ResolverTransfer>();
             resolverTransfer.AddResolvers(new List<IResolver>
             {
-                serviceProvider.GetService<SForwardServerReportResolver>()
+                serviceProvider.GetService<SForwardServerReportResolver>(),
+                serviceProvider.GetService<SForwardServerConnectionResolver>(),
             });
 
+            SForwardServerNodeTransfer relayServerNodeTransfer = serviceProvider.GetService<SForwardServerNodeTransfer>();
+            SForwardServerMasterTransfer relayServerMasterTransfer = serviceProvider.GetService<SForwardServerMasterTransfer>();
+
             SForwardProxy sForwardProxy = serviceProvider.GetService<SForwardProxy>();
-            ISForwardServerStore sForwardServerStore = serviceProvider.GetService<ISForwardServerStore>();
-            if (sForwardServerStore.WebPort > 0)
+            ISForwardServerConfigStore sForwardServerStore = serviceProvider.GetService<ISForwardServerConfigStore>();
+            if (sForwardServerStore.Config.WebPort > 0)
             {
-                sForwardProxy.StartHttp(sForwardServerStore.WebPort,3 );
-                LoggerHelper.Instance.Debug($"start web forward in {sForwardServerStore.WebPort}");
+                sForwardProxy.StartHttp(sForwardServerStore.Config.WebPort, 3 );
+                LoggerHelper.Instance.Debug($"start web forward in {sForwardServerStore.Config.WebPort}");
             }
 
             return serviceProvider;

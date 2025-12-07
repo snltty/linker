@@ -78,7 +78,7 @@ namespace linker.messenger.store.file
                 config.Data.Server.SignIn.SuperKey = info.Server.SuperKey;
                 config.Data.Server.SignIn.SuperPassword = info.Server.SuperPassword;
                 config.Data.Server.SForward.WebPort = info.Server.SForward.WebPort;
-                config.Data.Server.SForward.TunnelPortRange = info.Server.SForward.TunnelPortRange;
+                config.Data.Server.SForward.TunnelPorts = info.Server.SForward.TunnelPorts;
             }
 
             config.Data.Common.Modes = info.Common.Modes;
@@ -358,7 +358,7 @@ namespace linker.messenger.store.file
     public sealed class ConfigInstallServerSForwardInfo
     {
         public int WebPort { get; set; }
-        public int[] TunnelPortRange { get; set; }
+        public string TunnelPorts { get; set; }
     }
 
     public sealed class ConfigInstallCommonInfo

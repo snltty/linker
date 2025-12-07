@@ -1,11 +1,7 @@
 ﻿using linker.libs;
-using linker.libs.extends;
 using linker.libs.timer;
 using linker.messenger.sforward.messenger;
-using System.Buffers;
 using System.Collections.Concurrent;
-using System.Net;
-using System.Net.Sockets;
 
 namespace linker.messenger.sforward.server
 {
@@ -14,91 +10,64 @@ namespace linker.messenger.sforward.server
     /// </summary>
     public class SForwardServerNodeTransfer
     {
-        /// <summary>
-        /// 配置了就用配置的，每配置就用一个默认的
-        /// </summary>
-        public SForwardServerNodeInfo Node => sForwardServerNodeStore.Node;
+        public SForwardServerConfigInfo Config => sForwardServerConfigStore.Config;
 
-        private IConnection connection;
-        public IConnection Connection => connection;
 
-        private readonly NumberSpace ns = new NumberSpace(65537);
-        private long bytes = 0;
-        private long lastBytes = 0;
-        private readonly SForwardSpeedLimit limitTotal = new SForwardSpeedLimit();
-        private readonly ConcurrentDictionary<ulong, SForwardTrafficCacheInfo> trafficDict = new ConcurrentDictionary<ulong, SForwardTrafficCacheInfo>();
+        private readonly NumberSpace ns = new(65537);
+        private readonly SForwardSpeedLimit limitTotal = new();
+        private readonly ConcurrentDictionary<ulong, SForwardTrafficCacheInfo> trafficDict = new();
 
         private readonly ISerializer serializer;
-        private readonly ISForwardServerNodeStore sForwardServerNodeStore;
-        private readonly IMessengerResolver messengerResolver;
         private readonly IMessengerSender messengerSender;
-        private readonly ISForwardServerStore sForwardServerStore;
 
-        public SForwardServerNodeTransfer(ISerializer serializer, ISForwardServerNodeStore sForwardServerNodeStore, ISForwardServerMasterStore sForwardServerMasterStore, IMessengerResolver messengerResolver, IMessengerSender messengerSender, ISForwardServerStore sForwardServerStore, ICommonStore commonStore)
+        private readonly ISForwardServerConfigStore sForwardServerConfigStore;
+        private readonly SForwardServerConnectionTransfer sForwardServerConnectionTransfer;
+        private readonly SForwardServerNodeReportTransfer sForwardServerNodeReportTransfer;
+
+        public SForwardServerNodeTransfer(ISerializer serializer, IMessengerSender messengerSender, ICommonStore commonStore
+            , ISForwardServerConfigStore sForwardServerConfigStore, SForwardServerConnectionTransfer sForwardServerConnectionTransfer, SForwardServerNodeReportTransfer sForwardServerNodeReportTransfer)
         {
             this.serializer = serializer;
-            this.sForwardServerNodeStore = sForwardServerNodeStore;
-            this.messengerResolver = messengerResolver;
             this.messengerSender = messengerSender;
-            this.sForwardServerStore = sForwardServerStore;
-
-            if (string.IsNullOrWhiteSpace(sForwardServerNodeStore.Node.MasterHost))
-            {
-                sForwardServerNodeStore.Node.Domain = IPAddress.Any.ToString();
-                sForwardServerNodeStore.Node.MasterHost = new IPEndPoint(IPAddress.Loopback, sForwardServerNodeStore.ServicePort).ToString();
-                sForwardServerNodeStore.Node.MasterSecretKey = sForwardServerMasterStore.Master.SecretKey;
-                sForwardServerNodeStore.Node.Name = "default";
-                sForwardServerNodeStore.Node.Public = false;
-            }
+            this.sForwardServerConfigStore = sForwardServerConfigStore;
+            this.sForwardServerConnectionTransfer = sForwardServerConnectionTransfer;
+            this.sForwardServerNodeReportTransfer = sForwardServerNodeReportTransfer;
 
             if ((commonStore.Modes & CommonModes.Server) == CommonModes.Server)
             {
+                limitTotal.SetLimit((uint)Math.Ceiling((Config.Bandwidth * 1024 * 1024) / 8.0));
                 TrafficTask();
-                ReportTask();
-                SignInTask();
             }
         }
-
-        public void Edit(SForwardServerNodeUpdateInfo info)
-        {
-            if (info.Id == Node.Id)
-            {
-                sForwardServerNodeStore.UpdateInfo(info);
-                sForwardServerNodeStore.Confirm();
-
-                _ = Report();
-            }
-        }
-        public void Exit()
-        {
-            Helper.AppExit(1);
-        }
-        public void Update(string version)
-        {
-            Helper.AppUpdate(version);
-        }
-
         public async Task<bool> ProxyNode(SForwardProxyInfo info)
         {
-            return await messengerSender.SendOnly(new MessageRequestWrap
+            if (sForwardServerConnectionTransfer.TryGet(ConnectionSideType.Node, info.NodeId, out var connection))
             {
-                Connection = Connection,
-                MessengerId = (ushort)SForwardMessengerIds.ProxyNode,
-                Payload = serializer.Serialize(info)
-            }).ConfigureAwait(false);
+                return await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = connection,
+                    MessengerId = (ushort)SForwardMessengerIds.ProxyForward,
+                    Payload = serializer.Serialize(info)
+                }).ConfigureAwait(false);
+            }
+            return false;
         }
-        public async Task<List<string>> Heart(List<string> ids)
+        public async Task<List<string>> Heart(List<string> ids, string masterNodeId)
         {
-            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            if (sForwardServerConnectionTransfer.TryGet(ConnectionSideType.Node, masterNodeId, out var connection))
             {
-                Connection = Connection,
-                MessengerId = (ushort)SForwardMessengerIds.Heart,
-                Payload = serializer.Serialize(ids)
-            }).ConfigureAwait(false);
+                var resp = await messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = connection,
+                    MessengerId = (ushort)SForwardMessengerIds.Heart,
+                    Payload = serializer.Serialize(ids)
+                }).ConfigureAwait(false);
 
-            if (resp.Code == MessageResponeCodes.OK)
-            {
-                return serializer.Deserialize<List<string>>(resp.Data.Span);
+                if (resp.Code == MessageResponeCodes.OK)
+                {
+                    return serializer.Deserialize<List<string>>(resp.Data.Span);
+                }
+
             }
 
             return [];
@@ -134,14 +103,13 @@ namespace linker.messenger.sforward.server
         /// 开始计算流量
         /// </summary>
         /// <param name="super"></param>
-        /// <param name="cdkeys"></param>
         /// <returns></returns>
         public SForwardTrafficCacheInfo AddTrafficCache(bool super, double bandwidth)
         {
             SForwardTrafficCacheInfo cache = new SForwardTrafficCacheInfo { Cache = new SForwardCacheInfo { FlowId = ns.Increment(), Super = super, Bandwidth = bandwidth }, Limit = new SForwardSpeedLimit(), Sendt = 0, SendtCache = 0 };
             if (cache.Cache.Bandwidth < 0)
             {
-                cache.Cache.Bandwidth = Node.MaxBandwidth;
+                cache.Cache.Bandwidth = Config.Bandwidth;
             }
             SetLimit(cache);
             trafficDict.TryAdd(cache.Cache.FlowId, cache);
@@ -159,13 +127,13 @@ namespace linker.messenger.sforward.server
         /// <returns></returns>
         public bool AddBytes(SForwardTrafficCacheInfo cache, long length)
         {
-            Interlocked.Add(ref bytes, length);
+            sForwardServerNodeReportTransfer.AddBytes(length);
 
-            if (Node.MaxGbTotal == 0) return true;
+            if (Config.DataEachMonth == 0) return true;
 
             Interlocked.Add(ref cache.Sendt, length);
 
-            return Node.MaxGbTotalLastBytes > 0;
+            return Config.DataRemain > 0;
         }
 
         /// <summary>
@@ -174,44 +142,35 @@ namespace linker.messenger.sforward.server
         /// <param name="cache"></param>
         private void SetLimit(SForwardTrafficCacheInfo cache)
         {
-            //黑白名单
             if (cache.Cache.Bandwidth >= 0)
             {
                 cache.Limit.SetLimit((uint)Math.Ceiling(cache.Cache.Bandwidth * 1024 * 1024 / 8.0));
                 return;
             }
 
-            //无限制
-            if (cache.Cache.Super || Node.MaxBandwidth == 0)
-            {
-                cache.Limit.SetLimit(0);
-                return;
-            }
-
-            cache.Limit.SetLimit((uint)Math.Ceiling(Node.MaxBandwidth * 1024 * 1024 / 8.0));
+            cache.Limit.SetLimit((uint)Math.Ceiling(Config.Bandwidth * 1024 * 1024 / 8.0));
         }
 
 
         private void ResetNodeBytes()
         {
-            if (Node.MaxGbTotal == 0) return;
+            if (Config.DataEachMonth == 0) return;
 
             foreach (var cache in trafficDict.Values)
             {
                 long length = Interlocked.Exchange(ref cache.Sendt, 0);
 
-                if (Node.MaxGbTotalLastBytes >= length)
-                    sForwardServerNodeStore.SetMaxGbTotalLastBytes(Node.MaxGbTotalLastBytes - length);
-                else sForwardServerNodeStore.SetMaxGbTotalLastBytes(0);
+                if (Config.DataRemain >= length)
+                    sForwardServerConfigStore.SetDataRemain(Config.DataRemain - length);
+                else sForwardServerConfigStore.SetDataRemain(0);
             }
-            if (Node.MaxGbTotalMonth != DateTime.Now.Month)
+            if (Config.DataMonth != DateTime.Now.Month)
             {
-                sForwardServerNodeStore.SetMaxGbTotalMonth(DateTime.Now.Month);
-                sForwardServerNodeStore.SetMaxGbTotalLastBytes((long)(Node.MaxGbTotal * 1024 * 1024 * 1024));
+                sForwardServerConfigStore.SetDataMonth(DateTime.Now.Month);
+                sForwardServerConfigStore.SetDataRemain((long)(Config.DataEachMonth * 1024 * 1024 * 1024));
             }
-            sForwardServerNodeStore.Confirm();
+            sForwardServerConfigStore.Confirm();
         }
-      
         private void TrafficTask()
         {
             TimerHelper.SetIntervalLong(() =>
@@ -227,174 +186,7 @@ namespace linker.messenger.sforward.server
             }, 3000);
         }
 
-
-        private void ReportTask()
-        {
-            TimerHelper.SetIntervalLong(async () =>
-            {
-                await Report();
-                await MasterHosts();
-            }, 5000);
-        }
-        private async Task Report()
-        {
-            try
-            {
-                double diff = (bytes - lastBytes) * 8 / 1024.0 / 1024.0;
-                lastBytes = bytes;
-
-                IPAddress address = await NetworkHelper.GetDomainIpAsync(Node.Host).ConfigureAwait(false) ?? IPAddress.Any;
-                SForwardServerNodeReportInfo sForwardServerNodeReportInfo = new SForwardServerNodeReportInfo
-                {
-                    Id = Node.Id,
-                    Name = Node.Name,
-                    MaxBandwidth = Node.MaxBandwidth,
-                    BandwidthRatio = Math.Round(diff / 5, 2),
-                    MaxBandwidthTotal = Node.MaxBandwidthTotal,
-                    MaxGbTotal = Node.MaxGbTotal,
-                    MaxGbTotalLastBytes = Node.MaxGbTotalLastBytes,
-
-                    Public = Node.Public,
-                    Domain = Node.Domain,
-                    Address = address,
-                    Url = Node.Url,
-                    Sync2Server = Node.Sync2Server,
-                    Version = VersionHelper.Version,
-                    WebPort = sForwardServerStore.WebPort,
-                    PortRange = sForwardServerStore.TunnelPortRange
-                };
-                var resp = await messengerSender.SendReply(new MessageRequestWrap
-                {
-                    Connection = Connection,
-                    MessengerId = (ushort)SForwardMessengerIds.NodeReport,
-                    Payload = serializer.Serialize(sForwardServerNodeReportInfo)
-                }).ConfigureAwait(false);
-                if (Node.Sync2Server && resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
-                {
-                    string version = serializer.Deserialize<string>(resp.Data.Span);
-                    if (version != VersionHelper.Version)
-                    {
-                        Helper.AppUpdate(version);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Error($"sforward report : {ex}");
-                }
-            }
-        }
-        private async Task MasterHosts()
-        {
-            try
-            {
-                if (signInHost != Node.MasterHost) return;
-                var resp = await messengerSender.SendReply(new MessageRequestWrap
-                {
-                    Connection = Connection,
-                    MessengerId = (ushort)SForwardMessengerIds.Hosts,
-                }).ConfigureAwait(false);
-                if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
-                {
-                    string[] hosts = serializer.Deserialize<string[]>(resp.Data.Span);
-                    sForwardServerNodeStore.SetMasterHosts(hosts);
-                }
-            }
-            catch (Exception)
-            {
-            }
-        }
-
-
-        private string signInHost = string.Empty;
-        private void SignInTask()
-        {
-            TimerHelper.SetIntervalLong(async () =>
-            {
-                if (Connection == null || Connection.Connected == false)
-                {
-                    string[] hosts = [Node.MasterHost, .. Node.MasterHosts];
-                    foreach (var host in hosts.Where(c => string.IsNullOrWhiteSpace(c) == false))
-                    {
-                        connection = await SignIn(host, Node.MasterSecretKey).ConfigureAwait(false);
-                        if (connection != null && connection.Connected)
-                        {
-                            signInHost = host;
-                            break;
-                        }
-                    }
-                }
-                else
-                {
-                    if (await TestHost(Node.MasterHost))
-                    {
-                        connection = await SignIn(Node.MasterHost, Node.MasterSecretKey).ConfigureAwait(false);
-                        if (connection != null && connection.Connected)
-                        {
-                            signInHost = Node.MasterHost;
-                        }
-                    }
-                }
-            }, 3000);
-        }
-        private async Task<bool> TestHost(string host)
-        {
-            if (signInHost == Node.MasterHost) return false;
-            try
-            {
-                IPEndPoint ip = await NetworkHelper.GetEndPointAsync(host, 1802).ConfigureAwait(false);
-                using Socket socket = new Socket(ip.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                socket.KeepAlive();
-                await socket.ConnectAsync(ip).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
-
-                socket.SafeClose();
-                return true;
-            }
-            catch (Exception)
-            {
-            }
-            return false;
-        }
-        private async Task<IConnection> SignIn(string host, string secretKey)
-        {
-            byte[] bytes = ArrayPool<byte>.Shared.Rent(1024);
-            try
-            {
-                byte[] secretKeyBytes = secretKey.Sha256().ToBytes();
-
-                bytes[0] = (byte)secretKeyBytes.Length;
-                secretKeyBytes.AsSpan().CopyTo(bytes.AsSpan(1));
-
-
-                IPEndPoint remote = await NetworkHelper.GetEndPointAsync(host, 1802).ConfigureAwait(false);
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Warning($"sforward node sign in to {remote}");
-                }
-
-                Socket socket = new Socket(remote.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                socket.KeepAlive();
-                await socket.ConnectAsync(remote).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
-                return await messengerResolver.BeginReceiveClient(socket, true, (byte)ResolverType.SForwardReport, bytes.AsMemory(0, secretKeyBytes.Length + 1)).ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Error(ex);
-                }
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(bytes);
-            }
-            return null;
-        }
-
     }
-
 
     public sealed partial class SForwardCacheInfo
     {

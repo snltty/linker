@@ -18,7 +18,7 @@ namespace linker.messenger.sforward.client
         private readonly IMessengerSender messengerSender;
         private readonly ISerializer serializer;
 
-        public List<SForwardServerNodeReportInfo> Nodes { get; private set; } = new List<SForwardServerNodeReportInfo>();
+        public List<SForwardServerNodeStoreInfo> Nodes { get; private set; } = new List<SForwardServerNodeStoreInfo>();
 
         public SForwardClientTestTransfer(SignInClientState signInClientState, ISignInClientStore signInClientStore, IMessengerSender messengerSender, ISerializer serializer)
         {
@@ -32,7 +32,7 @@ namespace linker.messenger.sforward.client
 
         public string DefaultId()
         {
-            if (Nodes.Count > 0) return Nodes[0].Id;
+            if (Nodes.Count > 0) return Nodes[0].NodeId;
             return string.Empty;
         }
 
@@ -53,7 +53,7 @@ namespace linker.messenger.sforward.client
                 });
                 if(resp.Code == MessageResponeCodes.OK)
                 {
-                    Nodes = serializer.Deserialize<List<SForwardServerNodeReportInfo>>(resp.Data.Span);
+                    Nodes = serializer.Deserialize<List<SForwardServerNodeStoreInfo>>(resp.Data.Span);
                 }
             }
             catch (Exception ex)
@@ -70,10 +70,12 @@ namespace linker.messenger.sforward.client
             {
                 var tasks = Nodes.Select(async (c) =>
                 {
-                    c.Address = c.Address == null || c.Address.Equals(IPAddress.Any) ? signInClientState.Connection.Address.Address : c.Address;
+                    IPEndPoint ep = await NetworkHelper.GetEndPointAsync(c.Host,1802);
+
+                    ep.Address = ep.Address == null || ep.Address.Equals(IPAddress.Any) ? signInClientState.Connection.Address.Address : ep.Address;
 
                     using Ping ping = new Ping();
-                    var resp = await ping.SendPingAsync(c.Address, 1000);
+                    var resp = await ping.SendPingAsync(ep.Address, 1000);
                     c.Delay = resp.Status == IPStatus.Success ? (int)resp.RoundtripTime : -1;
                 });
                 await Task.WhenAll(tasks).ConfigureAwait(false);
