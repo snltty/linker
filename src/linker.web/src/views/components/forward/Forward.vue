@@ -1,7 +1,7 @@
 <template>
     <el-table-column prop="forward" :label="$t('home.forward')" width="80">
         <template #default="scope">
-            <template v-if="scope.row.hook_counter">
+            <template v-if="scope.row &&scope.row.hook_counter">
                 <AccessBoolean value="ForwardOther,ForwardSelf">
                     <template #default="{values}">
                         <div class="skeleton-animation" :style="`animation-delay:${scope.row.animationDelay}ms`" v-if="values.ForwardOther || (values.ForwardSelf && scope.row.isSelf)">
@@ -20,7 +20,7 @@
                     </template>
                 </AccessBoolean>
             </template>
-            <template v-else-if="!scope.row.hook_counter_load">
+            <template v-else-if="scope.row &&!scope.row.hook_counter_load">
                 <div class="skeleton-animation">
                     <el-skeleton animated >
                         <template #template>
@@ -30,6 +30,7 @@
                     </el-skeleton>
                 </div>
             </template>
+            <div class="device-remark"></div>
         </template>
     </el-table-column>
 </template>

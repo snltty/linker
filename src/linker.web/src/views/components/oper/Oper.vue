@@ -3,7 +3,7 @@
         <template #default="{values}">
             <el-table-column :label="$t('home.oper')"  fixed="right" min-width="110">
                 <template #default="scope">
-                    <div>
+                    <div v-if="scope.row">
                         <div class="numbers">
                             <el-row>
                                 <template v-if="scope.row.Connected">
@@ -45,6 +45,7 @@
                             </el-row>
                         </div>
                     </div>
+                    <div class="device-remark"></div>
                 </template>
             </el-table-column>
         </template>

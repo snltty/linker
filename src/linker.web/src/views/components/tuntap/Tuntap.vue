@@ -4,7 +4,7 @@
            <a href="javascript:;" class="a-line" @click="handleShowLease">{{$t('home.tuntap')}}</a>
         </template>
         <template #default="scope">
-            <div>
+            <div v-if="scope.row ">
                 <template v-if="scope.row.hook_tuntap">
                     <div class="skeleton-animation" :style="`animation-delay:${scope.row.animationDelay}ms`">
                         <TuntapShow :config="true" :item="scope.row"></TuntapShow>
@@ -22,6 +22,7 @@
                     </div>
                 </template>
             </div> 
+            <div class="device-remark"></div>
         </template>
     </el-table-column>
 </template>

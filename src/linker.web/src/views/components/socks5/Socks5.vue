@@ -1,12 +1,12 @@
 <template>
     <el-table-column prop="socks5" :label="$t('home.proxy')" width="160">
         <template #default="scope">
-            <template v-if="scope.row.hook_socks5">
+            <template v-if="scope.row &&scope.row.hook_socks5">
                 <div class="skeleton-animation" :style="`animation-delay:${scope.row.animationDelay}ms`">
                     <Socks5Show :config="true" :item="scope.row"></Socks5Show>
                 </div>
             </template>
-            <template v-else-if="!scope.row.hook_socks5_load">
+            <template v-else-if="scope.row &&!scope.row.hook_socks5_load">
                 <div class="skeleton-animation">
                     <el-skeleton animated >
                         <template #template>
@@ -16,6 +16,7 @@
                     </el-skeleton>
                 </div>
             </template>
+            <div class="device-remark"></div>
         </template>
     </el-table-column>
 </template>

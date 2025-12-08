@@ -47,6 +47,7 @@ export default {
 div.connect-point{
     margin: -.2rem .3rem 0 -1.4rem;
     position:absolute;
+    z-index 9
 }
 span.connect-point {
     width: .9rem;

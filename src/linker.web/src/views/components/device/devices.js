@@ -43,7 +43,7 @@ export const provideDevices = () => {
 
         const dataFn = (hook)=>{
             return new Promise((resolve, reject) => { 
-                hook.dataFn(devices.page.List).then(changed=>{
+                hook.dataFn(devices.page.List.filter(c=>c)).then(changed=>{
                     hook.changed = hook.changed ||changed;
                     resolve();
                 });
@@ -58,16 +58,19 @@ export const provideDevices = () => {
                 hook.refreshFn(devices.page.List);
             });
 
-            const chaneds = Object.values(hooks).filter(c=>c.changed);
-            chaneds.forEach(hook=>{ hook.changed=false });
-            if(chaneds.length > 0){
+            const changeds = Object.values(hooks).filter(c=>c.changed);
+            changeds.forEach(hook=>{ hook.changed=false });
+            if(changeds.length > 0){
                 for (let i = 0; i< devices.page.List.length; i++) {
-                    const json = {_index:i};
-                    for(let j = 0; j < chaneds.length; j++) {
-                        const hook = chaneds[j];
-                        hook.processFn(devices.page.List[i],json);
+                    const device = devices.page.List[i];
+                    if(device){
+                        const json = {_index:i};
+                        for(let j = 0; j < changeds.length; j++) {
+                            const hook = changeds[j];
+                            hook.processFn(devices.page.List[i],json);
+                        }
+                        Object.assign(devices.page.List[i], json);
                     }
-                    Object.assign(devices.page.List[i], json);
                 }
             }
             await Promise.all(Object.values(hooks).map(hook=>dataFn(hook)));
@@ -89,6 +92,10 @@ export const provideDevices = () => {
                 devices.page.Request = res.Request;
                 devices.page.Count = res.Count;
                 for (let j in res.List) {
+                    // if(machineId.value != res.List[j].MachineId){
+                    //     res.List[j] = null;
+                    //     continue;
+                    // }
                     Object.assign(res.List[j], {
                         showDel: machineId.value != res.List[j].MachineId && res.List[j].Connected == false,
                         showAccess: machineId.value != res.List[j].MachineId && res.List[j].Connected,

@@ -3,7 +3,7 @@
         <template #default="{values}">
             <el-table-column prop="tunnel" :label="$t('home.tunnel')" width="86">
                 <template #default="scope">
-                    <template v-if="scope.row.hook_tunnel">
+                    <template v-if="scope.row && scope.row.hook_tunnel">
                         <div class="skeleton-animation" :style="`animation-delay:${scope.row.animationDelay}ms`">
                             <div>
                                 <template v-if="scope.row.hook_tunnel.Net.CountryCode">
@@ -40,7 +40,7 @@
                             </div>
                         </div>
                     </template>
-                    <template v-else-if="!scope.row.hook_tunnel_load">
+                    <template v-else-if="scope.row &&!scope.row.hook_tunnel_load">
                         <div class="skeleton-animation">
                             <el-skeleton animated >
                                 <template #template>
@@ -52,6 +52,7 @@
                             </el-skeleton>
                         </div>
                     </template>
+                    <div class="device-remark"></div>
                 </template>
 
             </el-table-column>
