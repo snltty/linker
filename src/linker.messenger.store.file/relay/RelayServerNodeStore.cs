@@ -71,6 +71,7 @@ namespace linker.messenger.store.file.relay
             {
                 DataEachMonth = info.DataEachMonth,
                 Public = info.Public,
+                Host = info.Host,
             }, c => c.NodeId == info.NodeId);
 
             return await Task.FromResult(length > 0).ConfigureAwait(false); ;

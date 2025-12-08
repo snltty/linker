@@ -54,11 +54,11 @@ namespace linker.messenger.tuntap
         }
         private async Task Ping()
         {
-            var items = tuntapDecenter.Infos.Values.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false && (c.Status & TuntapStatus.Running) == TuntapStatus.Running);
+            var items = tuntapDecenter.Infos.Values.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false && (c.Status & TuntapStatus.Running) == TuntapStatus.Running).ToList();
             if ((tuntapConfigTransfer.Info.Switch & TuntapSwitch.AutoConnect) != TuntapSwitch.AutoConnect)
             {
                 var connections = tuntapProxy.Connections;
-                items = items.Where(c => connections.TryGetValue(c.MachineId, out ITunnelConnection connection) && connection.Connected || c.MachineId == signInClientStore.Id);
+                items = items.Where(c => (connections.TryGetValue(c.MachineId, out ITunnelConnection connection) && connection.Connected) || c.MachineId == signInClientStore.Id).ToList();
             }
 
             await Task.WhenAll(items.Select(async c =>

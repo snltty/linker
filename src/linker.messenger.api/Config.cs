@@ -129,20 +129,20 @@ namespace linker.messenger.api
         [AccessDisplay("修改所有socks5")]
         Socks5ChangeOther = 39,
 
-        [AccessDisplay("配置分组")]
+        [AccessDisplay("修改分组")]
         Group = 40,
 
-        [AccessDisplay("重置本机接口密码")]
+        [AccessDisplay("修改本机接口密码")]
         SetApiPassword = 41,
-        [AccessDisplay("重置所有接口密码")]
+        [AccessDisplay("修改所有接口密码")]
         SetApiPasswordOther = 42,
 
         [AccessDisplay("管理CDKEY")]
         Cdkey = 43,
 
-        [AccessDisplay("管理本机防火墙")]
+        [AccessDisplay("修改本机防火墙")]
         FirewallSelf = 44,
-        [AccessDisplay("管理所有设备防火墙")]
+        [AccessDisplay("修改所有设备防火墙")]
         FirewallOther = 45,
 
         [AccessDisplay("唤醒本机")]
@@ -175,6 +175,23 @@ namespace linker.messenger.api
         RebootRelayNode = 57,
         [AccessDisplay("更新中继节点")]
         UpgradeRelayNode = 58,
+
+        [AccessDisplay("查看其它客户端")]
+        FullList = 59,
+
+
+        [AccessDisplay("导入穿透节点")]
+        ImportSForwardNode = 60,
+        [AccessDisplay("删除穿透节点")]
+        RemoveSForwardNode = 61,
+        [AccessDisplay("修改穿透节点")]
+        UpdateSForwardNode = 62,
+        [AccessDisplay("分享穿透节点")]
+        ShareSForwardNode = 63,
+        [AccessDisplay("重启穿透节点")]
+        RebootSForwardNode = 64,
+        [AccessDisplay("更新穿透节点")]
+        UpgradeSForwardNode = 65,
     }
 
     public sealed class AccessTextInfo

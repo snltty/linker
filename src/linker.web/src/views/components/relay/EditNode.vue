@@ -5,6 +5,9 @@
                 <el-form-item :label="$t('server.relayName')" prop="Name">
                     <el-input :disabled="data.Manageable==false" v-trim minlength="1" maxlength="32" show-word-limit v-model="state.ruleForm.Name" />
                 </el-form-item>
+                <el-form-item :label="$t('server.relayHost')" prop="Host">
+                    <el-input :disabled="data.Manageable==false" v-trim v-model="state.ruleForm.Host" />
+                </el-form-item>
                 <el-form-item :label="$t('server.relayConnection')" prop="Connections">
                     <el-input-number :disabled="data.Manageable==false" v-model="state.ruleForm.Connections" :min="0" :max="65535"/>
                 </el-form-item>
@@ -23,7 +26,7 @@
                 <el-form-item :label="$t('server.relayUrl')" prop="Url">
                     <el-input :disabled="data.Manageable==false" v-trim v-model="state.ruleForm.Url" />
                 </el-form-item>
-                 <el-form-item :label="$t('server.relayLogo')" prop="Logo">
+                <el-form-item :label="$t('server.relayLogo')" prop="Logo">
                     <el-input :disabled="data.Manageable==false" v-trim v-model="state.ruleForm.Logo" />
                 </el-form-item>
                 <el-form-item :label="$t('server.relayPublic')" prop="Public">

@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.libs.extends;
 using linker.messenger.sforward.messenger;
 using linker.messenger.signin;
 
@@ -69,7 +70,7 @@ namespace linker.messenger.sforward.server
                 : info.Super ? 0 : node.Bandwidth;
 
 
-            if (sForwardServerConnectionTransfer.TryGet(ConnectionSideType.Master, info.NodeId, out var connection))
+            if (sForwardServerConnectionTransfer.TryGet(ConnectionSideType.Node, info.NodeId, out var connection))
             {
                 info.NodeId = sForwardServerNodeReportTransfer.Config.NodeId;
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -86,13 +87,13 @@ namespace linker.messenger.sforward.server
             return new SForwardAddResultInfo
             {
                 BufferSize = 1,
-                Message = "node not found",
+                Message = "node connection not found",
                 Success = false
             };
         }
         public async Task<SForwardAddResultInfo> Stop(SForwardAddInfo info)
         {
-            if (sForwardServerConnectionTransfer.TryGet(ConnectionSideType.Master, info.NodeId, out var connection))
+            if (sForwardServerConnectionTransfer.TryGet(ConnectionSideType.Node, info.NodeId, out var connection))
             {
                 info.NodeId = sForwardServerNodeReportTransfer.Config.NodeId;
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -109,7 +110,7 @@ namespace linker.messenger.sforward.server
             return new SForwardAddResultInfo
             {
                 BufferSize = 1,
-                Message = "node not found",
+                Message = "node connection not found",
                 Success = false
             };
         }

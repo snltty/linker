@@ -29,7 +29,8 @@ namespace linker.messenger.relay.server
         private readonly IMessengerResolver messengerResolver;
 
         public RelayServerNodeReportTransfer(RelayServerConnectionTransfer relayServerConnectionTransfer, IRelayServerConfigStore relayServerConfigStore,
-            ISerializer serializer, IMessengerSender messengerSender, IRelayServerNodeStore relayServerNodeStore, IRelayServerWhiteListStore relayServerWhiteListStore, IMessengerResolver messengerResolver)
+            ISerializer serializer, IMessengerSender messengerSender, IRelayServerNodeStore relayServerNodeStore,
+            IRelayServerWhiteListStore relayServerWhiteListStore, IMessengerResolver messengerResolver, ICommonStore commonStore)
         {
             this.relayServerConnectionTransfer = relayServerConnectionTransfer;
             this.relayServerConfigStore = relayServerConfigStore;
@@ -41,9 +42,11 @@ namespace linker.messenger.relay.server
 
             md5 = Config.NodeId.Md5();
 
-            _ = ReportTask();
-            SignInTask();
-
+            if (commonStore.Modes.HasFlag(CommonModes.Server))
+            {
+                _ = ReportTask();
+                SignInTask();
+            }
         }
 
         public void IncrementConnectionNum()
@@ -173,7 +176,6 @@ namespace linker.messenger.relay.server
             if (info.MasterKey != Config.MasterKey) return false;
 
             Config.Connections = info.Connections;
-            Config.MasterKey = info.MasterKey;
             Config.Bandwidth = info.Bandwidth;
             Config.Protocol = info.Protocol;
             Config.DataEachMonth = info.DataEachMonth;
@@ -181,7 +183,7 @@ namespace linker.messenger.relay.server
             Config.Logo = info.Logo;
             Config.Name = info.Name;
             Config.Url = info.Url;
-            Config.Host = info.Host;
+            Config.Host = info.Host.Split(':')[0];
 
             relayServerConfigStore.Confirm();
 

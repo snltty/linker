@@ -34,7 +34,6 @@ export default {
         const _setRelaySubscribe = ()=>{
             clearTimeout(state.timer);
             setRelaySubscribe().then((res)=>{
-                console.log(res);
                 state.nodes = res;
                 nodes.value = res;
                 state.timer = setTimeout(_setRelaySubscribe,1000);

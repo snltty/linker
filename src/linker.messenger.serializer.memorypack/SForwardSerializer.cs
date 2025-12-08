@@ -1,7 +1,9 @@
-﻿using MemoryPack;
+﻿using linker.messenger.relay.server;
 using linker.messenger.sforward;
-using System.Net;
 using linker.messenger.sforward.server;
+using linker.tunnel.connection;
+using MemoryPack;
+using System.Net;
 using System.Net.Sockets;
 
 namespace linker.messenger.serializer.memorypack
@@ -118,7 +120,7 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            value =new SForwardAddForwardInfo();
+            value = new SForwardAddForwardInfo();
             reader.TryReadObjectHeader(out byte count);
             value.MachineId = reader.ReadValue<string>();
             value.Data = reader.ReadValue<SForwardInfo>();
@@ -175,7 +177,7 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            value =new SForwardRemoveForwardInfo();
+            value = new SForwardRemoveForwardInfo();
             reader.TryReadObjectHeader(out byte count);
             value.MachineId = reader.ReadValue<string>();
             value.Id = reader.ReadValue<int>();
@@ -339,7 +341,7 @@ namespace linker.messenger.serializer.memorypack
             reader.TryReadObjectHeader(out byte count);
             value.Domain = reader.ReadValue<string>();
             value.RemotePort = reader.ReadValue<int>();
-            if(count > 2)
+            if (count > 2)
             {
                 value.NodeId = reader.ReadValue<string>();
                 value.MachineId = reader.ReadValue<string>();
@@ -458,6 +460,341 @@ namespace linker.messenger.serializer.memorypack
             }
         }
     }
+
+
+
+
+    [MemoryPackable]
+    public readonly partial struct SerializableSForwardServerNodeReportInfo
+    {
+        [MemoryPackIgnore]
+        public readonly SForwardServerNodeReportInfo info;
+
+        [MemoryPackInclude]
+        string NodeId => info.NodeId;
+        [MemoryPackInclude]
+        string Name => info.Name;
+        [MemoryPackInclude]
+        string Host => info.Host;
+        [MemoryPackInclude]
+        string Domain => info.Domain;
+        [MemoryPackInclude]
+        int WebPort => info.WebPort;
+        [MemoryPackInclude]
+        string TunnelPorts => info.TunnelPorts;
+        [MemoryPackInclude]
+        int Connections => info.Connections;
+        [MemoryPackInclude]
+        int Bandwidth => info.Bandwidth;
+        [MemoryPackInclude]
+        int DataEachMonth => info.DataEachMonth;
+        [MemoryPackInclude]
+        long DataRemain => info.DataRemain;
+        [MemoryPackInclude]
+        string Url => info.Url;
+        [MemoryPackInclude]
+        string Logo => info.Logo;
+        [MemoryPackInclude]
+        string MasterKey => info.MasterKey;
+        [MemoryPackInclude]
+        string Version => info.Version;
+        [MemoryPackInclude]
+        int ConnectionsRatio => info.ConnectionsRatio;
+        [MemoryPackInclude]
+        double BandwidthRatio => info.BandwidthRatio;
+        [MemoryPackInclude]
+        IPEndPoint[] Masters => info.Masters;
+
+
+        [MemoryPackConstructor]
+        SerializableSForwardServerNodeReportInfo(string nodeId, string name, string host, string domain, int webport, string tunnelports, int connections, int bandwidth, int dataEachMonth,
+            long dataRemain, string url, string logo, string masterKey, string version, int connectionsRatio, double bandwidthRatio, IPEndPoint[] masters)
+        {
+            var info = new SForwardServerNodeReportInfo
+            {
+                NodeId = nodeId,
+                Name = name,
+                Host = host,
+                Domain = domain,
+                WebPort = webport,
+                TunnelPorts = tunnelports,
+                Connections = connections,
+                Bandwidth = bandwidth,
+                DataEachMonth = dataEachMonth,
+                DataRemain = dataRemain,
+                Url = url,
+                Logo = logo,
+                MasterKey = masterKey,
+                Version = version,
+                ConnectionsRatio = connectionsRatio,
+                BandwidthRatio = bandwidthRatio,
+                Masters = masters,
+
+            };
+            this.info = info;
+        }
+
+        public SerializableSForwardServerNodeReportInfo(SForwardServerNodeReportInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class SForwardServerNodeReportInfoFormatter : MemoryPackFormatter<SForwardServerNodeReportInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref SForwardServerNodeReportInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableSForwardServerNodeReportInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref SForwardServerNodeReportInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            value = new SForwardServerNodeReportInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.NodeId = reader.ReadValue<string>();
+            value.Name = reader.ReadValue<string>();
+            value.Host = reader.ReadValue<string>();
+            value.Domain = reader.ReadValue<string>();
+            value.WebPort = reader.ReadValue<int>();
+            value.TunnelPorts = reader.ReadValue<string>();
+            value.Connections = reader.ReadValue<int>();
+            value.Bandwidth = reader.ReadValue<int>();
+            value.DataEachMonth = reader.ReadValue<int>();
+            value.DataRemain = reader.ReadValue<long>();
+            value.Url = reader.ReadValue<string>();
+            value.Logo = reader.ReadValue<string>();
+            value.MasterKey = reader.ReadValue<string>();
+            value.Version = reader.ReadValue<string>();
+            value.ConnectionsRatio = reader.ReadValue<int>();
+            value.BandwidthRatio = reader.ReadValue<double>();
+            value.Masters = reader.ReadValue<IPEndPoint[]>();
+
+        }
+    }
+
+
+    [MemoryPackable]
+    public readonly partial struct SerializableSForwardServerNodeStoreInfo
+    {
+        [MemoryPackIgnore]
+        public readonly SForwardServerNodeStoreInfo info;
+
+        [MemoryPackInclude]
+        string NodeId => info.NodeId;
+        [MemoryPackInclude]
+        string Name => info.Name;
+        [MemoryPackInclude]
+        string Host => info.Host;
+        [MemoryPackInclude]
+        string Domain => info.Domain;
+        [MemoryPackInclude]
+        int WebPort => info.WebPort;
+        [MemoryPackInclude]
+        string TunnelPorts => info.TunnelPorts;
+        [MemoryPackInclude]
+        int Connections => info.Connections;
+        [MemoryPackInclude]
+        int Bandwidth => info.Bandwidth;
+        [MemoryPackInclude]
+        int DataEachMonth => info.DataEachMonth;
+        [MemoryPackInclude]
+        long DataRemain => info.DataRemain;
+        [MemoryPackInclude]
+        string Url => info.Url;
+        [MemoryPackInclude]
+        string Logo => info.Logo;
+        [MemoryPackInclude]
+        string MasterKey => info.MasterKey;
+        [MemoryPackInclude]
+        string Version => info.Version;
+
+        [MemoryPackInclude]
+        int ConnectionsRatio => info.ConnectionsRatio;
+        [MemoryPackInclude]
+        double BandwidthRatio => info.BandwidthRatio;
+        [MemoryPackInclude]
+        IPEndPoint[] Masters => info.Masters;
+
+
+        [MemoryPackInclude]
+        int Id => info.Id;
+        [MemoryPackInclude]
+        int BandwidthEachConnection => info.BandwidthEach;
+        [MemoryPackInclude]
+        bool Public => info.Public;
+        [MemoryPackInclude]
+        long LastTicks => info.LastTicks;
+
+        [MemoryPackInclude]
+        bool Manageable => info.Manageable;
+
+        [MemoryPackConstructor]
+        SerializableSForwardServerNodeStoreInfo(string nodeId, string name, string host, string domain, int webport, string tunnelports, int connections, int bandwidth, int dataEachMonth,
+            long dataRemain, string url, string logo, string masterKey, string version, int connectionsRatio, double bandwidthRatio, IPEndPoint[] masters,
+           int id, int bandwidthEachConnection, bool Public, long lastTicks, bool manageable)
+        {
+            var info = new SForwardServerNodeStoreInfo
+            {
+                NodeId = nodeId,
+                Name = name,
+                Host = host,
+                Domain = domain,
+                WebPort = webport,
+                TunnelPorts = tunnelports,
+                Connections = connections,
+                Bandwidth = bandwidth,
+                DataEachMonth = dataEachMonth,
+                DataRemain = dataRemain,
+                Url = url,
+                Logo = logo,
+                MasterKey = masterKey,
+                Version = version,
+                ConnectionsRatio = connectionsRatio,
+                BandwidthRatio = bandwidthRatio,
+                Masters = masters,
+                Id = id,
+
+                BandwidthEach = bandwidthEachConnection,
+                Public = Public,
+                LastTicks = lastTicks,
+                Manageable = manageable
+            };
+            this.info = info;
+        }
+
+        public SerializableSForwardServerNodeStoreInfo(SForwardServerNodeStoreInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class SForwardServerNodeStoreInfoFormatter : MemoryPackFormatter<SForwardServerNodeStoreInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref SForwardServerNodeStoreInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableSForwardServerNodeStoreInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref SForwardServerNodeStoreInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            value = new SForwardServerNodeStoreInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.NodeId = reader.ReadValue<string>();
+            value.Name = reader.ReadValue<string>();
+            value.Host = reader.ReadValue<string>();
+            value.Domain = reader.ReadValue<string>();
+            value.WebPort = reader.ReadValue<int>();
+            value.TunnelPorts = reader.ReadValue<string>();
+            value.Connections = reader.ReadValue<int>();
+            value.Bandwidth = reader.ReadValue<int>();
+            value.DataEachMonth = reader.ReadValue<int>();
+            value.DataRemain = reader.ReadValue<long>();
+            value.Url = reader.ReadValue<string>();
+            value.Logo = reader.ReadValue<string>();
+            value.MasterKey = reader.ReadValue<string>();
+            value.Version = reader.ReadValue<string>();
+            value.ConnectionsRatio = reader.ReadValue<int>();
+            value.BandwidthRatio = reader.ReadValue<double>();
+            value.Masters = reader.ReadValue<IPEndPoint[]>();
+            value.Id = reader.ReadValue<int>();
+
+            value.BandwidthEach = reader.ReadValue<int>();
+            value.Public = reader.ReadValue<bool>();
+            value.LastTicks = reader.ReadValue<long>();
+            value.Manageable = reader.ReadValue<bool>();
+        }
+    }
+
+
+    [MemoryPackable]
+    public readonly partial struct SerializableSForwardServerNodeShareInfo
+    {
+        [MemoryPackIgnore]
+        public readonly SForwardServerNodeShareInfo info;
+
+        [MemoryPackInclude]
+        string NodeId => info.NodeId;
+
+        [MemoryPackInclude]
+        string Name => info.Name;
+        [MemoryPackInclude]
+        string Host => info.Host;
+        [MemoryPackInclude]
+        string SystemId => info.SystemId;
+
+        [MemoryPackConstructor]
+        SerializableSForwardServerNodeShareInfo(string nodeId, string name, string host, string systemid)
+        {
+            var info = new SForwardServerNodeShareInfo
+            {
+                NodeId = nodeId,
+                Host = host,
+                Name = name,
+                SystemId = systemid
+            };
+            this.info = info;
+        }
+
+        public SerializableSForwardServerNodeShareInfo(SForwardServerNodeShareInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class SForwardServerNodeShareInfoFormatter : MemoryPackFormatter<SForwardServerNodeShareInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref SForwardServerNodeShareInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableSForwardServerNodeShareInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref SForwardServerNodeShareInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            value = new SForwardServerNodeShareInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.NodeId = reader.ReadValue<string>();
+            value.Name = reader.ReadValue<string>();
+            value.Host = reader.ReadValue<string>();
+            value.SystemId = reader.ReadValue<string>();
+        }
+    }
+
 
     [MemoryPackable]
     public readonly partial struct SerializableSForwardServerNodeReportInfoOld

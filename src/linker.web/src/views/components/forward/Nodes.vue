@@ -2,64 +2,106 @@
     <div>
         <el-dialog v-model="state.show" :title="$t('server.sforwardTitle')" width="98%" top="2vh">
             <div>
+                <AccessShow value="ImportSForwardNode">
+                    <div class="head mgb-1" v-if="state.super">
+                        <div class="flex">
+                            <span class="flex-1"></span>
+                            <div>
+                                <el-button type="success" size="small" @click="handleImport"><el-icon><Plus /></el-icon></el-button>
+                            </div>
+                            <span class="flex-1"></span>
+                        </div>
+                    </div>
+                </AccessShow>
                 <el-table :data="state.nodes" size="small" border height="500" stripe>
-                    <el-table-column property="Name" :label="$t('server.sforwardName')">
+                    <el-table-column property="Name" :label="$t('server.sforwardName')" width="240">
                         <template #default="scope">
-                            <div> 
-                                <p class="flex">
-                                    <a :href="scope.row.Url" class="a-line" :class="{green:scope.row.Public}" target="_blank"><strong>{{ scope.row.Name }}</strong></a>
-                                    <span>({{ scope.row.Domain || scope.row.Address }})</span>
-                                </p>
-                                <p class="flex">
-                                    <el-checkbox v-if="state.super" class="mgr-p6" v-model="scope.row.Sync2Server" disabled size="small" @click="handleSync2Server(scope.row)">{{ $t('server.sforwardSync2Server') }}</el-checkbox>
-                                    <span class="flex-1"></span>
-                                    <a v-if="state.super" href="javascript:;" class="a-line a-edit" @click="handleUpdate(scope.row.Id)"><el-icon><Refresh /></el-icon>{{ scope.row.Version }}</a>
-                                    <a v-else href="javascript:;" class="a-line a-edit"><el-icon><Refresh /></el-icon>{{ scope.row.Version }}</a>
-                                </p>
+                            <div class="flex"> 
+                                <div>
+                                    <a :href="scope.row.Url" target="_blank" >
+                                        <img class="logo" :class="{'gray': scope.row.LastTicks>15000}" :src="scope.row.Logo || 'https://linker.snltty.com/img/logo.png'" alt=""/>
+                                    </a>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="flex">
+                                        <a :href="scope.row.Url" class="a-line"  target="_blank"><strong>{{ scope.row.Name }}</strong></a>
+                                    </p>
+                                    <p class="flex">
+                                        <span>{{ scope.row.Host }}</span>
+                                        <span class="flex-1"></span>
+                                        <AccessBoolean value="UpgradeSForwardNode">
+                                            <template #default="{values}">
+                                                <a v-if="state.super && values.UpgradeSForwardNode" href="javascript:;" class="a-line a-edit" @click="handleUpgrade(scope.row)"><el-icon><Refresh /></el-icon>{{ scope.row.Version }}</a>
+                                                <a v-else href="javascript:;" class="a-line a-edit"><el-icon><Refresh /></el-icon>{{ scope.row.Version }}</a>
+                                            </template>
+                                        </AccessBoolean>
+                                    </p>
+                                </div>
                             </div>
                         </template>
                     </el-table-column>
-                    <el-table-column property="Port" :label="$t('server.sforwardPort')">
+                    
+                    <el-table-column property="ConnectionsRatio" :label="$t('server.sforwardConnection')" width="80">
                         <template #default="scope">
-                            <p>{{$t('server.sforwardWebPort')}} : {{ scope.row.WebPort }}</p>
-                            <p>{{$t('server.sforwardPortRange')}} : {{ scope.row.PortRange[0]}} - {{ scope.row.PortRange[1]}}</p>
+                            <p>
+                                <template v-if="scope.row.Connections == 0">--</template>
+                                <template v-else>{{ scope.row.Connections }}</template>
+                            </p>
+                            <p><strong>{{scope.row.ConnectionsRatio}}</strong></p>
                         </template>
                     </el-table-column>
-                    <el-table-column property="MaxGbTotal" :label="$t('server.sforwardFlow')" width="100">
+                    <el-table-column property="DataEachMonth" :label="$t('server.sforwardFlow')" width="100">
                         <template #default="scope">
-                            <template v-if="scope.row.MaxGbTotal == 0">--</template>
+                            <template v-if="scope.row.DataEachMonth == 0">
+                                <p>--</p>
+                                <p>--</p>
+                            </template>
                             <template v-else>
-                                <p>{{ scope.row.MaxGbTotal }}GB</p>
-                                <p><strong>{{ (scope.row.MaxGbTotalLastBytes/1024/1024/1024).toFixed(2) }}GB</strong></p>
+                                <p>{{ scope.row.DataEachMonth }}GB</p>
+                                <p><strong>{{ (scope.row.DataRemain/1024/1024/1024).toFixed(2) }}GB</strong></p>
                             </template>
                         </template>
                     </el-table-column>
-                    <el-table-column property="MaxBandwidth" :label="$t('server.sforwardSpeed')" width="80">
+                    <el-table-column property="BandwidthEach" :label="$t('server.sforwardSpeed')" width="80">
                         <template #default="scope">
                             <p>
-                                <span v-if="scope.row.MaxBandwidth == 0">--</span>
-                                <span v-else>{{ scope.row.MaxBandwidth }}Mbps</span>
+                                <span v-if="scope.row.BandwidthEach == 0">--</span>
+                                <span v-else>{{ scope.row.BandwidthEach }}Mbps</span>
                             </p>
                             <p>{{ scope.row.Delay }}ms</p>
                         </template>
                     </el-table-column> 
-                    <el-table-column property="MaxBandwidthTotal" :label="$t('server.sforwardSpeed1')" width="100">
+                    <el-table-column property="Bandwidth" :label="$t('server.sforwardSpeed1')" width="100">
                         <template #default="scope">
                             <p>
-                                <template v-if="scope.row.MaxBandwidthTotal == 0">--</template>
-                                <template v-else>{{ scope.row.MaxBandwidthTotal }}Mbps</template>
+                                <template v-if="scope.row.Bandwidth == 0">--</template>
+                                <template v-else>{{ scope.row.Bandwidth }}Mbps</template>
                             </p>
-                            <p><strong>{{scope.row.BandwidthRatio}}mbps</strong></p>
+                            <p><strong>{{scope.row.BandwidthRatio}}Mbps</strong></p>
                         </template>
                     </el-table-column>
-                    <el-table-column  v-if="state.super" property="Public" :label="$t('server.sforwardOper')" width="60">
+                    <el-table-column property="Port" :label="$t('server.sforwardPort')" width="120">
+                        <template #default="scope">
+                            <p>{{$t('server.sforwardWebPort')}} : {{ scope.row.WebPort }}</p>
+                            <p>{{ scope.row.TunnelPorts}}</p>
+                        </template>
+                    </el-table-column>
+                    <el-table-column property="Manageable" fixed="right" :label="$t('server.sforwardOper')" width="110">
                         <template #default="scope">
                             <p>
-                                <a href="javascript:;" class="a-line" @click="handleExit(scope.row.Id)"><el-icon><Refresh /></el-icon>{{ $t('server.sforwardExit') }}</a>
-                            </p>
-                            <p>
-                                <a href="javascript:;" class="a-line" @click="handleEdit(scope.row)"><el-icon><Edit /></el-icon>{{ $t('server.sforwardEdit') }}</a>
-                            </p>
+                            <AccessBoolean v-if="state.super" value="RemoveSForwardNode,UpdateSForwardNode,ShareSForwardNode,RebootSForwardNode">
+                                <template #default="{values}">
+                                    <p>
+                                        <el-button v-if="scope.row.Manageable && values.RebootSForwardNode &&  scope.row.LastTicks<15000" type="warning" plain size="small" @click="handleExit(scope.row)"><el-icon><Refresh /></el-icon></el-button>
+                                        <el-button v-if="values.UpdateSForwardNode &&  scope.row.LastTicks<15000" plain size="small" @click="handleEdit(scope.row)"><el-icon><Edit /></el-icon></el-button>
+                                    </p>
+                                    <p>
+                                        <el-button v-if="values.RemoveSForwardNode" type="danger" plain size="small" @click="handleRemove(scope.row)"><el-icon><CircleClose /></el-icon></el-button>
+                                        <el-button v-if="scope.row.Manageable && values.ShareSForwardNode &&  scope.row.LastTicks<15000" type="info" plain size="small" @click="handleShare(scope.row)"><el-icon><Share /></el-icon></el-button>
+                                    </p>
+                                </template>
+                            </AccessBoolean>
+                        </p>
                         </template>
                     </el-table-column>
                 </el-table>
@@ -69,18 +111,18 @@
     </div>
 </template>
 <script>
-import {  sforwardEdit,sforwardExit,sforwardUpdate } from '@/apis/sforward';
+import {  sforwardExit, sforwardImport, sforwardRemove, sforwardShare, sforwardUpgrade } from '@/apis/sforward';
 import { injectGlobalData } from '@/provide';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { computed,  onUnmounted,  reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n';
 import EditNode from './EditNode.vue';
-import { Edit,ArrowDown,Refresh } from '@element-plus/icons-vue';
+import { Edit,ArrowDown,Refresh,CircleClose,Plus,Share } from '@element-plus/icons-vue';
 
 export default {
     props: ['modelValue','data'],
     emits: ['update:modelValue','success'],
-    components:{EditNode,Edit,ArrowDown,Refresh},
+    components:{EditNode,Edit,ArrowDown,Refresh,CircleClose,Plus,Share},
     setup(props,{emit}) {
         const {t} = useI18n();
         const globalData = injectGlobalData();
@@ -104,36 +146,29 @@ export default {
             state.current = row;
             state.showEdit = true;
         }
-        const handleSync2Server = (row)=>{
-            row.Sync2Server = !row.Sync2Server;
-            sforwardEdit(row).then(res => {
-                ElMessage.success(t('common.oper'));
-            }).catch(()=>{
-                ElMessage.error(t('common.operFail'));
-            });
-        }
-        const handleExit = (id)=>{
+        const handleExit = (row)=>{
             ElMessageBox.confirm(t('server.sforwardExit'), t('common.confirm'), {
                 confirmButtonText: t('common.confirm'),
                 cancelButtonText: t('common.cancel'),
                 type: 'warning',
             }).then(() => {
-                sforwardExit(id).then(res => {
+                sforwardExit(row.NodeId).then(res => {
                     ElMessage.success(t('common.oper'));
                 }).catch(()=>{
                     ElMessage.error(t('common.operFail'));
                 });
             }).catch(() => {
-                ElMessage.error(t('common.operFail'));
+                //ElMessage.error(t('common.operFail'));
             });
         }
-        const handleUpdate = (id)=>{
+        const handleUpgrade = (row)=>{
+            if(row.Manageable == false) return;
             ElMessageBox.confirm(`${t('server.sforwardUpdate')} ${globalData.value.signin.Version}`,t('server.sforwardUpdate'), {
                 confirmButtonText: t('common.confirm'),
                 cancelButtonText: t('common.cancel'),
                 type: 'warning',
             }).then(() => {
-                sforwardUpdate({Key:id,Value:globalData.value.signin.Version}).then(res => {
+                sforwardUpgrade({Key:row.NodeId,Value:globalData.value.signin.Version}).then(res => {
                     ElMessage.success(t('common.oper'));
                 }).catch(()=>{
                     ElMessage.error(t('common.operFail'));
@@ -142,11 +177,58 @@ export default {
                 ElMessage.error(t('common.operFail'));
             });
         }
+
+        const handleRemove = (row)=>{
+            ElMessageBox.confirm(t('server.sforwardRemove'), t('common.confirm'), {
+                confirmButtonText: t('common.confirm'),
+                cancelButtonText: t('common.cancel'),
+                type: 'warning',
+            }).then(() => {
+                sforwardRemove(row.NodeId).then(res => {
+                    ElMessage.success(t('common.oper'));
+                }).catch(()=>{
+                    ElMessage.error(t('common.operFail'));
+                });
+            }).catch(() => {
+                //ElMessage.error(t('common.operFail'));
+            });
+        }
+        const handleImport = ()=>{
+            ElMessageBox.prompt(t('server.sforwardImport'), t('common.confirm'), {
+                confirmButtonText:  t('common.confirm'),
+                cancelButtonText: t('common.cancel')
+            }).then(({ value }) => {
+                if(!value) return;
+                sforwardImport(value).then((res)=>{ 
+                    if(res){
+                        ElMessage.error(res);
+                    }else{
+                        ElMessage.success(t('common.oper'));
+                    }
+                }).catch(()=>{})
+            }).catch(() => {
+            })
+        }
+        const handleShare = (row)=>{
+            sforwardShare(row.NodeId).then((res)=>{
+                ElMessageBox.prompt(t('server.sforwardShare'), t('common.tips'), {
+                    confirmButtonText:  t('common.confirm'),
+                    cancelButtonText: t('common.cancel'),
+                    inputValue:res
+                }).then(({ value }) => {
+                    navigator.clipboard.writeText(value)
+                }).catch(() => {
+                })
+            }).catch(()=>{
+                ElMessage.error(t('common.operFail'));
+            });
+        }
+
         onUnmounted(()=>{
             clearTimeout(state.timer);
         });
 
-        return {globalData,state,handleEdit,handleExit,handleUpdate,handleSync2Server}
+        return {globalData,state,handleEdit,handleExit,handleUpgrade,handleRemove,handleImport,handleShare}
     }
 }
 </script>
@@ -156,5 +238,15 @@ a.a-edit{
     .el-icon {
         vertical-align middle
     }
+}
+.logo{
+    margin-right:1rem;
+    height:4rem;
+    vertical-align:text-top;
+
+    
+}
+.gray{
+    filter: grayscale(100%);
 }
 </style>

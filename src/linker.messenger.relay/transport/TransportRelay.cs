@@ -280,7 +280,7 @@ namespace linker.tunnel.transport
 
                 RelayInfo relayInfo = tunnelTransportInfo.TransactionTag.DeJson<RelayInfo>();
 
-                IPEndPoint ep = relayInfo.Node == null || relayInfo.Node.Address.Equals(IPAddress.Any) ? signInClientState.Connection.Address : relayInfo.Node;
+                IPEndPoint ep = relayInfo.Node == null || relayInfo.Node.Address.Equals(IPAddress.Any)|| relayInfo.Node.Address.Equals(IPAddress.Loopback) ? signInClientState.Connection.Address : relayInfo.Node;
                 Socket socket = new Socket(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 socket.KeepAlive();
                 try

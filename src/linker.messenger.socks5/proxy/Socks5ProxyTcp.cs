@@ -172,6 +172,7 @@ namespace linker.messenger.socks5
                     Socket = socket,
                     ListenPort = local.Port,
                     IPEndPoint = target,
+                    Pipe = new Pipe(new PipeOptions(minimumSegmentSize: 8192, pauseWriterThreshold: 2 * 1024 * 1024, resumeWriterThreshold: 512 * 1024, useSynchronizationContext: false)),
                     ReadPacket = new ForwardReadPacket(buffer)
                     {
                         ProtocolType = ProtocolType.Tcp,

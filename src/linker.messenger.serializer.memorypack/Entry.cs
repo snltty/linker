@@ -88,6 +88,9 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new SForwardAddForwardInfoFormatter());
             MemoryPackFormatterProvider.Register(new SForwardRemoveForwardInfoFormatter());
             MemoryPackFormatterProvider.Register(new SForwardProxyInfoFormatter());
+            MemoryPackFormatterProvider.Register(new SForwardServerNodeReportInfoFormatter());
+            MemoryPackFormatterProvider.Register(new SForwardServerNodeStoreInfoFormatter());
+            MemoryPackFormatterProvider.Register(new SForwardServerNodeShareInfoFormatter());
             MemoryPackFormatterProvider.Register(new SForwardServerNodeReportInfoOldFormatter());
 
 

@@ -22,7 +22,7 @@
                         <template #default="scope">
                             <template v-if="scope.row.NodeIdEditing && scope.row.Started==false ">
                                 <el-select v-model="scope.row.NodeId" size="small" @change="handleEditBlur(scope.row, 'NodeId')">
-                                    <el-option :value="item.Id" :label="item.Name" v-for="(item,index) in state.nodes"></el-option>
+                                    <el-option :value="item.NodeId" :label="item.Name" v-for="(item,index) in state.nodes"></el-option>
                                 </el-select>
                             </template>
                             <template v-else>
@@ -47,9 +47,9 @@
                                     <template v-else>
                                         <template v-if="state.nodesJson[scope.row.NodeId1]">
                                             <span :class="{green:scope.row.Started}">
-                                            <template v-if="/^\d+$/.test(scope.row.Temp)">{{ state.nodesJson[scope.row.NodeId1].Domain || state.nodesJson[scope.row.NodeId1].Address }}:{{ scope.row.Temp }}</template>
+                                            <template v-if="/^\d+$/.test(scope.row.Temp)">{{ state.nodesJson[scope.row.NodeId1].Domain || state.nodesJson[scope.row.NodeId1].Host.split(':')[0] }}:{{ scope.row.Temp }}</template>
                                             <template v-else-if="scope.row.Temp.indexOf('.')>=0">{{ scope.row.Temp }}:{{state.nodesJson[scope.row.NodeId1].WebPort}}</template>
-                                            <template v-else>{{ scope.row.Temp }}.{{ state.nodesJson[scope.row.NodeId1].Domain || state.nodesJson[scope.row.NodeId1].Address }}:{{state.nodesJson[scope.row.NodeId1].WebPort}}</template>
+                                            <template v-else>{{ scope.row.Temp }}.{{ state.nodesJson[scope.row.NodeId1].Domain || state.nodesJson[scope.row.NodeId1].Host.split(':')[0] }}:{{state.nodesJson[scope.row.NodeId1].WebPort}}</template>
                                             </span>
                                         </template>
                                         <template v-else>
@@ -284,10 +284,10 @@ export default {
         const _sforwardSubscribe = ()=>{
             clearTimeout(state.timer2);
             sforwardSubscribe().then((res)=>{
-                res = [{Id:'*',Name:'*'}].concat(res);
+                res = [{NodeId:'*',Name:'*'}].concat(res);
                 state.nodes = res;
-                state.nodesNames = res.reduce((json,item)=>{ json[item.Id] = item.Name; return json; },{});
-                state.nodesJson = res.reduce((json,item)=>{ json[item.Id] = item; return json; },{});
+                state.nodesNames = res.reduce((json,item)=>{ json[item.NodeId] = item.Name; return json; },{});
+                state.nodesJson = res.reduce((json,item)=>{ json[item.NodeId] = item; return json; },{});
                 state.timer2 = setTimeout(_sforwardSubscribe,1000);
             }).catch(()=>{
                 state.timer2 = setTimeout(_sforwardSubscribe,1000);

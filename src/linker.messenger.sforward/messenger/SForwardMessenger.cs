@@ -1,12 +1,13 @@
-﻿using linker.plugins.sforward.proxy;
-using System.Net;
-using linker.libs;
-using linker.messenger.signin;
-using linker.messenger.sforward.server.validator;
-using linker.messenger.sforward.server;
-using linker.messenger.sforward.client;
-using System.Net.Sockets;
+﻿using linker.libs;
+using linker.libs.extends;
 using linker.libs.timer;
+using linker.messenger.sforward.client;
+using linker.messenger.sforward.server;
+using linker.messenger.sforward.server.validator;
+using linker.messenger.signin;
+using linker.plugins.sforward.proxy;
+using System.Net;
+using System.Net.Sockets;
 
 namespace linker.messenger.sforward.messenger
 {
@@ -24,14 +25,13 @@ namespace linker.messenger.sforward.messenger
         private readonly ISerializer serializer;
         private readonly SForwardServerMasterTransfer sForwardServerMasterTransfer;
         private readonly SForwardServerNodeTransfer sForwardServerNodeTransfer;
-        private readonly ISignInServerStore signInServerStore;
         private readonly SForwardServerNodeReportTransfer sForwardServerNodeReportTransfer;
         private readonly SForwardServerConnectionTransfer sForwardServerConnectionTransfer;
 
         public SForwardServerMessenger(SForwardProxy proxy, ISForwardServerCahing sForwardServerCahing, IMessengerSender sender,
             SignInServerCaching signCaching, SForwardValidatorTransfer validator, ISerializer serializer,
             SForwardServerMasterTransfer sForwardServerMasterTransfer, SForwardServerNodeTransfer sForwardServerNodeTransfer,
-            ISignInServerStore signInServerStore, SForwardServerNodeReportTransfer sForwardServerNodeReportTransfer, SForwardServerConnectionTransfer sForwardServerConnectionTransfer)
+            SForwardServerNodeReportTransfer sForwardServerNodeReportTransfer, SForwardServerConnectionTransfer sForwardServerConnectionTransfer)
         {
             this.proxy = proxy;
             proxy.WebConnect = WebConnect;
@@ -44,7 +44,6 @@ namespace linker.messenger.sforward.messenger
             this.serializer = serializer;
             this.sForwardServerMasterTransfer = sForwardServerMasterTransfer;
             this.sForwardServerNodeTransfer = sForwardServerNodeTransfer;
-            this.signInServerStore = signInServerStore;
             this.sForwardServerNodeReportTransfer = sForwardServerNodeReportTransfer;
             this.sForwardServerConnectionTransfer = sForwardServerConnectionTransfer;
 
@@ -61,7 +60,7 @@ namespace linker.messenger.sforward.messenger
         {
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
             {
-                connection.Write(serializer.Serialize(new List<SForwardServerNodeReportInfo>()));
+                connection.Write(serializer.Serialize(new List<SForwardServerNodeStoreInfo>()));
                 return;
             }
 
@@ -709,9 +708,8 @@ namespace linker.messenger.sforward.messenger
         public async Task ProxyNode(IConnection connection)
         {
             SForwardProxyInfo info = serializer.Deserialize<SForwardProxyInfo>(connection.ReceiveRequestWrap.Payload.Span);
-
             var node = await sForwardServerNodeReportTransfer.GetNode(info.NodeId).ConfigureAwait(false);
-            if (node == null || string.IsNullOrWhiteSpace(info.MachineId) == false)
+            if (node == null || string.IsNullOrWhiteSpace(info.MachineId))
             {
                 return;
             }
@@ -719,12 +717,8 @@ namespace linker.messenger.sforward.messenger
             {
                 return;
             }
-            if (sForwardServerConnectionTransfer.TryGet(ConnectionSideType.Master, info.NodeId, out var nodeConnection) == false || nodeConnection.Connected == false)
-            {
-                return;
-            }
 
-            info.Addr = nodeConnection.Address.Address;
+            info.Addr = connection.Address.Address;
             await sender.SendOnly(new MessageRequestWrap
             {
                 Connection = sign.Connection,
@@ -776,6 +770,7 @@ namespace linker.messenger.sforward.messenger
         private async Task<string> TunnelConnect(int port, ulong id)
         {
             sForwardServerCahing.TryGet(port, out string machineId, out string nodeid);
+
             bool result = await sForwardServerNodeTransfer.ProxyNode(new SForwardProxyInfo
             {
                 RemotePort = port,
@@ -930,7 +925,6 @@ namespace linker.messenger.sforward.messenger
         {
             SForwardProxyInfo info = serializer.Deserialize<SForwardProxyInfo>(connection.ReceiveRequestWrap.Payload.Span);
             IPEndPoint server = new IPEndPoint(IPAddress.Any.Equals(info.Addr) ? connection.Address.Address : info.Addr, info.RemotePort);
-
             //是http
             if (string.IsNullOrWhiteSpace(info.Domain) == false)
             {

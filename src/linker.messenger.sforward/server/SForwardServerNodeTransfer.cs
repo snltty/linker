@@ -41,7 +41,7 @@ namespace linker.messenger.sforward.server
         }
         public async Task<bool> ProxyNode(SForwardProxyInfo info)
         {
-            if (sForwardServerConnectionTransfer.TryGet(ConnectionSideType.Node, info.NodeId, out var connection))
+            if (sForwardServerConnectionTransfer.TryGet(ConnectionSideType.Master, info.NodeId, out var connection))
             {
                 return await messengerSender.SendOnly(new MessageRequestWrap
                 {
@@ -54,7 +54,7 @@ namespace linker.messenger.sforward.server
         }
         public async Task<List<string>> Heart(List<string> ids, string masterNodeId)
         {
-            if (sForwardServerConnectionTransfer.TryGet(ConnectionSideType.Node, masterNodeId, out var connection))
+            if (sForwardServerConnectionTransfer.TryGet(ConnectionSideType.Master, masterNodeId, out var connection))
             {
                 var resp = await messengerSender.SendReply(new MessageRequestWrap
                 {

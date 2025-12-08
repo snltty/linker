@@ -29,8 +29,6 @@ namespace linker.messenger.relay.server
             byte[] buffer = ArrayPool<byte>.Shared.Rent(1024);
             try
             {
-                Console.WriteLine("RelayReport");
-
                 await socket.ReceiveAsync(buffer.AsMemory(0, 1), SocketFlags.None).ConfigureAwait(false);
                 int length = buffer[0];
                 Add(memory.Length, length);

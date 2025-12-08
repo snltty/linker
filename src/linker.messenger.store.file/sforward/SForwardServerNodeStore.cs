@@ -58,7 +58,10 @@ namespace linker.messenger.store.file.sforward
                 MasterKey = info.MasterKey,
                 Masters = info.Masters,
                 //是我初始化的，可以管理
-                Manageable = info.MasterKey == md5
+                Manageable = info.MasterKey == md5,
+                Domain = info.Domain,
+                WebPort = info.WebPort,
+                TunnelPorts = info.TunnelPorts,
             }, c => c.NodeId == info.NodeId);
 
             return await Task.FromResult(length > 0).ConfigureAwait(false);
@@ -70,6 +73,7 @@ namespace linker.messenger.store.file.sforward
             {
                 DataEachMonth = info.DataEachMonth,
                 Public = info.Public,
+                Host = info.Host,
             }, c => c.NodeId == info.NodeId);
 
             return await Task.FromResult(length > 0).ConfigureAwait(false); ;
