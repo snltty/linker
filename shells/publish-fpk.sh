@@ -32,7 +32,7 @@ do
     mkdir -p public/publish-fpk/bin/${r}
     
     cp -rf install-package/fpk/bin/* public/publish-fpk/bin/${r}/
-    cp -rf ipublic/publish/${r}/* public/publish-fpk/bin/app/server/${r}/
+    cp -rf public/publish/${r}/* public/publish-fpk/bin/${r}/app/server/
 
     sed -i "s|{version}|1.9.7|g" public/publish-fpk/bin/${r}/manifest
     sed -i 's/\r$//' public/publish-fpk/bin/${r}/manifest
