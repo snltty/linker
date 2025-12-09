@@ -103,7 +103,7 @@ jobs:
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
-          asset-path: ./public/publish-fpk/docker/linker-docker-x64.fpk
+          asset-path: ./public/publish-fpk/docker/x64/linker-docker-x64.fpk
           target-path: /downloads/linker/v1.9.7/linker-docker-x64.fpk
       - name: upload-docker-fpk-x64
         id: upload-docker-fpk-x64
@@ -112,7 +112,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: ./public/publish-fpk/docker/linker-docker-x64.fpk
+          asset_path: ./public/publish-fpk/docker/x64/linker-docker-x64.fpk
           asset_name: linker-docker-x64.fpk
           asset_content_type: application/fpk
       - name: upload-bin-fpk-x64-oss
@@ -123,7 +123,7 @@ jobs:
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
-          asset-path: ./public/publish-fpk/bin/linker-bin-x64.fpk
+          asset-path: ./public/publish-fpk/bin/x64/linker-bin-x64.fpk
           target-path: /downloads/linker/v1.9.7/linker-bin-x64.fpk
       - name: upload-bin-fpk-x64
         id: upload-bin-fpk-x64
@@ -132,6 +132,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: ./public/publish-fpk/bin/linker-bin-x64.fpk
+          asset_path: ./public/publish-fpk/bin/x64/linker-bin-x64.fpk
           asset_name: linker-bin-x64.fpk
           asset_content_type: application/fpk
