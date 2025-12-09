@@ -1,0 +1,18 @@
+{
+    "data-share":
+    {
+        "shares":
+        [
+            {
+                "name": "linker-bin",
+                "permission":
+                {
+                    "rw":
+                    [
+                        "linker-bin"
+                    ]
+                }
+            }
+        ]
+    }
+}

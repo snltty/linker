@@ -1,0 +1,13 @@
+{
+    ".url": {
+        "linker.Application": {
+            "title": "linker",
+            "icon": "images/icon_{0}.png",
+            "type": "url",
+            "protocol": "",
+            "port": "1804",
+            "url": "/",
+            "allUsers": false
+        }
+    }
+}

@@ -1,0 +1,15 @@
+appname               = linker
+version               = {version}
+display_name          = Linker
+desc                  = 极具特色的，P2P打洞(UDP+TCP、IPV4+IPV6) + 服务器转发，实现的异地组网、内网穿透。让你那些散落在世界各地的联网设备就像在隔壁房间一样轻松访问。
+arch                  = x86_64
+source                = thirdparty
+maintainer=snltty
+maintainer_url=https://linker.snltty.com
+distributor=snltty
+distributor_url=https://linker.snltty.com
+desktop_uidir=ui
+desktop_applaunchname=linker.bin.Application
+
+service_port=1804
+checkport=true

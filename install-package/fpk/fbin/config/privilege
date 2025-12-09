@@ -1,0 +1,8 @@
+{
+    "defaults":
+    {
+        "run-as": "root"
+    },
+    "username": "linker-bin",
+    "groupname": "linker-bin"
+}
