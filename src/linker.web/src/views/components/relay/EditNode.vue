@@ -3,38 +3,38 @@
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="auto">
                 <el-form-item :label="$t('server.relayName')" prop="Name">
-                    <el-input :disabled="data.Manageable==false" v-trim minlength="1" maxlength="32" show-word-limit v-model="state.ruleForm.Name" />
+                    <el-input :disabled="data._manager==false" v-trim minlength="1" maxlength="32" show-word-limit v-model="state.ruleForm.Name" />
                 </el-form-item>
                 <el-form-item :label="$t('server.relayHost')" prop="Host">
-                    <el-input :disabled="data.Manageable==false" v-trim v-model="state.ruleForm.Host" />
+                    <el-input v-trim v-model="state.ruleForm.Host" />
                 </el-form-item>
                 <el-form-item :label="$t('server.relayConnection')" prop="Connections">
-                    <el-input-number :disabled="data.Manageable==false" v-model="state.ruleForm.Connections" :min="0" :max="65535"/>
+                    <el-input-number :disabled="data._manager==false" v-model="state.ruleForm.Connections" :min="0" :max="65535"/>
                 </el-form-item>
                 <el-form-item :label="$t('server.relaySpeed')" prop="BandwidthEach">
                     <el-input-number v-model="state.ruleForm.BandwidthEach" :min="0"/>Mbps
                 </el-form-item>
                 <el-form-item :label="$t('server.relaySpeed1')" prop="Bandwidth">
-                    <el-input-number :disabled="data.Manageable==false" v-model="state.ruleForm.Bandwidth" :min="0"/>Mbps
+                    <el-input-number :disabled="data._manager==false" v-model="state.ruleForm.Bandwidth" :min="0"/>Mbps
                 </el-form-item>
                 <el-form-item :label="$t('server.relayFlow')" prop="DataEachMonth">
-                    <el-input-number :disabled="data.Manageable==false" v-model="state.ruleForm.DataEachMonth" :min="0"/>GB <el-button size="small" @click="handleRefresh"><el-icon><Refresh /></el-icon></el-button>
+                    <el-input-number :disabled="data._manager==false" v-model="state.ruleForm.DataEachMonth" :min="0"/>GB <el-button size="small" @click="handleRefresh"><el-icon><Refresh /></el-icon></el-button>
                 </el-form-item>
                 <el-form-item :label="$t('server.relayFlowLast')" prop="DataRemain">
-                    <el-input-number :disabled="data.Manageable==false" v-model="state.ruleForm.DataRemain" :min="0" />byte
+                    <el-input-number :disabled="data._manager==false" v-model="state.ruleForm.DataRemain" :min="0" />byte
                 </el-form-item>
                 <el-form-item :label="$t('server.relayUrl')" prop="Url">
-                    <el-input :disabled="data.Manageable==false" v-trim v-model="state.ruleForm.Url" />
+                    <el-input :disabled="data._manager==false" v-trim v-model="state.ruleForm.Url" />
                 </el-form-item>
                 <el-form-item :label="$t('server.relayLogo')" prop="Logo">
-                    <el-input :disabled="data.Manageable==false" v-trim v-model="state.ruleForm.Logo" />
+                    <el-input :disabled="data._manager==false" v-trim v-model="state.ruleForm.Logo" />
                 </el-form-item>
                 <el-form-item :label="$t('server.relayPublic')" prop="Public">
                     <el-switch v-model="state.ruleForm.Public " size="small" />
                 </el-form-item>
                 <el-form-item :label="$t('server.relayAllow')" prop="Allow">
-                    <el-checkbox :disabled="data.Manageable==false" v-model="state.ruleForm.AllowTcp">TCP</el-checkbox>
-                    <el-checkbox :disabled="data.Manageable==false" v-model="state.ruleForm.AllowUdp">UDP</el-checkbox>
+                    <el-checkbox :disabled="data._manager==false" v-model="state.ruleForm.AllowTcp">TCP</el-checkbox>
+                    <el-checkbox :disabled="data._manager==false" v-model="state.ruleForm.AllowUdp">UDP</el-checkbox>
                 </el-form-item>
                 <el-form-item></el-form-item>
                 <el-form-item label="" prop="Btns">

@@ -1,5 +1,5 @@
 <template>
-    <span>
+    <span v-if="item.MachineId">
         <a href="javascript:;" :title="wlist.title" @click="handleWlist">
             <img :src="wlist.img" />
         </a>
@@ -39,6 +39,7 @@ export default {
         : choiceOnece(props.item.hook_wlist));
 
         const handleWlist = ()=>{
+            if(!props.item.MachineId) return;
             wlistState.value.device.id = props.item.MachineId;
             wlistState.value.device.name = props.item.MachineName;
             wlistState.value.device.type = props.type;

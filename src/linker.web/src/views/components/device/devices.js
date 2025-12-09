@@ -7,6 +7,7 @@ export const provideDevices = () => {
     //https://api.ipbase.com/v1/json/8.8.8.8
     const globalData = injectGlobalData();
     const machineId = computed(() => globalData.value.config.Client.Id);
+    const hasFullList = computed(() => globalData.value.hasAccess('FullList'));
 
     const ps = +(localStorage.getItem('ps') || '10');
     const count = +(localStorage.getItem('device-count') || '10');
@@ -92,10 +93,7 @@ export const provideDevices = () => {
                 devices.page.Request = res.Request;
                 devices.page.Count = res.Count;
                 for (let j in res.List) {
-                    // if(machineId.value != res.List[j].MachineId){
-                    //     res.List[j] = null;
-                    //     continue;
-                    // }
+                    
                     Object.assign(res.List[j], {
                         showDel: machineId.value != res.List[j].MachineId && res.List[j].Connected == false,
                         showAccess: machineId.value != res.List[j].MachineId && res.List[j].Connected,
@@ -105,6 +103,13 @@ export const provideDevices = () => {
                     });
                     if (res.List[j].isSelf) {
                         globalData.value.self = res.List[j];
+                    }
+                    if(!hasFullList.value)
+                    {
+                        Object.assign(res.List[j], {
+                            MachineId:machineId.value == res.List[j].MachineId?res.List[j].MachineId:'',
+                            isHide:machineId.value != res.List[j].MachineId
+                        });
                     }
                 }
                 devices.page.List = res.List;

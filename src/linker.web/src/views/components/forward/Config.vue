@@ -40,6 +40,10 @@ export default {
         const _sforwardSubscribe = ()=>{
             clearTimeout(state.timer);
             sforwardSubscribe().then((res)=>{
+                res.forEach((item)=>{
+                    item._online = item.LastTicks < 15000;
+                    item._manager = item.Manageable && item._online;
+                });
                 state.nodes = res;
                 nodes.value = res;
                 state.timer = setTimeout(_sforwardSubscribe,1000);

@@ -19,7 +19,7 @@
                             <div class="flex"> 
                                 <div>
                                     <a :href="scope.row.Url" target="_blank" >
-                                        <img class="logo" :class="{'gray': scope.row.LastTicks>15000}" :src="scope.row.Logo || 'https://linker.snltty.com/img/logo.png'" alt=""/>
+                                        <img class="logo" :class="{'gray': !scope.row._online}" :src="scope.row.Logo || 'https://linker.snltty.com/img/logo.png'" alt=""/>
                                     </a>
                                 </div>
                                 <div class="flex-1">
@@ -92,12 +92,12 @@
                             <AccessBoolean v-if="state.super" value="RemoveSForwardNode,UpdateSForwardNode,ShareSForwardNode,RebootSForwardNode">
                                 <template #default="{values}">
                                     <p>
-                                        <el-button v-if="scope.row.Manageable && values.RebootSForwardNode &&  scope.row.LastTicks<15000" type="warning" plain size="small" @click="handleExit(scope.row)"><el-icon><Refresh /></el-icon></el-button>
-                                        <el-button v-if="values.UpdateSForwardNode &&  scope.row.LastTicks<15000" plain size="small" @click="handleEdit(scope.row)"><el-icon><Edit /></el-icon></el-button>
+                                        <el-button v-if="scope.row._manager && values.RebootSForwardNode" type="warning" plain size="small" @click="handleExit(scope.row)"><el-icon><Refresh /></el-icon></el-button>
+                                        <el-button v-if="values.UpdateSForwardNode" plain size="small" @click="handleEdit(scope.row)"><el-icon><Edit /></el-icon></el-button>
                                     </p>
                                     <p>
                                         <el-button v-if="values.RemoveSForwardNode" type="danger" plain size="small" @click="handleRemove(scope.row)"><el-icon><CircleClose /></el-icon></el-button>
-                                        <el-button v-if="scope.row.Manageable && values.ShareSForwardNode &&  scope.row.LastTicks<15000" type="info" plain size="small" @click="handleShare(scope.row)"><el-icon><Share /></el-icon></el-button>
+                                        <el-button v-if="scope.row._manager && values.ShareSForwardNode" type="info" plain size="small" @click="handleShare(scope.row)"><el-icon><Share /></el-icon></el-button>
                                     </p>
                                 </template>
                             </AccessBoolean>
@@ -162,7 +162,7 @@ export default {
             });
         }
         const handleUpgrade = (row)=>{
-            if(row.Manageable == false) return;
+            if(row._manager == false) return;
             ElMessageBox.confirm(`${t('server.sforwardUpdate')} ${globalData.value.signin.Version}`,t('server.sforwardUpdate'), {
                 confirmButtonText: t('common.confirm'),
                 cancelButtonText: t('common.cancel'),

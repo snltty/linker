@@ -6,7 +6,7 @@
             </span>
         </div>
     </template>
-    <template v-else>
+    <template v-else-if="!item.hook_tuntap_load">
         <div class="flex-1 relative skeleton-animation">
             <el-skeleton animated >
                 <template #template>
@@ -17,6 +17,7 @@
             </el-skeleton>
         </div>
     </template>
+    <template v-else><div class="flex-1"></div></template>
 </template>
 
 <script>

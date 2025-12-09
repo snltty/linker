@@ -87,7 +87,7 @@ function writeUpload(data, tagName) {
         };
     }
     
-    
+    /*
     data.jobs.build.steps.push({
         name: `upload-version-oss`,
         id: `upload-version-oss`,
@@ -101,6 +101,7 @@ function writeUpload(data, tagName) {
             'target-path': `/downloads/linker/version.txt`
         }
     });
+    */
     
     
     data.jobs.build.steps.push({
@@ -198,33 +199,37 @@ function writeUploadIpk(data, tagName) {
     for (let i = 0; i < platforms1.length; i++) {
         let arch = platforms1[i];
 
-        data.jobs.build.steps.push({
-            name: `upload-fpk-${arch}-oss`,
-            id: `upload-fpk-${arch}-oss`,
-            uses: 'tvrcgo/oss-action@v0.1.1',
-            with: {
-                'region': 'oss-cn-shenzhen',
-                'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
-                'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
-                'bucket': 'ide-qbcode',
-                'asset-path': `./public/publish-fpk/docker/linker-docker-${arch}.fpk`,
-                'target-path': `/downloads/linker/${tagName}/linker-docker-${arch}.fpk`
-            }
-        });
-        data.jobs.build.steps.push({
-            name: `upload-fpk-${arch}`,
-            id: `upload-fpk-${arch}`,
-            uses: 'actions/upload-release-asset@master',
-            env: {
-                'GITHUB_TOKEN': '${{ secrets.ACTIONS_TOKEN }}'
-            },
-            with: {
-                'upload_url': '${{ steps.get_release.outputs.upload_url }}',
-                'asset_path': `./public/publish-fpk/docker/linker-docker-${arch}.fpk`,
-                'asset_name': `linker-docker-${arch}.fpk`,
-                'asset_content_type': 'application/fpk'
-            }
-        });
+        const types = ['docker','bin'];
+        for (let j = 0; j < types.length; j++) { 
+            const type = types[j];
+            data.jobs.build.steps.push({
+                name: `upload-${type}-fpk-${arch}-oss`,
+                id: `upload-${type}-fpk-${arch}-oss`,
+                uses: 'tvrcgo/oss-action@v0.1.1',
+                with: {
+                    'region': 'oss-cn-shenzhen',
+                    'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
+                    'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
+                    'bucket': 'ide-qbcode',
+                    'asset-path': `./public/publish-fpk/${type}/linker-${type}-${arch}.fpk`,
+                    'target-path': `/downloads/linker/${tagName}/linker-${type}-${arch}.fpk`
+                }
+            });
+            data.jobs.build.steps.push({
+                name: `upload-${type}-fpk-${arch}`,
+                id: `upload-${type}-fpk-${arch}`,
+                uses: 'actions/upload-release-asset@master',
+                env: {
+                    'GITHUB_TOKEN': '${{ secrets.ACTIONS_TOKEN }}'
+                },
+                with: {
+                    'upload_url': '${{ steps.get_release.outputs.upload_url }}',
+                    'asset_path': `./public/publish-fpk/${type}/linker-${type}-${arch}.fpk`,
+                    'asset_name': `linker-${type}-${arch}.fpk`,
+                    'asset_content_type': 'application/fpk'
+                }
+            });
+        }
     };
 }
 

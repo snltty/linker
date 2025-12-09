@@ -44,7 +44,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-ipk/x64/linker-x64.ipk
-          target-path: /downloads/linker/v1.9.6/linker-x64.ipk
+          target-path: /downloads/linker/v1.9.7/linker-x64.ipk
       - name: upload-x64
         id: upload-x64
         uses: actions/upload-release-asset@master
@@ -64,7 +64,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-ipk/arm/linker-arm.ipk
-          target-path: /downloads/linker/v1.9.6/linker-arm.ipk
+          target-path: /downloads/linker/v1.9.7/linker-arm.ipk
       - name: upload-arm
         id: upload-arm
         uses: actions/upload-release-asset@master
@@ -84,7 +84,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-ipk/arm64/linker-arm64.ipk
-          target-path: /downloads/linker/v1.9.6/linker-arm64.ipk
+          target-path: /downloads/linker/v1.9.7/linker-arm64.ipk
       - name: upload-arm64
         id: upload-arm64
         uses: actions/upload-release-asset@master
@@ -95,8 +95,8 @@ jobs:
           asset_path: ./public/publish-ipk/arm64/linker-arm64.ipk
           asset_name: linker-arm64.ipk
           asset_content_type: application/ipk
-      - name: upload-fpk-x64-oss
-        id: upload-fpk-x64-oss
+      - name: upload-docker-fpk-x64-oss
+        id: upload-docker-fpk-x64-oss
         uses: tvrcgo/oss-action@v0.1.1
         with:
           region: oss-cn-shenzhen
@@ -104,9 +104,9 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-fpk/docker/linker-docker-x64.fpk
-          target-path: /downloads/linker/v1.9.6/linker-docker-x64.fpk
-      - name: upload-fpk-x64
-        id: upload-fpk-x64
+          target-path: /downloads/linker/v1.9.7/linker-docker-x64.fpk
+      - name: upload-docker-fpk-x64
+        id: upload-docker-fpk-x64
         uses: actions/upload-release-asset@master
         env:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
@@ -114,4 +114,24 @@ jobs:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
           asset_path: ./public/publish-fpk/docker/linker-docker-x64.fpk
           asset_name: linker-docker-x64.fpk
+          asset_content_type: application/fpk
+      - name: upload-bin-fpk-x64-oss
+        id: upload-bin-fpk-x64-oss
+        uses: tvrcgo/oss-action@v0.1.1
+        with:
+          region: oss-cn-shenzhen
+          key-id: ${{ secrets.ALIYUN_OSS_ID }}
+          key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
+          bucket: ide-qbcode
+          asset-path: ./public/publish-fpk/bin/linker-bin-x64.fpk
+          target-path: /downloads/linker/v1.9.7/linker-bin-x64.fpk
+      - name: upload-bin-fpk-x64
+        id: upload-bin-fpk-x64
+        uses: actions/upload-release-asset@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: ./public/publish-fpk/bin/linker-bin-x64.fpk
+          asset_name: linker-bin-x64.fpk
           asset_content_type: application/fpk

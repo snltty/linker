@@ -34,6 +34,10 @@ export default {
         const _setRelaySubscribe = ()=>{
             clearTimeout(state.timer);
             setRelaySubscribe().then((res)=>{
+                res.forEach((item)=>{
+                    item._online = item.LastTicks < 15000;
+                    item._manager = item.Manageable && item._online;
+                });
                 state.nodes = res;
                 nodes.value = res;
                 state.timer = setTimeout(_setRelaySubscribe,1000);

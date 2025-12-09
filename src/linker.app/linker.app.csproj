@@ -26,7 +26,7 @@
 		<ApplicationId>com.snltty.linker.app</ApplicationId>
 
 		<Title>linker.app</Title>
-		<Version>1.9.6</Version>
+		<Version>1.9.7</Version>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Copyright>snltty</Copyright>
@@ -36,7 +36,7 @@
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
 
 		<!-- Versions -->
-		<ApplicationDisplayVersion>1.9.6</ApplicationDisplayVersion>
+		<ApplicationDisplayVersion>1.9.7</ApplicationDisplayVersion>
 		<ApplicationVersion>1</ApplicationVersion>
 
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">11.0</SupportedOSPlatformVersion>

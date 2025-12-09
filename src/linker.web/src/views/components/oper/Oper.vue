@@ -12,7 +12,7 @@
                                     <TransportOper :item="scope.row"></TransportOper>
                                 </template>
                                 <el-col :span="12">
-                                     <el-dropdown size="small" >
+                                     <el-dropdown size="small" v-if="scope.row.MachineId">
                                         <div class="dropdown">
                                             <span>...</span>
                                             <el-icon class="el-icon--right">
