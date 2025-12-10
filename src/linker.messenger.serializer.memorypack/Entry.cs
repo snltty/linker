@@ -61,12 +61,14 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new UpdaterSyncInfoFormatter());
 
 
+            MemoryPackFormatterProvider.Register(new NodeShareInfoFormatter());
+
+
             MemoryPackFormatterProvider.Register(new RelayAskResultInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayCacheInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayMessageInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayServerNodeReportInfoFormatter());
             MemoryPackFormatterProvider.Register(new RelayServerNodeStoreInfoFormatter());
-            MemoryPackFormatterProvider.Register(new RelayServerNodeShareInfoFormatter());
 
             MemoryPackFormatterProvider.Register(new RelayServerNodeReportInfoFormatterOld());
             
@@ -90,7 +92,6 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new SForwardProxyInfoFormatter());
             MemoryPackFormatterProvider.Register(new SForwardServerNodeReportInfoFormatter());
             MemoryPackFormatterProvider.Register(new SForwardServerNodeStoreInfoFormatter());
-            MemoryPackFormatterProvider.Register(new SForwardServerNodeShareInfoFormatter());
             MemoryPackFormatterProvider.Register(new SForwardServerNodeReportInfoOldFormatter());
 
 

@@ -1,5 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.extends;
+using linker.messenger.node;
 using linker.messenger.sforward.messenger;
 using linker.messenger.signin;
 
@@ -13,18 +14,16 @@ namespace linker.messenger.sforward.server
         private readonly ISerializer serializer;
         private readonly IMessengerSender messengerSender;
         private readonly ISForwardServerWhiteListStore sForwardServerWhiteListStore;
-        private readonly ISForwardServerNodeStore sForwardServerNodeStore;
         private readonly SForwardServerConnectionTransfer sForwardServerConnectionTransfer;
         private readonly SForwardServerNodeReportTransfer sForwardServerNodeReportTransfer;
 
 
         public SForwardServerMasterTransfer(ISerializer serializer, IMessengerSender messengerSender, ISForwardServerWhiteListStore sForwardServerWhiteListStore,
-            ISForwardServerNodeStore sForwardServerNodeStore, SForwardServerConnectionTransfer sForwardServerConnectionTransfer, SForwardServerNodeReportTransfer sForwardServerNodeReportTransfer)
+            SForwardServerConnectionTransfer sForwardServerConnectionTransfer, SForwardServerNodeReportTransfer sForwardServerNodeReportTransfer)
         {
             this.serializer = serializer;
             this.messengerSender = messengerSender;
             this.sForwardServerWhiteListStore = sForwardServerWhiteListStore;
-            this.sForwardServerNodeStore = sForwardServerNodeStore;
             this.sForwardServerConnectionTransfer = sForwardServerConnectionTransfer;
             this.sForwardServerNodeReportTransfer = sForwardServerNodeReportTransfer;
         }
@@ -50,7 +49,7 @@ namespace linker.messenger.sforward.server
                 };
             }
 
-            List<SForwardWhiteListItem> sforward = await sForwardServerWhiteListStore.GetNodes(from.UserId, from.MachineId);
+            List<NodeWhiteListInfo> sforward = await sForwardServerWhiteListStore.GetNodes(from.UserId, from.MachineId);
             string target = string.IsNullOrWhiteSpace(info.Domain) ? info.RemotePort.ToString() : info.Domain;
             info.Super = from.Super;
 

@@ -1,6 +1,4 @@
 ﻿using linker.libs.web;
-using linker.messenger.relay.server;
-using linker.messenger.sforward.server;
 using linker.messenger.wlist.order;
 using Microsoft.Extensions.DependencyInjection;
 namespace linker.messenger.wlist
@@ -26,13 +24,9 @@ namespace linker.messenger.wlist
         {
             serviceCollection.AddSingleton<WhiteListServerMessenger>();
 
-
-            serviceCollection.AddSingleton<IRelayServerWhiteListStore, RelayWhiteListStore>();
-            serviceCollection.AddSingleton<ISForwardServerWhiteListStore, SForwardWhiteListStore>();
-
             serviceCollection.AddSingleton<OrderTransfer>();
             serviceCollection.AddSingleton<OrderAfdian>();
-            
+
 
             return serviceCollection;
         }

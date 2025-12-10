@@ -34,6 +34,7 @@ jobs:
         dotnet build ./src/linker.messenger.forward -c release
         dotnet build ./src/linker.messenger.listen -c release
         dotnet build ./src/linker.messenger.logger -c release
+        dotnet build ./src/linker.messenger.node -c release
         dotnet build ./src/linker.messenger.pcp -c release
         dotnet build ./src/linker.messenger.plan -c release
         dotnet build ./src/linker.messenger.relay -c release
@@ -67,6 +68,7 @@ jobs:
         dotnet pack ./src/linker.messenger.forward -c release
         dotnet pack ./src/linker.messenger.listen -c release
         dotnet pack ./src/linker.messenger.logger -c release
+        dotnet pack ./src/linker.messenger.node -c release
         dotnet pack ./src/linker.messenger.pcp -c release
         dotnet pack ./src/linker.messenger.plan -c release
         dotnet pack ./src/linker.messenger.relay -c release
@@ -101,6 +103,7 @@ jobs:
         dotnet nuget push ./src/linker.messenger.forward/bin/release/linker.messenger.forward.{{version}}.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{ secrets.NUGET_KEY }} --no-symbols
         dotnet nuget push ./src/linker.messenger.listen/bin/release/linker.messenger.listen.{{version}}.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{ secrets.NUGET_KEY }} --no-symbols
         dotnet nuget push ./src/linker.messenger.logger/bin/release/linker.messenger.logger.{{version}}.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{ secrets.NUGET_KEY }} --no-symbols
+        dotnet nuget push ./src/linker.messenger.node/bin/release/linker.messenger.node.{{version}}.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{ secrets.NUGET_KEY }} --no-symbols
         dotnet nuget push ./src/linker.messenger.pcp/bin/release/linker.messenger.pcp.{{version}}.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{ secrets.NUGET_KEY }} --no-symbols
         dotnet nuget push ./src/linker.messenger.plan/bin/release/linker.messenger.plan.{{version}}.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{ secrets.NUGET_KEY }} --no-symbols
         dotnet nuget push ./src/linker.messenger.relay/bin/release/linker.messenger.relay.{{version}}.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{ secrets.NUGET_KEY }} --no-symbols

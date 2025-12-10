@@ -26,12 +26,11 @@ namespace linker.messenger.sforward.messenger
         private readonly SForwardServerMasterTransfer sForwardServerMasterTransfer;
         private readonly SForwardServerNodeTransfer sForwardServerNodeTransfer;
         private readonly SForwardServerNodeReportTransfer sForwardServerNodeReportTransfer;
-        private readonly SForwardServerConnectionTransfer sForwardServerConnectionTransfer;
 
         public SForwardServerMessenger(SForwardProxy proxy, ISForwardServerCahing sForwardServerCahing, IMessengerSender sender,
             SignInServerCaching signCaching, SForwardValidatorTransfer validator, ISerializer serializer,
             SForwardServerMasterTransfer sForwardServerMasterTransfer, SForwardServerNodeTransfer sForwardServerNodeTransfer,
-            SForwardServerNodeReportTransfer sForwardServerNodeReportTransfer, SForwardServerConnectionTransfer sForwardServerConnectionTransfer)
+            SForwardServerNodeReportTransfer sForwardServerNodeReportTransfer)
         {
             this.proxy = proxy;
             proxy.WebConnect = WebConnect;
@@ -45,7 +44,6 @@ namespace linker.messenger.sforward.messenger
             this.sForwardServerMasterTransfer = sForwardServerMasterTransfer;
             this.sForwardServerNodeTransfer = sForwardServerNodeTransfer;
             this.sForwardServerNodeReportTransfer = sForwardServerNodeReportTransfer;
-            this.sForwardServerConnectionTransfer = sForwardServerConnectionTransfer;
 
             ClearTask();
 

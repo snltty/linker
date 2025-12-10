@@ -24,9 +24,11 @@
                                 </div>
                                 <div class="flex-1">
                                     <p class="flex">
-                                        <a :href="scope.row.Url" class="a-line" 
-                                        :class="{green:scope.row.Public}" target="_blank" 
-                                        :title="scope.row.Public?$t('server.relayPublic'):''"><strong>{{ scope.row.Name }}</strong></a>
+                                        <el-badge @click.stop type="success" :value="scope.row.MasterCount" :offset="[20, 10]">
+                                            <a :href="scope.row.Url" class="a-line" :class="{green:scope.row.Public}" target="_blank" >
+                                                <strong>{{ scope.row.Name }}</strong>
+                                            </a>  
+                                        </el-badge>
                                         <span class="flex-1"></span>
                                         <a href="javascript:;" class="protocol">
                                             <span v-if="(scope.row.Protocol & 1) == 1">tcp</span>
@@ -310,6 +312,6 @@ a.a-edit{
     
 }
 .gray{
-        filter: grayscale(100%);
-    }
+    filter: grayscale(100%);
+}
 </style>

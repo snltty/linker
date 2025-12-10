@@ -1,4 +1,5 @@
 ﻿using linker.libs.web;
+using linker.messenger.node;
 using linker.messenger.relay.client;
 using linker.messenger.relay.messenger;
 using linker.messenger.relay.server;
@@ -61,7 +62,7 @@ namespace linker.messenger.relay
             serviceCollection.AddSingleton<RelayServerReportResolver>();
             
             serviceCollection.AddSingleton<RelayServerResolver>();
-            serviceCollection.AddSingleton<RelayServerConnectionResolver>();
+            serviceCollection.AddSingleton<NodeConnectionResolver>();
             serviceCollection.AddSingleton<RelayServerConnectionTransfer>();
 
             serviceCollection.AddSingleton<IRelayServerCaching, RelayServerCachingMemory>();
@@ -84,7 +85,7 @@ namespace linker.messenger.relay
             {
                 serviceProvider.GetService<RelayServerReportResolver>(),
                 serviceProvider.GetService<RelayServerResolver>(),
-                serviceProvider.GetService<RelayServerConnectionResolver>(),
+                serviceProvider.GetService<NodeConnectionResolver>(),
             });
 
             RelayServerNodeTransfer relayServerNodeTransfer = serviceProvider.GetService<RelayServerNodeTransfer>();

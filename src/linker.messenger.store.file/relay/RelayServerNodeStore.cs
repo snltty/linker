@@ -1,46 +1,20 @@
 ﻿using linker.libs.extends;
+using linker.messenger.node;
 using linker.messenger.relay.server;
-using LiteDB;
+using linker.messenger.store.file.node;
 
 namespace linker.messenger.store.file.relay
 {
-    public sealed class RelayServerNodeStore : IRelayServerNodeStore
+    public sealed class RelayServerNodeStore : NodeStore<RelayServerNodeStoreInfo, RelayServerNodeReportInfo>
     {
-        private readonly ILiteCollection<RelayServerNodeStoreInfo> liteCollection;
-
+        public override string StoreName => "relay";
         private string md5 = string.Empty;
-        public RelayServerNodeStore(Storefactory storefactory, IRelayServerConfigStore relayServerConfigStore)
+        public RelayServerNodeStore(Storefactory storefactory, INodeConfigStore<RelayServerConfigInfo> relayServerConfigStore) : base(storefactory)
         {
-            liteCollection = storefactory.GetCollection<RelayServerNodeStoreInfo>("relay_server_master");
             md5 = relayServerConfigStore.Config.NodeId.Md5();
         }
 
-        public async Task<bool> Add(RelayServerNodeStoreInfo info)
-        {
-            if (liteCollection.FindOne(c => c.NodeId == info.NodeId) != null)
-            {
-                return false;
-            }
-            liteCollection.Insert(info);
-            return await Task.FromResult(true).ConfigureAwait(false);
-        }
-
-        public async Task<bool> Delete(string nodeId)
-        {
-            return await Task.FromResult(liteCollection.DeleteMany(c => c.NodeId == nodeId) > 0).ConfigureAwait(false);
-        }
-
-        public async Task<List<RelayServerNodeStoreInfo>> GetAll()
-        {
-            return await Task.FromResult(liteCollection.FindAll().ToList()).ConfigureAwait(false);
-        }
-
-        public async Task<RelayServerNodeStoreInfo> GetByNodeId(string nodeId)
-        {
-            return await Task.FromResult(liteCollection.FindOne(c => c.NodeId == nodeId)).ConfigureAwait(false);
-        }
-
-        public async Task<bool> Report(RelayServerNodeReportInfo info)
+        public override async Task<bool> Report(RelayServerNodeReportInfo info)
         {
             int length = liteCollection.UpdateMany(p => new RelayServerNodeStoreInfo
             {
@@ -57,7 +31,7 @@ namespace linker.messenger.store.file.relay
                 Name = info.Name,
                 Protocol = info.Protocol,
                 MasterKey = info.MasterKey,
-                Masters = info.Masters,
+                MasterCount = info.MasterCount,
                 //是我初始化的，可以管理
                 Manageable = info.MasterKey == md5
             }, c => c.NodeId == info.NodeId);
@@ -65,7 +39,7 @@ namespace linker.messenger.store.file.relay
             return await Task.FromResult(length > 0).ConfigureAwait(false);
         }
 
-        public async Task<bool> Update(RelayServerNodeStoreInfo info)
+        public override async Task<bool> Update(RelayServerNodeStoreInfo info)
         {
             int length = liteCollection.UpdateMany(p => new RelayServerNodeStoreInfo
             {

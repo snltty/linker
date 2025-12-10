@@ -1,46 +1,22 @@
 ﻿using linker.libs.extends;
+using linker.messenger.node;
+using linker.messenger.relay.server;
 using linker.messenger.sforward.server;
+using linker.messenger.store.file.node;
 using LiteDB;
 
 namespace linker.messenger.store.file.sforward
 {
-    public sealed class SForwardServerNodeStore : ISForwardServerNodeStore
+    public sealed class SForwardServerNodeStore : NodeStore<SForwardServerNodeStoreInfo, SForwardServerNodeReportInfo>
     {
-        private readonly ILiteCollection<SForwardServerNodeStoreInfo> liteCollection;
-
+        public override string StoreName => "sforward";
         private string md5 = string.Empty;
-        public SForwardServerNodeStore(Storefactory storefactory, ISForwardServerConfigStore SForwardServerConfigStore)
+        public SForwardServerNodeStore(Storefactory storefactory, INodeConfigStore<SForwardServerConfigInfo> nodeConfigStore) : base(storefactory)
         {
-            liteCollection = storefactory.GetCollection<SForwardServerNodeStoreInfo>("SForward_server_master");
-            md5 = SForwardServerConfigStore.Config.NodeId.Md5();
+            md5 = nodeConfigStore.Config.NodeId.Md5();
         }
 
-        public async Task<bool> Add(SForwardServerNodeStoreInfo info)
-        {
-            if (liteCollection.FindOne(c => c.NodeId == info.NodeId) != null)
-            {
-                return false;
-            }
-            liteCollection.Insert(info);
-            return await Task.FromResult(true).ConfigureAwait(false);
-        }
-
-        public async Task<bool> Delete(string nodeId)
-        {
-            return await Task.FromResult(liteCollection.DeleteMany(c => c.NodeId == nodeId) > 0).ConfigureAwait(false);
-        }
-
-        public async Task<List<SForwardServerNodeStoreInfo>> GetAll()
-        {
-            return await Task.FromResult(liteCollection.FindAll().ToList()).ConfigureAwait(false);
-        }
-
-        public async Task<SForwardServerNodeStoreInfo> GetByNodeId(string nodeId)
-        {
-            return await Task.FromResult(liteCollection.FindOne(c => c.NodeId == nodeId)).ConfigureAwait(false);
-        }
-
-        public async Task<bool> Report(SForwardServerNodeReportInfo info)
+        public override async Task<bool> Report(SForwardServerNodeReportInfo info)
         {
             int length = liteCollection.UpdateMany(p => new SForwardServerNodeStoreInfo
             {
@@ -56,7 +32,7 @@ namespace linker.messenger.store.file.sforward
                 DataRemain = info.DataRemain,
                 Name = info.Name,
                 MasterKey = info.MasterKey,
-                Masters = info.Masters,
+                MasterCount = info.MasterCount,
                 //是我初始化的，可以管理
                 Manageable = info.MasterKey == md5,
                 Domain = info.Domain,
@@ -67,7 +43,7 @@ namespace linker.messenger.store.file.sforward
             return await Task.FromResult(length > 0).ConfigureAwait(false);
         }
 
-        public async Task<bool> Update(SForwardServerNodeStoreInfo info)
+        public override async Task<bool> Update(SForwardServerNodeStoreInfo info)
         {
             int length = liteCollection.UpdateMany(p => new SForwardServerNodeStoreInfo
             {

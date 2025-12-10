@@ -3,15 +3,15 @@ using linker.libs.extends;
 using System.Net;
 using System.Net.Sockets;
 
-namespace linker.messenger.sforward.server
+namespace linker.messenger.node
 {
-    public class SForwardServerConnectionResolver : IResolver
+    public class NodeConnectionResolver : IResolver
     {
-        public byte Type => (byte)ResolverType.SForwardConnection;
+        public virtual byte Type => (byte)ResolverType.NodeConnection;
 
         private readonly IMessengerResolver messengerResolver;
 
-        public SForwardServerConnectionResolver(IMessengerResolver messengerResolver)
+        public NodeConnectionResolver(IMessengerResolver messengerResolver)
         {
             this.messengerResolver = messengerResolver;
         }

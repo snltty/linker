@@ -1,6 +1,7 @@
 ﻿using linker.libs;
 using linker.libs.extends;
 using linker.libs.timer;
+using linker.messenger.node;
 using linker.messenger.sforward.server;
 using System.Buffers;
 using System.Collections.Concurrent;
@@ -25,7 +26,7 @@ namespace linker.plugins.sforward.proxy
 
         #region 服务端
 
-        private void StartUdp(int port, byte bufferSize, string groupid, SForwardTrafficCacheInfo cache)
+        private void StartUdp(int port, byte bufferSize, string groupid, TrafficCacheInfo cache)
         {
             Socket socketUdp = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             socketUdp.Bind(new IPEndPoint(IPAddress.Any, port));
@@ -74,12 +75,12 @@ namespace linker.plugins.sforward.proxy
                         if (token.Cache != null)
                         {
                             //流量限制
-                            if (sForwardServerNodeTransfer.AddBytes(token.Cache, bytesRead) == false)
+                            if (sforwardServerNodeTransfer.AddBytes(token.Cache, bytesRead) == false)
                             {
                                 continue;
                             }
                             //总速度
-                            if (sForwardServerNodeTransfer.NeedLimit(token.Cache) && sForwardServerNodeTransfer.TryLimitPacket(bytesRead) == false)
+                            if (sforwardServerNodeTransfer.NeedLimit(token.Cache) && sforwardServerNodeTransfer.TryLimitPacket(bytesRead) == false)
                             {
                                 continue;
                             }
@@ -334,7 +335,7 @@ namespace linker.plugins.sforward.proxy
         public string GroupId { get; set; }
         public Socket SourceSocket { get; set; }
 
-        public SForwardTrafficCacheInfo Cache { get; set; }
+        public TrafficCacheInfo Cache { get; set; }
 
         public void Clear()
         {

@@ -1,4 +1,5 @@
-﻿using linker.messenger.signin;
+﻿using linker.messenger.node;
+using linker.messenger.signin;
 
 namespace linker.messenger.sforward.server.validator
 {
@@ -9,10 +10,10 @@ namespace linker.messenger.sforward.server.validator
     {
         public string Name => "default";
 
-        private readonly ISForwardServerConfigStore sForwardServerConfigStore;
-        public SForwardValidator(ISForwardServerConfigStore sForwardServerConfigStore)
+        private readonly INodeConfigStore<SForwardServerConfigInfo>  nodeConfigStore;
+        public SForwardValidator(INodeConfigStore<SForwardServerConfigInfo> nodeConfigStore)
         {
-            this.sForwardServerConfigStore = sForwardServerConfigStore;
+            this.nodeConfigStore = nodeConfigStore;
         }
 
         public async Task<string> Validate(SignCacheInfo signCacheInfo, SForwardAddInfo sForwardAddInfo)
@@ -30,7 +31,7 @@ namespace linker.messenger.sforward.server.validator
                 return true;
             }
 
-            string ports = sForwardServerConfigStore.Config.TunnelPorts;
+            string ports = nodeConfigStore.Config.TunnelPorts;
             return string.IsNullOrWhiteSpace(ports)
                 || $",{ports},".Contains($",{port},")
                 || ports.Split(',').Where(c => c.Contains('-')).Any(c =>

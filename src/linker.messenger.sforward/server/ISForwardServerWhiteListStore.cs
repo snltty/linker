@@ -1,29 +1,25 @@
-﻿namespace linker.messenger.sforward.server
+﻿using linker.messenger.node;
+
+namespace linker.messenger.sforward.server
 {
     /// <summary>
     /// 白名单接口
     /// </summary>
-    public interface ISForwardServerWhiteListStore
+    public interface ISForwardServerWhiteListStore : INodeWhiteListStore
     {
-        /// <summary>
-        /// 获取白名单
-        /// </summary>
-        /// <param name="userid"></param>
-        /// <returns></returns>
-        public Task<List<SForwardWhiteListItem>> GetNodes(string userid, string machineid);
     }
 
     public sealed class SForwardServerWhiteListStore : ISForwardServerWhiteListStore
     {
-        public async Task<List<SForwardWhiteListItem>> GetNodes(string userid, string machineid)
-        {
-            return await Task.FromResult(new List<SForwardWhiteListItem>());
-        }
-    }
+        public string TypeName => "SForward";
 
-    public sealed class SForwardWhiteListItem
-    {
-        public string[] Nodes { get; set; } = [];
-        public double Bandwidth { get; set; } = 0;
+        public async Task<List<NodeWhiteListInfo>> GetNodes(string userid, string machineid)
+        {
+            return await Task.FromResult(new List<NodeWhiteListInfo>());
+        }
+        public async Task<List<double>> GetBandwidth(string userid, string fromMachineId, string toMachineId, string nodeid)
+        {
+            return await Task.FromResult(new List<double>());
+        }
     }
 }

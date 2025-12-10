@@ -1,6 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.extends;
-using linker.messenger.sforward.server;
+using linker.messenger.node;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net;
@@ -14,7 +14,7 @@ namespace linker.plugins.sforward.proxy
         private readonly ConcurrentDictionary<int, AsyncUserToken> tcpListens = new ConcurrentDictionary<int, AsyncUserToken>();
         private readonly ConcurrentDictionary<ulong, TaskCompletionSource<Socket>> tcpConnections = new ConcurrentDictionary<ulong, TaskCompletionSource<Socket>>();
         private readonly ConcurrentDictionary<ulong, AsyncUserToken> httpConnections = new ConcurrentDictionary<ulong, AsyncUserToken>();
-        private readonly ConcurrentDictionary<string, SForwardTrafficCacheInfo> httpCaches = new ConcurrentDictionary<string, SForwardTrafficCacheInfo>();
+        private readonly ConcurrentDictionary<string,TrafficCacheInfo> httpCaches = new ConcurrentDictionary<string, TrafficCacheInfo>();
 
         public Func<int, ulong, Task<string>> TunnelConnect { get; set; } = async (port, id) => { return await Task.FromResult(string.Empty).ConfigureAwait(false); };
         public Func<string, int, ulong, Task<string>> WebConnect { get; set; } = async (host, port, id) => { return await Task.FromResult(string.Empty).ConfigureAwait(false); };
@@ -22,7 +22,7 @@ namespace linker.plugins.sforward.proxy
         #region 服务端
 
 
-        private void StartTcp(int port, bool isweb, byte bufferSize, string groupid, SForwardTrafficCacheInfo cache)
+        private void StartTcp(int port, bool isweb, byte bufferSize, string groupid, TrafficCacheInfo cache)
         {
             IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, port);
             Socket socket = new Socket(localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
@@ -127,7 +127,7 @@ namespace linker.plugins.sforward.proxy
                 }
 
                 string key = token.ListenPort.ToString();
-                SForwardTrafficCacheInfo cache = token.Cache;
+                TrafficCacheInfo cache = token.Cache;
                 //是web的，去获取host请求头，匹配不同的服务
                 if (token.IsWeb)
                 {
@@ -209,7 +209,7 @@ namespace linker.plugins.sforward.proxy
             {
                 if (userToken.Cache != null)
                 {
-                    sForwardServerNodeTransfer.RemoveTrafficCache(userToken.Cache.Cache.FlowId);
+                    sforwardServerNodeTransfer.RemoveTrafficCache(userToken.Cache.Cache.FlowId);
                 }
                 CloseClientSocket(userToken);
             }
@@ -248,21 +248,21 @@ namespace linker.plugins.sforward.proxy
         {
             if (host.Contains('.') == false)
             {
-                host = $"{host}.{sForwardServerNodeTransfer.Config.Domain}";
+                host = $"{host}.{sforwardServerNodeTransfer.Config.Domain}";
             }
 
-            SForwardTrafficCacheInfo sForwardTrafficCacheInfo = sForwardServerNodeTransfer.AddTrafficCache(super, bandwidth);
+            TrafficCacheInfo sForwardTrafficCacheInfo = sforwardServerNodeTransfer.AddTrafficCache(super, bandwidth);
             httpCaches.AddOrUpdate(host, sForwardTrafficCacheInfo, (a, b) => sForwardTrafficCacheInfo);
         }
         public void RemoveHttp(string host)
         {
             if (host.Contains('.') == false)
             {
-                host = $"{host}.{sForwardServerNodeTransfer.Config.Domain}";
+                host = $"{host}.{sforwardServerNodeTransfer.Config.Domain}";
             }
             if (httpCaches.TryRemove(host, out var cache))
             {
-                sForwardServerNodeTransfer.RemoveTrafficCache(cache.Cache.FlowId);
+                sforwardServerNodeTransfer.RemoveTrafficCache(cache.Cache.FlowId);
             }
             foreach (var item in httpConnections.Where(c => c.Value.Host == host).Select(c => c.Key).ToList())
             {
@@ -347,7 +347,7 @@ namespace linker.plugins.sforward.proxy
         /// <param name="source"></param>
         /// <param name="target"></param>
         /// <returns></returns>
-        private async Task CopyToAsync(string key, string groupid, Memory<byte> buffer, Socket source, Socket target, SForwardTrafficCacheInfo trafficCacheInfo = null)
+        private async Task CopyToAsync(string key, string groupid, Memory<byte> buffer, Socket source, Socket target,TrafficCacheInfo trafficCacheInfo = null)
         {
             try
             {
@@ -357,21 +357,21 @@ namespace linker.plugins.sforward.proxy
                     if (trafficCacheInfo != null)
                     {
                         //流量限制
-                        if (sForwardServerNodeTransfer.AddBytes(trafficCacheInfo, bytesRead) == false)
+                        if (sforwardServerNodeTransfer.AddBytes(trafficCacheInfo, bytesRead) == false)
                         {
                             source.SafeClose();
                             break;
                         }
 
                         //总速度
-                        if (sForwardServerNodeTransfer.NeedLimit(trafficCacheInfo))
+                        if (sforwardServerNodeTransfer.NeedLimit(trafficCacheInfo))
                         {
                             int length = bytesRead;
-                            sForwardServerNodeTransfer.TryLimit(ref length);
+                            sforwardServerNodeTransfer.TryLimit(ref length);
                             while (length > 0)
                             {
                                 await Task.Delay(30).ConfigureAwait(false);
-                                sForwardServerNodeTransfer.TryLimit(ref length);
+                                sforwardServerNodeTransfer.TryLimit(ref length);
                             }
                         }
                         //单个速度
@@ -417,7 +417,7 @@ namespace linker.plugins.sforward.proxy
 
         public byte BufferSize { get; set; }
 
-        public SForwardTrafficCacheInfo Cache { get; set; }
+        public TrafficCacheInfo Cache { get; set; }
 
         public void Clear()
         {

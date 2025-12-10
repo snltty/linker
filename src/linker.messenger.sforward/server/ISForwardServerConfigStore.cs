@@ -1,47 +1,10 @@
 ﻿using linker.libs.extends;
+using linker.messenger.node;
 using System.Net;
 using System.Text.Json.Serialization;
 
 namespace linker.messenger.sforward.server
 {
-    public interface ISForwardServerConfigStore
-    {
-        public int ServicePort { get; }
-        /// <summary>
-        /// 节点信息
-        /// </summary>
-        public SForwardServerConfigInfo Config { get; }
-
-        /// <summary>
-        /// 设置
-        /// </summary>
-        /// <param name="config"></param>
-        public void SetInfo(SForwardServerConfigInfo config);
-
-        /// <summary>
-        /// 设置月份
-        /// </summary>
-        /// <param name="month"></param>
-        public void SetDataMonth(int month);
-        /// <summary>
-        /// 设置剩余流量
-        /// </summary>
-        /// <param name="value"></param>
-        public void SetDataRemain(long value);
-
-        public void SetShareKey(string shareKey);
-        public void SetMasterKey(string masterKey);
-
-        /// <summary>
-        /// 提交保存
-        /// </summary>
-        public void Confirm();
-    }
-
-
-
-
-
     public class SForwardServerNodeInfo
     {
         private string nodeId = Guid.NewGuid().ToString().ToUpper();
@@ -64,7 +27,7 @@ namespace linker.messenger.sforward.server
         public string Logo { get; set; } = "https://linker.snltty.com/img/logo.png";
     }
 
-    public sealed class SForwardServerConfigInfo : SForwardServerNodeInfo
+    public sealed class SForwardServerConfigInfo : SForwardServerNodeInfo,INodeConfigBase
     {
         [SaveJsonIgnore]
         public DistributedInfoOld Distributed { get; set; } = new DistributedInfoOld { };
@@ -73,22 +36,21 @@ namespace linker.messenger.sforward.server
         public string MasterKey { get; set; } = string.Empty;
         public int DataMonth { get; set; }
         public string Host { get; set; } = string.Empty;
-
     }
 
-    public class SForwardServerNodeReportInfo : SForwardServerNodeInfo
+    public class SForwardServerNodeReportInfo : SForwardServerNodeInfo,INodeReportBase
     {
         public string MasterKey { get; set; } = string.Empty;
         public string Version { get; set; } = string.Empty;
         public int ConnectionsRatio { get; set; }
         public double BandwidthRatio { get; set; }
 
-        public IPEndPoint[] Masters { get; set; } = Array.Empty<IPEndPoint>();
+        public int MasterCount { get; set; }
 
         public string Host { get; set; } = string.Empty;
     }
 
-    public sealed class SForwardServerNodeStoreInfo : SForwardServerNodeReportInfo
+    public sealed class SForwardServerNodeStoreInfo : SForwardServerNodeReportInfo,INodeStoreBase
     {
         public int Id { get; set; }
 
@@ -102,18 +64,6 @@ namespace linker.messenger.sforward.server
         public bool Manageable { get; set; }
         public string ShareKey { get; set; } = string.Empty;
     }
-
-
-    public class SForwardServerNodeShareInfo
-    {
-        public string NodeId { get; set; } = string.Empty;
-        public string Host { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
-        public string SystemId { get; set; } = string.Empty;
-
-    }
-
-
 
     public sealed class DistributedInfoOld
     {
@@ -133,8 +83,6 @@ namespace linker.messenger.sforward.server
         public int MaxGbTotalMonth { get; set; }
         public string Url { get; set; } = "https://linker-doc.snltty.com";
     }
-
-
     public partial class SForwardServerNodeReportInfoOld
     {
         public string Id { get; set; } = string.Empty;

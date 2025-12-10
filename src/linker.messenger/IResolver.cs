@@ -40,14 +40,9 @@ namespace linker.messenger
         SForwardReport = 8,
 
         /// <summary>
-        /// 中继联机
+        /// 节点联机
         /// </summary>
-        RelayConnection = 9,
-
-        /// <summary>
-        /// 穿透联机
-        /// </summary>
-        SForwardConnection = 10,
+        NodeConnection = 9,
     }
     public interface IResolver
     {

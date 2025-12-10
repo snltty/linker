@@ -1,4 +1,5 @@
 ﻿
+using linker.messenger.node;
 using linker.messenger.signin;
 
 namespace linker.messenger.relay.server
@@ -58,19 +59,5 @@ namespace linker.messenger.relay.server
             return null;
         }
 
-    }
-
-    public sealed partial class RelayCacheInfo
-    {
-        public ulong FlowId { get; set; }
-        public string FromId { get; set; }
-        public string FromName { get; set; }
-        public string ToId { get; set; }
-        public string ToName { get; set; }
-        public string GroupId { get; set; }
-        public bool Super { get; set; }
-        public double Bandwidth { get; set; }
-
-        public string UserId { get; set; } = string.Empty;
     }
 }

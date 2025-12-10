@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.messenger.node;
 using linker.messenger.sforward.server;
 using System.Text;
 namespace linker.plugins.sforward.proxy
@@ -9,10 +10,10 @@ namespace linker.plugins.sforward.proxy
         private readonly NumberSpace ns = new NumberSpace(65537);
         private byte[] flagBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.sforward");
 
-        private readonly SForwardServerNodeTransfer sForwardServerNodeTransfer;
-        public SForwardProxy(SForwardServerNodeTransfer sForwardServerNodeTransfer)
+        private readonly SForwardServerNodeTransfer sforwardServerNodeTransfer;
+        public SForwardProxy(SForwardServerNodeTransfer sforwardServerNodeTransfer)
         {
-            this.sForwardServerNodeTransfer = sForwardServerNodeTransfer;
+            this.sforwardServerNodeTransfer = sforwardServerNodeTransfer;
             UdpTask();
            
         }
@@ -25,7 +26,7 @@ namespace linker.plugins.sforward.proxy
         {
             try
             {
-                SForwardTrafficCacheInfo sForwardTrafficCacheInfo = sForwardServerNodeTransfer.AddTrafficCache(super, bandwidth);
+                TrafficCacheInfo sForwardTrafficCacheInfo = sforwardServerNodeTransfer.AddTrafficCache(super, bandwidth);
                 StartTcp(port, false, bufferSize, groupid, sForwardTrafficCacheInfo);
                 StartUdp(port, bufferSize, groupid, sForwardTrafficCacheInfo);
                 return string.Empty;

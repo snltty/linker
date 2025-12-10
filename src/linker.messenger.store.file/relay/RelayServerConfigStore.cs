@@ -1,63 +1,37 @@
 ﻿using linker.libs;
 using linker.messenger.relay.server;
+using linker.messenger.store.file.node;
 
 namespace linker.messenger.store.file.relay
 {
-    public sealed class RelayServerConfigStore : IRelayServerConfigStore
+    public sealed class RelayServerConfigStore : NodeConfigStore<RelayServerConfigInfo>
     {
-        public int ServicePort => config.Data.Server.ServicePort;
-        public RelayServerConfigInfo Config => config.Data.Server.Relay;
+        public override RelayServerConfigInfo Config => config.Data.Server.Relay;
 
         private readonly FileConfig config;
-        public RelayServerConfigStore(FileConfig config)
+        public RelayServerConfigStore(FileConfig config) : base(config)
         {
-            this.config = config;
-
-            if (string.IsNullOrWhiteSpace(Config.Distributed.Node.Id) == false)
             {
-                Config.NodeId = Config.Distributed.Node.Id;
-                Config.Connections = Config.Distributed.Node.MaxConnection;
-                Config.DataRemain = Config.Distributed.Node.MaxGbTotalLastBytes;
-                Config.DataMonth = Config.Distributed.Node.MaxGbTotalMonth;
-                Config.Bandwidth = (int)Config.Distributed.Node.MaxBandwidthTotal;
-                Config.DataEachMonth = (int)Config.Distributed.Node.MaxGbTotal;
-                Config.Name = Config.Distributed.Node.Name;
-                Config.Url = Config.Distributed.Node.Url;
+                this.config = config;
 
-                Config.Host = NetworkHelper.GetEndPoint(Config.Distributed.Node.Host, ServicePort).Address.ToString();
+                if (string.IsNullOrWhiteSpace(Config.Distributed.Node.Id) == false)
+                {
+                    Config.NodeId = Config.Distributed.Node.Id;
+                    Config.Connections = Config.Distributed.Node.MaxConnection;
+                    Config.DataRemain = Config.Distributed.Node.MaxGbTotalLastBytes;
+                    Config.DataMonth = Config.Distributed.Node.MaxGbTotalMonth;
+                    Config.Bandwidth = (int)Config.Distributed.Node.MaxBandwidthTotal;
+                    Config.DataEachMonth = (int)Config.Distributed.Node.MaxGbTotal;
+                    Config.Name = Config.Distributed.Node.Name;
+                    Config.Url = Config.Distributed.Node.Url;
 
-                Config.Distributed.Node.Id = string.Empty;
-                config.Data.Update();
+                    Config.Host = NetworkHelper.GetEndPoint(Config.Distributed.Node.Host, ServicePort).Address.ToString();
+
+                    Config.Distributed.Node.Id = string.Empty;
+                    Confirm();
+                }
             }
-        }
 
-        public void Confirm()
-        {
-            config.Data.Update();
-        }
-
-        public void SetInfo(RelayServerConfigInfo node)
-        {
-            config.Data.Server.Relay = node;
-        }
-        public void SetDataRemain(long value)
-        {
-            config.Data.Server.Relay.DataRemain = value;
-        }
-
-        public void SetDataMonth(int month)
-        {
-            config.Data.Server.Relay.DataMonth = month;
-        }
-
-        public void SetShareKey(string shareKey)
-        {
-            config.Data.Server.Relay.ShareKey = shareKey;
-        }
-
-        public void SetMasterKey(string masterKey)
-        {
-            config.Data.Server.Relay.MasterKey = masterKey;
         }
     }
 }

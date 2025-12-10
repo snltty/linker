@@ -1,41 +1,31 @@
 ﻿using linker.libs;
-using linker.libs.timer;
+using linker.messenger.node;
 using linker.messenger.relay.messenger;
 using linker.tunnel.connection;
 using linker.tunnel.transport;
-using System.Collections.Concurrent;
 
 namespace linker.messenger.relay.server
 {
     /// <summary>
     /// 中继节点操作
     /// </summary>
-    public class RelayServerNodeTransfer
+    public class RelayServerNodeTransfer : NodeTransfer<RelayServerConfigInfo, RelayServerNodeStoreInfo, RelayServerNodeReportInfo>
     {
-        private RelayServerConfigInfo Config => relayServerNodeReportTransfer.Config;
-
-
-        private readonly RelaySpeedLimit limitTotal = new RelaySpeedLimit();
-        private readonly ConcurrentDictionary<ulong, RelayTrafficCacheInfo> trafficDict = new();
-
         private readonly ISerializer serializer;
         private readonly IMessengerSender messengerSender;
 
-        private readonly IRelayServerConfigStore relayServerConfigStore;
         private readonly RelayServerConnectionTransfer relayServerConnectionTransfer;
         private readonly RelayServerNodeReportTransfer relayServerNodeReportTransfer;
 
-        public RelayServerNodeTransfer(ISerializer serializer, IMessengerSender messengerSender,
-            IRelayServerConfigStore relayServerConfigStore, RelayServerConnectionTransfer relayServerConnectionTransfer, RelayServerNodeReportTransfer relayServerNodeReportTransfer)
+        public RelayServerNodeTransfer(ISerializer serializer, IMessengerSender messengerSender, RelayServerConnectionTransfer relayServerConnectionTransfer,
+            ICommonStore commonStore, INodeConfigStore<RelayServerConfigInfo> nodeConfigStore,
+            RelayServerNodeReportTransfer  relayServerNodeReportTransfer)
+            : base(commonStore, nodeConfigStore, relayServerNodeReportTransfer)
         {
             this.serializer = serializer;
-            this.relayServerConfigStore = relayServerConfigStore;
             this.messengerSender = messengerSender;
             this.relayServerConnectionTransfer = relayServerConnectionTransfer;
             this.relayServerNodeReportTransfer = relayServerNodeReportTransfer;
-
-            limitTotal.SetLimit((uint)Math.Ceiling((Config.Bandwidth * 1024 * 1024) / 8.0));
-            TrafficTask();
         }
 
         public async Task<RelayCacheInfo> TryGetRelayCache(RelayMessageInfo relayMessage)
@@ -109,129 +99,5 @@ namespace linker.messenger.relay.server
             return res;
         }
 
-        /// <summary>
-        /// 增加连接数
-        /// </summary>
-        public void IncrementConnectionNum()
-        {
-            relayServerNodeReportTransfer.IncrementConnectionNum();
-        }
-        /// <summary>
-        /// 减少连接数
-        /// </summary>
-        public void DecrementConnectionNum()
-        {
-            relayServerNodeReportTransfer.DecrementConnectionNum();
-        }
-
-        /// <summary>
-        /// 是否需要总限速
-        /// </summary>
-        /// <returns></returns>
-        public bool NeedLimit(RelayTrafficCacheInfo relayCache)
-        {
-            return limitTotal.NeedLimit();
-        }
-        /// <summary>
-        /// 总限速
-        /// </summary>
-        /// <param name="length"></param>
-        /// <returns></returns>
-        public bool TryLimit(ref int length)
-        {
-            return limitTotal.TryLimit(ref length);
-        }
-        /// <summary>
-        /// 总限速
-        /// </summary>
-        /// <param name="length"></param>
-        /// <returns></returns>
-        public bool TryLimitPacket(int length)
-        {
-            return limitTotal.TryLimitPacket(length);
-        }
-
-
-        /// <summary>
-        /// 开始计算流量
-        /// </summary>
-        /// <param name="relayCache"></param>
-        public void AddTrafficCache(RelayTrafficCacheInfo relayCache)
-        {
-            SetLimit(relayCache);
-            trafficDict.TryAdd(relayCache.Cache.FlowId, relayCache);
-        }
-        /// <summary>
-        /// 取消计算流量
-        /// </summary>
-        /// <param name="relayCache"></param>
-        public void RemoveTrafficCache(RelayTrafficCacheInfo relayCache)
-        {
-            trafficDict.TryRemove(relayCache.Cache.FlowId, out _);
-        }
-        /// <summary>
-        /// 消耗流量
-        /// </summary>
-        /// <param name="length"></param>
-        /// <returns></returns>
-        public bool AddBytes(RelayTrafficCacheInfo cache, long length)
-        {
-            relayServerNodeReportTransfer.AddBytes(length);
-
-            if (Config.DataEachMonth == 0) return true;
-
-            Interlocked.Add(ref cache.Sendt, length);
-
-            return Config.DataRemain > 0;
-        }
-
-        /// <summary>
-        /// 设置限速
-        /// </summary>
-        /// <param name="relayCache"></param>
-        private void SetLimit(RelayTrafficCacheInfo cache)
-        {
-            if (cache.Cache.Bandwidth >= 0)
-            {
-                cache.Limit.SetLimit((uint)Math.Ceiling(cache.Cache.Bandwidth * 1024 * 1024 / 8.0));
-                return;
-            }
-
-            cache.Limit.SetLimit((uint)Math.Ceiling(Config.Bandwidth * 1024 * 1024 / 8.0));
-        }
-
-        private void ResetNodeBytes()
-        {
-            if (Config.DataEachMonth == 0) return;
-
-            foreach (var cache in trafficDict.Values)
-            {
-                long length = Interlocked.Exchange(ref cache.Sendt, 0);
-
-                if (Config.DataRemain >= length)
-                    relayServerConfigStore.SetDataRemain(Config.DataRemain - length);
-                else relayServerConfigStore.SetDataRemain(0);
-            }
-            if (Config.DataMonth != DateTime.Now.Month)
-            {
-                relayServerConfigStore.SetDataMonth(DateTime.Now.Month);
-                relayServerConfigStore.SetDataRemain((long)(Config.DataEachMonth * 1024 * 1024 * 1024));
-            }
-            relayServerConfigStore.Confirm();
-        }
-        private void TrafficTask()
-        {
-            TimerHelper.SetIntervalLong(() =>
-            {
-                try
-                {
-                    ResetNodeBytes();
-                }
-                catch (Exception ex)
-                {
-                    LoggerHelper.Instance.Error(ex);
-                }
-            }, 3000);
-        }
     }
 }

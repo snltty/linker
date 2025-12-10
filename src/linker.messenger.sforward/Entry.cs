@@ -1,5 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.web;
+using linker.messenger.node;
 using linker.messenger.plan;
 using linker.messenger.sforward.client;
 using linker.messenger.sforward.messenger;
@@ -32,7 +33,7 @@ namespace linker.messenger.sforward
             linker.messenger.api.IWebServer apiServer = serviceProvider.GetService<linker.messenger.api.IWebServer>();
             apiServer.AddPlugins(new List<IApiController> { serviceProvider.GetService<SForwardApiController>() });
 
-            SForwardClientTransfer sForwardClientTransfer = serviceProvider.GetService<SForwardClientTransfer>();
+            SForwardClientTransfer sforwardClientTransfer = serviceProvider.GetService<SForwardClientTransfer>();
 
             IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
             messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<SForwardClientMessenger>() });
@@ -60,7 +61,7 @@ namespace linker.messenger.sforward
             serviceCollection.AddSingleton<SForwardServerNodeTransfer>();
             serviceCollection.AddSingleton<SForwardServerReportResolver>();
 
-            serviceCollection.AddSingleton<SForwardServerConnectionResolver>();
+            serviceCollection.AddSingleton<NodeConnectionResolver>();
             serviceCollection.AddSingleton<SForwardServerConnectionTransfer>();
 
             serviceCollection.AddSingleton<SForwardServerNodeReportTransfer>();
@@ -74,25 +75,25 @@ namespace linker.messenger.sforward
             IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
             messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<SForwardServerMessenger>() });
 
-            SForwardValidatorTransfer sForwardValidatorTransfer = serviceProvider.GetService<SForwardValidatorTransfer>();
-            sForwardValidatorTransfer.AddValidators(new List<ISForwardValidator> { serviceProvider.GetService<SForwardValidator>() });
+            SForwardValidatorTransfer sforwardValidatorTransfer = serviceProvider.GetService<SForwardValidatorTransfer>();
+            sforwardValidatorTransfer.AddValidators(new List<ISForwardValidator> { serviceProvider.GetService<SForwardValidator>() });
 
             ResolverTransfer resolverTransfer = serviceProvider.GetService<ResolverTransfer>();
             resolverTransfer.AddResolvers(new List<IResolver>
             {
                 serviceProvider.GetService<SForwardServerReportResolver>(),
-                serviceProvider.GetService<SForwardServerConnectionResolver>(),
+                serviceProvider.GetService<NodeConnectionResolver>(),
             });
 
-            SForwardServerNodeTransfer relayServerNodeTransfer = serviceProvider.GetService<SForwardServerNodeTransfer>();
-            SForwardServerMasterTransfer relayServerMasterTransfer = serviceProvider.GetService<SForwardServerMasterTransfer>();
+            serviceProvider.GetService<SForwardServerNodeTransfer>();
+            serviceProvider.GetService<SForwardServerMasterTransfer>();
 
             SForwardProxy sForwardProxy = serviceProvider.GetService<SForwardProxy>();
-            ISForwardServerConfigStore sForwardServerStore = serviceProvider.GetService<ISForwardServerConfigStore>();
-            if (sForwardServerStore.Config.WebPort > 0)
+            INodeConfigStore<SForwardServerConfigInfo> sforwardServerStore = serviceProvider.GetService<INodeConfigStore<SForwardServerConfigInfo>>();
+            if (sforwardServerStore.Config.WebPort > 0)
             {
-                sForwardProxy.StartHttp(sForwardServerStore.Config.WebPort, 3 );
-                LoggerHelper.Instance.Debug($"start web forward in {sForwardServerStore.Config.WebPort}");
+                sForwardProxy.StartHttp(sforwardServerStore.Config.WebPort, 3 );
+                LoggerHelper.Instance.Debug($"start web forward in {sforwardServerStore.Config.WebPort}");
             }
 
             return serviceProvider;

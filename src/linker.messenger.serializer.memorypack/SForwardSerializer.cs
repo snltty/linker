@@ -503,12 +503,12 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         double BandwidthRatio => info.BandwidthRatio;
         [MemoryPackInclude]
-        IPEndPoint[] Masters => info.Masters;
+        int MasterCount => info.MasterCount;
 
 
         [MemoryPackConstructor]
         SerializableSForwardServerNodeReportInfo(string nodeId, string name, string host, string domain, int webport, string tunnelports, int connections, int bandwidth, int dataEachMonth,
-            long dataRemain, string url, string logo, string masterKey, string version, int connectionsRatio, double bandwidthRatio, IPEndPoint[] masters)
+            long dataRemain, string url, string logo, string masterKey, string version, int connectionsRatio, double bandwidthRatio,int masterCount)
         {
             var info = new SForwardServerNodeReportInfo
             {
@@ -528,7 +528,7 @@ namespace linker.messenger.serializer.memorypack
                 Version = version,
                 ConnectionsRatio = connectionsRatio,
                 BandwidthRatio = bandwidthRatio,
-                Masters = masters,
+                MasterCount = masterCount,
 
             };
             this.info = info;
@@ -579,7 +579,7 @@ namespace linker.messenger.serializer.memorypack
             value.Version = reader.ReadValue<string>();
             value.ConnectionsRatio = reader.ReadValue<int>();
             value.BandwidthRatio = reader.ReadValue<double>();
-            value.Masters = reader.ReadValue<IPEndPoint[]>();
+            value.MasterCount = reader.ReadValue<int>();
 
         }
     }
@@ -625,7 +625,7 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         double BandwidthRatio => info.BandwidthRatio;
         [MemoryPackInclude]
-        IPEndPoint[] Masters => info.Masters;
+       int MasterCount => info.MasterCount;
 
 
         [MemoryPackInclude]
@@ -642,7 +642,7 @@ namespace linker.messenger.serializer.memorypack
 
         [MemoryPackConstructor]
         SerializableSForwardServerNodeStoreInfo(string nodeId, string name, string host, string domain, int webport, string tunnelports, int connections, int bandwidth, int dataEachMonth,
-            long dataRemain, string url, string logo, string masterKey, string version, int connectionsRatio, double bandwidthRatio, IPEndPoint[] masters,
+            long dataRemain, string url, string logo, string masterKey, string version, int connectionsRatio, double bandwidthRatio,int masterCount,
            int id, int bandwidthEachConnection, bool Public, long lastTicks, bool manageable)
         {
             var info = new SForwardServerNodeStoreInfo
@@ -663,7 +663,7 @@ namespace linker.messenger.serializer.memorypack
                 Version = version,
                 ConnectionsRatio = connectionsRatio,
                 BandwidthRatio = bandwidthRatio,
-                Masters = masters,
+                MasterCount = masterCount,
                 Id = id,
 
                 BandwidthEach = bandwidthEachConnection,
@@ -719,7 +719,7 @@ namespace linker.messenger.serializer.memorypack
             value.Version = reader.ReadValue<string>();
             value.ConnectionsRatio = reader.ReadValue<int>();
             value.BandwidthRatio = reader.ReadValue<double>();
-            value.Masters = reader.ReadValue<IPEndPoint[]>();
+            value.MasterCount = reader.ReadValue<int>();
             value.Id = reader.ReadValue<int>();
 
             value.BandwidthEach = reader.ReadValue<int>();
@@ -729,71 +729,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-    [MemoryPackable]
-    public readonly partial struct SerializableSForwardServerNodeShareInfo
-    {
-        [MemoryPackIgnore]
-        public readonly SForwardServerNodeShareInfo info;
-
-        [MemoryPackInclude]
-        string NodeId => info.NodeId;
-
-        [MemoryPackInclude]
-        string Name => info.Name;
-        [MemoryPackInclude]
-        string Host => info.Host;
-        [MemoryPackInclude]
-        string SystemId => info.SystemId;
-
-        [MemoryPackConstructor]
-        SerializableSForwardServerNodeShareInfo(string nodeId, string name, string host, string systemid)
-        {
-            var info = new SForwardServerNodeShareInfo
-            {
-                NodeId = nodeId,
-                Host = host,
-                Name = name,
-                SystemId = systemid
-            };
-            this.info = info;
-        }
-
-        public SerializableSForwardServerNodeShareInfo(SForwardServerNodeShareInfo info)
-        {
-            this.info = info;
-        }
-    }
-    public class SForwardServerNodeShareInfoFormatter : MemoryPackFormatter<SForwardServerNodeShareInfo>
-    {
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref SForwardServerNodeShareInfo value)
-        {
-            if (value == null)
-            {
-                writer.WriteNullObjectHeader();
-                return;
-            }
-
-            writer.WritePackable(new SerializableSForwardServerNodeShareInfo(value));
-        }
-
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref SForwardServerNodeShareInfo value)
-        {
-            if (reader.PeekIsNull())
-            {
-                reader.Advance(1); // skip null block
-                value = null;
-                return;
-            }
-
-            value = new SForwardServerNodeShareInfo();
-            reader.TryReadObjectHeader(out byte count);
-            value.NodeId = reader.ReadValue<string>();
-            value.Name = reader.ReadValue<string>();
-            value.Host = reader.ReadValue<string>();
-            value.SystemId = reader.ReadValue<string>();
-        }
-    }
 
 
     [MemoryPackable]

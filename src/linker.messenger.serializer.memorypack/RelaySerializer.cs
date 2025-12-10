@@ -252,12 +252,12 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         double BandwidthRatio => info.BandwidthRatio;
         [MemoryPackInclude]
-        IPEndPoint[] Masters => info.Masters;
-        
+        int MasterCount => info.MasterCount;
+
 
         [MemoryPackConstructor]
         SerializableRelayServerNodeReportInfo(string nodeId, string name, string host, TunnelProtocolType protocol, int connections, int bandwidth, int dataEachMonth,
-            long dataRemain, string url, string logo, string masterKey, string version, int connectionsRatio, double bandwidthRatio, IPEndPoint[] masters)
+            long dataRemain, string url, string logo, string masterKey, string version, int connectionsRatio, double bandwidthRatio, int masterCount)
         {
             var info = new RelayServerNodeReportInfo
             {
@@ -274,7 +274,7 @@ namespace linker.messenger.serializer.memorypack
                 Version = version,
                 ConnectionsRatio = connectionsRatio,
                 BandwidthRatio = bandwidthRatio,
-                Masters = masters,
+                MasterCount = masterCount,
                 Host = host
             };
             this.info = info;
@@ -323,8 +323,8 @@ namespace linker.messenger.serializer.memorypack
             value.Version = reader.ReadValue<string>();
             value.ConnectionsRatio = reader.ReadValue<int>();
             value.BandwidthRatio = reader.ReadValue<double>();
-            value.Masters = reader.ReadValue<IPEndPoint[]>();
-           
+            value.MasterCount = reader.ReadValue<int>();
+
         }
     }
 
@@ -365,7 +365,7 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         double BandwidthRatio => info.BandwidthRatio;
         [MemoryPackInclude]
-        IPEndPoint[] Masters => info.Masters;
+        int MasterCount => info.MasterCount;
 
 
         [MemoryPackInclude]
@@ -381,9 +381,9 @@ namespace linker.messenger.serializer.memorypack
         bool Manageable => info.Manageable;
 
         [MemoryPackConstructor]
-        SerializableRelayServerNodeStoreInfo(string nodeId, string name,string host, TunnelProtocolType protocol, int connections, int bandwidth, int dataEachMonth,
-            long dataRemain, string url, string logo, string masterKey, string version, int connectionsRatio, double bandwidthRatio, IPEndPoint[] masters,
-           int id,  int bandwidthEachConnection, bool Public, long lastTicks, bool manageable)
+        SerializableRelayServerNodeStoreInfo(string nodeId, string name, string host, TunnelProtocolType protocol, int connections, int bandwidth, int dataEachMonth,
+            long dataRemain, string url, string logo, string masterKey, string version, int connectionsRatio, double bandwidthRatio, int masterCount,
+           int id, int bandwidthEachConnection, bool Public, long lastTicks, bool manageable)
         {
             var info = new RelayServerNodeStoreInfo
             {
@@ -400,7 +400,7 @@ namespace linker.messenger.serializer.memorypack
                 Version = version,
                 ConnectionsRatio = connectionsRatio,
                 BandwidthRatio = bandwidthRatio,
-                Masters = masters,
+                MasterCount = masterCount,
                 Id = id,
                 Host = host,
                 BandwidthEach = bandwidthEachConnection,
@@ -454,79 +454,13 @@ namespace linker.messenger.serializer.memorypack
             value.Version = reader.ReadValue<string>();
             value.ConnectionsRatio = reader.ReadValue<int>();
             value.BandwidthRatio = reader.ReadValue<double>();
-            value.Masters = reader.ReadValue<IPEndPoint[]>();
+            value.MasterCount = reader.ReadValue<int>();
             value.Id = reader.ReadValue<int>();
-         
+
             value.BandwidthEach = reader.ReadValue<int>();
             value.Public = reader.ReadValue<bool>();
             value.LastTicks = reader.ReadValue<long>();
             value.Manageable = reader.ReadValue<bool>();
-        }
-    }
-
-
-    [MemoryPackable]
-    public readonly partial struct SerializableRelayServerNodeShareInfo
-    {
-        [MemoryPackIgnore]
-        public readonly RelayServerNodeShareInfo info;
-
-        [MemoryPackInclude]
-        string NodeId => info.NodeId;
-      
-        [MemoryPackInclude]
-        string Name => info.Name;
-        [MemoryPackInclude]
-        string Host => info.Host;
-        [MemoryPackInclude]
-        string SystemId => info.SystemId;
-
-        [MemoryPackConstructor]
-        SerializableRelayServerNodeShareInfo(string nodeId, string name, string host, string systemid)
-        {
-            var info = new RelayServerNodeShareInfo
-            {
-                NodeId = nodeId,
-                Host = host,
-                Name = name,
-                SystemId = systemid
-            };
-            this.info = info;
-        }
-
-        public SerializableRelayServerNodeShareInfo(RelayServerNodeShareInfo info)
-        {
-            this.info = info;
-        }
-    }
-    public class RelayServerNodeShareInfoFormatter : MemoryPackFormatter<RelayServerNodeShareInfo>
-    {
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref RelayServerNodeShareInfo value)
-        {
-            if (value == null)
-            {
-                writer.WriteNullObjectHeader();
-                return;
-            }
-
-            writer.WritePackable(new SerializableRelayServerNodeShareInfo(value));
-        }
-
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref RelayServerNodeShareInfo value)
-        {
-            if (reader.PeekIsNull())
-            {
-                reader.Advance(1); // skip null block
-                value = null;
-                return;
-            }
-
-            value = new RelayServerNodeShareInfo();
-            reader.TryReadObjectHeader(out byte count);
-            value.NodeId = reader.ReadValue<string>();
-            value.Name = reader.ReadValue<string>();
-            value.Host = reader.ReadValue<string>();
-            value.SystemId = reader.ReadValue<string>();
         }
     }
 

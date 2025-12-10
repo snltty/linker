@@ -1,18 +1,17 @@
 ﻿using linker.libs;
 using linker.messenger.sforward.server;
+using linker.messenger.store.file.node;
 
 namespace linker.messenger.store.file.sforward
 {
-    public sealed class SForwardServerConfigStore : ISForwardServerConfigStore
+    public sealed class SForwardServerConfigStore : NodeConfigStore<SForwardServerConfigInfo>
     {
-        public int ServicePort => config.Data.Server.ServicePort;
-        public SForwardServerConfigInfo Config => config.Data.Server.SForward;
+        public override SForwardServerConfigInfo Config => config.Data.Server.SForward;
 
         private readonly FileConfig config;
-        public SForwardServerConfigStore(FileConfig config)
+        public SForwardServerConfigStore(FileConfig config) : base(config)
         {
             this.config = config;
-
             if (string.IsNullOrWhiteSpace(Config.Distributed.Node.Id) == false)
             {
                 Config.NodeId = Config.Distributed.Node.Id;
@@ -26,37 +25,9 @@ namespace linker.messenger.store.file.sforward
                 Config.Host = NetworkHelper.GetEndPoint(Config.Distributed.Node.Host, ServicePort).Address.ToString();
 
                 Config.Distributed.Node.Id = string.Empty;
-                config.Data.Update();
+                Confirm();
             }
         }
 
-        public void Confirm()
-        {
-            config.Data.Update();
-        }
-
-        public void SetInfo(SForwardServerConfigInfo node)
-        {
-            config.Data.Server.SForward = node;
-        }
-        public void SetDataRemain(long value)
-        {
-            config.Data.Server.SForward.DataRemain = value;
-        }
-
-        public void SetDataMonth(int month)
-        {
-            config.Data.Server.SForward.DataMonth = month;
-        }
-
-        public void SetShareKey(string shareKey)
-        {
-            config.Data.Server.SForward.ShareKey = shareKey;
-        }
-
-        public void SetMasterKey(string masterKey)
-        {
-            config.Data.Server.SForward.MasterKey = masterKey;
-        }
     }
 }

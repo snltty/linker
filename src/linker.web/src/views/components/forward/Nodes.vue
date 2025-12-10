@@ -24,7 +24,11 @@
                                 </div>
                                 <div class="flex-1">
                                     <p class="flex">
-                                        <a :href="scope.row.Url" class="a-line"  target="_blank"><strong>{{ scope.row.Name }}</strong></a>
+                                        <el-badge @click.stop type="success" :value="scope.row.MasterCount" :offset="[20, 10]">
+                                            <a :href="scope.row.Url" class="a-line"  target="_blank">
+                                                <strong>{{ scope.row.Name }}</strong>  
+                                             </a>
+                                        </el-badge>
                                     </p>
                                     <p class="flex">
                                         <span>{{ scope.row.Host }}</span>

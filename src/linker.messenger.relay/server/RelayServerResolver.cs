@@ -1,10 +1,11 @@
-﻿using System.Net.Sockets;
+﻿using linker.libs;
 using linker.libs.extends;
+using linker.messenger.node;
+using linker.tunnel.transport;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net;
-using linker.libs;
-using System.Buffers;
-using linker.tunnel.transport;
+using System.Net.Sockets;
 
 namespace linker.messenger.relay.server
 {
@@ -139,7 +140,7 @@ namespace linker.messenger.relay.server
                     LoggerHelper.Instance.Info($"relay server start {fromep} to {toep}");
 
                     string flowKey = relayMessage.Type == RelayMessengerType.Ask ? $"{relayMessage.FromId}->{relayMessage.ToId}" : $"{relayMessage.ToId}->{relayMessage.FromId}";
-                    RelayTrafficCacheInfo trafficCacheInfo = new RelayTrafficCacheInfo { Cache = relayCache, Sendt = 0, Limit = new RelaySpeedLimit(), Key = flowKey };
+                    RelayTrafficCacheInfo trafficCacheInfo = new RelayTrafficCacheInfo { Cache = relayCache, Sendt = 0, Limit = new SpeedLimit(), Key = flowKey };
                     relayServerNodeTransfer.AddTrafficCache(trafficCacheInfo);
                     relayServerNodeTransfer.IncrementConnectionNum();
                     await Task.WhenAll(CopyToAsync(trafficCacheInfo, socket, answerSocket), CopyToAsync(trafficCacheInfo, answerSocket, socket)).ConfigureAwait(false);
@@ -226,85 +227,18 @@ namespace linker.messenger.relay.server
         Ask = 0,
         Answer = 1,
     }
-    public class RelaySpeedLimit
+    public sealed partial class RelayCacheInfo : CacheInfo
     {
-        private uint relayLimit = 0;
-        private double relayLimitToken = 0;
-        private double relayLimitBucket = 0;
-        private long relayLimitTicks = Environment.TickCount64;
+        public string FromId { get; set; }
+        public string FromName { get; set; }
+        public string ToId { get; set; }
+        public string ToName { get; set; }
+        public string GroupId { get; set; }
 
-        public bool NeedLimit()
-        {
-            return relayLimit > 0;
-        }
-        public void SetLimit(uint bytes)
-        {
-            //每s多少字节
-            relayLimit = bytes;
-            //每ms多少字节
-            relayLimitToken = relayLimit / 1000.0;
-            //桶里有多少字节
-            relayLimitBucket = relayLimit;
-        }
-        public bool TryLimit(ref int length)
-        {
-            //0不限速
-            if (relayLimit == 0) return true;
-
-            lock (this)
-            {
-                long _relayLimitTicks = Environment.TickCount64;
-                //距离上次经过了多少ms
-                long relayLimitTicksTemp = _relayLimitTicks - relayLimitTicks;
-                relayLimitTicks = _relayLimitTicks;
-                //桶里增加多少字节
-                relayLimitBucket += relayLimitTicksTemp * relayLimitToken;
-                //桶溢出了
-                if (relayLimitBucket > relayLimit) relayLimitBucket = relayLimit;
-
-                //能全部消耗调
-                if (relayLimitBucket >= length)
-                {
-                    relayLimitBucket -= length;
-                    length = 0;
-                }
-                else
-                {
-                    //只能消耗一部分
-                    length -= (int)relayLimitBucket;
-                    relayLimitBucket = 0;
-                }
-            }
-            return true;
-        }
-        public bool TryLimitPacket(int length)
-        {
-            if (relayLimit == 0) return true;
-
-            lock (this)
-            {
-                long _relayLimitTicks = Environment.TickCount64;
-                long relayLimitTicksTemp = _relayLimitTicks - relayLimitTicks;
-                relayLimitTicks = _relayLimitTicks;
-                relayLimitBucket += relayLimitTicksTemp * relayLimitToken;
-                if (relayLimitBucket > relayLimit) relayLimitBucket = relayLimit;
-
-                if (relayLimitBucket >= length)
-                {
-                    relayLimitBucket -= length;
-                    return true;
-                }
-            }
-            return false;
-        }
+        public string UserId { get; set; } = string.Empty;
     }
-
-    public sealed class RelayTrafficCacheInfo
+    public sealed class RelayTrafficCacheInfo: TrafficCacheInfo
     {
-        public long Sendt;
-        public long SendtCache;
-        public RelaySpeedLimit Limit { get; set; }
-        public RelayCacheInfo Cache { get; set; }
-        public string Key { get; set; }
+        public new RelayCacheInfo Cache { get; set; }
     }
 }

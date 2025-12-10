@@ -1,4 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
 	<PropertyGroup>
 		<TargetFrameworks>net8.0</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
@@ -6,14 +7,14 @@
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<PublishAot>false</PublishAot>
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
-		<Title>linker messenger relay</Title>
+		<Title>linker messenger node</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>linker messenger relay</Description>
+		<Description>linker messenger node</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
-		<PackageReleaseNotes>linker messenger relay</PackageReleaseNotes>
+		<PackageReleaseNotes>linker messenger node</PackageReleaseNotes>
 		<Version>1.9.7</Version>
 		<AssemblyVersion>1.9.7</AssemblyVersion>
 		<FileVersion>1.9.7</FileVersion>
@@ -35,15 +36,8 @@
 		<DebugType>embedded</DebugType>
 	</PropertyGroup>
 	<ItemGroup>
-	  <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.0" />
-	</ItemGroup>
-	<ItemGroup>
-		<ProjectReference Include="..\..\linker.messenger.node\linker.messenger.node.csproj" />
-		<ProjectReference Include="..\linker.libs\linker.libs.csproj" />
-		<ProjectReference Include="..\linker.messenger.signin\linker.messenger.signin.csproj" />
-		<ProjectReference Include="..\linker.messenger.sync\linker.messenger.sync.csproj" />
-		<ProjectReference Include="..\linker.messenger\linker.messenger.csproj" />
-		<ProjectReference Include="..\linker.tunnel\linker.tunnel.csproj" />
+	  <ProjectReference Include="..\src\linker.libs\linker.libs.csproj" />
+	  <ProjectReference Include="..\src\linker.messenger\linker.messenger.csproj" />
 	</ItemGroup>
 
 </Project>

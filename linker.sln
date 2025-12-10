@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.10.35027.167
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.11222.15 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker", "src\linker\linker.csproj", "{267DE8BE-F91C-4CCB-9D58-D33FDA661126}"
 EndProject
@@ -70,6 +70,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.rapp", "src\linker.messenger.rapp\linker.messenger.rapp.csproj", "{B895C1DC-9C75-407D-98CE-5DB873F32278}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.wlist", "src\linker.messenger.wlist\linker.messenger.wlist.csproj", "{26550C65-0960-4BA3-9F83-BAC90DE9AA57}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "linker.messenger.node", "linker.messenger.node\linker.messenger.node.csproj", "{1A14DE99-3939-4E37-9FD5-9C467DF015EC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -495,6 +497,18 @@ Global
 		{26550C65-0960-4BA3-9F83-BAC90DE9AA57}.Release|x64.Build.0 = Release|Any CPU
 		{26550C65-0960-4BA3-9F83-BAC90DE9AA57}.Release|x86.ActiveCfg = Release|Any CPU
 		{26550C65-0960-4BA3-9F83-BAC90DE9AA57}.Release|x86.Build.0 = Release|Any CPU
+		{1A14DE99-3939-4E37-9FD5-9C467DF015EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A14DE99-3939-4E37-9FD5-9C467DF015EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A14DE99-3939-4E37-9FD5-9C467DF015EC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1A14DE99-3939-4E37-9FD5-9C467DF015EC}.Debug|x64.Build.0 = Debug|Any CPU
+		{1A14DE99-3939-4E37-9FD5-9C467DF015EC}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1A14DE99-3939-4E37-9FD5-9C467DF015EC}.Debug|x86.Build.0 = Debug|Any CPU
+		{1A14DE99-3939-4E37-9FD5-9C467DF015EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A14DE99-3939-4E37-9FD5-9C467DF015EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A14DE99-3939-4E37-9FD5-9C467DF015EC}.Release|x64.ActiveCfg = Release|Any CPU
+		{1A14DE99-3939-4E37-9FD5-9C467DF015EC}.Release|x64.Build.0 = Release|Any CPU
+		{1A14DE99-3939-4E37-9FD5-9C467DF015EC}.Release|x86.ActiveCfg = Release|Any CPU
+		{1A14DE99-3939-4E37-9FD5-9C467DF015EC}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,176 +1,35 @@
 ﻿using linker.libs;
-using linker.libs.extends;
-using linker.libs.timer;
+using linker.messenger.node;
 using linker.messenger.sforward.messenger;
-using System.Net;
-using System.Net.Sockets;
 
 namespace linker.messenger.sforward.server
 {
-    public sealed class SForwardServerNodeReportTransfer
+    public sealed class SForwardServerNodeReportTransfer : NodeReportTransfer<SForwardServerConfigInfo, SForwardServerNodeStoreInfo, SForwardServerNodeReportInfo>
     {
-        public SForwardServerConfigInfo Config => sForwardServerConfigStore.Config;
+        public override ushort MessengerIdSahre => (ushort)SForwardMessengerIds.Share;
+        public override ushort MessengerIdUpdateForward => (ushort)SForwardMessengerIds.UpdateForward;
+        public override ushort MessengerIdUpgradeForward => (ushort)SForwardMessengerIds.UpgradeForward;
+        public override ushort MessengerIdExitForward => (ushort)SForwardMessengerIds.ExitForward;
+        public override ushort MessengerIdReport => (ushort)SForwardMessengerIds.Report;
+        public override ushort MessengerIdSignIn => (ushort)SForwardMessengerIds.SignIn;
 
-        private int connectionNum = 0;
-        private ulong bytes = 0;
-        private ulong lastBytes = 0;
-        private string md5 = string.Empty;
+        private readonly ISForwardServerWhiteListStore sforwardServerWhiteListStore;
+        private readonly INodeConfigStore<SForwardServerConfigInfo> nodeConfigStore;
+        private readonly INodeStore<SForwardServerNodeStoreInfo, SForwardServerNodeReportInfo> nodeStore;
 
-        private readonly ICrypto crypto = CryptoFactory.CreateSymmetric(Helper.GlobalString);
 
-        public int ConnectionNum => connectionNum;
-
-        private readonly SForwardServerConnectionTransfer sForwardServerConnectionTransfer;
-        private readonly ISForwardServerConfigStore sForwardServerConfigStore;
-        private readonly ISerializer serializer;
-        private readonly IMessengerSender messengerSender;
-        private readonly ISForwardServerNodeStore sForwardServerNodeStore;
-        private readonly ISForwardServerWhiteListStore sForwardServerWhiteListStore;
-        private readonly IMessengerResolver messengerResolver;
-
-        public SForwardServerNodeReportTransfer(SForwardServerConnectionTransfer SForwardServerConnectionTransfer, ISForwardServerConfigStore SForwardServerConfigStore,
-            ISerializer serializer, IMessengerSender messengerSender, ISForwardServerNodeStore sForwardServerNodeStore,
-            ISForwardServerWhiteListStore sForwardServerWhiteListStore, IMessengerResolver messengerResolver, ICommonStore commonStore)
+        public SForwardServerNodeReportTransfer(ISForwardServerWhiteListStore sforwardServerWhiteListStore, SForwardServerConnectionTransfer nodeConnectionTransfer,
+            INodeConfigStore<SForwardServerConfigInfo> nodeConfigStore,
+            ISerializer serializer, IMessengerSender messengerSender, INodeStore<SForwardServerNodeStoreInfo, SForwardServerNodeReportInfo> nodeStore,
+            IMessengerResolver messengerResolver, ICommonStore commonStore)
+            : base(nodeConnectionTransfer, nodeConfigStore, serializer, messengerSender, nodeStore, messengerResolver, commonStore)
         {
-            this.sForwardServerConnectionTransfer = SForwardServerConnectionTransfer;
-            this.sForwardServerConfigStore = SForwardServerConfigStore;
-            this.serializer = serializer;
-            this.messengerSender = messengerSender;
-            this.sForwardServerNodeStore = sForwardServerNodeStore;
-            this.sForwardServerWhiteListStore = sForwardServerWhiteListStore;
-            this.messengerResolver = messengerResolver;
-
-            md5 = Config.NodeId.Md5();
-
-            if (commonStore.Modes.HasFlag(CommonModes.Server))
-            {
-                _ = ReportTask();
-                SignInTask();
-            }
+            this.sforwardServerWhiteListStore = sforwardServerWhiteListStore;
+            this.nodeConfigStore = nodeConfigStore;
+            this.nodeStore = nodeStore;
         }
 
-        public void IncrementConnectionNum()
-        {
-            Interlocked.Increment(ref connectionNum);
-        }
-        public void DecrementConnectionNum()
-        {
-            Interlocked.Decrement(ref connectionNum);
-        }
-        public void AddBytes(long length)
-        {
-            Interlocked.Add(ref bytes, (ulong)length);
-        }
-
-        public async Task<bool> Report(string id, string name, string host)
-        {
-            return await sForwardServerNodeStore.Add(new SForwardServerNodeStoreInfo
-            {
-                NodeId = id,
-                Name = name,
-                Host = host
-            }).ConfigureAwait(false);
-        }
-        public async Task<bool> Report(SForwardServerNodeReportInfo info)
-        {
-            if (sForwardServerConnectionTransfer.TryGet(ConnectionSideType.Node, info.NodeId, out _) == false) return false;
-
-            return await sForwardServerNodeStore.Report(info).ConfigureAwait(false);
-        }
-        public async Task<bool> SignIn(string serverId, string shareKey, IConnection connection)
-        {
-            //未被配置，或默认配置的，设它为管理端
-            if (string.IsNullOrWhiteSpace(Config.MasterKey) || md5 == Config.MasterKey)
-            {
-                sForwardServerConfigStore.SetMasterKey(serverId.Md5());
-                sForwardServerConfigStore.Confirm();
-            }
-            if (shareKey != Config.ShareKey && serverId.Md5() != Config.MasterKey)
-            {
-                return false;
-            }
-
-            connection.Id = serverId;
-            sForwardServerConnectionTransfer.TryAdd(ConnectionSideType.Master, connection.Id, connection);
-
-            return true;
-        }
-
-
-        public async Task<string> GetShareKeyForward(string nodeId)
-        {
-            SForwardServerNodeStoreInfo store = await sForwardServerNodeStore.GetByNodeId(nodeId);
-
-            if (store != null && store.Manageable && sForwardServerConnectionTransfer.TryGet(ConnectionSideType.Node, nodeId, out var connection))
-            {
-                var resp = await messengerSender.SendReply(new MessageRequestWrap
-                {
-                    Connection = connection,
-                    MessengerId = (ushort)SForwardMessengerIds.Share,
-                    Payload = serializer.Serialize(store.MasterKey)
-                });
-                if (resp.Code == MessageResponeCodes.OK)
-                {
-                    return serializer.Deserialize<string>(resp.Data.Span);
-                }
-            }
-            return string.Empty;
-        }
-        public async Task<string> GetShareKey(string masterKey)
-        {
-            if (masterKey != Config.MasterKey) return string.Empty;
-            return Config.ShareKey;
-        }
-
-        public async Task<string> Import(string shareKey)
-        {
-            try
-            {
-                SForwardServerNodeShareInfo info = serializer.Deserialize<SForwardServerNodeShareInfo>(crypto.Decode(Convert.FromBase64String(shareKey)).Span);
-
-                bool result = await sForwardServerNodeStore.Add(new SForwardServerNodeStoreInfo
-                {
-                    NodeId = info.NodeId,
-                    Host = info.Host,
-                    Name = info.Name,
-                    LastTicks = Environment.TickCount64,
-                    ShareKey = shareKey
-                }).ConfigureAwait(false);
-                if (result == false)
-                {
-                    return "node already exists";
-                }
-            }
-            catch (Exception ex)
-            {
-                return ex.Message;
-            }
-            return string.Empty;
-        }
-        public async Task<bool> Remove(string nodeId)
-        {
-            if (nodeId == Config.NodeId) return false;
-
-            return await sForwardServerNodeStore.Delete(nodeId).ConfigureAwait(false);
-        }
-        public async Task<bool> UpdateForward(SForwardServerNodeStoreInfo info)
-        {
-            SForwardServerNodeStoreInfo store = await sForwardServerNodeStore.GetByNodeId(info.NodeId);
-
-            if (store != null && store.Manageable && sForwardServerConnectionTransfer.TryGet(ConnectionSideType.Node, info.NodeId, out var connection))
-            {
-                info.MasterKey = store.MasterKey;
-                await messengerSender.SendOnly(new MessageRequestWrap
-                {
-                    Connection = connection,
-                    MessengerId = (ushort)SForwardMessengerIds.Update,
-                    Payload = serializer.Serialize(info)
-                });
-            }
-
-            return await sForwardServerNodeStore.Update(info).ConfigureAwait(false);
-        }
-        public async Task<bool> Update(SForwardServerNodeStoreInfo info)
+        public override async Task<bool> Update(SForwardServerNodeStoreInfo info)
         {
             if (info.MasterKey != Config.MasterKey) return false;
 
@@ -183,60 +42,18 @@ namespace linker.messenger.sforward.server
             Config.Url = info.Url;
             Config.Host = info.Host.Split(':')[0];
             Config.Domain = info.Domain;
+            Config.WebPort = info.WebPort;
+            Config.TunnelPorts = info.TunnelPorts;
 
-            sForwardServerConfigStore.Confirm();
-
-            return true;
-        }
-        public async Task<bool> UpgradeForward(string nodeId, string version)
-        {
-            SForwardServerNodeStoreInfo store = await sForwardServerNodeStore.GetByNodeId(nodeId);
-
-            if (store != null && store.Manageable && sForwardServerConnectionTransfer.TryGet(ConnectionSideType.Node, nodeId, out var connection))
-            {
-                await messengerSender.SendOnly(new MessageRequestWrap
-                {
-                    Connection = connection,
-                    MessengerId = (ushort)SForwardMessengerIds.Update,
-                    Payload = serializer.Serialize(new KeyValuePair<string, string>(store.MasterKey, version))
-                });
-                return true;
-            }
-
-            return false;
-        }
-        public async Task<bool> Upgrade(string masterKey, string version)
-        {
-            if (masterKey != Config.MasterKey) return false;
-
-            Helper.AppUpdate(version);
+            nodeConfigStore.Confirm();
 
             return true;
         }
-        public async Task<bool> ExitForward(string nodeId)
+        protected override void BuildReport(SForwardServerNodeReportInfo info)
         {
-            SForwardServerNodeStoreInfo store = await sForwardServerNodeStore.GetByNodeId(nodeId);
-
-            if (store != null && store.Manageable && sForwardServerConnectionTransfer.TryGet(ConnectionSideType.Node, nodeId, out var connection))
-            {
-                await messengerSender.SendOnly(new MessageRequestWrap
-                {
-                    Connection = connection,
-                    MessengerId = (ushort)SForwardMessengerIds.Update,
-                    Payload = serializer.Serialize(new KeyValuePair<string, string>(store.MasterKey, nodeId))
-                });
-                return true;
-            }
-
-            return false;
-        }
-        public async Task<bool> Exit(string masterKey)
-        {
-            if (masterKey != Config.MasterKey) return false;
-
-            Helper.AppExit(-1);
-
-            return true;
+            info.Domain = Config.Domain;
+            info.TunnelPorts = Config.TunnelPorts;
+            info.WebPort = Config.WebPort;
         }
 
         /// <summary>
@@ -244,11 +61,11 @@ namespace linker.messenger.sforward.server
         /// </summary>
         /// <param name="super">是否已认证</param>
         /// <returns></returns>
-        public async Task<List<SForwardServerNodeStoreInfo>> GetNodes(bool super, string userid, string machineId)
+        public override async Task<List<SForwardServerNodeStoreInfo>> GetNodes(bool super, string userid, string machineId)
         {
-            List<string> sforward = (await sForwardServerWhiteListStore.GetNodes(userid, machineId)).Where(c => c.Bandwidth >= 0).SelectMany(c => c.Nodes).ToList();
+            List<string> sforward = (await sforwardServerWhiteListStore.GetNodes(userid, machineId)).Where(c => c.Bandwidth >= 0).SelectMany(c => c.Nodes).ToList();
 
-            var result = (await sForwardServerNodeStore.GetAll())
+            var result = (await nodeStore.GetAll())
                 .Where(c => super || Environment.TickCount64 - c.LastTicks < 15000)
                 .Where(c =>
                 {
@@ -268,165 +85,6 @@ namespace linker.messenger.sforward.server
                 c.LastTicks = Math.Abs(Environment.TickCount64 - c.LastTicks);
             });
             return list;
-        }
-        public async Task<SForwardServerNodeStoreInfo> GetNode(string nodeId)
-        {
-            SForwardServerNodeStoreInfo node = await sForwardServerNodeStore.GetByNodeId(nodeId).ConfigureAwait(false);
-            if (node == null || Environment.TickCount64 - node.LastTicks > 15000)
-            {
-                return null;
-            }
-            return node;
-        }
-
-
-        private async Task BuildShareKey()
-        {
-            try
-            {
-                string host = Config.Host;
-                if (string.IsNullOrWhiteSpace(host))
-                {
-                    using HttpClient httpClient = new HttpClient();
-                    host = await httpClient.GetStringAsync($"https://ifconfig.me/ip").WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
-                }
-
-                SForwardServerNodeShareInfo shareKeyInfo = new SForwardServerNodeShareInfo
-                {
-                    NodeId = Config.NodeId,
-                    Host = $"{host}:{sForwardServerConfigStore.ServicePort}",
-                    Name = Config.Name,
-                    SystemId = SystemIdHelper.GetSystemId().Md5()
-                };
-                string shareKey = Convert.ToBase64String(crypto.Encode(serializer.Serialize(shareKeyInfo)));
-                sForwardServerConfigStore.SetShareKey(shareKey);
-                sForwardServerConfigStore.Confirm();
-
-                host = $"{IPAddress.Loopback}:{sForwardServerConfigStore.ServicePort}";
-                var node = await sForwardServerNodeStore.GetByNodeId(sForwardServerConfigStore.Config.NodeId);
-                if (node == null || node.ShareKey != shareKey || node.Name != Config.Name || node.Host != host)
-                {
-                    await sForwardServerNodeStore.Delete(sForwardServerConfigStore.Config.NodeId);
-                    await sForwardServerNodeStore.Add(new SForwardServerNodeStoreInfo
-                    {
-                        NodeId = sForwardServerConfigStore.Config.NodeId,
-                        Name = "default",
-                        Host = $"{IPAddress.Loopback}:{sForwardServerConfigStore.ServicePort}",
-                        ShareKey = shareKey
-                    }).ConfigureAwait(false);
-                }
-
-                LoggerHelper.Instance.Warning($"build SForward share key : {shareKey}");
-            }
-            catch (Exception ex)
-            {
-                LoggerHelper.Instance.Error($"build SForward share key error : {ex}");
-            }
-        }
-        private async Task ReportTask()
-        {
-            await BuildShareKey().ConfigureAwait(false);
-
-            TimerHelper.SetIntervalLong(async () =>
-            {
-                try
-                {
-                    var connections = sForwardServerConnectionTransfer.Get(ConnectionSideType.Master);
-                    if (connections.Any())
-                    {
-                        double diff = (bytes - lastBytes) * 8 / 1024.0 / 1024.0;
-                        lastBytes = bytes;
-
-                        var config = sForwardServerConfigStore.Config;
-                        SForwardServerNodeReportInfo info = new SForwardServerNodeReportInfo
-                        {
-                            Bandwidth = config.Bandwidth,
-                            Connections = config.Connections,
-                            DataEachMonth = config.DataEachMonth,
-                            DataRemain = config.DataRemain,
-                            Logo = config.Logo,
-                            Name = config.Name,
-                            NodeId = config.NodeId,
-                            Url = config.Url,
-                            ConnectionsRatio = connectionNum,
-                            BandwidthRatio = Math.Round(diff / 5, 2),
-                            Version = VersionHelper.Version,
-                            Masters = connections.Select(c => c.Address).ToArray(),
-                            MasterKey = config.MasterKey,
-                            Domain = config.Domain,
-                            TunnelPorts = config.TunnelPorts,
-                            WebPort = config.WebPort,
-                        };
-                        byte[] memory = serializer.Serialize(info);
-                        var tasks = connections.Select(c => messengerSender.SendOnly(new MessageRequestWrap
-                        {
-                            Connection = c,
-                            MessengerId = (ushort)SForwardMessengerIds.Report,
-                            Payload = memory,
-                            Timeout = 5000
-                        })).ToList();
-                        await Task.WhenAll(tasks).ConfigureAwait(false);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    {
-                        LoggerHelper.Instance.Error($"SForward report : {ex}");
-                    }
-                }
-            }, 5000);
-        }
-
-        private void SignInTask()
-        {
-            TimerHelper.SetIntervalLong(async () =>
-            {
-                try
-                {
-                    var nodes = (await sForwardServerNodeStore.GetAll()).Where(c =>
-                    {
-                        return sForwardServerConnectionTransfer.TryGet(ConnectionSideType.Node, c.NodeId, out IConnection connection) == false || connection == null || connection.Connected == false;
-                    }).ToList();
-                    if (nodes.Count != 0)
-                    {
-                        var tasks = nodes.Select(async c =>
-                        {
-                            IPEndPoint remote = await NetworkHelper.GetEndPointAsync(c.Host, 1802).ConfigureAwait(false);
-                            Socket socket = new Socket(remote.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                            socket.KeepAlive();
-                            await socket.ConnectAsync(remote).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
-                            var connection = await messengerResolver.BeginReceiveClient(socket, true, (byte)ResolverType.SForwardConnection, Helper.EmptyArray).ConfigureAwait(false);
-
-                            var resp = await messengerSender.SendReply(new MessageRequestWrap
-                            {
-                                Connection = connection,
-                                MessengerId = (ushort)SForwardMessengerIds.SignIn,
-                                Payload = serializer.Serialize(new KeyValuePair<string, string>(Config.NodeId, c.ShareKey)),
-                                Timeout = 5000
-                            }).ConfigureAwait(false);
-                            if (resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray))
-                            {
-                                LoggerHelper.Instance.Debug($"SForward sign in to node {c.NodeId} success");
-                                sForwardServerConnectionTransfer.TryAdd(ConnectionSideType.Node, c.NodeId, connection);
-                            }
-                            else
-                            {
-                                connection?.Disponse();
-                            }
-
-                        });
-                        await Task.WhenAll(tasks).ConfigureAwait(false);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    {
-                        LoggerHelper.Instance.Error($"SForward sign in : {ex}");
-                    }
-                }
-            }, 10000);
         }
     }
 }

@@ -38,8 +38,6 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\linker.libs\linker.libs.csproj" />
-		<ProjectReference Include="..\linker.messenger.relay\linker.messenger.relay.csproj" />
-		<ProjectReference Include="..\linker.messenger.sforward\linker.messenger.sforward.csproj" />
 		<ProjectReference Include="..\linker.messenger.signin\linker.messenger.signin.csproj" />
 		<ProjectReference Include="..\linker.messenger.sync\linker.messenger.sync.csproj" />
 		<ProjectReference Include="..\linker.messenger\linker.messenger.csproj" />
