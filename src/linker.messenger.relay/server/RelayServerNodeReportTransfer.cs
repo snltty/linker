@@ -12,6 +12,10 @@ namespace linker.messenger.relay.server
         public override ushort MessengerIdExitForward => (ushort)RelayMessengerIds.ExitForward;
         public override ushort MessengerIdReport => (ushort)RelayMessengerIds.Report;
         public override ushort MessengerIdSignIn => (ushort)RelayMessengerIds.SignIn;
+        public override ushort MessengerIdMastersForward => (ushort)RelayMessengerIds.MastersForward;
+        public override ushort MessengerIdDenysForward => (ushort)RelayMessengerIds.DenysForward;
+        public override ushort MessengerIdDenysAddForward => (ushort)RelayMessengerIds.DenysAddForward;
+        public override ushort MessengerIdDenysDelForward => (ushort)RelayMessengerIds.DenysDelForward;
 
         private readonly IRelayServerWhiteListStore relayServerWhiteListStore;
         private readonly INodeConfigStore<RelayServerConfigInfo> nodeConfigStore;
@@ -21,8 +25,8 @@ namespace linker.messenger.relay.server
         public RelayServerNodeReportTransfer(IRelayServerWhiteListStore relayServerWhiteListStore, RelayServerConnectionTransfer nodeConnectionTransfer,
             INodeConfigStore<RelayServerConfigInfo> nodeConfigStore,
             ISerializer serializer, IMessengerSender messengerSender, INodeStore<RelayServerNodeStoreInfo, RelayServerNodeReportInfo> nodeStore,
-            IMessengerResolver messengerResolver, ICommonStore commonStore)
-            : base(nodeConnectionTransfer, nodeConfigStore, serializer, messengerSender, nodeStore, messengerResolver, commonStore)
+            IMessengerResolver messengerResolver, ICommonStore commonStore,IRelayServerMasterDenyStore relayServerMasterDenyStore)
+            : base(nodeConnectionTransfer, nodeConfigStore, serializer, messengerSender, nodeStore, messengerResolver, commonStore, relayServerMasterDenyStore)
         {
             this.relayServerWhiteListStore = relayServerWhiteListStore;
             this.nodeConfigStore = nodeConfigStore;

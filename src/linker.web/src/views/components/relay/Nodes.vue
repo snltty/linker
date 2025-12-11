@@ -24,7 +24,7 @@
                                 </div>
                                 <div class="flex-1">
                                     <p class="flex">
-                                        <el-badge @click.stop type="success" :value="scope.row.MasterCount" :offset="[20, 10]">
+                                        <el-badge @click="handleDeny(scope.row)" type="success" :value="scope.row.MasterCount" :offset="[20, 10]">
                                             <a :href="scope.row.Url" class="a-line" :class="{green:scope.row.Public}" target="_blank" >
                                                 <strong>{{ scope.row.Name }}</strong>
                                             </a>  
@@ -128,6 +128,7 @@
                 </div>
             </div>
         </el-dialog>
+        <NodeDeny v-model="state.showDeny" v-if="state.showDeny" type="relay" :data="state.current"></NodeDeny>
     </div>
 </template>
 <script>
@@ -139,11 +140,11 @@ import { useI18n } from 'vue-i18n';
 import Ids from '../sync/Ids.vue';
 import EditNode from './EditNode.vue';
 import { Edit,ArrowDown,Refresh,CircleClose,Plus,Share } from '@element-plus/icons-vue';
-
+import NodeDeny from '../node/Index.vue'
 export default {
     props: ['modelValue','data'],
     emits: ['update:modelValue','success'],
-    components:{Ids,EditNode,Edit,ArrowDown,Refresh,CircleClose,Plus,Share},
+    components:{Ids,EditNode,Edit,ArrowDown,Refresh,CircleClose,Plus,Share,NodeDeny},
     setup(props,{emit}) {
         const {t} = useI18n();
         const globalData = injectGlobalData();
@@ -158,7 +159,9 @@ export default {
                 Key:'',
                 Value:0
             },
-            super:computed(()=>globalData.value.signin.Super)
+            super:computed(()=>globalData.value.signin.Super),
+
+            showDeny:false
         });
         watch(() => state.show, (val) => {
             if (!val) {
@@ -280,6 +283,10 @@ export default {
                 ElMessage.error(t('common.operFail'));
             });
         }
+        const handleDeny = (row)=>{
+            state.current = row;
+            state.showDeny = true;
+        }
 
         onMounted(()=>{
             _getDefault();
@@ -290,7 +297,7 @@ export default {
 
         return {globalData,state,
             handleEdit,domIds,handleShowSync,handleSync,handleCancelSync,
-            handleExit,handleUpgrade,handleRemove,handleImport,handleShare}
+            handleExit,handleUpgrade,handleRemove,handleImport,handleShare,handleDeny}
     }
 }
 </script>

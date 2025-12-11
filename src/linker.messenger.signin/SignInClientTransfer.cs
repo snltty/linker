@@ -20,9 +20,10 @@ namespace linker.messenger.signin
         private readonly SignInArgsTransfer signInArgsTransfer;
         private readonly ISignInClientStore signInClientStore;
         private readonly ISerializer serializer;
+        private readonly ICommonStore commonStore;
 
         public SignInClientTransfer(SignInClientState clientSignInState, IMessengerSender messengerSender, IMessengerResolver messengerResolver,
-            SignInArgsTransfer signInArgsTransfer, ISignInClientStore signInClientStore, ISerializer serializer)
+            SignInArgsTransfer signInArgsTransfer, ISignInClientStore signInClientStore, ISerializer serializer, ICommonStore commonStore)
         {
             this.clientSignInState = clientSignInState;
             this.messengerSender = messengerSender;
@@ -30,6 +31,7 @@ namespace linker.messenger.signin
             this.signInArgsTransfer = signInArgsTransfer;
             this.signInClientStore = signInClientStore;
             this.serializer = serializer;
+            this.commonStore = commonStore;
         }
 
         /// <summary>
@@ -105,6 +107,11 @@ namespace linker.messenger.signin
         /// <returns></returns>
         private async Task<int> SignIn(string host)
         {
+            if(commonStore.Installed == false)
+            {
+                LoggerHelper.Instance.Error($"not initialized");
+                return 1;
+            }
             if (string.IsNullOrWhiteSpace(signInClientStore.Group.Id))
             {
                 LoggerHelper.Instance.Error($"group id are empty");

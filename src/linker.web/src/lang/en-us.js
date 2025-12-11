@@ -11,6 +11,7 @@ export default {
     'common.relay': 'Relay',
     'common.p2p': 'P2P',
     'common.refresh': 'Refresh',
+    'common.copied': 'Copied',
 
     'head.home': 'Home',
     'head.server': 'Server',
@@ -85,6 +86,8 @@ export default {
     'permission.clear': 'Clear connection',
 
     'status.group': 'Group manager',
+    'status.groupShare': 'Group share',
+    'status.groupPlus': 'Group join',
     'status.groupName': 'Name',
     'status.groupPassword': 'Password',
     'status.groupOper': 'Oper',
@@ -348,6 +351,10 @@ export default {
     'server.sforwardDomain': 'Domain',
     'server.sforwardLogo': 'Logo',
     'server.sforwardHost': 'Host',
+
+    'server.denyTitle':'connections on 【{0}】',
+    'server.denyMasters':'Online',
+    'server.denyList':'Deny list',
 
     'server.updater':'Updater',
     'server.updaterSecretKey': 'Server update secretKey',

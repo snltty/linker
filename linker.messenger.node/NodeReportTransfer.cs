@@ -21,6 +21,10 @@ namespace linker.messenger.node
         public virtual ushort MessengerIdExitForward { get; }
         public virtual ushort MessengerIdReport { get; }
         public virtual ushort MessengerIdSignIn { get; }
+        public virtual ushort MessengerIdMastersForward { get; }
+        public virtual ushort MessengerIdDenysForward { get; }
+        public virtual ushort MessengerIdDenysAddForward { get; }
+        public virtual ushort MessengerIdDenysDelForward { get; }
 
 
         private int connectionNum = 0;
@@ -36,10 +40,11 @@ namespace linker.messenger.node
         private readonly IMessengerSender messengerSender;
         private readonly INodeStore<TStore, TReport> nodeStore;
         private readonly IMessengerResolver messengerResolver;
+        private readonly INodeMasterDenyStore nodeMasterDenyStore;
 
         public NodeReportTransfer(NodeConnectionTransfer nodeConnectionTransfer, INodeConfigStore<TConfig> nodeConfigStore,
             ISerializer serializer, IMessengerSender messengerSender, INodeStore<TStore, TReport> nodeStore,
-            IMessengerResolver messengerResolver, ICommonStore commonStore)
+            IMessengerResolver messengerResolver, ICommonStore commonStore, INodeMasterDenyStore nodeMasterDenyStore)
         {
             this.nodeConnectionTransfer = nodeConnectionTransfer;
             this.nodeConfigStore = nodeConfigStore;
@@ -47,6 +52,7 @@ namespace linker.messenger.node
             this.messengerSender = messengerSender;
             this.nodeStore = nodeStore;
             this.messengerResolver = messengerResolver;
+            this.nodeMasterDenyStore = nodeMasterDenyStore;
 
             md5 = Config.NodeId.Md5();
 
@@ -97,6 +103,10 @@ namespace linker.messenger.node
             {
                 return false;
             }
+            if (await nodeMasterDenyStore.Get(NetworkHelper.ToValue(connection.Address.Address), 0).ConfigureAwait(false))
+            {
+                return false;
+            }
 
             connection.Id = serverId;
             nodeConnectionTransfer.TryAdd(ConnectionSideType.Master, connection.Id, connection);
@@ -116,7 +126,7 @@ namespace linker.messenger.node
                     Connection = connection,
                     MessengerId = MessengerIdSahre,
                     Payload = serializer.Serialize(store.MasterKey)
-                });
+                }).ConfigureAwait(false);
                 if (resp.Code == MessageResponeCodes.OK)
                 {
                     return serializer.Deserialize<string>(resp.Data.Span);
@@ -172,7 +182,7 @@ namespace linker.messenger.node
                     Connection = connection,
                     MessengerId = MessengerIdUpdateForward,
                     Payload = serializer.Serialize(info)
-                });
+                }).ConfigureAwait(false);
             }
 
             return await nodeStore.Update(info).ConfigureAwait(false);
@@ -192,7 +202,7 @@ namespace linker.messenger.node
                     Connection = connection,
                     MessengerId = MessengerIdUpgradeForward,
                     Payload = serializer.Serialize(new KeyValuePair<string, string>(store.MasterKey, version))
-                });
+                }).ConfigureAwait(false);
                 return true;
             }
 
@@ -209,7 +219,6 @@ namespace linker.messenger.node
         public async Task<bool> ExitForward(string nodeId)
         {
             TStore store = await nodeStore.GetByNodeId(nodeId);
-
             if (store != null && store.Manageable && nodeConnectionTransfer.TryGet(ConnectionSideType.Node, nodeId, out var connection))
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
@@ -217,7 +226,7 @@ namespace linker.messenger.node
                     Connection = connection,
                     MessengerId = MessengerIdExitForward,
                     Payload = serializer.Serialize(new KeyValuePair<string, string>(store.MasterKey, nodeId))
-                });
+                }).ConfigureAwait(false);
                 return true;
             }
 
@@ -232,11 +241,123 @@ namespace linker.messenger.node
             return true;
         }
 
-        /// <summary>
-        /// 获取节点列表
-        /// </summary>
-        /// <param name="super">是否已认证</param>
-        /// <returns></returns>
+
+        public async Task<MastersResponseInfo> MastersForward(MastersRequestInfo info)
+        {
+            TStore store = await nodeStore.GetByNodeId(info.NodeId);
+            if (store != null && store.Manageable && nodeConnectionTransfer.TryGet(ConnectionSideType.Node, info.NodeId, out var connection))
+            {
+                info.NodeId = store.MasterKey;
+                var resp = await messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = connection,
+                    MessengerId = MessengerIdMastersForward,
+                    Payload = serializer.Serialize(info)
+                }).ConfigureAwait(false);
+                if (resp.Code == MessageResponeCodes.OK)
+                {
+                    return serializer.Deserialize<MastersResponseInfo>(resp.Data.Span);
+                }
+            }
+
+            return new MastersResponseInfo();
+        }
+        public async Task<MastersResponseInfo> Masters(MastersRequestInfo info)
+        {
+            if (info.NodeId != Config.MasterKey)
+            {
+                return new MastersResponseInfo();
+            }
+
+            var connections = nodeConnectionTransfer.Get(ConnectionSideType.Master);
+            return new MastersResponseInfo
+            {
+                Page = info.Page,
+                Sise = info.Sise,
+                Count = connections.Count,
+                List = connections.Skip((info.Page - 1) * info.Sise).Take(info.Sise).Select(c => new MasterConnInfo { Addr = c.Address, NodeId = c.Id }).ToList()
+            };
+        }
+        public async Task<MasterDenyStoreResponseInfo> DenysForward(MasterDenyStoreRequestInfo info)
+        {
+            TStore store = await nodeStore.GetByNodeId(info.NodeId);
+            if (store != null && store.Manageable && nodeConnectionTransfer.TryGet(ConnectionSideType.Node, info.NodeId, out var connection))
+            {
+                info.NodeId = store.MasterKey;
+                var resp = await messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = connection,
+                    MessengerId = MessengerIdDenysForward,
+                    Payload = serializer.Serialize(info)
+                }).ConfigureAwait(false);
+                if (resp.Code == MessageResponeCodes.OK)
+                {
+                    return serializer.Deserialize<MasterDenyStoreResponseInfo>(resp.Data.Span);
+                }
+            }
+
+            return new MasterDenyStoreResponseInfo();
+        }
+        public async Task<MasterDenyStoreResponseInfo> Denys(MasterDenyStoreRequestInfo info)
+        {
+            if (info.NodeId != Config.MasterKey)
+            {
+                return new MasterDenyStoreResponseInfo();
+            }
+            return await nodeMasterDenyStore.Get(info).ConfigureAwait(false);
+        }
+        public async Task<bool> DenysAddForward(MasterDenyAddInfo info)
+        {
+            TStore store = await nodeStore.GetByNodeId(info.NodeId);
+            if (store != null && store.Manageable && nodeConnectionTransfer.TryGet(ConnectionSideType.Node, info.NodeId, out var connection))
+            {
+                info.NodeId = store.MasterKey;
+                var resp = await messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = connection,
+                    MessengerId = MessengerIdDenysAddForward,
+                    Payload = serializer.Serialize(info)
+                }).ConfigureAwait(false);
+                return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
+            }
+
+            return false;
+        }
+        public async Task<bool> DenysAdd(MasterDenyAddInfo info)
+        {
+            if (info.NodeId != Config.MasterKey)
+            {
+                return false;
+            }
+            return await nodeMasterDenyStore.Add(info).ConfigureAwait(false);
+        }
+        public async Task<bool> DenysDelForward(MasterDenyDelInfo info)
+        {
+            TStore store = await nodeStore.GetByNodeId(info.NodeId);
+            if (store != null && store.Manageable && nodeConnectionTransfer.TryGet(ConnectionSideType.Node, info.NodeId, out var connection))
+            {
+                info.NodeId = store.MasterKey;
+                var resp = await messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = connection,
+                    MessengerId = MessengerIdDenysDelForward,
+                    Payload = serializer.Serialize(info)
+                }).ConfigureAwait(false);
+                return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
+            }
+
+            return false;
+        }
+        public async Task<bool> DenysDel(MasterDenyDelInfo info)
+        {
+            if (info.NodeId != Config.MasterKey)
+            {
+                return false;
+            }
+            return await nodeMasterDenyStore.Delete(info).ConfigureAwait(false);
+        }
+
+
         public virtual async Task<List<TStore>> GetNodes(bool super, string userid, string machineId)
         {
             return [];
@@ -256,7 +377,6 @@ namespace linker.messenger.node
         {
 
         }
-
         private async Task BuildShareKey()
         {
             try

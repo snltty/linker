@@ -56,7 +56,5 @@ namespace linker.messenger.signin.args
             }
             return await Task.FromResult(string.Empty);
         }
-
-
     }
 }

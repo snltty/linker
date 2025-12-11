@@ -45,3 +45,15 @@ export const sforwardImport = (data) => {
 export const sforwardShare = (id) => {
     return sendWebsocketMsg('sforward/Share', id);
 }
+export const sforwardMasters = (data) => {
+    return sendWebsocketMsg('sforward/Masters', data);
+}
+export const sforwardDenys = (data) => {
+    return sendWebsocketMsg('sforward/Denys', data);
+}
+export const sforwardDenysAdd = (data) => {
+    return sendWebsocketMsg('sforward/DenysAdd', data);
+}
+export const sforwardDenysDel = (data) => {
+    return sendWebsocketMsg('sforward/DenysDel', data);
+}

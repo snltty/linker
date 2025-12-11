@@ -1,7 +1,13 @@
 <template>
     <div class="signin-wrap" :style="{height:`${state.height}px`}">
         <el-card shadow="never">
-            <template #header>{{$t('server.messenger')}}</template>
+            <template #header>
+                <div class="flex">
+                    <span>{{$t('server.messenger')}}</span>
+                    <span class="flex-1"></span>
+                    <Export></Export>
+                </div>
+            </template>
             <div>
                 <el-form label-width="auto" :label-position="state.position">
                     <el-form-item :label="$t('server.messengerAddr')">
@@ -68,9 +74,9 @@ import SForwardServers from '../../../components/forward/Config.vue';
 import { useI18n } from 'vue-i18n';
 import Sync from '../../../components/sync/Index.vue'
 import WhiteList from '../../../components/wlist/Index.vue';
-
+import Export from './Export.vue';
 export default {
-    components:{Updater,RelayServers,SForwardServers,Sync,WhiteList},
+    components:{Updater,RelayServers,SForwardServers,Sync,WhiteList,Export},
     setup(props) {
         const {t} = useI18n();
         const globalData = injectGlobalData();

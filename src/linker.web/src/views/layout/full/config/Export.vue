@@ -1,7 +1,7 @@
 <template>
     <AccessShow value="Export">
-        <div v-if="config" class="status-export-wrap">
-            <a href="javascript:;" :title="$t('status.export')" @click="state.show = true">
+        <div class="status-export-wrap">
+            <a href="javascript:;" class="a-line" :title="$t('status.export')" @click="state.show = true">
                 <el-icon size="16"><Share /></el-icon>
                 <PcShow>
                     <span>{{$t('status.export')}}</span>
@@ -93,11 +93,10 @@ import {Share} from '@element-plus/icons-vue'
 import { exportConfig,copyConfig,saveConfig } from '@/apis/config';
 import { ElMessage } from 'element-plus';
 import { injectGlobalData } from '@/provide';
-import Access from '../accesss/Access.vue'
+import Access from '../../../components/accesss/Access.vue'
 import { useI18n } from 'vue-i18n'
 export default {
     components:{Share,Access},
-    props:['config'],
     setup(props) {
 
         const { t } = useI18n();
@@ -257,7 +256,7 @@ export default {
             }
         }
 
-        return {globalData,config:props.config,onlyNode, state,accessDom,
+        return {globalData,onlyNode, state,accessDom,
             handleSave,handleExport,handleCopy,copyToClipboard,copySaveToClipboard};
     }
 }

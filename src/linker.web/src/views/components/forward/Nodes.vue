@@ -24,7 +24,7 @@
                                 </div>
                                 <div class="flex-1">
                                     <p class="flex">
-                                        <el-badge @click.stop type="success" :value="scope.row.MasterCount" :offset="[20, 10]">
+                                        <el-badge @click="handleDeny(scope.row)" type="success" :value="scope.row.MasterCount" :offset="[20, 10]">
                                             <a :href="scope.row.Url" class="a-line"  target="_blank">
                                                 <strong>{{ scope.row.Name }}</strong>  
                                              </a>
@@ -112,6 +112,7 @@
             </div>
         </el-dialog>
         <EditNode v-if="state.showEdit" v-model="state.showEdit" :data="state.current"></EditNode>
+        <NodeDeny v-model="state.showDeny" v-if="state.showDeny" type="sforward" :data="state.current"></NodeDeny>
     </div>
 </template>
 <script>
@@ -122,11 +123,11 @@ import { computed,  onUnmounted,  reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n';
 import EditNode from './EditNode.vue';
 import { Edit,ArrowDown,Refresh,CircleClose,Plus,Share } from '@element-plus/icons-vue';
-
+import NodeDeny from '../node/Index.vue'
 export default {
     props: ['modelValue','data'],
     emits: ['update:modelValue','success'],
-    components:{EditNode,Edit,ArrowDown,Refresh,CircleClose,Plus,Share},
+    components:{EditNode,Edit,ArrowDown,Refresh,CircleClose,Plus,Share,NodeDeny},
     setup(props,{emit}) {
         const {t} = useI18n();
         const globalData = injectGlobalData();
@@ -136,7 +137,9 @@ export default {
             showEdit:false,
             current:{},
 
-            super:computed(()=>globalData.value.signin.Super)
+            super:computed(()=>globalData.value.signin.Super),
+
+            showDeny:false
         });
         watch(() => state.show, (val) => {
             if (!val) {
@@ -228,11 +231,16 @@ export default {
             });
         }
 
+        const handleDeny = (row)=>{
+            state.current = row;
+            state.showDeny = true;
+        }
+
         onUnmounted(()=>{
             clearTimeout(state.timer);
         });
 
-        return {globalData,state,handleEdit,handleExit,handleUpgrade,handleRemove,handleImport,handleShare}
+        return {globalData,state,handleEdit,handleExit,handleUpgrade,handleRemove,handleImport,handleShare,handleDeny}
     }
 }
 </script>

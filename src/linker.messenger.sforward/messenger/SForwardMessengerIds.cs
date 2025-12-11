@@ -50,6 +50,16 @@
         Proxy = 2352,
         ProxyForward = 2353,
 
+        MastersForward = 2354,
+        Masters = 2355,
+
+        DenysForward = 2356,
+        Denys = 2357,
+        DenysAddForward = 2358,
+        DenysAdd = 2359,
+        DenysDelForward = 2360,
+        DenysDel = 2361,
+
         Max = 2399
     }
 }

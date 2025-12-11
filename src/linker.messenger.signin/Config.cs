@@ -12,7 +12,7 @@ namespace linker.messenger.signin
 #if DEBUG
         private string id = Helper.GlobalString;
 #else
-        private string id = string.Empty;
+        private string id = Guid.NewGuid().ToString();
 #endif
         public string Id
         {
@@ -25,7 +25,7 @@ namespace linker.messenger.signin
 #if DEBUG
         private string passord = Helper.GlobalString;
 #else
-        private string passord = string.Empty;
+        private string passord = Guid.NewGuid().ToString();
 #endif
         public string Password
         {

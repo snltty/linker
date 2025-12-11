@@ -73,7 +73,8 @@ namespace linker.messenger.store.file
             serviceCollection.AddSingleton<INodeConfigStore<RelayServerConfigInfo>, RelayServerConfigStore>();
             serviceCollection.AddSingleton<INodeStore<RelayServerNodeStoreInfo, RelayServerNodeReportInfo>, RelayServerNodeStore>();
             serviceCollection.AddSingleton<IRelayServerWhiteListStore, RelayNodeWhiteListStore>();
-            
+            serviceCollection.AddSingleton<IRelayServerMasterDenyStore, RelayServerMasterDenyStore>();
+
 
             serviceCollection.AddSingleton<ITunnelClientStore, TunnelClientStore>();
 
@@ -101,6 +102,7 @@ namespace linker.messenger.store.file
             serviceCollection.AddSingleton<INodeConfigStore<SForwardServerConfigInfo>, SForwardServerConfigStore>();
             serviceCollection.AddSingleton<INodeStore<SForwardServerNodeStoreInfo, SForwardServerNodeReportInfo>, SForwardServerNodeStore>();
             serviceCollection.AddSingleton<ISForwardServerWhiteListStore, SForwardNodeWhiteListStore>();
+            serviceCollection.AddSingleton<ISForwardServerMasterDenyStore, SForwardServerMasterDenyStore>();
 
             serviceCollection.AddSingleton<ILoggerStore, LoggerStore>();
 

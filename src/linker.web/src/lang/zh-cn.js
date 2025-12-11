@@ -11,6 +11,7 @@ export default {
     'common.relay': '中继',
     'common.p2p': '打洞',
     'common.refresh': '刷新',
+    'common.copied': '已复制',
 
     'head.home': '首页',
     'head.server': '服务器',
@@ -86,6 +87,8 @@ export default {
     'permission.clear': '清除连接',
 
     'status.group': '管理分组',
+    'status.groupShare': '分享分组',
+    'status.groupPlus': '加入分组',
     'status.groupName': '名称',
     'status.groupPassword': '密码',
     'status.groupOper': '操作',
@@ -439,6 +442,10 @@ export default {
     'server.sforwardDomain': '域名',
     'server.sforwardLogo': 'Logo',
     'server.sforwardHost': '主机',
+
+    'server.denyTitle':'【{0}】上的主机',
+    'server.denyMasters':'在线的主机',
+    'server.denyList':'禁用列表',
 
     'server.updater': '更新',
     'server.updaterSecretKey': '服务器更新密钥',

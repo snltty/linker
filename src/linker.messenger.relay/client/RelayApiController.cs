@@ -1,6 +1,7 @@
 ﻿using linker.libs;
 using linker.libs.extends;
 using linker.libs.web;
+using linker.messenger.node;
 using linker.messenger.relay.messenger;
 using linker.messenger.relay.server;
 using linker.messenger.signin;
@@ -127,6 +128,55 @@ namespace linker.messenger.relay.client
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)RelayMessengerIds.ExitForward,
                 Payload = serializer.Serialize(param.Content)
+            });
+            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
+        }
+
+        public async Task<MastersResponseInfo> Masters(ApiControllerParamsInfo param)
+        {
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)RelayMessengerIds.MastersForward,
+                Payload = serializer.Serialize(param.Content.DeJson<MastersRequestInfo>())
+            });
+            if (resp.Code == MessageResponeCodes.OK)
+            {
+                return serializer.Deserialize<MastersResponseInfo>(resp.Data.Span);
+            }
+            return new MastersResponseInfo();
+        }
+        public async Task<MasterDenyStoreResponseInfo> Denys(ApiControllerParamsInfo param)
+        {
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)RelayMessengerIds.DenysForward,
+                Payload = serializer.Serialize(param.Content.DeJson<MasterDenyStoreRequestInfo>())
+            });
+            if (resp.Code == MessageResponeCodes.OK)
+            {
+                return serializer.Deserialize<MasterDenyStoreResponseInfo>(resp.Data.Span);
+            }
+            return new MasterDenyStoreResponseInfo();
+        }
+        public async Task<bool> DenysAdd(ApiControllerParamsInfo param)
+        {
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)RelayMessengerIds.DenysAddForward,
+                Payload = serializer.Serialize(param.Content.DeJson<MasterDenyAddInfo>())
+            });
+            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
+        }
+        public async Task<bool> DenysDel(ApiControllerParamsInfo param)
+        {
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)RelayMessengerIds.DenysDelForward,
+                Payload = serializer.Serialize(param.Content.DeJson<MasterDenyDelInfo>())
             });
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }

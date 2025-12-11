@@ -1,5 +1,6 @@
 ﻿
 using linker.libs;
+using linker.messenger.node;
 using linker.messenger.relay.server;
 using linker.messenger.relay.server.validator;
 using linker.messenger.signin;
@@ -16,7 +17,7 @@ namespace linker.messenger.relay.messenger
         public RelayClientMessenger()
         {
         }
-       
+
     }
 
     /// <summary>
@@ -230,6 +231,91 @@ namespace linker.messenger.relay.messenger
         }
 
 
+
+        [MessengerId((ushort)RelayMessengerIds.MastersForward)]
+        public async Task MastersForward(IConnection connection)
+        {
+            MastersRequestInfo info = serializer.Deserialize<MastersRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo from) == false || from.Super == false)
+            {
+                connection.Write(serializer.Serialize(new MastersResponseInfo()));
+                return;
+            }
+
+            MastersResponseInfo resp = await relayServerNodeReportTransfer.MastersForward(info).ConfigureAwait(false);
+            connection.Write(serializer.Serialize(resp));
+        }
+        [MessengerId((ushort)RelayMessengerIds.Masters)]
+        public async Task Masters(IConnection connection)
+        {
+            MastersRequestInfo info = serializer.Deserialize<MastersRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            MastersResponseInfo resp = await relayServerNodeReportTransfer.Masters(info).ConfigureAwait(false);
+            connection.Write(serializer.Serialize(resp));
+        }
+
+
+        [MessengerId((ushort)RelayMessengerIds.DenysForward)]
+        public async Task DenysForward(IConnection connection)
+        {
+            MasterDenyStoreRequestInfo info = serializer.Deserialize<MasterDenyStoreRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo from) == false || from.Super == false)
+            {
+                connection.Write(serializer.Serialize(new MasterDenyStoreResponseInfo()));
+                return;
+            }
+
+            MasterDenyStoreResponseInfo resp = await relayServerNodeReportTransfer.DenysForward(info).ConfigureAwait(false);
+            connection.Write(serializer.Serialize(resp));
+        }
+        [MessengerId((ushort)RelayMessengerIds.Denys)]
+        public async Task Denys(IConnection connection)
+        {
+            MasterDenyStoreRequestInfo info = serializer.Deserialize<MasterDenyStoreRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            MasterDenyStoreResponseInfo resp = await relayServerNodeReportTransfer.Denys(info).ConfigureAwait(false);
+            connection.Write(serializer.Serialize(resp));
+        }
+        [MessengerId((ushort)RelayMessengerIds.DenysAddForward)]
+        public async Task DenysAddForward(IConnection connection)
+        {
+            MasterDenyAddInfo info = serializer.Deserialize<MasterDenyAddInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo from) == false || from.Super == false)
+            {
+                connection.Write(Helper.FalseArray);
+                return;
+            }
+
+            bool resp = await relayServerNodeReportTransfer.DenysAddForward(info).ConfigureAwait(false);
+            connection.Write(resp ? Helper.TrueArray : Helper.FalseArray);
+        }
+        [MessengerId((ushort)RelayMessengerIds.DenysAdd)]
+        public async Task DenysAdd(IConnection connection)
+        {
+            MasterDenyAddInfo info = serializer.Deserialize<MasterDenyAddInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            bool resp = await relayServerNodeReportTransfer.DenysAdd(info).ConfigureAwait(false);
+            connection.Write(resp ? Helper.TrueArray : Helper.FalseArray);
+        }
+        [MessengerId((ushort)RelayMessengerIds.DenysDelForward)]
+        public async Task DenysDelForward(IConnection connection)
+        {
+            MasterDenyDelInfo info = serializer.Deserialize<MasterDenyDelInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo from) == false || from.Super == false)
+            {
+                connection.Write(Helper.FalseArray);
+                return;
+            }
+
+            bool resp = await relayServerNodeReportTransfer.DenysDelForward(info).ConfigureAwait(false);
+            connection.Write(resp ? Helper.TrueArray : Helper.FalseArray);
+        }
+        [MessengerId((ushort)RelayMessengerIds.DenysDel)]
+        public async Task DenysDel(IConnection connection)
+        {
+            MasterDenyDelInfo info = serializer.Deserialize<MasterDenyDelInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            bool resp = await relayServerNodeReportTransfer.DenysDel(info).ConfigureAwait(false);
+            connection.Write(resp ? Helper.TrueArray : Helper.FalseArray);
+        }
+
+
         [MessengerId((ushort)RelayMessengerIds.NodeReport)]
         public async Task NodeReport(IConnection connection)
         {
@@ -251,5 +337,9 @@ namespace linker.messenger.relay.messenger
             }
             connection.Write(serializer.Serialize(VersionHelper.Version));
         }
+
+
+
+
     }
 }

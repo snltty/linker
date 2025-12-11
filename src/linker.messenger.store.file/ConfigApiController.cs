@@ -77,8 +77,8 @@ namespace linker.messenger.store.file
                 config.Data.Server.SignIn.Anonymous = info.Server.Anonymous;
                 config.Data.Server.SignIn.SuperKey = info.Server.SuperKey;
                 config.Data.Server.SignIn.SuperPassword = info.Server.SuperPassword;
-                config.Data.Server.SForward.WebPort = info.Server.SForward.WebPort;
-                config.Data.Server.SForward.TunnelPorts = info.Server.SForward.TunnelPorts;
+                //config.Data.Server.SForward.WebPort = info.Server.SForward.WebPort;
+                //config.Data.Server.SForward.TunnelPorts = info.Server.SForward.TunnelPorts;
             }
 
             config.Data.Common.Modes = info.Common.Modes;
@@ -300,6 +300,61 @@ namespace linker.messenger.store.file
             }, common, new { Install = true, Modes = new string[] { "client" } });
         }
 
+        [Access(AccessValue.Export)]
+        public string ShareGroup(ApiControllerParamsInfo param)
+        {
+            ICrypto crypto = CryptoFactory.CreateSymmetric(Helper.GlobalString);
+
+            try
+            {
+                return Convert.ToBase64String(crypto.Encode(new ShareGroupInfo
+                {
+                    Server = config.Data.Client.Server.Host,
+                    Id = config.Data.Client.Group.Id,
+                    Pwd = config.Data.Client.Group.Password
+                }.ToJson().ToBytes()));
+            }
+            catch (Exception)
+            {
+            }
+            finally
+            {
+                crypto.Dispose();
+            }
+            return string.Empty;
+        }
+        public bool JoinGroup(ApiControllerParamsInfo param)
+        {
+            ICrypto crypto = CryptoFactory.CreateSymmetric(Helper.GlobalString);
+
+            try
+            {
+                ShareGroupInfo info = crypto.Decode(Convert.FromBase64String(param.Content)).GetString().DeJson<ShareGroupInfo>();
+                config.Data.Client.Server.Host = info.Server;
+                config.Data.Client.Group.Id = info.Id;
+                config.Data.Client.Group.Password = info.Pwd;
+                config.Data.Update();
+
+                signInClientTransfer.ReSignIn();
+                return true;
+            }
+            catch (Exception)
+            {
+            }
+            finally
+            {
+                crypto.Dispose(); 
+            }
+
+            return false;
+        }
+    }
+
+    public sealed class ShareGroupInfo
+    {
+        public string Server { get; set; }
+        public string Id { get; set; }
+        public string Pwd { get; set; }
     }
 
     public sealed class GetConfigParamsInfo

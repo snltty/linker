@@ -6,7 +6,7 @@
         :title="$t('status.apiAlterConfirm')" @cancel="handleShow" @confirm="handleResetConnect" >
             <template #reference>
                 <a href="javascript:;">
-                    <el-icon size="16"><Tools /></el-icon>
+                    <el-icon size="16"><Flag /></el-icon>
                     <span>{{$t('status.api')}}</span>
                 </a>
             </template>
@@ -17,9 +17,9 @@
 import {injectGlobalData} from '@/provide'
 import { computed} from 'vue';
 import { initWebsocket,closeWebsocket } from '@/apis/request'
-import {Tools} from '@element-plus/icons-vue'
+import {Flag} from '@element-plus/icons-vue'
 export default {
-    components:{Tools},
+    components:{Flag},
     props:['config'],
     setup(props) {
         const globalData = injectGlobalData();

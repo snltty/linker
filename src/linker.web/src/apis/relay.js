@@ -30,3 +30,15 @@ export const relayImport = (data) => {
 export const relayShare = (id) => {
     return sendWebsocketMsg('relay/Share', id);
 }
+export const relayMasters = (data) => {
+    return sendWebsocketMsg('relay/Masters', data);
+}
+export const relayDenys = (data) => {
+    return sendWebsocketMsg('relay/Denys', data);
+}
+export const relayDenysAdd = (data) => {
+    return sendWebsocketMsg('relay/DenysAdd', data);
+}
+export const relayDenysDel = (data) => {
+    return sendWebsocketMsg('relay/DenysDel', data);
+}

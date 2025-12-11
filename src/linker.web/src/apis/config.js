@@ -22,3 +22,9 @@ export const copyConfig = (data) => {
 export const saveConfig = (data) => {
     return sendWebsocketMsg('config/save', data);
 }
+export const shareGroup = () => {
+    return sendWebsocketMsg('config/sharegroup');
+}
+export const joinGroup = (data) => {
+    return sendWebsocketMsg('config/joingroup', data);
+}

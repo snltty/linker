@@ -1,6 +1,7 @@
 ﻿using linker.libs;
 using linker.libs.extends;
 using linker.libs.timer;
+using linker.messenger.node;
 using linker.messenger.sforward.client;
 using linker.messenger.sforward.server;
 using linker.messenger.sforward.server.validator;
@@ -693,6 +694,68 @@ namespace linker.messenger.sforward.messenger
         {
             string masterKey = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
             await sForwardServerNodeReportTransfer.Exit(masterKey).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 信标服务器
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        [MessengerId((ushort)SForwardMessengerIds.MastersForward)]
+        public async Task MastersForward(IConnection connection)
+        {
+            MastersRequestInfo info = serializer.Deserialize<MastersRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo from) == false || from.Super == false)
+            {
+                connection.Write(serializer.Serialize(new MastersResponseInfo()));
+                return;
+            }
+
+            MastersResponseInfo resp = await sForwardServerNodeReportTransfer.MastersForward(info).ConfigureAwait(false);
+            connection.Write(serializer.Serialize(resp));
+        }
+        /// <summary>
+        /// 节点服务器
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        [MessengerId((ushort)SForwardMessengerIds.Masters)]
+        public async Task Masters(IConnection connection)
+        {
+            MastersRequestInfo info = serializer.Deserialize<MastersRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            MastersResponseInfo resp = await sForwardServerNodeReportTransfer.Masters(info).ConfigureAwait(false);
+            connection.Write(serializer.Serialize(resp));
+        }
+
+        /// <summary>
+        /// 信标服务器
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        [MessengerId((ushort)SForwardMessengerIds.DenysForward)]
+        public async Task DenysForward(IConnection connection)
+        {
+            MasterDenyStoreRequestInfo info = serializer.Deserialize<MasterDenyStoreRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo from) == false || from.Super == false)
+            {
+                connection.Write(serializer.Serialize(new MasterDenyStoreResponseInfo()));
+                return;
+            }
+
+            MasterDenyStoreResponseInfo resp = await sForwardServerNodeReportTransfer.DenysForward(info).ConfigureAwait(false);
+            connection.Write(serializer.Serialize(resp));
+        }
+        /// <summary>
+        /// 节点服务器
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        [MessengerId((ushort)SForwardMessengerIds.Denys)]
+        public async Task Denys(IConnection connection)
+        {
+            MasterDenyStoreRequestInfo info = serializer.Deserialize<MasterDenyStoreRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            MasterDenyStoreResponseInfo resp = await sForwardServerNodeReportTransfer.Denys(info).ConfigureAwait(false);
+            connection.Write(serializer.Serialize(resp));
         }
 
 

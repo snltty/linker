@@ -9,14 +9,13 @@
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-                        <el-form-item label="web穿透端口" prop="webPort">
-                            <el-input v-trim v-model="state.form.webPort" />
-                        </el-form-item>
+                        <el-col :span="12">
+                            <el-form-item label="匿名登录" prop="anonymous">
+                                <el-checkbox v-model="state.form.anonymous">匿名登录</el-checkbox>
+                            </el-form-item>
+                        </el-col>
                     </el-col>
                 </el-row>
-            </el-form-item>
-             <el-form-item label="穿透端口" prop="TunnelPorts">
-                <el-input v-trim v-model="state.form.TunnelPorts" />
             </el-form-item>
             <el-form-item label="" label-width="0">
                 <el-row>
@@ -32,18 +31,6 @@
                     </el-col>
                 </el-row>
             </el-form-item>
-            <el-form-item label="" label-width="0">
-                <el-row>
-                    <el-col :span="12">
-                        <el-form-item label="匿名登录" prop="anonymous">
-                            <el-checkbox v-model="state.form.anonymous">匿名登录</el-checkbox>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                    </el-col>
-                </el-row>
-            </el-form-item>
-            
         </el-form>
     </div>
 </template>

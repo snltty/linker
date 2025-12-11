@@ -28,6 +28,16 @@
         UpgradeForward = 2144,
         Upgrade = 2145,
 
+        MastersForward = 2146,
+        Masters = 2147,
+
+        DenysForward = 2148,
+        Denys = 2149,
+        DenysAddForward = 2150,
+        DenysAdd = 2151,
+        DenysDelForward = 2152,
+        DenysDel = 2153,
+
         Max = 2199
     }
 }

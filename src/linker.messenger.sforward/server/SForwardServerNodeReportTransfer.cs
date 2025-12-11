@@ -12,17 +12,20 @@ namespace linker.messenger.sforward.server
         public override ushort MessengerIdExitForward => (ushort)SForwardMessengerIds.ExitForward;
         public override ushort MessengerIdReport => (ushort)SForwardMessengerIds.Report;
         public override ushort MessengerIdSignIn => (ushort)SForwardMessengerIds.SignIn;
+        public override ushort MessengerIdMastersForward => (ushort)SForwardMessengerIds.MastersForward;
+        public override ushort MessengerIdDenysForward => (ushort)SForwardMessengerIds.DenysForward;
+        public override ushort MessengerIdDenysAddForward => (ushort)SForwardMessengerIds.DenysAddForward;
+        public override ushort MessengerIdDenysDelForward => (ushort)SForwardMessengerIds.DenysDelForward;
 
         private readonly ISForwardServerWhiteListStore sforwardServerWhiteListStore;
         private readonly INodeConfigStore<SForwardServerConfigInfo> nodeConfigStore;
         private readonly INodeStore<SForwardServerNodeStoreInfo, SForwardServerNodeReportInfo> nodeStore;
 
-
         public SForwardServerNodeReportTransfer(ISForwardServerWhiteListStore sforwardServerWhiteListStore, SForwardServerConnectionTransfer nodeConnectionTransfer,
             INodeConfigStore<SForwardServerConfigInfo> nodeConfigStore,
             ISerializer serializer, IMessengerSender messengerSender, INodeStore<SForwardServerNodeStoreInfo, SForwardServerNodeReportInfo> nodeStore,
-            IMessengerResolver messengerResolver, ICommonStore commonStore)
-            : base(nodeConnectionTransfer, nodeConfigStore, serializer, messengerSender, nodeStore, messengerResolver, commonStore)
+            IMessengerResolver messengerResolver, ICommonStore commonStore,ISForwardServerMasterDenyStore sforwardServerMasterDenyStore)
+            : base(nodeConnectionTransfer, nodeConfigStore, serializer, messengerSender, nodeStore, messengerResolver, commonStore, sforwardServerMasterDenyStore)
         {
             this.sforwardServerWhiteListStore = sforwardServerWhiteListStore;
             this.nodeConfigStore = nodeConfigStore;

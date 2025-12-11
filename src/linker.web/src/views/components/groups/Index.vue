@@ -6,12 +6,14 @@
             <el-icon class="right"><ArrowDown /></el-icon>
         </span>
         <template #dropdown>
-            <AccessShow value="Group">
-                <el-dropdown-menu>
-                    <el-dropdown-item v-for="item in state.groups" @click="handleGroupChange(item.Id)">{{item.Name || '未知'}}</el-dropdown-item>
-                    <el-dropdown-item @click="state.showGroups = true">{{$t('status.group')}}</el-dropdown-item>
-                </el-dropdown-menu>
-            </AccessShow>
+            <el-dropdown-menu>
+                <AccessShow value="Group">
+                     <el-dropdown-item v-for="item in state.groups" @click="handleGroupChange(item.Id)">{{item.Name || '未知'}}</el-dropdown-item>
+                    <el-dropdown-item @click="handleGroups"><el-icon><Setting /></el-icon>{{$t('status.group')}}</el-dropdown-item>
+                    <el-dropdown-item @click="handleShare"><el-icon><Share /></el-icon>{{$t('status.groupShare')}}</el-dropdown-item>
+                </AccessShow>
+                <el-dropdown-item @click="handleJoin"><el-icon><Plus /></el-icon>{{$t('status.groupPlus')}}</el-dropdown-item>
+            </el-dropdown-menu>
         </template>
     </el-dropdown>
     <Groups v-if="state.showGroups" v-model="state.showGroups"></Groups>
@@ -19,13 +21,14 @@
 <script>
 import { setSignIn } from '@/apis/signin';
 import { injectGlobalData } from '@/provide';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { computed, reactive, ref } from 'vue';
-import {ArrowDown,Avatar} from '@element-plus/icons-vue'
+import {ArrowDown,Avatar,Setting,Share,Plus} from '@element-plus/icons-vue'
 import { useI18n } from 'vue-i18n';
 import Groups from './Groups.vue';
+import { joinGroup, shareGroup } from '@/apis/config';
 export default {
-    components:{ArrowDown,Avatar,Groups},
+    components:{ArrowDown,Avatar,Groups,Setting,Share,Plus},
     props:['config'],
     setup(props) {
         const { t } = useI18n();
@@ -66,8 +69,45 @@ export default {
                 ElMessage.error(t('common.operFail'));
             });
         }
+
+        const handleGroups = ()=>{
+            state.showGroups = true;
+        }
+        const handleShare = ()=>{
+            shareGroup().then((res)=>{
+                if(res){
+                    navigator.clipboard.writeText(res);
+                    ElMessage.success(t('common.copied'));
+                }else{
+                    ElMessage.error(t('common.operFail'));
+                }
+            }).catch(()=>{
+                ElMessage.error(t('common.operFail'));
+            })
+        }
+        const handleJoin = ()=>{
+            ElMessageBox.prompt(t('status.groupPlus'), t('common.tips'), {
+                confirmButtonText:  t('common.confirm'),
+                cancelButtonText: t('common.cancel'),
+            }).then(({ value }) => {
+                joinGroup(value).then((res)=>{
+                    if(res){
+                         ElMessage.success(t('common.oper'));
+                        setTimeout(()=>{
+                            window.location.reload();
+                        },1000);
+                    }else{
+                        ElMessage.error(t('common.operFail'));
+                    }
+                }).catch(()=>{
+                    ElMessage.error(t('common.operFail'));
+                })
+            }).catch(() => {
+            })
+        }
+
         return {
-         config:props.config,state,handleGroupChange
+            state,handleGroupChange,handleGroups,handleShare,handleJoin
         }
     }
 }
@@ -80,7 +120,7 @@ export default {
             color:green;font-weight:bold;
         }
         .el-icon{
-            vertical-align:bottom;
+            vertical-align:top;
         }
     }  
     
