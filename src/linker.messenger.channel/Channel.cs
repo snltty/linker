@@ -177,26 +177,22 @@ namespace linker.messenger.channel
         {
             ITunnelConnection connection = null;
             //正在后台打洞
-            if (tunnelTransfer.IsBackground(machineId, TransactionId))
+            if (tunnelTransfer.IsBackground(machineId, TransactionId) == false)
             {
-                return connection;
+                //隧道连接
+                connection = await tunnelTransfer.ConnectAsync(machineId, TransactionId, denyProtocols).ConfigureAwait(false);
+                if (connection == null || connection.Type == TunnelType.Relay)
+                {
+                    //后台打洞
+                    tunnelTransfer.StartBackground(machineId, TransactionId, denyProtocols, () =>
+                    {
+                        return channelConnectionCaching.TryGetValue(machineId, TransactionId, out ITunnelConnection connection) && connection.Connected;
+                    }, async (_connection) =>
+                    {
+                        await Task.CompletedTask;
+                    }, 3, 10000);
+                }
             }
-
-            //隧道连接
-            connection = await tunnelTransfer.ConnectAsync(machineId, TransactionId, denyProtocols).ConfigureAwait(false);
-            if (connection != null)
-            {
-                return connection;
-            }
-
-            //后台打洞
-            tunnelTransfer.StartBackground(machineId, TransactionId, denyProtocols, () =>
-            {
-                return channelConnectionCaching.TryGetValue(machineId, TransactionId, out ITunnelConnection connection) && connection.Connected;
-            }, async (_connection) =>
-            {
-                await Task.CompletedTask;
-            }, 3, 10000);
 
             return connection;
         }
