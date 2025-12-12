@@ -148,6 +148,11 @@ namespace linker.messenger.node
         {
             try
             {
+                if (shareKey.Contains("\\u"))
+                {
+                    shareKey = System.Text.RegularExpressions.Regex.Unescape(shareKey);
+                }
+
                 NodeShareInfo info = serializer.Deserialize<NodeShareInfo>(crypto.Decode(Convert.FromBase64String(shareKey)).Span);
 
                 bool result = await nodeStore.Add(new TStore

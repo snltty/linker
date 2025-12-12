@@ -45,7 +45,7 @@ namespace linker.messenger.store.file.sforward
         {
             int length = liteCollection.UpdateMany(p => new SForwardServerNodeStoreInfo
             {
-                DataEachMonth = info.DataEachMonth,
+                BandwidthEach = info.BandwidthEach,
                 Public = info.Public,
                 Host = info.Host,
             }, c => c.NodeId == info.NodeId);

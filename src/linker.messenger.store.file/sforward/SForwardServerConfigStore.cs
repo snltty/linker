@@ -1,5 +1,4 @@
 ﻿using linker.libs;
-using linker.messenger.relay.server;
 using linker.messenger.sforward.server;
 using linker.messenger.store.file.node;
 
@@ -22,6 +21,7 @@ namespace linker.messenger.store.file.sforward
                 Config.DataEachMonth = (int)Config.Distributed.Node.MaxGbTotal;
                 Config.Name = Config.Distributed.Node.Name;
                 Config.Url = Config.Distributed.Node.Url;
+
 
                 Config.Host = NetworkHelper.GetEndPoint(Config.Distributed.Node.Host, ServicePort).Address.ToString();
 

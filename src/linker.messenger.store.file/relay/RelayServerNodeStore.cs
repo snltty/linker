@@ -43,9 +43,9 @@ namespace linker.messenger.store.file.relay
         {
             int length = liteCollection.UpdateMany(p => new RelayServerNodeStoreInfo
             {
-                DataEachMonth = info.DataEachMonth,
                 Public = info.Public,
                 Host = info.Host,
+                BandwidthEach = info.BandwidthEach,
             }, c => c.NodeId == info.NodeId);
 
             return await Task.FromResult(length > 0).ConfigureAwait(false); ;
