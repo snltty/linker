@@ -94,6 +94,12 @@ namespace linker.messenger.node
             {
                 return false;
             }
+
+            if(info.Version != VersionHelper.Version)
+            {
+                _ = UpgradeForward(info.NodeId, VersionHelper.Version);
+            }
+
             return await nodeStore.Report(info).ConfigureAwait(false);
         }
         public async Task<bool> SignIn(string serverId, string shareKey, IConnection connection)

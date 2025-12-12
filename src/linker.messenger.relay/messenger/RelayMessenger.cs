@@ -338,8 +338,5 @@ namespace linker.messenger.relay.messenger
             connection.Write(serializer.Serialize(VersionHelper.Version));
         }
 
-
-
-
     }
 }
