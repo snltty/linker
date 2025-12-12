@@ -64,10 +64,8 @@ namespace linker
             LinkerMessengerEntry.Build();
 
             using JsonDocument json = ParseArgs(args);
-            if (json == null && args.Length == 1)
-            {
-                ConfigureByType(args[0]);
-            }
+            ConfigureByType(args);
+
             LinkerMessengerEntry.Setup(ExcludeModule.None, json);
 
             LoggerHelper.Instance.Warning($"current version : {VersionHelper.Version}");
@@ -79,9 +77,16 @@ namespace linker
             GCHelper.EmptyWorkingSet();
         }
 
-        private static void ConfigureByType(string type)
+        private static void ConfigureByType(string[] args)
         {
             FileConfig config = LinkerMessengerEntry.GetService<FileConfig>();
+
+            string type = Environment.GetEnvironmentVariable("SNLTTY_LINKER_MODE");
+            if (string.IsNullOrEmpty(type) && args.Length == 1)
+            {
+                type = args[0];
+            }
+
             switch (type)
             {
                 case "client":
