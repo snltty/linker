@@ -72,12 +72,14 @@ namespace linker.messenger.relay.server
                 .OrderByDescending(c => c.LastTicks);
 
             var list = result.OrderByDescending(x => x.Connections == 0 ? int.MaxValue : x.Connections)
+                     
                      .ThenBy(x => x.ConnectionsRatio)
                      .ThenBy(x => x.BandwidthRatio)
                      .ThenByDescending(x => x.BandwidthEach == 0 ? int.MaxValue : x.BandwidthEach)
                      .ThenByDescending(x => x.Bandwidth == 0 ? int.MaxValue : x.Bandwidth)
                      .ThenByDescending(x => x.DataEachMonth == 0 ? int.MaxValue : x.DataEachMonth)
                      .ThenByDescending(x => x.DataRemain == 0 ? long.MaxValue : x.DataRemain)
+                     
                      .ToList();
 
             list.ForEach(c =>

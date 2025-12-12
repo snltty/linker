@@ -44,8 +44,12 @@ export default {
                     item._online = item.LastTicks < 15000;
                     item._manager = item.Manageable && item._online;
                 });
-                state.nodes = res;
-                nodes.value = res;
+                const onlines = res.filter((item)=>item._online);
+                const offlines = res.filter((item)=>!item._online).sort((a,b)=>a.LastTicks-b.LastTicks);
+                const list = onlines.concat(offlines);
+
+                state.nodes = list;
+                nodes.value = list;
                 state.timer = setTimeout(_sforwardSubscribe,1000);
             }).catch(()=>{
                 state.timer = setTimeout(_sforwardSubscribe,1000);

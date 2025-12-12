@@ -140,7 +140,7 @@ namespace linker.messenger.relay.server
                     LoggerHelper.Instance.Info($"relay server start {fromep} to {toep}");
 
                     string flowKey = relayMessage.Type == RelayMessengerType.Ask ? $"{relayMessage.FromId}->{relayMessage.ToId}" : $"{relayMessage.ToId}->{relayMessage.FromId}";
-                    RelayTrafficCacheInfo trafficCacheInfo = new RelayTrafficCacheInfo { Cache = relayCache, Sendt = 0, Limit = new SpeedLimit(), Key = flowKey };
+                    RelayTrafficCacheInfo trafficCacheInfo = new RelayTrafficCacheInfo { Cache1 = relayCache, Cache= relayCache, Sendt = 0, Limit = new SpeedLimit(), Key = flowKey };
                     relayServerNodeTransfer.AddTrafficCache(trafficCacheInfo);
                     relayServerNodeTransfer.IncrementConnectionNum();
                     await Task.WhenAll(CopyToAsync(trafficCacheInfo, socket, answerSocket), CopyToAsync(trafficCacheInfo, answerSocket, socket)).ConfigureAwait(false);
@@ -206,7 +206,7 @@ namespace linker.messenger.relay.server
                         }
                     }
 
-                    Add(trafficCacheInfo.Key, trafficCacheInfo.Cache.FromName, trafficCacheInfo.Cache.ToName, trafficCacheInfo.Cache.GroupId, bytesRead, bytesRead);
+                    Add(trafficCacheInfo.Key, trafficCacheInfo.Cache1.FromName, trafficCacheInfo.Cache1.ToName, trafficCacheInfo.Cache1.GroupId, bytesRead, bytesRead);
                     await destination.SendAsync(buffer.Memory.Slice(0, bytesRead), SocketFlags.None).ConfigureAwait(false);
                 }
             }
@@ -239,6 +239,6 @@ namespace linker.messenger.relay.server
     }
     public sealed class RelayTrafficCacheInfo: TrafficCacheInfo
     {
-        public new RelayCacheInfo Cache { get; set; }
+        public RelayCacheInfo Cache1 { get; set; }
     }
 }

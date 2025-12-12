@@ -21,7 +21,7 @@ namespace linker.messenger.store.file.node
         public void SetDataRemain(long value)
         {
             Config.DataRemain = value;
-        }
+        } 
 
         public void SetDataMonth(int month)
         {

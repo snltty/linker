@@ -88,6 +88,7 @@ export default {
                 const json = JSON.parse(JSON.stringify(state.ruleForm));
                 json.Protocol = (json.AllowTcp ? 1 : 0) | (json.AllowUdp ? 2 : 0);
 
+
                 relayUpdate(json).then((res)=>{
                     if(res){
                         ElMessage.success(t('common.oper'));
