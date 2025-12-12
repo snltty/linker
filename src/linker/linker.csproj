@@ -26,7 +26,7 @@
 5. 发布飞牛fpk安装包(docker+bin)
 6. 优化虚拟网卡自动连接表现
 7. 简化加入分组操作
-8. 先不要更新，作者测试中</Description>
+8. 先不要更新，作者测试中，请使用v1.9.6</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
