@@ -6,6 +6,14 @@ using System.Text.Json.Serialization;
 
 namespace linker.messenger.relay.server
 {
+    public interface IRelayNodeStore : INodeStore<RelayServerNodeStoreInfo, RelayServerNodeReportInfo>
+    {
+    }
+    public interface IRelayNodeConfigStore : INodeConfigStore<RelayServerConfigInfo>
+    {
+
+    }
+
     public class RelayServerNodeInfo
     {
         private string nodeId = Guid.NewGuid().ToString().ToUpper();

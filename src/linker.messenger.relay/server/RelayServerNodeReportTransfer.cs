@@ -7,25 +7,27 @@ namespace linker.messenger.relay.server
     public sealed class RelayServerNodeReportTransfer : NodeReportTransfer<RelayServerConfigInfo, RelayServerNodeStoreInfo, RelayServerNodeReportInfo>
     {
         public override ushort MessengerIdSahre => (ushort)RelayMessengerIds.Share;
-        public override ushort MessengerIdUpdateForward => (ushort)RelayMessengerIds.UpdateForward;
-        public override ushort MessengerIdUpgradeForward => (ushort)RelayMessengerIds.UpgradeForward;
-        public override ushort MessengerIdExitForward => (ushort)RelayMessengerIds.ExitForward;
+        public override ushort MessengerIdUpdate => (ushort)RelayMessengerIds.Update;
+        public override ushort MessengerIdUpgrade => (ushort)RelayMessengerIds.Upgrade;
+        public override ushort MessengerIdExit => (ushort)RelayMessengerIds.Exit;
         public override ushort MessengerIdReport => (ushort)RelayMessengerIds.Report;
         public override ushort MessengerIdSignIn => (ushort)RelayMessengerIds.SignIn;
-        public override ushort MessengerIdMastersForward => (ushort)RelayMessengerIds.MastersForward;
-        public override ushort MessengerIdDenysForward => (ushort)RelayMessengerIds.DenysForward;
-        public override ushort MessengerIdDenysAddForward => (ushort)RelayMessengerIds.DenysAddForward;
-        public override ushort MessengerIdDenysDelForward => (ushort)RelayMessengerIds.DenysDelForward;
+        public override ushort MessengerIdMasters => (ushort)RelayMessengerIds.Masters;
+        public override ushort MessengerIdDenys => (ushort)RelayMessengerIds.Denys;
+        public override ushort MessengerIdDenysAdd => (ushort)RelayMessengerIds.DenysAdd;
+        public override ushort MessengerIdDenysDel => (ushort)RelayMessengerIds.DenysDel;
+
+        protected override string Name => "relay";
 
         private readonly IRelayServerWhiteListStore relayServerWhiteListStore;
-        private readonly INodeConfigStore<RelayServerConfigInfo> nodeConfigStore;
-        private readonly INodeStore<RelayServerNodeStoreInfo, RelayServerNodeReportInfo> nodeStore;
+        private readonly IRelayNodeConfigStore nodeConfigStore;
+        private readonly IRelayNodeStore nodeStore;
 
 
         public RelayServerNodeReportTransfer(IRelayServerWhiteListStore relayServerWhiteListStore, RelayServerConnectionTransfer nodeConnectionTransfer,
-            INodeConfigStore<RelayServerConfigInfo> nodeConfigStore,
-            ISerializer serializer, IMessengerSender messengerSender, INodeStore<RelayServerNodeStoreInfo, RelayServerNodeReportInfo> nodeStore,
-            IMessengerResolver messengerResolver, ICommonStore commonStore,IRelayServerMasterDenyStore relayServerMasterDenyStore)
+            IRelayNodeConfigStore nodeConfigStore,
+            ISerializer serializer, IMessengerSender messengerSender, IRelayNodeStore nodeStore,
+            IMessengerResolver messengerResolver, ICommonStore commonStore, IRelayServerMasterDenyStore relayServerMasterDenyStore)
             : base(nodeConnectionTransfer, nodeConfigStore, serializer, messengerSender, nodeStore, messengerResolver, commonStore, relayServerMasterDenyStore)
         {
             this.relayServerWhiteListStore = relayServerWhiteListStore;

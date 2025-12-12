@@ -62,6 +62,14 @@ namespace linker.messenger.serializer.memorypack
 
 
             MemoryPackFormatterProvider.Register(new NodeShareInfoFormatter());
+            MemoryPackFormatterProvider.Register(new MastersRequestInfoFormatter());
+            MemoryPackFormatterProvider.Register(new MasterConnInfoFormatter());
+            MemoryPackFormatterProvider.Register(new MastersResponseInfoFormatter());
+            MemoryPackFormatterProvider.Register(new MasterDenyStoreRequestInfoFormatter());
+            MemoryPackFormatterProvider.Register(new MasterDenyStoreResponseInfoFormatter());
+            MemoryPackFormatterProvider.Register(new MasterDenyStoreInfoFormatter());
+            MemoryPackFormatterProvider.Register(new MasterDenyAddInfoFormatter());
+            MemoryPackFormatterProvider.Register(new MasterDenyDelInfoFormatter());
 
 
             MemoryPackFormatterProvider.Register(new RelayAskResultInfoFormatter());

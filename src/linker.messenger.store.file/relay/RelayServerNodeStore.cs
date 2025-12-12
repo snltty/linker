@@ -5,11 +5,11 @@ using linker.messenger.store.file.node;
 
 namespace linker.messenger.store.file.relay
 {
-    public sealed class RelayServerNodeStore : NodeStore<RelayServerNodeStoreInfo, RelayServerNodeReportInfo>
+    public sealed class RelayServerNodeStore : NodeStore<RelayServerNodeStoreInfo, RelayServerNodeReportInfo>, IRelayNodeStore
     {
         public override string StoreName => "relay";
         private string md5 = string.Empty;
-        public RelayServerNodeStore(Storefactory storefactory, INodeConfigStore<RelayServerConfigInfo> relayServerConfigStore) : base(storefactory)
+        public RelayServerNodeStore(Storefactory storefactory, IRelayNodeConfigStore relayServerConfigStore) : base(storefactory)
         {
             md5 = relayServerConfigStore.Config.NodeId.Md5();
         }

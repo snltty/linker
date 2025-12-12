@@ -446,6 +446,11 @@ export default {
     'server.denyTitle':'【{0}】上的主机',
     'server.denyMasters':'在线的主机',
     'server.denyList':'禁用列表',
+    'server.denyOper':'操作',
+    'server.denyAdd':'禁用',
+    'server.denyStr':'项',
+    'server.denyRemark':'备注',
+    'server.denyDel':'删除不可逆，是否确认?',
 
     'server.updater': '更新',
     'server.updaterSecretKey': '服务器更新密钥',

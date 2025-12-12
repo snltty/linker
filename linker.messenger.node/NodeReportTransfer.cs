@@ -16,15 +16,18 @@ namespace linker.messenger.node
         public int ConnectionNum => connectionNum;
 
         public virtual ushort MessengerIdSahre { get; }
-        public virtual ushort MessengerIdUpdateForward { get; }
-        public virtual ushort MessengerIdUpgradeForward { get; }
-        public virtual ushort MessengerIdExitForward { get; }
+        public virtual ushort MessengerIdUpdate { get; }
+        public virtual ushort MessengerIdUpgrade { get; }
+        public virtual ushort MessengerIdExit { get; }
         public virtual ushort MessengerIdReport { get; }
         public virtual ushort MessengerIdSignIn { get; }
-        public virtual ushort MessengerIdMastersForward { get; }
-        public virtual ushort MessengerIdDenysForward { get; }
-        public virtual ushort MessengerIdDenysAddForward { get; }
-        public virtual ushort MessengerIdDenysDelForward { get; }
+        public virtual ushort MessengerIdMasters { get; }
+        public virtual ushort MessengerIdDenys { get; }
+        public virtual ushort MessengerIdDenysAdd { get; }
+        public virtual ushort MessengerIdDenysDel { get; }
+
+
+        protected virtual string Name { get; }
 
 
         private int connectionNum = 0;
@@ -155,7 +158,7 @@ namespace linker.messenger.node
                 }).ConfigureAwait(false);
                 if (result == false)
                 {
-                    return "node already exists";
+                    return $"{Name} node already exists";
                 }
             }
             catch (Exception ex)
@@ -180,7 +183,7 @@ namespace linker.messenger.node
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = connection,
-                    MessengerId = MessengerIdUpdateForward,
+                    MessengerId = MessengerIdUpdate,
                     Payload = serializer.Serialize(info)
                 }).ConfigureAwait(false);
             }
@@ -200,7 +203,7 @@ namespace linker.messenger.node
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = connection,
-                    MessengerId = MessengerIdUpgradeForward,
+                    MessengerId = MessengerIdUpgrade,
                     Payload = serializer.Serialize(new KeyValuePair<string, string>(store.MasterKey, version))
                 }).ConfigureAwait(false);
                 return true;
@@ -224,7 +227,7 @@ namespace linker.messenger.node
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = connection,
-                    MessengerId = MessengerIdExitForward,
+                    MessengerId = MessengerIdExit,
                     Payload = serializer.Serialize(new KeyValuePair<string, string>(store.MasterKey, nodeId))
                 }).ConfigureAwait(false);
                 return true;
@@ -251,7 +254,7 @@ namespace linker.messenger.node
                 var resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = connection,
-                    MessengerId = MessengerIdMastersForward,
+                    MessengerId = MessengerIdMasters,
                     Payload = serializer.Serialize(info)
                 }).ConfigureAwait(false);
                 if (resp.Code == MessageResponeCodes.OK)
@@ -273,9 +276,9 @@ namespace linker.messenger.node
             return new MastersResponseInfo
             {
                 Page = info.Page,
-                Sise = info.Sise,
+                Size = info.Size,
                 Count = connections.Count,
-                List = connections.Skip((info.Page - 1) * info.Sise).Take(info.Sise).Select(c => new MasterConnInfo { Addr = c.Address, NodeId = c.Id }).ToList()
+                List = connections.Skip((info.Page - 1) * info.Size).Take(info.Size).Select(c => new MasterConnInfo { Addr = c.Address, NodeId = c.Id }).ToList()
             };
         }
         public async Task<MasterDenyStoreResponseInfo> DenysForward(MasterDenyStoreRequestInfo info)
@@ -287,7 +290,7 @@ namespace linker.messenger.node
                 var resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = connection,
-                    MessengerId = MessengerIdDenysForward,
+                    MessengerId = MessengerIdDenys,
                     Payload = serializer.Serialize(info)
                 }).ConfigureAwait(false);
                 if (resp.Code == MessageResponeCodes.OK)
@@ -315,7 +318,7 @@ namespace linker.messenger.node
                 var resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = connection,
-                    MessengerId = MessengerIdDenysAddForward,
+                    MessengerId = MessengerIdDenysAdd,
                     Payload = serializer.Serialize(info)
                 }).ConfigureAwait(false);
                 return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
@@ -340,7 +343,7 @@ namespace linker.messenger.node
                 var resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = connection,
-                    MessengerId = MessengerIdDenysDelForward,
+                    MessengerId = MessengerIdDenysDel,
                     Payload = serializer.Serialize(info)
                 }).ConfigureAwait(false);
                 return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
@@ -413,11 +416,11 @@ namespace linker.messenger.node
                     }).ConfigureAwait(false);
                 }
 
-                LoggerHelper.Instance.Warning($"build SForward share key : {shareKey}");
+                LoggerHelper.Instance.Warning($"build {Name} share key : {shareKey}");
             }
             catch (Exception ex)
             {
-                LoggerHelper.Instance.Error($"build SForward share key error : {ex}");
+                LoggerHelper.Instance.Error($"build {Name} share key error : {ex}");
             }
         }
         private async Task ReportTask()
@@ -467,7 +470,7 @@ namespace linker.messenger.node
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
-                        LoggerHelper.Instance.Error($"SForward report : {ex}");
+                        LoggerHelper.Instance.Error($"{Name} report : {ex}");
                     }
                 }
             }, 5000);
@@ -502,7 +505,7 @@ namespace linker.messenger.node
                             }).ConfigureAwait(false);
                             if (resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray))
                             {
-                                LoggerHelper.Instance.Debug($"SForward sign in to node {c.NodeId} success");
+                                LoggerHelper.Instance.Debug($"{Name} sign in to node {c.NodeId} success");
                                 nodeConnectionTransfer.TryAdd(ConnectionSideType.Node, c.NodeId, connection);
                             }
                             else
@@ -518,7 +521,7 @@ namespace linker.messenger.node
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
-                        LoggerHelper.Instance.Error($"SForward sign in : {ex}");
+                        LoggerHelper.Instance.Error($"{Name} sign in : {ex}");
                     }
                 }
             }, 10000);

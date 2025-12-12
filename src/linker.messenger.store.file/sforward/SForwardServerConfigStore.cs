@@ -1,10 +1,11 @@
 ﻿using linker.libs;
+using linker.messenger.relay.server;
 using linker.messenger.sforward.server;
 using linker.messenger.store.file.node;
 
 namespace linker.messenger.store.file.sforward
 {
-    public sealed class SForwardServerConfigStore : NodeConfigStore<SForwardServerConfigInfo>
+    public sealed class SForwardServerConfigStore : NodeConfigStore<SForwardServerConfigInfo>, ISForwardNodeConfigStore
     {
         public override SForwardServerConfigInfo Config => config.Data.Server.SForward;
 

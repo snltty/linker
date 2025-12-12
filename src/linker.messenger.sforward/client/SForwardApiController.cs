@@ -15,30 +15,30 @@ namespace linker.messenger.sforward.client
         private readonly IMessengerSender messengerSender;
         private readonly SignInClientState signInClientState;
         private readonly ISignInClientStore signInClientStore;
-        private readonly ISForwardClientStore sForwardClientStore;
+        private readonly ISForwardClientStore sforwardClientStore;
         private readonly ISerializer serializer;
         private readonly IAccessStore accessStore;
-        private readonly SForwardClientTestTransfer sForwardClientTestTransfer;
+        private readonly SForwardClientTestTransfer sforwardClientTestTransfer;
 
         public SForwardApiController(SForwardClientTransfer forwardTransfer, IMessengerSender messengerSender,
             SignInClientState signInClientState, ISignInClientStore signInClientStore,
-            ISForwardClientStore sForwardClientStore, ISerializer serializer, IAccessStore accessStore,
-            SForwardClientTestTransfer sForwardClientTestTransfer)
+            ISForwardClientStore sforwardClientStore, ISerializer serializer, IAccessStore accessStore,
+            SForwardClientTestTransfer sforwardClientTestTransfer)
         {
             this.forwardTransfer = forwardTransfer;
             this.messengerSender = messengerSender;
             this.signInClientState = signInClientState;
             this.signInClientStore = signInClientStore;
-            this.sForwardClientStore = sForwardClientStore;
+            this.sforwardClientStore = sforwardClientStore;
             this.serializer = serializer;
             this.accessStore = accessStore;
-            this.sForwardClientTestTransfer = sForwardClientTestTransfer;
+            this.sforwardClientTestTransfer = sforwardClientTestTransfer;
         }
 
         public List<SForwardServerNodeStoreInfo> Subscribe(ApiControllerParamsInfo param)
         {
-            sForwardClientTestTransfer.Subscribe();
-            return sForwardClientTestTransfer.Nodes;
+            sforwardClientTestTransfer.Subscribe();
+            return sforwardClientTestTransfer.Nodes;
         }
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace linker.messenger.sforward.client
             if (param.Content == signInClientStore.Id)
             {
                 if (accessStore.HasAccess(AccessValue.ForwardShowSelf) == false) return new List<SForwardInfo>();
-                return sForwardClientStore.Get().ToList();
+                return sforwardClientStore.Get().ToList();
             }
 
             if (accessStore.HasAccess(AccessValue.ForwardShowOther) == false) return new List<SForwardInfo>();

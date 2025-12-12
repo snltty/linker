@@ -7,23 +7,25 @@ namespace linker.messenger.sforward.server
     public sealed class SForwardServerNodeReportTransfer : NodeReportTransfer<SForwardServerConfigInfo, SForwardServerNodeStoreInfo, SForwardServerNodeReportInfo>
     {
         public override ushort MessengerIdSahre => (ushort)SForwardMessengerIds.Share;
-        public override ushort MessengerIdUpdateForward => (ushort)SForwardMessengerIds.UpdateForward;
-        public override ushort MessengerIdUpgradeForward => (ushort)SForwardMessengerIds.UpgradeForward;
-        public override ushort MessengerIdExitForward => (ushort)SForwardMessengerIds.ExitForward;
+        public override ushort MessengerIdUpdate => (ushort)SForwardMessengerIds.Update;
+        public override ushort MessengerIdUpgrade => (ushort)SForwardMessengerIds.Upgrade;
+        public override ushort MessengerIdExit => (ushort)SForwardMessengerIds.Exit;
         public override ushort MessengerIdReport => (ushort)SForwardMessengerIds.Report;
         public override ushort MessengerIdSignIn => (ushort)SForwardMessengerIds.SignIn;
-        public override ushort MessengerIdMastersForward => (ushort)SForwardMessengerIds.MastersForward;
-        public override ushort MessengerIdDenysForward => (ushort)SForwardMessengerIds.DenysForward;
-        public override ushort MessengerIdDenysAddForward => (ushort)SForwardMessengerIds.DenysAddForward;
-        public override ushort MessengerIdDenysDelForward => (ushort)SForwardMessengerIds.DenysDelForward;
+        public override ushort MessengerIdMasters => (ushort)SForwardMessengerIds.Masters;
+        public override ushort MessengerIdDenys => (ushort)SForwardMessengerIds.Denys;
+        public override ushort MessengerIdDenysAdd => (ushort)SForwardMessengerIds.DenysAdd;
+        public override ushort MessengerIdDenysDel => (ushort)SForwardMessengerIds.DenysDel;
+
+        protected override string Name => "sforward";
 
         private readonly ISForwardServerWhiteListStore sforwardServerWhiteListStore;
-        private readonly INodeConfigStore<SForwardServerConfigInfo> nodeConfigStore;
-        private readonly INodeStore<SForwardServerNodeStoreInfo, SForwardServerNodeReportInfo> nodeStore;
+        private readonly ISForwardNodeConfigStore nodeConfigStore;
+        private readonly ISForwardNodeStore nodeStore;
 
         public SForwardServerNodeReportTransfer(ISForwardServerWhiteListStore sforwardServerWhiteListStore, SForwardServerConnectionTransfer nodeConnectionTransfer,
-            INodeConfigStore<SForwardServerConfigInfo> nodeConfigStore,
-            ISerializer serializer, IMessengerSender messengerSender, INodeStore<SForwardServerNodeStoreInfo, SForwardServerNodeReportInfo> nodeStore,
+            ISForwardNodeConfigStore nodeConfigStore,
+            ISerializer serializer, IMessengerSender messengerSender, ISForwardNodeStore nodeStore,
             IMessengerResolver messengerResolver, ICommonStore commonStore,ISForwardServerMasterDenyStore sforwardServerMasterDenyStore)
             : base(nodeConnectionTransfer, nodeConfigStore, serializer, messengerSender, nodeStore, messengerResolver, commonStore, sforwardServerMasterDenyStore)
         {

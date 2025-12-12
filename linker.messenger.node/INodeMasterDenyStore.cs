@@ -7,9 +7,30 @@ namespace linker.messenger.node
     /// </summary>
     public interface INodeMasterDenyStore
     {
-        public Task<MasterDenyStoreResponseInfo> Get(MasterDenyStoreRequestInfo request);
+        /// <summary>
+        /// 分页查询
+        /// </summary>
+        /// <param name="info"></param>
+        /// <returns></returns>
+        public Task<MasterDenyStoreResponseInfo> Get(MasterDenyStoreRequestInfo info);
+        /// <summary>
+        /// 判断是否在禁用列表
+        /// </summary>
+        /// <param name="ip"></param>
+        /// <param name="plus"></param>
+        /// <returns></returns>
         public Task<bool> Get(uint ip,int plus);
+        /// <summary>
+        /// 添加禁用
+        /// </summary>
+        /// <param name="info"></param>
+        /// <returns></returns>
         public Task<bool> Add(MasterDenyAddInfo info);
+        /// <summary>
+        /// 删除禁用
+        /// </summary>
+        /// <param name="info"></param>
+        /// <returns></returns>
         public Task<bool> Delete(MasterDenyDelInfo info);
     }
 
@@ -17,33 +38,33 @@ namespace linker.messenger.node
     {
         public string NodeId { get; set; }
         public int Page { get; set; }
-        public int Sise { get; set; }
+        public int Size { get; set; }
+    }
+    public sealed class MasterConnInfo
+    {
+        public string NodeId { get; set; }
+        public IPEndPoint Addr { get; set; }
+       
     }
     public sealed class MastersResponseInfo
     {
         public int Page { get; set; }
-        public int Sise { get; set; }
+        public int Size { get; set; }
         public int Count { get; set; }
         public List<MasterConnInfo> List { get; set; } = new List<MasterConnInfo>();
     }
-    public sealed class MasterConnInfo
-    {
-        public IPEndPoint Addr { get; set; }
-        public string NodeId { get; set; }
-    }
-
-
+   
     public sealed class MasterDenyStoreRequestInfo
     {
         public string NodeId { get; set; }
         public int Page { get; set; }
-        public int Sise { get; set; }
+        public int Size { get; set; }
         public string Str { get; set; }
     }
     public sealed class MasterDenyStoreResponseInfo
     {
         public int Page { get; set; }
-        public int Sise { get; set; }
+        public int Size { get; set; }
         public int Count { get; set; }
         public List<MasterDenyStoreInfo> List { get; set; } = new List<MasterDenyStoreInfo>();
     }

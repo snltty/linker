@@ -1,6 +1,4 @@
-﻿using linker.libs.extends;
-
-namespace linker.messenger.node
+﻿namespace linker.messenger.node
 {
     public interface INodeStoreBase
     {
@@ -34,9 +32,7 @@ namespace linker.messenger.node
 
         public string Host { get; set; }
     }
-    public interface INodeStore<TStore, TReport>
-        where TStore : class, INodeStoreBase, new()
-        where TReport : class, INodeReportBase, new()
+    public interface INodeStore<TStore, TReport> where TStore : class, INodeStoreBase, new() where TReport : class, INodeReportBase, new()
     {
         public string StoreName { get; }
 

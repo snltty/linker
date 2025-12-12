@@ -6,6 +6,9 @@ using IPNetwork = System.Net.IPNetwork;
 
 namespace linker.messenger.store.file.node
 {
+    /// <summary>
+    /// 节点主机禁用
+    /// </summary>
     public class NodeMasterDenyStore : INodeMasterDenyStore
     {
         public virtual string StoreName => "relay";
@@ -39,19 +42,19 @@ namespace linker.messenger.store.file.node
             return liteCollection.Delete(info.Id);
         }
 
-        public async Task<MasterDenyStoreResponseInfo> Get(MasterDenyStoreRequestInfo request)
+        public async Task<MasterDenyStoreResponseInfo> Get(MasterDenyStoreRequestInfo info)
         {
             var query = liteCollection.FindAll();
-            if (string.IsNullOrWhiteSpace(request.Str) == false)
+            if (string.IsNullOrWhiteSpace(info.Str) == false)
             {
-                query = query.Where(c => (string.IsNullOrWhiteSpace(c.Str) == false && c.Str.Contains(request.Str)) || string.IsNullOrWhiteSpace(c.Remark) == false && c.Remark.Contains(request.Str));
+                query = query.Where(c => (string.IsNullOrWhiteSpace(c.Str) == false && c.Str.Contains(info.Str)) || string.IsNullOrWhiteSpace(c.Remark) == false && c.Remark.Contains(info.Str));
             }
             return new MasterDenyStoreResponseInfo
             {
-                Page = request.Page,
-                Sise = request.Sise,
+                Page = info.Page,
+                Size = info.Size,
                 Count = query.Count(),
-                List = query.Skip((request.Page - 1) * request.Sise).Take(request.Sise).ToList()
+                List = query.Skip((info.Page - 1) * info.Size).Take(info.Size).ToList()
             };
         }
 

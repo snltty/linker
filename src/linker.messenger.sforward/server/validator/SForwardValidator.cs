@@ -10,8 +10,8 @@ namespace linker.messenger.sforward.server.validator
     {
         public string Name => "default";
 
-        private readonly INodeConfigStore<SForwardServerConfigInfo>  nodeConfigStore;
-        public SForwardValidator(INodeConfigStore<SForwardServerConfigInfo> nodeConfigStore)
+        private readonly ISForwardNodeConfigStore nodeConfigStore;
+        public SForwardValidator(ISForwardNodeConfigStore nodeConfigStore)
         {
             this.nodeConfigStore = nodeConfigStore;
         }

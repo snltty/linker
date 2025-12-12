@@ -70,8 +70,8 @@ namespace linker.messenger.store.file
             serviceCollection.AddSingleton<IUpdaterServerStore, UpdaterServerStore>();
 
             serviceCollection.AddSingleton<IRelayClientStore, RelayClientStore>();
-            serviceCollection.AddSingleton<INodeConfigStore<RelayServerConfigInfo>, RelayServerConfigStore>();
-            serviceCollection.AddSingleton<INodeStore<RelayServerNodeStoreInfo, RelayServerNodeReportInfo>, RelayServerNodeStore>();
+            serviceCollection.AddSingleton<IRelayNodeConfigStore, RelayServerConfigStore>();
+            serviceCollection.AddSingleton<IRelayNodeStore, RelayServerNodeStore>();
             serviceCollection.AddSingleton<IRelayServerWhiteListStore, RelayNodeWhiteListStore>();
             serviceCollection.AddSingleton<IRelayServerMasterDenyStore, RelayServerMasterDenyStore>();
 
@@ -99,8 +99,8 @@ namespace linker.messenger.store.file
             serviceCollection.AddSingleton<ISocks5Store, Socks5Store>();
 
             serviceCollection.AddSingleton<ISForwardClientStore, SForwardClientStore>();
-            serviceCollection.AddSingleton<INodeConfigStore<SForwardServerConfigInfo>, SForwardServerConfigStore>();
-            serviceCollection.AddSingleton<INodeStore<SForwardServerNodeStoreInfo, SForwardServerNodeReportInfo>, SForwardServerNodeStore>();
+            serviceCollection.AddSingleton<ISForwardNodeConfigStore, SForwardServerConfigStore>();
+            serviceCollection.AddSingleton<ISForwardNodeStore, SForwardServerNodeStore>();
             serviceCollection.AddSingleton<ISForwardServerWhiteListStore, SForwardNodeWhiteListStore>();
             serviceCollection.AddSingleton<ISForwardServerMasterDenyStore, SForwardServerMasterDenyStore>();
 

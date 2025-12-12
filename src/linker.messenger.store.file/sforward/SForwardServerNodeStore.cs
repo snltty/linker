@@ -5,11 +5,11 @@ using linker.messenger.store.file.node;
 
 namespace linker.messenger.store.file.sforward
 {
-    public sealed class SForwardServerNodeStore : NodeStore<SForwardServerNodeStoreInfo, SForwardServerNodeReportInfo>
+    public sealed class SForwardServerNodeStore : NodeStore<SForwardServerNodeStoreInfo, SForwardServerNodeReportInfo>, ISForwardNodeStore
     {
         public override string StoreName => "sforward";
         private string md5 = string.Empty;
-        public SForwardServerNodeStore(Storefactory storefactory, INodeConfigStore<SForwardServerConfigInfo> nodeConfigStore) : base(storefactory)
+        public SForwardServerNodeStore(Storefactory storefactory, ISForwardNodeConfigStore nodeConfigStore) : base(storefactory)
         {
             md5 = nodeConfigStore.Config.NodeId.Md5();
         }

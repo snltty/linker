@@ -5,6 +5,13 @@ using System.Text.Json.Serialization;
 
 namespace linker.messenger.sforward.server
 {
+    public interface ISForwardNodeStore : INodeStore<SForwardServerNodeStoreInfo, SForwardServerNodeReportInfo>
+    {
+    }
+    public interface ISForwardNodeConfigStore : INodeConfigStore<SForwardServerConfigInfo>
+    {
+
+    }
     public class SForwardServerNodeInfo
     {
         private string nodeId = Guid.NewGuid().ToString().ToUpper();

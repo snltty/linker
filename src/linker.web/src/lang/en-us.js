@@ -355,6 +355,7 @@ export default {
     'server.denyTitle':'connections on 【{0}】',
     'server.denyMasters':'Online',
     'server.denyList':'Deny list',
+    'server.denyOper':'Oper',
 
     'server.updater':'Updater',
     'server.updaterSecretKey': 'Server update secretKey',

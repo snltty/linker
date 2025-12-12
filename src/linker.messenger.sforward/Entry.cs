@@ -89,7 +89,7 @@ namespace linker.messenger.sforward
             serviceProvider.GetService<SForwardServerMasterTransfer>();
 
             SForwardProxy sForwardProxy = serviceProvider.GetService<SForwardProxy>();
-            INodeConfigStore<SForwardServerConfigInfo> sforwardServerStore = serviceProvider.GetService<INodeConfigStore<SForwardServerConfigInfo>>();
+            ISForwardNodeConfigStore sforwardServerStore = serviceProvider.GetService<ISForwardNodeConfigStore>();
             if (sforwardServerStore.Config.WebPort > 0)
             {
                 sForwardProxy.StartHttp(sforwardServerStore.Config.WebPort, 3 );

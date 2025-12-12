@@ -14,7 +14,7 @@ namespace linker.messenger.sforward.server
 
         private readonly SForwardServerConnectionTransfer sforwardServerConnectionTransfer;
         public SForwardServerNodeTransfer(ISerializer serializer, IMessengerSender messengerSender, SForwardServerConnectionTransfer sforwardServerConnectionTransfer,
-            ICommonStore commonStore, INodeConfigStore<SForwardServerConfigInfo> nodeConfigStore,
+            ICommonStore commonStore, ISForwardNodeConfigStore nodeConfigStore,
             SForwardServerNodeReportTransfer sforwardServerNodeReportTransfer)
             : base(commonStore, nodeConfigStore, sforwardServerNodeReportTransfer)
         {

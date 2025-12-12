@@ -18,7 +18,7 @@ namespace linker.messenger.relay.server
         private readonly RelayServerNodeReportTransfer relayServerNodeReportTransfer;
 
         public RelayServerNodeTransfer(ISerializer serializer, IMessengerSender messengerSender, RelayServerConnectionTransfer relayServerConnectionTransfer,
-            ICommonStore commonStore, INodeConfigStore<RelayServerConfigInfo> nodeConfigStore,
+            ICommonStore commonStore, IRelayNodeConfigStore nodeConfigStore,
             RelayServerNodeReportTransfer  relayServerNodeReportTransfer)
             : base(commonStore, nodeConfigStore, relayServerNodeReportTransfer)
         {

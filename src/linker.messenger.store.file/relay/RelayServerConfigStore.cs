@@ -4,7 +4,7 @@ using linker.messenger.store.file.node;
 
 namespace linker.messenger.store.file.relay
 {
-    public sealed class RelayServerConfigStore : NodeConfigStore<RelayServerConfigInfo>
+    public sealed class RelayServerConfigStore : NodeConfigStore<RelayServerConfigInfo>, IRelayNodeConfigStore
     {
         public override RelayServerConfigInfo Config => config.Data.Server.Relay;
 
