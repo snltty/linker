@@ -47,9 +47,9 @@
                                     <template v-else>
                                         <template v-if="state.nodesJson[scope.row.NodeId1]">
                                             <span :class="{green:scope.row.Started}">
-                                            <template v-if="/^\d+$/.test(scope.row.Temp)">{{ state.nodesJson[scope.row.NodeId1].Domain || state.nodesJson[scope.row.NodeId1].Host.split(':')[0] }}:{{ scope.row.Temp }}</template>
+                                            <template v-if="/^\d+$/.test(scope.row.Temp)">{{ state.nodesJson[scope.row.NodeId1].Domain || (state.nodesJson[scope.row.NodeId1].Host || '*').split(':')[0] }}:{{ scope.row.Temp }}</template>
                                             <template v-else-if="scope.row.Temp.indexOf('.')>=0">{{ scope.row.Temp }}:{{state.nodesJson[scope.row.NodeId1].WebPort}}</template>
-                                            <template v-else>{{ scope.row.Temp }}.{{ state.nodesJson[scope.row.NodeId1].Domain || state.nodesJson[scope.row.NodeId1].Host.split(':')[0] }}:{{state.nodesJson[scope.row.NodeId1].WebPort}}</template>
+                                            <template v-else>{{ scope.row.Temp }}.{{ state.nodesJson[scope.row.NodeId1].Domain || (state.nodesJson[scope.row.NodeId1].Host || '*').split(':')[0] }}:{{state.nodesJson[scope.row.NodeId1].WebPort}}</template>
                                             </span>
                                         </template>
                                         <template v-else>
