@@ -165,7 +165,7 @@ export default {
             setRelaySubscribe().then((res) => {
                 state.nodes = res;
                 state.nodesDic = res.reduce((a, b) => {
-                    a[b.Id] = b.Name;
+                    a[b.NodeId] = b.Name;
                     return a;
                 }, {});
                 state.timer = setTimeout(_setRelaySubscribe, 1000);

@@ -186,7 +186,10 @@ namespace linker.messenger.channel
                     //后台打洞
                     tunnelTransfer.StartBackground(machineId, TransactionId, denyProtocols, () =>
                     {
-                        return channelConnectionCaching.TryGetValue(machineId, TransactionId, out ITunnelConnection connection) && connection.Connected;
+                        return channelConnectionCaching.TryGetValue(machineId, TransactionId, out ITunnelConnection connection)
+                        && connection.Connected
+                        && connection.Type != TunnelType.Relay;
+
                     }, async (_connection) =>
                     {
                         await Task.CompletedTask;
