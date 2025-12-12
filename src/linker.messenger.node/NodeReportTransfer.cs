@@ -401,7 +401,7 @@ namespace linker.messenger.node
                 if (string.IsNullOrWhiteSpace(host))
                 {
                     using HttpClient httpClient = new HttpClient();
-                    host = await httpClient.GetStringAsync($"https://ifconfig.me/ip").WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+                    host = await httpClient.GetStringAsync($"https://linker.snltty.com/ip").WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
                 }
 
                 NodeShareInfo shareKeyInfo = new NodeShareInfo
