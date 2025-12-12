@@ -90,8 +90,10 @@ namespace linker.messenger.node
         }
         public async Task<bool> Report(TReport info)
         {
-            if (nodeConnectionTransfer.TryGet(ConnectionSideType.Node, info.NodeId, out _) == false) return false;
-
+            if (nodeConnectionTransfer.TryGet(ConnectionSideType.Node, info.NodeId, out _) == false)
+            {
+                return false;
+            }
             return await nodeStore.Report(info).ConfigureAwait(false);
         }
         public async Task<bool> SignIn(string serverId, string shareKey, IConnection connection)
@@ -102,11 +104,11 @@ namespace linker.messenger.node
                 nodeConfigStore.SetMasterKey(serverId.Md5());
                 nodeConfigStore.Confirm();
             }
-            if (shareKey != Config.ShareKey && serverId.Md5() != Config.MasterKey)
-            {
-                return false;
-            }
-            if (await nodeMasterDenyStore.Get(NetworkHelper.ToValue(connection.Address.Address), 0).ConfigureAwait(false))
+
+            bool result = connection.Address.Address.Equals(IPAddress.Loopback)
+                || serverId.Md5() == Config.MasterKey
+                || (shareKey == Config.ShareKey && await nodeMasterDenyStore.Get(NetworkHelper.ToValue(connection.Address.Address), 0).ConfigureAwait(false) == false);
+            if (result == false)
             {
                 return false;
             }
