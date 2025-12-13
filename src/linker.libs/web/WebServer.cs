@@ -87,7 +87,14 @@ namespace linker.libs.web
                 DateTime last = DateTime.Now;
                 try
                 {
-                    memory = fileReader.Read(root, path, out last);
+                    if(path == "/health")
+                    {
+                        memory = "ok".ToBytes();
+                    }
+                    else
+                    {
+                        memory = fileReader.Read(root, path, out last);
+                    }
                     if (memory.Length > 0)
                     {
                         response.ContentLength64 = memory.Length;
@@ -147,7 +154,7 @@ namespace linker.libs.web
             {
                 return value;
             }
-            return "application/octet-stream";
+            return "text/plain; charset=utf-8";
         }
 
         public void SetPassword(string password)

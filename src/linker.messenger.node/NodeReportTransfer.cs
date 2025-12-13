@@ -432,7 +432,7 @@ namespace linker.messenger.node
                         Name = "default",
                         Host = $"{IPAddress.Loopback}:{nodeConfigStore.ServicePort}",
                         ShareKey = shareKeyManager,
-                         Manageable= true,
+                        Manageable = true,
                     }).ConfigureAwait(false);
                 }
 

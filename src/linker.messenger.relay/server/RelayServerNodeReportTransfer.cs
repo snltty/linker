@@ -84,8 +84,6 @@ namespace linker.messenger.relay.server
                      
                      .ToList();
 
-            Console.WriteLine(list.ToJson());
-
             list.ForEach(c =>
             {
                 c.ShareKey = string.Empty;
