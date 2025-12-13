@@ -187,17 +187,15 @@ namespace linker.messenger.node
         {
             TStore store = await nodeStore.GetByNodeId(info.NodeId);
 
-            if (store == null || nodeConnectionTransfer.TryGet(ConnectionSideType.Node, info.NodeId, out var connection) == false || connection.Manageable == false)
+            if (store != null && nodeConnectionTransfer.TryGet(ConnectionSideType.Node, info.NodeId, out var connection) && connection.Manageable)
             {
-                return false;
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = connection.Connection,
+                    MessengerId = MessengerIdUpdate,
+                    Payload = serializer.Serialize(info)
+                }).ConfigureAwait(false);
             }
-            await messengerSender.SendOnly(new MessageRequestWrap
-            {
-                Connection = connection.Connection,
-                MessengerId = MessengerIdUpdate,
-                Payload = serializer.Serialize(info)
-            }).ConfigureAwait(false);
-
             return await nodeStore.Update(info).ConfigureAwait(false);
         }
         public virtual async Task<bool> Update(IConnection conn, TStore info)
