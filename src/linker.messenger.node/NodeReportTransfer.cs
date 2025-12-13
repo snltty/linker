@@ -431,7 +431,8 @@ namespace linker.messenger.node
                         NodeId = nodeConfigStore.Config.NodeId,
                         Name = "default",
                         Host = $"{IPAddress.Loopback}:{nodeConfigStore.ServicePort}",
-                        ShareKey = shareKeyManager
+                        ShareKey = shareKeyManager,
+                         Manageable= true,
                     }).ConfigureAwait(false);
                 }
 
@@ -516,6 +517,7 @@ namespace linker.messenger.node
                             await socket.ConnectAsync(remote).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
                             var connection = await messengerResolver.BeginReceiveClient(socket, true, (byte)ResolverType.NodeConnection, Helper.EmptyArray).ConfigureAwait(false);
 
+                            connection.Id = c.NodeId;
                             var resp = await messengerSender.SendReply(new MessageRequestWrap
                             {
                                 Connection = connection,

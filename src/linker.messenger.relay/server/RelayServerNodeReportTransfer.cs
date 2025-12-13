@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.libs.extends;
 using linker.messenger.node;
 using linker.messenger.relay.messenger;
 
@@ -82,6 +83,8 @@ namespace linker.messenger.relay.server
                      .ThenByDescending(x => x.DataRemain == 0 ? long.MaxValue : x.DataRemain)
                      
                      .ToList();
+
+            Console.WriteLine(list.ToJson());
 
             list.ForEach(c =>
             {
