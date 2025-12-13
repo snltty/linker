@@ -985,7 +985,7 @@ namespace linker.messenger.sforward.messenger
         public void Proxy(IConnection connection)
         {
             SForwardProxyInfo info = serializer.Deserialize<SForwardProxyInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            IPEndPoint server = new IPEndPoint(IPAddress.Any.Equals(info.Addr) ? connection.Address.Address : info.Addr, info.RemotePort);
+            IPEndPoint server = new IPEndPoint(IPAddress.Any.Equals(info.Addr) || IPAddress.Loopback.Equals(info.Addr) ? connection.Address.Address : info.Addr, info.RemotePort);
             //是http
             if (string.IsNullOrWhiteSpace(info.Domain) == false)
             {
