@@ -40,13 +40,14 @@ namespace linker.messenger.relay.server
         public DistributedInfoOld Distributed { get; set; } = new DistributedInfoOld { };
 
         public string ShareKey { get; set; } = string.Empty;
-        public string MasterKey { get; set; } = string.Empty;
+        public string ShareKeyManager { get; set; } = string.Empty;
+        public string MasterKey { get; set; } = Guid.NewGuid().ToString().Md5();
         public int DataMonth { get; set; }
 
 
     }
 
-    public class RelayServerNodeReportInfo : RelayServerNodeInfo,INodeReportBase
+    public class RelayServerNodeReportInfo : RelayServerNodeInfo, INodeReportBase
     {
         public string MasterKey { get; set; } = string.Empty;
         public string Version { get; set; } = string.Empty;
@@ -56,7 +57,7 @@ namespace linker.messenger.relay.server
         public int MasterCount { get; set; }
     }
 
-    public sealed class RelayServerNodeStoreInfo : RelayServerNodeReportInfo,INodeStoreBase
+    public sealed class RelayServerNodeStoreInfo : RelayServerNodeReportInfo, INodeStoreBase
     {
         public int Id { get; set; }
 

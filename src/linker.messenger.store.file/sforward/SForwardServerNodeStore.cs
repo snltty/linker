@@ -1,6 +1,4 @@
-﻿using linker.libs.extends;
-using linker.messenger.node;
-using linker.messenger.sforward.server;
+﻿using linker.messenger.sforward.server;
 using linker.messenger.store.file.node;
 
 namespace linker.messenger.store.file.sforward
@@ -8,10 +6,8 @@ namespace linker.messenger.store.file.sforward
     public sealed class SForwardServerNodeStore : NodeStore<SForwardServerNodeStoreInfo, SForwardServerNodeReportInfo>, ISForwardNodeStore
     {
         public override string StoreName => "sforward";
-        private string md5 = string.Empty;
-        public SForwardServerNodeStore(Storefactory storefactory, ISForwardNodeConfigStore nodeConfigStore) : base(storefactory)
+        public SForwardServerNodeStore(Storefactory storefactory) : base(storefactory)
         {
-            md5 = nodeConfigStore.Config.NodeId.Md5();
         }
 
         public override async Task<bool> Report(SForwardServerNodeReportInfo info)
@@ -29,10 +25,7 @@ namespace linker.messenger.store.file.sforward
                 DataEachMonth = info.DataEachMonth,
                 DataRemain = info.DataRemain,
                 Name = info.Name,
-                MasterKey = info.MasterKey,
                 MasterCount = info.MasterCount,
-                //是我初始化的，可以管理
-                Manageable = info.MasterKey == md5,
                 Domain = info.Domain,
                 WebPort = info.WebPort,
                 TunnelPorts = info.TunnelPorts,

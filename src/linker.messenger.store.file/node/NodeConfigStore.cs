@@ -37,5 +37,10 @@ namespace linker.messenger.store.file.node
         {
             Config.MasterKey = masterKey;
         }
+
+        public void SetShareKeyManager(string shareKeyManager)
+        {
+            Config.ShareKeyManager = shareKeyManager;
+        }
     }
 }

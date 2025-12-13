@@ -5,6 +5,7 @@
         public string NodeId { get; set; }
         public string MasterKey { get; set; }
         public string ShareKey { get; set; }
+        public string ShareKeyManager { get; set; }
         public string Host { get; set; }
         public string Name { get; set; }
 
@@ -39,7 +40,7 @@
         public void SetDataRemain(long value);
 
         public void SetShareKey(string shareKey);
-        public void SetMasterKey(string masterKey);
+        public void SetShareKeyManager(string shareKeyManager);
 
         /// <summary>
         /// 提交保存
@@ -53,7 +54,7 @@
         public string NodeId { get; set; } = string.Empty;
         public string Host { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
-        public string SystemId { get; set; } = string.Empty;
+        public string MasterKey { get; set; } = string.Empty;
 
     }
 }

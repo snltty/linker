@@ -6,6 +6,7 @@ using linker.messenger.relay.server.validator;
 using linker.messenger.signin;
 using linker.tunnel.transport;
 using System.Net;
+using static linker.libs.winapis.Wininet;
 
 namespace linker.messenger.relay.messenger
 {
@@ -107,8 +108,8 @@ namespace linker.messenger.relay.messenger
         [MessengerId((ushort)RelayMessengerIds.SignIn)]
         public async Task SignIn(IConnection connection)
         {
-            KeyValuePair<string, string> kv = serializer.Deserialize<KeyValuePair<string, string>>(connection.ReceiveRequestWrap.Payload.Span);
-            if (await relayServerNodeReportTransfer.SignIn(kv.Key, kv.Value, connection).ConfigureAwait(false))
+            ValueTuple<string, string, string> kv = serializer.Deserialize<ValueTuple<string, string, string>>(connection.ReceiveRequestWrap.Payload.Span);
+            if (await relayServerNodeReportTransfer.SignIn(kv.Item1, kv.Item2, kv.Item3, connection).ConfigureAwait(false))
             {
                 connection.Write(Helper.TrueArray);
             }
@@ -121,7 +122,7 @@ namespace linker.messenger.relay.messenger
         public async Task Report(IConnection connection)
         {
             RelayServerNodeReportInfo info = serializer.Deserialize<RelayServerNodeReportInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            await relayServerNodeReportTransfer.Report(info).ConfigureAwait(false);
+            await relayServerNodeReportTransfer.Report(connection, info).ConfigureAwait(false);
         }
 
 
@@ -139,8 +140,7 @@ namespace linker.messenger.relay.messenger
         [MessengerId((ushort)RelayMessengerIds.Share)]
         public async Task Share(IConnection connection)
         {
-            string masterKey = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            connection.Write(serializer.Serialize(await relayServerNodeReportTransfer.GetShareKey(masterKey)));
+            connection.Write(serializer.Serialize(await relayServerNodeReportTransfer.GetShareKey(connection)));
         }
 
         [MessengerId((ushort)RelayMessengerIds.Import)]
@@ -187,7 +187,7 @@ namespace linker.messenger.relay.messenger
         public async Task Update(IConnection connection)
         {
             RelayServerNodeStoreInfo info = serializer.Deserialize<RelayServerNodeStoreInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            await relayServerNodeReportTransfer.Update(info).ConfigureAwait(false);
+            await relayServerNodeReportTransfer.Update(connection,info).ConfigureAwait(false);
         }
 
         [MessengerId((ushort)RelayMessengerIds.UpgradeForward)]
@@ -206,8 +206,8 @@ namespace linker.messenger.relay.messenger
         [MessengerId((ushort)RelayMessengerIds.Upgrade)]
         public async Task Upgrade(IConnection connection)
         {
-            KeyValuePair<string, string> info = serializer.Deserialize<KeyValuePair<string, string>>(connection.ReceiveRequestWrap.Payload.Span);
-            await relayServerNodeReportTransfer.Upgrade(info.Key, info.Value).ConfigureAwait(false);
+            string version = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            await relayServerNodeReportTransfer.Upgrade(connection, version).ConfigureAwait(false);
         }
 
         [MessengerId((ushort)RelayMessengerIds.ExitForward)]
@@ -226,8 +226,7 @@ namespace linker.messenger.relay.messenger
         [MessengerId((ushort)RelayMessengerIds.Exit)]
         public async Task Exit(IConnection connection)
         {
-            string masterKey = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            await relayServerNodeReportTransfer.Exit(masterKey).ConfigureAwait(false);
+            await relayServerNodeReportTransfer.Exit(connection).ConfigureAwait(false);
         }
 
 
@@ -249,7 +248,7 @@ namespace linker.messenger.relay.messenger
         public async Task Masters(IConnection connection)
         {
             MastersRequestInfo info = serializer.Deserialize<MastersRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            MastersResponseInfo resp = await relayServerNodeReportTransfer.Masters(info).ConfigureAwait(false);
+            MastersResponseInfo resp = await relayServerNodeReportTransfer.Masters(connection, info).ConfigureAwait(false);
             connection.Write(serializer.Serialize(resp));
         }
 
@@ -271,7 +270,7 @@ namespace linker.messenger.relay.messenger
         public async Task Denys(IConnection connection)
         {
             MasterDenyStoreRequestInfo info = serializer.Deserialize<MasterDenyStoreRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            MasterDenyStoreResponseInfo resp = await relayServerNodeReportTransfer.Denys(info).ConfigureAwait(false);
+            MasterDenyStoreResponseInfo resp = await relayServerNodeReportTransfer.Denys(connection, info).ConfigureAwait(false);
             connection.Write(serializer.Serialize(resp));
         }
         [MessengerId((ushort)RelayMessengerIds.DenysAddForward)]
@@ -291,7 +290,7 @@ namespace linker.messenger.relay.messenger
         public async Task DenysAdd(IConnection connection)
         {
             MasterDenyAddInfo info = serializer.Deserialize<MasterDenyAddInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            bool resp = await relayServerNodeReportTransfer.DenysAdd(info).ConfigureAwait(false);
+            bool resp = await relayServerNodeReportTransfer.DenysAdd(connection, info).ConfigureAwait(false);
             connection.Write(resp ? Helper.TrueArray : Helper.FalseArray);
         }
         [MessengerId((ushort)RelayMessengerIds.DenysDelForward)]
@@ -311,7 +310,7 @@ namespace linker.messenger.relay.messenger
         public async Task DenysDel(IConnection connection)
         {
             MasterDenyDelInfo info = serializer.Deserialize<MasterDenyDelInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            bool resp = await relayServerNodeReportTransfer.DenysDel(info).ConfigureAwait(false);
+            bool resp = await relayServerNodeReportTransfer.DenysDel(connection, info).ConfigureAwait(false);
             connection.Write(resp ? Helper.TrueArray : Helper.FalseArray);
         }
 

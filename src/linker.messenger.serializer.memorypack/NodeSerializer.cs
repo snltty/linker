@@ -19,17 +19,17 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         string Host => info.Host;
         [MemoryPackInclude]
-        string SystemId => info.SystemId;
+        string MasterKey => info.MasterKey;
 
         [MemoryPackConstructor]
-        SerializableNodeShareInfo(string nodeId, string name, string host, string systemid)
+        SerializableNodeShareInfo(string nodeId, string name, string host, string masterKey)
         {
             var info = new NodeShareInfo
             {
                 NodeId = nodeId,
                 Host = host,
                 Name = name,
-                SystemId = systemid
+                MasterKey = masterKey
             };
             this.info = info;
         }
@@ -66,7 +66,7 @@ namespace linker.messenger.serializer.memorypack
             value.NodeId = reader.ReadValue<string>();
             value.Name = reader.ReadValue<string>();
             value.Host = reader.ReadValue<string>();
-            value.SystemId = reader.ReadValue<string>();
+            value.MasterKey = reader.ReadValue<string>();
         }
     }
 

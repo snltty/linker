@@ -28,7 +28,7 @@ namespace linker.messenger.sforward.server
             {
                 return await messengerSender.SendOnly(new MessageRequestWrap
                 {
-                    Connection = connection,
+                    Connection = connection.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.ProxyForward,
                     Payload = serializer.Serialize(info)
                 }).ConfigureAwait(false);
@@ -41,7 +41,7 @@ namespace linker.messenger.sforward.server
             {
                 var resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
-                    Connection = connection,
+                    Connection = connection.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.Heart,
                     Payload = serializer.Serialize(ids)
                 }).ConfigureAwait(false);

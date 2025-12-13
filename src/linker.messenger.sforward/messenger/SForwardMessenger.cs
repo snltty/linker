@@ -9,6 +9,7 @@ using linker.messenger.signin;
 using linker.plugins.sforward.proxy;
 using System.Net;
 using System.Net.Sockets;
+using static linker.libs.winapis.Wininet;
 
 namespace linker.messenger.sforward.messenger
 {
@@ -253,7 +254,7 @@ namespace linker.messenger.sforward.messenger
 
                 if (sForwardAddInfo.RemotePort > 0)
                 {
-                    sForwardServerCahing.TryRemove(sForwardAddInfo.RemotePort, machineId,sForwardAddInfo.NodeId, out _);
+                    sForwardServerCahing.TryRemove(sForwardAddInfo.RemotePort, machineId, sForwardAddInfo.NodeId, out _);
                     proxy.Stop(sForwardAddInfo.RemotePort);
                     result.Message = $"port 【{sForwardAddInfo.RemotePort}】 remove success";
                     return;
@@ -519,8 +520,8 @@ namespace linker.messenger.sforward.messenger
         [MessengerId((ushort)SForwardMessengerIds.SignIn)]
         public async Task SignIn(IConnection connection)
         {
-            KeyValuePair<string, string> kv = serializer.Deserialize<KeyValuePair<string, string>>(connection.ReceiveRequestWrap.Payload.Span);
-            if (await sForwardServerNodeReportTransfer.SignIn(kv.Key, kv.Value, connection).ConfigureAwait(false))
+            ValueTuple<string, string, string> kv = serializer.Deserialize<ValueTuple<string, string, string>>(connection.ReceiveRequestWrap.Payload.Span);
+            if (await sForwardServerNodeReportTransfer.SignIn(kv.Item1, kv.Item2, kv.Item3, connection).ConfigureAwait(false))
             {
                 connection.Write(Helper.TrueArray);
             }
@@ -538,7 +539,7 @@ namespace linker.messenger.sforward.messenger
         public async Task Report(IConnection connection)
         {
             SForwardServerNodeReportInfo info = serializer.Deserialize<SForwardServerNodeReportInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            await sForwardServerNodeReportTransfer.Report(info).ConfigureAwait(false);
+            await sForwardServerNodeReportTransfer.Report(connection, info).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -565,8 +566,7 @@ namespace linker.messenger.sforward.messenger
         [MessengerId((ushort)SForwardMessengerIds.Share)]
         public async Task Share(IConnection connection)
         {
-            string masterKey = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            connection.Write(serializer.Serialize(await sForwardServerNodeReportTransfer.GetShareKey(masterKey)));
+            connection.Write(serializer.Serialize(await sForwardServerNodeReportTransfer.GetShareKey(connection)));
         }
 
         /// <summary>
@@ -633,7 +633,7 @@ namespace linker.messenger.sforward.messenger
         public async Task Update(IConnection connection)
         {
             SForwardServerNodeStoreInfo info = serializer.Deserialize<SForwardServerNodeStoreInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            await sForwardServerNodeReportTransfer.Update(info).ConfigureAwait(false);
+            await sForwardServerNodeReportTransfer.Update(connection, info).ConfigureAwait(false);
         }
         /// <summary>
         /// 信标服务器
@@ -662,8 +662,8 @@ namespace linker.messenger.sforward.messenger
         [MessengerId((ushort)SForwardMessengerIds.Upgrade)]
         public async Task Upgrade(IConnection connection)
         {
-            KeyValuePair<string, string> info = serializer.Deserialize<KeyValuePair<string, string>>(connection.ReceiveRequestWrap.Payload.Span);
-            await sForwardServerNodeReportTransfer.Upgrade(info.Key, info.Value).ConfigureAwait(false);
+            string version = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            await sForwardServerNodeReportTransfer.Upgrade(connection, version).ConfigureAwait(false);
         }
         /// <summary>
         /// 信标服务器
@@ -692,8 +692,7 @@ namespace linker.messenger.sforward.messenger
         [MessengerId((ushort)SForwardMessengerIds.Exit)]
         public async Task Exit(IConnection connection)
         {
-            string masterKey = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            await sForwardServerNodeReportTransfer.Exit(masterKey).ConfigureAwait(false);
+            await sForwardServerNodeReportTransfer.Exit(connection).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -723,7 +722,7 @@ namespace linker.messenger.sforward.messenger
         public async Task Masters(IConnection connection)
         {
             MastersRequestInfo info = serializer.Deserialize<MastersRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            MastersResponseInfo resp = await sForwardServerNodeReportTransfer.Masters(info).ConfigureAwait(false);
+            MastersResponseInfo resp = await sForwardServerNodeReportTransfer.Masters(connection,info).ConfigureAwait(false);
             connection.Write(serializer.Serialize(resp));
         }
 
@@ -754,8 +753,47 @@ namespace linker.messenger.sforward.messenger
         public async Task Denys(IConnection connection)
         {
             MasterDenyStoreRequestInfo info = serializer.Deserialize<MasterDenyStoreRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            MasterDenyStoreResponseInfo resp = await sForwardServerNodeReportTransfer.Denys(info).ConfigureAwait(false);
+            MasterDenyStoreResponseInfo resp = await sForwardServerNodeReportTransfer.Denys(connection,info).ConfigureAwait(false);
             connection.Write(serializer.Serialize(resp));
+        }
+        public async Task DenysAddForward(IConnection connection)
+        {
+            MasterDenyAddInfo info = serializer.Deserialize<MasterDenyAddInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo from) == false || from.Super == false)
+            {
+                connection.Write(Helper.FalseArray);
+                return;
+            }
+
+            bool resp = await sForwardServerNodeReportTransfer.DenysAddForward(info).ConfigureAwait(false);
+            connection.Write(resp ? Helper.TrueArray : Helper.FalseArray);
+        }
+        [MessengerId((ushort)SForwardMessengerIds.DenysAdd)]
+        public async Task DenysAdd(IConnection connection)
+        {
+            MasterDenyAddInfo info = serializer.Deserialize<MasterDenyAddInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            bool resp = await sForwardServerNodeReportTransfer.DenysAdd(connection, info).ConfigureAwait(false);
+            connection.Write(resp ? Helper.TrueArray : Helper.FalseArray);
+        }
+        [MessengerId((ushort)SForwardMessengerIds.DenysDelForward)]
+        public async Task DenysDelForward(IConnection connection)
+        {
+            MasterDenyDelInfo info = serializer.Deserialize<MasterDenyDelInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo from) == false || from.Super == false)
+            {
+                connection.Write(Helper.FalseArray);
+                return;
+            }
+
+            bool resp = await sForwardServerNodeReportTransfer.DenysDelForward(info).ConfigureAwait(false);
+            connection.Write(resp ? Helper.TrueArray : Helper.FalseArray);
+        }
+        [MessengerId((ushort)SForwardMessengerIds.DenysDel)]
+        public async Task DenysDel(IConnection connection)
+        {
+            MasterDenyDelInfo info = serializer.Deserialize<MasterDenyDelInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            bool resp = await sForwardServerNodeReportTransfer.DenysDel(connection, info).ConfigureAwait(false);
+            connection.Write(resp ? Helper.TrueArray : Helper.FalseArray);
         }
 
 

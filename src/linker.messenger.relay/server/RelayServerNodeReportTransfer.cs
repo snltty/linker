@@ -22,7 +22,7 @@ namespace linker.messenger.relay.server
         private readonly IRelayServerWhiteListStore relayServerWhiteListStore;
         private readonly IRelayNodeConfigStore nodeConfigStore;
         private readonly IRelayNodeStore nodeStore;
-
+        private readonly RelayServerConnectionTransfer nodeConnectionTransfer;
 
         public RelayServerNodeReportTransfer(IRelayServerWhiteListStore relayServerWhiteListStore, RelayServerConnectionTransfer nodeConnectionTransfer,
             IRelayNodeConfigStore nodeConfigStore,
@@ -31,13 +31,14 @@ namespace linker.messenger.relay.server
             : base(nodeConnectionTransfer, nodeConfigStore, serializer, messengerSender, nodeStore, messengerResolver, commonStore, relayServerMasterDenyStore)
         {
             this.relayServerWhiteListStore = relayServerWhiteListStore;
+            this.nodeConnectionTransfer = nodeConnectionTransfer;
             this.nodeConfigStore = nodeConfigStore;
             this.nodeStore = nodeStore;
         }
 
-        public override async Task<bool> Update(RelayServerNodeStoreInfo info)
+        public override async Task<bool> Update(IConnection conn,RelayServerNodeStoreInfo info)
         {
-            if (info.MasterKey != Config.MasterKey) return false;
+            if (nodeConnectionTransfer.TryGet(ConnectionSideType.Node, conn.Id, out var connection) == false || connection.Manageable == false) return false;
 
             Config.Connections = info.Connections;
             Config.Bandwidth = info.Bandwidth;
@@ -84,6 +85,7 @@ namespace linker.messenger.relay.server
 
             list.ForEach(c =>
             {
+                c.ShareKey = string.Empty;
                 c.MasterKey = string.Empty;
                 c.LastTicks = Math.Abs(Environment.TickCount64 - c.LastTicks);
             });
@@ -108,6 +110,7 @@ namespace linker.messenger.relay.server
                      .ToList();
             list.ForEach(c =>
             {
+                c.ShareKey = string.Empty;
                 c.MasterKey = string.Empty;
                 c.LastTicks = Math.Abs(Environment.TickCount64 - c.LastTicks);
             });

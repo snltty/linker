@@ -74,7 +74,7 @@ namespace linker.messenger.sforward.server
                 info.NodeId = sForwardServerNodeReportTransfer.Config.NodeId;
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
-                    Connection = connection,
+                    Connection = connection.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.Start,
                     Payload = serializer.Serialize(info)
                 }).ConfigureAwait(false);
@@ -97,7 +97,7 @@ namespace linker.messenger.sforward.server
                 info.NodeId = sForwardServerNodeReportTransfer.Config.NodeId;
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
-                    Connection = connection,
+                    Connection = connection.Connection,
                     MessengerId = (ushort)SForwardMessengerIds.Stop,
                     Payload = serializer.Serialize(info)
                 }).ConfigureAwait(false);

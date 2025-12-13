@@ -88,39 +88,36 @@ namespace linker.messenger.node
                 Host = host
             }).ConfigureAwait(false);
         }
-        public async Task<bool> Report(TReport info)
+        public async Task<bool> Report(IConnection conn, TReport info)
         {
-            if (nodeConnectionTransfer.TryGet(ConnectionSideType.Node, info.NodeId, out _) == false)
+            if (nodeConnectionTransfer.TryGet(ConnectionSideType.Node, conn.Id, out _) == false || conn.Id != info.NodeId)
             {
                 return false;
             }
 
-            if(info.Version != VersionHelper.Version)
+            if (info.Version != VersionHelper.Version)
             {
                 _ = UpgradeForward(info.NodeId, VersionHelper.Version);
             }
 
             return await nodeStore.Report(info).ConfigureAwait(false);
         }
-        public async Task<bool> SignIn(string serverId, string shareKey, IConnection connection)
+        public async Task<bool> SignIn(string serverId, string masterKey, string shareKey, IConnection connection)
         {
-            //未被配置，或默认配置的，设它为管理端
-            if (string.IsNullOrWhiteSpace(Config.MasterKey) || md5 == Config.MasterKey)
-            {
-                nodeConfigStore.SetMasterKey(serverId.Md5());
-                nodeConfigStore.Confirm();
-            }
-
             bool result = connection.Address.Address.Equals(IPAddress.Loopback)
-                || serverId.Md5() == Config.MasterKey
-                || (shareKey == Config.ShareKey && await nodeMasterDenyStore.Get(NetworkHelper.ToValue(connection.Address.Address), 0).ConfigureAwait(false) == false);
+                || masterKey == Config.MasterKey
+                || ((shareKey == Config.ShareKey || shareKey == Config.ShareKeyManager) && await nodeMasterDenyStore.Get(NetworkHelper.ToValue(connection.Address.Address), 0).ConfigureAwait(false) == false);
             if (result == false)
             {
                 return false;
             }
 
             connection.Id = serverId;
-            nodeConnectionTransfer.TryAdd(ConnectionSideType.Master, connection.Id, connection);
+            nodeConnectionTransfer.TryAdd(ConnectionSideType.Master, connection.Id, new ConnectionInfo
+            {
+                Connection = connection,
+                Manageable = masterKey == Config.MasterKey
+            });
 
             return true;
         }
@@ -129,25 +126,25 @@ namespace linker.messenger.node
         public async Task<string> GetShareKeyForward(string nodeId)
         {
             TStore store = await nodeStore.GetByNodeId(nodeId);
-
-            if (store != null && store.Manageable && nodeConnectionTransfer.TryGet(ConnectionSideType.Node, nodeId, out var connection))
+            if (store == null || nodeConnectionTransfer.TryGet(ConnectionSideType.Node, nodeId, out var connection) == false || connection.Manageable == false)
             {
-                var resp = await messengerSender.SendReply(new MessageRequestWrap
-                {
-                    Connection = connection,
-                    MessengerId = MessengerIdSahre,
-                    Payload = serializer.Serialize(store.MasterKey)
-                }).ConfigureAwait(false);
-                if (resp.Code == MessageResponeCodes.OK)
-                {
-                    return serializer.Deserialize<string>(resp.Data.Span);
-                }
+                return string.Empty;
+            }
+
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = connection.Connection,
+                MessengerId = MessengerIdSahre
+            }).ConfigureAwait(false);
+            if (resp.Code == MessageResponeCodes.OK)
+            {
+                return serializer.Deserialize<string>(resp.Data.Span);
             }
             return string.Empty;
         }
-        public async Task<string> GetShareKey(string masterKey)
+        public async Task<string> GetShareKey(IConnection conn)
         {
-            if (masterKey != Config.MasterKey) return string.Empty;
+            if (nodeConnectionTransfer.TryGet(ConnectionSideType.Node, conn.Id, out var connection) == false || connection.Manageable == false) return string.Empty;
             return Config.ShareKey;
         }
         public async Task<string> Import(string shareKey)
@@ -167,7 +164,9 @@ namespace linker.messenger.node
                     Host = info.Host,
                     Name = info.Name,
                     LastTicks = Environment.TickCount64,
-                    ShareKey = shareKey
+                    ShareKey = shareKey,
+                    MasterKey = info.MasterKey,
+                    Manageable = string.IsNullOrWhiteSpace(info.MasterKey) == false
                 }).ConfigureAwait(false);
                 if (result == false)
                 {
@@ -182,28 +181,26 @@ namespace linker.messenger.node
         }
         public async Task<bool> Remove(string nodeId)
         {
-            if (nodeId == Config.NodeId) return false;
-
             return await nodeStore.Delete(nodeId).ConfigureAwait(false);
         }
         public async Task<bool> UpdateForward(TStore info)
         {
             TStore store = await nodeStore.GetByNodeId(info.NodeId);
 
-            if (store != null && store.Manageable && nodeConnectionTransfer.TryGet(ConnectionSideType.Node, info.NodeId, out var connection))
+            if (store == null || nodeConnectionTransfer.TryGet(ConnectionSideType.Node, info.NodeId, out var connection) == false || connection.Manageable == false)
             {
-                info.MasterKey = store.MasterKey;
-                await messengerSender.SendOnly(new MessageRequestWrap
-                {
-                    Connection = connection,
-                    MessengerId = MessengerIdUpdate,
-                    Payload = serializer.Serialize(info)
-                }).ConfigureAwait(false);
+                return false;
             }
+            await messengerSender.SendOnly(new MessageRequestWrap
+            {
+                Connection = connection.Connection,
+                MessengerId = MessengerIdUpdate,
+                Payload = serializer.Serialize(info)
+            }).ConfigureAwait(false);
 
             return await nodeStore.Update(info).ConfigureAwait(false);
         }
-        public virtual async Task<bool> Update(TStore info)
+        public virtual async Task<bool> Update(IConnection conn, TStore info)
         {
             return false;
         }
@@ -211,22 +208,23 @@ namespace linker.messenger.node
         {
             TStore store = await nodeStore.GetByNodeId(nodeId);
 
-            if (store != null && store.Manageable && nodeConnectionTransfer.TryGet(ConnectionSideType.Node, nodeId, out var connection))
+            if (store == null || nodeConnectionTransfer.TryGet(ConnectionSideType.Node, nodeId, out var connection) == false || connection.Manageable == false)
             {
-                await messengerSender.SendOnly(new MessageRequestWrap
-                {
-                    Connection = connection,
-                    MessengerId = MessengerIdUpgrade,
-                    Payload = serializer.Serialize(new KeyValuePair<string, string>(store.MasterKey, version))
-                }).ConfigureAwait(false);
-                return true;
+                return false;
             }
-
-            return false;
+            return await messengerSender.SendOnly(new MessageRequestWrap
+            {
+                Connection = connection.Connection,
+                MessengerId = MessengerIdUpgrade,
+                Payload = serializer.Serialize(version)
+            }).ConfigureAwait(false);
         }
-        public async Task<bool> Upgrade(string masterKey, string version)
+        public async Task<bool> Upgrade(IConnection conn, string version)
         {
-            if (masterKey != Config.MasterKey) return false;
+            if (nodeConnectionTransfer.TryGet(ConnectionSideType.Node, conn.Id, out var connection) == false || connection.Manageable == false)
+            {
+                return false;
+            }
 
             Helper.AppUpdate(version);
 
@@ -235,22 +233,21 @@ namespace linker.messenger.node
         public async Task<bool> ExitForward(string nodeId)
         {
             TStore store = await nodeStore.GetByNodeId(nodeId);
-            if (store != null && store.Manageable && nodeConnectionTransfer.TryGet(ConnectionSideType.Node, nodeId, out var connection))
+            if (store == null || nodeConnectionTransfer.TryGet(ConnectionSideType.Node, nodeId, out var connection) == false || connection.Manageable == false)
             {
-                await messengerSender.SendOnly(new MessageRequestWrap
-                {
-                    Connection = connection,
-                    MessengerId = MessengerIdExit,
-                    Payload = serializer.Serialize(new KeyValuePair<string, string>(store.MasterKey, nodeId))
-                }).ConfigureAwait(false);
-                return true;
+                return false;
             }
 
-            return false;
+            await messengerSender.SendOnly(new MessageRequestWrap
+            {
+                Connection = connection.Connection,
+                MessengerId = MessengerIdExit
+            }).ConfigureAwait(false);
+            return true;
         }
-        public async Task<bool> Exit(string masterKey)
+        public async Task<bool> Exit(IConnection conn)
         {
-            if (masterKey != Config.MasterKey) return false;
+            if (nodeConnectionTransfer.TryGet(ConnectionSideType.Node, conn.Id, out var connection) == false || connection.Manageable == false) return false;
 
             Helper.AppExit(-1);
 
@@ -261,26 +258,27 @@ namespace linker.messenger.node
         public async Task<MastersResponseInfo> MastersForward(MastersRequestInfo info)
         {
             TStore store = await nodeStore.GetByNodeId(info.NodeId);
-            if (store != null && store.Manageable && nodeConnectionTransfer.TryGet(ConnectionSideType.Node, info.NodeId, out var connection))
+            if (store == null || nodeConnectionTransfer.TryGet(ConnectionSideType.Node, info.NodeId, out var connection) == false || connection.Manageable == false)
             {
-                info.NodeId = store.MasterKey;
-                var resp = await messengerSender.SendReply(new MessageRequestWrap
-                {
-                    Connection = connection,
-                    MessengerId = MessengerIdMasters,
-                    Payload = serializer.Serialize(info)
-                }).ConfigureAwait(false);
-                if (resp.Code == MessageResponeCodes.OK)
-                {
-                    return serializer.Deserialize<MastersResponseInfo>(resp.Data.Span);
-                }
+                return new MastersResponseInfo();
+            }
+
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = connection.Connection,
+                MessengerId = MessengerIdMasters,
+                Payload = serializer.Serialize(info)
+            }).ConfigureAwait(false);
+            if (resp.Code == MessageResponeCodes.OK)
+            {
+                return serializer.Deserialize<MastersResponseInfo>(resp.Data.Span);
             }
 
             return new MastersResponseInfo();
         }
-        public async Task<MastersResponseInfo> Masters(MastersRequestInfo info)
+        public async Task<MastersResponseInfo> Masters(IConnection conn, MastersRequestInfo info)
         {
-            if (info.NodeId != Config.MasterKey)
+            if (nodeConnectionTransfer.TryGet(ConnectionSideType.Node, conn.Id, out var connection) == false || connection.Manageable == false)
             {
                 return new MastersResponseInfo();
             }
@@ -291,82 +289,87 @@ namespace linker.messenger.node
                 Page = info.Page,
                 Size = info.Size,
                 Count = connections.Count,
-                List = connections.Skip((info.Page - 1) * info.Size).Take(info.Size).Select(c => new MasterConnInfo { Addr = c.Address, NodeId = c.Id }).ToList()
+                List = connections.Skip((info.Page - 1) * info.Size).Take(info.Size).Select(c => new MasterConnInfo
+                {
+                    Addr = c.Connection.Address,
+                    NodeId = c.Connection.Id
+                }).ToList()
             };
         }
         public async Task<MasterDenyStoreResponseInfo> DenysForward(MasterDenyStoreRequestInfo info)
         {
             TStore store = await nodeStore.GetByNodeId(info.NodeId);
-            if (store != null && store.Manageable && nodeConnectionTransfer.TryGet(ConnectionSideType.Node, info.NodeId, out var connection))
-            {
-                info.NodeId = store.MasterKey;
-                var resp = await messengerSender.SendReply(new MessageRequestWrap
-                {
-                    Connection = connection,
-                    MessengerId = MessengerIdDenys,
-                    Payload = serializer.Serialize(info)
-                }).ConfigureAwait(false);
-                if (resp.Code == MessageResponeCodes.OK)
-                {
-                    return serializer.Deserialize<MasterDenyStoreResponseInfo>(resp.Data.Span);
-                }
-            }
-
-            return new MasterDenyStoreResponseInfo();
-        }
-        public async Task<MasterDenyStoreResponseInfo> Denys(MasterDenyStoreRequestInfo info)
-        {
-            if (info.NodeId != Config.MasterKey)
+            if (store == null || nodeConnectionTransfer.TryGet(ConnectionSideType.Node, info.NodeId, out var connection) == false || connection.Manageable == false)
             {
                 return new MasterDenyStoreResponseInfo();
             }
+
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = connection.Connection,
+                MessengerId = MessengerIdDenys,
+                Payload = serializer.Serialize(info)
+            }).ConfigureAwait(false);
+            if (resp.Code == MessageResponeCodes.OK)
+            {
+                return serializer.Deserialize<MasterDenyStoreResponseInfo>(resp.Data.Span);
+            }
+            return new MasterDenyStoreResponseInfo();
+        }
+        public async Task<MasterDenyStoreResponseInfo> Denys(IConnection conn, MasterDenyStoreRequestInfo info)
+        {
+            if (nodeConnectionTransfer.TryGet(ConnectionSideType.Node, conn.Id, out var connection) == false || connection.Manageable == false)
+            {
+                return new MasterDenyStoreResponseInfo();
+            }
+
             return await nodeMasterDenyStore.Get(info).ConfigureAwait(false);
         }
         public async Task<bool> DenysAddForward(MasterDenyAddInfo info)
         {
             TStore store = await nodeStore.GetByNodeId(info.NodeId);
-            if (store != null && store.Manageable && nodeConnectionTransfer.TryGet(ConnectionSideType.Node, info.NodeId, out var connection))
-            {
-                info.NodeId = store.MasterKey;
-                var resp = await messengerSender.SendReply(new MessageRequestWrap
-                {
-                    Connection = connection,
-                    MessengerId = MessengerIdDenysAdd,
-                    Payload = serializer.Serialize(info)
-                }).ConfigureAwait(false);
-                return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
-            }
-
-            return false;
-        }
-        public async Task<bool> DenysAdd(MasterDenyAddInfo info)
-        {
-            if (info.NodeId != Config.MasterKey)
+            if (store == null || nodeConnectionTransfer.TryGet(ConnectionSideType.Node, info.NodeId, out var connection) == false || connection.Manageable == false)
             {
                 return false;
             }
+
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = connection.Connection,
+                MessengerId = MessengerIdDenysAdd,
+                Payload = serializer.Serialize(info)
+            }).ConfigureAwait(false);
+            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
+        }
+        public async Task<bool> DenysAdd(IConnection conn, MasterDenyAddInfo info)
+        {
+            if (nodeConnectionTransfer.TryGet(ConnectionSideType.Node, conn.Id, out var connection) == false || connection.Manageable == false)
+            {
+                return false;
+            }
+
             return await nodeMasterDenyStore.Add(info).ConfigureAwait(false);
         }
         public async Task<bool> DenysDelForward(MasterDenyDelInfo info)
         {
             TStore store = await nodeStore.GetByNodeId(info.NodeId);
-            if (store != null && store.Manageable && nodeConnectionTransfer.TryGet(ConnectionSideType.Node, info.NodeId, out var connection))
+            if (store == null || nodeConnectionTransfer.TryGet(ConnectionSideType.Node, info.NodeId, out var connection) == false || connection.Manageable == false)
             {
-                info.NodeId = store.MasterKey;
-                var resp = await messengerSender.SendReply(new MessageRequestWrap
-                {
-                    Connection = connection,
-                    MessengerId = MessengerIdDenysDel,
-                    Payload = serializer.Serialize(info)
-                }).ConfigureAwait(false);
-                return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
-            }
+                return false;
 
-            return false;
+            }
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = connection.Connection,
+                MessengerId = MessengerIdDenysDel,
+                Payload = serializer.Serialize(info)
+            }).ConfigureAwait(false);
+            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
+
         }
-        public async Task<bool> DenysDel(MasterDenyDelInfo info)
+        public async Task<bool> DenysDel(IConnection conn, MasterDenyDelInfo info)
         {
-            if (info.NodeId != Config.MasterKey)
+            if (nodeConnectionTransfer.TryGet(ConnectionSideType.Node, conn.Id, out var connection) == false || connection.Manageable == false)
             {
                 return false;
             }
@@ -408,16 +411,19 @@ namespace linker.messenger.node
                 {
                     NodeId = Config.NodeId,
                     Host = $"{host}:{nodeConfigStore.ServicePort}",
-                    Name = Config.Name,
-                    SystemId = SystemIdHelper.GetSystemId().Md5()
+                    Name = Config.Name
                 };
                 string shareKey = Convert.ToBase64String(crypto.Encode(serializer.Serialize(shareKeyInfo)));
                 nodeConfigStore.SetShareKey(shareKey);
+
+                shareKeyInfo.MasterKey = Config.MasterKey;
+                string shareKeyManager = Convert.ToBase64String(crypto.Encode(serializer.Serialize(shareKeyInfo)));
+                nodeConfigStore.SetShareKeyManager(shareKeyManager);
                 nodeConfigStore.Confirm();
 
                 host = $"{IPAddress.Loopback}:{nodeConfigStore.ServicePort}";
                 var node = await nodeStore.GetByNodeId(nodeConfigStore.Config.NodeId);
-                if (node == null || node.ShareKey != shareKey || node.Name != Config.Name || node.Host != host)
+                if (node == null || node.ShareKey != shareKeyManager || node.Name != Config.Name || node.Host != host)
                 {
                     await nodeStore.Delete(nodeConfigStore.Config.NodeId);
                     await nodeStore.Add(new TStore
@@ -425,11 +431,12 @@ namespace linker.messenger.node
                         NodeId = nodeConfigStore.Config.NodeId,
                         Name = "default",
                         Host = $"{IPAddress.Loopback}:{nodeConfigStore.ServicePort}",
-                        ShareKey = shareKey
+                        ShareKey = shareKeyManager
                     }).ConfigureAwait(false);
                 }
 
                 LoggerHelper.Instance.Warning($"build {Name} share key : {shareKey}");
+                LoggerHelper.Instance.Warning($"build {Name} share key manager: {shareKeyManager}");
             }
             catch (Exception ex)
             {
@@ -465,13 +472,13 @@ namespace linker.messenger.node
                             BandwidthRatio = Math.Round(diff / 5, 2),
                             Version = VersionHelper.Version,
                             MasterCount = connections.Count,
-                            MasterKey = config.MasterKey
+                            MasterKey = string.Empty
                         };
                         BuildReport(info);
                         byte[] memory = serializer.Serialize(info);
                         var tasks = connections.Select(c => messengerSender.SendOnly(new MessageRequestWrap
                         {
-                            Connection = c,
+                            Connection = c.Connection,
                             MessengerId = MessengerIdReport,
                             Payload = memory,
                             Timeout = 5000
@@ -497,7 +504,7 @@ namespace linker.messenger.node
                 {
                     var nodes = (await nodeStore.GetAll()).Where(c =>
                     {
-                        return nodeConnectionTransfer.TryGet(ConnectionSideType.Node, c.NodeId, out IConnection connection) == false || connection == null || connection.Connected == false;
+                        return nodeConnectionTransfer.TryGet(ConnectionSideType.Node, c.NodeId, out ConnectionInfo connection) == false || connection == null || connection.Connection == null || connection.Connection.Connected == false;
                     }).ToList();
                     if (nodes.Count != 0)
                     {
@@ -513,13 +520,17 @@ namespace linker.messenger.node
                             {
                                 Connection = connection,
                                 MessengerId = MessengerIdSignIn,
-                                Payload = serializer.Serialize(new KeyValuePair<string, string>(Config.NodeId, c.ShareKey)),
+                                Payload = serializer.Serialize(new ValueTuple<string, string, string>(Config.NodeId, c.MasterKey, c.ShareKey)),
                                 Timeout = 5000
                             }).ConfigureAwait(false);
                             if (resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray))
                             {
                                 LoggerHelper.Instance.Debug($"{Name} sign in to node {c.NodeId} success");
-                                nodeConnectionTransfer.TryAdd(ConnectionSideType.Node, c.NodeId, connection);
+                                nodeConnectionTransfer.TryAdd(ConnectionSideType.Node, c.NodeId, new ConnectionInfo
+                                {
+                                    Connection = connection,
+                                    Manageable = c.Manageable
+                                });
                             }
                             else
                             {

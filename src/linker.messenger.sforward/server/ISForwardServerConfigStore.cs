@@ -34,18 +34,19 @@ namespace linker.messenger.sforward.server
         public string Logo { get; set; } = "https://linker.snltty.com/img/logo.png";
     }
 
-    public sealed class SForwardServerConfigInfo : SForwardServerNodeInfo,INodeConfigBase
+    public sealed class SForwardServerConfigInfo : SForwardServerNodeInfo, INodeConfigBase
     {
         [SaveJsonIgnore]
         public DistributedInfoOld Distributed { get; set; } = new DistributedInfoOld { };
 
         public string ShareKey { get; set; } = string.Empty;
-        public string MasterKey { get; set; } = string.Empty;
+        public string ShareKeyManager { get; set; } = string.Empty;
+        public string MasterKey { get; set; } = Guid.NewGuid().ToString().Md5();
         public int DataMonth { get; set; }
         public string Host { get; set; } = string.Empty;
     }
 
-    public class SForwardServerNodeReportInfo : SForwardServerNodeInfo,INodeReportBase
+    public class SForwardServerNodeReportInfo : SForwardServerNodeInfo, INodeReportBase
     {
         public string MasterKey { get; set; } = string.Empty;
         public string Version { get; set; } = string.Empty;
@@ -57,7 +58,7 @@ namespace linker.messenger.sforward.server
         public string Host { get; set; } = string.Empty;
     }
 
-    public sealed class SForwardServerNodeStoreInfo : SForwardServerNodeReportInfo,INodeStoreBase
+    public sealed class SForwardServerNodeStoreInfo : SForwardServerNodeReportInfo, INodeStoreBase
     {
         public int Id { get; set; }
 

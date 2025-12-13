@@ -32,7 +32,7 @@ namespace linker.messenger.relay.server
         {
             try
             {
-                if (relayServerConnectionTransfer.TryGet(ConnectionSideType.Master, relayMessage.MasterId, out IConnection connection) == false)
+                if (relayServerConnectionTransfer.TryGet(ConnectionSideType.Master, relayMessage.MasterId, out ConnectionInfo connection) == false)
                 {
                     return null;
                 }
@@ -41,7 +41,7 @@ namespace linker.messenger.relay.server
                 string key = relayMessage.Type == RelayMessengerType.Ask ? $"{relayMessage.FromId}->{relayMessage.ToId}->{relayMessage.FlowId}" : $"{relayMessage.ToId}->{relayMessage.FromId}->{relayMessage.FlowId}";
                 MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
                 {
-                    Connection = connection,
+                    Connection = connection.Connection,
                     MessengerId = (ushort)RelayMessengerIds.GetCache,
                     Payload = serializer.Serialize(new ValueTuple<string, string>(key, Config.NodeId)),
                     Timeout = 1000

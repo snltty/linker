@@ -37,7 +37,7 @@ namespace linker.messenger.relay.server
         }
         public async Task<RelayCacheInfo> TryGetRelayCache(string key, string nodeid)
         {
-            if (relayServerConnectionTransfer.TryGet(ConnectionSideType.Node, nodeid, out IConnection connection) == false)
+            if (relayServerConnectionTransfer.TryGet(ConnectionSideType.Node, nodeid, out ConnectionInfo connection) == false)
             {
                 return null;
             }

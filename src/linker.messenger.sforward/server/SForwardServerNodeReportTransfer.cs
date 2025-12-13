@@ -22,6 +22,7 @@ namespace linker.messenger.sforward.server
         private readonly ISForwardServerWhiteListStore sforwardServerWhiteListStore;
         private readonly ISForwardNodeConfigStore nodeConfigStore;
         private readonly ISForwardNodeStore nodeStore;
+        private readonly SForwardServerConnectionTransfer nodeConnectionTransfer;
 
         public SForwardServerNodeReportTransfer(ISForwardServerWhiteListStore sforwardServerWhiteListStore, SForwardServerConnectionTransfer nodeConnectionTransfer,
             ISForwardNodeConfigStore nodeConfigStore,
@@ -30,13 +31,14 @@ namespace linker.messenger.sforward.server
             : base(nodeConnectionTransfer, nodeConfigStore, serializer, messengerSender, nodeStore, messengerResolver, commonStore, sforwardServerMasterDenyStore)
         {
             this.sforwardServerWhiteListStore = sforwardServerWhiteListStore;
+            this.nodeConnectionTransfer = nodeConnectionTransfer;
             this.nodeConfigStore = nodeConfigStore;
             this.nodeStore = nodeStore;
         }
 
-        public override async Task<bool> Update(SForwardServerNodeStoreInfo info)
+        public override async Task<bool> Update(IConnection conn,SForwardServerNodeStoreInfo info)
         {
-            if (info.MasterKey != Config.MasterKey) return false;
+            if (nodeConnectionTransfer.TryGet(ConnectionSideType.Node, conn.Id, out var connection) == false || connection.Manageable == false) return false;
 
             Config.Connections = info.Connections;
             Config.Bandwidth = info.Bandwidth;
@@ -86,6 +88,7 @@ namespace linker.messenger.sforward.server
 
             list.ForEach(c =>
             {
+                c.ShareKey = string.Empty;
                 c.MasterKey = string.Empty;
                 c.LastTicks = Math.Abs(Environment.TickCount64 - c.LastTicks);
             });
