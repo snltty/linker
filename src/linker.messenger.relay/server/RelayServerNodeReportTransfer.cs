@@ -39,7 +39,7 @@ namespace linker.messenger.relay.server
 
         public override async Task<bool> Update(IConnection conn,RelayServerNodeStoreInfo info)
         {
-            if (nodeConnectionTransfer.TryGet(ConnectionSideType.Node, conn.Id, out var connection) == false || connection.Manageable == false) return false;
+            if (nodeConnectionTransfer.TryGet(ConnectionSideType.Master, conn.Id, out var connection) == false || connection.Manageable == false) return false;
 
             Config.Connections = info.Connections;
             Config.Bandwidth = info.Bandwidth;

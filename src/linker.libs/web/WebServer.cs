@@ -2,7 +2,6 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.WebSockets;
@@ -87,9 +86,9 @@ namespace linker.libs.web
                 DateTime last = DateTime.Now;
                 try
                 {
-                    if(path == "/health")
+                    if (specialPath.TryGetValue(path, out Func<string> func))
                     {
-                        memory = "ok".ToBytes();
+                        memory = func().ToBytes();
                     }
                     else
                     {
@@ -133,6 +132,12 @@ namespace linker.libs.web
 
             response.Close();
         }
+        private Dictionary<string, Func<string>> specialPath = new Dictionary<string, Func<string>>
+        {
+            { "/health",()=>"ok"}
+        };
+
+
         private Dictionary<string, string> types = new Dictionary<string, string> {
             { ".webp","image/webp"},
             { ".png","image/png"},

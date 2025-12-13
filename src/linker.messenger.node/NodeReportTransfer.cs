@@ -144,7 +144,7 @@ namespace linker.messenger.node
         }
         public async Task<string> GetShareKey(IConnection conn)
         {
-            if (nodeConnectionTransfer.TryGet(ConnectionSideType.Node, conn.Id, out var connection) == false || connection.Manageable == false) return string.Empty;
+            if (nodeConnectionTransfer.TryGet(ConnectionSideType.Master, conn.Id, out var connection) == false || connection.Manageable == false) return string.Empty;
             return Config.ShareKey;
         }
         public async Task<string> Import(string shareKey)
@@ -221,7 +221,7 @@ namespace linker.messenger.node
         }
         public async Task<bool> Upgrade(IConnection conn, string version)
         {
-            if (nodeConnectionTransfer.TryGet(ConnectionSideType.Node, conn.Id, out var connection) == false || connection.Manageable == false)
+            if (nodeConnectionTransfer.TryGet(ConnectionSideType.Master, conn.Id, out var connection) == false || connection.Manageable == false)
             {
                 return false;
             }
@@ -247,7 +247,7 @@ namespace linker.messenger.node
         }
         public async Task<bool> Exit(IConnection conn)
         {
-            if (nodeConnectionTransfer.TryGet(ConnectionSideType.Node, conn.Id, out var connection) == false || connection.Manageable == false) return false;
+            if (nodeConnectionTransfer.TryGet(ConnectionSideType.Master, conn.Id, out var connection) == false || connection.Manageable == false) return false;
 
             Helper.AppExit(-1);
 
@@ -278,7 +278,7 @@ namespace linker.messenger.node
         }
         public async Task<MastersResponseInfo> Masters(IConnection conn, MastersRequestInfo info)
         {
-            if (nodeConnectionTransfer.TryGet(ConnectionSideType.Node, conn.Id, out var connection) == false || connection.Manageable == false)
+            if (nodeConnectionTransfer.TryGet(ConnectionSideType.Master, conn.Id, out var connection) == false || connection.Manageable == false)
             {
                 return new MastersResponseInfo();
             }
@@ -318,7 +318,7 @@ namespace linker.messenger.node
         }
         public async Task<MasterDenyStoreResponseInfo> Denys(IConnection conn, MasterDenyStoreRequestInfo info)
         {
-            if (nodeConnectionTransfer.TryGet(ConnectionSideType.Node, conn.Id, out var connection) == false || connection.Manageable == false)
+            if (nodeConnectionTransfer.TryGet(ConnectionSideType.Master, conn.Id, out var connection) == false || connection.Manageable == false)
             {
                 return new MasterDenyStoreResponseInfo();
             }
@@ -343,7 +343,7 @@ namespace linker.messenger.node
         }
         public async Task<bool> DenysAdd(IConnection conn, MasterDenyAddInfo info)
         {
-            if (nodeConnectionTransfer.TryGet(ConnectionSideType.Node, conn.Id, out var connection) == false || connection.Manageable == false)
+            if (nodeConnectionTransfer.TryGet(ConnectionSideType.Master, conn.Id, out var connection) == false || connection.Manageable == false)
             {
                 return false;
             }
@@ -369,7 +369,7 @@ namespace linker.messenger.node
         }
         public async Task<bool> DenysDel(IConnection conn, MasterDenyDelInfo info)
         {
-            if (nodeConnectionTransfer.TryGet(ConnectionSideType.Node, conn.Id, out var connection) == false || connection.Manageable == false)
+            if (nodeConnectionTransfer.TryGet(ConnectionSideType.Master, conn.Id, out var connection) == false || connection.Manageable == false)
             {
                 return false;
             }
