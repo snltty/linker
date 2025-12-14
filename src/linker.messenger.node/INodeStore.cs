@@ -34,8 +34,6 @@
     }
     public interface INodeStore<TStore, TReport> where TStore : class, INodeStoreBase, new() where TReport : class, INodeReportBase, new()
     {
-        public string StoreName { get; }
-
         public Task<List<TStore>> GetAll();
         public Task<TStore> GetByNodeId(string nodeId);
         public Task<bool> Add(TStore info);

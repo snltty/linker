@@ -1,17 +1,41 @@
-﻿using linker.libs.extends;
-using linker.messenger.relay.server;
-using linker.messenger.store.file.node;
+﻿using linker.messenger.relay.server;
+using LiteDB;
 
 namespace linker.messenger.store.file.relay
 {
-    public sealed class RelayServerNodeStore : NodeStore<RelayServerNodeStoreInfo, RelayServerNodeReportInfo>, IRelayNodeStore
+    public sealed class RelayServerNodeStore : IRelayNodeStore
     {
-        public override string StoreName => "relay";
-        public RelayServerNodeStore(Storefactory storefactory, IRelayNodeConfigStore relayServerConfigStore) : base(storefactory)
+        private readonly ILiteCollection<RelayServerNodeStoreInfo> liteCollection;
+        public RelayServerNodeStore(Storefactory storefactory)
         {
+            liteCollection = storefactory.GetCollection<RelayServerNodeStoreInfo>($"relay_server_master");
         }
 
-        public override async Task<bool> Report(RelayServerNodeReportInfo info)
+        public async Task<bool> Add(RelayServerNodeStoreInfo info)
+        {
+            if (liteCollection.FindOne(c => c.NodeId == info.NodeId) != null)
+            {
+                return false;
+            }
+            liteCollection.Insert(info);
+            return await Task.FromResult(true).ConfigureAwait(false);
+        }
+
+        public async Task<bool> Delete(string nodeId)
+        {
+            return await Task.FromResult(liteCollection.DeleteMany(c => c.NodeId == nodeId) > 0).ConfigureAwait(false);
+        }
+
+        public async Task<List<RelayServerNodeStoreInfo>> GetAll()
+        {
+            return await Task.FromResult(liteCollection.FindAll().ToList()).ConfigureAwait(false);
+        }
+
+        public async Task<RelayServerNodeStoreInfo> GetByNodeId(string nodeId)
+        {
+            return await Task.FromResult(liteCollection.FindOne(c => c.NodeId == nodeId)).ConfigureAwait(false);
+        }
+        public async Task<bool> Report(RelayServerNodeReportInfo info)
         {
             int length = liteCollection.UpdateMany(p => new RelayServerNodeStoreInfo
             {
@@ -33,7 +57,7 @@ namespace linker.messenger.store.file.relay
             return await Task.FromResult(length > 0).ConfigureAwait(false);
         }
 
-        public override async Task<bool> Update(RelayServerNodeStoreInfo info)
+        public async Task<bool> Update(RelayServerNodeStoreInfo info)
         {
             int length = liteCollection.UpdateMany(p => new RelayServerNodeStoreInfo
             {
