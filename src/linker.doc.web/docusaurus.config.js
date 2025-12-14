@@ -85,7 +85,7 @@ const config = {
             },
             announcementBar: {
                 id: 'support_us',
-                content: '<span style="font-size:14px;color:#f7033a;">Gitee<strong>[2025年度开源项目]</strong>评选,各位老板闲暇之余可以前往<a target="_blank" href="https://gitee.com/activity/2025opensource?category=basic_software&ident=IJZBXG">【🎫这里】</a>随便投个票，重在参与。</span>',
+                content: '<span style="font-size:14px;color:#f7033a;">使用官方信标服务器时，在<a target="_blank" href="https://afdian.com/a/snltty">【🔋爱发电】</a>充电后的订单号可在[服务器][中继]部分导入，以解锁相应中继带宽，自建不需要</span>',
                 backgroundColor: '#f5f5f5',
                 textColor: '#ff0000',
                 isCloseable: false,

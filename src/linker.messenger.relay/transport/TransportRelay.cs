@@ -255,6 +255,10 @@ namespace linker.tunnel.transport
 
                 int length = await socket.ReceiveAsync(buffer.Memory.Slice(0, 1)).AsTask().WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
 
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Debug($" relay SendMessage recv {length}->{buffer.Memory.Span[0]}");
+                }
                 return length == 1 && buffer.Memory.Slice(0, 1).Span.SequenceEqual(Helper.TrueArray);
             }
             catch (Exception ex)
