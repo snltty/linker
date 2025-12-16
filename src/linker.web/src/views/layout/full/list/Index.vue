@@ -1,8 +1,7 @@
 <template>
     <div class="home-list-wrap absolute" >
         <Sort @sort="handleSortChange"></Sort>
-        <el-table :data="devices.page.List" stripe border style="width: 100%" :height="`${state.height}px`" size="small">
-            <!-- <AccessBoolean value=""></AccessBoolean> -->
+        <el-table :data="devices.page.List" stripe border style="width: 100%" :height="state.height" size="small">
             <Device  @refresh="handlePageRefresh"></Device>
             <Tunnel  @refresh="deviceRefreshHook('tunnel')"></Tunnel>
             <Tuntap></Tuntap>
@@ -43,7 +42,6 @@
 <script>
 import { injectGlobalData } from '@/provide.js'
 import { reactive, onMounted,  onUnmounted, computed } from 'vue'
-import { ElMessage } from 'element-plus'
 
 import Sort from './Sort.vue'
 

@@ -1,5 +1,4 @@
-﻿using linker.messenger.signin;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 
 namespace linker.messenger.sforward.server
 {
@@ -21,7 +20,14 @@ namespace linker.messenger.sforward.server
         /// 信标服务器id，客户端id列表
         /// </summary>
         /// <returns></returns>
-        public Dictionary<string, List<string>> GetMachineIds();
+        public Dictionary<string, List<CacheInfo>> GetMachineIds();
+    }
+
+    public sealed class CacheInfo
+    {
+        public string MachineId { get; set; }
+        public string MasterNodeId { get; set; }
+        public long LastTime { get; set; } = Environment.TickCount64;
     }
 
     /// <summary>
@@ -32,21 +38,19 @@ namespace linker.messenger.sforward.server
         private readonly ConcurrentDictionary<string, CacheInfo> serverDoamins = new();
         private readonly ConcurrentDictionary<int, CacheInfo> serverPorts = new();
 
-        private readonly SignInServerCaching signCaching;
-        public SForwardServerCahing(SignInServerCaching signCaching)
+        public SForwardServerCahing()
         {
-            this.signCaching = signCaching;
         }
 
         public bool TryAdd(string domain, string machineId, string masterNodeId)
         {
-            if (serverDoamins.TryGetValue(domain, out CacheInfo cache) && machineId == cache.MachineId)
+            if (serverDoamins.TryGetValue(domain, out CacheInfo cache))
             {
-                return true;
-            }
-            if (signCaching.GetOnline(machineId) == false)
-            {
-                serverDoamins.TryRemove(domain, out _);
+                bool result = machineId == cache.MachineId || Environment.TickCount64 - cache.LastTime > 60000;
+                cache.MachineId = machineId;
+                cache.MasterNodeId = masterNodeId;
+                cache.LastTime = Environment.TickCount64;
+                return result;
             }
 
             return serverDoamins.TryAdd(domain, new CacheInfo { MachineId = machineId, MasterNodeId = masterNodeId });
@@ -54,15 +58,14 @@ namespace linker.messenger.sforward.server
 
         public bool TryAdd(int port, string machineId, string masterNodeId)
         {
-            if (serverPorts.TryGetValue(port, out CacheInfo cache) && machineId == cache.MachineId)
+            if (serverPorts.TryGetValue(port, out CacheInfo cache))
             {
-                return true;
+                bool result = machineId == cache.MachineId || Environment.TickCount64 - cache.LastTime > 60000;
+                cache.MachineId = machineId;
+                cache.MasterNodeId = masterNodeId;
+                cache.LastTime = Environment.TickCount64;
+                return result;
             }
-            if (signCaching.GetOnline(machineId) == false)
-            {
-                serverPorts.TryRemove(port, out _);
-            }
-
             return serverPorts.TryAdd(port, new CacheInfo { MachineId = machineId, MasterNodeId = masterNodeId });
         }
 
@@ -154,18 +157,12 @@ namespace linker.messenger.sforward.server
             return false;
         }
 
-        public Dictionary<string, List<string>> GetMachineIds()
+        public Dictionary<string, List<CacheInfo>> GetMachineIds()
         {
-            return serverDoamins.Values.Select(c => (c.MasterNodeId, c.MachineId))
-                .Union(serverPorts.Values.Select(c => (c.MasterNodeId, c.MachineId))).Distinct()
-                .GroupBy(c => c.MasterNodeId).ToDictionary(c => c.Key, d => d.Select(c => c.MachineId).ToList());
+            return serverDoamins.Values.Select(c => (c.MasterNodeId, c))
+                .Union(serverPorts.Values.Select(c => (c.MasterNodeId, c)))
+                .GroupBy(c => c.MasterNodeId).ToDictionary(c => c.Key, d => d.Select(c => c.c).ToList());
         }
 
-        sealed class CacheInfo
-        {
-            public string MachineId { get; set; }
-            public string MasterNodeId { get; set; }
-            public long LastTime { get; set; } = Environment.TickCount64;
-        }
     }
 }

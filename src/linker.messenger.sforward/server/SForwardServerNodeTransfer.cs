@@ -22,7 +22,7 @@ namespace linker.messenger.sforward.server
             this.messengerSender = messengerSender;
             this.sforwardServerConnectionTransfer = sforwardServerConnectionTransfer;
         }
-        public async Task<bool> ProxyNode(SForwardProxyInfo info)
+        public async Task<bool> ProxyForward(SForwardProxyInfo info)
         {
             if (sforwardServerConnectionTransfer.TryGet(ConnectionSideType.Master, info.NodeId, out var connection))
             {

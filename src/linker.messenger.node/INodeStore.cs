@@ -32,7 +32,9 @@
 
         public string Host { get; set; }
     }
-    public interface INodeStore<TStore, TReport> where TStore : class, INodeStoreBase, new() where TReport : class, INodeReportBase, new()
+    public interface INodeStore<TStore, TReport> 
+        where TStore : class, INodeStoreBase, new() 
+        where TReport : class, INodeReportBase, new()
     {
         public Task<List<TStore>> GetAll();
         public Task<TStore> GetByNodeId(string nodeId);

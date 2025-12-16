@@ -42,7 +42,7 @@ export const provideGlobalData = () => {
     window.addEventListener('resize', ()=>{
         const body = document.getElementById('main-body');
         if(body){
-            globalData.value.height = document.getElementById('main-body').offsetHeight;
+            globalData.value.height = body.offsetHeight;
             globalData.value.width = window.innerWidth;
         }
     });
