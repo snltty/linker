@@ -11,8 +11,6 @@
 		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
 		<Configurations>Debug;Release</Configurations>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-		<PublishAot>false</PublishAot>
-		<PublishTrimmed>true</PublishTrimmed>
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
 		<SignAssembly>true</SignAssembly>
 		<ServerGarbageCollection>false</ServerGarbageCollection>
@@ -34,6 +32,25 @@
 		<AssemblyVersion>1.9.7</AssemblyVersion>
 		<FileVersion>1.9.7</FileVersion>
 		<DelaySign>False</DelaySign>
+
+
+		<PublishAot>false</PublishAot>
+		<PublishTrimmed>true</PublishTrimmed>
+		<PublishSingleFile>true</PublishSingleFile>
+		<TieredPGO>true</TieredPGO>
+		<TrimMode>partial</TrimMode>
+		<EventSourceSupport>false</EventSourceSupport>
+		<EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+		<DebuggerSupport>false</DebuggerSupport>
+		<EnableUnsafeBinaryFormatterSerialization>false</EnableUnsafeBinaryFormatterSerialization>
+		<EnableUnsafeUTF7Encoding>false</EnableUnsafeUTF7Encoding>
+		<HttpActivityPropagationSupport>false</HttpActivityPropagationSupport>
+		<InvariantGlobalization>false</InvariantGlobalization>
+		<MetadataUpdaterSupport>false</MetadataUpdaterSupport>
+		<UseSystemResourceKeys>true</UseSystemResourceKeys>
+		<MetricsSupport>false</MetricsSupport>
+		<StackTraceSupport>false</StackTraceSupport>
+		<XmlResolverIsNetworkingEnabledByDefault>false</XmlResolverIsNetworkingEnabledByDefault>
 	</PropertyGroup>
 
 
