@@ -21,7 +21,7 @@
                                             <el-col :span="12"><el-checkbox :disabled="onlyNode" v-model="state.single" :label="$t('status.exportSingle')" /></el-col>
                                             <el-col :span="12">
                                                 <div class="flex flex-nowrap">
-                                                    <span style="width: 11rem;">{{$t('status.exportName')}} : </span><el-input v-trim :disabled="!state.single" v-model="state.name" maxlength="32" show-word-limit></el-input>
+                                                    <span class="label">{{$t('status.exportName')}} : </span><el-input v-trim :disabled="!state.single" v-model="state.name" maxlength="32" show-word-limit></el-input>
                                                 </div>
                                             </el-col>
                                         </el-row>
@@ -30,12 +30,12 @@
                                         <el-row>
                                             <el-col :span="12">
                                                 <div class="flex flex-nowrap mgt-1">
-                                                    <span style="width: 11rem;">{{$t('status.exportWebport')}} : </span><el-input v-trim :disabled="onlyNode" v-model="state.webport"></el-input>
+                                                    <span class="label">{{$t('status.exportWebport')}} : </span><el-input v-trim :disabled="onlyNode" v-model="state.webport"></el-input>
                                                 </div>
                                             </el-col>
                                             <el-col :span="12">
                                                 <div class="flex flex-nowrap mgt-1">
-                                                    <span style="width: 11rem;">{{$t('status.exportApiPassword')}} : </span><el-input v-trim type="password" show-password :disabled="onlyNode" v-model="state.apipassword" maxlength="36" show-word-limit></el-input>
+                                                    <span class="label">{{$t('status.exportApiPassword')}} : </span><el-input v-trim type="password" show-password :disabled="onlyNode" v-model="state.apipassword" maxlength="36" show-word-limit></el-input>
                                                 </div>
                                             </el-col>
                                         </el-row>
@@ -272,6 +272,8 @@ html.dark .status-wrap .status-export-wrap  a{color:#ccc;}
         }
     }
     .el-col {text-align:left;}
+
+    span.label{width:11rem;line-height:3rem;padding-left:.6rem}
 }
 
 </style>
