@@ -250,7 +250,7 @@ namespace linker.tunnel.transport
 
             try
             {
-                ITunnelConnection connection = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+                ITunnelConnection connection = await tcs.WithTimeout(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
                 return connection;
             }
             catch (Exception)
@@ -332,21 +332,17 @@ namespace linker.tunnel.transport
             socket.ReuseBind(new IPEndPoint(localIP, local.Port));
             socket.Listen(int.MaxValue);
 
+            using CancellationTokenSource cts = new CancellationTokenSource(5000);
             try
             {
-                Socket client = await socket.AcceptAsync().WaitAsync(TimeSpan.FromMilliseconds(30000)).ConfigureAwait(false);
+                Socket client = await socket.AcceptAsync(cts.Token).ConfigureAwait(false);
                 await OnTcpConnected(tunnelTransportInfo, client).ConfigureAwait(false);
             }
             catch (Exception)
             {
+                cts.Cancel();
             }
-            try
-            {
-                socket.SafeClose();
-            }
-            catch (Exception)
-            {
-            }
+            socket.SafeClose();
         }
     }
 }

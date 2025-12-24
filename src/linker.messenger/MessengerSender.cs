@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.libs.extends;
 using System.Collections.Concurrent;
 
 namespace linker.messenger
@@ -81,7 +82,7 @@ namespace linker.messenger
 
             try
             {
-                return await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(msg.Timeout)).ConfigureAwait(false);
+                return await tcs.WithTimeout(msg.Timeout).ConfigureAwait(false);
             }
             catch (Exception)
             {

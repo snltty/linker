@@ -46,26 +46,28 @@ namespace linker.messenger.relay.server
 
         private async Task<RelayMessageInfo> GetMessage(Socket socket)
         {
+            using CancellationTokenSource cts = new CancellationTokenSource(5000);
             byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024);
             try
             {
                 int received = 0, length = 4;
                 while (received < length)
                 {
-                    received += await socket.ReceiveAsync(buffer.AsMemory(received, length - received), SocketFlags.None).ConfigureAwait(false);
+                    received += await socket.ReceiveAsync(buffer.AsMemory(received, length - received), SocketFlags.None, cts.Token).ConfigureAwait(false);
                 }
 
                 received = 0;
                 length = buffer.ToInt32();
                 while (received < length)
                 {
-                    received += await socket.ReceiveAsync(buffer.AsMemory(received, length - received), SocketFlags.None).ConfigureAwait(false);
+                    received += await socket.ReceiveAsync(buffer.AsMemory(received, length - received), SocketFlags.None, cts.Token).ConfigureAwait(false);
                 }
 
                 return serializer.Deserialize<RelayMessageInfo>(crypto.Decode(buffer, 0, length).Span);
             }
             catch (Exception ex)
             {
+                cts.Cancel();
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
                     LoggerHelper.Instance.Error(ex);
@@ -92,7 +94,11 @@ namespace linker.messenger.relay.server
 
             try
             {
-                RelayMessageInfo relayMessage = await GetMessage(socket).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+                RelayMessageInfo relayMessage = await GetMessage(socket).ConfigureAwait(false);
+                if(relayMessage == null)
+                {
+                    return;
+                }
                 //获取缓存
                 RelayCacheInfo relayCache = await relayServerNodeTransfer.TryGetRelayCache(relayMessage).ConfigureAwait(false);
                 if (relayCache == null)
@@ -128,19 +134,19 @@ namespace linker.messenger.relay.server
 
                 TaskCompletionSource<Socket> tcs = new TaskCompletionSource<Socket>(TaskCreationOptions.RunContinuationsAsynchronously);
                 Socket answerSocket = null;
-                IPEndPoint fromep = socket.RemoteEndPoint as IPEndPoint,toep = null;
+                IPEndPoint fromep = socket.RemoteEndPoint as IPEndPoint, toep = null;
                 try
                 {
                     await socket.SendAsync(Helper.TrueArray).ConfigureAwait(false);
                     relayDic.TryAdd(relayCache.FlowId, tcs);
-                    answerSocket = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(15000)).ConfigureAwait(false);
+                    answerSocket = await tcs.WithTimeout(TimeSpan.FromMilliseconds(15000)).ConfigureAwait(false);
                     await answerSocket.SendAsync(Helper.TrueArray).ConfigureAwait(false);
                     toep = answerSocket.RemoteEndPoint as IPEndPoint;
 
                     LoggerHelper.Instance.Info($"relay server start {fromep} to {toep}");
 
                     string flowKey = relayMessage.Type == RelayMessengerType.Ask ? $"{relayMessage.FromId}->{relayMessage.ToId}" : $"{relayMessage.ToId}->{relayMessage.FromId}";
-                    RelayTrafficCacheInfo trafficCacheInfo = new RelayTrafficCacheInfo { Cache1 = relayCache, Cache= relayCache, Sendt = 0, Limit = new SpeedLimit(), Key = flowKey };
+                    RelayTrafficCacheInfo trafficCacheInfo = new RelayTrafficCacheInfo { Cache1 = relayCache, Cache = relayCache, Sendt = 0, Limit = new SpeedLimit(), Key = flowKey };
                     relayServerNodeTransfer.AddTrafficCache(trafficCacheInfo);
                     relayServerNodeTransfer.IncrementConnectionNum();
                     await Task.WhenAll(CopyToAsync(trafficCacheInfo, socket, answerSocket), CopyToAsync(trafficCacheInfo, answerSocket, socket)).ConfigureAwait(false);
@@ -237,7 +243,7 @@ namespace linker.messenger.relay.server
 
         public string UserId { get; set; } = string.Empty;
     }
-    public sealed class RelayTrafficCacheInfo: TrafficCacheInfo
+    public sealed class RelayTrafficCacheInfo : TrafficCacheInfo
     {
         public RelayCacheInfo Cache1 { get; set; }
     }

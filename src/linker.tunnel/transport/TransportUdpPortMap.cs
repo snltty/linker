@@ -268,7 +268,7 @@ namespace linker.tunnel.transport
             distDic.TryAdd(key, tcs);
             try
             {
-                State state = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+                State state = await tcs.WithTimeout(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
 
                 TunnelConnectionUdp result = new TunnelConnectionUdp
                 {
@@ -317,6 +317,7 @@ namespace linker.tunnel.transport
             foreach (var ep in eps)
             {
                 Socket targetSocket = new(ep.AddressFamily, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
+                using CancellationTokenSource cts = new CancellationTokenSource(500);
                 try
                 {
                     targetSocket.WindowsUdpBug();
@@ -331,7 +332,7 @@ namespace linker.tunnel.transport
                     byte[] sendt = $"{flagTexts}-{tunnelTransportInfo.Local.MachineId}-{tunnelTransportInfo.FlowId}".ToBytes();
                     await targetSocket.SendToAsync(sendt, ep).ConfigureAwait(false);
 
-                    SocketReceiveFromResult recvRestlt = await targetSocket.ReceiveFromAsync(buffer.Memory, new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, 0)).AsTask().WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                    SocketReceiveFromResult recvRestlt = await targetSocket.ReceiveFromAsync(buffer.Memory, new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, 0),cts.Token).ConfigureAwait(false);
 
                     if (buffer.Memory.Span.Slice(0, recvRestlt.ReceivedBytes).SequenceEqual(sendt) == false)
                     {
@@ -370,6 +371,7 @@ namespace linker.tunnel.transport
                 }
                 catch (Exception ex)
                 {
+                    cts.Cancel();
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
                         LoggerHelper.Instance.Error($"{Name} connect {ep} fail {ex}");

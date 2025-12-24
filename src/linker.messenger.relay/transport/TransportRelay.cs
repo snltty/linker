@@ -240,6 +240,7 @@ namespace linker.tunnel.transport
 
         private async Task<bool> SendMessage(Socket socket, RelayMessageInfo relayMessage)
         {
+            using CancellationTokenSource cts = new CancellationTokenSource(5000);
             try
             {
                 byte[] sendBytes = crypto.Encode(serializer.Serialize(relayMessage));
@@ -253,7 +254,7 @@ namespace linker.tunnel.transport
 
                 await socket.SendAsync(buffer.Memory.Slice(0, sendBytes.Length + 5)).ConfigureAwait(false);
 
-                int length = await socket.ReceiveAsync(buffer.Memory.Slice(0, 1)).AsTask().WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+                int length = await socket.ReceiveAsync(buffer.Memory.Slice(0, 1), cts.Token).ConfigureAwait(false);
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
@@ -263,6 +264,7 @@ namespace linker.tunnel.transport
             }
             catch (Exception ex)
             {
+                cts.Cancel();
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
                     LoggerHelper.Instance.Error(ex);

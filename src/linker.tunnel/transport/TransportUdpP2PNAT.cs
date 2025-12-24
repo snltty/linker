@@ -116,6 +116,7 @@ namespace linker.tunnel.transport
 
             for (int i = 0; i < 5; i++)
             {
+                using CancellationTokenSource cts1 = new CancellationTokenSource(500);
                 try
                 {
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
@@ -127,17 +128,19 @@ namespace linker.tunnel.transport
                     {
                         targetSocket.SendTo(authBytes, item);
                     }
-                    var result = await targetSocket.ReceiveFromAsync(buffer.Memory, tempEP).AsTask().WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                    var result = await targetSocket.ReceiveFromAsync(buffer.Memory, tempEP, cts1.Token).ConfigureAwait(false);
                     targetSocket.SendTo(authBytes, result.RemoteEndPoint);
 
                     while (true)
                     {
+                        using CancellationTokenSource cts = new CancellationTokenSource(1000);
                         try
                         {
-                            await targetSocket.ReceiveFromAsync(buffer.Memory, tempEP).AsTask().WaitAsync(TimeSpan.FromMilliseconds(1000)).ConfigureAwait(false);
+                            await targetSocket.ReceiveFromAsync(buffer.Memory, tempEP,cts.Token).ConfigureAwait(false);
                         }
                         catch (Exception)
                         {
+                            cts.Cancel();
                             break;
                         }
                     }
@@ -165,6 +168,7 @@ namespace linker.tunnel.transport
                 }
                 catch (Exception ex)
                 {
+                    cts1.Cancel();
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
                         LoggerHelper.Instance.Error(ex);

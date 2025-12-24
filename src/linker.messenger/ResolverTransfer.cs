@@ -38,6 +38,7 @@ namespace linker.messenger
         public async Task BeginReceive(Socket socket)
         {
             byte[] buffer = ArrayPool<byte>.Shared.Rent(32);
+            using CancellationTokenSource cts = new CancellationTokenSource(5000);
             try
             {
                 if (socket == null || socket.RemoteEndPoint == null)
@@ -45,7 +46,7 @@ namespace linker.messenger
                     return;
                 }
 
-                int length = await socket.ReceiveAsync(buffer.AsMemory(0, 1), SocketFlags.None).AsTask().WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+                int length = await socket.ReceiveAsync(buffer.AsMemory(0, 1), SocketFlags.None, cts.Token).ConfigureAwait(false);
                 byte type = buffer[0];
 
                 if (resolvers.TryGetValue(type, out IResolver resolver))
@@ -59,6 +60,7 @@ namespace linker.messenger
             }
             catch (Exception ex)
             {
+                cts.Cancel();
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Error(ex);
 

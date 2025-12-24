@@ -62,10 +62,11 @@ namespace linker.messenger.tunnel
 
         private async Task<bool> GetIsp()
         {
+            using CancellationTokenSource cts = new CancellationTokenSource(3000);
             try
             {
                 using HttpClient httpClient = new HttpClient();
-                string str = await httpClient.GetStringAsync($"http://ip-api.com/json").WaitAsync(TimeSpan.FromMilliseconds(3000)).ConfigureAwait(false);
+                string str = await httpClient.GetStringAsync($"http://ip-api.com/json",cts.Token).ConfigureAwait(false);
 
                 if (string.IsNullOrWhiteSpace(str) == false)
                 {
@@ -79,16 +80,18 @@ namespace linker.messenger.tunnel
             }
             catch (Exception ex)
             {
+                cts.Cancel();
                 LoggerHelper.Instance.Warning(ex);
             }
             return false;
         }
         private async Task<bool> GetPosition()
         {
+            using CancellationTokenSource cts = new CancellationTokenSource(5000);
             try
             {
                 using HttpClient httpClient = new HttpClient();
-                string str = await httpClient.GetStringAsync($"https://api.myip.la/en?json").WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+                string str = await httpClient.GetStringAsync($"https://api.myip.la/en?json",cts.Token).ConfigureAwait(false);
 
                 if (string.IsNullOrWhiteSpace(str) == false)
                 {
@@ -102,6 +105,7 @@ namespace linker.messenger.tunnel
             }
             catch (Exception ex)
             {
+                cts.Cancel();
                 LoggerHelper.Instance.Warning(ex);
             }
             return false;

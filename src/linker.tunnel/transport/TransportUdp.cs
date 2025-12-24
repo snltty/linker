@@ -176,7 +176,7 @@ namespace linker.tunnel.transport
             try
             {
                 //然后等待对方回复，如果能收到回复，就说明是通了
-                IPEndPoint remoteEP = await taskCompletionSource.Task.WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                IPEndPoint remoteEP = await taskCompletionSource.WithTimeout(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
                 return new TunnelConnectionUdp
                 {
                     UdpClient = remoteUdp,
@@ -258,7 +258,7 @@ namespace linker.tunnel.transport
 
                 try
                 {
-                    AddressFamily af = await token.Tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(30000)).ConfigureAwait(false);
+                    AddressFamily af = await token.Tcs.WithTimeout(TimeSpan.FromMilliseconds(30000)).ConfigureAwait(false);
                 }
                 catch (Exception)
                 {
@@ -365,7 +365,7 @@ namespace linker.tunnel.transport
 
             try
             {
-                ITunnelConnection connection = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+                ITunnelConnection connection = await tcs.WithTimeout(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
                 return connection;
             }
             catch (Exception)

@@ -396,13 +396,14 @@ namespace linker.messenger.node
         }
         private async Task BuildShareKey()
         {
+            using CancellationTokenSource cts = new CancellationTokenSource(5000);
             try
             {
                 string host = Config.Host;
                 if (string.IsNullOrWhiteSpace(host))
                 {
                     using HttpClient httpClient = new HttpClient();
-                    host = await httpClient.GetStringAsync($"https://linker.snltty.com/ip").WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+                    host = await httpClient.GetStringAsync($"https://linker.snltty.com/ip", cts.Token).ConfigureAwait(false);
                 }
 
                 NodeShareInfo shareKeyInfo = new NodeShareInfo
@@ -439,6 +440,7 @@ namespace linker.messenger.node
             }
             catch (Exception ex)
             {
+                cts.Cancel();
                 LoggerHelper.Instance.Error($"build {Name} share key error : {ex}");
             }
         }

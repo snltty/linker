@@ -14,7 +14,7 @@ namespace linker.plugins.sforward.proxy
         private readonly ConcurrentDictionary<int, AsyncUserToken> tcpListens = new ConcurrentDictionary<int, AsyncUserToken>();
         private readonly ConcurrentDictionary<ulong, TaskCompletionSource<Socket>> tcpConnections = new ConcurrentDictionary<ulong, TaskCompletionSource<Socket>>();
         private readonly ConcurrentDictionary<ulong, AsyncUserToken> httpConnections = new ConcurrentDictionary<ulong, AsyncUserToken>();
-        private readonly ConcurrentDictionary<string,TrafficCacheInfo> httpCaches = new ConcurrentDictionary<string, TrafficCacheInfo>();
+        private readonly ConcurrentDictionary<string, TrafficCacheInfo> httpCaches = new ConcurrentDictionary<string, TrafficCacheInfo>();
 
         public Func<int, ulong, Task<string>> TunnelConnect { get; set; } = async (port, id) => { return await Task.FromResult(string.Empty).ConfigureAwait(false); };
         public Func<string, int, ulong, Task<string>> WebConnect { get; set; } = async (host, port, id) => { return await Task.FromResult(string.Empty).ConfigureAwait(false); };
@@ -114,7 +114,16 @@ namespace linker.plugins.sforward.proxy
             using IMemoryOwner<byte> buffer2 = MemoryPool<byte>.Shared.Rent((1 << token.BufferSize) * 1024);
             try
             {
-                int length = await token.SourceSocket.ReceiveAsync(buffer1.Memory, SocketFlags.None).ConfigureAwait(false);
+                int length = 0;
+                using CancellationTokenSource cts = new CancellationTokenSource(500);
+                try
+                {
+                    length = await token.SourceSocket.ReceiveAsync(buffer1.Memory, SocketFlags.None, cts.Token).ConfigureAwait(false);
+                }
+                catch (Exception)
+                {
+                    cts.Cancel();
+                }
                 //是回复连接。传过来了id，去配一下
                 if (length > flagBytes.Length && buffer1.Memory.Span.Slice(0, flagBytes.Length).SequenceEqual(flagBytes))
                 {
@@ -173,23 +182,25 @@ namespace linker.plugins.sforward.proxy
                 //等待回复
                 TaskCompletionSource<Socket> tcs = new TaskCompletionSource<Socket>(TaskCreationOptions.RunContinuationsAsynchronously);
                 tcpConnections.TryAdd(id, tcs);
-                token.TargetSocket = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+                token.TargetSocket = await tcs.WithTimeout(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
 
-                Add(key, token.GroupId, length, length);
-                await token.TargetSocket.SendAsync(buffer1.Memory.Slice(0, length)).ConfigureAwait(false);
-
+                if (length > 0)
+                {
+                    Add(key, token.GroupId, length, length);
+                    await token.TargetSocket.SendAsync(buffer1.Memory.Slice(0, length)).ConfigureAwait(false);
+                }
                 //两端交换数据
-                await Task.WhenAll(CopyToAsync(key, token.GroupId, buffer1.Memory, token.SourceSocket, token.TargetSocket, cache), CopyToAsync(key, token.GroupId, buffer2.Memory, token.TargetSocket, token.SourceSocket, cache)).ConfigureAwait(false);
+                await Task.WhenAny(CopyToAsync("remote client-service", key, token.GroupId, buffer1.Memory, token.SourceSocket, token.TargetSocket, cache), CopyToAsync("remote service-client", key, token.GroupId, buffer2.Memory, token.TargetSocket, token.SourceSocket, cache)).ConfigureAwait(false);
 
                 CloseClientSocket(token);
             }
             catch (Exception ex)
             {
+                CloseClientSocket(token);
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
                     LoggerHelper.Instance.Error(ex);
                 }
-                CloseClientSocket(token);
             }
             finally
             {
@@ -325,16 +336,16 @@ namespace linker.plugins.sforward.proxy
                 await sourceSocket.SendAsync(buffer1.Memory.Slice(0, flagBytes.Length + 8)).ConfigureAwait(false);
 
                 //交换数据即可
-                await Task.WhenAll(CopyToAsync($"{key}->{service}", string.Empty, buffer1.Memory, sourceSocket, targetSocket), CopyToAsync($"{key}->{service}", string.Empty, buffer2.Memory, targetSocket, sourceSocket)).ConfigureAwait(false);
+                await Task.WhenAny(CopyToAsync("local serve-service", $"{key}->{service}", string.Empty, buffer1.Memory, sourceSocket, targetSocket), CopyToAsync("local service-server", $"{key}->{service}", string.Empty, buffer2.Memory, targetSocket, sourceSocket)).ConfigureAwait(false);
 
             }
             catch (Exception)
             {
-                sourceSocket?.SafeClose();
-                targetSocket?.SafeClose();
             }
             finally
             {
+                sourceSocket?.SafeClose();
+                targetSocket?.SafeClose();
             }
         }
 
@@ -347,7 +358,7 @@ namespace linker.plugins.sforward.proxy
         /// <param name="source"></param>
         /// <param name="target"></param>
         /// <returns></returns>
-        private async Task CopyToAsync(string key, string groupid, Memory<byte> buffer, Socket source, Socket target,TrafficCacheInfo trafficCacheInfo = null)
+        private async Task CopyToAsync(string flag, string key, string groupid, Memory<byte> buffer, Socket source, Socket target, TrafficCacheInfo trafficCacheInfo = null)
         {
             try
             {
@@ -359,7 +370,6 @@ namespace linker.plugins.sforward.proxy
                         //流量限制
                         if (sforwardServerNodeTransfer.AddBytes(trafficCacheInfo, bytesRead) == false)
                         {
-                            source.SafeClose();
                             break;
                         }
 
@@ -396,11 +406,6 @@ namespace linker.plugins.sforward.proxy
                 {
                     LoggerHelper.Instance.Error(ex);
                 }
-            }
-            finally
-            {
-                source.SafeClose();
-                target.SafeClose();
             }
         }
 

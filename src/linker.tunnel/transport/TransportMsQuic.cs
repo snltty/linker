@@ -209,9 +209,10 @@ namespace linker.tunnel.transport
                 }
             }
 
+            using CancellationTokenSource cts = new CancellationTokenSource(5000);
             try
             {
-                IPEndPoint remoteEP = await taskCompletionSource.Task.WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                IPEndPoint remoteEP = await taskCompletionSource.WithTimeout(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
                 //绑定一个udp，用来给QUIC链接
                 Socket quicUdp = ListenQuicConnect(tunnelTransportInfo.BufferSize, remoteUdp, remoteEP);
 #pragma warning disable SYSLIB0039 // 类型或成员已过时
@@ -232,7 +233,7 @@ namespace linker.tunnel.transport
                             return true;
                         }
                     }
-                }).AsTask().WaitAsync(TimeSpan.FromMilliseconds(1000)).ConfigureAwait(false);
+                }, cts.Token).ConfigureAwait(false);
                 QuicStream quicStream = await connection.OpenOutboundStreamAsync(QuicStreamType.Bidirectional).ConfigureAwait(false);
 #pragma warning restore CA2252 // 此 API 需要选择加入预览功能
 #pragma warning restore SYSLIB0039 // 类型或成员已过时
@@ -258,6 +259,7 @@ namespace linker.tunnel.transport
             }
             catch (Exception ex)
             {
+                cts.Cancel();
                 taskCompletionSource.TrySetResult(null);
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
@@ -335,7 +337,7 @@ namespace linker.tunnel.transport
 
             try
             {
-                ITunnelConnection connection = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(10000)).ConfigureAwait(false);
+                ITunnelConnection connection = await tcs.WithTimeout(TimeSpan.FromMilliseconds(10000)).ConfigureAwait(false);
                 return connection;
             }
             catch (Exception)
@@ -466,7 +468,7 @@ namespace linker.tunnel.transport
                 udpClient.WindowsUdpBug();
                 _ = WaitAuth(bufferSize, token, tcs);
 
-                AddressFamily af = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(30000)).ConfigureAwait(false);
+                AddressFamily af = await tcs.WithTimeout(TimeSpan.FromMilliseconds(30000)).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

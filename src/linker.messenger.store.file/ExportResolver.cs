@@ -28,6 +28,8 @@ namespace linker.messenger.store.file
         {
             byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024);
             Socket socket = new Socket(server.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+
+            using CancellationTokenSource cts = new CancellationTokenSource(5000);
             try
             {
                 await socket.ConnectAsync(server).WaitAsync(TimeSpan.FromMilliseconds(5000));
@@ -41,12 +43,13 @@ namespace linker.messenger.store.file
 
                 await socket.SendAsync(buffer.AsMemory(0, playload.Length + 4));
 
-                int length = await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).AsTask().WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+                int length = await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None,cts.Token).ConfigureAwait(false);
 
                 return serializer.Deserialize<string>(buffer.AsSpan(0, length));
             }
             catch (Exception ex)
             {
+                cts.Cancel();
                 LoggerHelper.Instance.Error(ex);
             }
             finally
@@ -64,6 +67,7 @@ namespace linker.messenger.store.file
         {
             byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024);
             Socket socket = new Socket(server.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            using CancellationTokenSource cts = new CancellationTokenSource(5000);
             try
             {
                 await socket.ConnectAsync(server).WaitAsync(TimeSpan.FromMilliseconds(5000));
@@ -72,12 +76,13 @@ namespace linker.messenger.store.file
                 await socket.SendAsync(buffer.AsMemory(0,1));
                 await socket.SendAsync(serializer.Serialize(new ExportSaveInfo { Type = ExportSaveType.Get, Value = value }.ToJson()));
 
-                int length = await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None).AsTask().WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+                int length = await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None,cts.Token).ConfigureAwait(false);
 
                 return serializer.Deserialize<string>(buffer.AsSpan(0, length));
             }
             catch (Exception ex)
             {
+                cts.Cancel();
                 LoggerHelper.Instance.Error(ex);
             }
             finally

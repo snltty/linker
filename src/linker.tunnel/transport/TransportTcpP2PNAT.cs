@@ -165,12 +165,13 @@ namespace linker.tunnel.transport
         private async Task<ITunnelConnection> TcpClient(TunnelTransportInfo state, Socket socket)
         {
             using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(4 * 1024);
+            using CancellationTokenSource cts = new CancellationTokenSource(500);
             try
             {
                 //随便发个消息看对方有没有收到
                 await socket.SendAsync(authBytes).ConfigureAwait(false);
                 //如果对方收到，会回个消息，不管是啥，回了就行
-                int length = await socket.ReceiveAsync(buffer.Memory).AsTask().WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                int length = await socket.ReceiveAsync(buffer.Memory,cts.Token).ConfigureAwait(false);
                 if (length == 0) return null;
 
                 //需要ssl
@@ -209,6 +210,7 @@ namespace linker.tunnel.transport
             }
             catch (Exception ex)
             {
+                cts.Cancel();
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
                     LoggerHelper.Instance.Error(ex);
@@ -219,10 +221,11 @@ namespace linker.tunnel.transport
         private async Task<ITunnelConnection> TcpServer(TunnelTransportInfo state, Socket socket)
         {
             using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(4 * 1024);
+            using CancellationTokenSource cts = new CancellationTokenSource(500);
             try
             {
                 //对方会随便发个消息，不管是啥
-                int length = await socket.ReceiveAsync(buffer.Memory).AsTask().WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                int length = await socket.ReceiveAsync(buffer.Memory,cts.Token).ConfigureAwait(false);
                 if (length == 0)
                 {
                     return null;
@@ -268,6 +271,7 @@ namespace linker.tunnel.transport
             }
             catch (Exception ex)
             {
+                cts.Cancel();
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
                     LoggerHelper.Instance.Error(ex);

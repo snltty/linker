@@ -132,7 +132,7 @@ namespace linker.plugins.sforward.proxy
 
                                     try
                                     {
-                                        IPEndPoint remote = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+                                        IPEndPoint remote = await tcs.WithTimeout(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
                                         (IPAddress ip, ushort port) remoteKey = (remote.Address, (ushort)remote.Port);
 
                                         UdpTargetCache cacheSource = new UdpTargetCache { IPEndPoint = remote };
