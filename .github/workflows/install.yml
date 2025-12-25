@@ -95,25 +95,25 @@ jobs:
           asset_path: ./public/publish-ipk/arm64/linker-arm64.ipk
           asset_name: linker-arm64.ipk
           asset_content_type: application/ipk
-      - name: upload-docker-fpk-x64-oss
-        id: upload-docker-fpk-x64-oss
+      - name: upload-docker-fpk-oss
+        id: upload-docker-fpk-oss
         uses: tvrcgo/oss-action@v0.1.1
         with:
           region: oss-cn-shenzhen
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
-          asset-path: ./public/publish-fpk/docker/x64/linker-docker-x64.fpk
-          target-path: /downloads/linker/v1.9.7/linker-docker-x64.fpk
-      - name: upload-docker-fpk-x64
-        id: upload-docker-fpk-x64
+          asset-path: ./public/publish-fpk/docker/linker-docker.fpk
+          target-path: /downloads/linker/v1.9.7/linker-docker.fpk
+      - name: upload-docker-fpk
+        id: upload-docker-fpk
         uses: actions/upload-release-asset@master
         env:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: ./public/publish-fpk/docker/x64/linker-docker-x64.fpk
-          asset_name: linker-docker-x64.fpk
+          asset_path: ./public/publish-fpk/docker/linker-docker.fpk
+          asset_name: linker-docker.fpk
           asset_content_type: application/fpk
       - name: upload-bin-fpk-x64-oss
         id: upload-bin-fpk-x64-oss
@@ -134,4 +134,24 @@ jobs:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
           asset_path: ./public/publish-fpk/bin/x64/linker-bin-x64.fpk
           asset_name: linker-bin-x64.fpk
+          asset_content_type: application/fpk
+      - name: upload-bin-fpk-arm64-oss
+        id: upload-bin-fpk-arm64-oss
+        uses: tvrcgo/oss-action@v0.1.1
+        with:
+          region: oss-cn-shenzhen
+          key-id: ${{ secrets.ALIYUN_OSS_ID }}
+          key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
+          bucket: ide-qbcode
+          asset-path: ./public/publish-fpk/bin/arm64/linker-bin-arm64.fpk
+          target-path: /downloads/linker/v1.9.7/linker-bin-arm64.fpk
+      - name: upload-bin-fpk-arm64
+        id: upload-bin-fpk-arm64
+        uses: actions/upload-release-asset@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: ./public/publish-fpk/bin/arm64/linker-bin-arm64.fpk
+          asset_name: linker-bin-arm64.fpk
           asset_content_type: application/fpk

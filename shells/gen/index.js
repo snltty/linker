@@ -195,11 +195,38 @@ function writeUploadIpk(data, tagName) {
         });
     };
 
-    const platforms1 = ['x64'];
+    data.jobs.build.steps.push({
+        name: `upload-docker-fpk-oss`,
+        id: `upload-docker-fpk-oss`,
+        uses: 'tvrcgo/oss-action@v0.1.1',
+        with: {
+            'region': 'oss-cn-shenzhen',
+            'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
+            'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
+            'bucket': 'ide-qbcode',
+            'asset-path': `./public/publish-fpk/docker/linker-docker.fpk`,
+            'target-path': `/downloads/linker/${tagName}/linker-docker.fpk`
+        }
+    });
+    data.jobs.build.steps.push({
+        name: `upload-docker-fpk`,
+        id: `upload-docker-fpk`,
+        uses: 'actions/upload-release-asset@master',
+        env: {
+            'GITHUB_TOKEN': '${{ secrets.ACTIONS_TOKEN }}'
+        },
+        with: {
+            'upload_url': '${{ steps.get_release.outputs.upload_url }}',
+            'asset_path': `./public/publish-fpk/docker/linker-docker.fpk`,
+            'asset_name': `linker-docker.fpk`,
+            'asset_content_type': 'application/fpk'
+        }
+    });
+    const platforms1 = ['x64','arm64'];
     for (let i = 0; i < platforms1.length; i++) {
         let arch = platforms1[i];
 
-        const types = ['docker','bin'];
+        const types = ['bin'];
         for (let j = 0; j < types.length; j++) { 
             const type = types[j];
             data.jobs.build.steps.push({
