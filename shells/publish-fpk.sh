@@ -21,7 +21,7 @@ tar -czf app.tgz --transform='s,app/,,g' app/docker app/ui config
 tar -czf linker.fpk --exclude='app' *
 mv linker.fpk linker-docker.fpk
 
-cd ../../../../
+cd ../../../
 
 
 rs=('x64' 'arm64')
