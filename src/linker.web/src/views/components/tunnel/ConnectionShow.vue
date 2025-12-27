@@ -1,11 +1,6 @@
 <template>
    <div class="connect-point" @click="handleShow">
-        <template v-if="state.className">
-            <span :class="`connect-point ${state.className}`" :title="state.title" v-loading="state.connecting"></span>
-        </template>
-        <template v-else>
-            <span class="connect-point default" title="未连接" v-loading="state.connecting"></span>
-        </template>
+        <span :class="`connect-point ${state.className}`" :title="state.title" v-loading="state.connecting"></span>
    </div>
 </template>
 
@@ -20,8 +15,8 @@ export default {
         const state = reactive({
             transactionId:props.transactionId,
             connecting:computed(()=>props.row.hook_operating?props.row.hook_operating[props.transactionId]:false),
-            className:computed(()=>['p2p','relay','node'][connection.value.Type]),
-            title:computed(()=>['打洞直连','中继连接','节点连接'][connection.value.Type]),
+            className:computed(()=>connection.value.Connected?['p2p','relay','node'][connection.value.Type]:'default'),
+            title:computed(()=>connection.value.Connected?['打洞直连','中继连接','节点连接'][connection.value.Type]:'未连接'),
         });
         const handleShow = () => {
             connections.value.device = props.row;

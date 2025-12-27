@@ -62,7 +62,7 @@ namespace linker.tunnel.connection
 
 
         private ITunnelConnectionReceiveCallback callback;
-        private CancellationTokenSource cancellationTokenSource;
+        private CancellationTokenSource cts;
         private object userToken;
 
         private readonly LastTicksManager pingTicks = new LastTicksManager();
@@ -78,7 +78,7 @@ namespace linker.tunnel.connection
             this.callback = callback;
             this.userToken = userToken;
 
-            cancellationTokenSource = new CancellationTokenSource();
+            cts = new CancellationTokenSource();
 
             _ = Sender();
             _ = Recver();
@@ -92,12 +92,12 @@ namespace linker.tunnel.connection
             try
             {
                 int length = 0;
-                while (cancellationTokenSource.IsCancellationRequested == false)
+                while (cts.IsCancellationRequested == false)
                 {
                     if (Stream != null)
                     {
                         Memory<byte> memory = pipeWriter.Writer.GetMemory(8 * 1024);
-                        length = await Stream.ReadAsync(memory).ConfigureAwait(false);
+                        length = await Stream.ReadAsync(memory, cts.Token).ConfigureAwait(false);
                         if (length == 0) break;
                         Interlocked.Add(ref recvRemaining, length);
                         pipeWriter.Writer.Advance(length);
@@ -106,7 +106,7 @@ namespace linker.tunnel.connection
                     else
                     {
                         Memory<byte> memory = pipeWriter.Writer.GetMemory(8 * 1024);
-                        length = await Socket.ReceiveAsync(memory, SocketFlags.None).ConfigureAwait(false);
+                        length = await Socket.ReceiveAsync(memory, SocketFlags.None, cts.Token).ConfigureAwait(false);
                         if (length == 0) break;
                         Interlocked.Add(ref recvRemaining, length);
                         pipeWriter.Writer.Advance(length);
@@ -133,12 +133,12 @@ namespace linker.tunnel.connection
 
             try
             {
-                while (cancellationTokenSource.IsCancellationRequested == false)
+                while (cts.IsCancellationRequested == false)
                 {
-                    ReadResult result = await pipeWriter.Reader.ReadAsync().ConfigureAwait(false);
+                    ReadResult result = await pipeWriter.Reader.ReadAsync(cts.Token).ConfigureAwait(false);
                     if (result.IsCompleted && result.Buffer.IsEmpty)
                     {
-                        cancellationTokenSource.Cancel();
+                        cts.Cancel();
                         break;
                     }
 
@@ -230,7 +230,7 @@ namespace linker.tunnel.connection
         {
             try
             {
-                while (cancellationTokenSource.IsCancellationRequested == false)
+                while (cts.IsCancellationRequested == false)
                 {
                     if (Connected == false)
                     {
@@ -273,12 +273,12 @@ namespace linker.tunnel.connection
             pipeSender = new Pipe(new PipeOptions(pauseWriterThreshold: maxRemaining, resumeWriterThreshold: (maxRemaining / 2), useSynchronizationContext: false, minimumSegmentSize: 8192));
             try
             {
-                while (cancellationTokenSource.IsCancellationRequested == false)
+                while (cts.IsCancellationRequested == false)
                 {
                     ReadResult result = await pipeSender.Reader.ReadAsync().ConfigureAwait(false);
                     if (result.IsCompleted && result.Buffer.IsEmpty)
                     {
-                        cancellationTokenSource.Cancel();
+                        cts.Cancel();
                         break;
                     }
                     if (result.Buffer.IsEmpty)
@@ -291,11 +291,11 @@ namespace linker.tunnel.connection
                     {
                         if (Stream != null)
                         {
-                            await Stream.WriteAsync(memoryBlock).ConfigureAwait(false);
+                            await Stream.WriteAsync(memoryBlock, cts.Token).ConfigureAwait(false);
                         }
                         else
                         {
-                            await Socket.SendAsync(memoryBlock, SocketFlags.None).ConfigureAwait(false);
+                            await Socket.SendAsync(memoryBlock, SocketFlags.None, cts.Token).ConfigureAwait(false);
                         }
                         Interlocked.Add(ref sendRemaining, -memoryBlock.Length);
                         SendBytes += memoryBlock.Length;
@@ -315,12 +315,12 @@ namespace linker.tunnel.connection
 
         }
 
-        private readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
+        private readonly SemaphoreSlim slm = new SemaphoreSlim(1);
         public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
             if (callback == null) return false;
 
-            await semaphoreSlim.WaitAsync();
+            await slm.WaitAsync(cts.Token);
             try
             {
                 FlushResult result = await pipeSender.Writer.WriteAsync(data).ConfigureAwait(false);
@@ -332,7 +332,7 @@ namespace linker.tunnel.connection
             }
             finally
             {
-                semaphoreSlim.Release();
+                slm.Release();
             }
 
             return false;
@@ -351,7 +351,7 @@ namespace linker.tunnel.connection
             callback?.Closed(this, userToken);
             callback = null;
             userToken = null;
-            cancellationTokenSource?.Cancel();
+            cts?.Cancel();
 
             Interlocked.Exchange(ref sendRemaining, 0);
 

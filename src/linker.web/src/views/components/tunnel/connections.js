@@ -67,6 +67,7 @@ export const provideConnections = () => {
                     resolve(true);
                     return;
                 }
+
                 resolve(false);
             }).catch(() => {
                 resolve(false);

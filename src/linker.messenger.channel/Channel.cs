@@ -64,10 +64,19 @@ namespace linker.messenger.channel
             }
         }
     }
+
+    internal class P2pTimesInfo
+    {
+        public long Ticks { get; set; }
+        public int Times { get; set; }
+    }
+
     public class Channel
     {
         public VersionManager Version => channelConnectionCaching.Version;
         public ConcurrentDictionary<string, ITunnelConnection> Connections => channelConnectionCaching[TransactionId];
+
+        private readonly ConcurrentDictionary<string, P2pTimesInfo> timess = new ConcurrentDictionary<string, P2pTimesInfo>();
 
         protected virtual string TransactionId { get; }
 
@@ -115,6 +124,7 @@ namespace linker.messenger.channel
             Connected(connection);
             Add(connection);
             pcpTransfer.AddConnection(connection);
+
         }
 
 
@@ -179,9 +189,11 @@ namespace linker.messenger.channel
             //正在后台打洞
             if (tunnelTransfer.IsBackground(machineId, TransactionId) == false)
             {
+                string[] transportNames = IsP2pRecent(machineId);
                 //隧道连接
-                connection = await tunnelTransfer.ConnectAsync(machineId, TransactionId, denyProtocols).ConfigureAwait(false);
-                if (connection == null || connection.Type == TunnelType.Relay)
+                connection = await tunnelTransfer.ConnectAsync(machineId, TransactionId, denyProtocols, transportNames: transportNames).ConfigureAwait(false);
+                UpdateTimes(connection);
+                if ((connection == null || connection.Type == TunnelType.Relay) && transportNames.Length == 0)
                 {
                     //后台打洞
                     tunnelTransfer.StartBackground(machineId, TransactionId, denyProtocols, () =>
@@ -192,6 +204,7 @@ namespace linker.messenger.channel
 
                     }, async (_connection) =>
                     {
+                        UpdateTimes(_connection);
                         await Task.CompletedTask;
                     }, 3, 10000);
                 }
@@ -200,5 +213,33 @@ namespace linker.messenger.channel
             return connection;
         }
 
+        private void UpdateTimes(ITunnelConnection connection)
+        {
+            if (connection == null) return;
+            if (connection.Type == TunnelType.Relay) return;
+
+            if (timess.TryGetValue(connection.RemoteMachineId, out var times) == false)
+            {
+                times = new P2pTimesInfo();
+                timess.TryAdd(connection.RemoteMachineId, times);
+            }
+            if (Environment.TickCount64 - times.Ticks < 60000)
+            {
+                times.Times++;
+            }
+            else
+            {
+                times.Times = 0;
+            }
+            times.Ticks = Environment.TickCount64;
+        }
+        private string[] IsP2pRecent(string machineId)
+        {
+            if (timess.TryGetValue(machineId, out var times) && times.Times >= 3)
+            {
+                return ["TcpRelay"];
+            }
+            return [];
+        }
     }
 }

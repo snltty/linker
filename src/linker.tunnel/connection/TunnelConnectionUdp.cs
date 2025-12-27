@@ -72,7 +72,7 @@ namespace linker.tunnel.connection
 
 
         private ITunnelConnectionReceiveCallback callback;
-        private CancellationTokenSource cancellationTokenSource;
+        private CancellationTokenSource cts;
         private object userToken;
 
         private readonly LastTicksManager pingTicks = new LastTicksManager();
@@ -88,7 +88,7 @@ namespace linker.tunnel.connection
             this.callback = callback;
             this.userToken = userToken;
 
-            cancellationTokenSource = new CancellationTokenSource();
+            cts = new CancellationTokenSource();
 
             _ = Sender();
             if (Receive)
@@ -103,9 +103,9 @@ namespace linker.tunnel.connection
             IPEndPoint ep = new IPEndPoint(IPEndPoint.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, 0);
             try
             {
-                while (cancellationTokenSource.IsCancellationRequested == false)
+                while (cts.IsCancellationRequested == false)
                 {
-                    SocketReceiveFromResult result = await UdpClient.ReceiveFromAsync(buffer.AsMemory(), ep, cancellationTokenSource.Token).ConfigureAwait(false);
+                    SocketReceiveFromResult result = await UdpClient.ReceiveFromAsync(buffer.AsMemory(), ep, cts.Token).ConfigureAwait(false);
                     if (result.ReceivedBytes == 0)
                     {
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
@@ -127,7 +127,7 @@ namespace linker.tunnel.connection
                 ArrayPool<byte>.Shared.Return(buffer);
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Error($"tunnel connection writer offline {cancellationTokenSource.IsCancellationRequested}");
+                    LoggerHelper.Instance.Error($"tunnel connection writer offline {cts.IsCancellationRequested}");
                 LoggerHelper.Instance.Error($"tunnel connection disponse 6");
                 Dispose();
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
@@ -190,7 +190,7 @@ namespace linker.tunnel.connection
         {
             try
             {
-                while (cancellationTokenSource.IsCancellationRequested == false)
+                while (cts.IsCancellationRequested == false)
                 {
                     if (Connected == false)
                     {
@@ -237,12 +237,12 @@ namespace linker.tunnel.connection
             int lengthPlus = Type == TunnelType.Relay ? 2 : 0;
             try
             {
-                while (cancellationTokenSource.IsCancellationRequested == false)
+                while (cts.IsCancellationRequested == false)
                 {
-                    ReadResult result = await pipeSender.Reader.ReadAsync().ConfigureAwait(false);
+                    ReadResult result = await pipeSender.Reader.ReadAsync(cts.Token).ConfigureAwait(false);
                     if (result.IsCompleted && result.Buffer.IsEmpty)
                     {
-                        cancellationTokenSource.Cancel();
+                        cts.Cancel();
                         break;
                     }
 
@@ -279,7 +279,7 @@ namespace linker.tunnel.connection
                             sendLength = data.Length + lengthPlus;
                         }
 
-                        await UdpClient.SendToAsync(encodeBuffer.AsMemory(index, sendLength), IPEndPoint, cancellationTokenSource.Token).ConfigureAwait(false);
+                        await UdpClient.SendToAsync(encodeBuffer.AsMemory(index, sendLength), IPEndPoint, cts.Token).ConfigureAwait(false);
                         SendBytes += packetLength;
 
                         Interlocked.Add(ref sendRemaining, -packetLength);
@@ -306,10 +306,10 @@ namespace linker.tunnel.connection
             ArrayPool<byte>.Shared.Return(encodeBuffer);
         }
 
-        private readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
+        private readonly SemaphoreSlim slm = new SemaphoreSlim(1);
         public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
-            await semaphoreSlim.WaitAsync();
+            await slm.WaitAsync(cts.Token);
             try
             {
                 await pipeSender.Writer.WriteAsync(data);
@@ -327,7 +327,7 @@ namespace linker.tunnel.connection
             }
             finally
             {
-                semaphoreSlim.Release();
+                slm.Release();
             }
             return false;
         }
@@ -351,7 +351,7 @@ namespace linker.tunnel.connection
                     UdpClient?.SafeClose();
                 udpClient = null;
 
-                cancellationTokenSource?.Cancel();
+                cts?.Cancel();
                 callback?.Closed(this, userToken);
                 callback = null;
                 userToken = null;
