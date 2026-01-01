@@ -40,3 +40,19 @@ for %%r in (win-x86,win-x64,win-arm64,linux-x64,linux-arm,linux-arm64,linux-musl
 
 	7z a -tzip ./public/publish-zip/linker-%%r.zip ./public/publish/%%r/*
 )
+
+REM macOS builds (osx-x64 for Intel, osx-arm64 for Apple Silicon)
+REM Copy native libraries to extends directory first
+mkdir public\extends\osx-x64\linker-osx-x64 2>nul
+mkdir public\extends\osx-arm64\linker-osx-arm64 2>nul
+echo F|xcopy "src\linker\libutunshim.dylib" "public\extends\osx-x64\linker-osx-x64\libutunshim.dylib" /f /h /y
+echo F|xcopy "src\linker\libutunshim-arm64.dylib" "public\extends\osx-arm64\linker-osx-arm64\libutunshim.dylib" /f /h /y
+
+for %%r in (osx-x64,osx-arm64) do (
+	dotnet publish src/linker -c release -f net8.0 -o public/publish/%%r/linker-%%r  -r %%r  -p:PublishSingleFile=true  --self-contained true  -p:TrimMode=partial -p:TieredPGO=true  -p:DebugType=full -p:EventSourceSupport=false -p:DebugSymbols=true -p:EnableCompressionInSingleFile=true -p:DebuggerSupport=false -p:EnableUnsafeBinaryFormatterSerialization=false -p:EnableUnsafeUTF7Encoding=false -p:HttpActivityPropagationSupport=false -p:InvariantGlobalization=true  -p:MetadataUpdaterSupport=false  -p:UseSystemResourceKeys=true -p:MetricsSupport=false -p:StackTraceSupport=false -p:XmlResolverIsNetworkingEnabledByDefault=false
+
+	echo F|xcopy "public\\extends\\%%r\\linker-%%r\\*" "public\\publish\\%%r\\linker-%%r\\*"  /s /f /h /y
+	echo F|xcopy "public\\extends\\any\\*" "public\\publish\\%%r\\linker-%%r\\*"  /s /f /h /y
+
+	7z a -tzip ./public/publish-zip/linker-%%r.zip ./public/publish/%%r/*
+)

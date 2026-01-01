@@ -80,6 +80,14 @@
 		<None Update="msquic.dll" Condition="'$(RuntimeIdentifier)'=='win-x64' or '$(RuntimeIdentifier)'=='win-arm64'">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
+		<!-- macOS native libraries -->
+		<None Update="libutunshim.dylib" Condition="'$(RuntimeIdentifier)'=='osx-x64'">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="libutunshim-arm64.dylib" Condition="'$(RuntimeIdentifier)'=='osx-arm64'">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<Link>libutunshim.dylib</Link>
+		</None>
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="System.ServiceProcess.ServiceController" Version="8.0.1" />
