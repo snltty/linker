@@ -89,15 +89,13 @@ namespace linker.messenger.store.file.signIn
             try
             {
                 long start = Environment.TickCount64;
-                liteCollection.UpdateMany(p => new SignCacheInfo { LastSignIn = DateTime.Now }, c => c.Id == id);
-                /*
                 dBfactory.Execute("UPDATE signs SET LastSignIn = @0 WHERE MachineId = @1",
                 new BsonDocument
                 {
-                    ["0"] = DateTime.UtcNow,
+                    ["0"] = DateTime.Now,
                     ["1"] = id
                 });
-                */
+
                 long end = Environment.TickCount64;
                 if (end - start > 1000)
                 {

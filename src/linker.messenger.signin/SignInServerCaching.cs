@@ -162,24 +162,22 @@ namespace linker.messenger.signin
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    LoggerHelper.Instance.Debug("start syncing clients to storage");
+                    LoggerHelper.Instance.Debug($"start cleaning up clients that have exceeded the {signInStore.CleanDays}-day timeout period");
                 }
+
                 try
                 {
-                    List<string> ids = new List<string>();
-                    foreach (var item in Clients)
-                    {
-                        if(Environment.TickCount64 - item.Value.LastTicks < 15000)
-                        {
-                            ids.Add(item.Key);
-                        }
-                    }
-                    if (ids.Count > 0)
+                    DateTime now = DateTime.Now;
+                    long ticks = Environment.TickCount64;
+
+                    var allClients = Clients.Values;
+                    var updates = allClients.Where(c => ticks - c.LastTicks < 60000).Select(c => c.MachineId).ToList();
+                    if (updates.Count > 0)
                     {
                         int p = 1, ps = 20;
                         while (true)
                         {
-                            var items = ids.Skip((p - 1) * ps).Take(ps).ToList();
+                            var items = updates.Skip((p - 1) * ps).Take(ps).ToList();
                             if (items.Count == 0)
                             {
                                 break;
@@ -187,34 +185,15 @@ namespace linker.messenger.signin
                             signInStore.Exp(items);
                             ps++;
                         }
-                        signInStore.Confirm();
                     }
-                }
-                catch (Exception ex)
-                {
-                    LoggerHelper.Instance.Debug($"syncing clients error {ex}");
-                }
 
-            }, 60000);
-
-            TimerHelper.SetIntervalLong(() =>
-            {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Debug($"start cleaning up clients that have exceeded the {signInStore.CleanDays}-day timeout period");
-                }
-
-                try
-                {
-                    DateTime now = DateTime.Now;
-
-                    var groups = Clients.Values.GroupBy(c => c.GroupId)
+                    var groups = allClients.GroupBy(c => c.GroupId)
                      .Where(group => group.All(info => info.Connected == false && (now - info.LastSignIn).TotalDays > signInStore.CleanDays))
                      .Select(group => group.Key).ToList();
 
                     if (groups.Count > 0)
                     {
-                        var items = Clients.Values.Where(c => groups.Contains(c.GroupId)).ToList();
+                        var items = allClients.Where(c => groups.Contains(c.GroupId)).ToList();
                         foreach (var item in items)
                         {
                             Clients.TryRemove(item.MachineId, out _);
