@@ -89,7 +89,7 @@ namespace linker.messenger.store.file.signIn
             try
             {
                 long start = Environment.TickCount64;
-                dBfactory.Execute("UPDATE signs SET LastSignIn = @0 WHERE _Id = @1",
+                dBfactory.Execute("UPDATE signs SET LastSignIn = @0 WHERE MachineId = @1",
                 new BsonDocument
                 {
                     ["0"] = DateTime.UtcNow,

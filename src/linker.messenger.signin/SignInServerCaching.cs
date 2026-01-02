@@ -153,11 +153,12 @@ namespace linker.messenger.signin
                 cache.LastTicks = Environment.TickCount64;
             }
 
-            return signInStore.Hosts;
+            return signInStore.Exp(machineId);
         }
 
         private void ClearTask()
         {
+            /*
             TimerHelper.SetIntervalLong(() =>
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
@@ -186,6 +187,7 @@ namespace linker.messenger.signin
                 }
 
             }, 15000);
+            */
 
             TimerHelper.SetIntervalLong(() =>
             {
