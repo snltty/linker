@@ -93,19 +93,21 @@ namespace linker.messenger.store.file
             return string.Empty;
         }
 
+
         public async Task Resolve(Socket socket, Memory<byte> memory)
         {
+            CancellationTokenSource cts = new CancellationTokenSource(3000);
             byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024);
             try
             {
                 int length = 0, payloadLength = 0;
-
+                
                 while (length < payloadLength + 4)
                 {
-                    length += await socket.ReceiveAsync(buffer.AsMemory(length), SocketFlags.None).ConfigureAwait(false);
+                    length += await socket.ReceiveAsync(buffer.AsMemory(length), SocketFlags.None, cts.Token).ConfigureAwait(false);
                     if (length >= 4) payloadLength = buffer.ToInt32();
                 }
-
+                
                 ExportSaveInfo info = serializer.Deserialize<string>(buffer.AsMemory(4, length - 4).Span).DeJson<ExportSaveInfo>();
 
                 if (string.IsNullOrWhiteSpace(info.Value))
@@ -142,6 +144,7 @@ namespace linker.messenger.store.file
             }
             finally
             {
+                cts.Cancel();
                 ArrayPool<byte>.Shared.Return(buffer);
             }
         }
