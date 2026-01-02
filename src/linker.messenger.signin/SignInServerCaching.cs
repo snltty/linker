@@ -153,12 +153,11 @@ namespace linker.messenger.signin
                 cache.LastTicks = Environment.TickCount64;
             }
 
-            return signInStore.Exp(machineId);
+            return signInStore.Hosts;
         }
 
         private void ClearTask()
         {
-            /*
             TimerHelper.SetIntervalLong(() =>
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
@@ -167,27 +166,36 @@ namespace linker.messenger.signin
                 }
                 try
                 {
-                    var ids = Clients.Values.Where(c => Environment.TickCount64 - c.LastTicks < 15000).Select(c => c.MachineId).ToList();
-                    int p = 1, ps = 20;
-                    while (true)
+                    List<string> ids = new List<string>();
+                    foreach (var item in Clients)
                     {
-                        var items = ids.Skip((p - 1) * ps).Take(ps).ToList();
-                        if (items.Count == 0)
+                        if(Environment.TickCount64 - item.Value.LastTicks < 15000)
                         {
-                            break;
+                            ids.Add(item.Key);
                         }
-                        signInStore.Exp(items);
-                        ps++;
                     }
-                    signInStore.Confirm();
+                    if (ids.Count > 0)
+                    {
+                        int p = 1, ps = 20;
+                        while (true)
+                        {
+                            var items = ids.Skip((p - 1) * ps).Take(ps).ToList();
+                            if (items.Count == 0)
+                            {
+                                break;
+                            }
+                            signInStore.Exp(items);
+                            ps++;
+                        }
+                        signInStore.Confirm();
+                    }
                 }
                 catch (Exception ex)
                 {
                     LoggerHelper.Instance.Debug($"syncing clients error {ex}");
                 }
 
-            }, 15000);
-            */
+            }, 60000);
 
             TimerHelper.SetIntervalLong(() =>
             {
