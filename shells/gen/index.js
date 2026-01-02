@@ -50,7 +50,8 @@ function writeUpload(data, tagName) {
     const platforms = {
         'win': ['x86', 'x64', 'arm64'],
         'linux': ['x64', 'arm', 'arm64'],
-        'linux-musl': ['x64', 'arm', 'arm64']
+        'linux-musl': ['x64', 'arm', 'arm64'],
+        'osx': ['x64', 'arm64'],
     };
     for (let plat in platforms) {
         let archs = platforms[plat];

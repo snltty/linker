@@ -6,9 +6,11 @@ namespace linker.messenger.store.file.relay
     public sealed class RelayServerNodeStore : IRelayNodeStore
     {
         private readonly ILiteCollection<RelayServerNodeStoreInfo> liteCollection;
+        private List<RelayServerNodeStoreInfo> nodes = new List<RelayServerNodeStoreInfo>();
         public RelayServerNodeStore(Storefactory storefactory)
         {
             liteCollection = storefactory.GetCollection<RelayServerNodeStoreInfo>($"relay_server_master");
+            LoadNodes();
         }
 
         public async Task<bool> Add(RelayServerNodeStoreInfo info)
@@ -18,22 +20,25 @@ namespace linker.messenger.store.file.relay
                 return false;
             }
             liteCollection.Insert(info);
+            LoadNodes();
             return await Task.FromResult(true).ConfigureAwait(false);
         }
 
         public async Task<bool> Delete(string nodeId)
         {
-            return await Task.FromResult(liteCollection.DeleteMany(c => c.NodeId == nodeId) > 0).ConfigureAwait(false);
+            bool result = await Task.FromResult(liteCollection.DeleteMany(c => c.NodeId == nodeId) > 0).ConfigureAwait(false);
+            LoadNodes();
+            return result;
         }
 
         public async Task<List<RelayServerNodeStoreInfo>> GetAll()
         {
-            return await Task.FromResult(liteCollection.FindAll().ToList()).ConfigureAwait(false);
+            return await Task.FromResult(nodes).ConfigureAwait(false);
         }
 
         public async Task<RelayServerNodeStoreInfo> GetByNodeId(string nodeId)
         {
-            return await Task.FromResult(liteCollection.FindOne(c => c.NodeId == nodeId)).ConfigureAwait(false);
+            return await Task.FromResult(nodes.FirstOrDefault(c => c.NodeId == nodeId)).ConfigureAwait(false);
         }
         public async Task<bool> Report(RelayServerNodeReportInfo info)
         {
@@ -53,7 +58,7 @@ namespace linker.messenger.store.file.relay
                 Protocol = info.Protocol,
                 MasterCount = info.MasterCount,
             }, c => c.NodeId == info.NodeId);
-
+            LoadNodes();
             return await Task.FromResult(length > 0).ConfigureAwait(false);
         }
 
@@ -65,8 +70,13 @@ namespace linker.messenger.store.file.relay
                 Host = info.Host,
                 BandwidthEach = info.BandwidthEach,
             }, c => c.NodeId == info.NodeId);
-
+            LoadNodes();
             return await Task.FromResult(length > 0).ConfigureAwait(false); ;
+        }
+
+        private void LoadNodes()
+        {
+            nodes = liteCollection.FindAll().ToList();
         }
     }
 }

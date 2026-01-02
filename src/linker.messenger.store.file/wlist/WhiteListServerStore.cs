@@ -9,10 +9,14 @@ namespace linker.messenger.store.file.wlist
 
         private readonly ILiteCollection<WhiteListInfo> liteCollection;
         private readonly FileConfig fileConfig;
+
+        private List<WhiteListInfo> list = new List<WhiteListInfo>();
+
         public WhiteListServerStore(Storefactory dBfactory, FileConfig fileConfig)
         {
             liteCollection = dBfactory.GetCollection<WhiteListInfo>("whiteList");
             this.fileConfig = fileConfig;
+            LoadList();
         }
 
         public async Task<bool> Add(WhiteListInfo info)
@@ -36,21 +40,24 @@ namespace linker.messenger.store.file.wlist
                     MachineId = info.MachineId
                 }, c => c.Id == info.Id);
             }
+            LoadList();
             return await Task.FromResult(true).ConfigureAwait(false);
         }
         public async Task<bool> Del(int id)
         {
-            return await Task.FromResult(liteCollection.Delete(id)).ConfigureAwait(false);
+            bool result = await Task.FromResult(liteCollection.Delete(id)).ConfigureAwait(false);
+            LoadList();
+            return result;
         }
         public async Task<List<WhiteListInfo>> Get(string type, List<string> userids, List<string> machineIds)
         {
             if (string.IsNullOrWhiteSpace(type)) return [];
 
-            return await Task.FromResult(liteCollection.Find(c => c.Type == type && c.UseTime <= DateTime.Now && c.EndTime > DateTime.Now && (userids.Contains(c.UserId) || machineIds.Contains(c.MachineId))).ToList()).ConfigureAwait(false);
+            return await Task.FromResult(list.Where(c => c.Type == type && c.UseTime <= DateTime.Now && c.EndTime > DateTime.Now && (userids.Contains(c.UserId) || machineIds.Contains(c.MachineId))).ToList()).ConfigureAwait(false);
         }
         public async Task<WhiteListInfo> Get(string tradeNo)
         {
-            return await Task.FromResult(liteCollection.FindOne(c => c.TradeNo == tradeNo)).ConfigureAwait(false);
+            return await Task.FromResult(list.FirstOrDefault(c => c.TradeNo == tradeNo)).ConfigureAwait(false);
         }
         public async Task<WhiteListPageResultInfo> Page(WhiteListPageRequestInfo info)
         {
@@ -88,6 +95,11 @@ namespace linker.messenger.store.file.wlist
                 Count = query.Count(),
                 List = query.Skip((info.Page - 1) * info.Size).Limit(info.Size).ToList()
             }).ConfigureAwait(false);
+        }
+
+        private void LoadList()
+        {
+            list = liteCollection.FindAll().ToList();
         }
     }
 }
