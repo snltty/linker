@@ -18,5 +18,6 @@ namespace linker.messenger.signin
         public void SetAnonymous(bool anonymous);
 
         public string[] Exp(string id);
+        public void Exp(List<string> ids);
     }
 }

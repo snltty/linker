@@ -139,7 +139,7 @@ namespace linker.messenger.tuntap
                     }
                 }
                 version = _version;
-            }, 3000);
+            }, 5000);
 
         }
         private async Task<bool> CheckOffline()

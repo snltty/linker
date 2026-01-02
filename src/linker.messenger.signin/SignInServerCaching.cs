@@ -150,12 +150,43 @@ namespace linker.messenger.signin
             if (TryGet(machineId, out SignCacheInfo cache))
             {
                 cache.LastSignIn = DateTime.Now;
+                cache.LastTicks = Environment.TickCount64;
             }
-            return signInStore.Exp(machineId);
+
+            return signInStore.Hosts;
         }
 
         private void ClearTask()
         {
+            TimerHelper.SetIntervalLong(() =>
+            {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Debug("start syncing clients to storage");
+                }
+                try
+                {
+                    var ids = Clients.Values.Where(c => Environment.TickCount64 - c.LastTicks < 15000).Select(c => c.MachineId).ToList();
+                    int p = 1, ps = 20;
+                    while (true)
+                    {
+                        var items = ids.Skip((p - 1) * ps).Take(ps).ToList();
+                        if (items.Count == 0)
+                        {
+                            break;
+                        }
+                        signInStore.Exp(items);
+                        ps++;
+                    }
+                    signInStore.Confirm();
+                }
+                catch (Exception ex)
+                {
+                    LoggerHelper.Instance.Debug($"syncing clients error {ex}");
+                }
+
+            }, 15000);
+
             TimerHelper.SetIntervalLong(() =>
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
@@ -174,7 +205,6 @@ namespace linker.messenger.signin
                     if (groups.Count > 0)
                     {
                         var items = Clients.Values.Where(c => groups.Contains(c.GroupId)).ToList();
-
                         foreach (var item in items)
                         {
                             Clients.TryRemove(item.MachineId, out _);
@@ -270,6 +300,9 @@ namespace linker.messenger.signin
         public IConnection Connection { get; set; }
         [JsonIgnore]
         public uint Order { get; set; } = int.MaxValue;
+
+        [JsonIgnore]
+        public long LastTicks { get; set; }
 
         public bool SameGroup(SignCacheInfo other)
         {

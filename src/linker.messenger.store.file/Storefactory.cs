@@ -56,6 +56,10 @@ namespace linker.messenger.store.file
         {
             return database.GetCollection<T>(name);
         }
+        public IBsonDataReader Execute(string command, BsonDocument parameters = null)
+        {
+            return database.Execute(command, parameters);
+        }
 
         public void Dispose()
         {

@@ -14,8 +14,10 @@ namespace linker.messenger.store.file.signIn
 
         private readonly ILiteCollection<SignCacheInfo> liteCollection;
         private readonly FileConfig fileConfig;
+        private readonly Storefactory dBfactory;
         public SignInServerStore(Storefactory dBfactory, FileConfig fileConfig)
         {
+            this.dBfactory = dBfactory;
             liteCollection = dBfactory.GetCollection<SignCacheInfo>("signs");
             this.fileConfig = fileConfig;
 
@@ -60,7 +62,7 @@ namespace linker.messenger.store.file.signIn
 
         public SignCacheInfo Find(string id)
         {
-            return liteCollection.FindOne(id);
+            return liteCollection.FindOne(c => c.Id == id);
         }
 
         public IEnumerable<SignCacheInfo> Find()
@@ -87,7 +89,12 @@ namespace linker.messenger.store.file.signIn
             try
             {
                 long start = Environment.TickCount64;
-                liteCollection.UpdateMany(p => new SignCacheInfo { LastSignIn = DateTime.Now }, c => c.Id == id);
+                dBfactory.Execute("UPDATE signs SET LastSignIn = @0 WHERE _Id = @1",
+                new BsonDocument
+                {
+                    ["0"] = DateTime.UtcNow,
+                    ["1"] = id
+                });
                 long end = Environment.TickCount64;
                 if (end - start > 1000)
                 {
@@ -101,5 +108,9 @@ namespace linker.messenger.store.file.signIn
             return fileConfig.Data.Server.Hosts;
         }
 
+        public void Exp(List<string> ids)
+        {
+            liteCollection.UpdateMany(p => new SignCacheInfo { LastSignIn = DateTime.Now }, c => ids.Contains(c.Id));
+        }
     }
 }
