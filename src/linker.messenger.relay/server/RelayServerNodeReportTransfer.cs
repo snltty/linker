@@ -68,7 +68,7 @@ namespace linker.messenger.relay.server
                 .Where(c => super || Environment.TickCount64 - c.LastTicks < 15000)
                 .Where(c =>
                 {
-                    return super || nodes.Contains(c.NodeId) || nodes.Contains("*")
+                    return super || (c.Public && (nodes.Contains(c.NodeId) || nodes.Contains("*")))
                     || (c.Public && c.ConnectionsRatio < c.Connections && (c.DataEachMonth == 0 || (c.DataEachMonth > 0 && c.DataRemain > 0)));
                 })
                 .OrderByDescending(c => c.LastTicks);
