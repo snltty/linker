@@ -160,7 +160,7 @@ namespace linker.messenger.signin
         {
             TimerHelper.SetIntervalLong(() =>
             {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
                     LoggerHelper.Instance.Debug($"start cleaning up clients that have exceeded the {signInStore.CleanDays}-day timeout period");
                 }
