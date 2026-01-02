@@ -32,7 +32,7 @@ for %%r in (win-x86,win-x64,win-arm64) do (
 )
 
 for %%r in (osx-x64,osx-arm64) do (
-	echo F|xcopy "src\\linker\\libutunshim-%%r.dll" "public\\extends\\%%r\\linker-%%r\\libutunshim.dylib"  /s /f /h /y
+	echo F|xcopy "src\\linker\\libutunshim-%%r.dylib" "public\\extends\\%%r\\linker-%%r\\libutunshim.dylib"  /s /f /h /y
 )
 
 for %%r in (win-x86,win-x64,win-arm64,linux-x64,linux-arm,linux-arm64,linux-musl-x64,linux-musl-arm,linux-musl-arm64,osx-x64,osx-arm64) do (
