@@ -116,7 +116,7 @@ namespace linker.messenger.node
             nodeConnectionTransfer.TryAdd(ConnectionSideType.Master, connection.Id, new ConnectionInfo
             {
                 Connection = connection,
-                Manageable = masterKey == Config.MasterKey
+                Manageable = masterKey == Config.MasterKey || shareKey == Config.ShareKeyManager
             });
 
             return true;
@@ -431,6 +431,7 @@ namespace linker.messenger.node
                         Name = "default",
                         Host = $"{IPAddress.Loopback}:{nodeConfigStore.ServicePort}",
                         ShareKey = shareKeyManager,
+                        MasterKey = Config.MasterKey,
                         Manageable = true,
                     }).ConfigureAwait(false);
                 }
