@@ -75,7 +75,7 @@ namespace linker.tunnel.transport
 
                 //连接中继节点服务器
                 Socket socket = await ConnectNodeServer(tunnelTransportInfo, ask).ConfigureAwait(false);
-                if(socket == null)
+                if (socket == null)
                 {
                     throw new Exception("relay client connect node server fail");
                 }
@@ -175,39 +175,45 @@ namespace linker.tunnel.transport
                 {
                     try
                     {
-                        IPEndPoint ep = NetworkHelper.GetEndPoint(node.Host,1802);
+                        IPEndPoint ep = NetworkHelper.GetEndPoint(node.Host, 1802);
                         if (ep == null || ep.Address.Equals(IPAddress.Any) || ep.Address.Equals(IPAddress.Loopback))
                         {
                             ep = signInClientState.Connection.Address;
                         }
-
-                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                            LoggerHelper.Instance.Debug($"relay client connect server {ep}");
-
-                        //连接中继服务器
                         Socket socket = new Socket(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                         socket.KeepAlive();
                         socket.IPv6Only(ep.AddressFamily, false);
-                        await socket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        {
-                            LoggerHelper.Instance.Debug($"relay client connected {ep}");
-                        }
+                            LoggerHelper.Instance.Debug($"relay client connect server {ep}");
 
-                        //建立关联
-                        RelayMessageInfo relayMessage = new RelayMessageInfo
+                        using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(5000));
+                        try
                         {
-                            FlowId = tunnelTransportInfo.FlowId,
-                            Type = RelayMessengerType.Ask,
-                            FromId = tunnelTransportInfo.Local.MachineId,
-                            ToId = tunnelTransportInfo.Remote.MachineId,
-                            MasterId = ask.MasterId,
-                        };
-                        if(await SendMessage(socket, relayMessage).ConfigureAwait(false))
+                            //连接中继服务器
+                            await socket.ConnectAsync(ep, cts.Token).ConfigureAwait(false);
+                            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                            {
+                                LoggerHelper.Instance.Debug($"relay client connected {ep}");
+                            }
+
+                            //建立关联
+                            RelayMessageInfo relayMessage = new RelayMessageInfo
+                            {
+                                FlowId = tunnelTransportInfo.FlowId,
+                                Type = RelayMessengerType.Ask,
+                                FromId = tunnelTransportInfo.Local.MachineId,
+                                ToId = tunnelTransportInfo.Remote.MachineId,
+                                MasterId = ask.MasterId,
+                            };
+                            if (await SendMessage(socket, relayMessage).ConfigureAwait(false))
+                            {
+                                ask.Info.Node = ep;
+                                ask.Info.NodeId = node.NodeId;
+                                return socket;
+                            }
+                        }
+                        catch (Exception)
                         {
-                            ask.Info.Node = ep;
-                            ask.Info.NodeId = node.NodeId;
-                            return socket;
                         }
                         socket.SafeClose();
                     }
@@ -286,12 +292,14 @@ namespace linker.tunnel.transport
 
                 RelayInfo relayInfo = tunnelTransportInfo.TransactionTag.DeJson<RelayInfo>();
 
-                IPEndPoint ep = relayInfo.Node == null || relayInfo.Node.Address.Equals(IPAddress.Any)|| relayInfo.Node.Address.Equals(IPAddress.Loopback) ? signInClientState.Connection.Address : relayInfo.Node;
+                IPEndPoint ep = relayInfo.Node == null || relayInfo.Node.Address.Equals(IPAddress.Any) || relayInfo.Node.Address.Equals(IPAddress.Loopback) ? signInClientState.Connection.Address : relayInfo.Node;
                 Socket socket = new Socket(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 socket.KeepAlive();
+
+                using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(5000));
                 try
                 {
-                    await socket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+                    await socket.ConnectAsync(ep, cts.Token).ConfigureAwait(false);
                     RelayMessageInfo relayMessage = new RelayMessageInfo
                     {
                         FlowId = tunnelTransportInfo.FlowId,
@@ -300,7 +308,7 @@ namespace linker.tunnel.transport
                         ToId = tunnelTransportInfo.Remote.MachineId,
                         MasterId = relayInfo.MasterId,
                     };
-                    if(await SendMessage(socket, relayMessage).ConfigureAwait(false))
+                    if (await SendMessage(socket, relayMessage).ConfigureAwait(false))
                     {
                         ITunnelConnection connection = await WaitSSL(socket, tunnelTransportInfo, relayInfo);
                         OnConnected(connection);
@@ -314,6 +322,7 @@ namespace linker.tunnel.transport
                     {
                         LoggerHelper.Instance.Error($"relay client connect server {ep} {ex}");
                     }
+                    socket.SafeClose();
                 }
             }
             catch (Exception ex)

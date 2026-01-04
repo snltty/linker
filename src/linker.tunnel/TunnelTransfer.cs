@@ -111,10 +111,11 @@ namespace linker.tunnel
                     using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(16);
                     buffer.Memory.Span[0] = 255;
 
+                    using CancellationTokenSource cts = new CancellationTokenSource(1000);
                     var socket = new Socket(server.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                     try
                     {
-                        await socket.ConnectAsync(server).ConfigureAwait(false);
+                        await socket.ConnectAsync(server, cts.Token).ConfigureAwait(false);
                         await socket.SendAsync(buffer.Memory[..1]).ConfigureAwait(false);
                         return (socket.LocalEndPoint as IPEndPoint).Address;
                     }

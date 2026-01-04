@@ -167,10 +167,11 @@ namespace linker.messenger.sforward.client
 
             async Task<bool> Connect(SForwardInfo info)
             {
+                using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
                 Socket socket = new Socket(info.LocalEP.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 try
                 {
-                    await socket.ConnectAsync(info.LocalEP).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                    await socket.ConnectAsync(info.LocalEP, cts.Token).ConfigureAwait(false);
                     sForwardClientStore.Update(info.Id, string.Empty);
                     return true;
                 }

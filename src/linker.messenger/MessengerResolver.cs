@@ -71,12 +71,19 @@ namespace linker.messenger
         /// <returns></returns>
         public async Task BeginReceiveServer(Socket socket, Memory<byte> memory)
         {
+            using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(5000));
             NetworkStream networkStream = new NetworkStream(socket, false);
-            SslStream sslStream = new SslStream(networkStream, true, ValidateServerCertificate,null);
+            SslStream sslStream = new SslStream(networkStream, true, ValidateServerCertificate, null);
             try
             {
 #pragma warning disable SYSLIB0039 // 类型或成员已过时
-                await sslStream.AuthenticateAsServerAsync(messengerStore.Certificate, OperatingSystem.IsAndroid(), SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls, false).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+                await sslStream.AuthenticateAsServerAsync(new SslServerAuthenticationOptions
+                {
+                    ServerCertificate = messengerStore.Certificate,
+                    ClientCertificateRequired = OperatingSystem.IsAndroid(),
+                    EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls,
+                    CertificateRevocationCheckMode = X509RevocationMode.NoCheck
+                }, cts.Token).ConfigureAwait(false);
 #pragma warning restore SYSLIB0039 // 类型或成员已过时
                 IConnection connection = CreateConnection(sslStream, networkStream, socket, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
 
@@ -133,13 +140,14 @@ namespace linker.messenger
                 socket.KeepAlive();
                 if (sendFlag)
                 {
-                    await socket.SendAsync(buffer.Memory.Slice(0,1)).ConfigureAwait(false);
+                    await socket.SendAsync(buffer.Memory.Slice(0, 1)).ConfigureAwait(false);
                 }
                 if (data.Length > 0)
                 {
                     await socket.SendAsync(data).ConfigureAwait(false);
                 }
 
+                using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(5000));
                 NetworkStream networkStream = new NetworkStream(socket, false);
                 SslStream sslStream = new SslStream(networkStream, true, ValidateServerCertificate, null);
                 try
@@ -151,7 +159,7 @@ namespace linker.messenger
                         EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls,
                         CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
                         ClientCertificates = new X509CertificateCollection { messengerStore.Certificate }
-                    }).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
+                    }, cts.Token).ConfigureAwait(false);
 #pragma warning restore SYSLIB0039 // 类型或成员已过时
 
                     IConnection connection = CreateConnection(sslStream, networkStream, socket, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
@@ -254,13 +262,13 @@ namespace linker.messenger
                 {
                     responseWrap.FromArray(data);
                     ushort messengerId = messengerSender.Response(responseWrap);
-                    AddStopwatch(messengerId, Environment.TickCount64-start, MessageTypes.RESPONSE);
+                    AddStopwatch(messengerId, Environment.TickCount64 - start, MessageTypes.RESPONSE);
                     return;
                 }
 
                 //新的请求
                 requestWrap.FromArray(data);
-                Add(requestWrap.MessengerId, data.Length,0);
+                Add(requestWrap.MessengerId, data.Length, 0);
                 //404,没这个插件
                 if (messengers.TryGetValue(requestWrap.MessengerId, out MessengerCacheInfo plugin) == false)
                 {

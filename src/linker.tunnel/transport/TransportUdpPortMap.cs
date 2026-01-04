@@ -371,7 +371,6 @@ namespace linker.tunnel.transport
                 }
                 catch (Exception ex)
                 {
-                    cts.Cancel();
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
                         LoggerHelper.Instance.Error($"{Name} connect {ep} fail {ex}");

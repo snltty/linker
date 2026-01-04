@@ -81,10 +81,20 @@ namespace linker.messenger.signin
                 IPEndPoint ip = await NetworkHelper.GetEndPointAsync(host, 1802).ConfigureAwait(false);
                 using Socket socket = new Socket(ip.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 socket.KeepAlive();
-                await socket.ConnectAsync(ip).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
 
-                socket.SafeClose();
-                return true;
+                using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(5000));
+                try
+                {
+                    await socket.ConnectAsync(ip, cts.Token).ConfigureAwait(false);
+                    return true;
+                }
+                catch (Exception)
+                {
+                }
+                finally
+                {
+                    socket.SafeClose();
+                }
             }
             catch (Exception)
             {
@@ -107,7 +117,7 @@ namespace linker.messenger.signin
         /// <returns></returns>
         private async Task<int> SignIn(string host)
         {
-            if(commonStore.Installed == false)
+            if (commonStore.Installed == false)
             {
                 LoggerHelper.Instance.Error($"not initialized");
                 return 1;
@@ -194,18 +204,19 @@ namespace linker.messenger.signin
         /// <returns></returns>
         private async Task<Socket> ConnectServer(IPEndPoint remote)
         {
+            using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(5000));
+            Socket socket = new Socket(remote.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            socket.KeepAlive();
             try
             {
-                Socket socket = new Socket(remote.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                socket.KeepAlive();
-                await socket.ConnectAsync(remote).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
-
+                await socket.ConnectAsync(remote, cts.Token).ConfigureAwait(false);
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Info($"begin recv signin connection");
                 return socket;
             }
             catch (Exception)
             {
+                socket.SafeClose();
             }
             return null;
         }

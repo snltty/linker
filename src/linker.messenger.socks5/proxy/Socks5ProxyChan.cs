@@ -261,11 +261,12 @@ namespace linker.messenger.socks5
         /// <returns></returns>
         private async ValueTask<bool> ReceiveCommandData(AsyncUserToken token, Memory<byte> memory, Socks5EnumStep step, int totalLength = 0)
         {
+            using CancellationTokenSource cts = new CancellationTokenSource(3000);
             EnumProxyValidateDataResult validate = ValidateData(memory.Slice(0, totalLength), step);
             //太短
             while ((validate & EnumProxyValidateDataResult.TooShort) == EnumProxyValidateDataResult.TooShort)
             {
-                int length = await token.Socket.ReceiveAsync(memory.Slice(totalLength), SocketFlags.None);
+                int length = await token.Socket.ReceiveAsync(memory.Slice(totalLength), SocketFlags.None,cts.Token);
                 if (length == 0) return false;
                 totalLength += length;
                 validate = ValidateData(memory.Slice(0, totalLength), step);

@@ -259,7 +259,6 @@ namespace linker.tunnel.transport
             }
             catch (Exception ex)
             {
-                cts.Cancel();
                 taskCompletionSource.TrySetResult(null);
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {

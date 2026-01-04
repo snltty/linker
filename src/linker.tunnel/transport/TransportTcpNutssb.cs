@@ -159,6 +159,7 @@ namespace linker.tunnel.transport
 
             foreach (IPEndPoint ep in tunnelTransportInfo.RemoteEndPoints)
             {
+                using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(ep.Address.Equals(tunnelTransportInfo.Remote.Remote.Address) ? 500 : 100));
                 Socket targetSocket = new(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 try
                 {
@@ -171,7 +172,7 @@ namespace linker.tunnel.transport
                     {
                         LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep}");
                     }
-                    await targetSocket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(ep.Address.Equals(tunnelTransportInfo.Remote.Remote.Address) ? 500 : 100)).ConfigureAwait(false);
+                    await targetSocket.ConnectAsync(ep,cts.Token).ConfigureAwait(false);
 
                     //需要ssl
                     SslStream sslStream = null;
@@ -340,7 +341,6 @@ namespace linker.tunnel.transport
             }
             catch (Exception)
             {
-                cts.Cancel();
             }
             socket.SafeClose();
         }

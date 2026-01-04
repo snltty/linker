@@ -113,7 +113,7 @@ namespace linker.messenger.forward.proxy
                     token.ReadPacket.Length = token.ReadPacket.HeaderLength;
                     await SendToConnection(token).ConfigureAwait(false);
 
-                    await token.Tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(15000)).ConfigureAwait(false);
+                    await token.Tcs.WithTimeout(TimeSpan.FromMilliseconds(15000)).ConfigureAwait(false);
 
                     token.ReadPacket.Flag = ForwardFlags.Psh;
                     await Task.WhenAll(Sender(token), Recver(token, buffer, ForwardFlags.Psh)).ConfigureAwait(false);
@@ -158,6 +158,7 @@ namespace linker.messenger.forward.proxy
             byte[] buffer = ArrayPool<byte>.Shared.Rent((1 << packet.BufferSize) * 1024);
             (uint srcAddr, ushort srcPort, uint dstAddr, ushort dstPort) key = (0, 0, 0, 0);
             (byte bufferSize, ushort port, uint dstAddr, ushort dstPort) = (packet.BufferSize, packet.Port, packet.DstAddr, packet.DstPort);
+            using CancellationTokenSource cts = new CancellationTokenSource(100);
             try
             {
                 int length = memory.Length - packet.HeaderLength;
@@ -165,7 +166,7 @@ namespace linker.messenger.forward.proxy
 
                 Socket socket = new Socket(ep.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 socket.KeepAlive();
-                await socket.ConnectAsync(ep).ConfigureAwait(false);
+                await socket.ConnectAsync(ep,cts.Token).ConfigureAwait(false);
 
                 if (length > 0) await socket.SendAsync(buffer.AsMemory(0, length), SocketFlags.None).ConfigureAwait(false);
 

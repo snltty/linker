@@ -512,34 +512,42 @@ namespace linker.messenger.node
                     {
                         var tasks = nodes.Select(async c =>
                         {
+                            using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(5000));
                             IPEndPoint remote = await NetworkHelper.GetEndPointAsync(c.Host, 1802).ConfigureAwait(false);
                             Socket socket = new Socket(remote.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                             socket.KeepAlive();
-                            await socket.ConnectAsync(remote).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
-                            var connection = await messengerResolver.BeginReceiveClient(socket, true, (byte)ResolverType.NodeConnection, Helper.EmptyArray).ConfigureAwait(false);
+                            try
+                            {
 
-                            connection.Id = c.NodeId;
-                            var resp = await messengerSender.SendReply(new MessageRequestWrap
-                            {
-                                Connection = connection,
-                                MessengerId = MessengerIdSignIn,
-                                Payload = serializer.Serialize(new ValueTuple<string, string, string>(Config.NodeId, c.MasterKey, c.ShareKey)),
-                                Timeout = 5000
-                            }).ConfigureAwait(false);
-                            if (resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray))
-                            {
-                                LoggerHelper.Instance.Debug($"{Name} sign in to node {c.NodeId} success");
-                                nodeConnectionTransfer.TryAdd(ConnectionSideType.Node, c.NodeId, new ConnectionInfo
+                                await socket.ConnectAsync(remote, cts.Token).ConfigureAwait(false);
+                                var connection = await messengerResolver.BeginReceiveClient(socket, true, (byte)ResolverType.NodeConnection, Helper.EmptyArray).ConfigureAwait(false);
+
+                                connection.Id = c.NodeId;
+                                var resp = await messengerSender.SendReply(new MessageRequestWrap
                                 {
                                     Connection = connection,
-                                    Manageable = c.Manageable
-                                });
+                                    MessengerId = MessengerIdSignIn,
+                                    Payload = serializer.Serialize(new ValueTuple<string, string, string>(Config.NodeId, c.MasterKey, c.ShareKey)),
+                                    Timeout = 5000
+                                }).ConfigureAwait(false);
+                                if (resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray))
+                                {
+                                    LoggerHelper.Instance.Debug($"{Name} sign in to node {c.NodeId} success");
+                                    nodeConnectionTransfer.TryAdd(ConnectionSideType.Node, c.NodeId, new ConnectionInfo
+                                    {
+                                        Connection = connection,
+                                        Manageable = c.Manageable
+                                    });
+                                }
+                                else
+                                {
+                                    connection?.Disponse();
+                                }
                             }
-                            else
+                            catch (Exception)
                             {
-                                connection?.Disponse();
+                                socket.SafeClose();
                             }
-
                         });
                         await Task.WhenAll(tasks).ConfigureAwait(false);
                     }

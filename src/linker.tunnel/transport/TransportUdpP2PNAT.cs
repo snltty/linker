@@ -140,7 +140,6 @@ namespace linker.tunnel.transport
                         }
                         catch (Exception)
                         {
-                            cts.Cancel();
                             break;
                         }
                     }
@@ -168,7 +167,6 @@ namespace linker.tunnel.transport
                 }
                 catch (Exception ex)
                 {
-                    cts1.Cancel();
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
                         LoggerHelper.Instance.Error(ex);

@@ -50,7 +50,7 @@ namespace linker.messenger.tuntap
                 {
                     await Ping().ConfigureAwait(false);
                 }
-            },30000);
+            }, 30000);
         }
         private async Task Ping()
         {
@@ -74,10 +74,11 @@ namespace linker.messenger.tuntap
         {
             await Task.WhenAll(list.Where(c => c.ConnectAddr.Equals(IPAddress.Any) == false && c.ConnectPort > 0 && c.ListenPort > 0).Select(async c =>
             {
+                using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
                 try
                 {
                     var socket = new Socket(c.ConnectAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                    await socket.ConnectAsync(new IPEndPoint(c.ConnectAddr, c.ConnectPort)).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                    await socket.ConnectAsync(new IPEndPoint(c.ConnectAddr, c.ConnectPort), cts.Token).ConfigureAwait(false);
                     socket.SafeClose();
                     c.Error = string.Empty;
                 }

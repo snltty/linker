@@ -62,7 +62,7 @@ namespace linker.tunnel.connection
 
 
         private ITunnelConnectionReceiveCallback callback;
-        private CancellationTokenSource cancellationTokenSource;
+        private CancellationTokenSource cts;
         private object userToken;
         private readonly ReceiveDataBuffer bufferCache = new ReceiveDataBuffer();
 
@@ -78,7 +78,7 @@ namespace linker.tunnel.connection
             this.callback = callback;
             this.userToken = userToken;
 
-            cancellationTokenSource = new CancellationTokenSource();
+            cts = new CancellationTokenSource();
             _ = ProcessWrite();
 
             _ = ProcessHeart();
@@ -90,9 +90,9 @@ namespace linker.tunnel.connection
             using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent((1 << BufferSize) * 1024);
             try
             {
-                while (cancellationTokenSource.IsCancellationRequested == false)
+                while (cts.IsCancellationRequested == false)
                 {
-                    int length = await Stream.ReadAsync(buffer.Memory, cancellationTokenSource.Token).ConfigureAwait(false);
+                    int length = await Stream.ReadAsync(buffer.Memory, cts.Token).ConfigureAwait(false);
                     if (length == 0)
                     {
                         break;
@@ -176,7 +176,7 @@ namespace linker.tunnel.connection
         {
             try
             {
-                while (cancellationTokenSource.IsCancellationRequested == false)
+                while (cts.IsCancellationRequested == false)
                 {
                     if (LastTicks.DiffGreater(3000))
                     {
@@ -200,10 +200,10 @@ namespace linker.tunnel.connection
             data.AsMemory().CopyTo(heartData.AsMemory(4));
             SendBytes += data.Length;
 
-            await semaphoreSlim.WaitAsync().ConfigureAwait(false);
+            await semaphoreSlim.WaitAsync(cts.Token).ConfigureAwait(false);
             try
             {
-                await Stream.WriteAsync(heartData.AsMemory(0, length), cancellationTokenSource.Token).ConfigureAwait(false);
+                await Stream.WriteAsync(heartData.AsMemory(0, length), cts.Token).ConfigureAwait(false);
             }
             catch (Exception)
             {
@@ -222,10 +222,10 @@ namespace linker.tunnel.connection
 
         public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
-            await semaphoreSlim.WaitAsync().ConfigureAwait(false);
+            await semaphoreSlim.WaitAsync(cts.Token).ConfigureAwait(false);
             try
             {
-                await Stream.WriteAsync(data, cancellationTokenSource.Token).ConfigureAwait(false);
+                await Stream.WriteAsync(data, cts.Token).ConfigureAwait(false);
 
                 SendBytes += data.Length;
                 return true;
@@ -260,7 +260,7 @@ namespace linker.tunnel.connection
             callback?.Closed(this, userToken);
             callback = null;
             userToken = null;
-            cancellationTokenSource?.Cancel();
+            cts?.Cancel();
             bufferCache?.Clear(true);
 
             Stream?.Close();

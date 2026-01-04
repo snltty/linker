@@ -297,6 +297,7 @@ namespace linker.tun
         {
             TimerHelper.Async(async () =>
             {
+                cancellationTokenSource?.Cancel();
                 cancellationTokenSource = new CancellationTokenSource();
                 LinkerTunDevicPacket packet = new LinkerTunDevicPacket();
                 while (cancellationTokenSource.IsCancellationRequested == false)

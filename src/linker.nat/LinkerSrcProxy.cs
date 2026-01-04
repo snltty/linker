@@ -123,10 +123,10 @@ namespace linker.nat
                 state.ReadPacket.Length = 44;
                 await callback.Callback(state.ReadPacket).ConfigureAwait(false);
 
-                await state.Tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(15000)).ConfigureAwait(false);
+                await state.Tcs.WithTimeout(TimeSpan.FromMilliseconds(15000)).ConfigureAwait(false);
 
                 state.ReadPacket.Flags = LinkerSrcProxyFlags.Psh;
-                await Task.WhenAny(Rcver(state, buffer),Sender(state)).ConfigureAwait(false);
+                await Task.WhenAny(Rcver(state, buffer), Sender(state)).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -197,11 +197,12 @@ namespace linker.nat
 
         private async Task HandleSyn(ConnectionKey key, uint originDstIp)
         {
+            using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(5000));
             byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024 + 40 + 4);
             try
             {
                 Socket source = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                await source.ConnectAsync(new IPEndPoint(NetworkHelper.ToIP(key.dstAddr), key.dstPort)).WaitAsync(TimeSpan.FromMilliseconds(5000));
+                await source.ConnectAsync(new IPEndPoint(NetworkHelper.ToIP(key.dstAddr), key.dstPort), cts.Token);
 
                 ConnectionState state = new ConnectionState
                 {
@@ -237,7 +238,7 @@ namespace linker.nat
                 await callback.Callback(state.ReadPacket).ConfigureAwait(false);
 
                 state.ReadPacket.Flags = LinkerSrcProxyFlags.Psh;
-                await Task.WhenAny(Rcver(state, buffer),Sender(state)).ConfigureAwait(false);
+                await Task.WhenAny(Rcver(state, buffer), Sender(state)).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -344,7 +345,7 @@ namespace linker.nat
                 state.ReadPacket.TotalLength = bytesRead + 40;
                 state.ReadPacket.Length = bytesRead + 44;
                 await callback.Callback(state.ReadPacket).ConfigureAwait(false);
-                
+
                 if (state.Sending == false)
                 {
                     while (state.Sending == false && state.Socket != null)

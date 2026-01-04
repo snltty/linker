@@ -135,6 +135,7 @@ namespace linker.tunnel.transport
 
             async Task<ValueTuple<bool, Socket>> ConnectAsync(IPEndPoint ep)
             {
+                using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
                 Socket targetSocket = new(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 try
                 {
@@ -146,7 +147,7 @@ namespace linker.tunnel.transport
                     {
                         LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep}");
                     }
-                    await targetSocket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                    await targetSocket.ConnectAsync(ep,cts.Token).ConfigureAwait(false);
 
                     return (true, targetSocket);
                 }
@@ -210,7 +211,6 @@ namespace linker.tunnel.transport
             }
             catch (Exception ex)
             {
-                cts.Cancel();
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
                     LoggerHelper.Instance.Error(ex);
@@ -271,7 +271,6 @@ namespace linker.tunnel.transport
             }
             catch (Exception ex)
             {
-                cts.Cancel();
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
                     LoggerHelper.Instance.Error(ex);

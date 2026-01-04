@@ -72,7 +72,6 @@ namespace linker.tunnel.wanport
                     }
                     catch (Exception ex)
                     {
-                        cts.Cancel();
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                             LoggerHelper.Instance.Error($"{Name}->{i}->{server}->{ex}");
                     }
@@ -118,11 +117,11 @@ namespace linker.tunnel.wanport
             {
                 Socket socket = new Socket(server.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 socket.ReuseBind(new IPEndPoint(IPAddress.Any, 0));
-                await socket.ConnectAsync(server).ConfigureAwait(false);
+                await socket.ConnectAsync(server, cts.Token).ConfigureAwait(false);
 
                 await socket.SendAsync(BuildSendData(buffer, (byte)new Random().Next(0, 255))).ConfigureAwait(false);
 
-                int length = await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None,cts.Token).ConfigureAwait(false);
+                int length = await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None, cts.Token).ConfigureAwait(false);
                 IPEndPoint localEP = socket.LocalEndPoint as IPEndPoint;
                 socket.Close();
 
@@ -130,7 +129,6 @@ namespace linker.tunnel.wanport
             }
             catch (Exception ex)
             {
-                cts.Cancel();
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Error($"{Name}->{ex}");
             }

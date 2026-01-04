@@ -100,7 +100,7 @@ namespace linker.tunnel.transport
                             try
                             {
                                 using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(1024);
-                                int length = await client.ReceiveAsync(buffer.Memory,cts.Token).ConfigureAwait(false);
+                                int length = await client.ReceiveAsync(buffer.Memory, cts.Token).ConfigureAwait(false);
                                 if (length > 0)
                                 {
                                     string key = buffer.Memory.Slice(0, length).GetString();
@@ -115,7 +115,6 @@ namespace linker.tunnel.transport
                             }
                             catch (Exception)
                             {
-                                cts.Cancel();
                                 client.SafeClose();
                             }
                         });
@@ -325,10 +324,10 @@ namespace linker.tunnel.transport
                     {
                         LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep}");
                     }
-                    await targetSocket.ConnectAsync(ep).WaitAsync(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                    await targetSocket.ConnectAsync(ep, cts.Token).ConfigureAwait(false);
 
                     await targetSocket.SendAsync($"{tunnelTransportInfo.Local.MachineId}-{tunnelTransportInfo.FlowId}".ToBytes()).ConfigureAwait(false);
-                    await targetSocket.ReceiveAsync(buffer.Memory,cts.Token).ConfigureAwait(false);
+                    await targetSocket.ReceiveAsync(buffer.Memory, cts.Token).ConfigureAwait(false);
 
                     //需要ssl
                     SslStream sslStream = null;
@@ -341,7 +340,7 @@ namespace linker.tunnel.transport
                             EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls,
                             CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
                             ClientCertificates = new X509CertificateCollection { certificate }
-                        }).ConfigureAwait(false);
+                        }, cts.Token).ConfigureAwait(false);
 #pragma warning restore SYSLIB0039 // 类型或成员已过时
                     }
 
@@ -366,7 +365,6 @@ namespace linker.tunnel.transport
                 }
                 catch (Exception ex)
                 {
-                    cts.Cancel();
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
                         LoggerHelper.Instance.Error($"{Name} connect {ep} fail {ex}");

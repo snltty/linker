@@ -26,15 +26,16 @@ namespace linker.messenger.sforward.server
 
         public async Task Resolve(Socket socket, Memory<byte> memory)
         {
+            using CancellationTokenSource cts = new CancellationTokenSource(100);
             byte[] buffer = ArrayPool<byte>.Shared.Rent(1024);
             try
             {
 
 
-                await socket.ReceiveAsync(buffer.AsMemory(0, 1), SocketFlags.None).ConfigureAwait(false);
+                await socket.ReceiveAsync(buffer.AsMemory(0, 1), SocketFlags.None, cts.Token).ConfigureAwait(false);
                 int length = buffer[0];
                 Add(memory.Length, length);
-                await socket.ReceiveAsync(buffer.AsMemory(0, length), SocketFlags.None).ConfigureAwait(false);
+                await socket.ReceiveAsync(buffer.AsMemory(0, length), SocketFlags.None, cts.Token).ConfigureAwait(false);
 
                 string key = buffer.AsMemory(0, length).GetString();
 

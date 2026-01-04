@@ -320,15 +320,16 @@ namespace linker.plugins.sforward.proxy
             Socket targetSocket = null;
             using IMemoryOwner<byte> buffer1 = MemoryPool<byte>.Shared.Rent((1 << bufferSize) * 1024);
             using IMemoryOwner<byte> buffer2 = MemoryPool<byte>.Shared.Rent((1 << bufferSize) * 1024);
+            using CancellationTokenSource cts = new CancellationTokenSource(5000);
             try
             {
                 //连接服务器
                 sourceSocket = new Socket(server.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                await sourceSocket.ConnectAsync(server).ConfigureAwait(false);
+                await sourceSocket.ConnectAsync(server,cts.Token).ConfigureAwait(false);
 
                 //连接本地服务
                 targetSocket = new Socket(service.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                await targetSocket.ConnectAsync(service).ConfigureAwait(false);
+                await targetSocket.ConnectAsync(service, cts.Token).ConfigureAwait(false);
 
                 //给服务器回复，带上id
                 flagBytes.AsMemory().CopyTo(buffer1.Memory);
