@@ -13,12 +13,12 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: '16'
-      - name: setup dotnet8
+      - name: setup dotnet10
         uses: actions/setup-dotnet@v2
         env:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
       
       - name: setup install
         run: sudo apt-get install binutils tar gzip

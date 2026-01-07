@@ -17,12 +17,12 @@ jobs:
       with:
         node-version: '16'
 
-    - name: setup dotnet8
+    - name: setup dotnet10
       uses: actions/setup-dotnet@v2
       env:
           GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 10.0.x
         
     - name: restore projects
       run: 

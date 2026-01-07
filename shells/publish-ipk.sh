@@ -10,7 +10,7 @@ cd ../../
 
 for r in ${rs[@]} 
 do
-    dotnet publish src/linker -c release -f net8.0 -o public/publish/${r} -r linux-musl-${r} -p:PublishSingleFile=true  --self-contained true  -p:TrimMode=partial -p:TieredPGO=true  -p:DebugType=full -p:EventSourceSupport=false -p:DebugSymbols=true -p:EnableCompressionInSingleFile=true -p:DebuggerSupport=false -p:EnableUnsafeBinaryFormatterSerialization=false -p:EnableUnsafeUTF7Encoding=false -p:HttpActivityPropagationSupport=false -p:InvariantGlobalization=true  -p:MetadataUpdaterSupport=false  -p:UseSystemResourceKeys=true -p:MetricsSupport=false -p:StackTraceSupport=false -p:XmlResolverIsNetworkingEnabledByDefault=false
+    dotnet publish src/linker -c release -f net10.0 -o public/publish/${r} -r linux-musl-${r} -p:PublishSingleFile=true  --self-contained true  -p:TrimMode=partial -p:TieredPGO=true  -p:DebugType=full -p:EventSourceSupport=false -p:DebugSymbols=true -p:EnableCompressionInSingleFile=true -p:DebuggerSupport=false -p:EnableUnsafeBinaryFormatterSerialization=false -p:EnableUnsafeUTF7Encoding=false -p:HttpActivityPropagationSupport=false -p:InvariantGlobalization=true  -p:MetadataUpdaterSupport=false  -p:UseSystemResourceKeys=true -p:MetricsSupport=false -p:StackTraceSupport=false -p:XmlResolverIsNetworkingEnabledByDefault=false
     cp -rf public/extends/any/web public/publish/${r}/web
     mkdir -p public/publish/${r}/configs
     mkdir -p public/publish/${r}/logs
@@ -22,7 +22,7 @@ do
     mkdir -p public/publish-ipk/${r}/data/usr/bin/linker
     cp -rf public/publish/${r}/* public/publish-ipk/${r}/data/usr/bin/linker/
 
-    sed -i "s|{version}|1.9.7|g" public/publish-ipk/${r}/control/control
+    sed -i "s|{version}|1.9.8|g" public/publish-ipk/${r}/control/control
     sed -i 's/\r$//' public/publish-ipk/${r}/data/etc/init.d/linker
     sed -i 's/\r$//' public/publish-ipk/${r}/control/control
     sed -i 's/\r$//' public/publish-ipk/${r}/control/postinst

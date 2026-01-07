@@ -33,7 +33,9 @@ namespace linker.messenger.store.file.messenger
                 //不导出不支持windows什么的
                 byte[] pfxBytes = certificate.Export(X509ContentType.Pfx, Helper.GlobalString);
                 certificate.Dispose();
+#pragma warning disable SYSLIB0057 // 类型或成员已过时
                 certificate = new X509Certificate2(pfxBytes, Helper.GlobalString);
+#pragma warning restore SYSLIB0057 // 类型或成员已过时
             }
         }
     }

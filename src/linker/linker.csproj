@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFrameworks>net8.0</TargetFrameworks>
+		<TargetFrameworks>net10.0</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>disable</Nullable>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -18,19 +18,16 @@
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Description>1. 一些累计更新，一些BUG修复
-2. 重构中继和穿透的多节点模式
-3. 中继连接合并到隧道协议中
-4. 修复socks代理错误
-5. 发布飞牛fpk安装包(docker+bin)
-6. 优化虚拟网卡自动连接表现
-7. 简化加入分组操作</Description>
+2. 极大减少服务端CPU占用
+3. 及时取消socket操作释放资源
+4. 升级到net10.0</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>1.9.7</Version>
-		<AssemblyVersion>1.9.7</AssemblyVersion>
-		<FileVersion>1.9.7</FileVersion>
+		<Version>1.9.8</Version>
+		<AssemblyVersion>1.9.8</AssemblyVersion>
+		<FileVersion>1.9.8</FileVersion>
 		<DelaySign>False</DelaySign>
 
 
@@ -63,10 +60,10 @@
 		<DebugSymbols>true</DebugSymbols>
 		<Optimize>True</Optimize>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0|AnyCPU'">
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net10.0|AnyCPU'">
 		<DebugType>embedded</DebugType>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0|AnyCPU'">
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net10.0|AnyCPU'">
 		<DebugType>embedded</DebugType>
 	</PropertyGroup>
 
