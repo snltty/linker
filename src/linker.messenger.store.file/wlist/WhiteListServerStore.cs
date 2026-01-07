@@ -53,11 +53,11 @@ namespace linker.messenger.store.file.wlist
         {
             if (string.IsNullOrWhiteSpace(type)) return [];
 
-            return await Task.FromResult(list.Where(c => c.Type == type && c.UseTime <= DateTime.Now && c.EndTime > DateTime.Now && (userids.Contains(c.UserId) || machineIds.Contains(c.MachineId))).ToList()).ConfigureAwait(false);
+            return await Task.FromResult(list.Where(c => c.Type == type && (userids.Contains(c.UserId) || machineIds.Contains(c.MachineId))).ToList()).ConfigureAwait(false);
         }
         public async Task<WhiteListInfo> Get(string tradeNo)
         {
-            return await Task.FromResult(list.FirstOrDefault(c => c.TradeNo == tradeNo)).ConfigureAwait(false);
+            return await Task.FromResult(liteCollection.FindOne(c => c.TradeNo == tradeNo)).ConfigureAwait(false);
         }
         public async Task<WhiteListPageResultInfo> Page(WhiteListPageRequestInfo info)
         {
@@ -99,7 +99,7 @@ namespace linker.messenger.store.file.wlist
 
         private void LoadList()
         {
-            list = liteCollection.FindAll().ToList();
+            list = liteCollection.Find(c => c.UseTime <= DateTime.Now && c.EndTime > DateTime.Now).ToList();
         }
     }
 }
