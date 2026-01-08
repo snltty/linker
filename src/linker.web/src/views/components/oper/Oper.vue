@@ -104,13 +104,16 @@ export default {
 
 
         const handleShowAccess = (row,access)=>{ 
+            if(globalData.value.config.Client.FullAccess){
+                return true;
+            }
             const rowAccess = row.hook_accesss || '';
             const myAccess = globalData.value.config.Client.AccessBits;
 
             let maxLength = Math.max(myAccess.length,rowAccess.length);
             let myValue = myAccess.padEnd(maxLength,'0').split('').map(c=>+c);
             let rowValue = rowAccess.padEnd(maxLength,'0').split('').map(c=>+c);
-            return row.showAccess  && access.Access
+            return  row.showAccess  && access.Access
             && myValue.map((v,i)=>{
                 return v  & rowValue[i];
             }).join('') == rowValue.join('');
