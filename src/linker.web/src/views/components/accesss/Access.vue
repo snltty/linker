@@ -15,7 +15,7 @@
             <el-row>
                 <template v-for="(item,index) in access" :key="index">
                     <el-col :xs="12" :sm="8">
-                        <el-checkbox :disabled="item.Disabled" :value="item.Value" :label="item.Text" />
+                        <el-checkbox :value="item.Value" :label="item.Text" />
                     </el-col>
                 </template>
             </el-row>
@@ -30,15 +30,13 @@ export default {
     setup(props) {
 
         const globalData = injectGlobalData();
-        const exclude = ['ExternalShow','Cdkey'];
-        
+        const exclude = ['ExternalShow','Cdkey']
         const access = computed(()=>{
             const json = globalData.value.config.Client.Accesss;
             return Object.keys(json).reduce((arr,key,index)=>{
-                if(!exclude.includes(key)){
+                if(globalData.value.hasAccess(key) && !exclude.includes(key)){
                     const value = json[key];
                     value.Key = key;
-                    value.Disabled = globalData.value.hasAccess(key)==false;
                     arr.push(value);
                 }
                 return arr;
@@ -91,7 +89,7 @@ export default {
         }
         const handleCheckAllChange = (value)=>{
             state.checkAll = value;
-            state.checkList = value ? access.value.filter(c=>globalData.value.hasAccess(c.Key)).map(item=>item.Value) : [];
+            state.checkList = value ? access.value.map(item=>item.Value) : [];
             state.isIndeterminate = false;
         }
 

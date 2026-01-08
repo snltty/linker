@@ -3,7 +3,7 @@
         <template #default="{values}">
             <el-table-column :label="$t('home.oper')"  fixed="right" min-width="110">
                 <template #default="scope">
-                    <div v-if="scope.row">
+                    <div>
                         <div class="numbers">
                             <el-row>
                                 <template v-if="scope.row.Connected">
@@ -12,7 +12,7 @@
                                     <TransportOper :item="scope.row"></TransportOper>
                                 </template>
                                 <el-col :span="12">
-                                     <el-dropdown size="small" v-if="scope.row.MachineId">
+                                     <el-dropdown size="small" >
                                         <div class="dropdown">
                                             <span>...</span>
                                             <el-icon class="el-icon--right">
@@ -45,7 +45,6 @@
                             </el-row>
                         </div>
                     </div>
-                    <div class="device-remark"></div>
                 </template>
             </el-table-column>
         </template>
@@ -112,6 +111,9 @@ export default {
             let myValue = myAccess.padEnd(maxLength,'0').split('').map(c=>+c);
             let rowValue = rowAccess.padEnd(maxLength,'0').split('').map(c=>+c);
             return row.showAccess  && access.Access
+            && myValue.map((v,i)=>{
+                return v  & rowValue[i];
+            }).join('') == rowValue.join('');
         }
         const handleAccess = (row)=>{
             devices.deviceInfo = row;
