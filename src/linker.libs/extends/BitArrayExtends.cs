@@ -15,5 +15,18 @@ namespace linker.libs.extends
             }
             return new BitArray(newArray);
         }
+        public static string ToBinaryStringFast(this BitArray bits)
+        {
+            int length = bits.Length;
+            if (length == 0) return string.Empty;
+
+            return string.Create(length, bits, (span, array) =>
+            {
+                for (int i = 0; i < array.Length; i++)
+                {
+                    span[i] = array[i] ? '1' : '0';
+                }
+            });
+        }
     }
 }

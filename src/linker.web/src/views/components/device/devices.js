@@ -74,7 +74,9 @@ export const provideDevices = () => {
                     }
                 }
             }
+            
             await Promise.all(Object.values(hooks).map(hook=>dataFn(hook)));
+
             devices.timer1 = setTimeout(fn,1000);
         }
         fn();

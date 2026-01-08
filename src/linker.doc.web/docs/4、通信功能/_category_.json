@@ -3,6 +3,6 @@
     "position": 4,
     "link": {
         "type": "generated-index",
-        "description": "确定都配置好了打洞和中继的一些配置后，我们可以尝试进行连接了"
+        "description": "几种通信方式是完全独立的"
     }
 }

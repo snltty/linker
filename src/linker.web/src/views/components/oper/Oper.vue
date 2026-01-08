@@ -112,9 +112,6 @@ export default {
             let myValue = myAccess.padEnd(maxLength,'0').split('').map(c=>+c);
             let rowValue = rowAccess.padEnd(maxLength,'0').split('').map(c=>+c);
             return row.showAccess  && access.Access
-            && myValue.map((v,i)=>{
-                return (rowValue[i] + v >=1 && v == 1);
-            }).filter(c=>!c).length == 0;
         }
         const handleAccess = (row)=>{
             devices.deviceInfo = row;
