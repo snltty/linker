@@ -9,10 +9,15 @@ namespace linker.messenger.listen
         {
             serviceCollection.AddSingleton<TcpServer>();
             serviceCollection.AddSingleton<IWebApiServer,WebApiServer>();
+
+            serviceCollection.AddSingleton<CountryTransfer>();
+
             return serviceCollection;
         }
         public static ServiceProvider UseListen(this ServiceProvider serviceProvider)
         {
+            //CountryTransfer countryTransfer = serviceProvider.GetService<CountryTransfer>();
+
             TcpServer tcpServer = serviceProvider.GetService<TcpServer>();
             IWebApiServer webapiServer = serviceProvider.GetService<IWebApiServer>();
             IListenStore listenStore = serviceProvider.GetService<IListenStore>();

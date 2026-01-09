@@ -6,5 +6,7 @@
         public int ApiPort { get; set; } = 1803;
 
         public string[] Hosts { get; set; } = [];
+        public string[] WhiteCountrys { get; set; } = [];
+        public string[] BlackCountrys { get; set; } = [];
     }
 }

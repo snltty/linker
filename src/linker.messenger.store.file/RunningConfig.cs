@@ -1,5 +1,4 @@
 ﻿using linker.libs;
-using linker.libs.extends;
 using linker.libs.timer;
 using LiteDB;
 using System.Text.Json.Serialization;
@@ -70,7 +69,7 @@ namespace linker.messenger.store.file
             try
             {
                 RunningConfigInfo old = liteCollection.FindAll().FirstOrDefault();
-                
+
                 if (old == null)
                 {
                     liteCollection.Insert(Data);
@@ -87,10 +86,11 @@ namespace linker.messenger.store.file
                         catch (Exception)
                         {
                         }
-                    };
+                    }
+                    ;
                     liteCollection.Update(old.Id, old);
                 }
-                
+
             }
             catch (Exception ex)
             {
