@@ -58,7 +58,7 @@ namespace linker.messenger.forward.proxy
                 {
                     ProtocolType = ProtocolType.Udp,
                     BufferSize = bufferSize,
-                    Port = 0,
+                    Port = port,
                     SrcAddr = 0,
                     SrcPort = 0,
                     DstAddr = 0,
@@ -147,7 +147,7 @@ namespace linker.messenger.forward.proxy
                 try
                 {
                     IPEndPoint src = new IPEndPoint(NetworkHelper.ToIP(packet.SrcAddr), packet.SrcPort);
-                    IPEndPoint dst = new IPEndPoint(NetworkHelper.ToIP(packet.SrcAddr), packet.SrcPort);
+                    IPEndPoint dst = new IPEndPoint(NetworkHelper.ToIP(packet.DstAddr), packet.DstPort);
 
                     Add(connection.RemoteMachineId, dst, 0, memory.Length);
                     await token.Socket.SendToAsync(memory.Slice(packet.HeaderLength), src).ConfigureAwait(false);

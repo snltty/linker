@@ -19,12 +19,12 @@ jobs:
           release_name: v1.9.8.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 一些累计更新，一些BUG修复\r\n2. 极大减少服务端CPU占用\r\n3. 及时取消socket操作释放资源\r\n4. 发布了osx，但未测试网卡是否可用"
+          body: "1. 一些累计更新，一些BUG修复\r\n2. 极大减少服务端CPU占用\r\n3. 及时取消socket操作释放资源\r\n4. 发布了osx，网卡可用，但未测试点对网"
       - name: setup node.js
         uses: actions/setup-node@v2
         with:
           node-version: '16'
-      - name: setup dotnet8
+      - name: setup dotnet
         uses: actions/setup-dotnet@v2
         env:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}

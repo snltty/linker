@@ -46,7 +46,9 @@ namespace linker.libs
         {
             if (ep.Address.AddressFamily == AddressFamily.InterNetworkV6 && ep.Address.IsIPv4MappedToIPv6)
             {
-                return new IPEndPoint(new IPAddress(ep.Address.GetAddressBytes()[^4..]), ep.Port);
+                Span<byte> bytes = stackalloc byte[4];
+                ep.Address.TryWriteBytes(bytes, out _);
+                return new IPEndPoint(new IPAddress(bytes[^4..]), ep.Port);
             }
             return ep;
         }
@@ -250,10 +252,11 @@ namespace linker.libs
                  .Where(c => c.Equals(IPAddress.IPv6Loopback) == false)
                  .Where(c =>
                  {
-                     byte[] addressBytes = c.GetAddressBytes();
+                     Span<byte> bytes = stackalloc byte[4];
+                     c.TryWriteBytes(bytes, out _);
                      return (
-                     addressBytes[0] == 0xFD
-                     || (addressBytes[0] == 0xFE && (addressBytes[1] == 0x80 || addressBytes[1] == 0xC0))
+                     bytes[0] == 0xFD
+                     || (bytes[0] == 0xFE && (bytes[1] == 0x80 || bytes[1] == 0xC0))
                      ) == false;
                  })
                  .Distinct().ToArray();
@@ -288,7 +291,9 @@ namespace linker.libs
 
         public static uint ToValue(IPAddress ip)
         {
-            return BinaryPrimitives.ReadUInt32BigEndian(ip.GetAddressBytes());
+            Span<byte> bytes = stackalloc byte[4];
+            ip.TryWriteBytes(bytes, out _);
+            return BinaryPrimitives.ReadUInt32BigEndian(bytes);
         }
         public static uint ToValue(ReadOnlySpan<byte> span)
         {
@@ -296,7 +301,7 @@ namespace linker.libs
         }
         public static IPAddress ToIP(uint value)
         {
-            return new IPAddress(BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(value)));
+            return new IPAddress(BinaryPrimitives.ReverseEndianness(value));
         }
         public static IPAddress ToIP(ReadOnlySpan<byte> spsn)
         {
@@ -313,7 +318,7 @@ namespace linker.libs
         }
         public static IPAddress ToNetworkIP(uint ip, uint prefixIP)
         {
-            return new IPAddress(BinaryPrimitives.ReverseEndianness(ToNetworkValue(ip, prefixIP)).ToBytes());
+            return new IPAddress(BinaryPrimitives.ReverseEndianness(ToNetworkValue(ip, prefixIP)));
         }
 
         public static uint ToNetworkValue(IPAddress ip, byte prefixLength)
@@ -340,14 +345,19 @@ namespace linker.libs
 
         public static IPAddress ToGatewayIP(IPAddress ip, byte prefixLength)
         {
-            uint network = BinaryPrimitives.ReadUInt32BigEndian(ToNetworkIP(ip, NetworkHelper.ToPrefixValue(prefixLength)).GetAddressBytes());
-            IPAddress gateway = new IPAddress(BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(network + 1)));
+            Span<byte> bytes = stackalloc byte[4];
+            ToNetworkIP(ip, NetworkHelper.ToPrefixValue(prefixLength)).TryWriteBytes(bytes, out _);
+
+            uint network = BinaryPrimitives.ReadUInt32BigEndian(bytes);
+            IPAddress gateway = new IPAddress(BinaryPrimitives.ReverseEndianness(network + 1));
             return gateway;
         }
         public static IPAddress ToGatewayIP(uint ip, uint prefixIP)
         {
-            uint network = BinaryPrimitives.ReadUInt32BigEndian(ToNetworkIP(ip, prefixIP).GetAddressBytes());
-            IPAddress gateway = new IPAddress(BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(network + 1)));
+            Span<byte> bytes = stackalloc byte[4];
+            ToNetworkIP(ip, prefixIP).TryWriteBytes(bytes, out _);
+            uint network = BinaryPrimitives.ReadUInt32BigEndian(bytes);
+            IPAddress gateway = new IPAddress(BinaryPrimitives.ReverseEndianness(network + 1));
             return gateway;
         }
 

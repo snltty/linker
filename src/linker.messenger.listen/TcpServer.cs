@@ -11,11 +11,13 @@ namespace linker.messenger.listen
         private Socket socket;
         private Socket socketUdp;
         private CancellationTokenSource cancellationTokenSource;
-        private readonly ResolverTransfer resolverTransfer;
 
-        public TcpServer(ResolverTransfer resolverTransfer)
+        private readonly ResolverTransfer resolverTransfer;
+        private readonly CountryTransfer countryTransfer;
+        public TcpServer(ResolverTransfer resolverTransfer, CountryTransfer countryTransfer)
         {
             this.resolverTransfer = resolverTransfer;
+            this.countryTransfer = countryTransfer;
             cancellationTokenSource = new CancellationTokenSource();
 
         }
@@ -49,6 +51,11 @@ namespace linker.messenger.listen
                     IPEndPoint ep = result.RemoteEndPoint as IPEndPoint;
                     try
                     {
+                        if (countryTransfer.Test(ep.Address) == false)
+                        {
+                            continue;
+                        }
+
                         await resolverTransfer.BeginReceive(socketUdp, ep, buffer.Memory.Slice(0, result.ReceivedBytes)).ConfigureAwait(false);
                     }
                     catch (Exception ex)
@@ -114,7 +121,14 @@ namespace linker.messenger.listen
         {
             if (e.AcceptSocket != null)
             {
-                _ = resolverTransfer.BeginReceive(e.AcceptSocket);
+                if (countryTransfer.Test((e.AcceptSocket.RemoteEndPoint as IPEndPoint).Address) == false)
+                {
+                    e.AcceptSocket.SafeClose();
+                }
+                else
+                {
+                    _ = resolverTransfer.BeginReceive(e.AcceptSocket);
+                }
                 StartAccept(e);
             }
         }

@@ -8,7 +8,9 @@ namespace linker.libs.extends
     {
         public static bool IsCast(this IPAddress address)
         {
-            return new ReadOnlySpan<byte>(address.GetAddressBytes()).IsCast();
+            Span<byte> bytes = stackalloc byte[4];
+            address.TryWriteBytes(bytes, out _);
+            return address.IsCast();
         }
         public static bool IsCast(this ReadOnlyMemory<byte> address)
         {

@@ -118,8 +118,10 @@ namespace linker.tun.device
 
             try
             {
+                Span<byte> gatewayBytes = stackalloc byte[4];
+                address.TryWriteBytes(gatewayBytes, out _);
+
                 // On macOS, the TUN interface gateway IP (usually .1)
-                byte[] gatewayBytes = address.GetAddressBytes();
                 gatewayBytes[3] = 1; // Set last octet to 1 (e.g., 10.18.18.1)
                 IPAddress gatewayAddr = new IPAddress(gatewayBytes);
 

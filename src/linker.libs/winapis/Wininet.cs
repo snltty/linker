@@ -78,10 +78,14 @@ namespace linker.libs.winapis
         {
             try
             {
+                Span<byte> bytes = stackalloc byte[4];
+
                 foreach (var ip in ips)
                 {
                     MIB_TCPROW tcpRow = new MIB_TCPROW();
-                    tcpRow.dwRemoteAddr = BitConverter.ToUInt32(ip.GetAddressBytes(), 0);
+
+                    ip.TryWriteBytes(bytes, out _);
+                    tcpRow.dwRemoteAddr = BitConverter.ToUInt32(bytes);
                     tcpRow.dwRemotePort = (ushort)IPAddress.HostToNetworkOrder((short)443);
                     tcpRow.dwState = 12; // MIB_TCP_STATE_DELETE_TCB
 

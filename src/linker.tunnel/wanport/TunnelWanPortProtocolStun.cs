@@ -54,7 +54,7 @@ namespace linker.tunnel.wanport
                 if (afa == 0x01)
                 {
                     uint value = BinaryPrimitives.ReadUInt32BigEndian(data.Slice(0, 4).Span) ^ 0x2112A442;
-                    ip = new IPAddress(BitConverter.GetBytes(BinaryPrimitives.ReverseEndianness(value)));
+                    ip = new IPAddress(BinaryPrimitives.ReverseEndianness(value));
                 }
                 else
                 {

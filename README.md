@@ -36,7 +36,7 @@
 
 ### 1、私有部署
 - **私有部署:** 得益于各位老板的支持，官方提供了500Mbps+的公开服务器，还有一些免费中继节点，但会有所限制，建议私有部署属于你自己的服务器。
-- **多平台支持：** 支持'Windows'、'Linux'、'Android'、'Docker'、'OpenWrt'、'NAS'、'PVE'、'LXC'，对于ios、macos，我也没有苹果手机电脑，没有开发者账号，暂时不支持。
+- **多平台支持：** 支持'Windows'、'Linux'、'Android'、'Docker'、'OpenWrt'、'NAS'、'PVE'、'LXC'、'macOS'，对于ios，我没有苹果手机，没有开发者账号，暂时不支持。
 
 ### 2、打洞中继
 

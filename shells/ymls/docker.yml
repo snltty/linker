@@ -17,7 +17,7 @@ jobs:
       with:
         node-version: '16'
 
-    - name: setup dotnet8
+    - name: setup dotnet
       uses: actions/setup-dotnet@v2
       env:
           GITHUB_TOKEN: '${{ secrets.ACTIONS_TOKEN }}'

@@ -7,8 +7,7 @@ namespace linker.messenger.store.file.server
         public int Port => config.Data.Server.ServicePort;
         public int ApiPort => config.Data.Server.ApiPort;
 
-        public string[] WhiteCountrys => config.Data.Server.WhiteCountrys;
-        public string[] BlackCountrys => config.Data.Server.BlackCountrys;
+        public GeoRegistryInfo GeoRegistry => config.Data.Server.GeoRegistry;
 
         private readonly FileConfig config;
         public ListenStore(FileConfig config)
@@ -30,17 +29,6 @@ namespace linker.messenger.store.file.server
         public bool Confirm()
         {
             config.Data.Update();
-            return true;
-        }
-
-        public bool SetWhiteCountrys(string[] whiteCountrys)
-        {
-            config.Data.Server.WhiteCountrys = whiteCountrys;
-            return true;
-        }
-        public bool SetBlackCountrys(string[] blackCountrys)
-        {
-            config.Data.Server.BlackCountrys = blackCountrys;
             return true;
         }
     }

@@ -178,7 +178,7 @@ namespace linker.messenger.forward
             async Task Connect(ForwardTestInfo info)
             {
                 using CancellationTokenSource cts = new CancellationTokenSource(100);
-                Socket socket = new Socket(info.Target.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                using Socket socket = new Socket(info.Target.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                 try
                 {
                     await socket.ConnectAsync(info.Target, cts.Token).ConfigureAwait(false);
@@ -190,6 +190,7 @@ namespace linker.messenger.forward
                 }
                 finally
                 {
+                    cts.Cancel();
                     socket.SafeClose();
                 }
             }

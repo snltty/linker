@@ -16,7 +16,7 @@ namespace linker.messenger.listen
         }
         public static ServiceProvider UseListen(this ServiceProvider serviceProvider)
         {
-            //CountryTransfer countryTransfer = serviceProvider.GetService<CountryTransfer>();
+            CountryTransfer countryTransfer = serviceProvider.GetService<CountryTransfer>();
 
             TcpServer tcpServer = serviceProvider.GetService<TcpServer>();
             IWebApiServer webapiServer = serviceProvider.GetService<IWebApiServer>();
