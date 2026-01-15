@@ -1,7 +1,7 @@
 appname               = linker
 version               = {version}
 display_name          = Linker
-desc                  = 极具特色的，P2P打洞(UDP+TCP、IPV4+IPV6) + 服务器转发，实现的异地组网、内网穿透。让你那些散落在世界各地的联网设备就像在隔壁房间一样轻松访问。
+desc                  = """<p>极具特色的，P2P打洞(UDP+TCP、IPV4+IPV6) + 服务器转发，实现的异地组网、内网穿透。</p><p>特色的多打洞协议、TCP/IP转代理加速TCP-over-TCP隧道、应用层NAT、网段映射、应用层防火墙、远程开机唤醒。</p><p><a href="https://linker.snltty.com" target="_blank">官网</a>、<a href="https://linker-doc.snltty.com" target="_blank">文档</a>、<a href="https://github.com/snltty/linker" target="_blank">开源</a></p>"""
 platform={arch}
 source                = thirdparty
 maintainer=snltty
