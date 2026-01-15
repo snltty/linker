@@ -203,9 +203,9 @@ namespace linker.tunnel.transport
                 {
                     LoggerHelper.Instance.Error(ex);
                 }
-                remoteUdp?.SafeClose();
+               
             }
-
+            remoteUdp?.SafeClose();
             return null;
         }
 
@@ -262,17 +262,19 @@ namespace linker.tunnel.transport
                 }
                 catch (Exception)
                 {
+                    socket.SafeClose();
                     token.Tcs.TrySetResult(AddressFamily.InterNetwork);
                 }
+                return;
             }
             catch (Exception ex)
             {
-                socket.SafeClose();
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
                     LoggerHelper.Instance.Error(ex);
                 }
             }
+            socket.SafeClose();
         }
         private async Task ListenReceiveCallback(ListenAsyncToken token)
         {

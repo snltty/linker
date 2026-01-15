@@ -107,7 +107,7 @@ namespace linker.nat
                 using IMemoryOwner<byte> buffer1 = MemoryPool<byte>.Shared.Rent(8192);
                 using IMemoryOwner<byte> buffer2 = MemoryPool<byte>.Shared.Rent(8192);
 
-                await Task.WhenAll(
+                await Task.WhenAny(
                     CopyToAsync(buffer1.Memory, state.Source, state.Target),
                     CopyToAsync(buffer2.Memory, state.Target, state.Source)
                     ).ConfigureAwait(false);
@@ -162,7 +162,7 @@ namespace linker.nat
                     (uint srcIp, ushort srcPort) key = (NetworkHelper.ToValue(ep.Address), (ushort)ep.Port);
                     if (dic.TryGetValue(key, out DstCacheInfo cache) == false) continue;
 
-                    (uint srcIp, ushort srcPort, uint dstIp, ushort dstPort) keyUdp = (NetworkHelper.ToValue(ep.Address), (ushort)ep.Port, cache.IP, cache.Port);
+                    (uint srcIp, ushort srcPort, uint dstIp, ushort dstPort) keyUdp = (key.srcIp, key.srcPort, cache.IP, cache.Port);
                     if (udpMap.TryGetValue(keyUdp, out UdpState state) == false)
                     {
                         state = new UdpState
@@ -402,13 +402,22 @@ namespace linker.nat
         {
             TimerHelper.SetIntervalLong(() =>
             {
-                foreach (var item in dic.Where(c => c.Value.Fin && Environment.TickCount64 - c.Value.LastTime > 60 * 1000).Select(c => c.Key).ToList())
+                foreach (var key in dic.Where(c => c.Value.Fin && Environment.TickCount64 - c.Value.LastTime > 60 * 1000).Select(c => c.Key).ToList())
                 {
-                    dic.TryRemove(item, out _);
+                    if (dic.TryRemove(key, out var cache))
+                    {
+                        
+                        (uint srcIp, ushort srcPort, uint dstIp, ushort dstPort) keyUdp = (key.srcIp, (ushort)key.srcPort, cache.IP, cache.Port);
+                        if (udpMap.TryRemove(keyUdp, out var udpCache))
+                        {
+                            udpCache.Target?.SafeClose();
+                        }
+                        
+                    }
                 }
-                foreach (var item in icmpMap.Where(c => Environment.TickCount64 - c.Value.LastTime > 30 * 1000).Select(c => c.Key).ToList())
+                foreach (var key in icmpMap.Where(c => Environment.TickCount64 - c.Value.LastTime > 30 * 1000).Select(c => c.Key).ToList())
                 {
-                    icmpMap.TryRemove(item, out _);
+                    icmpMap.TryRemove(key, out _);
                 }
             }, 30000);
         }

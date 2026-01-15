@@ -375,8 +375,8 @@ namespace linker.tunnel.transport
                     {
                         LoggerHelper.Instance.Error($"{Name} connect {ep} fail {ex}");
                     }
-                    targetSocket.SafeClose();
                 }
+                targetSocket.SafeClose();
             }
             return null;
         }
