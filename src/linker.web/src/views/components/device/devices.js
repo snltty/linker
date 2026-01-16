@@ -94,6 +94,10 @@ export const provideDevices = () => {
             getSignInList(devices.page.Request).then((res) => {
                 devices.page.Request = res.Request;
                 devices.page.Count = res.Count;
+                if(!hasFullList.value)
+                {
+                    res.List = res.List.filter(c=>c.MachineId == machineId.value);
+                }
                 for (let j in res.List) {
                     
                     Object.assign(res.List[j], {
@@ -105,13 +109,6 @@ export const provideDevices = () => {
                     });
                     if (res.List[j].isSelf) {
                         globalData.value.self = res.List[j];
-                    }
-                    if(!hasFullList.value)
-                    {
-                        Object.assign(res.List[j], {
-                            MachineId:machineId.value == res.List[j].MachineId?res.List[j].MachineId:'',
-                            isHide:machineId.value != res.List[j].MachineId
-                        });
                     }
                 }
                 devices.page.List = res.List;
