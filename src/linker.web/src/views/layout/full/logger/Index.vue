@@ -1,9 +1,9 @@
 <template>
     <div class="logger-setting-wrap flex flex-column h-100" ref="wrap">
-        <el-tabs type="border-card" class="w-100">
+        <el-tabs type="border-card" class="h-100 w-100">
             <AccessShow value="LoggerShow">
-                <el-tab-pane :label="$t('logger.list')">
-                    <div class="inner">
+                <el-tab-pane :label="$t('logger.list')" class="h-100">
+                    <div class="inner h-100 flex flex-column flex-nowrap">
                         <div class="head flex">
                             <div>
                                 <el-select v-model="state.type" @change="loadData" size="small" class="mgr-1" style="width: 6rem;">
@@ -20,16 +20,18 @@
                             <span class="flex-1"></span>
                         </div>
                         <div class="body flex-1 relative">
-                            <el-table stripe border :data="state.page.List" size="small" :height="`${state.height}px`" width="100%" @row-click="handleRowClick" :row-class-name="tableRowClassName">
-                                <el-table-column type="index" width="50" />
-                                <el-table-column prop="Type" :label="$t('logger.level')" width="80">
-                                    <template #default="scope">
-                                        <span>{{state.types[scope.row.Type]}} </span>
-                                    </template>
-                                </el-table-column>
-                                <el-table-column prop="Time" :label="$t('logger.time')" width="160"></el-table-column>
-                                <el-table-column prop="content" :label="$t('logger.content')"></el-table-column>
-                            </el-table>
+                            <div class="absolute">
+                                <el-table stripe border :data="state.page.List" size="small" width="100%" height="100%" @row-click="handleRowClick" :row-class-name="tableRowClassName">
+                                    <el-table-column type="index" width="50" />
+                                    <el-table-column prop="Type" :label="$t('logger.level')" width="80">
+                                        <template #default="scope">
+                                            <span>{{state.types[scope.row.Type]}} </span>
+                                        </template>
+                                    </el-table-column>
+                                    <el-table-column prop="Time" :label="$t('logger.time')" width="160"></el-table-column>
+                                    <el-table-column prop="content" :label="$t('logger.content')"></el-table-column>
+                                </el-table>
+                            </div>
                         </div>
                         <div class="pages t-c">
                             <div class="page-wrap">
@@ -76,7 +78,6 @@ export default {
             type:-1,
             page: { Page: 1, Size: 20, Count: 0, List: [] },
             types: ['debug', 'info', 'warning', 'error', 'fatal'],
-            height:computed(()=>globalData.value.height - 180),
 
             show:false,
             content:''
@@ -147,6 +148,7 @@ export default {
 
     .inner {
         padding: 1rem;
+        box-sizing: border-box;
     }
 
     .head {

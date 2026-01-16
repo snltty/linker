@@ -1,6 +1,7 @@
 <template>
-    <el-dialog v-model="state.show" append-to=".app-wrap" :title="`[${state.machineName}]上的验证参数`" top="1vh" width="98%">
-        <div>
+    <el-dialog v-model="state.show" append-to=".app-wrap" 
+    :title="`[${state.machineName}]上的验证参数`" top="1vh" width="98%" style="height:80vh" class="action-dialog">
+        <div class="h-100">
             <Action :machineId="state.machineId"></Action>
         </div>
     </el-dialog>
@@ -36,5 +37,12 @@ export default {
     }
 }
 </script>
+<style lang="stylus">
+.action-dialog{
+    .el-dialog__body{
+        height: calc(100% - 4.5rem);
+    }
+}
+</style>
 <style lang="stylus" scoped>
 </style>

@@ -1,13 +1,13 @@
 <template>
-    <el-card shadow="never">
+    <el-card shadow="never" class="h-100 flex flex-column flex-nowrap">
         <template #header>
             <div class="flex">
                 <span class="flex-1">{{$t('action.text')}}</span>
                 <Sync name="ActionStatic" v-if="state.isSelf"></Sync>
             </div>
         </template>
-        <div>
-            <el-input v-trim v-model="state.data" :rows="10" type="textarea" resize="none" @change="handleSave" />
+        <div class="absolute scrollbar">
+            <el-input v-trim v-model="state.data" type="textarea" resize="none" @change="handleSave" class="h-100" />
         </div>
         <template #footer>
             <div class="t-c">
@@ -70,4 +70,7 @@ export default {
 }
 </script>
 <style lang="stylus" scoped>
+.scrollbar{
+    padding:var(--el-card-padding);
+}
 </style>

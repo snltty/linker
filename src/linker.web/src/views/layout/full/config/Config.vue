@@ -1,6 +1,6 @@
 <template>
-    <div class="signin-wrap" :style="{height:`${state.height}px`}">
-        <el-card shadow="never">
+    <div class="signin-wrap h-100">
+        <el-card shadow="never" class="h-100 flex flex-column flex-nowrap">
             <template #header>
                 <div class="flex">
                     <span>{{$t('server.messenger')}}</span>
@@ -8,7 +8,7 @@
                     <Export></Export>
                 </div>
             </template>
-            <div>
+            <div class="absolute scrollbar">
                 <el-form label-width="auto" :label-position="state.position">
                     <el-form-item :label="$t('server.messengerAddr')">
                         <div class="flex">
@@ -82,7 +82,6 @@ export default {
         const globalData = injectGlobalData();
         const state = reactive({
             list:globalData.value.config.Client.Server,
-            height: computed(()=>globalData.value.height-90),
             position: computed(()=>globalData.value.isPhone ? 'top':'right'),
             super:computed(()=>globalData.value.signin.Super),
             signinHost:computed(()=>globalData.value.signin.SignInHost),
@@ -110,5 +109,7 @@ export default {
 }
 </script>
 <style lang="stylus" scoped>
-    
+.scrollbar{
+    padding:var(--el-card-padding);
+}
 </style>

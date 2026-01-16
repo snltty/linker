@@ -1,5 +1,5 @@
 <template>
-    <el-table stripe  :data="state.list" border size="small" width="100%" :height="`${state.height}px`" >
+    <el-table stripe  :data="state.list" border size="small" width="100%" height="100%">
         <el-table-column prop="Name" :label="$t('status.tunnelName')" width="120"></el-table-column>
         <el-table-column prop="Label" :label="$t('status.tunnelLabel')"></el-table-column>
         <el-table-column prop="ProtocolType" :label="$t('status.tunnelProtocol')" width="60"></el-table-column>

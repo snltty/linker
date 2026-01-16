@@ -1,5 +1,5 @@
 <template>
-    <div class="servers-wrap scrollbar" >
+    <div class="servers-wrap h-100" >
         <AccessShow value="Config">
             <Config></Config>
         </AccessShow>
@@ -19,6 +19,7 @@ export default {
     padding:1rem
     font-size:1.3rem;
     color:#555;
+    box-sizing:border-box;
     a{color:#333;}
 }
 </style>

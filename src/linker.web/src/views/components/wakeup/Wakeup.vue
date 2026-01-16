@@ -1,69 +1,73 @@
 <template>
-    <div class="head">
-        <div class="flex">
-            <div class="flex mgt-1">
-                <div>
-                    <el-select v-model="state.search.Data.Type" @change="loadData" size="small" class="mgr-1" style="width: 9rem;">
-                        <el-option :value="item.value" :label="item.label" v-for="(item,index) in state.types"></el-option>
-                    </el-select>
-                </div>
-            </div>
-            <div class="flex mgt-1">
-                <div>
-                    <span>{{$t('wakeup.name')}}/{{$t('wakeup.value')}}/{{$t('wakeup.remark')}}</span>
-                    <el-input v-trim v-model="state.search.Data.Str" @change="loadData" size="small" style="width:7rem"></el-input>
-                </div>
-                <div class="mgl-1">
-                    <el-button size="small" :loading="state.loading" @click="loadData">{{$t('common.refresh')}}</el-button>
-                </div>
-                <div class="mgl-1">
-                    <el-button type="success" size="small" :loading="state.loading" @click="handleAdd()">+</el-button>
-                </div>
-            </div>
-             <div class="flex-1"></div>
-        </div>
-    </div>
-    <div class="body flex-1 relative">
-        <el-table class="firewall" stripe border :data="state.data" size="small" :height="`${state.height}px`">
-            <el-table-column prop="Type" :label="$t('wakeup.type')" width="70">
-                <template v-slot="scope">{{$t(`wakeup.type${scope.row.Type}`)}}</template>
-            </el-table-column>
-            <el-table-column prop="Name" :label="$t('wakeup.name')" width="100"></el-table-column>
-            <el-table-column prop="Value" :label="$t('wakeup.value')">
-                 <template v-slot="scope">
-                    <div class="ellipsis" :title="scope.row.Value">{{ scope.row.Value }}</div>
-                </template>
-            </el-table-column>
-            <el-table-column prop="Remark" :label="$t('wakeup.remark')" width="100">
-                <template v-slot="scope">
-                    <div class="ellipsis" :title="scope.row.Remark">{{ scope.row.Remark }}</div>
-                </template>
-            </el-table-column>
-            <el-table-column width="106" fixed="right">
-                <template #default="scope">
+    <div class="h-100 flex flex-column flex-nowrap">
+        <div class="head">
+            <div class="flex">
+                <div class="flex mgt-1">
                     <div>
-                        <template v-if="scope.row.Running">
-                            <a href="javascript:void(0);" class="a-line mgr-1 run-btn">
-                                <img src="@/assets/loading.svg" alt="run">
-                            </a>
-                        </template>
-                        <template v-else>
-                            <a href="javascript:void(0);" class="a-line mgr-1 run-btn" @click="handleRun(scope.row)">
-                                <img src="@/assets/run.svg" alt="run">
-                            </a>
-                        </template>
-                        <a href="javascript:void(0);" class="a-line mgr-1" @click="handleAdd(scope.row)">{{$t('wakeup.edit')}}</a>
-                        <el-popconfirm 
-                        :confirm-button-text="$t('common.confirm')" :cancel-button-text="$t('common.cancel')"
-                            :title="$t('wakeup.delConfirm')" @confirm="handleDel(scope.row)">
-                            <template #reference>
-                                <a href="javascript:void(0);" class="a-line">{{$t('wakeup.del')}}</a>
-                            </template>
-                        </el-popconfirm>
+                        <el-select v-model="state.search.Data.Type" @change="loadData" size="small" class="mgr-1" style="width: 9rem;">
+                            <el-option :value="item.value" :label="item.label" v-for="(item,index) in state.types"></el-option>
+                        </el-select>
                     </div>
-                </template>
-            </el-table-column>
-        </el-table>
+                </div>
+                <div class="flex mgt-1">
+                    <div>
+                        <span>{{$t('wakeup.name')}}/{{$t('wakeup.value')}}/{{$t('wakeup.remark')}}</span>
+                        <el-input v-trim v-model="state.search.Data.Str" @change="loadData" size="small" style="width:7rem"></el-input>
+                    </div>
+                    <div class="mgl-1">
+                        <el-button size="small" :loading="state.loading" @click="loadData">{{$t('common.refresh')}}</el-button>
+                    </div>
+                    <div class="mgl-1">
+                        <el-button type="success" size="small" :loading="state.loading" @click="handleAdd()">+</el-button>
+                    </div>
+                </div>
+                <div class="flex-1"></div>
+            </div>
+        </div>
+        <div class="body flex-1 relative">
+            <div class="absolute">
+                <el-table class="firewall" stripe border :data="state.data" size="small" height="100%">
+                    <el-table-column prop="Type" :label="$t('wakeup.type')" width="70">
+                        <template v-slot="scope">{{$t(`wakeup.type${scope.row.Type}`)}}</template>
+                    </el-table-column>
+                    <el-table-column prop="Name" :label="$t('wakeup.name')" width="100"></el-table-column>
+                    <el-table-column prop="Value" :label="$t('wakeup.value')">
+                        <template v-slot="scope">
+                            <div class="ellipsis" :title="scope.row.Value">{{ scope.row.Value }}</div>
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="Remark" :label="$t('wakeup.remark')" width="100">
+                        <template v-slot="scope">
+                            <div class="ellipsis" :title="scope.row.Remark">{{ scope.row.Remark }}</div>
+                        </template>
+                    </el-table-column>
+                    <el-table-column width="106" fixed="right">
+                        <template #default="scope">
+                            <div>
+                                <template v-if="scope.row.Running">
+                                    <a href="javascript:void(0);" class="a-line mgr-1 run-btn">
+                                        <img src="@/assets/loading.svg" alt="run">
+                                    </a>
+                                </template>
+                                <template v-else>
+                                    <a href="javascript:void(0);" class="a-line mgr-1 run-btn" @click="handleRun(scope.row)">
+                                        <img src="@/assets/run.svg" alt="run">
+                                    </a>
+                                </template>
+                                <a href="javascript:void(0);" class="a-line mgr-1" @click="handleAdd(scope.row)">{{$t('wakeup.edit')}}</a>
+                                <el-popconfirm 
+                                :confirm-button-text="$t('common.confirm')" :cancel-button-text="$t('common.cancel')"
+                                    :title="$t('wakeup.delConfirm')" @confirm="handleDel(scope.row)">
+                                    <template #reference>
+                                        <a href="javascript:void(0);" class="a-line">{{$t('wakeup.del')}}</a>
+                                    </template>
+                                </el-popconfirm>
+                            </div>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </div>
+        </div>
     </div>
     <Add v-if="state.showAdd" v-model="state.showAdd" @success="loadData"></Add>
     <el-dialog v-model="state.showSwitch" :title="`${$t('wakeup.runSwitchConfirm')}【${state.switchRow.Name}】？`" width="300">
@@ -108,7 +112,6 @@ export default {
             ],
 
             data:[],
-            height:computed(()=>globalData.value.height - 140),
             showAdd:false,
 
             showSwitch:false,
@@ -203,10 +206,10 @@ export default {
 <style lang="stylus" scoped>
 html.dark .head{border-color:#575c61;}
 .head {
-    margin-bottom: 0.6rem;
     color:#555;
     border:1px solid #eee;
     padding:0 1rem 1rem 1rem;
+    border-bottom:0;
 }
 </style>
 <style  lang="stylus">

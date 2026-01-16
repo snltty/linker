@@ -1,7 +1,7 @@
 <template>
-    <div class="home-list-wrap absolute" >
+    <div class="home-list-wrap absolute flex flex-column flex-nowrap" >
         <Sort @sort="handleSortChange"></Sort>
-        <el-table :data="devices.page.List" stripe border style="width: 100%" :height="state.height" size="small">
+        <el-table :data="devices.page.List" stripe border style="width: 100%" size="small" class="flex-1">
             <Device  @refresh="handlePageRefresh"></Device>
             <Tunnel  @refresh="deviceRefreshHook('tunnel')"></Tunnel>
             <Tuntap></Tuntap>
@@ -116,7 +116,6 @@ export default {
 
         const globalData = injectGlobalData();
         const state = reactive({
-            height: computed(()=>globalData.value.height-90),
             center: computed(()=>globalData.value.isPc),
             paperCount: computed(()=>globalData.value.isPc?7:3),
             paperLayout: computed(()=>globalData.value.isPc?'total,sizes,prev,pager, next':'prev, pager, next'),

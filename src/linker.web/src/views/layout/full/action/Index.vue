@@ -1,5 +1,5 @@
 <template>
-    <div class="action-wrap">
+    <div class="action-wrap h-100">
         <Action :machineId="state.machineId"></Action>
     </div>
 </template>
@@ -20,6 +20,7 @@ export default {
 <style lang="stylus" scoped>
 .action-wrap{
     font-size:1.3rem;
-    padding:1rem
+    padding:1rem;
+    box-sizing: border-box;
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
     <div class="firewall-setting-wrap flex flex-column h-100">
-        <div class="inner">
+        <div class="inner h-100">
             <Firewall></Firewall>
         </div>
     </div>

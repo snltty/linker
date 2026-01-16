@@ -1,6 +1,10 @@
 <template>
-    <div class="transport-wrap">
-       <Transport :machineId="state.machineId" :height="state.height"></Transport>
+    <div class="transport-wrap relative h-100">
+       <div class="relative h-100">
+            <div class="absolute">
+                <Transport :machineId="state.machineId"></Transport>
+            </div>
+       </div>
     </div>
 </template>
 <script>
@@ -13,8 +17,7 @@ export default {
     setup(props) {   
         const globalData = injectGlobalData();
         const state = reactive({
-            machineId:props.machineId,
-            height:computed(()=>globalData.value.height-20)
+            machineId:props.machineId
         })
         return {state}
     }
@@ -22,6 +25,8 @@ export default {
 </script>
 <style lang="stylus" scoped>
 .transport-wrap{
-    padding:1rem
+    padding:1rem;
+    box-sizing: border-box;
+
 }
 </style>

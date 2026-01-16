@@ -1,6 +1,7 @@
 <template>
-    <el-dialog v-model="state.show" append-to=".app-wrap" :title="`[${state.machineName}]上的防火墙`" top="1vh" width="98%">
-        <div>
+    <el-dialog v-model="state.show" append-to=".app-wrap" :title="`[${state.machineName}]上的防火墙`" 
+    top="1vh" width="98%" style="height:80vh" class="firewall-dialog">
+        <div class="h-100">
             <Firewall :machineId="state.machineId"></Firewall>
         </div>
     </el-dialog>
@@ -37,6 +38,13 @@ export default {
     }
 }
 </script>
+<style lang="stylus">
+.firewall-dialog{
+    .el-dialog__body{
+        height: calc(100% - 4.5rem);
+    }
+}
+</style>
 <style lang="stylus" scoped>
 
 </style>
