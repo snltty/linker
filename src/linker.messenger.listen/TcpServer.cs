@@ -1,5 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.extends;
+using System;
 using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
@@ -51,7 +52,7 @@ namespace linker.messenger.listen
                     IPEndPoint ep = result.RemoteEndPoint as IPEndPoint;
                     try
                     {
-                        if (countryTransfer.Test(ep.Address) == false)
+                        if (countryTransfer.Test(buffer.Memory.Span[0], ep.Address) == false)
                         {
                             continue;
                         }
@@ -121,15 +122,42 @@ namespace linker.messenger.listen
         {
             if (e.AcceptSocket != null)
             {
-                if (countryTransfer.Test((e.AcceptSocket.RemoteEndPoint as IPEndPoint).Address) == false)
-                {
-                    e.AcceptSocket.SafeClose();
-                }
-                else
-                {
-                    _ = resolverTransfer.BeginReceive(e.AcceptSocket);
-                }
+                BeginReceive(e.AcceptSocket).ConfigureAwait(false);
                 StartAccept(e);
+            }
+        }
+        private async Task BeginReceive(Socket socket)
+        {
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(32);
+            using CancellationTokenSource cts = new CancellationTokenSource(5000);
+            try
+            {
+                if (socket == null || socket.RemoteEndPoint == null)
+                {
+                    return;
+                }
+
+                int length = await socket.ReceiveAsync(buffer.AsMemory(0, 1), SocketFlags.None, cts.Token).ConfigureAwait(false);
+                byte type = buffer[0];
+                if (countryTransfer.Test(type,(socket.RemoteEndPoint as IPEndPoint).Address) == false)
+                {
+                    cts.Cancel();
+                    socket.SafeClose();
+                    return;
+                }
+                _ = resolverTransfer.BeginReceive(type, socket);
+            }
+            catch (Exception ex)
+            {
+                cts.Cancel();
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Error(ex);
+
+                socket.SafeClose();
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
             }
         }
 

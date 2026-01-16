@@ -47,9 +47,13 @@ namespace linker.messenger.listen
             Worker();
         }
 
-        public bool Test(IPAddress ip)
+        public bool Test(byte type, IPAddress ip)
         {
-            if (records.Count == 0 || (store.GeoRegistry.WhiteCountry.Length == 0 && store.GeoRegistry.BlackCountry.Length == 0))
+            if (
+                records.Count == 0
+                || store.GeoRegistry.Messengers.Contains(type) == false
+                || (store.GeoRegistry.WhiteCountry.Length == 0 && store.GeoRegistry.BlackCountry.Length == 0)
+            )
             {
                 return true;
             }

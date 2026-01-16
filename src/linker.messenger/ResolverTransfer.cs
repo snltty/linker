@@ -35,40 +35,21 @@ namespace linker.messenger
         /// </summary>
         /// <param name="socket"></param>
         /// <returns></returns>
-        public async Task BeginReceive(Socket socket)
+        public async Task BeginReceive(byte type, Socket socket)
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(32);
-            using CancellationTokenSource cts = new CancellationTokenSource(5000);
             try
             {
-                if (socket == null || socket.RemoteEndPoint == null)
-                {
-                    return;
-                }
-
-                int length = await socket.ReceiveAsync(buffer.AsMemory(0, 1), SocketFlags.None, cts.Token).ConfigureAwait(false);
-                byte type = buffer[0];
-
                 if (resolvers.TryGetValue(type, out IResolver resolver))
                 {
-                    await resolver.Resolve(socket, buffer.AsMemory(1, length)).ConfigureAwait(false);
+                    await resolver.Resolve(socket, Helper.EmptyArray).ConfigureAwait(false);
                 }
                 else
                 {
                     socket.SafeClose();
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                cts.Cancel();
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Error(ex);
-
-                socket.SafeClose();
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
             }
         }
         /// <summary>
