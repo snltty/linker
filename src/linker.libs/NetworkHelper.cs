@@ -46,7 +46,7 @@ namespace linker.libs
         {
             if (ep.Address.AddressFamily == AddressFamily.InterNetworkV6 && ep.Address.IsIPv4MappedToIPv6)
             {
-                Span<byte> bytes = stackalloc byte[4];
+                Span<byte> bytes = stackalloc byte[16];
                 ep.Address.TryWriteBytes(bytes, out _);
                 return new IPEndPoint(new IPAddress(bytes[^4..]), ep.Port);
             }
@@ -252,8 +252,7 @@ namespace linker.libs
                  .Where(c => c.Equals(IPAddress.IPv6Loopback) == false)
                  .Where(c =>
                  {
-                     Span<byte> bytes = stackalloc byte[4];
-                     c.TryWriteBytes(bytes, out _);
+                     Span<byte> bytes = c.GetAddressBytes();
                      return (
                      bytes[0] == 0xFD
                      || (bytes[0] == 0xFE && (bytes[1] == 0x80 || bytes[1] == 0xC0))
