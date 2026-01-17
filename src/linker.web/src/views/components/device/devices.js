@@ -92,12 +92,15 @@ export const provideDevices = () => {
     const _getSignList = () => {
         return new Promise((resolve, reject) => { 
             getSignInList(devices.page.Request).then((res) => {
-                devices.page.Request = res.Request;
-                devices.page.Count = res.Count;
+                
                 if(!hasFullList.value)
                 {
                     res.List = res.List.filter(c=>c.MachineId == machineId.value);
+                    res.Count = 1;
                 }
+                devices.page.Request = res.Request;
+                devices.page.Count = res.Count;
+                
                 for (let j in res.List) {
                     
                     Object.assign(res.List[j], {

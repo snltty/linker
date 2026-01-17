@@ -62,6 +62,8 @@ namespace linker.messenger.tunnel
                 serviceProvider.GetService<TunnelSyncTransports>(),
             });
 
+            tunnelTransfer.RebuildTransports();
+
             return serviceProvider;
         }
 

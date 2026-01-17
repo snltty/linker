@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.libs.extends;
 using linker.messenger.tunnel;
 using linker.tunnel.transport;
 
@@ -47,7 +48,6 @@ namespace linker.messenger.store.file.tunnel
             ForceUpdate(transportItems, list);
 
             runningConfig.Data.Tunnel.Transports[machineId] = transportItems;
-            //.AddOrUpdate(machineId, transportItems, (a, b) => transportItems);
             runningConfig.Data.Update();
 
             OnChanged();

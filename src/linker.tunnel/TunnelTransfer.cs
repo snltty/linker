@@ -49,11 +49,11 @@ namespace linker.tunnel
             {
                 item.OnConnected = OnConnected;
             }
-            _ = RebuildTransports();
         }
-        private async Task RebuildTransports()
+
+        public void RebuildTransports()
         {
-            await tunnelMessengerAdapter.SetTunnelTransports(Helper.GlobalString, transports).ConfigureAwait(false);
+            _ = tunnelMessengerAdapter.SetTunnelTransports(Helper.GlobalString, transports).ConfigureAwait(false);
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Info($"load tunnel transport:{string.Join(",", transports.Select(c => c.GetType().Name))}");
         }
@@ -64,7 +64,6 @@ namespace linker.tunnel
             {
                 transport.OnConnected = OnConnected;
                 transports.Add(transport);
-                _ = RebuildTransports();
             }
         }
         public void AddProtocol(ITunnelWanPortProtocol protocol)
