@@ -382,10 +382,6 @@ namespace linker.messenger.node
         public async Task<TStore> GetNode(string nodeId)
         {
             TStore node = await nodeStore.GetByNodeId(nodeId).ConfigureAwait(false);
-            if (node == null || Environment.TickCount64 - node.LastTicks > 15000)
-            {
-                return null;
-            }
             return node;
         }
 

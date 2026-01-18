@@ -86,12 +86,15 @@ namespace linker.messenger.logger
             };
             TimerHelper.SetIntervalLong(() =>
             {
-                string path = Path.Join(Helper.CurrentDirectory, "logs", $"{DateTime.Now.AddMonths(-6):yyyy-MM-dd}.log");
-                if (File.Exists(path))
+
+                var files = new DirectoryInfo(Path.Join(Helper.CurrentDirectory, "logs"))
+                .GetFileSystemInfos().Where(item => item is System.IO.FileInfo)
+                .Where(c => c.LastWriteTime < DateTime.Now.AddMonths(-6));
+                foreach (var item in files)
                 {
                     try
                     {
-                        File.Delete(path);
+                        File.Delete(item.FullName);
                     }
                     catch (Exception)
                     {

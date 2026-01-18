@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.libs.extends;
 using linker.messenger.node;
 using linker.messenger.sforward.messenger;
 
@@ -76,7 +77,7 @@ namespace linker.messenger.sforward.server
                 .Where(c => super || Environment.TickCount64 - c.LastTicks < 15000)
                 .Where(c =>
                 {
-                    return super || (c.Public & (sforward.Contains(c.NodeId) || sforward.Contains("*")));
+                    return super || (c.Public && (sforward.Contains(c.NodeId) || sforward.Contains("*")));
                 })
                 .OrderByDescending(c => c.LastTicks);
 
