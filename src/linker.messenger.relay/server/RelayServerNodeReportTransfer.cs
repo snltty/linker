@@ -117,6 +117,5 @@ namespace linker.messenger.relay.server
             });
             return list;
         }
-
     }
 }
