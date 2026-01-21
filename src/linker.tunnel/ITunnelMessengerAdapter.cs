@@ -32,10 +32,13 @@ namespace linker.tunnel
         /// </summary>
         public int PortMapPublic { get; }
 
+        public IPAddress InIp { get; }
+
         /// <summary>
         /// 获取远端的外网信息，比如你是A，你要获取B的信息，可以在B调用  TunnelTransfer.GetWanPort() 发送回来
         /// </summary>
         public Task<TunnelTransportWanPortInfo> GetRemoteWanPort(TunnelWanPortProtocolInfo info);
+       
 
         /// <summary>
         /// 发送开始打洞
@@ -65,7 +68,7 @@ namespace linker.tunnel
         /// 保存打洞协议列表
         /// </summary>
         /// <param name="transports"></param>
-        public Task<bool> SetTunnelTransports(string machineid,List<TunnelTransportItemInfo> list);
+        public Task<bool> SetTunnelTransports(string machineid, List<TunnelTransportItemInfo> list);
         /// <summary>
         /// 保存打洞协议列表
         /// </summary>

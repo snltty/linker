@@ -101,6 +101,7 @@ namespace linker.messenger.tunnel
             TunnelSetRouteLevelInfo tunnelTransportFileConfigInfo = serializer.Deserialize<TunnelSetRouteLevelInfo>(connection.ReceiveRequestWrap.Payload.Span);
             await tunnelClientStore.SetRouteLevelPlus(tunnelTransportFileConfigInfo.RouteLevelPlus).ConfigureAwait(false);
             await tunnelClientStore.SetPortMap(tunnelTransportFileConfigInfo.PortMapLan, tunnelTransportFileConfigInfo.PortMapWan).ConfigureAwait(false);
+            await tunnelClientStore.SetInIp(tunnelTransportFileConfigInfo.InIp).ConfigureAwait(false);
         }
 
         [MessengerId((ushort)TunnelMessengerIds.Network)]
@@ -277,7 +278,7 @@ namespace linker.messenger.tunnel
                 {
                     Connection = to.Connection,
                     MessengerId = (ushort)TunnelMessengerIds.TransportGet,
-                     Payload = serializer.Serialize(connection.Id)
+                    Payload = serializer.Serialize(connection.Id)
                 }).ContinueWith(async (result) =>
                 {
                     if (result.Result.Code == MessageResponeCodes.OK && result.Result.Data.Length > 0)

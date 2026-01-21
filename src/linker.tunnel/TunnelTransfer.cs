@@ -380,6 +380,11 @@ namespace linker.tunnel
                 LoggerHelper.Instance.Error($"wan port get ip is null");
                 return null;
             }
+            if (tunnelMessengerAdapter.InIp != null && IPAddress.Any.Equals(tunnelMessengerAdapter.InIp) == false)
+            {
+                ip.Remote.Address = tunnelMessengerAdapter.InIp;
+            }
+
             MapInfo portMapInfo = tunnelUpnpTransfer.PortMap ?? new MapInfo { PrivatePort = 0, PublicPort = 0 };
             return new TunnelTransportWanPortInfo
             {

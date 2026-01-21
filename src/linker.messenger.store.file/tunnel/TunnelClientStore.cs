@@ -1,7 +1,7 @@
 ﻿using linker.libs;
-using linker.libs.extends;
 using linker.messenger.tunnel;
 using linker.tunnel.transport;
+using System.Net;
 
 namespace linker.messenger.store.file.tunnel
 {
@@ -11,6 +11,7 @@ namespace linker.messenger.store.file.tunnel
 
         public int PortMapPrivate => runningConfig.Data.Tunnel.PortMapLan;
         public int PortMapPublic => runningConfig.Data.Tunnel.PortMapWan;
+        public IPAddress InIp => runningConfig.Data.Tunnel.InIp;
         public TunnelPublicNetworkInfo Network => runningConfig.Data.Tunnel.Network;
 
         public Action OnChanged { get; set; } = () => { };
@@ -171,6 +172,14 @@ namespace linker.messenger.store.file.tunnel
             runningConfig.Data.Update();
             OnChanged();
             return false;
+        }
+
+        public async Task<bool> SetInIp(IPAddress ip)
+        {
+            runningConfig.Data.Tunnel.InIp = ip;
+            runningConfig.Data.Update();
+            OnChanged();
+            return await Task.FromResult(true).ConfigureAwait(false);
         }
     }
 }

@@ -20,6 +20,7 @@ namespace linker.messenger.tunnel
         public int PortMapWan { get; set; }
         public int PortMapLan { get; set; }
         public TunnelNetInfo Net { get; set; } = new TunnelNetInfo();
+        public IPAddress InIp { get; set; } = IPAddress.Any;
     }
 
     public sealed partial class TunnelLocalNetworkInfo
@@ -55,6 +56,7 @@ namespace linker.messenger.tunnel
         public int RouteLevelPlus { get; set; }
         public int PortMapWan { get; set; }
         public int PortMapLan { get; set; }
+        public IPAddress InIp { get; set; } = IPAddress.Any;
     }
 
     public sealed class TunnelPublicNetworkInfo

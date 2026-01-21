@@ -76,7 +76,8 @@ namespace linker.messenger.tunnel
                 PortMapLan = tunnelClientStore.PortMapPrivate,
                 PortMapWan = tunnelClientStore.PortMapPublic,
                 RouteLevelPlus = tunnelClientStore.RouteLevelPlus,
-                Net = tunnelClientStore.Network.Net
+                Net = tunnelClientStore.Network.Net,
+                InIp = tunnelClientStore.InIp,
             };
         }
     }

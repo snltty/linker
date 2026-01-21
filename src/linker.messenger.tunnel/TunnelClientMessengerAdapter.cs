@@ -33,6 +33,10 @@ namespace linker.messenger.tunnel
         /// 端口映射外网端口
         /// </summary>
         public int PortMapPublic { get; }
+
+
+        public IPAddress InIp { get; }
+
         /// <summary>
         /// 设置映射端口
         /// </summary>
@@ -73,6 +77,7 @@ namespace linker.messenger.tunnel
         /// <param name="level"></param>
         /// <returns></returns>
         public Task<bool> SetNetwork(TunnelPublicNetworkInfo network);
+        public Task<bool> SetInIp(IPAddress ip);
     }
     /// <summary>
     /// 打洞信标适配
@@ -85,6 +90,7 @@ namespace linker.messenger.tunnel
         public X509Certificate Certificate => messengerStore.Certificate;
         public int PortMapPrivate => tunnelClientStore.PortMapPrivate;
         public int PortMapPublic => tunnelClientStore.PortMapPublic;
+        public IPAddress InIp => tunnelClientStore.InIp;
 
 
         private readonly IMessengerSender messengerSender;
@@ -96,7 +102,8 @@ namespace linker.messenger.tunnel
         private readonly CounterDecenter counterDecenter;
 
         public TunnelMessengerAdapter(IMessengerSender messengerSender, TunnelClientExcludeIPTransfer excludeIPTransfer,
-            ISerializer serializer, ITunnelClientStore tunnelClientStore, SignInClientState signInClientState, IMessengerStore messengerStore, CounterDecenter counterDecenter)
+            ISerializer serializer, ITunnelClientStore tunnelClientStore, SignInClientState signInClientState,
+            IMessengerStore messengerStore, CounterDecenter counterDecenter)
         {
             this.messengerSender = messengerSender;
             this.excludeIPTransfer = excludeIPTransfer;
@@ -107,6 +114,7 @@ namespace linker.messenger.tunnel
             this.counterDecenter = counterDecenter;
 
             SetCounter();
+
         }
 
         public List<TunnelExIPInfo> GetExcludeIps()
@@ -124,7 +132,7 @@ namespace linker.messenger.tunnel
             SetCounter();
             return res;
         }
-        public async Task<bool> SetTunnelTransports(string machineid,  List<ITunnelTransport> list)
+        public async Task<bool> SetTunnelTransports(string machineid, List<ITunnelTransport> list)
         {
             bool res = await tunnelClientStore.SetTunnelTransports(machineid, list).ConfigureAwait(false);
             SetCounter();

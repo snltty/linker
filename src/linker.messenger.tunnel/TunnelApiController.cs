@@ -111,6 +111,7 @@ namespace linker.messenger.tunnel
             {
                 await tunnelClientStore.SetRouteLevelPlus(tunnelSetRouteLevelInfo.RouteLevelPlus).ConfigureAwait(false);
                 await tunnelClientStore.SetPortMap(tunnelSetRouteLevelInfo.PortMapLan, tunnelSetRouteLevelInfo.PortMapWan).ConfigureAwait(false);
+                await tunnelClientStore.SetInIp(tunnelSetRouteLevelInfo.InIp).ConfigureAwait(false);
             }
             else
             {

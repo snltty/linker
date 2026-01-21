@@ -6,7 +6,7 @@
                     <div>网关层级为你的设备与外网的距离，你可以手动调整数值</div>
                 </el-form-item>
                 <el-form-item label="">
-                    <el-row>
+                    <el-row class="w-100">
                         <el-col :span="12">
                             <el-form-item label="网关层级" prop="RouteLevel">
                                 <el-input v-trim readonly v-model="state.ruleForm.RouteLevel" style="width:15rem" />
@@ -20,7 +20,7 @@
                     </el-row>
                 </el-form-item>
                 <el-form-item label="">
-                    <el-row>
+                    <el-row class="w-100">
                         <el-col :span="12">
                             <el-form-item label="外网端口" prop="PortMapWan">
                                 <el-input-number v-model="state.ruleForm.PortMapWan" />
@@ -33,6 +33,19 @@
                         </el-col>
                     </el-row>
                 </el-form-item>
+                <el-form-item label="">
+                    <el-row class="w-100">
+                        <el-col :span="12">
+                            <el-form-item label="入口IP" prop="InIp">
+                                <el-input v-model="state.ruleForm.InIp" style="width:15rem"/>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="12">
+                            <span>入口ip与出口ip不一致时填写</span>
+                        </el-col>
+                    </el-row>
+                </el-form-item>
+                
                 <el-form-item label="" prop="alert" v-if="state.net.HostName">
                     <div>
                         <h3>{{ state.net.HostName }}</h3>
@@ -79,6 +92,7 @@ export default {
                 RouteLevelPlus: tunnel.value.current.RouteLevelPlus,
                 PortMapWan: tunnel.value.current.PortMapWan,
                 PortMapLan: tunnel.value.current.PortMapLan,
+                InIp: tunnel.value.current.InIp
             },
             rules: {},
             net:{}
@@ -97,6 +111,7 @@ export default {
             json.RouteLevelPlus = +state.ruleForm.RouteLevelPlus;
             json.PortMapWan = +state.ruleForm.PortMapWan;
             json.PortMapLan = +state.ruleForm.PortMapLan;
+            json.InIp = state.ruleForm.InIp;
             setTunnelRouteLevel(json).then(() => {
                 state.show = false;
                 ElMessage.success('已操作！');

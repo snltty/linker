@@ -338,8 +338,12 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude, MemoryPackAllowSerialize]
         TunnelNetInfo Net => info.Net;
 
+        [MemoryPackInclude, MemoryPackAllowSerialize]
+        IPAddress InIp => info.InIp;
+
         [MemoryPackConstructor]
-        SerializableTunnelRouteLevelInfo(string machineId, int routeLevel, int routeLevelPlus, bool needReboot, int portMapWan, int portMapLan, TunnelNetInfo net)
+        SerializableTunnelRouteLevelInfo(string machineId, int routeLevel, int routeLevelPlus, bool needReboot, int portMapWan,
+            int portMapLan, TunnelNetInfo net, IPAddress inip)
         {
             var info = new TunnelRouteLevelInfo
             {
@@ -349,7 +353,8 @@ namespace linker.messenger.serializer.memorypack
                 PortMapLan = portMapLan,
                 RouteLevel = routeLevel,
                 RouteLevelPlus = routeLevelPlus,
-                Net = net
+                Net = net,
+                InIp = inip
             };
             this.info = info;
         }
@@ -381,8 +386,18 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableTunnelRouteLevelInfo>();
-            value = wrapped.info;
+            value = new TunnelRouteLevelInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.MachineId = reader.ReadValue<string>();
+            value.RouteLevel = reader.ReadValue<int>();
+            value.RouteLevelPlus = reader.ReadValue<int>();
+            value.NeedReboot = reader.ReadValue<bool>();
+            value.PortMapWan = reader.ReadValue<int>();
+            value.PortMapLan = reader.ReadValue<int>();
+            value.Net = reader.ReadValue<TunnelNetInfo>();
+
+            if (count > 7)
+                value.InIp = reader.ReadValue<IPAddress>();
         }
     }
 
@@ -588,11 +603,20 @@ namespace linker.messenger.serializer.memorypack
         int PortMapWan => info.PortMapWan;
         [MemoryPackInclude]
         int PortMapLan => info.PortMapLan;
+        [MemoryPackInclude, MemoryPackAllowSerialize]
+        IPAddress InIp => info.InIp;
 
         [MemoryPackConstructor]
-        SerializableTunnelSetRouteLevelInfo(string machineId, int routeLevelPlus, int portMapWan, int portMapLan)
+        SerializableTunnelSetRouteLevelInfo(string machineId, int routeLevelPlus, int portMapWan, int portMapLan, IPAddress inIp)
         {
-            var info = new TunnelSetRouteLevelInfo { MachineId = machineId, PortMapWan = portMapWan, PortMapLan = portMapLan, RouteLevelPlus = routeLevelPlus };
+            var info = new TunnelSetRouteLevelInfo
+            {
+                MachineId = machineId,
+                PortMapWan = portMapWan,
+                PortMapLan = portMapLan,
+                RouteLevelPlus = routeLevelPlus,
+                InIp = inIp
+            };
             this.info = info;
         }
 
@@ -623,8 +647,15 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableTunnelSetRouteLevelInfo>();
-            value = wrapped.info;
+            value = new TunnelSetRouteLevelInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.MachineId = reader.ReadValue<string>();
+            value.RouteLevelPlus = reader.ReadValue<int>();
+            value.PortMapWan = reader.ReadValue<int>();
+            value.PortMapLan = reader.ReadValue<int>();
+
+            if (count > 4)
+                value.InIp = reader.ReadValue<IPAddress>();
         }
     }
     [MemoryPackable]
