@@ -27,7 +27,11 @@
                             <el-col :span="12">
                                 <el-input v-trim v-model="state.ruleForm.Data.value1" />
                             </el-col>
-                            <el-col :span="12"></el-col>
+                            <el-col :span="12">
+                                <el-form-item :label="$t('wakeup.addr')" prop="addr">
+                                    <el-input v-trim v-model="state.ruleForm.Data.addr" />
+                                </el-form-item>
+                            </el-col>
                         </el-row>
                     </el-form-item>
                 </template>
@@ -107,7 +111,8 @@ export default {
                     value1:add.value.Data.Type == 1 ? add.value.Data.Value : '',
                     value2:add.value.Data.Type == 2 ? add.value.Data.Value : '',
                     value4:add.value.Data.Type == 4 ? add.value.Data.Value : '',
-                    road: add.value.Data.Content || '1'
+                    road:  add.value.Data.Content || '1',
+                    addr: add.value.Data.Content || '255.255.255.255',
                 }
             },
             rules:{
@@ -178,7 +183,7 @@ export default {
                         Value:state.ruleForm.Data[`value${state.ruleForm.Data.Type}`]|| '',
                         Remark:state.ruleForm.Data.Remark || '',
                         Content:state.ruleForm.Data.Type == 2 || state.ruleForm.Data.Type == 4 
-                        ? state.ruleForm.Data.road : ''
+                        ? state.ruleForm.Data.road : state.ruleForm.Data.addr
                     }
                 };
                 addWakeup(json).then(()=>{

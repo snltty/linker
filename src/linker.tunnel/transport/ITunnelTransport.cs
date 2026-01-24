@@ -161,7 +161,17 @@ namespace linker.tunnel.transport
         /// 排序
         /// </summary>
         public byte Order { get; set; }
+
+        public Addrs Addr { get; set; } = Addrs.Ipv6 | Addrs.Ipv4 | Addrs.Lan;
     }
+
+    public enum Addrs : byte
+    {
+        Ipv6 = 1,
+        Ipv4 = 2,
+        Lan = 4,
+    }
+
 
     public sealed partial class TunnelTransportInfo
     {

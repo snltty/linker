@@ -255,7 +255,7 @@ namespace linker.tunnel
                                     FlowId = Interlocked.Increment(ref flowid),
                                 };
                                 OnConnecting(tunnelTransportInfo);
-                                ParseRemoteEndPoint(tunnelTransportInfo);
+                                ParseRemoteEndPoint(tunnelTransportInfo, transportItem.Addr);
                                 ITunnelConnection connection = await transport.ConnectAsync(tunnelTransportInfo).ConfigureAwait(false);
                                 if (connection != null)
                                 {
@@ -312,7 +312,7 @@ namespace linker.tunnel
                 {
                     transport.SetSSL(tunnelMessengerAdapter.Certificate);
                     OnConnectBegin(tunnelTransportInfo);
-                    ParseRemoteEndPoint(tunnelTransportInfo);
+                    ParseRemoteEndPoint(tunnelTransportInfo, item.Addr);
                     _ = transport.OnBegin(tunnelTransportInfo).ContinueWith((result) =>
                     {
                         operating.StopOperation(BuildKey(tunnelTransportInfo.Remote.MachineId, tunnelTransportInfo.TransactionId));
@@ -441,7 +441,7 @@ namespace linker.tunnel
                 LoggerHelper.Instance.Error($"tunnel connect {tunnelTransportInfo.Remote.MachineId} fail");
         }
 
-        private void ParseRemoteEndPoint(TunnelTransportInfo tunnelTransportInfo)
+        private void ParseRemoteEndPoint(TunnelTransportInfo tunnelTransportInfo, Addrs addr)
         {
             if (tunnelTransportInfo.Local == null || tunnelTransportInfo.Remote == null) return;
 
@@ -489,6 +489,20 @@ namespace linker.tunnel
                 .Where(c => (c.Port == tunnelTransportInfo.Local.Local.Port && localLocalIps.Any(d => d.Equals(c.Address))) == false)
                 .Where(c => c.Address.Equals(IPAddress.Any) == false && c.Port > 0)
                 .ToList();
+
+
+            if (addr.HasFlag(Addrs.Ipv6) == false)
+            {
+                eps = eps.Where(c => c.AddressFamily != AddressFamily.InterNetworkV6).ToList();
+            }
+            if (addr.HasFlag(Addrs.Ipv4) == false)
+            {
+                eps = eps.Where(c => c.AddressFamily != AddressFamily.InterNetwork).ToList();
+            }
+            if (addr.HasFlag(Addrs.Lan) == false)
+            {
+                eps = eps.Where(c => tunnelTransportInfo.Remote.LocalIps.Contains(c.Address) == false).ToList();
+            }
 
             tunnelTransportInfo.RemoteEndPoints = eps;
         }

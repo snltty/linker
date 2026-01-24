@@ -135,7 +135,8 @@ namespace linker.messenger.store.file.tunnel
                     DisableReverse = c.DisableReverse,
                     SSL = c.SSL,
                     DisableSSL = c.DisableSSL,
-                    Order = c.Order
+                    Order = c.Order,
+                    Addr = c.Addr
                 }));
             }
             //有已移除的协议

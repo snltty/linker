@@ -169,14 +169,27 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         byte Order => tunnelTransportItemInfo.Order;
 
+        [MemoryPackInclude]
+        Addrs Addr => tunnelTransportItemInfo.Addr;
+
 
         [MemoryPackConstructor]
-        SerializableTunnelTransportItemInfo(string name, string label, string protocolType, bool disabled, bool reverse, bool ssl, byte buffersize, byte order)
+        SerializableTunnelTransportItemInfo(string name, string label, string protocolType, bool disabled, bool reverse, bool ssl, byte buffersize, byte order, Addrs addr)
         {
-            var tunnelTransportItemInfo = new TunnelTransportItemInfo { Name = name, Label = label, ProtocolType = protocolType, Disabled = disabled, Reverse = reverse, SSL = ssl, BufferSize = buffersize, Order = order };
+            var tunnelTransportItemInfo = new TunnelTransportItemInfo
+            {
+                Name = name,
+                Label = label,
+                ProtocolType = protocolType,
+                Disabled = disabled,
+                Reverse = reverse,
+                SSL = ssl,
+                BufferSize = buffersize,
+                Order = order,
+                 Addr = addr
+            };
             this.tunnelTransportItemInfo = tunnelTransportItemInfo;
         }
-
         public SerializableTunnelTransportItemInfo(TunnelTransportItemInfo tunnelTransportItemInfo)
         {
             this.tunnelTransportItemInfo = tunnelTransportItemInfo;
@@ -204,8 +217,18 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableTunnelTransportItemInfo>();
-            value = wrapped.tunnelTransportItemInfo;
+            value = new TunnelTransportItemInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.Name = reader.ReadValue<string>();
+            value.Label = reader.ReadValue<string>();
+            value.ProtocolType = reader.ReadValue<string>();
+            value.Disabled = reader.ReadValue<bool>();
+            value.Reverse = reader.ReadValue<bool>();
+            value.SSL = reader.ReadValue<bool>();
+            value.BufferSize = reader.ReadValue<byte>();
+            value.Order = reader.ReadValue<byte>();
+            if (count > 8)
+                value.Addr = reader.ReadValue<Addrs>();
         }
     }
 

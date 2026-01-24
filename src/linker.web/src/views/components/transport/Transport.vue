@@ -1,13 +1,27 @@
 <template>
     <el-table stripe  :data="state.list" border size="small" width="100%" height="100%">
-        <el-table-column prop="Name" :label="$t('status.tunnelName')" width="120"></el-table-column>
-        <el-table-column prop="Label" :label="$t('status.tunnelLabel')"></el-table-column>
+        <el-table-column prop="Name" :label="$t('status.tunnelName')" width="100"></el-table-column>
         <el-table-column prop="ProtocolType" :label="$t('status.tunnelProtocol')" width="60"></el-table-column>
-        <el-table-column prop="BufferSize" :label="$t('status.tunnelBuffer')" width="100">
+        <el-table-column prop="Label" :label="$t('status.tunnelLabel')" show-overflow-tooltip></el-table-column>
+        <!-- <el-table-column prop="BufferSize" :label="$t('status.tunnelBuffer')" width="80">
             <template #default="scope">
                 <el-select v-model="scope.row.BufferSize" placeholder="Select" size="small" @change="handleSave">
                     <el-option v-for="(item,index) in state.bufferSize" :key="index" :label="item" :value="index"/>
                 </el-select>
+            </template>
+        </el-table-column> -->
+        <el-table-column prop="Addr" :label="$t('status.tunnelAddr')" width="155">
+            <template #default="scope">
+                <template v-if="scope.row.Name != 'TcpRelay'">
+                    <el-checkbox-group size="small" v-model="scope.row._addr" @change="handleSave" >
+                        <el-checkbox-button :value="1" label="ipv6"/>
+                        <el-checkbox-button :value="2" label="ipv4"/>
+                        <el-checkbox-button :value="4" label="lan"/>
+                    </el-checkbox-group>
+                </template>
+                <template v-else>
+                    --
+                </template>
             </template>
         </el-table-column>
         <el-table-column property="Reverse" :label="$t('status.tunnelReverse')" width="64">
@@ -65,7 +79,11 @@ export default {
 
         const getData = ()=>{
             getTunnelTransports(state.machineid).then((res)=>{
-                state.list = res.sort((a,b)=>a.Order - b.Order);
+                const list = res.sort((a,b)=>a.Order - b.Order);
+                list.forEach((item,index)=>{
+                    item._addr  = [item.Addr & 1,item.Addr & 2,item.Addr & 4].filter(c=>c>0);
+                });
+                state.list = list;
             });
         }
 
@@ -74,6 +92,10 @@ export default {
         }    
         const handleSave = ()=>{
             state.list = state.list.slice().sort((a,b)=>a.Order - b.Order);
+            state.list.forEach((item,index)=>{
+                item.Addr = item._addr.reduce((a,b)=>a|b,0);
+            });
+            console.log(state.list);
             setTunnelTransports({
                 machineid:state.machineid,
                 data:state.list

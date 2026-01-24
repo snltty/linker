@@ -105,8 +105,13 @@ namespace linker.messenger.wakeup
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(info.Content))
+                {
+                    info.Content = "255.255.255.255";
+                }
+
                 //MAC地址格式：XX:XX:XX:XX:XX:XX 或者 XX-XX-XX-XX-XX-XX 或者 XXXXXXXXXXXX 转字节数组
-                ReadOnlySpan<char> macAddress = info.Value.AsSpan();
+                ReadOnlySpan<char> macAddress = info.Value.Trim().AsSpan();
                 Span<byte> macBytes = stackalloc byte[6];
                 int byteIndex = 0;
                 for (int i = 0; i < macAddress.Length && byteIndex < 6; i++)
@@ -134,7 +139,7 @@ namespace linker.messenger.wakeup
                 using UdpClient client = new UdpClient();
                 client.EnableBroadcast = true;
                 client.Client.WindowsUdpBug();
-                client.Send(magicPacket, new IPEndPoint(IPAddress.Parse("255.255.255.255"), 9));
+                client.Send(magicPacket, new IPEndPoint(IPAddress.Parse(info.Content.Trim()), 9));
             }
             catch (Exception ex)
             {
@@ -159,9 +164,9 @@ namespace linker.messenger.wakeup
         {
             try
             {
-                byte road = byte.Parse(info.Content);
+                byte road = byte.Parse(info.Content.Trim());
 
-                SerialDevice device = HidSharp.DeviceList.Local.GetSerialDevices().FirstOrDefault(c => c.DevicePath == info.Value);
+                SerialDevice device = HidSharp.DeviceList.Local.GetSerialDevices().FirstOrDefault(c => c.DevicePath == info.Value.Trim());
                 using SerialStream stream = device.Open();
 
                 stream.Write([0xA0, road, 0x01, (byte)(0xA0 + road + 0x01)]);
@@ -186,8 +191,8 @@ namespace linker.messenger.wakeup
         {
             try
             {
-                byte road = byte.Parse(info.Content);
-                HidDevice device = HidSharp.DeviceList.Local.GetHidDevices().FirstOrDefault(c => c.DevicePath == info.Value);
+                byte road = byte.Parse(info.Content.Trim());
+                HidDevice device = HidSharp.DeviceList.Local.GetHidDevices().FirstOrDefault(c => c.DevicePath == info.Value.Trim());
                 using HidStream stream = device.Open();
 
                 stream.Write([0x00, 0xA0, road, 0x01, (byte)(0xA0 + road + 0x01)]);

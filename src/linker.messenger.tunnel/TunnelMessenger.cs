@@ -121,6 +121,7 @@ namespace linker.messenger.tunnel
         {
             TunnelTransportItemSetInfo info = serializer.Deserialize<TunnelTransportItemSetInfo>(connection.ReceiveRequestWrap.Payload.Span);
             await tunnelMessengerAdapter.SetTunnelTransports(info.MachineId, info.Data);
+            connection.Write(Helper.TrueArray);
         }
     }
 

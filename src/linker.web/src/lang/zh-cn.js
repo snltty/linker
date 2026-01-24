@@ -273,6 +273,7 @@ export default {
 
     'status.tunnelName': '名称',
     'status.tunnelLabel': '说明',
+    'status.tunnelAddr': '尝试IP',
     'status.tunnelProtocol': '协议',
     'status.tunnelBuffer': '缓冲区',
     'status.tunnelReverse': '反向',
@@ -517,6 +518,7 @@ export default {
     'wakeup.value':'值',
     'wakeup.road':'通道',
     'wakeup.valueMac':'MAC地址',
+    'wakeup.addr':'ip',
     'wakeup.valueCom':'COM',
     'wakeup.valueComText':'LCUS COM，波特率9600，数据位长度8，奇偶校验无，停止位1，',
     'wakeup.valueHid':'HID',

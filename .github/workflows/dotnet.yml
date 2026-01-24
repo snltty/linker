@@ -19,7 +19,7 @@ jobs:
           release_name: v1.9.9.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 一些累计更新，一些BUG修复\r\n2. 国家级别的连接限制\r\n3. 修复一些地方未能正确释放端口的问题\r\n4. 一些UI错位修复\r\n5. net10发布后在一些系统无法正常运行，先回退net8"
+          body: "1. 一些累计更新，一些BUG修复\r\n2. 国家级别的连接限制\r\n3. 修复一些地方未能正确释放端口的问题\r\n4. 一些UI错位修复\r\n5. net10发布后在一些系统无法正常运行，先回退net8\r\n6. 修复协议设置bug，增加隧道协议选项，增加wol的ip项"
       - name: setup node.js
         uses: actions/setup-node@v2
         with:

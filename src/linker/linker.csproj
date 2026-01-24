@@ -21,7 +21,8 @@
 2. 国家级别的连接限制
 3. 修复一些地方未能正确释放端口的问题
 4. 一些UI错位修复
-5. net10发布后在一些系统无法正常运行，先回退net8</Description>
+5. net10发布后在一些系统无法正常运行，先回退net8
+6. 修复协议设置bug，增加隧道协议选项，增加wol的ip项</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>

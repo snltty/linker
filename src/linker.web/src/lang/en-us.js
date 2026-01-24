@@ -178,6 +178,7 @@ export default {
 
     'status.tunnelName': 'Name',
     'status.tunnelLabel': 'Label',
+    'status.tunnelAddr': 'Addrs',
     'status.tunnelProtocol': 'Proto',
     'status.tunnelBuffer': 'Buffer',
     'status.tunnelReverse': 'Reverse',
@@ -421,6 +422,7 @@ export default {
     'wakeup.value':'Value',
     'wakeup.road':'Road',
     'wakeup.valueMac':'MAC Addr',
+    'wakeup.addr':'ip',
     'wakeup.valueCom':'COM',
     'wakeup.valueComText':'LCUS COM，Baud Rate 9600，Data bits 8，Parity None，StopBits 1，',
     'wakeup.valueHid':'HID',

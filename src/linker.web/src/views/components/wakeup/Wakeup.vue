@@ -36,6 +36,7 @@
                             <div class="ellipsis" :title="scope.row.Value">{{ scope.row.Value }}</div>
                         </template>
                     </el-table-column>
+                    <el-table-column prop="Content" :label="$t('wakeup.value')"></el-table-column>
                     <el-table-column prop="Remark" :label="$t('wakeup.remark')" width="100">
                         <template v-slot="scope">
                             <div class="ellipsis" :title="scope.row.Remark">{{ scope.row.Remark }}</div>
