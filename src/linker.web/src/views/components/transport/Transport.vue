@@ -1,4 +1,7 @@
 <template>
+    <div v-if="machineId" class="head t-c mgb-1">
+        <el-button size="small" @click="handleReset">重置配置</el-button>
+    </div>
     <el-table stripe  :data="state.list" border size="small" width="100%" height="100%">
         <el-table-column prop="Name" :label="$t('status.tunnelName')" width="100"></el-table-column>
         <el-table-column prop="ProtocolType" :label="$t('status.tunnelProtocol')" width="60"></el-table-column>
@@ -56,7 +59,7 @@
 <script>
 import { getTunnelTransports, setTunnelTransports } from '@/apis/tunnel';
 import { injectGlobalData } from '@/provide';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { computed,onMounted,reactive, watch } from 'vue'
 import { Delete,Plus,Top,Bottom } from '@element-plus/icons-vue';
 import { useI18n } from 'vue-i18n';
@@ -106,11 +109,34 @@ export default {
                 ElMessage.error(t('common.operFail'));
             });
         }
+
+
+        const handleReset = ()=>{
+            ElMessageBox.confirm(t('common.confirm'), t('common.tips'), {
+                confirmButtonText: t('common.confirm'),
+                cancelButtonText: t('common.cancel'),
+                type: 'warning',
+            }).then(() => {
+                setTunnelTransports({
+                    machineid:state.machineid,
+                    data:[]
+                }).then(()=>{
+                    getData();
+                    ElMessage.success(t('common.oper'));
+                }).catch((err)=>{
+                    console.log(err);
+                    ElMessage.error(t('common.operFail'));
+                });
+            }).catch(()=>{
+            })
+        }
+
+
         onMounted(()=>{
             getData();
         });
 
-        return {state,handleOrderChange,handleSave}
+        return {state,handleOrderChange,handleSave,handleReset}
     }
 }
 </script>

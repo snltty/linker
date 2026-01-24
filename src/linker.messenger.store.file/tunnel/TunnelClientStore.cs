@@ -16,7 +16,7 @@ namespace linker.messenger.store.file.tunnel
 
         public Action OnChanged { get; set; } = () => { };
 
-        public int TransportMachineIdCount => runningConfig.Data.Tunnel.Transports.Count;
+        public int TransportMachineIdCount => runningConfig.Data.Tunnel.Transports.Where(c => c.Value != null && c.Value.Count > 0).Count();
 
         private readonly RunningConfig runningConfig;
 
@@ -29,7 +29,6 @@ namespace linker.messenger.store.file.tunnel
             if (string.IsNullOrWhiteSpace(machineId)) return false;
 
             runningConfig.Data.Tunnel.Transports[machineId] = list;
-            //   .AddOrUpdate(machineId, list, (a, b) => list);
             runningConfig.Data.Update();
 
             OnChanged();
@@ -58,14 +57,13 @@ namespace linker.messenger.store.file.tunnel
 
         public async Task<List<TunnelTransportItemInfo>> GetTunnelTransports(string machineId)
         {
-            if (runningConfig.Data.Tunnel.Transports.TryGetValue(machineId, out List<TunnelTransportItemInfo> list))
+            if (runningConfig.Data.Tunnel.Transports.TryGetValue(machineId, out List<TunnelTransportItemInfo> list) && list != null && list.Count > 0)
             {
                 if (runningConfig.Data.Tunnel.Transports.TryGetValue(Helper.GlobalString, out List<TunnelTransportItemInfo> defaults))
                 {
                     if (Rebuild(list, defaults))
                     {
                         runningConfig.Data.Tunnel.Transports[machineId] = list;
-                        //.AddOrUpdate(machineId, list, (a, b) => list);
                         runningConfig.Data.Update();
                     }
                 }
@@ -150,8 +148,6 @@ namespace linker.messenger.store.file.tunnel
             }
             return newTransportNames.Any() || oldTransportNames.Any();
         }
-
-
 
         public async Task<bool> SetRouteLevelPlus(int level)
         {
