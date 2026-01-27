@@ -182,86 +182,136 @@
                 <div class="flex items-center hover:bg-light-dark px-4 py-2 rounded-full transition-all text-sm card-hover">
                     <a href="https://afdian.com/a/snltty" target="_blank"><span class="mr-2">❤️</span> 为爱发电</a>
                 </div>
-                <!-- 下载下拉菜单 -->
+                <!-- 下载下拉菜单 - 二级结构 -->
                 <div class="relative dropdown flex items-center hover:bg-light-dark px-4 py-2 rounded-full transition-all text-sm card-hover z-1000">
                     <span class="mr-2">📥</span> 下载
                     <i class="fa fa-chevron-down ml-1 text-xs"></i>
-                    <!-- 下拉内容 -->
-                    <div class="dropdown-content bg-card-bg rounded-lg glow-border shadow-lg p-2">
+                    <!-- 一级下拉内容（系统类别） -->
+                    <div class="dropdown-content bg-card-bg rounded-lg glow-border shadow-lg p-2 w-48">
                         <div id="download-loading" class="block px-4 py-2 text-sm text-accent">
                             <i class="fa fa-spinner fa-spin mr-2"></i> 加载版本信息...
                         </div>
-                        <div id="download-links" class="hidden">
-                            <!-- Windows 下载链接 -->
-                            <div class="border-b border-light-dark pb-1 mb-1 download-windows">
-                                <p class="px-4 text-xs text-accent mb-1">Windows</p>
-                                <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-win-x64.zip">
-                                    <i class="fa fa-windows mr-2 text-accent"></i> x64
-                                </a>
-                                <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-win-arm64.zip">
-                                    <i class="fa fa-windows mr-2 text-accent"></i> ARM64
-                                </a>
-                                <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-win-x86.zip">
-                                    <i class="fa fa-windows mr-2 text-accent"></i> x86
-                                </a>
+                        <div id="download-links" class="hidden space-y-1">
+                            <!-- Windows 一级菜单 -->
+                            <div class="relative group">
+                                <div class="px-4 py-2 text-sm hover:bg-light-dark rounded transition-colors cursor-pointer flex justify-between items-center">
+                                    <span><i class="fa fa-windows mr-2 text-accent"></i> Windows</span>
+                                    <i class="fa fa-chevron-right ml-1 text-xs transition-transform group-hover:rotate-90"></i>
+                                </div>
+                                <!-- Windows 二级菜单（具体版本） -->
+                                <div class="absolute left-full top-0 ml-2 bg-card-bg rounded-lg glow-border shadow-lg p-2 w-36 hidden group-hover:block">
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-win-x64.zip">
+                                        x64
+                                    </a>
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-win-arm64.zip">
+                                        ARM64
+                                    </a>
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-win-x86.zip">
+                                        x86
+                                    </a>
+                                </div>
                             </div>
-                            
-                            <!-- Linux 下载链接 -->
-                            <div class="border-b border-light-dark pb-1 mb-1 download-linux">
-                                <p class="px-4 text-xs text-accent mb-1">Linux</p>
-                                <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-linux-x64.zip">
-                                    <i class="fa fa-linux mr-2 text-accent"></i> x64
-                                </a>
-                                <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-linux-arm64.zip">
-                                    <i class="fa fa-linux mr-2 text-accent"></i> ARM64
-                                </a>
-                                <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-linux-arm.zip">
-                                    <i class="fa fa-linux mr-2 text-accent"></i> ARM
-                                </a>
-                                <p class="px-4 text-xs text-accent mt-1 mb-1">Linux (Musl)</p>
-                                <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-linux-musl-x64.zip">
-                                    <i class="fa fa-linux mr-2 text-accent"></i> x64 (Musl)
-                                </a>
-                                <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-linux-musl-arm64.zip">
-                                    <i class="fa fa-linux mr-2 text-accent"></i> ARM64 (Musl)
-                                </a>
-                                <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-linux-musl-arm.zip">
-                                    <i class="fa fa-linux mr-2 text-accent"></i> ARM (Musl)
-                                </a>
+
+                            <!-- Linux 一级菜单 -->
+                            <div class="relative group">
+                                <div class="px-4 py-2 text-sm hover:bg-light-dark rounded transition-colors cursor-pointer flex justify-between items-center">
+                                    <span><i class="fa fa-linux mr-2 text-accent"></i> Linux</span>
+                                    <i class="fa fa-chevron-right ml-1 text-xs transition-transform group-hover:rotate-90"></i>
+                                </div>
+                                <!-- Linux 二级菜单（具体版本） -->
+                                <div class="absolute left-full top-0 ml-2 bg-card-bg rounded-lg glow-border shadow-lg p-2 w-48 hidden group-hover:block">
+                                    <p class="px-4 text-xs text-accent mb-1">Standard</p>
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-linux-x64.zip">
+                                        x64
+                                    </a>
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-linux-arm64.zip">
+                                        ARM64
+                                    </a>
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-linux-arm.zip">
+                                        ARM
+                                    </a>
+                                    <p class="px-4 text-xs text-accent mt-1 mb-1">Musl</p>
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-linux-musl-x64.zip">
+                                        x64 (Musl)
+                                    </a>
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-linux-musl-arm64.zip">
+                                        ARM64 (Musl)
+                                    </a>
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-linux-musl-arm.zip">
+                                        ARM (Musl)
+                                    </a>
+                                </div>
                             </div>
-                            <!-- FNOS 下载链接 -->
-                            <div>
-                                <p class="px-4 text-xs text-accent mb-1">FNOS</p>
-                                <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-docker.fpk">
-                                    <i class="fa fa-linux mr-2 text-accent"></i> any (Docker)
-                                </a>
-                                <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-bin-x64.fpk">
-                                    <i class="fa fa-linux mr-2 text-accent"></i> x64 (Binary)
-                                </a>
-                                <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-bin-arm64.fpk">
-                                    <i class="fa fa-linux mr-2 text-accent"></i> ARM64 (Binary)
-                                </a>
+
+                            <!-- macOS 一级菜单（新增） -->
+                            <div class="relative group">
+                                <div class="px-4 py-2 text-sm hover:bg-light-dark rounded transition-colors cursor-pointer flex justify-between items-center">
+                                    <span><i class="fa fa-apple mr-2 text-accent"></i> macOS (OSX)</span>
+                                    <i class="fa fa-chevron-right ml-1 text-xs transition-transform group-hover:rotate-90"></i>
+                                </div>
+                                <!-- macOS 二级菜单（具体版本） -->
+                                <div class="absolute left-full top-0 ml-2 bg-card-bg rounded-lg glow-border shadow-lg p-2 w-36 hidden group-hover:block">
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-osx-x64.zip">
+                                        x64 (Intel)
+                                    </a>
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-osx-arm64.zip">
+                                        ARM64 (Apple Silicon)
+                                    </a>
+                                </div>
                             </div>
-                            <!-- OpenWRT 下载链接 -->
-                            <div class="border-b border-light-dark pb-1 mb-1 download-openwrt">
-                                <p class="px-4 text-xs text-accent mb-1">OpenWRT</p>
-                                <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-x64.ipk">
-                                    <i class="fa fa-code-fork mr-2 text-accent"></i> x64
-                                </a>
-                                <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-arm64.ipk">
-                                    <i class="fa fa-code-fork mr-2 text-accent"></i> ARM64
-                                </a>
-                                <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-arm.ipk">
-                                    <i class="fa fa-code-fork mr-2 text-accent"></i> ARM
-                                </a>
+
+                            <!-- FNOS 一级菜单 -->
+                            <div class="relative group">
+                                <div class="px-4 py-2 text-sm hover:bg-light-dark rounded transition-colors cursor-pointer flex justify-between items-center">
+                                    <span><i class="fa fa-linux mr-2 text-accent"></i> FNOS</span>
+                                    <i class="fa fa-chevron-right ml-1 text-xs transition-transform group-hover:rotate-90"></i>
+                                </div>
+                                <!-- FNOS 二级菜单（具体版本） -->
+                                <div class="absolute left-full top-0 ml-2 bg-card-bg rounded-lg glow-border shadow-lg p-2 w-40 hidden group-hover:block">
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-docker.fpk">
+                                        any (Docker)
+                                    </a>
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-bin-x64.fpk">
+                                        x64 (Binary)
+                                    </a>
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-bin-arm64.fpk">
+                                        ARM64 (Binary)
+                                    </a>
+                                </div>
                             </div>
-                            
-                            <!-- Android 下载链接 -->
-                            <div>
-                                <p class="px-4 text-xs text-accent mb-1">Android</p>
-                                <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker.apk">
-                                    <i class="fa fa-android mr-2 text-accent"></i> APK
-                                </a>
+
+                            <!-- OpenWRT 一级菜单 -->
+                            <div class="relative group">
+                                <div class="px-4 py-2 text-sm hover:bg-light-dark rounded transition-colors cursor-pointer flex justify-between items-center">
+                                    <span><i class="fa fa-code-fork mr-2 text-accent"></i> OpenWRT</span>
+                                    <i class="fa fa-chevron-right ml-1 text-xs transition-transform group-hover:rotate-90"></i>
+                                </div>
+                                <!-- OpenWRT 二级菜单（具体版本） -->
+                                <div class="absolute left-full top-0 ml-2 bg-card-bg rounded-lg glow-border shadow-lg p-2 w-36 hidden group-hover:block">
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-x64.ipk">
+                                        x64
+                                    </a>
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-arm64.ipk">
+                                        ARM64
+                                    </a>
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-arm.ipk">
+                                        ARM
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Android 一级菜单 -->
+                            <div class="relative group">
+                                <div class="px-4 py-2 text-sm hover:bg-light-dark rounded transition-colors cursor-pointer flex justify-between items-center">
+                                    <span><i class="fa fa-android mr-2 text-accent"></i> Android</span>
+                                    <i class="fa fa-chevron-right ml-1 text-xs transition-transform group-hover:rotate-90"></i>
+                                </div>
+                                <!-- Android 二级菜单（具体版本） -->
+                                <div class="absolute left-full top-0 ml-2 bg-card-bg rounded-lg glow-border shadow-lg p-2 w-36 hidden group-hover:block">
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker.apk">
+                                        APK
+                                    </a>
+                                </div>
                             </div>
                         </div>
                         <div id="download-error" class="hidden px-4 py-2 text-sm text-red-500">
