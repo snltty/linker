@@ -172,7 +172,7 @@ namespace linker.nat
                     await HandlePsh(packet, key, win).ConfigureAwait(false);
                     break;
                 case LinkerSrcProxyFlags.Syn:
-                    _ = HandleSyn(key, originDstIp);
+                    _ = HandleSyn(key, originDstIp).ConfigureAwait(false);
                     break;
                 case LinkerSrcProxyFlags.SynAck:
                     HandleSynAck(key);
@@ -202,7 +202,7 @@ namespace linker.nat
             try
             {
                 Socket source = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                await source.ConnectAsync(new IPEndPoint(NetworkHelper.ToIP(key.dstAddr), key.dstPort), cts.Token);
+                await source.ConnectAsync(new IPEndPoint(NetworkHelper.ToIP(key.dstAddr), key.dstPort), cts.Token).ConfigureAwait(false);
 
                 ConnectionState state = new ConnectionState
                 {
