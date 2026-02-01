@@ -25,10 +25,10 @@
                 
                 <el-descriptions-item label="中继" >
                     <div>
-                        <a v-if="state.connecting" href="javascript:;" class="a-line">
+                        <!-- <a v-if="state.connecting" href="javascript:;" class="a-line">
                             <span>操作中.</span><el-icon size="14" class="loading"><Loading /></el-icon>
-                        </a>
-                        <a v-else href="javascript:;" class="a-line" @click="handleNode">{{ state.nodesDic[state.connection.NodeId] || '选择节点' }}</a>
+                        </a> -->
+                        <a href="javascript:;" class="a-line" @click="handleNode">{{ state.nodesDic[state.connection.NodeId] || '选择节点' }}</a>
                     </div>
                 </el-descriptions-item>
                 <el-descriptions-item label="打洞" >
