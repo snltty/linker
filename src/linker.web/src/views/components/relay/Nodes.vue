@@ -26,7 +26,7 @@
                                     <p class="flex">
                                         <el-badge @click="handleDeny(scope.row)" type="success" :value="scope.row.MasterCount" :offset="[20, 10]">
                                             <a :href="scope.row.Url" class="a-line" :class="{green:scope.row.Public}" target="_blank" >
-                                                <strong>{{ scope.row.Name }}</strong>
+                                                <strong>{{ scope.row.Name }} - {{scope.row.LastTicks}}</strong>
                                             </a>  
                                         </el-badge>
                                         <span class="flex-1"></span>

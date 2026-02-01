@@ -48,6 +48,7 @@ export default {
                 const offlines = res.filter((item)=>!item._online).sort((a,b)=>a.LastTicks-b.LastTicks);
                 const list = onlines.concat(offlines);
 
+                console.log(list);
                 state.nodes = list;
                 nodes.value = list;
                 state.timer = setTimeout(_sforwardSubscribe,1000);

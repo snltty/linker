@@ -1,6 +1,7 @@
 ﻿using linker.libs;
 using linker.libs.extends;
 using linker.libs.timer;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 
@@ -33,7 +34,6 @@ namespace linker.messenger.node
         private int connectionNum = 0;
         private ulong bytes = 0;
         private ulong lastBytes = 0;
-        private readonly string md5 = string.Empty;
 
         private readonly ICrypto crypto = CryptoFactory.CreateSymmetric(Helper.GlobalString);
 
@@ -56,8 +56,6 @@ namespace linker.messenger.node
             this.nodeStore = nodeStore;
             this.messengerResolver = messengerResolver;
             this.nodeMasterDenyStore = nodeMasterDenyStore;
-
-            md5 = Config.NodeId.Md5();
 
             if (commonStore.Modes.HasFlag(CommonModes.Server))
             {
@@ -99,7 +97,6 @@ namespace linker.messenger.node
             {
                 _ = UpgradeForward(info.NodeId, VersionHelper.Version);
             }
-
             return await nodeStore.Report(info).ConfigureAwait(false);
         }
         public async Task<bool> SignIn(string serverId, string masterKey, string shareKey, IConnection connection)
@@ -500,7 +497,8 @@ namespace linker.messenger.node
             {
                 try
                 {
-                    var nodes = (await nodeStore.GetAll()).Where(c =>
+                    var nodes = await nodeStore.GetAll();
+                    nodes = nodes.Where(c =>
                     {
                         return nodeConnectionTransfer.TryGet(ConnectionSideType.Node, c.NodeId, out ConnectionInfo connection) == false || connection == null || connection.Connection == null || connection.Connection.Connected == false;
                     }).ToList();
@@ -537,11 +535,16 @@ namespace linker.messenger.node
                                 }
                                 else
                                 {
+                                    LoggerHelper.Instance.Error($"{Name} sign in to node {c.NodeId} fail");
                                     connection?.Disponse();
                                 }
                             }
-                            catch (Exception)
+                            catch (Exception ex)
                             {
+                                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                                {
+                                    LoggerHelper.Instance.Error($"{Name} sign in : {ex}");
+                                }
                                 socket.SafeClose();
                             }
                         });

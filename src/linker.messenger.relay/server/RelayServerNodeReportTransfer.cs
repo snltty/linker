@@ -87,6 +87,7 @@ namespace linker.messenger.relay.server
 
                      .ToList();
 
+            list = list.ToJson().DeJson<List<RelayServerNodeStoreInfo>>();
             list.ForEach(c =>
             {
                 c.ShareKey = string.Empty;
@@ -112,6 +113,8 @@ namespace linker.messenger.relay.server
                      .ThenByDescending(x => x.DataEachMonth == 0 ? int.MaxValue : x.DataEachMonth)
                      .ThenByDescending(x => x.DataRemain == 0 ? long.MaxValue : x.DataRemain)
                      .ToList();
+
+            list = list.ToJson().DeJson<List<RelayServerNodeStoreInfo>>();
             list.ForEach(c =>
             {
                 c.ShareKey = string.Empty;

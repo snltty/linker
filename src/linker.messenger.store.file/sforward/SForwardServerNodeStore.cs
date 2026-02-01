@@ -1,4 +1,5 @@
-﻿using linker.messenger.sforward.server;
+﻿using linker.libs.extends;
+using linker.messenger.sforward.server;
 using LiteDB;
 
 namespace linker.messenger.store.file.sforward
