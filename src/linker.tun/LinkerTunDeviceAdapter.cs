@@ -366,6 +366,7 @@ namespace linker.tun
                 return false;
             }
             LinkerTunPacketHookFlags flags = LinkerTunPacketHookFlags.Next | LinkerTunPacketHookFlags.Write;
+
             for (int i = 0; i < writeHooks.Length; i++)
             {
                 (LinkerTunPacketHookFlags addFlags, LinkerTunPacketHookFlags delFlags) = await writeHooks[i].WriteAsync(buffer, dstIp, srcId).ConfigureAwait(false);

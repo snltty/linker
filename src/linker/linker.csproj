@@ -8,10 +8,8 @@
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<ApplicationManifest>app.manifest</ApplicationManifest>
 		<ApplicationIcon>favicon.ico</ApplicationIcon>
-		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
 		<Configurations>Debug;Release</Configurations>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
 		<SignAssembly>true</SignAssembly>
 		<ServerGarbageCollection>false</ServerGarbageCollection>
 		<Title>linker</Title>
@@ -32,7 +30,8 @@
 		<FileVersion>1.9.9</FileVersion>
 		<DelaySign>False</DelaySign>
 
-
+		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
 		<PublishAot>false</PublishAot>
 		<PublishTrimmed>true</PublishTrimmed>
 		<PublishSingleFile>true</PublishSingleFile>

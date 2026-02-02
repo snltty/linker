@@ -194,7 +194,7 @@ namespace linker.nat
 
                     //有出站标记 或 通过检查
                     return cache.Type == SrcCacheType.Out
-                        || Check(srcId, ipv4.SrcAddr, ipv4.SrcPort, ipv4.Protocol);
+                        || Check(srcId, ipv4.DstAddr, ipv4.DstPort, ipv4.Protocol);
                 }
 
                 return true;
