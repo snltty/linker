@@ -86,7 +86,7 @@ namespace linker.messenger.sforward.server
                      .ThenByDescending(x => x.Bandwidth == 0 ? double.MaxValue : x.Bandwidth)
                      .ThenByDescending(x => x.DataEachMonth == 0 ? double.MaxValue : x.DataEachMonth)
                      .ThenByDescending(x => x.DataRemain == 0 ? long.MaxValue : x.DataRemain).ToList();
-
+            list = list.ToJson().DeJson<List<SForwardServerNodeStoreInfo>>();
             list.ForEach(c =>
             {
                 c.ShareKey = string.Empty;
