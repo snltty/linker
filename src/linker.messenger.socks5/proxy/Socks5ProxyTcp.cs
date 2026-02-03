@@ -114,7 +114,7 @@ namespace linker.messenger.socks5
                     await token.Tcs.WithTimeout(TimeSpan.FromMilliseconds(15000)).ConfigureAwait(false);
 
                     token.ReadPacket.Flag = ForwardFlags.Psh;
-                    await Task.WhenAll(Sender(token), Recver(token, buffer, ForwardFlags.Psh)).ConfigureAwait(false);
+                    await Task.WhenAny(Sender(token), Recver(token, buffer, ForwardFlags.Psh)).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -130,6 +130,7 @@ namespace linker.messenger.socks5
                     token.ReadPacket.Flag = ForwardFlags.Rst;
                     token.ReadPacket.Length = token.ReadPacket.HeaderLength;
                     await SendToConnection(token).ConfigureAwait(false);
+
                     token.Disponse();
                 }
                 else
@@ -193,7 +194,7 @@ namespace linker.messenger.socks5
                 await SendToConnection(token).ConfigureAwait(false);
 
                 token.ReadPacket.Flag = ForwardFlags.PshAck;
-                await Task.WhenAll(Sender(token), Recver(token, buffer, ForwardFlags.PshAck)).ConfigureAwait(false);
+                await Task.WhenAny(Sender(token), Recver(token, buffer, ForwardFlags.PshAck)).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

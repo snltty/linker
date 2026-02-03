@@ -116,7 +116,7 @@ namespace linker.messenger.forward.proxy
                     await token.Tcs.WithTimeout(TimeSpan.FromMilliseconds(15000)).ConfigureAwait(false);
 
                     token.ReadPacket.Flag = ForwardFlags.Psh;
-                    await Task.WhenAll(Sender(token), Recver(token, buffer, ForwardFlags.Psh)).ConfigureAwait(false);
+                    await Task.WhenAny(Sender(token), Recver(token, buffer, ForwardFlags.Psh)).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -198,7 +198,7 @@ namespace linker.messenger.forward.proxy
                 await SendToConnection(token).ConfigureAwait(false);
 
                 token.ReadPacket.Flag = ForwardFlags.PshAck;
-                await Task.WhenAll(Sender(token), Recver(token, buffer, ForwardFlags.PshAck)).ConfigureAwait(false);
+                await Task.WhenAny(Sender(token), Recver(token, buffer, ForwardFlags.PshAck)).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

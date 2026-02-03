@@ -426,7 +426,7 @@ namespace linker.tunnel.transport
                 //发送给远端
                 await remoteUdp.SendToAsync(buffer.AsMemory(0, result.ReceivedBytes), remoteEP).ConfigureAwait(false);
 
-                await Task.WhenAll(CopyToAsync(bufferSize, localUdp, remoteUdp, remoteEP), CopyToAsync(bufferSize, remoteUdp, localUdp, quicEp)).ConfigureAwait(false);
+                await Task.WhenAny(CopyToAsync(bufferSize, localUdp, remoteUdp, remoteEP), CopyToAsync(bufferSize, remoteUdp, localUdp, quicEp)).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -550,7 +550,7 @@ namespace linker.tunnel.transport
                 stateDic.AddOrUpdate((token.QuicUdp.LocalEndPoint as IPEndPoint).Port, token, (a, b) => token);
 
                 //然后就可以交换数据了
-                await Task.WhenAll(CopyToAsync(bufferSize, token.RemoteUdp, token.QuicUdp, token.QuicEP), CopyToAsync(bufferSize, token.QuicUdp, token.RemoteUdp, token.RemoteEP)).ConfigureAwait(false);
+                await Task.WhenAny(CopyToAsync(bufferSize, token.RemoteUdp, token.QuicUdp, token.QuicEP), CopyToAsync(bufferSize, token.QuicUdp, token.RemoteUdp, token.RemoteEP)).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

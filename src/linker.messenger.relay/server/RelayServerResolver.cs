@@ -149,7 +149,7 @@ namespace linker.messenger.relay.server
                     RelayTrafficCacheInfo trafficCacheInfo = new RelayTrafficCacheInfo { Cache1 = relayCache, Cache = relayCache, Sendt = 0, Limit = new SpeedLimit(), Key = flowKey };
                     relayServerNodeTransfer.AddTrafficCache(trafficCacheInfo);
                     relayServerNodeTransfer.IncrementConnectionNum();
-                    await Task.WhenAll(CopyToAsync(trafficCacheInfo, socket, answerSocket), CopyToAsync(trafficCacheInfo, answerSocket, socket)).ConfigureAwait(false);
+                    await Task.WhenAny(CopyToAsync(trafficCacheInfo, socket, answerSocket), CopyToAsync(trafficCacheInfo, answerSocket, socket)).ConfigureAwait(false);
                     relayServerNodeTransfer.DecrementConnectionNum();
                     relayServerNodeTransfer.RemoveTrafficCache(trafficCacheInfo);
                 }
