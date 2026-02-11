@@ -145,6 +145,7 @@ namespace linker.tunnel.transport
             }
             catch (Exception ex)
             {
+                socket.SafeClose();
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
                     LoggerHelper.Instance.Error(ex);

@@ -6,7 +6,7 @@ is_docker_running () {
     DOCKER_NAME="linker"
 
     if [ -f "$FILE_PATH" ]; then
-        DOCKER_NAME=$(cat $FILE_PATH | grep "linker" | awk -F ':' '{print $2}' | xargs)
+        DOCKER_NAME=$(cat $FILE_PATH | grep "container_name" | awk -F ':' '{print $2}' | xargs)
         echo "DOCKER_NAME is set to: $DOCKER_NAME"
     fi
 

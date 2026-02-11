@@ -267,8 +267,8 @@ namespace linker.tunnel.transport
             }
             try
             {
-                remoteUdp?.Close();
-                remoteUdp?.Close();
+                remoteUdp?.SafeClose();
+                remoteUdp?.SafeClose();
             }
             catch (Exception)
             {

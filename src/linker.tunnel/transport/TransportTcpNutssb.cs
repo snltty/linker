@@ -166,13 +166,13 @@ namespace linker.tunnel.transport
 
                     targetSocket.KeepAlive();
                     targetSocket.IPv6Only(ep.AddressFamily, false);
-                    targetSocket.ReuseBind(new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any  : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
+                    targetSocket.ReuseBind(new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
 
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
                         LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep}");
                     }
-                    await targetSocket.ConnectAsync(ep,cts.Token).ConfigureAwait(false);
+                    await targetSocket.ConnectAsync(ep, cts.Token).ConfigureAwait(false);
 
                     //需要ssl
                     SslStream sslStream = null;
@@ -180,7 +180,8 @@ namespace linker.tunnel.transport
                     {
                         sslStream = new SslStream(new NetworkStream(targetSocket, false), false, ValidateServerCertificate, null);
 #pragma warning disable SYSLIB0039 // 类型或成员已过时
-                        await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions { 
+                        await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
+                        {
                             EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls,
                             CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
                             ClientCertificates = new X509CertificateCollection { certificate }
@@ -236,7 +237,7 @@ namespace linker.tunnel.transport
                 }
                 return null;
             });
-            foreach (Socket item in sockets.Where(c => c != null && c.Connected == false))
+            foreach (Socket item in sockets.Where(c => c != null))
             {
                 item.SafeClose();
             }
@@ -282,7 +283,7 @@ namespace linker.tunnel.transport
                             return;
                         }
 
-                        sslStream = new SslStream(new NetworkStream(socket, false), false, ValidateServerCertificate,null);
+                        sslStream = new SslStream(new NetworkStream(socket, false), false, ValidateServerCertificate, null);
 #pragma warning disable SYSLIB0039 // 类型或成员已过时
                         await sslStream.AuthenticateAsServerAsync(certificate, OperatingSystem.IsAndroid(), SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls, false).ConfigureAwait(false);
 #pragma warning restore SYSLIB0039 // 类型或成员已过时
