@@ -35,7 +35,6 @@ namespace linker.tun.device
             address = info.Address;
             prefixLength = info.PrefixLength;
 
-
             error = string.Empty;
             if (adapter != 0)
             {
@@ -46,21 +45,24 @@ namespace linker.tun.device
             if (info.Guid == Guid.Empty) info.Guid = Guid.Parse("771EF382-8718-5BC5-EBF0-A28B86142278");
             Guid guid = info.Guid;
 
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 5 && session == 0; i++)
             {
-                if (
-
-                        (adapter = WinTun.WintunCreateAdapter(name, name, ref guid)) == 0
-                        && (adapter = WinTun.WintunOpenAdapter(name)) == 0
-
-                    || (session = WinTun.WintunStartSession(adapter, 0x400000)) == 0
-                )
+                adapter = WinTun.WintunOpenAdapter(name);
+                if (adapter == 0)
+                {
+                    adapter = WinTun.WintunCreateAdapter(name, name, ref guid);
+                }
+                if (adapter == 0)
                 {
                     Shutdown();
                     Thread.Sleep(2000);
-                    continue;
                 }
-                break;
+                session = WinTun.WintunStartSession(adapter, 0x400000);
+                if (session == 0)
+                {
+                    Shutdown();
+                    Thread.Sleep(2000);
+                }
             }
             if (adapter == 0)
             {
@@ -73,7 +75,6 @@ namespace linker.tun.device
                 Shutdown();
                 return false;
             }
-
             waitHandle = WinTun.WintunGetReadWaitEvent(session);
             for (int i = 0; i < 5 && interfaceNumber == 0; i++)
             {
@@ -81,7 +82,6 @@ namespace linker.tun.device
                 {
                     AddIPV4();
                     //AddIPV6();
-
                     interfaceNumber = GetWindowsInterfaceNum();
                     tokenSource = new CancellationTokenSource();
 
@@ -89,7 +89,7 @@ namespace linker.tun.device
                 }
                 catch (Exception)
                 {
-                    Thread.Sleep(2000);
+                    Task.Delay(2000).Wait();
                 }
             }
             error = $"Failed to set adapter ip {Marshal.GetLastWin32Error()}";

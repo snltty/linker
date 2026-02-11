@@ -64,6 +64,7 @@ namespace linker.messenger.tuntap
             {
                 try
                 {
+                    
                     if (info.Address.Equals(IPAddress.Any))
                     {
                         return;
@@ -75,7 +76,6 @@ namespace linker.messenger.tuntap
                         LoggerHelper.Instance.Error(linkerTunDeviceAdapter.SetupError);
                         return;
                     }
-
                     OnSetupSuccess();
                 }
                 catch (Exception ex)
