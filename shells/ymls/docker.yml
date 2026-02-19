@@ -48,39 +48,39 @@ jobs:
       run: |
         docker pull --platform linux/arm/v7 snltty/linker-musl-arm:latest &&  \
         docker tag snltty/linker-musl-arm:latest snltty/linker-musl:arm &&  \
-        docker push snltty/linker-musl:arm &&  \
+        docker push --platform linux/arm/v7 snltty/linker-musl:arm &&  \
         docker pull --platform linux/arm64 snltty/linker-musl-arm64:latest &&  \
         docker tag snltty/linker-musl-arm64:latest snltty/linker-musl:arm64 &&  \
-        docker push snltty/linker-musl:arm64 &&  \
+        docker push --platform linux/arm64  snltty/linker-musl:arm64 &&  \
         docker pull --platform linux/amd64 snltty/linker-musl-x64:latest &&  \
         docker tag snltty/linker-musl-x64:latest snltty/linker-musl:amd64 &&  \
-        docker push snltty/linker-musl:amd64 &&  \
+        docker push --platform linux/amd64 snltty/linker-musl:amd64 &&  \
         docker manifest create snltty/linker-musl:latest snltty/linker-musl:amd64 snltty/linker-musl:arm64 snltty/linker-musl:arm && \
         docker manifest create snltty/linker-musl:v{{version}} snltty/linker-musl:amd64 snltty/linker-musl:arm64 snltty/linker-musl:arm && \
         docker manifest push snltty/linker-musl:latest && \
         docker manifest push snltty/linker-musl:v{{version}} && \
         docker pull --platform linux/arm/v7 snltty/linker-debian-arm:latest &&  \
         docker tag snltty/linker-debian-arm:latest snltty/linker-debian:arm &&  \
-        docker push snltty/linker-debian:arm &&  \
+        docker push --platform linux/arm/v7 snltty/linker-debian:arm &&  \
         docker pull --platform linux/arm64 snltty/linker-debian-arm64:latest &&  \
         docker tag snltty/linker-debian-arm64:latest snltty/linker-debian:arm64 &&  \
-        docker push snltty/linker-debian:arm64 &&  \
+        docker push --platform linux/arm64 snltty/linker-debian:arm64 &&  \
         docker pull --platform linux/amd64 snltty/linker-debian-x64:latest &&  \
         docker tag snltty/linker-debian-x64:latest snltty/linker-debian:amd64 &&  \
-        docker push snltty/linker-debian:amd64 &&  \
+        docker push --platform linux/amd64 snltty/linker-debian:amd64 &&  \
         docker manifest create snltty/linker-debian:latest snltty/linker-debian:amd64 snltty/linker-debian:arm64 snltty/linker-debian:arm && \
         docker manifest create snltty/linker-debian:v{{version}} snltty/linker-debian:amd64 snltty/linker-debian:arm64 snltty/linker-debian:arm && \
         docker manifest push snltty/linker-debian:latest &&  \
         docker manifest push snltty/linker-debian:v{{version}} && \
         docker pull --platform linux/arm/v7 snltty/linker-kvm-arm:latest &&  \
         docker tag snltty/linker-kvm-arm:latest snltty/linker-kvm:arm &&  \
-        docker push snltty/linker-kvm:arm &&  \
+        docker push --platform linux/arm/v7 snltty/linker-kvm:arm &&  \
         docker pull --platform linux/arm64 snltty/linker-kvm-arm64:latest &&  \
         docker tag snltty/linker-kvm-arm64:latest snltty/linker-kvm:arm64 &&  \
-        docker push snltty/linker-kvm:arm64 &&  \
+        docker push --platform linux/arm64 snltty/linker-kvm:arm64 &&  \
         docker pull --platform linux/amd64 snltty/linker-kvm-x64:latest &&  \
         docker tag snltty/linker-kvm-x64:latest snltty/linker-kvm:amd64 &&  \
-        docker push snltty/linker-kvm:amd64 &&  \
+        docker push --platform linux/amd64 snltty/linker-kvm:amd64 &&  \
         docker manifest create snltty/linker-kvm:latest snltty/linker-kvm:amd64 snltty/linker-kvm:arm64 snltty/linker-kvm:arm && \
         docker manifest create snltty/linker-kvm:v{{version}} snltty/linker-kvm:amd64 snltty/linker-kvm:arm64 snltty/linker-kvm:arm && \
         docker manifest push snltty/linker-kvm:latest &&  \
