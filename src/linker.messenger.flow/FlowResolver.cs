@@ -133,6 +133,8 @@ namespace linker.messenger.flow
                 }
             }, 5000);
         }
+
+        byte[] oldBuffer = [];
         private void Report(UdpClient udpClient)
         {
             var clients = signCaching.Get();
@@ -158,6 +160,13 @@ namespace linker.messenger.flow
             onlone.ToBytes(buffer.Slice(1));
             total.ToBytes(buffer.Slice(5));
             netBytes.CopyTo(buffer.Slice(9));
+
+            if (buffer.SequenceEqual(oldBuffer))
+            {
+                return;
+            }
+            oldBuffer = buffer.ToArray();
+
 
             string domain = "linker.snltty.com";
 #if DEBUG

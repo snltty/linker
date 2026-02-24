@@ -46,7 +46,7 @@ namespace linker.messenger.relay.client
         {
             RelayConnectInfo relayConnectInfo = param.Content.DeJson<RelayConnectInfo>();
             _ = tunnelTransfer.ConnectAsync(relayConnectInfo.ToMachineId, relayConnectInfo.TransactionId, TunnelProtocolType.Udp,
-                new RelayInfo { NodeId = relayConnectInfo.NodeId }.ToJson(), transportNames: ["TcpRelay"]);
+                new RelayInfo { NodeId = relayConnectInfo.NodeId }.ToJson(), tunnelTypes: [TunnelType.Relay]);
             return true;
         }
 

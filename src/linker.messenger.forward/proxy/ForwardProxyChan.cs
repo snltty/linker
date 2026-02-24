@@ -15,8 +15,6 @@ namespace linker.messenger.forward.proxy
     public partial class ForwardProxy : Channel, ITunnelConnectionReceiveCallback
     {
         private readonly ConcurrentDictionary<int, ForwardProxyCacheInfo> caches = new ConcurrentDictionary<int, ForwardProxyCacheInfo>();
-        private readonly ConcurrentDictionary<string, SemaphoreSlim> locks = new ConcurrentDictionary<string, SemaphoreSlim>();
-        private readonly SemaphoreSlim slimGlobal = new SemaphoreSlim(1);
 
         protected override string TransactionId => "forward";
 
@@ -33,36 +31,6 @@ namespace linker.messenger.forward.proxy
         protected override void Connected(ITunnelConnection connection)
         {
             connection.BeginReceive(this, null);
-        }
-
-        /// <summary>
-        /// 锁
-        /// </summary>
-        /// <param name="machineId"></param>
-        /// <returns></returns>
-        protected override async ValueTask<bool> WaitAsync(string machineId)
-        {
-            //不要同时去连太多，锁以下
-            await slimGlobal.WaitAsync().ConfigureAwait(false);
-            if (locks.TryGetValue(machineId, out SemaphoreSlim slim) == false)
-            {
-                slim = new SemaphoreSlim(1);
-                locks.TryAdd(machineId, slim);
-            }
-            slimGlobal.Release();
-            await slim.WaitAsync().ConfigureAwait(false);
-            return true;
-        }
-        /// <summary>
-        /// 释放锁
-        /// </summary>
-        /// <param name="machineId"></param>
-        protected override void WaitRelease(string machineId)
-        {
-            if (locks.TryGetValue(machineId, out SemaphoreSlim slim))
-            {
-                slim.Release();
-            }
         }
 
         /// <summary>

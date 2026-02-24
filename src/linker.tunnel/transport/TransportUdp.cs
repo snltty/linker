@@ -31,6 +31,7 @@ namespace linker.tunnel.transport
 
         public TunnelProtocolType ProtocolType => TunnelProtocolType.Udp;
         public TunnelWanPortProtocolType AllowWanPortProtocolType => TunnelWanPortProtocolType.Udp;
+        public TunnelType TunnelType => TunnelType.P2P;
         public bool Reverse => true;
 
         public bool DisableReverse => false;
@@ -188,7 +189,7 @@ namespace linker.tunnel.transport
                     TransportName = Name,
                     Direction = tunnelTransportInfo.Direction,
                     ProtocolType = ProtocolType,
-                    Type = TunnelType.P2P,
+                    Type = TunnelType,
                     Mode = TunnelMode.Client,
                     Label = string.Empty,
                     Receive = true,
@@ -418,7 +419,7 @@ namespace linker.tunnel.transport
                         RemoteMachineName = state.Remote.MachineName,
                         Direction = state.Direction,
                         ProtocolType = TunnelProtocolType.Udp,
-                        Type = TunnelType.P2P,
+                        Type = TunnelType,
                         Mode = TunnelMode.Server,
                         TransactionId = state.TransactionId,
                         TransactionTag = state.TransactionTag,

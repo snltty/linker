@@ -40,16 +40,16 @@ do
             fi
 		done
 		cd public/publish/docker/linux-${p}-x64/${f}
-		docker buildx build -f ${target}/public/publish/docker/linux-${p}-x64/${f}/Dockerfile-${p} --platform="linux/x86_64"  --force-rm -t "${image}-${p}-x64:latest" -t "${image}-${p}-x64:v1.9.9" . --push
+		docker buildx build -f ${target}/public/publish/docker/linux-${p}-x64/${f}/Dockerfile-${p} --platform="linux/x86_64"  --force-rm -t "${image}-${p}-x64:latest" -t "${image}-${p}-x64:v2.0.0" . --push
 		cd ../../../../../
 
 
 		cd public/publish/docker/linux-${p}-arm64/${f}
-		docker buildx build -f ${target}/public/publish/docker/linux-${p}-arm64/${f}/Dockerfile-${p} --platform="linux/arm64"  --force-rm -t "${image}-${p}-arm64:latest" -t "${image}-${p}-arm64:v1.9.9" . --push
+		docker buildx build -f ${target}/public/publish/docker/linux-${p}-arm64/${f}/Dockerfile-${p} --platform="linux/arm64"  --force-rm -t "${image}-${p}-arm64:latest" -t "${image}-${p}-arm64:v2.0.0" . --push
 		cd ../../../../../
 
         cd public/publish/docker/linux-${p}-arm/${f}
-		docker buildx build -f ${target}/public/publish/docker/linux-${p}-arm/${f}/Dockerfile-${p} --platform="linux/arm/v7"  --force-rm -t "${image}-${p}-arm:latest" -t "${image}-${p}-arm:v1.9.9" . --push
+		docker buildx build -f ${target}/public/publish/docker/linux-${p}-arm/${f}/Dockerfile-${p} --platform="linux/arm/v7"  --force-rm -t "${image}-${p}-arm:latest" -t "${image}-${p}-arm:v2.0.0" . --push
 		cd ../../../../../
 	done
 done

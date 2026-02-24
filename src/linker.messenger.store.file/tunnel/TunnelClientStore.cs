@@ -88,6 +88,7 @@ namespace linker.messenger.store.file.tunnel
                     item.DisableSSL = transport.DisableSSL;
                     item.Name = transport.Name;
                     item.Label = transport.Label;
+                    item.TunnelType = transport.TunnelType;
                     if (transport.DisableReverse)
                     {
                         item.Reverse = transport.Reverse;
@@ -115,7 +116,8 @@ namespace linker.messenger.store.file.tunnel
                 DisableReverse = c.DisableReverse,
                 SSL = c.SSL,
                 DisableSSL = c.DisableSSL,
-                Order = c.Order
+                Order = c.Order,
+                TunnelType = c.TunnelType
             }).ToList());
         }
         private bool Rebuild(List<TunnelTransportItemInfo> currents, List<TunnelTransportItemInfo> news)
@@ -134,7 +136,8 @@ namespace linker.messenger.store.file.tunnel
                     SSL = c.SSL,
                     DisableSSL = c.DisableSSL,
                     Order = c.Order,
-                    Addr = c.Addr
+                    Addr = c.Addr,
+                    TunnelType = c.TunnelType
                 }));
             }
             //有已移除的协议

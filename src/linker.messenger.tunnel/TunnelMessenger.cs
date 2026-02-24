@@ -291,7 +291,7 @@ namespace linker.messenger.tunnel
                             RequestId = requestid,
                         }, (ushort)TunnelMessengerIds.TransportGetForward).ConfigureAwait(false);
                     }
-                });
+                }).ConfigureAwait(false);
             }
         }
         [MessengerId((ushort)TunnelMessengerIds.TransportSetForward)]

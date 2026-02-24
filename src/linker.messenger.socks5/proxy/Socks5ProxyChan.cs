@@ -6,16 +6,11 @@ using System.Net.Sockets;
 using linker.libs.socks5;
 using System.Buffers.Binary;
 using System.Text;
-using System.Collections.Concurrent;
 
 namespace linker.messenger.socks5
 {
     public partial class Socks5Proxy : ITunnelConnectionReceiveCallback
     {
-        private readonly NumberSpace ns = new NumberSpace();
-        private readonly ConcurrentDictionary<string, SemaphoreSlim> locks = new ConcurrentDictionary<string, SemaphoreSlim>();
-        private readonly SemaphoreSlim slimGlobal = new SemaphoreSlim(1);
-
         private ILinkerSocks5Hook[] hooks = [];
 
         public void Start(IPEndPoint ep, byte bufferSize)
@@ -30,36 +25,6 @@ namespace linker.messenger.socks5
         protected override void Connected(ITunnelConnection connection)
         {
             connection.BeginReceive(this, null);
-        }
-
-        /// <summary>
-        /// 锁
-        /// </summary>
-        /// <param name="machineId"></param>
-        /// <returns></returns>
-        protected override async ValueTask<bool> WaitAsync(string machineId)
-        {
-            //不要同时去连太多，锁以下
-            await slimGlobal.WaitAsync().ConfigureAwait(false);
-            if (locks.TryGetValue(machineId, out SemaphoreSlim slim) == false)
-            {
-                slim = new SemaphoreSlim(1);
-                locks.TryAdd(machineId, slim);
-            }
-            slimGlobal.Release();
-            await slim.WaitAsync().ConfigureAwait(false);
-            return true;
-        }
-        /// <summary>
-        /// 释放锁
-        /// </summary>
-        /// <param name="machineId"></param>
-        protected override void WaitRelease(string machineId)
-        {
-            if (locks.TryGetValue(machineId, out SemaphoreSlim slim))
-            {
-                slim.Release();
-            }
         }
 
         /// <summary>

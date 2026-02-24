@@ -65,18 +65,10 @@ namespace linker.messenger.channel
         }
     }
 
-    internal class P2pTimesInfo
-    {
-        public long Ticks { get; set; }
-        public int Times { get; set; }
-    }
-
     public class Channel
     {
         public VersionManager Version => channelConnectionCaching.Version;
         public ConcurrentDictionary<string, ITunnelConnection> Connections => channelConnectionCaching[TransactionId];
-
-        private readonly ConcurrentDictionary<string, P2pTimesInfo> timess = new ConcurrentDictionary<string, P2pTimesInfo>();
 
         protected virtual string TransactionId { get; }
 
@@ -85,6 +77,7 @@ namespace linker.messenger.channel
         private readonly SignInClientTransfer signInClientTransfer;
         private readonly ISignInClientStore signInClientStore;
         private readonly ChannelConnectionCaching channelConnectionCaching;
+        private readonly OperatingMultipleManager operatingMultipleManager = new OperatingMultipleManager();
 
         public Channel(TunnelTransfer tunnelTransfer, PcpTransfer pcpTransfer,
             SignInClientTransfer signInClientTransfer, ISignInClientStore signInClientStore, ChannelConnectionCaching channelConnectionCaching)
@@ -127,119 +120,60 @@ namespace linker.messenger.channel
 
         }
 
-
-        protected virtual async ValueTask<bool> WaitAsync(string machineId)
-        {
-            await ValueTask.CompletedTask;
-            return true;
-        }
-        protected virtual void WaitRelease(string machineId)
-        {
-        }
         protected async ValueTask<ITunnelConnection> ConnectTunnel(string machineId, TunnelProtocolType denyProtocols)
         {
-            if (signInClientStore.Id == machineId)
-            {
-                return null;
-            }
             //之前这个客户端已经连接过
             if (channelConnectionCaching.TryGetValue(machineId, TransactionId, out ITunnelConnection connection) && connection.Connected)
             {
                 return connection;
             }
-            try
+
+            //开始失败，说明在操作中
+            if (operatingMultipleManager.StartOperation($"{machineId}@{TransactionId}") == false)
             {
-                //锁
-                if (await WaitAsync(machineId).ConfigureAwait(false) == false)
-                {
-                    return null;
-                }
-
-                //获得锁再次看看之前有没有连接成功
-                if (channelConnectionCaching.TryGetValue(machineId, TransactionId, out connection) && connection.Connected)
-                {
-                    return connection;
-                }
-                //不在线就不必连了
-                if (await signInClientTransfer.GetOnline(machineId).ConfigureAwait(false) == false)
-                {
-                    return null;
-                }
-
-                connection = await RelayAndP2P(machineId, denyProtocols).ConfigureAwait(false);
-
-                if (connection != null)
-                {
-                    channelConnectionCaching.Add(connection);
-                }
+                return null;
             }
-            catch (Exception)
+            _ = RelayAndP2P(machineId, denyProtocols).ContinueWith((result) =>
             {
-            }
-            finally
-            {
-                WaitRelease(machineId);
-            }
+                operatingMultipleManager.StopOperation($"{machineId}@{TransactionId}");
+                if (result.Result != null)
+                {
+                    channelConnectionCaching.Add(result.Result);
+                }
+            }).ConfigureAwait(false);
 
-            return connection;
+            return null;
         }
         private async Task<ITunnelConnection> RelayAndP2P(string machineId, TunnelProtocolType denyProtocols)
         {
-            ITunnelConnection connection = null;
-            //正在后台打洞
-            if (tunnelTransfer.IsBackground(machineId, TransactionId) == false)
+            if (signInClientStore.Id == machineId)
             {
-                string[] transportNames = IsP2pRecent(machineId);
-                //隧道连接
-                connection = await tunnelTransfer.ConnectAsync(machineId, TransactionId, denyProtocols, transportNames: transportNames).ConfigureAwait(false);
-                UpdateTimes(connection);
-                if ((connection == null || connection.Type == TunnelType.Relay) && transportNames.Length == 0)
-                {
-                    //后台打洞
-                    tunnelTransfer.StartBackground(machineId, TransactionId, denyProtocols, () =>
-                    {
-                        return channelConnectionCaching.TryGetValue(machineId, TransactionId, out ITunnelConnection connection)
-                        && connection.Connected
-                        && connection.Type != TunnelType.Relay;
+                return null;
+            }
+            //不在线就不必连了
+            if (await signInClientTransfer.GetOnline(machineId).ConfigureAwait(false) == false)
+            {
+                return null;
+            }
 
-                    }, async (_connection) =>
-                    {
-                        UpdateTimes(_connection);
-                        await Task.CompletedTask;
-                    }, 3, 10000);
-                }
+            ITunnelConnection connection = await tunnelTransfer.ConnectAsync(machineId, TransactionId, denyProtocols).ConfigureAwait(false);
+            if (connection != null && connection.Type != TunnelType.P2P)
+            {
+                //后台打洞
+                tunnelTransfer.StartBackground(machineId, TransactionId, denyProtocols, () =>
+                {
+                    return channelConnectionCaching.TryGetValue(machineId, TransactionId, out ITunnelConnection _connection)
+                    && _connection.Connected
+                    && _connection.Type == TunnelType.P2P;
+
+                }, async (_connection) =>
+                {
+                    await Task.CompletedTask;
+
+                }, 3, 10000);
             }
 
             return connection;
-        }
-
-        private void UpdateTimes(ITunnelConnection connection)
-        {
-            if (connection == null) return;
-            if (connection.Type == TunnelType.Relay) return;
-
-            if (timess.TryGetValue(connection.RemoteMachineId, out var times) == false)
-            {
-                times = new P2pTimesInfo();
-                timess.TryAdd(connection.RemoteMachineId, times);
-            }
-            if (Environment.TickCount64 - times.Ticks < 60000)
-            {
-                times.Times++;
-            }
-            else
-            {
-                times.Times = 0;
-            }
-            times.Ticks = Environment.TickCount64;
-        }
-        private string[] IsP2pRecent(string machineId)
-        {
-            if (timess.TryGetValue(machineId, out var times) && times.Times >= 3)
-            {
-                return ["TcpRelay"];
-            }
-            return [];
         }
     }
 }

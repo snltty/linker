@@ -170,20 +170,20 @@ namespace linker.tunnel
         /// <param name="exTransportNames">排除哪些协议名</param>
         /// <returns></returns>
         public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId,
-            TunnelProtocolType denyProtocols, string transactionTag = "", string[] transportNames = null, string[] exTransportNames = null)
+            TunnelProtocolType denyProtocols, string transactionTag = "", TunnelType[] tunnelTypes = null, TunnelType[] exTunnelTypes = null, CancellationToken token = default)
         {
             if (operating.StartOperation(BuildKey(remoteMachineId, transactionId)) == false) return null;
 
             try
             {
                 var query = (await tunnelMessengerAdapter.GetTunnelTransports(remoteMachineId).ConfigureAwait(false)).OrderBy(c => c.Order).Where(c => c.Disabled == false);
-                if (transportNames != null && transportNames.Length > 0)
+                if (tunnelTypes != null && tunnelTypes.Length > 0)
                 {
-                    query = query.Where(c => transportNames.Contains(c.Name));
+                    query = query.Where(c => tunnelTypes.Contains(c.TunnelType));
                 }
-                if (exTransportNames != null && exTransportNames.Length > 0)
+                if (exTunnelTypes != null && exTunnelTypes.Length > 0)
                 {
-                    query = query.Where(c => exTransportNames.Contains(c.Name) == false);
+                    query = query.Where(c => exTunnelTypes.Contains(c.TunnelType) == false);
                 }
 
                 foreach (TunnelTransportItemInfo transportItem in query.ToList())
@@ -213,6 +213,11 @@ namespace linker.tunnel
                         {
                             try
                             {
+                                if (token.IsCancellationRequested)
+                                {
+                                    return null;
+                                }
+
                                 //获取自己的外网ip
                                 Task<TunnelTransportWanPortInfo> localInfo = GetLocalInfo(wanPortProtocol);
                                 //获取对方的外网ip
@@ -511,7 +516,7 @@ namespace linker.tunnel
             return $"{remoteMachineId}@{transactionId}";
         }
 
-        private ConcurrentDictionary<string, bool> backgroundDic = new ConcurrentDictionary<string, bool>();
+        private ConcurrentDictionary<string, CancellationTokenSource> backgroundDic = new ConcurrentDictionary<string, CancellationTokenSource>();
         /// <summary>
         /// 开始后台打洞
         /// </summary>
@@ -519,8 +524,9 @@ namespace linker.tunnel
         /// <param name="transactionId"></param>
         public void StartBackground(string remoteMachineId, string transactionId, TunnelProtocolType denyProtocols, Func<bool> stopCallback, Func<ITunnelConnection, Task> resultCallback, int times = 10, int delay = 10000)
         {
-            if (AddBackground(remoteMachineId, transactionId) == false)
+            if (AddBackground(remoteMachineId, transactionId, out CancellationTokenSource cts) == false)
             {
+                cts.Cancel();
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Error($"tunnel background {remoteMachineId}@{transactionId} already exists");
                 return;
@@ -536,7 +542,7 @@ namespace linker.tunnel
                     {
                         if (stopCallback()) break;
 
-                        connection = await ConnectAsync(remoteMachineId, transactionId, denyProtocols, exTransportNames: ["TcpRelay"]).ConfigureAwait(false);
+                        connection = await ConnectAsync(remoteMachineId, transactionId, denyProtocols, exTunnelTypes: [TunnelType.Relay], token: cts.Token).ConfigureAwait(false);
                         if (connection != null)
                         {
                             break;
@@ -555,13 +561,17 @@ namespace linker.tunnel
                 }
             });
         }
-        private bool AddBackground(string remoteMachineId, string transactionId)
+        private bool AddBackground(string remoteMachineId, string transactionId, out CancellationTokenSource cts)
         {
-            return backgroundDic.TryAdd(GetBackgroundKey(remoteMachineId, transactionId), true);
+            cts = new CancellationTokenSource();
+            return backgroundDic.TryAdd(GetBackgroundKey(remoteMachineId, transactionId), cts);
         }
-        private void RemoveBackground(string remoteMachineId, string transactionId)
+        public void RemoveBackground(string remoteMachineId, string transactionId)
         {
-            backgroundDic.TryRemove(GetBackgroundKey(remoteMachineId, transactionId), out _);
+            if (backgroundDic.TryRemove(GetBackgroundKey(remoteMachineId, transactionId), out CancellationTokenSource cts))
+            {
+                cts.Cancel();
+            }
         }
         /// <summary>
         /// 是否正在后台打洞

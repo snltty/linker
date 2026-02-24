@@ -88,7 +88,7 @@ function writeUpload(data, tagName) {
         };
     }
     
-    
+    /*
     data.jobs.build.steps.push({
         name: `upload-version-oss`,
         id: `upload-version-oss`,
@@ -102,7 +102,7 @@ function writeUpload(data, tagName) {
             'target-path': `/downloads/linker/version.txt`
         }
     });
-    
+    */
     
     data.jobs.build.steps.push({
         name: `upload-install-service-oss`,

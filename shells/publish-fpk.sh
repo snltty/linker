@@ -10,7 +10,7 @@ cd ../../
 mkdir -p public/publish-fpk/docker
 cp -rf install-package/fpk/docker/* public/publish-fpk/docker
 
-sed -i "s|{version}|1.9.9|g" public/publish-fpk/docker/manifest
+sed -i "s|{version}|2.0.0|g" public/publish-fpk/docker/manifest
 sed -i 's/\r$//' public/publish-fpk/docker/manifest
 sed -i 's/\r$//' public/publish-fpk/docker/cmd/main
 sed -i 's/\r$//' public/publish-fpk/docker/cmd/uninstall_callback
@@ -49,7 +49,7 @@ do
     fi
 
 
-    sed -i "s|{version}|1.9.9|g" public/publish-fpk/bin/${r}/manifest
+    sed -i "s|{version}|2.0.0|g" public/publish-fpk/bin/${r}/manifest
     sed -i "s|{arch}|${arch}|g" public/publish-fpk/bin/${r}/manifest
     sed -i 's/\r$//' public/publish-fpk/bin/${r}/manifest
     sed -i 's/\r$//' public/publish-fpk/bin/${r}/cmd/main

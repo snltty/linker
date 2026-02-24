@@ -17,12 +17,11 @@ namespace linker.messenger.tuntap
         public ValueTask Receive(ITunnelConnection connection, ReadOnlyMemory<byte> packet);
     }
 
-    public class TuntapProxy : channel.Channel, ITunnelConnectionReceiveCallback
+    public class TuntapProxy : Channel, ITunnelConnectionReceiveCallback
     {
         public ITuntapProxyCallback Callback { get; set; }
         protected override string TransactionId => "tuntap";
 
-        private readonly OperatingMultipleManager operatingMultipleManager = new OperatingMultipleManager();
         private readonly TuntapConfigTransfer tuntapConfigTransfer;
         private readonly TuntapCidrConnectionManager tuntapCidrConnectionManager;
         private readonly TuntapCidrDecenterManager tuntapCidrDecenterManager;
@@ -32,7 +31,7 @@ namespace linker.messenger.tuntap
         public TuntapProxy(ISignInClientStore signInClientStore,
             TunnelTransfer tunnelTransfer, PcpTransfer pcpTransfer,
             SignInClientTransfer signInClientTransfer, TuntapConfigTransfer tuntapConfigTransfer,
-            TuntapCidrConnectionManager tuntapCidrConnectionManager, TuntapCidrDecenterManager tuntapCidrDecenterManager, 
+            TuntapCidrConnectionManager tuntapCidrConnectionManager, TuntapCidrDecenterManager tuntapCidrDecenterManager,
             TuntapCidrMapfileManager tuntapCidrMapfileManager, TuntapDecenter tuntapDecenter, ChannelConnectionCaching channelConnectionCaching)
             : base(tunnelTransfer, pcpTransfer, signInClientTransfer, signInClientStore, channelConnectionCaching)
         {
@@ -101,21 +100,7 @@ namespace linker.messenger.tuntap
                 return;
             }
 
-            //开始操作，开始失败直接丢包
-            if (operatingMultipleManager.StartOperation(ip) == false)
-            {
-                return;
-            }
-            _ = ConnectTunnel(ip).ContinueWith((result, state) =>
-            {
-                //结束操作
-                operatingMultipleManager.StopOperation((uint)state);
-                //连接成功就缓存隧道
-                if (result.Result != null)
-                {
-                    tuntapCidrConnectionManager.Add((uint)state, result.Result);
-                }
-            }, ip);
+            await ConnectTunnel(ip).ConfigureAwait(false);
 
         }
         public async Task InputPacket(LinkerSrcProxyReadPacket packet)
@@ -127,20 +112,8 @@ namespace linker.messenger.tuntap
                 return;
             }
 
-            //开始操作，开始失败直接丢包
-            if (operatingMultipleManager.StartOperation(packet.DstAddr))
-            {
-                _ = ConnectTunnel(packet.DstAddr).ContinueWith((result, state) =>
-                {
-                    //结束操作
-                    operatingMultipleManager.StopOperation((uint)state);
-                    //连接成功就缓存隧道
-                    if (result.Result != null)
-                    {
-                        tuntapCidrConnectionManager.Add((uint)state, result.Result);
-                    }
-                }, packet.DstAddr);
-            }
+            await ConnectTunnel(packet.DstAddr).ConfigureAwait(false);
+
         }
         public bool TestIp(uint ip)
         {
@@ -148,19 +121,8 @@ namespace linker.messenger.tuntap
             {
                 return connection.PacketBuffer.Length > 0;
             }
-            if (operatingMultipleManager.StartOperation(ip))
-            {
-                _ = ConnectTunnel(ip).ContinueWith((result, state) =>
-                {
-                    //结束操作
-                    operatingMultipleManager.StopOperation((uint)state);
-                    //连接成功就缓存隧道
-                    if (result.Result != null)
-                    {
-                        tuntapCidrConnectionManager.Add((uint)state, result.Result);
-                    }
-                }, ip);
-            }
+            _ = ConnectTunnel(ip).ConfigureAwait(false);
+
             return false;
         }
 
@@ -170,18 +132,22 @@ namespace linker.messenger.tuntap
         /// </summary>
         /// <param name="ip"></param>
         /// <returns></returns>
-        private async Task<ITunnelConnection> ConnectTunnel(uint ip)
+        private async Task ConnectTunnel(uint ip)
         {
+            ITunnelConnection connection = null;
+
             if (tuntapCidrDecenterManager.FindValue(ip, out string machineId))
             {
-                return await ConnectTunnel(machineId, TunnelProtocolType.Quic).ConfigureAwait(false);
+                connection = await ConnectTunnel(machineId, TunnelProtocolType.Quic).ConfigureAwait(false);
             }
-            if (tuntapCidrMapfileManager.FindValue(ip, out machineId))
+            else if (tuntapCidrMapfileManager.FindValue(ip, out machineId))
             {
-                return await ConnectTunnel(machineId, TunnelProtocolType.Quic).ConfigureAwait(false);
+                connection = await ConnectTunnel(machineId, TunnelProtocolType.Quic).ConfigureAwait(false);
             }
-            return null;
-
+            if (connection != null)
+            {
+                tuntapCidrConnectionManager.Add(ip, connection);
+            }
         }
     }
 }

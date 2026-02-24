@@ -172,9 +172,12 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         Addrs Addr => tunnelTransportItemInfo.Addr;
 
+        [MemoryPackInclude]
+        TunnelType TunnelType => tunnelTransportItemInfo.TunnelType;
+
 
         [MemoryPackConstructor]
-        SerializableTunnelTransportItemInfo(string name, string label, string protocolType, bool disabled, bool reverse, bool ssl, byte buffersize, byte order, Addrs addr)
+        SerializableTunnelTransportItemInfo(string name, string label, string protocolType, bool disabled, bool reverse, bool ssl, byte buffersize, byte order, Addrs addr, TunnelType tunnelType)
         {
             var tunnelTransportItemInfo = new TunnelTransportItemInfo
             {
@@ -186,7 +189,8 @@ namespace linker.messenger.serializer.memorypack
                 SSL = ssl,
                 BufferSize = buffersize,
                 Order = order,
-                 Addr = addr
+                Addr = addr,
+                TunnelType = tunnelType
             };
             this.tunnelTransportItemInfo = tunnelTransportItemInfo;
         }
@@ -229,6 +233,9 @@ namespace linker.messenger.serializer.memorypack
             value.Order = reader.ReadValue<byte>();
             if (count > 8)
                 value.Addr = reader.ReadValue<Addrs>();
+
+            if (count > 9)
+                value.TunnelType = reader.ReadValue<TunnelType>();
         }
     }
 

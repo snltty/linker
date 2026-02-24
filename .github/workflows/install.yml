@@ -44,7 +44,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-ipk/x64/linker-x64.ipk
-          target-path: /downloads/linker/v1.9.9/linker-x64.ipk
+          target-path: /downloads/linker/v2.0.0/linker-x64.ipk
       - name: upload-x64
         id: upload-x64
         uses: actions/upload-release-asset@master
@@ -64,7 +64,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-ipk/arm/linker-arm.ipk
-          target-path: /downloads/linker/v1.9.9/linker-arm.ipk
+          target-path: /downloads/linker/v2.0.0/linker-arm.ipk
       - name: upload-arm
         id: upload-arm
         uses: actions/upload-release-asset@master
@@ -84,7 +84,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-ipk/arm64/linker-arm64.ipk
-          target-path: /downloads/linker/v1.9.9/linker-arm64.ipk
+          target-path: /downloads/linker/v2.0.0/linker-arm64.ipk
       - name: upload-arm64
         id: upload-arm64
         uses: actions/upload-release-asset@master
@@ -104,7 +104,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-fpk/docker/linker-docker.fpk
-          target-path: /downloads/linker/v1.9.9/linker-docker.fpk
+          target-path: /downloads/linker/v2.0.0/linker-docker.fpk
       - name: upload-docker-fpk
         id: upload-docker-fpk
         uses: actions/upload-release-asset@master
@@ -124,7 +124,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-fpk/bin/x64/linker-bin-x64.fpk
-          target-path: /downloads/linker/v1.9.9/linker-bin-x64.fpk
+          target-path: /downloads/linker/v2.0.0/linker-bin-x64.fpk
       - name: upload-bin-fpk-x64
         id: upload-bin-fpk-x64
         uses: actions/upload-release-asset@master
@@ -144,7 +144,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-fpk/bin/arm64/linker-bin-arm64.fpk
-          target-path: /downloads/linker/v1.9.9/linker-bin-arm64.fpk
+          target-path: /downloads/linker/v2.0.0/linker-bin-arm64.fpk
       - name: upload-bin-fpk-arm64
         id: upload-bin-fpk-arm64
         uses: actions/upload-release-asset@master

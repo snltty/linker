@@ -3,15 +3,18 @@ using System.Collections.Concurrent;
 using linker.tunnel.connection;
 using linker.messenger.api;
 using linker.libs.web;
+using linker.tunnel;
 
 namespace linker.messenger.channel
 {
     public sealed class ChannelApiController : IApiController
     {
         private readonly ChannelConnectionCaching channelConnectionCaching;
-        public ChannelApiController(ChannelConnectionCaching channelConnectionCaching)
+        private readonly TunnelTransfer tunnelTransfer;
+        public ChannelApiController(ChannelConnectionCaching channelConnectionCaching, TunnelTransfer tunnelTransfer)
         {
             this.channelConnectionCaching = channelConnectionCaching;
+            this.tunnelTransfer = tunnelTransfer;
         }
 
         public ConnectionListInfo Get(ApiControllerParamsInfo param)
@@ -33,9 +36,8 @@ namespace linker.messenger.channel
         {
             RemoveInfo info = param.Content.DeJson<RemoveInfo>();
             channelConnectionCaching.Remove(info.MachineId, info.TransactionId);
+            tunnelTransfer.RemoveBackground(info.MachineId, info.TransactionId);
         }
-
-
     }
 
     public sealed class RemoveInfo

@@ -27,6 +27,7 @@ namespace linker.tunnel.transport
 
         public TunnelProtocolType ProtocolType => TunnelProtocolType.Quic;
         public TunnelWanPortProtocolType AllowWanPortProtocolType => TunnelWanPortProtocolType.Udp;
+        public TunnelType TunnelType =>  TunnelType.P2P;
         public bool Reverse => true;
 
         public bool DisableReverse => false;
@@ -39,6 +40,7 @@ namespace linker.tunnel.transport
 
         public Action<ITunnelConnection> OnConnected { get; set; } = (state) => { };
 
+       
 
         private ConcurrentDictionary<int, ListenAsyncToken> stateDic = new ConcurrentDictionary<int, ListenAsyncToken>();
         private byte[] authBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.udp.ttl1");
@@ -251,7 +253,7 @@ namespace linker.tunnel.transport
                     TransportName = Name,
                     Direction = tunnelTransportInfo.Direction,
                     ProtocolType = ProtocolType,
-                    Type = TunnelType.P2P,
+                    Type = TunnelType,
                     Mode = TunnelMode.Client,
                     Label = string.Empty,
                     BufferSize = tunnelTransportInfo.BufferSize
@@ -653,7 +655,7 @@ namespace linker.tunnel.transport
                         ProtocolType = TunnelProtocolType.Quic,
                         Stream = stream,
                         Connection = quicConnection,
-                        Type = TunnelType.P2P,
+                        Type = TunnelType,
                         Mode = TunnelMode.Server,
                         TransactionId = state.TransactionId,
                         TransactionTag = state.TransactionTag,

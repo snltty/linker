@@ -23,6 +23,7 @@ namespace linker.tunnel.transport
         public string Label => "UDP、同时打开";
         public TunnelProtocolType ProtocolType => TunnelProtocolType.Udp;
         public TunnelWanPortProtocolType AllowWanPortProtocolType => TunnelWanPortProtocolType.Udp;
+        public TunnelType TunnelType => TunnelType.P2P;
         public bool Reverse => true;
 
         public bool DisableReverse => false;
@@ -153,7 +154,7 @@ namespace linker.tunnel.transport
                         RemoteMachineName = tunnelTransportInfo.Remote.MachineName,
                         Direction = tunnelTransportInfo.Direction,
                         ProtocolType = TunnelProtocolType.Udp,
-                        Type = TunnelType.P2P,
+                        Type = TunnelType,
                         Mode = mode,
                         TransactionId = tunnelTransportInfo.TransactionId,
                         TransactionTag = tunnelTransportInfo.TransactionTag,

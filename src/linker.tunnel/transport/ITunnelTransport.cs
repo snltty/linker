@@ -23,6 +23,9 @@ namespace linker.tunnel.transport
         /// 允许哪些端口协议
         /// </summary>
         public TunnelWanPortProtocolType AllowWanPortProtocolType { get; }
+
+        public TunnelType TunnelType { get; }
+
         /// <summary>
         /// 是否反向打洞
         /// </summary>
@@ -163,6 +166,8 @@ namespace linker.tunnel.transport
         public byte Order { get; set; }
 
         public Addrs Addr { get; set; } = Addrs.Ipv6 | Addrs.Ipv4 | Addrs.Lan;
+
+        public TunnelType TunnelType { get; set; }
     }
 
     public enum Addrs : byte

@@ -24,6 +24,7 @@ namespace linker.tunnel.transport
         public TunnelProtocolType ProtocolType => TunnelProtocolType.Tcp;
 
         public TunnelWanPortProtocolType AllowWanPortProtocolType => TunnelWanPortProtocolType.Other;
+        public TunnelType TunnelType => TunnelType.Relay;
 
         public bool Reverse => false;
 
@@ -116,7 +117,7 @@ namespace linker.tunnel.transport
                     IPEndPoint = NetworkHelper.TransEndpointFamily(socket.RemoteEndPoint as IPEndPoint),
                     TransactionId = tunnelTransportInfo.TransactionId,
                     TransportName = Name,
-                    Type = TunnelType.Relay,
+                    Type = TunnelType,
                     NodeId = ask.Info.NodeId,
                     SSL = tunnelTransportInfo.SSL,
                     BufferSize = 3
@@ -359,7 +360,7 @@ namespace linker.tunnel.transport
                     IPEndPoint = NetworkHelper.TransEndpointFamily(socket.RemoteEndPoint as IPEndPoint),
                     TransactionId = tunnelTransportInfo.TransactionId,
                     TransportName = Name,
-                    Type = TunnelType.Relay,
+                    Type = TunnelType,
                     NodeId = relayInfo.NodeId,
                     SSL = tunnelTransportInfo.SSL,
                     BufferSize = 3,
