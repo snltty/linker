@@ -166,13 +166,18 @@ namespace linker.tunnel
         /// <param name="transactionId">事务id，随便起，你喜欢就好</param>
         /// <param name="transactionTag">事务tag，随便起，你喜欢就好</param>
         /// <param name="denyProtocols">本次连接排除那些打洞协议</param>
-        /// <param name="transportNames">只要哪些协议名</param>
-        /// <param name="exTransportNames">排除哪些协议名</param>
+        /// <param name="tunnelTypes">只要哪些协议名</param>
+        /// <param name="exTunnelTypes">排除哪些协议名</param>
         /// <returns></returns>
         public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId,
-            TunnelProtocolType denyProtocols, string transactionTag = "", TunnelType[] tunnelTypes = null, TunnelType[] exTunnelTypes = null, CancellationToken token = default)
+            TunnelProtocolType denyProtocols, string transactionTag = "", string flag = "default", TunnelType[] tunnelTypes = null, TunnelType[] exTunnelTypes = null, CancellationToken token = default)
         {
-            if (operating.StartOperation(BuildKey(remoteMachineId, transactionId)) == false) return null;
+
+            string key = BuildKey(remoteMachineId, transactionId, flag);
+            if (operating.StartOperation(key) == false)
+            {
+                return null;
+            }
 
             try
             {
@@ -258,6 +263,7 @@ namespace linker.tunnel
                                     Remote = remoteInfo.Result,
                                     SSL = transportItem.SSL,
                                     FlowId = Interlocked.Increment(ref flowid),
+                                    Flag = flag
                                 };
                                 OnConnecting(tunnelTransportInfo);
                                 ParseRemoteEndPoint(tunnelTransportInfo, transportItem.Addr);
@@ -292,7 +298,7 @@ namespace linker.tunnel
             }
             finally
             {
-                operating.StopOperation(BuildKey(remoteMachineId, transactionId));
+                operating.StopOperation(key);
             }
             return null;
         }
@@ -302,8 +308,8 @@ namespace linker.tunnel
         /// <param name="tunnelTransportInfo"></param>
         public async Task OnBegin(TunnelTransportInfo tunnelTransportInfo)
         {
-
-            if (operating.StartOperation(BuildKey(tunnelTransportInfo.Remote.MachineId, tunnelTransportInfo.TransactionId)) == false)
+            string key = BuildKey(tunnelTransportInfo.Remote.MachineId, tunnelTransportInfo.TransactionId, tunnelTransportInfo.Flag);
+            if (operating.StartOperation(key) == false)
             {
                 return;
             }
@@ -320,18 +326,18 @@ namespace linker.tunnel
                     ParseRemoteEndPoint(tunnelTransportInfo, item.Addr);
                     _ = transport.OnBegin(tunnelTransportInfo).ContinueWith((result) =>
                     {
-                        operating.StopOperation(BuildKey(tunnelTransportInfo.Remote.MachineId, tunnelTransportInfo.TransactionId));
+                        operating.StopOperation(key);
                     });
                 }
                 else
                 {
-                    operating.StopOperation(BuildKey(tunnelTransportInfo.Remote.MachineId, tunnelTransportInfo.TransactionId));
+                    operating.StopOperation(key);
                     _ = tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo);
                 }
             }
             catch (Exception ex)
             {
-                operating.StopOperation(BuildKey(tunnelTransportInfo.Remote.MachineId, tunnelTransportInfo.TransactionId));
+                operating.StopOperation(key);
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
                     LoggerHelper.Instance.Error(ex);
@@ -511,9 +517,14 @@ namespace linker.tunnel
 
             tunnelTransportInfo.RemoteEndPoints = eps;
         }
-        private static string BuildKey(string remoteMachineId, string transactionId)
+        private static string BuildKey(string remoteMachineId, string transactionId, string flag)
         {
-            return $"{remoteMachineId}@{transactionId}";
+            if (string.IsNullOrWhiteSpace(flag))
+            {
+                return $"{remoteMachineId}@{transactionId}";
+            }
+
+            return $"{remoteMachineId}@{transactionId}@{flag}";
         }
 
         private ConcurrentDictionary<string, CancellationTokenSource> backgroundDic = new ConcurrentDictionary<string, CancellationTokenSource>();

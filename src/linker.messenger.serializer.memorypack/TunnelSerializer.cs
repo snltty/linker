@@ -277,9 +277,12 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         string TransactionTag => tunnelTransportInfo.TransactionTag;
 
+        [MemoryPackInclude]
+        string Flag => tunnelTransportInfo.Flag;
+
         [MemoryPackConstructor]
         SerializableTunnelTransportInfo(TunnelTransportWanPortInfo local, TunnelTransportWanPortInfo remote, string transactionId,
-            TunnelProtocolType transportType, string transportName, TunnelDirection direction, bool ssl, byte bufferSize, uint flowid, string transactionTag)
+            TunnelProtocolType transportType, string transportName, TunnelDirection direction, bool ssl, byte bufferSize, uint flowid, string transactionTag, string flag)
         {
             var tunnelTransportInfo = new TunnelTransportInfo
             {
@@ -292,7 +295,8 @@ namespace linker.messenger.serializer.memorypack
                 SSL = ssl,
                 BufferSize = bufferSize,
                 FlowId = flowid,
-                TransactionTag = transactionTag
+                TransactionTag = transactionTag,
+                Flag = flag
             };
             this.tunnelTransportInfo = tunnelTransportInfo;
         }
@@ -337,6 +341,8 @@ namespace linker.messenger.serializer.memorypack
             value.FlowId = reader.ReadValue<uint>();
             if (count > 9)
                 value.TransactionTag = reader.ReadValue<string>();
+            if (count > 10)
+                value.Flag = reader.ReadValue<string>();
         }
     }
 

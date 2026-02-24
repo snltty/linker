@@ -228,6 +228,8 @@ namespace linker.tunnel.transport
         /// 目标ip列表
         /// </summary>
         public List<IPEndPoint> RemoteEndPoints { get; set; }
+
+        public string Flag { get; set; }
     }
 
 
