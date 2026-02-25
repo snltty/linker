@@ -36,7 +36,7 @@ namespace linker.tunnel.wanport
         /// <returns></returns>
         public async Task<TunnelWanPortEndPoint> GetWanPortAsync(IPEndPoint server, TunnelWanPortProtocolType protocolType)
         {
-            var tunnelWanPort = tunnelWanPorts.FirstOrDefault(c => c.ProtocolType == protocolType);
+            var tunnelWanPort = tunnelWanPorts.FirstOrDefault(c => (c.ProtocolType & protocolType) == c.ProtocolType);
             if (tunnelWanPort == null)
             {
                 LoggerHelper.Instance.Error($"wan port protocol <{protocolType}> not found");

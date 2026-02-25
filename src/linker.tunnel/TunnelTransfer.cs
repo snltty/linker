@@ -553,7 +553,7 @@ namespace linker.tunnel
                     {
                         if (stopCallback()) break;
 
-                        connection = await ConnectAsync(remoteMachineId, transactionId, denyProtocols, exTunnelTypes: [TunnelType.Relay], token: cts.Token).ConfigureAwait(false);
+                        connection = await ConnectAsync(remoteMachineId, transactionId, denyProtocols, flag: "back", tunnelTypes: [TunnelType.P2P], token: cts.Token).ConfigureAwait(false);
                         if (connection != null)
                         {
                             break;

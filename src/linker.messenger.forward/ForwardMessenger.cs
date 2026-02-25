@@ -246,6 +246,4 @@ namespace linker.messenger.forward
             });
         }
     }
-
-
 }

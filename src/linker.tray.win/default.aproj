@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<project ver="10" name="linker.tray.win" libEmbed="true" icon="..\linker\favicon.ico" ui="win" output="linker.tray.win.exe" CompanyName="snltty" FileDescription="linker.tray.win" LegalCopyright="Copyright (C) snltty 2024" ProductName="linker.tray.win" InternalName="linker.install.win" FileVersion="0.0.0.352" ProductVersion="0.0.0.352" publishDir="/dist/" dstrip="false" local="false" ignored="false">
+<project ver="10" name="linker.tray.win" libEmbed="true" icon="..\linker\favicon.ico" ui="win" output="linker.tray.win.exe" CompanyName="snltty" FileDescription="linker.tray.win" LegalCopyright="Copyright (C) snltty 2024" ProductName="linker.tray.win" InternalName="linker.install.win" FileVersion="0.0.0.375" ProductVersion="0.0.0.375" publishDir="/dist/" dstrip="false" local="false" ignored="false">
 	<file name="main.aardio" path="main.aardio" comment="main.aardio"/>
 	<folder name="资源文件" path="res" embed="true" local="false" ignored="false">
 		<file name="favicon.ico" path="res\favicon.ico" comment="res\favicon.ico"/>

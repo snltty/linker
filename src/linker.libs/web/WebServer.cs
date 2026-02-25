@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace linker.libs.web
 {
@@ -191,42 +192,73 @@ namespace linker.libs.web
                     Content = "password ok",
                 }.ToJson().ToBytes(), WebSocketMessageType.Text, true, CancellationToken.None).ConfigureAwait(false);
 
-                while (websocket.State == WebSocketState.Open)
-                {
-                    try
-                    {
-                        ValueWebSocketReceiveResult _result = await websocket.ReceiveAsync(buffer.Memory, CancellationToken.None);
-                        switch (_result.MessageType)
-                        {
-                            case WebSocketMessageType.Text:
-                                {
-                                    req = Encoding.UTF8.GetString(buffer.Memory.Slice(0, _result.Count).Span).DeJson<ApiControllerRequestInfo>();
-                                    ApiControllerRequestInfo _req = req;
-                                    _req.Connection = websocket;
-                                    var resp = await OnMessage(_req).ConfigureAwait(false);
-                                    await resp.Connection.SendAsync(resp.ToJson().ToBytes(), WebSocketMessageType.Text, true, CancellationToken.None).ConfigureAwait(false);
-                                }
-                                break;
-                            case WebSocketMessageType.Binary:
-                                break;
-                            case WebSocketMessageType.Close:
-                                await websocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed by client", CancellationToken.None).ConfigureAwait(false);
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        LoggerHelper.Instance.Error($"{req.Path}->{ex}");
-                    }
-                }
+
+                req.Connection = websocket;
+                req.SendLock = new SemaphoreSlim(1, 1);
+                await HandConnection(req, buffer).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
+                
                 LoggerHelper.Instance.Error(ex);
             }
+            finally
+            {
+                try
+                {
+                    websocket.Dispose();
+                }
+                catch (Exception)
+                {
+                }
+            }
         }
+
+
+        private async Task HandConnection(ApiControllerRequestInfo req, IMemoryOwner<byte> buffer)
+        {
+            while (req.Connection.State == WebSocketState.Open)
+            {
+                try
+                {
+                    ValueWebSocketReceiveResult _result = await req.Connection.ReceiveAsync(buffer.Memory, CancellationToken.None);
+                    switch (_result.MessageType)
+                    {
+                        case WebSocketMessageType.Text:
+                            {
+                                ApiControllerRequestInfo _req = Encoding.UTF8.GetString(buffer.Memory.Slice(0, _result.Count).Span).DeJson<ApiControllerRequestInfo>();
+                                _req.Connection = req.Connection;
+                                _req.SendLock = req.SendLock;
+                                _ = OnMessage(_req).ContinueWith(async (result) =>
+                                {
+                                    await _req.SendLock.WaitAsync();
+                                    try
+                                    {
+                                        await _req.Connection.SendAsync(result.Result.ToJson().ToBytes(), WebSocketMessageType.Text, true, CancellationToken.None).ConfigureAwait(false);
+                                    }
+                                    finally
+                                    {
+                                        _req.SendLock.Release();
+                                    }
+                                }).ConfigureAwait(false);
+                            }
+                            break;
+                        case WebSocketMessageType.Binary:
+                            break;
+                        case WebSocketMessageType.Close:
+                            await req.Connection.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed by client", CancellationToken.None).ConfigureAwait(false);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LoggerHelper.Instance.Error($"{req.Path}->{ex}");
+                }
+            }
+        }
+
         private async Task<ApiControllerResponseInfo> OnMessage(ApiControllerRequestInfo model)
         {
             model.Path = model.Path.ToLower();

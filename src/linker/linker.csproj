@@ -16,7 +16,9 @@
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Description>1. 一些累计更新，一些BUG修复
-2. #92 后台打洞影响了中继</Description>
+2. #92 后台打洞影响了中继
+3. #89 windows下利用任务计划进行进程守护，定时检查服务
+4. 优化客户端管理ws并发</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>

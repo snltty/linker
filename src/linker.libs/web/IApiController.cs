@@ -2,6 +2,7 @@
 using System;
 using System.Net.WebSockets;
 using System.Text.Json.Serialization;
+using System.Threading;
 
 namespace linker.libs.web
 {
@@ -55,6 +56,8 @@ namespace linker.libs.web
         /// 数据
         /// </summary>
         public string Content { get; set; } = string.Empty;
+
+        public SemaphoreSlim SendLock { get; set; }
     }
 
     /// <summary>

@@ -19,7 +19,7 @@ jobs:
           release_name: v2.0.0.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 一些累计更新，一些BUG修复\r\n2. #92 后台打洞影响了中继"
+          body: "1. 一些累计更新，一些BUG修复\r\n2. #92 后台打洞影响了中继\r\n3. #89 windows下利用任务计划进行进程守护，定时检查服务\r\n4. 优化客户端管理ws并发"
       - name: setup node.js
         uses: actions/setup-node@v2
         with:

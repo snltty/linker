@@ -6,8 +6,9 @@ btnInstall={cls="button";text="安装服务";left=79;top=12;right=167;bottom=54;
 btnRun={cls="button";text="运行服务";left=79;top=63;right=167;bottom=102;z=2};
 btnWebFull={cls="button";text="管理(专业)";left=130;top=116;right=202;bottom=145;z=5};
 btnWebNet={cls="button";text="管理(简单)";left=45;top=116;right=117;bottom=145;z=4};
-ckAutoStart={cls="checkbox";text="托盘自启动";left=140;top=167;right=226;bottom=184;z=3};
-ckTopMost={cls="checkbox";text="窗口置顶";left=12;top=168;right=92;bottom=185;z=6}
+ckAutoStart={cls="checkbox";text="托盘自启动";left=143;top=164;right=229;bottom=181;z=3};
+ckProtected={cls="checkbox";text="守护";left=18;top=165;right=67;bottom=185;z=7};
+ckTopMost={cls="checkbox";text="置顶";left=78;top=165;right=136;bottom=181;z=6}
 )
 /*}}*/
 
@@ -53,7 +54,7 @@ mainForm.wndproc = function(hwnd,message,wParam,lParam){
 			//左键
 			if(lParam === 0x0202){
 				mainForm.show();
-				mainForm.topmostExists();
+				mainForm.topmostCheck();
 			} 
 		}
 		//关闭
@@ -98,6 +99,9 @@ mainForm.showPopmenu = function(){
 	});
 }
 
+mainForm.checkServiceInstall = "";
+mainForm.checkServiceRun = "";
+
 mainForm.reStart = function(){
 	import process.popen;
 	var prcs = process.popen.cmd("start "+io._exefile+" --task=1");
@@ -109,20 +113,16 @@ mainForm.failureService = function(){
 	var prcs = process.popen.cmd("sc failure " + mainForm.serviceName +" reset= 0 actions= restart/3000/restart/3000/restart/3000")
 	prcs.readAll();
 }
-
 mainForm.checkService = function(){
 	import service;
 	mainForm.btnInstall.text = service.isExist(mainForm.serviceName) ? "卸载服务" : "安装服务";
 	mainForm.btnRun.text = service.isRunning(mainForm.serviceName) ? "停止服务" : "运行服务";
 	mainForm.showPopmenu();
 	mainForm.runAsTaskCheck();
-	
 	mainForm.failureService();
+	mainForm.topmostCheck();
+	mainForm.protectedTaskCheck();
 }
-
-mainForm.checkServiceInstall = "";
-mainForm.checkServiceRun = "";
-
 mainForm.checkService1 = function(){
 	import service;
 	
@@ -178,8 +178,6 @@ mainForm.runCommand = function(id,event){
 mainForm.btnRun.oncommand = function(){
 	mainForm.runCommand();
 }
-
-
 mainForm.installCommand = function(id,event){
 	import thread;
 	thread.invoke( 
@@ -246,7 +244,6 @@ mainForm.showFullFrm = function(){
 	var fullFrm = mainForm.loadForm("/full.aardio");
 	fullFrm.show();
 }
-
 mainForm.btnWebFull.oncommand = function(id,event){
 	mainForm.showFullFrm();
 }
@@ -258,18 +255,8 @@ mainForm.btnWebNet.oncommand = function(id,event){
 	mainForm.showNetFrm();
 }
 
-mainForm.startServer = function(){
-	import wsock.tcp.asynHttpServer;
-	mainForm.httpServer = wsock.tcp.asynHttpServer("./web");
-	mainForm.httpServer.defalutDocument = "index.html";
-	mainForm.httpServer.start('0.0.0.0',1803);	
-}
-mainForm.getUrl = function(){
-	if(mainForm.httpServer) return mainForm.httpServer.getUrl();
-	return '';
-}
 
-mainForm.topmostExists = function(){
+mainForm.topmostCheck = function(){
 	if(io.exist("configs/topmost.txt")) 
 	{
 		mainForm.ckTopMost.checked = true;
@@ -281,7 +268,6 @@ mainForm.topmostExists = function(){
 		win.setTopmost(mainForm.hwnd,false);
 	}
 }
-
 mainForm.ckTopMost.oncommand = function(id,event){
 	import fsys;
 	if(mainForm.ckTopMost.checked)
@@ -292,12 +278,61 @@ mainForm.ckTopMost.oncommand = function(id,event){
 	{
 		fsys.delete("configs/topmost.txt");
 	}
-	mainForm.topmostExists();
+	mainForm.topmostCheck();
 	
 }
 
+
+mainForm.protectedTask = function(run){
+	import sys.runAsTask;
+	import process.popen;
+	
+	if(run)
+	{
+		task = sys.runAsTask(mainForm.serviceName+"-protected");
+		trigger = task.definition.triggers.Create(task.schedule.TASK_TRIGGER_TIME);
+		trigger.Enabled = true;
+		trigger.StartBoundary = tostring(time.now(),"%Y-%m-%dT%H:%M:%S","chs"); 
+		trigger.Repetition.Interval = "PT1M";
+		trigger.Repetition.StopAtDurationEnd = false;
+		trigger.ExecutionTimeLimit = "PT0S";
+		
+		task.trigger.Enabled = false;
+		task.trigger =  trigger;
+		task.register("",io.joinpath(io._exedir,"configs/protected.bat"),io._exedir);
+		process.popen.cmd(`schtasks /change /tn "`+mainForm.serviceName+`-protected" /ru "SYSTEM"`)
+		
+		string.save("configs/protected.bat",`@echo off
+chcp 65001 >nul
+setlocal enabledelayedexpansion
+set SERVICE_NAME=`+mainForm.serviceName+`
+sc query %SERVICE_NAME% | find "STATE" | find "STOPPED" >nul
+
+if !errorlevel! equ 0 (
+    sc start %SERVICE_NAME%
+)`);
+	}else
+	{
+		task = sys.runAsTask(mainForm.serviceName+"-protected");
+		task.delete();
+		fsys.delete("configs/protected.bat");
+	}
+	mainForm.checkService();
+}
+mainForm.protectedTaskCheck = function(){
+	import sys.runAsTask;
+	task = sys.runAsTask(mainForm.serviceName+"-protected");
+	mainForm.ckProtected.checked = task.get() != null;
+}
+mainForm.ckProtected.oncommand = function(id,event){
+	mainForm.protectedTask(mainForm.ckProtected.checked);
+}
+
+
 mainForm.checkService();
 mainForm.showPopmenu();
+mainForm.show();
+
 
 mainForm.setInterval( 
 	function(){
@@ -320,9 +355,6 @@ mainForm.setInterval(
 		return true;
 	},1000
 )
-mainForm.show();
-
-mainForm.topmostExists();
 
 if(_ARGV["task"])
 {
