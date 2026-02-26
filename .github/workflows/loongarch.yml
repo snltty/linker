@@ -2,7 +2,7 @@ name: LoongArch
 'on':
   workflow_dispatch: null
 jobs:
-  build-loongarch64:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -10,20 +10,22 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build .NET application for LoongArch64
+      - name: Build with Loongson .NET SDK
         run: |
+          # 使用龙芯官方提供的 .NET SDK 镜像
           docker run --rm --platform linux/loong64 \
-            -v ${{ github.workspace }}:/workspace \
-            -w /workspace \
-            loongarch64/debian:latest \
-            bash -c "
-              apt-get update && \
-              apt-get install -y wget && \
-              wget https://dot.net/v1/dotnet-install.sh && \
-              bash dotnet-install.sh --channel 8.0 --install-dir /usr/share/dotnet && \
-              export PATH=\$PATH:/usr/share/dotnet && \
-              dotnet publish -c Release -r linux-loongarch64 --self-contained true
+            -v ${{ github.workspace }}:/src \
+            -w /src \
+            loongnix/dotnet:8.0-sdk \
+            /bin/bash -c "
+              # 恢复依赖
+              dotnet restore && \
+              
+              # 发布应用
+              dotnet publish ./src/linker -c Release \
+                -r linux-loongarch64 \
+                --self-contained true \
+                -p:PublishSingleFile=true \
+                -p:IncludeNativeLibrariesForSelfExtract=true \
+                -o /src/publish
             "
