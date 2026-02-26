@@ -77,7 +77,7 @@ namespace linker.libs
                 {
                     return ip;
                 }
-                return Dns.GetHostEntry(domain, AddressFamily.InterNetwork).AddressList.FirstOrDefault();
+                return Dns.GetHostEntry(domain).AddressList.FirstOrDefault();
             }
             catch (Exception)
             {
@@ -96,7 +96,7 @@ namespace linker.libs
                 {
                     return ip;
                 }
-                return (await Dns.GetHostEntryAsync(domain, AddressFamily.InterNetwork).ConfigureAwait(false)).AddressList.FirstOrDefault();
+                return (await Dns.GetHostEntryAsync(domain).ConfigureAwait(false)).AddressList.FirstOrDefault();
             }
             catch (Exception)
             {
@@ -127,11 +127,13 @@ namespace linker.libs
             {
                 string[] hostArr = host.Split(':');
                 int port = defaultPort;
-                if (hostArr.Length == 2)
+                string domain = hostArr[0];
+                if (hostArr.Length > 1)
                 {
-                    port = int.Parse(hostArr[1]);
+                    port = int.Parse(hostArr[^1]);
+                    domain = string.Join(":", hostArr.Take(hostArr.Length - 1));
                 }
-                IPAddress ip = await GetDomainIpAsync(hostArr[0]).ConfigureAwait(false);
+                IPAddress ip = await GetDomainIpAsync(domain).ConfigureAwait(false);
                 return new IPEndPoint(ip, port);
             }
             catch (Exception)

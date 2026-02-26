@@ -140,6 +140,7 @@ namespace linker.tunnel.transport
                 Socket targetSocket = new(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 try
                 {
+                    targetSocket.NoDelay = true;
                     targetSocket.KeepAlive();
                     targetSocket.IPv6Only(ep.AddressFamily, false);
                     targetSocket.ReuseBind(new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));

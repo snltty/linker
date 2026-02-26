@@ -34,10 +34,12 @@ namespace linker.messenger.listen
 
         private async Task BindUdp(int port)
         {
-            socketUdp = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            socketUdp.Bind(new IPEndPoint(IPAddress.Any, port));
+            IPEndPoint localEndPoint = new IPEndPoint(IPAddress.IPv6Any, port);
+            socketUdp = new Socket(localEndPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
+            socketUdp.Bind(localEndPoint);
+            socketUdp.IPv6Only(socketUdp.AddressFamily, false);
             socketUdp.WindowsUdpBug();
-            IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
+            IPEndPoint endPoint = new IPEndPoint(IPAddress.IPv6Any, IPEndPoint.MinPort);
             using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(65535);
             while (true)
             {
@@ -74,9 +76,9 @@ namespace linker.messenger.listen
 
         private Socket BindAccept(int port)
         {
-            IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, port);
+            IPEndPoint localEndPoint = new IPEndPoint(IPAddress.IPv6Any, port);
             Socket socket = new Socket(localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            //socket.IPv6Only(localEndPoint.AddressFamily, false);
+            socket.IPv6Only(localEndPoint.AddressFamily, false);
             socket.Bind(localEndPoint);
             socket.Listen(int.MaxValue);
 
@@ -139,7 +141,7 @@ namespace linker.messenger.listen
 
                 int length = await socket.ReceiveAsync(buffer.AsMemory(0, 1), SocketFlags.None, cts.Token).ConfigureAwait(false);
                 byte type = buffer[0];
-                if (countryTransfer.Test(type,(socket.RemoteEndPoint as IPEndPoint).Address) == false)
+                if (countryTransfer.Test(type, (socket.RemoteEndPoint as IPEndPoint).Address) == false)
                 {
                     cts.Cancel();
                     socket.SafeClose();

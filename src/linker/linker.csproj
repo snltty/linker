@@ -18,7 +18,8 @@
 		<Description>1. 一些累计更新，一些BUG修复
 2. #92 松开打洞loading限制，允许选择中继节点
 3. #89 windows下利用任务计划进行进程守护，定时检查服务
-4. 优化客户端管理ws并发</Description>
+4. 优化客户端管理ws并发
+5. 减少服务器推送，减轻主服务器压力</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>

@@ -3,8 +3,7 @@ import { inject, provide, ref } from "vue";
 
 const tunnelSymbol = Symbol();
 export const provideTunnel = () => {
-    const tunnel = ref({
-        
+    const tunnel = ref({      
         list: null,
         hashcode: 0,
 
@@ -12,8 +11,7 @@ export const provideTunnel = () => {
         hashcode1: 0,
 
         showEdit: false,
-        current: null,
-        
+        current: null,  
     });
     provide(tunnelSymbol, tunnel);
     const _getTunnelInfo = () => {

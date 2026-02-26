@@ -19,7 +19,7 @@ jobs:
           release_name: v2.0.0.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 一些累计更新，一些BUG修复\r\n2. #92 松开打洞loading限制，允许选择中继节点\r\n3. #89 windows下利用任务计划进行进程守护，定时检查服务\r\n4. 优化客户端管理ws并发"
+          body: "1. 一些累计更新，一些BUG修复\r\n2. #92 松开打洞loading限制，允许选择中继节点\r\n3. #89 windows下利用任务计划进行进程守护，定时检查服务\r\n4. 优化客户端管理ws并发\r\n5. 减少服务器推送，减轻主服务器压力"
       - name: setup node.js
         uses: actions/setup-node@v2
         with:
