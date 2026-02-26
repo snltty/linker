@@ -15,11 +15,9 @@ jobs:
           docker run --rm --platform linux/loong64 \
             -v ${{ github.workspace }}:/src \
             -w /src \
-            loongnix/debian:latest \
+             loongarch64/debian:latest \
             /bin/bash -c "
-              apt-get update && \
-              apt-get install -y wget curl gnupg ca-certificates && \
-              apt-get install -y libicu-dev libssl-dev libc6-dev zlib1g-dev && \
+              apt-get update && \\
               apt-get install dotnet-sdk-8.0 && \
               dotnet publish src/linker -c Release \
                 -r linux-loongarch64 \
