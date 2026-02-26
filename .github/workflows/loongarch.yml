@@ -20,7 +20,7 @@ jobs:
             loongarch64/debian:latest \
             /bin/bash -c "
               apt update --allow-unauthenticated && \
-              apt install wget --allow-unauthenticated && \
+              apt-get install -y wget curl ca-certificates --no-install-recommends && \
               wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh \
               && chmod +x dotnet-install.sh \
               && ./dotnet-install.sh --version 8.0.303 --architecture loongarch64 --install-dir /usr/share/dotnet \
