@@ -23,14 +23,5 @@ jobs:
               (echo '密钥获取失败，尝试跳过签名检查' && echo 'Acquire::AllowInsecureRepositories "true";' > /etc/apt/apt.conf.d/99allow-insecure && echo 'Acquire::AllowDowngradeToInsecureRepositories "true";' >> /etc/apt/apt.conf.d/99allow-insecure) && \
               apt-get update --allow-unauthenticated || true && \
               apt-get install -y wget curl ca-certificates --no-install-recommends --allow-unauthenticated && \
-              wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh \
-              && chmod +x dotnet-install.sh \
-              && ./dotnet-install.sh --architecture loongarch64 --install-dir /usr/share/dotnet \
-              && ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet && \
-              dotnet publish src/linker -c Release \
-                -r linux-loongarch64 \
-                --self-contained true \
-                -p:PublishSingleFile=true \
-                -p:IncludeNativeLibrariesForSelfExtract=true \
-                -o /src/publish
+              apt install dotnet-sdk-8.0
             "
