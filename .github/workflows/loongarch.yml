@@ -17,12 +17,12 @@ jobs:
           docker run --rm --platform linux/loong64 \
             -v ${{ github.workspace }}:/src \
             -w /src \
-             loongarch64/debian:latest \
+            loongarch64/debian:latest \
             /bin/bash -c "
-              apt update --allow-unauthenticated \
-              apt install -y gnupg \
-              gpg --keyserver keyserver.ubuntu.com --recv-keys C6894E6BB25B9C99 \
-              gpg --export C6894E6BB25B9C99 | tee /etc/apt/trusted.gpg.d/debian-ports.gpg > /dev/null \
+              apt update --allow-unauthenticated && \
+              apt install -y gnupg  && \
+              gpg --keyserver keyserver.ubuntu.com --recv-keys C6894E6BB25B9C99 && \
+              gpg --export C6894E6BB25B9C99 | tee /etc/apt/trusted.gpg.d/debian-ports.gpg > /dev/null && \
               apt update && \
               apt install dotnet-sdk-8.0 && \
               dotnet publish src/linker -c Release \
