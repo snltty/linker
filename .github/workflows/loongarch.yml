@@ -19,7 +19,10 @@ jobs:
             -w /src \
              loongarch64/debian:latest \
             /bin/bash -c "
-              apt-get update && \\
+              curl -fsSL http://ftp.ports.debian.org/debian-ports/archive.key | apt-key add - && \
+              echo 'deb http://ftp.ports.debian.org/debian-ports unstable main' > /etc/apt/sources.list && \
+              echo 'deb http://ftp.ports.debian.org/debian-ports unreleased main' >> /etc/apt/sources.list && \
+              apt-get update && \
               apt-get install dotnet-sdk-8.0 && \
               dotnet publish src/linker -c Release \
                 -r linux-loongarch64 \
