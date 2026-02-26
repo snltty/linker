@@ -12,6 +12,8 @@ jobs:
 
       - name: Build with manual .NET installation
         run: |
+          apt-get update || true && \
+          apt-get install -y gnupg curl wget ca-certificates && \
           docker run --rm --platform linux/loong64 \
             -v ${{ github.workspace }}:/src \
             -w /src \
