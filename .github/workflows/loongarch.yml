@@ -20,11 +20,11 @@ jobs:
             loongarch64/debian:latest \
             /bin/bash -c "
               apt update --allow-unauthenticated && \
-              apt install -y gnupg  && \
-              gpg --keyserver keyserver.ubuntu.com --recv-keys C6894E6BB25B9C99 && \
-              gpg --export C6894E6BB25B9C99 | tee /etc/apt/trusted.gpg.d/debian-ports.gpg > /dev/null && \
-              apt update --allow-unauthenticated && \
-              apt install dotnet-sdk-8.0 && \
+              apt install wget --allow-unauthenticated && \
+              wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh \
+              && chmod +x dotnet-install.sh \
+              && ./dotnet-install.sh --version 8.0.100 --architecture loongarch64 --install-dir /usr/share/dotnet \
+              && ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet && \
               dotnet publish src/linker -c Release \
                 -r linux-loongarch64 \
                 --self-contained true \
