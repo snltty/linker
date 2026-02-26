@@ -23,7 +23,7 @@ jobs:
               apt install wget --allow-unauthenticated && \
               wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh \
               && chmod +x dotnet-install.sh \
-              && ./dotnet-install.sh --version 8.0.100 --architecture loongarch64 --install-dir /usr/share/dotnet \
+              && ./dotnet-install.sh --version 8.0.303 --architecture loongarch64 --install-dir /usr/share/dotnet \
               && ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet && \
               dotnet publish src/linker -c Release \
                 -r linux-loongarch64 \
