@@ -19,7 +19,7 @@ jobs:
             -w /src \
             loongarch64/debian:latest \
             /bin/bash -c "
-              apt update --allow-unauthenticated && \
+              apt-get update --allow-unauthenticated && \
               apt-get install -y wget curl ca-certificates --no-install-recommends && \
               wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh \
               && chmod +x dotnet-install.sh \
