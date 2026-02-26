@@ -15,10 +15,10 @@ jobs:
 
       - name: Build .NET application for LoongArch64
         run: |
-          docker run --rm --platform linux/loong64 \
+          docker run --rm --platform linux/loongarch64 \
             -v ${{ github.workspace }}:/workspace \
             -w /workspace \
-            loong64/debian:latest \
+            loongarch64/debian:latest \
             bash -c "
               apt-get update && \
               apt-get install -y wget && \
