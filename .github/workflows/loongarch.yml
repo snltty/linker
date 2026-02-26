@@ -25,7 +25,7 @@ jobs:
               apt-get install -y wget curl ca-certificates --no-install-recommends --allow-unauthenticated && \
               wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh \
               && chmod +x dotnet-install.sh \
-              && ./dotnet-install.sh --version --architecture loongarch64 --install-dir /usr/share/dotnet \
+              && ./dotnet-install.sh --architecture loongarch64 --install-dir /usr/share/dotnet \
               && ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet && \
               dotnet publish src/linker -c Release \
                 -r linux-loongarch64 \
