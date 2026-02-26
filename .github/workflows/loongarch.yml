@@ -2,7 +2,7 @@ name: LoongArch
 'on':
   workflow_dispatch: null
 jobs:
-  build:
+  build-loongarch64:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -10,15 +10,17 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-      - name: Build with community image
+      - name: Build with manual .NET installation
         run: |
           docker run --rm --platform linux/loong64 \
             -v ${{ github.workspace }}:/src \
             -w /src \
-            cr.loongnix.cn/dotnet/sdk:8.0 \
+            loongnix/debian:latest \
             /bin/bash -c "
-              # 如果上面镜像不可用，尝试这个
-              dotnet restore && \
+              apt-get update && \
+              apt-get install -y wget curl gnupg ca-certificates && \
+              apt-get install -y libicu-dev libssl-dev libc6-dev zlib1g-dev && \
+              apt-get install dotnet-sdk-8.0 && \
               dotnet publish src/linker -c Release \
                 -r linux-loongarch64 \
                 --self-contained true \
