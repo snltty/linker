@@ -23,5 +23,16 @@ jobs:
               (echo '密钥获取失败，尝试跳过签名检查' && echo 'Acquire::AllowInsecureRepositories "true";' > /etc/apt/apt.conf.d/99allow-insecure && echo 'Acquire::AllowDowngradeToInsecureRepositories "true";' >> /etc/apt/apt.conf.d/99allow-insecure) && \
               apt-get update --allow-unauthenticated || true && \
               apt-get install -y wget curl ca-certificates --no-install-recommends --allow-unauthenticated && \
-              apt install dotnet-sdk-8.0
+              wget https://ftp.loongnix.cn/dotnet/8.0.22/8.0.22-1/deb/ -c -r -np -nd -k -L -p -A deb -A md5 \
+                -U "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3" && \
+              apt install ./dotnet-host_8.0.22-1_loongarch64.deb \
+                ./dotnet-hostfxr-8.0_8.0.22-1_loongarch64.deb \
+                ./dotnet-runtime-deps-8.0_8.0.22-1_loongarch64.deb \
+                ./dotnet-runtime-8.0_8.0.22-1_loongarch64.deb \
+                ./dotnet-targeting-pack-8.0_8.0.22-1_loongarch64.deb \
+                ./aspnetcore-targeting-pack-8.0_8.0.22-1_loongarch64.deb \
+                ./dotnet-apphost-pack-8.0_8.0.22-1_loongarch64.deb \
+                ./aspnetcore-runtime-8.0_8.0.22-1_loongarch64.deb \
+                ./netstandard-targeting-pack-2.1_2.1.0-1_loongarch64.deb \
+                ./dotnet-sdk-8.0_8.0.122-1_loongarch64.deb
             "
