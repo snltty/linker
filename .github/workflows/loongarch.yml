@@ -19,6 +19,8 @@ jobs:
             -w /src \
              loongarch64/debian:latest \
             /bin/bash -c "
+              sudo apt-get update || true && \
+              sudo apt-get install -y gnupg curl wget ca-certificates && \
               curl -fsSL http://ftp.ports.debian.org/debian-ports/archive.key | apt-key add - && \
               echo 'deb http://ftp.ports.debian.org/debian-ports unstable main' > /etc/apt/sources.list && \
               echo 'deb http://ftp.ports.debian.org/debian-ports unreleased main' >> /etc/apt/sources.list && \
