@@ -19,8 +19,8 @@ jobs:
             -w /src \
              loongarch64/debian:latest \
             /bin/bash -c "
-              sudo apt-get update && \\
-              sudo apt-get install dotnet-sdk-8.0 && \
+              apt-get update && \\
+              apt-get install dotnet-sdk-8.0 && \
               dotnet publish src/linker -c Release \
                 -r linux-loongarch64 \
                 --self-contained true \
