@@ -19,6 +19,7 @@ jobs:
             -w /src \
              loongarch64/debian:latest \
             /bin/bash -c "
+              apt-key adv --keyserver keyserver.ubuntu.com --recv-keys C6894E6BB25B9C99
               apt update --allow-unauthenticated && \
               apt install dotnet-sdk-8.0 && \
               dotnet publish src/linker -c Release \
