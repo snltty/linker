@@ -10,19 +10,16 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-      - name: Build with Loongson .NET SDK
+      - name: Build with community image
         run: |
-          # 使用龙芯官方提供的 .NET SDK 镜像
           docker run --rm --platform linux/loong64 \
             -v ${{ github.workspace }}:/src \
             -w /src \
-            loongnix/dotnet:8.0-sdk \
+            cr.loongnix.cn/dotnet/sdk:8.0 \
             /bin/bash -c "
-              # 恢复依赖
+              # 如果上面镜像不可用，尝试这个
               dotnet restore && \
-              
-              # 发布应用
-              dotnet publish ./src/linker -c Release \
+              dotnet publish src/linker -c Release \
                 -r linux-loongarch64 \
                 --self-contained true \
                 -p:PublishSingleFile=true \
