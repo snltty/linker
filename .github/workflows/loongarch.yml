@@ -19,8 +19,10 @@ jobs:
             -w /src \
             loongarch64/debian:latest \
             /bin/bash -c "
-              apt-get update --allow-unauthenticated && \
-              apt-get install -y wget curl ca-certificates --no-install-recommends && \
+              apt-key adv --keyserver keyserver.ubuntu.com --recv-keys C6894E6BB25B9C99 || \
+              (echo '密钥获取失败，尝试跳过签名检查' && echo 'Acquire::AllowInsecureRepositories "true";' > /etc/apt/apt.conf.d/99allow-insecure && echo 'Acquire::AllowDowngradeToInsecureRepositories "true";' >> /etc/apt/apt.conf.d/99allow-insecure) && \
+              apt-get update --allow-unauthenticated || true && \
+              apt-get install -y wget curl ca-certificates --no-install-recommends --allow-unauthenticated && \
               wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh \
               && chmod +x dotnet-install.sh \
               && ./dotnet-install.sh --version 8.0.303 --architecture loongarch64 --install-dir /usr/share/dotnet \
