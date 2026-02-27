@@ -28,22 +28,10 @@ jobs:
       - name: build linker with loongnix docker
         run: |
           docker run --rm --platform linux/loong64 \
-            --shm-size=4g --memory=4g --ulimit nofile=65536:65536 --ulimit nproc=2048:2048 --privileged \
-            --tmpfs /tmp:rw,noexec,nosuid,size=2g \
-            --tmpfs /run:rw,noexec,nosuid,size=512m \
-            --network host \
-            --security-opt seccomp=unconfined \
             -v ${{ github.workspace }}:/dst \
             -w /dst \
-            loongsongd/dotnet:8.0.102-sdk-loong64 \
+            ghcr.io/loong64/debian:trixie-slim bash \
             /bin/bash -c "
-            dotnet nuget locals all --clear && \
-            mkdir -p /root/.dotnet /root/.nuget && \
-            echo 'Running dotnet --info first...' && \
-            dotnet --info || true && \
-            export DOTNET_CLI_TELEMETRY_OPTOUT=1 && \
-            export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1 && \
-            export NUGET_XMLDOC_MODE=skip && \
             dotnet publish src/linker -c release -f net8.0 -o public/publish/loongarch64 -r linux-loongarch64 -p:PublishSingleFile=true  --self-contained true  -p:TrimMode=partial -p:TieredPGO=true  -p:DebugType=full -p:EventSourceSupport=false -p:DebugSymbols=true -p:EnableCompressionInSingleFile=true -p:DebuggerSupport=false -p:EnableUnsafeBinaryFormatterSerialization=false -p:EnableUnsafeUTF7Encoding=false -p:HttpActivityPropagationSupport=false -p:InvariantGlobalization=true  -p:MetadataUpdaterSupport=false  -p:UseSystemResourceKeys=true -p:MetricsSupport=false -p:StackTraceSupport=false -p:XmlResolverIsNetworkingEnabledByDefault=false
             "
       - name: zip package
