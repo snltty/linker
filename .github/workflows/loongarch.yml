@@ -17,6 +17,7 @@ jobs:
             -w /src \
             cr.loongnix.cn/loongson/loongnix:20 \
             /bin/bash -c "
-              apt-get update --allow-unauthenticated || true && \
+              dotnet --version && \
+              apt update && \
               apt install dotnet-sdk-8.0
             "
