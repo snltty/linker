@@ -7,17 +7,58 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up QEMU
+      - name: setup install
+        run: sudo apt-get install binutils tar gzip
+
+      - name: setup node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: setup qemu
         uses: docker/setup-qemu-action@v3
 
-      - name: Build with loongnix docker
+      - name: build web
+        run: |
+          cd src/linker.web && \
+          npm install && \
+          npm run build && \
+          cd ../../
+        
+      - name: build linker with loongnix docker
         run: |
           docker run --rm --platform linux/loong64 \
-            -v ${{ github.workspace }}:/src \
-            -w /src \
-            cr.loongnix.cn/loongson/loongnix:20 \
+            -v ${{ github.workspace }}:/dst \
+            -w /dst \
+            loongsongd/dotnet:8.0.102-sdk-loong64 \
             /bin/bash -c "
-              dotnet --version && \
-              apt update && \
-              apt install dotnet-sdk-8.0
+              dotnet publish src/linker -c release -f net8.0 -o public/publish/loongarch64 -r linux-loongarch64 -p:PublishSingleFile=true  --self-contained true  -p:TrimMode=partial -p:TieredPGO=true  -p:DebugType=full -p:EventSourceSupport=false -p:DebugSymbols=true -p:EnableCompressionInSingleFile=true -p:DebuggerSupport=false -p:EnableUnsafeBinaryFormatterSerialization=false -p:EnableUnsafeUTF7Encoding=false -p:HttpActivityPropagationSupport=false -p:InvariantGlobalization=true  -p:MetadataUpdaterSupport=false  -p:UseSystemResourceKeys=true -p:MetricsSupport=false -p:StackTraceSupport=false -p:XmlResolverIsNetworkingEnabledByDefault=false
             "
+      - name: zip package
+        run: |
+          cp -rf public/extends/any/web public/publish/loongarch64/web
+          mkdir -p public/publish/loongarch64/configs
+          mkdir -p public/publish/loongarch64/logs
+          zip -r linker-loongarch64.zip public/publish/loongarch64
+
+      - name: get latest release
+        id: get_release
+        run: |
+          response=$(curl -s \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.ACTIONS_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/latest")
+          upload_url=$(echo "$response" | jq -r '.upload_url')
+          echo "upload_url=$upload_url" >> $GITHUB_OUTPUT
+
+      - name: upload
+        id: upload
+        uses: 'actions/upload-release-asset@master'
+        env: {
+          'GITHUB_TOKEN': '${{ secrets.ACTIONS_TOKEN }}'
+        }
+        with: {
+          'upload_url': '${{ steps.get_release.outputs.upload_url }}',
+          'asset_path': 'linker-loongarch64.zip',
+          'asset_name': 'linker-loongarch64.zip',
+        }
