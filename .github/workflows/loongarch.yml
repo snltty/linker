@@ -29,6 +29,10 @@ jobs:
         run: |
           docker run --rm --platform linux/loong64 \
             --shm-size=4g --memory=4g --ulimit nofile=65536:65536 --ulimit nproc=2048:2048 --privileged \
+            --tmpfs /tmp:rw,noexec,nosuid,size=2g \
+            --tmpfs /run:rw,noexec,nosuid,size=512m \
+            --network host \
+            --security-opt seccomp=unconfined \
             -v ${{ github.workspace }}:/dst \
             -w /dst \
             loongsongd/dotnet:8.0.102-sdk-loong64 \
