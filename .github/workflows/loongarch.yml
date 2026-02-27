@@ -10,7 +10,7 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-      - name: Build with manual .NET installation
+      - name: Build with loongnix docker
         run: |
           docker run --rm --platform linux/loong64 \
             -v ${{ github.workspace }}:/src \
