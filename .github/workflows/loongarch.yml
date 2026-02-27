@@ -28,6 +28,7 @@ jobs:
       - name: build linker with loongnix docker
         run: |
           docker run --rm --platform linux/loong64 \
+            --shm-size=2g --ulimit nofile=65536:65536 --ulimit nproc=2048:2048 --privileged \
             -v ${{ github.workspace }}:/dst \
             -w /dst \
             loongsongd/dotnet:8.0.102-sdk-loong64 \
