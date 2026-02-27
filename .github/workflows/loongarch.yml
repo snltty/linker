@@ -30,14 +30,8 @@ jobs:
           docker run --rm --platform linux/loong64 \
             -v ${{ github.workspace }}:/dst \
             -w /dst \
-            ghcr.io/loong64/debian:trixie-slim bash \
+            snltty/loongarch:latest \
             /bin/bash -c "
-            apt-get update && \
-            apt-get install -y curl libicu-dev && \
-            curl -fsSL https://github.com/loongson-community/dotnet-unofficial-build/releases/download/v9.0.201%2Bloong.20250313.build.20250313/dotnet-sdk-9.0.104-linux-loongarch64.tar.gz -o dotnet-sdk-9.0.104-linux-loongarch64.tar.gz && \
-            mkdir -p /dotnet && \
-            tar xf dotnet-sdk-9.0.104-linux-loongarch64.tar.gz -C /dotnet && \
-            ln -s /dotnet/dotnet /usr/bin/dotnet && \
             dotnet publish src/linker -c release -f net8.0 -o public/publish/loongarch64 -r linux-loongarch64 -p:PublishSingleFile=true  --self-contained true  -p:TrimMode=partial -p:TieredPGO=true  -p:DebugType=full -p:EventSourceSupport=false -p:DebugSymbols=true -p:EnableCompressionInSingleFile=true -p:DebuggerSupport=false -p:EnableUnsafeBinaryFormatterSerialization=false -p:EnableUnsafeUTF7Encoding=false -p:HttpActivityPropagationSupport=false -p:InvariantGlobalization=true  -p:MetadataUpdaterSupport=false  -p:UseSystemResourceKeys=true -p:MetricsSupport=false -p:StackTraceSupport=false -p:XmlResolverIsNetworkingEnabledByDefault=false
             "
       - name: zip package
