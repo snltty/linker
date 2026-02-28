@@ -44,3 +44,6 @@ for %%r in (win-x86,win-x64,win-arm64,linux-x64,linux-arm,linux-arm64,linux-musl
 
 	7z a -tzip ./public/publish-zip/linker-%%r.zip ./public/publish/%%r/*
 )
+dotnet publish src/linker -c release -f net8.0 -o public/publish/any/linker-any
+echo F|xcopy "public\\extends\\any\\*" "public\\publish\\any\\linker-any\\*"  /s /f /h /y
+7z a -tzip ./public/publish-zip/linker-any.zip ./public/publish/any/*

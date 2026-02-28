@@ -43,8 +43,8 @@ jobs:
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
-          asset-path: ./public/publish-ipk/x64/linker-x64.ipk
-          target-path: /downloads/linker/v2.0.0/linker-x64.ipk
+          asset-path: ./public/publish-ipk/x64/linker-openwrt-x64.ipk
+          target-path: /downloads/linker/v2.0.0/linker-openwrt-x64.ipk
       - name: upload-x64
         id: upload-x64
         uses: actions/upload-release-asset@master
@@ -52,8 +52,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: ./public/publish-ipk/x64/linker-x64.ipk
-          asset_name: linker-x64.ipk
+          asset_path: ./public/publish-ipk/x64/linker-openwrt-x64.ipk
+          asset_name: linker-openwrt-x64.ipk
           asset_content_type: application/ipk
       - name: upload-arm-oss
         id: upload-arm-oss
@@ -63,8 +63,8 @@ jobs:
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
-          asset-path: ./public/publish-ipk/arm/linker-arm.ipk
-          target-path: /downloads/linker/v2.0.0/linker-arm.ipk
+          asset-path: ./public/publish-ipk/arm/linker-openwrt-arm.ipk
+          target-path: /downloads/linker/v2.0.0/linker-openwrt-arm.ipk
       - name: upload-arm
         id: upload-arm
         uses: actions/upload-release-asset@master
@@ -72,8 +72,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: ./public/publish-ipk/arm/linker-arm.ipk
-          asset_name: linker-arm.ipk
+          asset_path: ./public/publish-ipk/arm/linker-openwrt-arm.ipk
+          asset_name: linker-openwrt-arm.ipk
           asset_content_type: application/ipk
       - name: upload-arm64-oss
         id: upload-arm64-oss
@@ -83,8 +83,8 @@ jobs:
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
-          asset-path: ./public/publish-ipk/arm64/linker-arm64.ipk
-          target-path: /downloads/linker/v2.0.0/linker-arm64.ipk
+          asset-path: ./public/publish-ipk/arm64/linker-openwrt-arm64.ipk
+          target-path: /downloads/linker/v2.0.0/linker-openwrt-arm64.ipk
       - name: upload-arm64
         id: upload-arm64
         uses: actions/upload-release-asset@master
@@ -92,8 +92,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: ./public/publish-ipk/arm64/linker-arm64.ipk
-          asset_name: linker-arm64.ipk
+          asset_path: ./public/publish-ipk/arm64/linker-openwrt-arm64.ipk
+          asset_name: linker-openwrt-arm64.ipk
           asset_content_type: application/ipk
       - name: upload-docker-fpk-oss
         id: upload-docker-fpk-oss
@@ -103,8 +103,8 @@ jobs:
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
-          asset-path: ./public/publish-fpk/docker/linker-docker.fpk
-          target-path: /downloads/linker/v2.0.0/linker-docker.fpk
+          asset-path: ./public/publish-fpk/docker/linker-fnos-docker.fpk
+          target-path: /downloads/linker/v2.0.0/linker-fnos-docker.fpk
       - name: upload-docker-fpk
         id: upload-docker-fpk
         uses: actions/upload-release-asset@master
@@ -112,8 +112,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: ./public/publish-fpk/docker/linker-docker.fpk
-          asset_name: linker-docker.fpk
+          asset_path: ./public/publish-fpk/docker/linker-fnos-docker.fpk
+          asset_name: linker-fnos-docker.fpk
           asset_content_type: application/fpk
       - name: upload-bin-fpk-x64-oss
         id: upload-bin-fpk-x64-oss
@@ -123,8 +123,8 @@ jobs:
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
-          asset-path: ./public/publish-fpk/bin/x64/linker-bin-x64.fpk
-          target-path: /downloads/linker/v2.0.0/linker-bin-x64.fpk
+          asset-path: ./public/publish-fpk/bin/x64/linker-fnos-bin-x64.fpk
+          target-path: /downloads/linker/v2.0.0/linker-fnos-bin-x64.fpk
       - name: upload-bin-fpk-x64
         id: upload-bin-fpk-x64
         uses: actions/upload-release-asset@master
@@ -132,8 +132,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: ./public/publish-fpk/bin/x64/linker-bin-x64.fpk
-          asset_name: linker-bin-x64.fpk
+          asset_path: ./public/publish-fpk/bin/x64/linker-fnos-bin-x64.fpk
+          asset_name: linker-fnos-bin-x64.fpk
           asset_content_type: application/fpk
       - name: upload-bin-fpk-arm64-oss
         id: upload-bin-fpk-arm64-oss
@@ -143,8 +143,8 @@ jobs:
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
-          asset-path: ./public/publish-fpk/bin/arm64/linker-bin-arm64.fpk
-          target-path: /downloads/linker/v2.0.0/linker-bin-arm64.fpk
+          asset-path: ./public/publish-fpk/bin/arm64/linker-fnos-bin-arm64.fpk
+          target-path: /downloads/linker/v2.0.0/linker-fnos-bin-arm64.fpk
       - name: upload-bin-fpk-arm64
         id: upload-bin-fpk-arm64
         uses: actions/upload-release-asset@master
@@ -152,6 +152,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: ./public/publish-fpk/bin/arm64/linker-bin-arm64.fpk
-          asset_name: linker-bin-arm64.fpk
+          asset_path: ./public/publish-fpk/bin/arm64/linker-fnos-bin-arm64.fpk
+          asset_name: linker-fnos-bin-arm64.fpk
           asset_content_type: application/fpk

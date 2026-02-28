@@ -87,6 +87,33 @@ function writeUpload(data, tagName) {
             });
         };
     }
+    data.jobs.build.steps.push({
+        name: `upload-any-oss`,
+        id: `upload-any-oss`,
+        uses: 'tvrcgo/oss-action@v0.1.1',
+        with: {
+            'region': 'oss-cn-shenzhen',
+            'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
+            'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
+            'bucket': 'ide-qbcode',
+            'asset-path': `./public/publish-zip/linker-any.zip`,
+            'target-path': `/downloads/linker/${tagName}/linker-any.zip`
+        }
+    });
+    data.jobs.build.steps.push({
+        name: `upload-any`,
+        id: `upload-any`,
+        uses: 'actions/upload-release-asset@master',
+        env: {
+            'GITHUB_TOKEN': '${{ secrets.ACTIONS_TOKEN }}'
+        },
+        with: {
+            'upload_url': '${{ steps.create_release.outputs.upload_url }}',
+            'asset_path': `./public/publish-zip/linker-any.zip`,
+            'asset_name': `linker-any.zip`,
+            'asset_content_type': 'application/zip'
+        }
+    });
     
     /*
     data.jobs.build.steps.push({
@@ -175,8 +202,8 @@ function writeUploadIpk(data, tagName) {
                 'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
                 'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
                 'bucket': 'ide-qbcode',
-                'asset-path': `./public/publish-ipk/${arch}/linker-${arch}.ipk`,
-                'target-path': `/downloads/linker/${tagName}/linker-${arch}.ipk`
+                'asset-path': `./public/publish-ipk/${arch}/linker-openwrt-${arch}.ipk`,
+                'target-path': `/downloads/linker/${tagName}/linker-openwrt-${arch}.ipk`
             }
         });
         data.jobs.build.steps.push({
@@ -188,8 +215,8 @@ function writeUploadIpk(data, tagName) {
             },
             with: {
                 'upload_url': '${{ steps.get_release.outputs.upload_url }}',
-                'asset_path': `./public/publish-ipk/${arch}/linker-${arch}.ipk`,
-                'asset_name': `linker-${arch}.ipk`,
+                'asset_path': `./public/publish-ipk/${arch}/linker-openwrt-${arch}.ipk`,
+                'asset_name': `linker-openwrt-${arch}.ipk`,
                 'asset_content_type': 'application/ipk'
             }
         });
@@ -204,8 +231,8 @@ function writeUploadIpk(data, tagName) {
             'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
             'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
             'bucket': 'ide-qbcode',
-            'asset-path': `./public/publish-fpk/docker/linker-docker.fpk`,
-            'target-path': `/downloads/linker/${tagName}/linker-docker.fpk`
+            'asset-path': `./public/publish-fpk/docker/linker-fnos-docker.fpk`,
+            'target-path': `/downloads/linker/${tagName}/linker-fnos-docker.fpk`
         }
     });
     data.jobs.build.steps.push({
@@ -217,8 +244,8 @@ function writeUploadIpk(data, tagName) {
         },
         with: {
             'upload_url': '${{ steps.get_release.outputs.upload_url }}',
-            'asset_path': `./public/publish-fpk/docker/linker-docker.fpk`,
-            'asset_name': `linker-docker.fpk`,
+            'asset_path': `./public/publish-fpk/docker/linker-fnos-docker.fpk`,
+            'asset_name': `linker-fnos-docker.fpk`,
             'asset_content_type': 'application/fpk'
         }
     });
@@ -238,8 +265,8 @@ function writeUploadIpk(data, tagName) {
                     'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
                     'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
                     'bucket': 'ide-qbcode',
-                    'asset-path': `./public/publish-fpk/${type}/${arch}/linker-${type}-${arch}.fpk`,
-                    'target-path': `/downloads/linker/${tagName}/linker-${type}-${arch}.fpk`
+                    'asset-path': `./public/publish-fpk/${type}/${arch}/linker-fnos-${type}-${arch}.fpk`,
+                    'target-path': `/downloads/linker/${tagName}/linker-fnos-${type}-${arch}.fpk`
                 }
             });
             data.jobs.build.steps.push({
@@ -251,8 +278,8 @@ function writeUploadIpk(data, tagName) {
                 },
                 with: {
                     'upload_url': '${{ steps.get_release.outputs.upload_url }}',
-                    'asset_path': `./public/publish-fpk/${type}/${arch}/linker-${type}-${arch}.fpk`,
-                    'asset_name': `linker-${type}-${arch}.fpk`,
+                    'asset_path': `./public/publish-fpk/${type}/${arch}/linker-fnos-${type}-${arch}.fpk`,
+                    'asset_name': `linker-fnos-${type}-${arch}.fpk`,
                     'asset_content_type': 'application/fpk'
                 }
             });

@@ -65,6 +65,11 @@ namespace linker.messenger.updater
         }
         public virtual (string, string) DownloadUrlAndSavePath(string version)
         {
+            if (File.Exists("linker.dll"))
+            {
+                return ($"{updaterCommonTransfer.UpdateUrl}/{version}/linker-any.zip", "updater.zip");
+            }
+
             if (OperatingSystem.IsWindows() || OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
             {
                 StringBuilder sb = new StringBuilder("linker-");

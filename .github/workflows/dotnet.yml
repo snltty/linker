@@ -254,6 +254,26 @@ jobs:
           asset_path: ./public/publish-zip/linker-osx-arm64.zip
           asset_name: linker-osx-arm64.zip
           asset_content_type: application/zip
+      - name: upload-any-oss
+        id: upload-any-oss
+        uses: tvrcgo/oss-action@v0.1.1
+        with:
+          region: oss-cn-shenzhen
+          key-id: ${{ secrets.ALIYUN_OSS_ID }}
+          key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
+          bucket: ide-qbcode
+          asset-path: ./public/publish-zip/linker-any.zip
+          target-path: /downloads/linker/v2.0.0/linker-any.zip
+      - name: upload-any
+        id: upload-any
+        uses: actions/upload-release-asset@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./public/publish-zip/linker-any.zip
+          asset_name: linker-any.zip
+          asset_content_type: application/zip
       - name: upload-install-service-oss
         id: upload-install-service-oss
         uses: tvrcgo/oss-action@v0.1.1
