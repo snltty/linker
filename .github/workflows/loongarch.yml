@@ -36,7 +36,7 @@ jobs:
             cat src/linker/linker.csproj && \
             dotnet nuget locals all --clear && \
             uname -m && \
-            dotnet publish src/linker -c release -f net9.0
+            dotnet run src/linker
             "
               
             
