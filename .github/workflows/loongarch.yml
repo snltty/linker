@@ -36,8 +36,10 @@ jobs:
             cat src/linker/linker.csproj && \
             dotnet nuget locals all --clear && \
             uname -m && \
-            dotnet publish src/linker -c release -f net9.0 -o public/publish/loongarch64 -r linux-loongarch64 -p:PublishSingleFile=true  --self-contained true
+            dotnet publish src/linker -c release -f net9.0
             "
+              
+            
       - name: zip package
         run: |
           cp -rf public/extends/any/web public/publish/loongarch64/web
