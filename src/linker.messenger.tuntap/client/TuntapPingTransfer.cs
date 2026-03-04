@@ -7,7 +7,7 @@ using linker.libs.extends;
 using linker.messenger.signin;
 using linker.libs.timer;
 
-namespace linker.messenger.tuntap
+namespace linker.messenger.tuntap.client
 {
     public sealed class TuntapPingTransfer
     {

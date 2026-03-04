@@ -5,7 +5,7 @@ using linker.messenger.signin;
 using System.Net;
 using linker.libs.timer;
 
-namespace linker.messenger.tuntap
+namespace linker.messenger.tuntap.client
 {
     public sealed class TuntapDecenter : IDecenter
     {

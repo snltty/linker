@@ -52,6 +52,7 @@ jobs:
         dotnet build ./src/linker.tun -c release
         dotnet build ./src/linker.nat -c release
         dotnet build ./src/linker.tunnel -c release
+        dotnet build ./src/linker.upnp -c release
 
     - name: Pack
       run: |
@@ -87,6 +88,7 @@ jobs:
         dotnet pack ./src/linker.tun -c release
         dotnet pack ./src/linker.nat -c release
         dotnet pack ./src/linker.tunnel -c release
+        dotnet pack ./src/linker.upnp -c release
         
     - name: Push
       run: |
@@ -122,3 +124,4 @@ jobs:
         dotnet nuget push ./src/linker.tun/bin/release/linker.tun.{{version}}.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{ secrets.NUGET_KEY }} --no-symbols
         dotnet nuget push ./src/linker.nat/bin/release/linker.nat.{{version}}.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{ secrets.NUGET_KEY }} --no-symbols
         dotnet nuget push ./src/linker.tunnel/bin/release/linker.tunnel.{{version}}.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{ secrets.NUGET_KEY }} --no-symbols
+        dotnet nuget push ./src/linker.upnp/bin/release/linker.upnp.{{version}}.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{ secrets.NUGET_KEY }} --no-symbols

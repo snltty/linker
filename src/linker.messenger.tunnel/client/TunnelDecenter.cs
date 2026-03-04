@@ -2,7 +2,7 @@
 using linker.messenger.decenter;
 using linker.messenger.signin;
 using System.Collections.Concurrent;
-namespace linker.messenger.tunnel
+namespace linker.messenger.tunnel.client
 {
     public sealed class TunnelDecenter : IDecenter
     {

@@ -27,6 +27,16 @@
         TransportSet = 2017,
         TransportSetForward = 2018,
 
+        UpnpGet = 2019,
+        UpnpGetForward = 2020,
+        UpnpGetLocal = 2021,
+        UpnpGetLocalForward = 2022,
+
+        UpnpAdd = 2023,
+        UpnpAddForward = 2024,
+        UpnpDel = 2025,
+        UpnpDelForward = 2026,
+
         None = 2099
     }
 }

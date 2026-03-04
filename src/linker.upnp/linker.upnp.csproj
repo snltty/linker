@@ -7,15 +7,14 @@
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<PublishAot>false</PublishAot>
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
-		<!--<EnablePreviewFeatures>True</EnablePreviewFeatures>-->
-		<Title>linker tunnel</Title>
+		<Title>linker upnp</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>linker tunnel</Description>
+		<Description>linker upnp</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
-		<PackageReleaseNotes>linker tunnel</PackageReleaseNotes>
+		<PackageReleaseNotes>linker upnp</PackageReleaseNotes>
 		<Version>1.9.9</Version>
 		<AssemblyVersion>1.9.9</AssemblyVersion>
 		<FileVersion>1.9.9</FileVersion>
@@ -36,13 +35,5 @@
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0|AnyCPU'">
 		<DebugType>embedded</DebugType>
 	</PropertyGroup>
-	<ItemGroup>
-	  <PackageReference Include="System.IO.Pipelines" Version="9.0.3" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<ProjectReference Include="..\linker.libs\linker.libs.csproj" />
-		<ProjectReference Include="..\linker.upnp\linker.upnp.csproj" />
-	</ItemGroup>
 
 </Project>

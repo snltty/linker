@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.messenger.tuntap.client;
 using System.Net;
 
 namespace linker.messenger.tuntap.cidr

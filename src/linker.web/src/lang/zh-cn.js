@@ -12,6 +12,7 @@ export default {
     'common.p2p': '打洞',
     'common.refresh': '刷新',
     'common.copied': '已复制',
+    'common.deleteText': '确认删除{0}吗？',
 
     'head.home': '首页',
     'head.server': '服务器',

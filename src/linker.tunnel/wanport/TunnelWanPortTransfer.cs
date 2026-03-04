@@ -1,5 +1,4 @@
 ﻿using linker.libs;
-using Mono.Nat;
 using System.Net;
 
 namespace linker.tunnel.wanport

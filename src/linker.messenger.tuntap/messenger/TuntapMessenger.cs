@@ -1,6 +1,7 @@
 ﻿using linker.libs;
 using linker.messenger.signin;
 using linker.messenger.tuntap.cidr;
+using linker.messenger.tuntap.client;
 using linker.messenger.tuntap.lease;
 
 namespace linker.messenger.tuntap.messenger

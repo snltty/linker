@@ -42,6 +42,27 @@ namespace linker.libs
 
     public static partial class NetworkHelper
     {
+        private static readonly HashSet<System.Net.IPNetwork> privateNetworks = new HashSet<System.Net.IPNetwork>
+        {
+            // IPv4 私有网络
+            System.Net.IPNetwork.Parse("127.0.0.0/8"),    // 回环
+            System.Net.IPNetwork.Parse("10.0.0.0/8"),      // 私有A类
+            System.Net.IPNetwork.Parse("172.16.0.0/12"),   // 私有B类
+            System.Net.IPNetwork.Parse("192.168.0.0/16"),  // 私有C类
+            System.Net.IPNetwork.Parse("169.254.0.0/16"),  // 链路本地
+            System.Net.IPNetwork.Parse("100.64.0.0/10"),   // CGNAT (可选)
+        
+            // IPv6 私有网络
+            System.Net.IPNetwork.Parse("fc00::/7"),         // ULA
+            System.Net.IPNetwork.Parse("fe80::/10"),        // 链路本地
+            System.Net.IPNetwork.Parse("::1/128"),          // 回环
+        };
+        public static bool IsPrivateIP(IPAddress ip)
+        {
+            return privateNetworks.Any(network => network.Contains(ip));
+        }
+
+
         public static IPEndPoint TransEndpointFamily(IPEndPoint ep)
         {
             if (ep.Address.AddressFamily == AddressFamily.InterNetworkV6 && ep.Address.IsIPv4MappedToIPv6)
@@ -172,7 +193,7 @@ namespace linker.libs
             for (ushort i = 1; i < lines.Length; i++)
             {
                 string ip = regex.Match(lines[i]).Groups[1].Value;
-                if (starts.Any(c => ip.ToString().StartsWith(c)))
+                if (IsPrivateIP(IPAddress.Parse(ip)))
                 {
                     result.Add(IPAddress.Parse(ip));
                 }
@@ -200,7 +221,7 @@ namespace linker.libs
                         continue;
                     }
 
-                    if (starts.Any(c => reply.Address.ToString().StartsWith(c)))
+                    if (IsPrivateIP(reply.Address))
                     {
                         result.Add(reply.Address);
                     }

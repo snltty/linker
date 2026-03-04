@@ -1,4 +1,5 @@
 ﻿using linker.messenger.tuntap;
+using linker.messenger.tuntap.client;
 
 namespace linker.messenger.store.file.tuntap
 {

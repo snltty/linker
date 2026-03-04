@@ -5,8 +5,8 @@ using linker.messenger.flow.webapi;
 using linker.messenger.forward.proxy;
 using linker.messenger.relay.server;
 using linker.messenger.socks5;
-using linker.messenger.tunnel;
-using linker.messenger.tuntap;
+using linker.messenger.tunnel.server;
+using linker.messenger.tuntap.client;
 using linker.plugins.sforward.proxy;
 using Microsoft.Extensions.DependencyInjection;
 namespace linker.messenger.flow

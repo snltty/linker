@@ -7,21 +7,16 @@
                         <div class="skeleton-animation" :style="`animation-delay:${scope.row.animationDelay}ms`">
                             <div>
                                 <template v-if="scope.row.hook_tunnel.Net.CountryCode">
-                                    <img 
-                                    :title="`${scope.row.hook_tunnel.Net.CountryCode}、${scope.row.hook_tunnel.Net.City}`" 
-                                    class="system" 
-                                    :src="`https://unpkg.com/flag-icons@7.2.3/flags/4x3/${scope.row.hook_tunnel.Net.CountryCode.toLowerCase()}.svg`" />
+                                    <img class="system" :title="`${scope.row.hook_tunnel.Net.CountryCode}、${scope.row.hook_tunnel.Net.City}`" :src="`https://unpkg.com/flag-icons@7.2.3/flags/4x3/${scope.row.hook_tunnel.Net.CountryCode.toLowerCase()}.svg`" />
                                 </template>
                                 <template v-else>
                                     <img title="?" class="system" src="/system.svg" />
                                 </template>
                                 <template v-if="scope.row.hook_tunnel.Net.Isp">
-                                    <img 
-                                    :title="`${scope.row.hook_tunnel.Net.Isp}`" 
-                                    class="system" :src="netImg(scope.row.hook_tunnel.Net)" />
+                                    <img class="system" :title="`${scope.row.hook_tunnel.Net.Isp}`" :src="netImg(scope.row.hook_tunnel.Net)" />
                                 </template>
                                 <template v-else>
-                                    <img title="?" class="system" src="/system.svg" />
+                                    <img class="system" title="?" src="/system.svg" />
                                 </template>
                                 <template v-if="scope.row.hook_tunnel.Net.Nat">
                                     <span class="nat" :title="scope.row.hook_tunnel.Net.Nat">{{ natMap[scope.row.hook_tunnel.Net.Nat]  }}</span>
@@ -31,11 +26,24 @@
                                 </template>
                             </div> 
                             <div class="flex">
+                                <a href="javascript:;" class="a-line" title="upnp,绿色可用,黄色大概率可用,灰色几乎不可用"
+                                    @click="handleUpnp(scope.row.hook_tunnel,scope.row,values)"
+                                    :class="scope.row.hook_counter['upnp-w'] > 0 && scope.row.hook_counter['upnp-d'] > 0
+                                        ? 'green' : (scope.row.hook_counter['upnp-w']> 0 || scope.row.hook_counter['upnp-d'] > 0
+                                        ? 'yellow' : '')">
+
+                                        <img title="upnp" class="system" 
+                                        :src="scope.row.hook_counter['upnp-w'] > 0 && scope.row.hook_counter['upnp-d'] > 0
+                                            ? '/upnp-green.svg' : (scope.row.hook_counter['upnp-w']> 0 || scope.row.hook_counter['upnp-d'] > 0
+                                            ? '/upnp-yellow.svg' : '/upnp.svg')"/>
+                                        <span>{{ scope.row.hook_counter['upnp-l'] }}-{{ scope.row.hook_counter['upnp-r'] }}</span>
+                                </a>
+                                <span class="flex-1"></span>
                                 <a href="javascript:;" class="a-line" 
-                                :class="{yellow:scope.row.hook_tunnel.NeedReboot}" 
-                                :title="$t('home.holeText')"
-                                @click="handleTunnel(scope.row.hook_tunnel,scope.row,values)">
-                                    <span>{{$t('home.jump')}}:{{scope.row.hook_tunnel.RouteLevel}}+{{scope.row.hook_tunnel.RouteLevelPlus}}</span>
+                                    :class="{yellow:scope.row.hook_tunnel.NeedReboot}" 
+                                    :title="$t('home.holeText')"
+                                    @click="handleTunnel(scope.row.hook_tunnel,scope.row,values)">
+                                    {{scope.row.hook_tunnel.RouteLevel}}+{{scope.row.hook_tunnel.RouteLevelPlus}}
                                 </a>
                             </div>
                         </div>
@@ -87,6 +95,8 @@ export default {
             'aliyun':'aliyun.svg',
             'alibaba':'aliyun.svg',
             'jdcom':'jdcom.svg',
+            'jdcom':'jdcom.svg',
+            'cloudflare':'cloudflare.svg'
         }
         const regex = new RegExp(Object.keys(imgMap).map(item => `\\b${item}\\b`).join("|"));
         const netImg = (item)=>{
@@ -127,8 +137,25 @@ export default {
             tunnel.value.current = _tunnel;
             tunnel.value.showEdit = true;
         }
+        const handleUpnp = (_tunnel,row,access)=>{
+            if(machineId.value === _tunnel.MachineId){
+                if(!access.TunnelChangeSelf){
+                    ElMessage.success(t('common.access'));
+                    return;
+                }
+            }else{
+                if(!access.TunnelChangeOther){
+                    ElMessage.success(t('common.access'));
+                    return;
+                }
+            }
+            _tunnel.device = row;
+            tunnel.value.current = _tunnel;
+            tunnel.value.showUpnp = true;
+        }
+
         return {
-            handleTunnel,netImg,natMap
+            handleTunnel,handleUpnp,netImg,natMap
         }
     }
 }

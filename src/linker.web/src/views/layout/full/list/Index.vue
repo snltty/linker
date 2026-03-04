@@ -22,6 +22,8 @@
         <DeviceEdit v-if="devices.showDeviceEdit" v-model="devices.showDeviceEdit"  @change="handlePageChange" :data="devices.deviceInfo"></DeviceEdit>
         <AccessEdit v-if="devices.showAccessEdit" v-model="devices.showAccessEdit"  @change="handlePageChange" :data="devices.deviceInfo"></AccessEdit>
         <TunnelEdit v-if="tunnel.showEdit" v-model="tunnel.showEdit"  @change="deviceRefreshHook('tunnel')"></TunnelEdit>
+        <TunnelUpnp v-if="tunnel.showUpnp" v-model="tunnel.showUpnp"></TunnelUpnp>
+        
         <ConnectionsEdit v-if="connections.showEdit" v-model="connections.showEdit" ></ConnectionsEdit>
         <TuntapEdit v-if="tuntap.showEdit" v-model="tuntap.showEdit"  @change="deviceRefreshHook('tuntap')"></TuntapEdit>
         <TuntapLease v-if="tuntap.showLease" v-model="tuntap.showLease"  @change="deviceRefreshHook('tuntap')"></TuntapLease>
@@ -58,6 +60,7 @@ import { provideSocks5 } from '../../../components/socks5/socks5'
 
 import Tunnel from '../../../components/tunnel/Tunnel.vue'
 import TunnelEdit from '../../../components/tunnel/TunnelEdit.vue'
+import TunnelUpnp from '../../../components/tunnel/TunnelUpnp.vue'
 import { provideTunnel } from '../../../components/tunnel/tunnel'
 
 import { provideUpdater } from '../../../components/updater/updater'
@@ -105,7 +108,7 @@ export default {
         AccessEdit,
         Tunnel,TunnelEdit,
         ConnectionsEdit,
-        Tuntap,TuntapEdit,TuntapLease,
+        Tuntap,TuntapEdit,TunnelUpnp,TuntapLease,
         Socks5, Socks5Edit,
         Forward,ForwardEdit,
         SForwardEdit ,UpdaterConfirm,

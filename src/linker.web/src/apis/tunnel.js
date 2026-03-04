@@ -1,5 +1,17 @@
 import { sendWebsocketMsg } from './request'
 
+export const getUpnpMappingInfo = (machineid) => {
+    return sendWebsocketMsg('tunnel/getmapping',machineid);
+}
+export const getUpnpMappingLocalInfo = (machineid) => {
+    return sendWebsocketMsg('tunnel/getmappinglocal',machineid);
+}
+export const addUpnpMappingInfo = (machineid,value) => {
+    return sendWebsocketMsg('tunnel/addmapping',{Key:machineid,Value:value});
+}
+export const delUpnpMappingInfo = (machineid,port,protocolType) => {
+    return sendWebsocketMsg('tunnel/delmapping',{Key:machineid,Value:{Key:port,Value:protocolType}});
+}
 export const getTunnelInfo = (hashcode = '0') => {
     return sendWebsocketMsg('tunnel/get', hashcode);
 }

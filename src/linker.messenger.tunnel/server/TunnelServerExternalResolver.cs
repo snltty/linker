@@ -5,7 +5,7 @@ using linker.libs.extends;
 using linker.libs;
 using System.Text;
 
-namespace linker.messenger.tunnel
+namespace linker.messenger.tunnel.server
 {
     /// <summary>
     /// 外网端口处理器

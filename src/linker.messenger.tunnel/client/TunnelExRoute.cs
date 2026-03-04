@@ -1,8 +1,7 @@
-﻿
-using linker.messenger.exroute;
+﻿using linker.messenger.exroute;
 using System.Net;
 
-namespace linker.messenger.tunnel
+namespace linker.messenger.tunnel.client
 {
     public sealed class TunnelExRoute : IExRoute
     {

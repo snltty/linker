@@ -1,6 +1,6 @@
 ﻿using linker.tunnel.transport;
 
-namespace linker.messenger.tunnel
+namespace linker.messenger.tunnel.client
 {
     /// <summary>
     /// 打洞排除IP

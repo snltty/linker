@@ -1,10 +1,12 @@
 ﻿using linker.libs;
 using linker.libs.extends;
 using linker.libs.timer;
+using linker.messenger.decenter;
 using linker.messenger.signin;
 using linker.messenger.tunnel.stun.client;
 using linker.messenger.tunnel.stun.enums;
 using linker.tunnel;
+using linker.upnp;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Quic;
@@ -12,7 +14,7 @@ using System.Net.Sockets;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 
-namespace linker.messenger.tunnel
+namespace linker.messenger.tunnel.client
 {
     public sealed class TunnelNetworkTransfer
     {
@@ -24,14 +26,13 @@ namespace linker.messenger.tunnel
 
         public Action OnChange { get; set; } = () => { };
 
-        public TunnelNetworkTransfer(ISignInClientStore signInClientStore, SignInClientState signInClientState, ITunnelClientStore tunnelClientStore, IMessengerSender messengerSender, ISerializer serializer, TunnelTransfer tunnelTransfer)
+        public TunnelNetworkTransfer(ISignInClientStore signInClientStore, SignInClientState signInClientState, ITunnelClientStore tunnelClientStore, IMessengerSender messengerSender, ISerializer serializer, TunnelTransfer tunnelTransfer, CounterDecenter counterDecenter)
         {
             this.signInClientStore = signInClientStore;
             this.signInClientState = signInClientState;
             this.tunnelClientStore = tunnelClientStore;
             this.messengerSender = messengerSender;
             this.serializer = serializer;
-
 
             signInClientState.OnSignInSuccessBefore += async () => { RefreshRouteLevel(); tunnelTransfer.Refresh(); await Task.CompletedTask; };
 
@@ -40,7 +41,35 @@ namespace linker.messenger.tunnel
             RefreshRouteLevel();
             GetNet();
 
+
+            PortMappingUtility.StartDiscovery();
+            PortMappingUtility.OnChange += () =>
+            {
+                counterDecenter.SetValue("upnp-d", PortMappingUtility.DeviceCount);
+                counterDecenter.SetValue("upnp-r", PortMappingUtility.MappingCount);
+                counterDecenter.SetValue("upnp-l", PortMappingUtility.LocalMappingCount);
+                counterDecenter.SetValue("upnp-w", PortMappingUtility.WanCount);
+            };
         }
+
+        public List<PortMappingInfo> GetMapping()
+        {
+            return PortMappingUtility.Get();
+        }
+        public List<PortMappingInfo> GetMappingLocal()
+        {
+            return PortMappingUtility.GetLocal();
+        }
+        public async Task AddMapping(PortMappingInfo mapping)
+        {
+            await PortMappingUtility.Add(mapping).ConfigureAwait(false);
+        }
+        public async Task DelMapping(int publicPort, ProtocolType ProtocolType)
+        {
+            await PortMappingUtility.Delete(publicPort, ProtocolType).ConfigureAwait(false);
+        }
+
+
         /// <summary>
         /// 刷新网关等级数据
         /// </summary>
@@ -66,7 +95,7 @@ namespace linker.messenger.tunnel
             try
             {
                 using HttpClient httpClient = new HttpClient();
-                string str = await httpClient.GetStringAsync($"http://ip-api.com/json",cts.Token).ConfigureAwait(false);
+                string str = await httpClient.GetStringAsync($"http://ip-api.com/json", cts.Token).ConfigureAwait(false);
 
                 if (string.IsNullOrWhiteSpace(str) == false)
                 {
@@ -91,7 +120,7 @@ namespace linker.messenger.tunnel
             try
             {
                 using HttpClient httpClient = new HttpClient();
-                string str = await httpClient.GetStringAsync($"https://api.myip.la/en?json",cts.Token).ConfigureAwait(false);
+                string str = await httpClient.GetStringAsync($"https://api.myip.la/en?json", cts.Token).ConfigureAwait(false);
 
                 if (string.IsNullOrWhiteSpace(str) == false)
                 {
@@ -140,7 +169,6 @@ namespace linker.messenger.tunnel
             }
             return false;
         }
-
         private void GetNet()
         {
             TimerHelper.Async(async () =>
@@ -182,6 +210,7 @@ namespace linker.messenger.tunnel
                 Routes = tunnelClientStore.Network.RouteIPs,
             };
         }
+
         private static byte[] ipv6LocalBytes = new byte[] { 254, 128, 0, 0, 0, 0, 0, 0 };
         private TunnelInterfaceInfo[] GetInterfaces()
         {

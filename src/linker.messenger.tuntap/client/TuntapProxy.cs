@@ -9,7 +9,7 @@ using linker.tunnel;
 using linker.tunnel.connection;
 using System.Buffers.Binary;
 
-namespace linker.messenger.tuntap
+namespace linker.messenger.tuntap.client
 {
     public interface ITuntapProxyCallback
     {

@@ -3,18 +3,16 @@ using linker.messenger.sync;
 using linker.tunnel;
 using linker.tunnel.transport;
 
-namespace linker.messenger.tunnel
+namespace linker.messenger.tunnel.client
 {
     public sealed class TunnelSyncTransports : ISync
     {
         public string Name => "TunnelTransports";
 
-        private readonly ITunnelClientStore tunnelClientStore;
         private readonly ISerializer serializer;
         private readonly ITunnelMessengerAdapter tunnelMessengerAdapter;
-        public TunnelSyncTransports(ITunnelClientStore tunnelClientStore, ISerializer serializer, ITunnelMessengerAdapter tunnelMessengerAdapter)
+        public TunnelSyncTransports(ISerializer serializer, ITunnelMessengerAdapter tunnelMessengerAdapter)
         {
-            this.tunnelClientStore = tunnelClientStore;
             this.serializer = serializer;
             this.tunnelMessengerAdapter = tunnelMessengerAdapter;
         }

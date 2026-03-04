@@ -6,7 +6,7 @@ using System.Security.Cryptography.X509Certificates;
 using linker.messenger.signin;
 using linker.messenger.decenter;
 
-namespace linker.messenger.tunnel
+namespace linker.messenger.tunnel.client
 {
     /// <summary>
     /// 打洞信标适配存储

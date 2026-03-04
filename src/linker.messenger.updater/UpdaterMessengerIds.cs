@@ -31,7 +31,7 @@
         UpdateServer170 = 2617,
 
         UpdateServer184 = 2619,
-        UpdateServer186 = 2020,
+        UpdateServer186 = 2620,
 
         Max = 2299
     }

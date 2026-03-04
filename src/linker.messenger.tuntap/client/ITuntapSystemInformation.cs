@@ -1,5 +1,4 @@
-﻿
-namespace linker.messenger.tuntap
+﻿namespace linker.messenger.tuntap.client
 {
     public interface ITuntapSystemInformation
     {

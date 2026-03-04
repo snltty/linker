@@ -12,6 +12,7 @@ export default {
     'common.p2p': 'P2P',
     'common.refresh': 'Refresh',
     'common.copied': 'Copied',
+    'common.deleteText': 'Are you sure delete {0}？',
 
     'head.home': 'Home',
     'head.server': 'Server',

@@ -1,14 +1,16 @@
-﻿using linker.tunnel.transport;
+﻿using linker.libs;
 using linker.libs.extends;
-using System.Collections.Concurrent;
-using linker.messenger.signin;
-using linker.libs;
-using linker.messenger.api;
-using linker.tunnel.connection;
-using linker.tunnel;
 using linker.libs.web;
+using linker.messenger.api;
+using linker.messenger.signin;
+using linker.tunnel;
+using linker.tunnel.connection;
+using linker.tunnel.transport;
+using linker.upnp;
+using System.Collections.Concurrent;
+using System.Net.Sockets;
 
-namespace linker.messenger.tunnel
+namespace linker.messenger.tunnel.client
 {
     /// <summary>
     /// 管理接口
@@ -38,6 +40,80 @@ namespace linker.messenger.tunnel
             this.tunnelNetworkTransfer = tunnelNetworkTransfer;
             this.tunnelTransfer = tunnelTransfer;
             this.tunnelMessengerAdapter = tunnelMessengerAdapter;
+
+        }
+
+        public async Task<List<PortMappingInfo>> GetMapping(ApiControllerParamsInfo param)
+        {
+            if (param.Content == signInClientStore.Id || string.IsNullOrWhiteSpace(param.Content))
+            {
+                return tunnelNetworkTransfer.GetMapping();
+            }
+
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)TunnelMessengerIds.UpnpGetForward,
+                Payload = serializer.Serialize(param.Content)
+            }).ConfigureAwait(false);
+            if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
+            {
+                return serializer.Deserialize<List<PortMappingInfo>>(resp.Data.Span);
+            }
+            return [];
+        }
+        public async Task<List<PortMappingInfo>> GetMappingLocal(ApiControllerParamsInfo param)
+        {
+            if (param.Content == signInClientStore.Id || string.IsNullOrWhiteSpace(param.Content))
+            {
+                return tunnelNetworkTransfer.GetMappingLocal();
+            }
+
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)TunnelMessengerIds.UpnpGetLocalForward,
+                Payload = serializer.Serialize(param.Content)
+            }).ConfigureAwait(false);
+            if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
+            {
+                return serializer.Deserialize<List<PortMappingInfo>>(resp.Data.Span);
+            }
+            return [];
+        }
+        public async Task<bool> AddMapping(ApiControllerParamsInfo param)
+        {
+            KeyValueInfo<string, PortMappingInfo> info = param.Content.DeJson<KeyValueInfo<string, PortMappingInfo>>();
+            if (info.Key == signInClientStore.Id || string.IsNullOrWhiteSpace(info.Key))
+            {
+                await tunnelNetworkTransfer.AddMapping(info.Value).ConfigureAwait(false);
+                return true;
+            }
+
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)TunnelMessengerIds.UpnpAddForward,
+                Payload = serializer.Serialize(new KeyValuePair<string, PortMappingInfo>(info.Key, info.Value))
+            }).ConfigureAwait(false);
+            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
+        }
+        public async Task<bool> DelMapping(ApiControllerParamsInfo param)
+        {
+            KeyValueInfo<string, KeyValueInfo<int, ProtocolType>> info = param.Content.DeJson<KeyValueInfo<string, KeyValueInfo<int, ProtocolType>>>();
+            if (info.Key == signInClientStore.Id || string.IsNullOrWhiteSpace(info.Key))
+            {
+                await tunnelNetworkTransfer.DelMapping(info.Value.Key, info.Value.Value).ConfigureAwait(false);
+                return true;
+            }
+
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)TunnelMessengerIds.UpnpDelForward,
+                Payload = serializer.Serialize(new KeyValuePair<string, KeyValuePair<int, ProtocolType>>(info.Key, new KeyValuePair<int, ProtocolType>(info.Value.Key, info.Value.Value)))
+            }).ConfigureAwait(false);
+            return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
 
         /// <summary>
@@ -175,7 +251,6 @@ namespace linker.messenger.tunnel
             }).ConfigureAwait(false);
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
-
 
         public async Task<TunnelLocalNetworkInfo> GetNetwork(ApiControllerParamsInfo param)
         {

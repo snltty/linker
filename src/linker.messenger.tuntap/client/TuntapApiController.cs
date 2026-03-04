@@ -9,7 +9,7 @@ using linker.messenger.tuntap.messenger;
 using linker.libs.web;
 using linker.messenger.tuntap.cidr;
 
-namespace linker.messenger.tuntap
+namespace linker.messenger.tuntap.client
 {
     public sealed class TuntapApiController : IApiController
     {

@@ -1,7 +1,7 @@
 ﻿using linker.messenger.signin.args;
 using linker.libs.extends;
 
-namespace linker.messenger.tunnel
+namespace linker.messenger.tunnel.client
 {
     public sealed class SignInArgsNet : ISignInArgsClient
     {

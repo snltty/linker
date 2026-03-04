@@ -11,6 +11,7 @@ export const provideTunnel = () => {
         hashcode1: 0,
 
         showEdit: false,
+        showUpnp: false,
         current: null,  
     });
     provide(tunnelSymbol, tunnel);

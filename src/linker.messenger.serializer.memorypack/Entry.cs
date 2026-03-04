@@ -43,6 +43,7 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new TunnelInterfaceInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelNetInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelTransportItemSetInfoFormatter());
+            MemoryPackFormatterProvider.Register(new PortMappingInfoFormatter());
 
 
             MemoryPackFormatterProvider.Register(new DecenterSyncInfoFormatter());

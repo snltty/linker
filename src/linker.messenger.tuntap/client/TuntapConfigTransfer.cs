@@ -5,7 +5,7 @@ using linker.messenger.signin;
 using linker.messenger.tuntap.lease;
 using linker.libs.timer;
 
-namespace linker.messenger.tuntap
+namespace linker.messenger.tuntap.client
 {
     public sealed class TuntapConfigTransfer
     {

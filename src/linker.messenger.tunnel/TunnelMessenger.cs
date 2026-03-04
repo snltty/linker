@@ -2,6 +2,10 @@
 using linker.tunnel.transport;
 using linker.libs;
 using linker.messenger.signin;
+using linker.messenger.tunnel.client;
+using linker.libs.extends;
+using linker.upnp;
+using System.Net.Sockets;
 
 namespace linker.messenger.tunnel
 {
@@ -122,6 +126,32 @@ namespace linker.messenger.tunnel
             TunnelTransportItemSetInfo info = serializer.Deserialize<TunnelTransportItemSetInfo>(connection.ReceiveRequestWrap.Payload.Span);
             await tunnelMessengerAdapter.SetTunnelTransports(info.MachineId, info.Data);
             connection.Write(Helper.TrueArray);
+        }
+
+        [MessengerId((ushort)TunnelMessengerIds.UpnpGet)]
+        public async Task UpnpGet(IConnection connection)
+        {
+            uint requestid = connection.ReceiveRequestWrap.RequestId;
+            connection.Write(serializer.Serialize(tunnelNetworkTransfer.GetMapping()));
+        }
+
+        [MessengerId((ushort)TunnelMessengerIds.UpnpGetLocal)]
+        public async Task UpnpGetLocal(IConnection connection)
+        {
+            connection.Write(serializer.Serialize(tunnelNetworkTransfer.GetMappingLocal()));
+        }
+
+        [MessengerId((ushort)TunnelMessengerIds.UpnpAdd)]
+        public async Task UpnpAdd(IConnection connection)
+        {
+            KeyValuePair<string, PortMappingInfo> info = serializer.Deserialize<KeyValuePair<string, PortMappingInfo>>(connection.ReceiveRequestWrap.Payload.Span);
+            _ = tunnelNetworkTransfer.AddMapping(info.Value).ConfigureAwait(false);
+        }
+        [MessengerId((ushort)TunnelMessengerIds.UpnpDel)]
+        public async Task UpnpDel(IConnection connection)
+        {
+            KeyValuePair<string, KeyValuePair<int, ProtocolType>> info = serializer.Deserialize<KeyValuePair<string, KeyValuePair<int, ProtocolType>>>(connection.ReceiveRequestWrap.Payload.Span);
+            _ = tunnelNetworkTransfer.DelMapping(info.Value.Key, info.Value.Value).ConfigureAwait(false);
         }
     }
 
@@ -318,6 +348,104 @@ namespace linker.messenger.tunnel
                             RequestId = requestid,
                         }, (ushort)TunnelMessengerIds.TransportSetForward).ConfigureAwait(false);
                     }
+                });
+            }
+        }
+
+
+        [MessengerId((ushort)TunnelMessengerIds.UpnpGetForward)]
+        public void UpnpGetForward(IConnection connection)
+        {
+            string machineid = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, machineid, out SignCacheInfo from, out SignCacheInfo to))
+            {
+                uint requestid = connection.ReceiveRequestWrap.RequestId;
+                _ = messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = to.Connection,
+                    MessengerId = (ushort)TunnelMessengerIds.UpnpGet,
+                }).ContinueWith(async (result) =>
+                {
+                    if (result.Result.Code == MessageResponeCodes.OK && result.Result.Data.Length > 0)
+                    {
+                        await messengerSender.ReplyOnly(new MessageResponseWrap
+                        {
+                            Connection = connection,
+                            Payload = result.Result.Data,
+                            RequestId = requestid,
+                        }, (ushort)TunnelMessengerIds.UpnpGetForward).ConfigureAwait(false);
+                    }
+                });
+            }
+        }
+        [MessengerId((ushort)TunnelMessengerIds.UpnpGetLocalForward)]
+        public void UpnpGetLocalForward(IConnection connection)
+        {
+            string machineid = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, machineid, out SignCacheInfo from, out SignCacheInfo to))
+            {
+                uint requestid = connection.ReceiveRequestWrap.RequestId;
+                _ = messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = to.Connection,
+                    MessengerId = (ushort)TunnelMessengerIds.UpnpGetLocal,
+                }).ContinueWith(async (result) =>
+                {
+                    if (result.Result.Code == MessageResponeCodes.OK && result.Result.Data.Length > 0)
+                    {
+                        await messengerSender.ReplyOnly(new MessageResponseWrap
+                        {
+                            Connection = connection,
+                            Payload = result.Result.Data,
+                            RequestId = requestid,
+                        }, (ushort)TunnelMessengerIds.UpnpGetLocalForward).ConfigureAwait(false);
+                    }
+                });
+            }
+        }
+        [MessengerId((ushort)TunnelMessengerIds.UpnpAddForward)]
+        public void UpnpAddForward(IConnection connection)
+        {
+            KeyValuePair<string, PortMappingInfo> info = serializer.Deserialize<KeyValuePair<string, PortMappingInfo>>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, info.Key, out SignCacheInfo from, out SignCacheInfo to))
+            {
+                uint requestid = connection.ReceiveRequestWrap.RequestId;
+                _ = messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = to.Connection,
+                    MessengerId = (ushort)TunnelMessengerIds.UpnpAdd,
+                    Payload = connection.ReceiveRequestWrap.Payload
+                }).ContinueWith(async (result) =>
+                {
+                    await messengerSender.ReplyOnly(new MessageResponseWrap
+                    {
+                        Connection = connection,
+                        Payload = Helper.TrueArray,
+                        RequestId = requestid,
+                    }, (ushort)TunnelMessengerIds.UpnpAddForward).ConfigureAwait(false);
+                });
+            }
+        }
+        [MessengerId((ushort)TunnelMessengerIds.UpnpDelForward)]
+        public void UpnpDelForward(IConnection connection)
+        {
+            KeyValuePair<string, KeyValuePair<int, ProtocolType>> info = serializer.Deserialize<KeyValuePair<string, KeyValuePair<int, ProtocolType>>>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, info.Key, out SignCacheInfo from, out SignCacheInfo to))
+            {
+                uint requestid = connection.ReceiveRequestWrap.RequestId;
+                _ = messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = to.Connection,
+                    MessengerId = (ushort)TunnelMessengerIds.UpnpDel,
+                    Payload = connection.ReceiveRequestWrap.Payload
+                }).ContinueWith(async (result) =>
+                {
+                    await messengerSender.ReplyOnly(new MessageResponseWrap
+                    {
+                        Connection = connection,
+                        Payload = Helper.TrueArray,
+                        RequestId = requestid,
+                    }, (ushort)TunnelMessengerIds.UpnpDelForward).ConfigureAwait(false);
                 });
             }
         }

@@ -9,7 +9,7 @@ using linker.tunnel.connection;
 using System.Net;
 using static linker.nat.LinkerDstMapping;
 
-namespace linker.messenger.tuntap
+namespace linker.messenger.tuntap.client
 {
     public sealed class TuntapAdapter : ILinkerTunDeviceCallback, ITuntapProxyCallback
     {

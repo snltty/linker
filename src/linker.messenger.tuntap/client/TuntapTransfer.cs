@@ -5,7 +5,7 @@ using linker.libs.timer;
 using static linker.nat.LinkerDstMapping;
 using linker.tun.device;
 
-namespace linker.messenger.tuntap
+namespace linker.messenger.tuntap.client
 {
     public sealed class TuntapTransfer
     {

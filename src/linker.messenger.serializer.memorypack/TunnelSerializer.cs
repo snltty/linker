@@ -1,9 +1,11 @@
-﻿using linker.tunnel.connection;
+﻿using linker.messenger.tunnel;
+using linker.tunnel.connection;
 using linker.tunnel.transport;
 using linker.tunnel.wanport;
-using System.Net;
+using linker.upnp;
 using MemoryPack;
-using linker.messenger.tunnel;
+using System.Net;
+using System.Net.Sockets;
 
 namespace linker.messenger.serializer.memorypack
 {
@@ -742,6 +744,94 @@ namespace linker.messenger.serializer.memorypack
 
             var wrapped = reader.ReadPackable<SerializableTunnelTransportItemSetInfo>();
             value = wrapped.info;
+        }
+    }
+
+
+
+
+    [MemoryPackable]
+    public readonly partial struct SerializablePortMappingInfo
+    {
+        [MemoryPackIgnore]
+        public readonly PortMappingInfo info;
+
+        [MemoryPackInclude, MemoryPackAllowSerialize]
+        IPAddress ClientIp => info.ClientIp;
+        [MemoryPackInclude]
+        int PublicPort => info.PublicPort;
+        [MemoryPackInclude]
+        int PrivatePort => info.PrivatePort;
+        [MemoryPackInclude]
+        ProtocolType ProtocolType => info.ProtocolType;
+        [MemoryPackInclude]
+        bool Enabled => info.Enabled;
+        [MemoryPackInclude]
+        string Description => info.Description;
+        [MemoryPackInclude]
+        int LeaseDuration => info.LeaseDuration;
+        [MemoryPackInclude]
+        DeviceType DeviceType => info.DeviceType;
+
+        [MemoryPackInclude]
+        bool Deletable => info.Deletable;
+
+        [MemoryPackConstructor]
+        SerializablePortMappingInfo(IPAddress clientIp, int publicPort, int privatePort, ProtocolType protocolType, bool enabled, string description, int leaseDuration, DeviceType deviceType, bool deletable)
+        {
+            var info = new PortMappingInfo
+            {
+                 ClientIp = clientIp,
+                 PublicPort = publicPort,
+                 PrivatePort = privatePort,
+                 ProtocolType = protocolType,
+                 Enabled = enabled,
+                 Description = description,
+                 LeaseDuration = leaseDuration,
+                 DeviceType = deviceType,
+                 Deletable = deletable
+            };
+            this.info = info;
+        }
+
+        public SerializablePortMappingInfo(PortMappingInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class PortMappingInfoFormatter : MemoryPackFormatter<PortMappingInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref PortMappingInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializablePortMappingInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref PortMappingInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            value = new PortMappingInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.ClientIp = reader.ReadValue<IPAddress>();
+            value.PublicPort = reader.ReadValue<int>();
+            value.PrivatePort = reader.ReadValue<int>();
+            value.ProtocolType = reader.ReadValue<ProtocolType>();
+            value.Enabled = reader.ReadValue<bool>();
+            value.Description = reader.ReadValue<string>();
+            value.LeaseDuration = reader.ReadValue<int>();
+            value.DeviceType = reader.ReadValue<DeviceType>();
+            value.Deletable = reader.ReadValue<bool>();
         }
     }
 }

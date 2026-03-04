@@ -11,6 +11,7 @@ namespace linker.messenger.listen
 {
     public sealed class CountryTransfer
     {
+        
         private string[] countryCodes = ["--","AF", "AX", "AL", "DZ", "AS", "AD", "AO", "AI", "AQ", "AG", "AR", "AM", "AW", "AU", "AT", "AZ",
             "BS", "BH", "BD", "BB", "BY", "BE", "BZ", "BJ", "BM", "BT", "BO", "BQ", "BA", "BW", "BV", "BR", "IO", "BN", "BG", "BF", "BI",
             "CV", "KH", "CM", "CA", "KY", "CF", "TD", "CL", "CN", "CX", "CC", "CO", "KM", "CG", "CD", "CK", "CR", "CI", "HR", "CU", "CW", "CY", "CZ",
@@ -64,15 +65,10 @@ namespace linker.messenger.listen
 
             Span<byte> address = stackalloc byte[4];
             ip.TryWriteBytes(address, out _);
-            if (address[0] == 127 || address[0] == 10
-              || (address[0] == 172 && address[1] >= 16 && address[1] <= 31)
-              || (address[0] == 192 && address[1] == 168)
-              || (address[0] == 169 && address[1] == 254)
-              )
+            if (NetworkHelper.IsPrivateIP(ip) )
             {
                 return true;
             }
-
             uint value = BinaryPrimitives.ReadUInt32BigEndian(address);
             if (ipCaches.TryGetValue(value, out bool result))
             {
