@@ -15,6 +15,7 @@ using linker.libs.extends;
 using linker.libs.web;
 using linker.messenger.entry;
 using linker.messenger.tuntap;
+using linker.messenger.tuntap.client;
 using linker.messenger.updater;
 using linker.nat;
 using linker.tun.device;
