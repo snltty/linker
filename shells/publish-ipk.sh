@@ -37,7 +37,7 @@ do
     tar -czf data.tar.gz -C data/ .
     tar -czf control.tar.gz -C control/ .
     echo "2.0" > debian-binary
-    tar -czf linker-${r}.ipk debian-binary data.tar.gz control.tar.gz
+    tar -czf linker-openwrt-${r}.ipk debian-binary data.tar.gz control.tar.gz
     cd ../../../
 
     ((index++))
