@@ -130,11 +130,13 @@ namespace linker.libs
             {
                 string[] hostArr = host.Split(':');
                 int port = defaultPort;
+                string domain = hostArr[0];
                 if (hostArr.Length == 2)
                 {
                     port = int.Parse(hostArr[1]);
+                    domain = string.Join(":", hostArr.Take(hostArr.Length - 1));
                 }
-                IPAddress ip = GetDomainIp(hostArr[0]);
+                IPAddress ip = GetDomainIp(domain);
                 return new IPEndPoint(ip, port);
             }
             catch (Exception)

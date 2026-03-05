@@ -29,7 +29,7 @@ export default {
             show: true,
             machineName: tunnel.value.current.device.MachineName,
             machineId: tunnel.value.current.device.MachineId,
-            deviceTypes:{1:'UPNP',2:'NAT-PMP',4:'PCP',255:'Any'},
+            deviceTypes:{1:'UPNP',2:'PMP',4:'PCP',255:'Any'},
             protocolTypes:{6:'TCP',17:'UDP'},
         });
         watch(() => state.show, (val) => {

@@ -222,14 +222,14 @@ namespace linker.tunnel.transport
         /// <summary>
         /// 标签
         /// </summary>
-        public string TransactionTag { get; set; }
+        public string TransactionTag { get; set; } = string.Empty;
 
         /// <summary>
         /// 目标ip列表
         /// </summary>
         public List<IPEndPoint> RemoteEndPoints { get; set; }
 
-        public string Flag { get; set; }
+        public string Flag { get; set; } = string.Empty;
     }
 
 

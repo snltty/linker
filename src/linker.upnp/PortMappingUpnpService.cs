@@ -76,6 +76,47 @@ namespace linker.upnp
             }
             return result;
         }
+        public async Task<PortMappingInfo> Get(int port, ProtocolType protocolType)
+        {
+            using HttpClient httpClient = new HttpClient();
+            string action = BuildGetPortMappingRequest(port, protocolType);
+
+            try
+            {
+                using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, ControlUrl);
+                request.Headers.Add("SOAPACTION", $"\"{ServiceType}#GetSpecificPortMappingEntry\"");
+                request.Content = new StringContent(action, Encoding.UTF8, "text/xml");
+                using HttpResponseMessage response = await httpClient.SendAsync(request).ConfigureAwait(false);
+                string responseContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                if (responseContent.Contains("UPnPError"))
+                {
+                    return null;
+                }
+
+                XmlDocument doc = new XmlDocument();
+                doc.LoadXml(responseContent);
+                XmlNamespaceManager nsmgr = new XmlNamespaceManager(doc.NameTable);
+                nsmgr.AddNamespace("s", "http://schemas.xmlsoap.org/soap/envelope/");
+                nsmgr.AddNamespace("u", "urn:schemas-upnp-org:service:WANIPConnection:1");
+                XmlNode resp = doc.SelectSingleNode("//u:GetSpecificPortMappingEntryResponse", nsmgr);
+
+                return new PortMappingInfo
+                {
+                    ClientIp = IPAddress.Parse(resp.SelectSingleNode("NewInternalClient").InnerText),
+                    Description = resp.SelectSingleNode("NewPortMappingDescription").InnerText,
+                    Enabled = resp.SelectSingleNode("NewEnabled").InnerText == "1",
+                    LeaseDuration = int.Parse(resp.SelectSingleNode("NewLeaseDuration").InnerText),
+                    PrivatePort = int.Parse(resp.SelectSingleNode("NewInternalPort").InnerText),
+                    PublicPort = port,
+                    ProtocolType = protocolType,
+                    DeviceType = DeviceType.Upnp
+                };
+            }
+            catch (Exception)
+            {
+            }
+            return null;
+        }
         public async Task<bool> Add(PortMappingInfo mapping)
         {
             if ((mapping.DeviceType & Type) != Type) return false;
@@ -149,6 +190,20 @@ namespace linker.upnp
     <u:GetGenericPortMappingEntry xmlns:u=""{ServiceType}"">
       <NewPortMappingIndex>{index}</NewPortMappingIndex>
     </u:GetGenericPortMappingEntry>
+  </s:Body>
+</s:Envelope>";
+        }
+        private string BuildGetPortMappingRequest(int port, ProtocolType protocolType)
+        {
+            return $@"<?xml version=""1.0""?>
+<s:Envelope xmlns:s=""http://schemas.xmlsoap.org/soap/envelope/"" 
+            s:encodingStyle=""http://schemas.xmlsoap.org/soap/encoding/"">
+  <s:Body>
+    <u:GetSpecificPortMappingEntry xmlns:u=""{ServiceType}"">
+      <NewRemoteHost></NewRemoteHost>
+      <NewExternalPort>{port}</NewExternalPort>
+      <NewProtocol>{protocolType.ToString().ToUpper()}</NewProtocol>
+    </u:GetSpecificPortMappingEntry>
   </s:Body>
 </s:Envelope>";
         }
@@ -238,7 +293,6 @@ namespace linker.upnp
                 using HttpClient webClient = new HttpClient();
                 string resp = await webClient.GetStringAsync(location).ConfigureAwait(false);
 
-
                 XmlDocument doc = new XmlDocument();
                 doc.LoadXml(resp);
                 XmlNamespaceManager ns = new XmlNamespaceManager(doc.NameTable);
@@ -327,6 +381,10 @@ namespace linker.upnp
         public async Task<List<PortMappingInfo>> Get()
         {
             return (await Task.WhenAll(upnpDevices.Values.Select(c => c.Get()).ToList()).ConfigureAwait(false)).SelectMany(c => c).ToList();
+        }
+        public async Task<PortMappingInfo> Get(int port, ProtocolType protocolType)
+        {
+            return (await Task.WhenAll(upnpDevices.Values.Select(c => c.Get(port, protocolType))).ConfigureAwait(false)).FirstOrDefault(c => c != null);
         }
         /// <summary>
         /// 添加一条映射

@@ -32,9 +32,9 @@ namespace linker.tunnel
         {
             MapInfo = new MapInfo { PrivatePort = privatePort, PublicPort = privatePort };
 
-            PortMappingInfo tcp = new PortMappingInfo { PrivatePort = privatePort, PublicPort = privatePort, ProtocolType = ProtocolType.Tcp, Description = $"linker tunnel tcp", DeviceType = DeviceType.Pmp, LeaseDuration = 7 * 24 * 60 * 60, Deletable = false };
+            PortMappingInfo tcp = new PortMappingInfo { PrivatePort = privatePort, PublicPort = privatePort, ProtocolType = ProtocolType.Tcp, Description = $"linker tunnel tcp", DeviceType = DeviceType.All, LeaseDuration = 7 * 24 * 60 * 60, Deletable = false };
             _ = PortMappingUtility.Add(tcp).ConfigureAwait(false);
-            PortMappingInfo udp = new PortMappingInfo { PrivatePort = privatePort, PublicPort = privatePort, ProtocolType = ProtocolType.Udp, Description = $"linker tunnel udp", DeviceType = DeviceType.Pmp, LeaseDuration = 7 * 24 * 60 * 60, Deletable = false };
+            PortMappingInfo udp = new PortMappingInfo { PrivatePort = privatePort, PublicPort = privatePort, ProtocolType = ProtocolType.Udp, Description = $"linker tunnel udp", DeviceType = DeviceType.All, LeaseDuration = 7 * 24 * 60 * 60, Deletable = false };
             _ = PortMappingUtility.Add(udp).ConfigureAwait(false);
 
             _ = transportTcpPortMap.Listen(privatePort).ConfigureAwait(false);
@@ -48,9 +48,9 @@ namespace linker.tunnel
         public void SetMap(int privatePort, int publicPort)
         {
             MapInfo1 = new MapInfo { PrivatePort = privatePort, PublicPort = publicPort };
-            PortMappingInfo tcp = new PortMappingInfo { PrivatePort = privatePort, PublicPort = publicPort, ProtocolType = ProtocolType.Tcp, Description = $"linker tunnel tcp", DeviceType = DeviceType.Pmp, LeaseDuration = 7 * 24 * 60 * 60, Deletable = false };
+            PortMappingInfo tcp = new PortMappingInfo { PrivatePort = privatePort, PublicPort = publicPort, ProtocolType = ProtocolType.Tcp, Description = $"linker tunnel tcp", DeviceType = DeviceType.All, LeaseDuration = 7 * 24 * 60 * 60, Deletable = false };
             _ = PortMappingUtility.Add(tcp).ConfigureAwait(false);
-            PortMappingInfo udp = new PortMappingInfo { PrivatePort = privatePort, PublicPort = publicPort, ProtocolType = ProtocolType.Udp, Description = $"linker tunnel udp", DeviceType = DeviceType.Pmp, LeaseDuration = 7 * 24 * 60 * 60, Deletable = false };
+            PortMappingInfo udp = new PortMappingInfo { PrivatePort = privatePort, PublicPort = publicPort, ProtocolType = ProtocolType.Udp, Description = $"linker tunnel udp", DeviceType = DeviceType.All, LeaseDuration = 7 * 24 * 60 * 60, Deletable = false };
             _ = PortMappingUtility.Add(udp).ConfigureAwait(false);
 
             _ = transportTcpPortMap.Listen(privatePort).ConfigureAwait(false);

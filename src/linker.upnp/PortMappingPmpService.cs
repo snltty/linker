@@ -20,6 +20,11 @@ namespace linker.upnp
         {
             return [];
         }
+        public async Task<PortMappingInfo> Get(int port, ProtocolType protocolType)
+        {
+            return default;
+        }
+
         public async Task<bool> Add(PortMappingInfo mapping)
         {
             if ((mapping.DeviceType & Type) != Type) return false;
@@ -204,6 +209,11 @@ namespace linker.upnp
         {
             return [];
         }
+        public async Task<PortMappingInfo> Get(int port, ProtocolType protocolType)
+        {
+            return default;
+        }
+
         public async Task Add(PortMappingInfo mapping)
         {
             foreach (var device in pmpDevices.Values)

@@ -3,6 +3,7 @@
         <div class="head pdb-6 t-c">
             <el-input size="small" v-model="state.name" @change="handleSearch" clearable style="width:10rem;margin-right:1rem"></el-input>
             <el-button size="small" :loading="state.loading" @click="handleSearch"><el-icon><Search></Search></el-icon> </el-button>
+            <el-button size="small" type="danger" @click="handleDel()"><el-icon><DeleteFilled></DeleteFilled></el-icon> </el-button>
         </div>
         <el-table stripe  :data="state.list" border size="small" width="100%" height="60vh">
             <el-table-column prop="DeviceType" label="类型" width="66" sortable>
@@ -50,17 +51,41 @@ export default {
         });
 
         const handleDel = (row) => { 
-            ElMessageBox.confirm(t('common.deleteText',[`[${row.PublicPort}:${props.protocolTypes[row.ProtocolType]}]`]), t('common.tips'), {
-                confirmButtonText: t('common.confirm'),
-                cancelButtonText: t('common.cancel'),
-                type: 'warning'
-            }).then(() => { 
-                delUpnpMappingInfo(props.machineId,row.PublicPort,row.ProtocolType).then(res => { 
-                    setTimeout(handleSearch,1000);
-                    ElMessage.success(t('common.oper'));
+            if(row){
+                ElMessageBox.confirm(t('common.deleteText',[`[${row.PublicPort}:${props.protocolTypes[row.ProtocolType]}]`]), t('common.tips'), {
+                    confirmButtonText: t('common.confirm'),
+                    cancelButtonText: t('common.cancel'),
+                    type: 'warning'
+                }).then(() => { 
+                    delUpnpMappingInfo(props.machineId,row.PublicPort,row.ProtocolType).then(res => { 
+                        setTimeout(handleSearch,1000);
+                        ElMessage.success(t('common.oper'));
+                    });
+                }).catch(() => { 
                 });
-            }).catch(() => { 
-            });
+            }else{
+                ElMessageBox.confirm(t('common.deleteText',['所有失效的']), t('common.tips'), {
+                    confirmButtonText: t('common.confirm'),
+                    cancelButtonText: t('common.cancel'),
+                    type: 'warning'
+                }).then(() => { 
+
+                    const list = state.list.filter(c=>c.Deletable && c.LeaseDuration == 0);
+                    const fn = (index = 0) => {
+                        if(index >= list.length){
+                            setTimeout(handleSearch,1000);
+                            ElMessage.success(t('common.oper'));
+                            return;
+                        }
+                        delUpnpMappingInfo(props.machineId,list[index].PublicPort,list[index].ProtocolType).then(res => { 
+                            fn(index+1);
+                        }).catch(()=>{
+                            fn(index+1);
+                        }); 
+                    }
+                    fn();
+                })
+            }
         }
 
         const getMapping = () => { 

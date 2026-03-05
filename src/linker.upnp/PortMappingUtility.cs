@@ -207,6 +207,11 @@ namespace linker.upnp
                 if ((services[i].Type & mapping.DeviceType) == services[i].Type && services[i].GetDevices().Count > 0)
                 {
                     await services[i].Add(mapping).ConfigureAwait(false);
+                    PortMappingInfo _mapping = await services[i].Get(mapping.PublicPort, mapping.ProtocolType).ConfigureAwait(false);
+                    if (_mapping != null && _mapping.LeaseDuration > 0)
+                    {
+                        break;
+                    }
                 }
             }
             Change?.Invoke();
@@ -263,7 +268,6 @@ namespace linker.upnp
         {
             public PortMappingInfo Info { get; set; }
             public bool Deleted { get; set; }
-            //public HashSet<IPAddress> Added { get; set; } = new HashSet<IPAddress>();
         }
 
 

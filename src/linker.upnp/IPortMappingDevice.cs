@@ -67,6 +67,7 @@ namespace linker.upnp
         /// </summary>
         /// <returns></returns>
         public Task<List<PortMappingInfo>> Get();
+        public Task<PortMappingInfo> Get(int publicPort, ProtocolType protocolType);
         /// <summary>
         /// 添加映射
         /// </summary>
