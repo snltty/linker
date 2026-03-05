@@ -75,7 +75,7 @@ jobs:
         (docker pull --platform linux/arm/v7 snltty/linker-kvm-arm:latest || docker pull snltty/linker-kvm-arm:latest) &&  \
         docker tag snltty/linker-kvm-arm:latest snltty/linker-kvm:arm &&  \
         docker push --platform linux/arm/v7 snltty/linker-kvm:arm &&  \
-        (docker pull --platform linux/arm64 snltty/linker-kvm-arm64:latest || docker pull snltty/linker-kvm-arm64:latest &&  \
+        (docker pull --platform linux/arm64 snltty/linker-kvm-arm64:latest || docker pull snltty/linker-kvm-arm64:latest) &&  \
         docker tag snltty/linker-kvm-arm64:latest snltty/linker-kvm:arm64 &&  \
         docker push --platform linux/arm64 snltty/linker-kvm:arm64 &&  \
         (docker pull --platform linux/amd64 snltty/linker-kvm-x64:latest || docker pull snltty/linker-kvm-x64:latest) &&  \
