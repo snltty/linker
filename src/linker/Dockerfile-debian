@@ -1,4 +1,4 @@
-FROM debian:latest
+FROM debian:bookworm-slim
 #FROM m.daocloud.io/docker.io/library/debian:latest
 
 RUN ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && echo Asia/Shanghai > /etc/timezone
@@ -10,12 +10,13 @@ RUN apt update \
     && apt-get install -y --no-install-recommends traceroute \
     && apt-get install -y --no-install-recommends iptables \
     && apt-get install -y --no-install-recommends ca-certificates \
-    && apt-get install -y --no-install-recommends wget gnupg2 \
-    && wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /etc/apt/trusted.gpg.d/microsoft.gpg \
-    && sh -c 'echo "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/trusted.gpg.d/microsoft.gpg] https://packages.microsoft.com/debian/12/prod bookworm main" > /etc/apt/sources.list.d/microsoft-prod.list' \
+    && curl -sSL -O https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb \
+    && dpkg -i packages-microsoft-prod.deb \
+    && rm packages-microsoft-prod.deb \
     && apt-get update \
     && apt-get install -y libmsquic \
-    && apt-get purge -y --auto-remove wget gnupg2 && apt-get clean && rm -rf /var/lib/apt/lists/*
+    && apt-get purge -y --auto-remove wget && apt-get clean && rm -rf /var/lib/apt/lists/*
+
 
 EXPOSE 1802/tcp
 EXPOSE 1802/udp
