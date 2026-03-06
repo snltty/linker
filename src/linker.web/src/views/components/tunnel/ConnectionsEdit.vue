@@ -1,8 +1,10 @@
 <template>
     <el-dialog v-model="state.show" append-to=".app-wrap" :title="`与[${state.device.MachineName}]的链接`" top="1vh" width="350">
         <div>
-            <el-descriptions border size="small" :column="1" label-width="6rem"  overlength-control="wrap">
-                <el-descriptions-item label="目标" >{{ state.connection.IPEndPoint }}</el-descriptions-item>
+            <el-descriptions border size="small" :column="1" label-width="6rem" >
+                <el-descriptions-item label="目标" >
+                    <div class="break-all">{{ state.connection.IPEndPoint }}</div>
+                </el-descriptions-item>
                 <el-descriptions-item label="事务" >{{ state.transactions[state.connection.TransactionId] }}</el-descriptions-item>
                 <el-descriptions-item label="协议" >
                     <div v-if="state.connection.Connected">

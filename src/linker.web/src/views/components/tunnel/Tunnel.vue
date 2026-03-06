@@ -26,7 +26,11 @@
                                 </template>
                             </div> 
                             <div class="flex">
-                                <a href="javascript:;" class="a-line" title="upnp,绿色可用,黄色大概率可用,灰色几乎不可用"
+                                <a href="javascript:;" class="a-line" :title="`UPNP、都打勾了就能用
+1、公网IP : ${scope.row.hook_counter['upnp-w']}  ${scope.row.hook_counter['upnp-w']>0?'✅':'❌'}
+2、设备数 : ${scope.row.hook_counter['upnp-d']} ${scope.row.hook_counter['upnp-d']>0?'✅':'❌'}
+3、本地映射数 : ${scope.row.hook_counter['upnp-l']} ${scope.row.hook_counter['upnp-l']>0?'✅':'❌'}
+4、在线映射数 : ${scope.row.hook_counter['upnp-r']} ${scope.row.hook_counter['upnp-r']>0?'✅':'❌'}`"
                                     @click="handleUpnp(scope.row.hook_tunnel,scope.row,values)"
                                     :class="scope.row.hook_counter['upnp-w'] > 0 && scope.row.hook_counter['upnp-d'] > 0
                                         ? 'green' : (scope.row.hook_counter['upnp-w']> 0 || scope.row.hook_counter['upnp-d'] > 0
