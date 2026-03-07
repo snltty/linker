@@ -1,6 +1,5 @@
 ﻿using linker.libs;
 using linker.libs.extends;
-using System;
 using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
@@ -34,12 +33,12 @@ namespace linker.messenger.listen
 
         private async Task BindUdp(int port)
         {
-            IPEndPoint localEndPoint = new IPEndPoint(IPAddress.IPv6Any, port);
+            IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, port);
             socketUdp = new Socket(localEndPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
             socketUdp.Bind(localEndPoint);
-            socketUdp.IPv6Only(socketUdp.AddressFamily, false);
+            // socketUdp.IPv6Only(socketUdp.AddressFamily, false);
             socketUdp.WindowsUdpBug();
-            IPEndPoint endPoint = new IPEndPoint(IPAddress.IPv6Any, IPEndPoint.MinPort);
+            IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
             using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(65535);
             while (true)
             {
@@ -51,7 +50,7 @@ namespace linker.messenger.listen
                         LoggerHelper.Instance.Error($"udp server recv 0");
                         continue;
                     }
-                    IPEndPoint ep = result.RemoteEndPoint as IPEndPoint;
+                    IPEndPoint ep = NetworkHelper.TransEndpointFamily(result.RemoteEndPoint as IPEndPoint);
                     try
                     {
                         if (countryTransfer.Test(buffer.Memory.Span[0], ep.Address) == false)
@@ -76,9 +75,9 @@ namespace linker.messenger.listen
 
         private Socket BindAccept(int port)
         {
-            IPEndPoint localEndPoint = new IPEndPoint(IPAddress.IPv6Any, port);
+            IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, port);
             Socket socket = new Socket(localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            socket.IPv6Only(localEndPoint.AddressFamily, false);
+            //socket.IPv6Only(localEndPoint.AddressFamily, false);
             socket.Bind(localEndPoint);
             socket.Listen(int.MaxValue);
 
