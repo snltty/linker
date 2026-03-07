@@ -274,6 +274,16 @@ jobs:
           asset_path: ./public/publish-zip/linker-any.zip
           asset_name: linker-any.zip
           asset_content_type: application/zip
+      - name: upload-version-oss
+        id: upload-version-oss
+        uses: tvrcgo/oss-action@v0.1.1
+        with:
+          region: oss-cn-shenzhen
+          key-id: ${{ secrets.ALIYUN_OSS_ID }}
+          key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
+          bucket: ide-qbcode
+          asset-path: ./public/version.txt
+          target-path: /downloads/linker/version.txt
       - name: upload-install-service-oss
         id: upload-install-service-oss
         uses: tvrcgo/oss-action@v0.1.1
