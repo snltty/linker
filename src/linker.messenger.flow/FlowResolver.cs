@@ -26,7 +26,7 @@ namespace linker.messenger.flow
         public long SendtBytes { get; private set; }
 
 
-        private readonly ConcurrentDictionary<IPAddress, OnlineFlowInfo> servers = new(new IPAddressComparer());
+        private readonly ConcurrentDictionary<IPAddress, OnlineFlowInfo> servers = new();
         private readonly SignInServerCaching signCaching;
         private readonly ISerializer serializer;
         public FlowResolver(SignInServerCaching signCaching, ISerializer serializer)
@@ -184,17 +184,5 @@ namespace linker.messenger.flow
 
         public List<FlowReportNetInfo> Nets { get; set; } = new List<FlowReportNetInfo>();
         public List<FlowReportNetInfo> Systems { get; set; } = new List<FlowReportNetInfo>();
-    }
-    public sealed class IPAddressComparer : IEqualityComparer<IPAddress>
-    {
-        public bool Equals(IPAddress x, IPAddress y)
-        {
-            return x.Equals(y);
-        }
-        public int GetHashCode(IPAddress obj)
-        {
-            if (obj == null) return 0;
-            return obj.GetHashCode();
-        }
     }
 }
