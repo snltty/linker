@@ -356,26 +356,32 @@ namespace linker.messenger.tunnel
         [MessengerId((ushort)TunnelMessengerIds.UpnpGetForward)]
         public void UpnpGetForward(IConnection connection)
         {
-            string machineid = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id, machineid, out SignCacheInfo from, out SignCacheInfo to))
+            try
             {
-                uint requestid = connection.ReceiveRequestWrap.RequestId;
-                _ = messengerSender.SendReply(new MessageRequestWrap
+                string machineid = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+                if (signCaching.TryGet(connection.Id, machineid, out SignCacheInfo from, out SignCacheInfo to))
                 {
-                    Connection = to.Connection,
-                    MessengerId = (ushort)TunnelMessengerIds.UpnpGet,
-                }).ContinueWith(async (result) =>
-                {
-                    if (result.Result.Code == MessageResponeCodes.OK && result.Result.Data.Length > 0)
+                    uint requestid = connection.ReceiveRequestWrap.RequestId;
+                    _ = messengerSender.SendReply(new MessageRequestWrap
                     {
-                        await messengerSender.ReplyOnly(new MessageResponseWrap
+                        Connection = to.Connection,
+                        MessengerId = (ushort)TunnelMessengerIds.UpnpGet,
+                    }).ContinueWith(async (result) =>
+                    {
+                        if (result.Result.Code == MessageResponeCodes.OK && result.Result.Data.Length > 0)
                         {
-                            Connection = connection,
-                            Payload = result.Result.Data,
-                            RequestId = requestid,
-                        }, (ushort)TunnelMessengerIds.UpnpGetForward).ConfigureAwait(false);
-                    }
-                });
+                            await messengerSender.ReplyOnly(new MessageResponseWrap
+                            {
+                                Connection = connection,
+                                Payload = result.Result.Data,
+                                RequestId = requestid,
+                            }, (ushort)TunnelMessengerIds.UpnpGetForward).ConfigureAwait(false);
+                        }
+                    });
+                }
+            }
+            catch (Exception)
+            {
             }
         }
         [MessengerId((ushort)TunnelMessengerIds.UpnpGetLocalForward)]

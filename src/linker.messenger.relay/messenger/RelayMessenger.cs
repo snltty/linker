@@ -90,18 +90,31 @@ namespace linker.messenger.relay.messenger
         [MessengerId((ushort)RelayMessengerIds.GetCache)]
         public async Task GetCache(IConnection connection)
         {
-            relayServerReportResolver.Add(connection.ReceiveRequestWrap.Payload.Length, 0);
-            ValueTuple<string, string> key = serializer.Deserialize<ValueTuple<string, string>>(connection.ReceiveRequestWrap.Payload.Span);
-            RelayCacheInfo cache = await relayServerMasterTransfer.TryGetRelayCache(key.Item1, key.Item2);
-            if (cache != null)
+            try
             {
-                byte[] sendt = serializer.Serialize(cache);
-                relayServerReportResolver.Add(0, sendt.Length);
-                connection.Write(sendt);
+                relayServerReportResolver.Add(connection.ReceiveRequestWrap.Payload.Length, 0);
+                ValueTuple<string, string> key = serializer.Deserialize<ValueTuple<string, string>>(connection.ReceiveRequestWrap.Payload.Span);
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Debug($"relay GetCache:{key.Item1},{key.Item2}");
+                }
+               
+                RelayCacheInfo cache = await relayServerMasterTransfer.TryGetRelayCache(key.Item1, key.Item2);
+                if (cache != null)
+                {
+                    byte[] sendt = serializer.Serialize(cache);
+                    relayServerReportResolver.Add(0, sendt.Length);
+                    connection.Write(sendt);
+                }
+                else
+                {
+                    connection.Write(Helper.EmptyArray);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                connection.Write(Helper.EmptyArray);
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Error(ex);
             }
         }
 
