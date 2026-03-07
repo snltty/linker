@@ -194,14 +194,20 @@ namespace linker.libs
             Regex regex = MyRegex();
             for (ushort i = 1; i < lines.Length; i++)
             {
-                string ip = regex.Match(lines[i]).Groups[1].Value;
-                if (IsPrivateIP(IPAddress.Parse(ip)))
+                try
                 {
-                    result.Add(IPAddress.Parse(ip));
+                    string ip = regex.Match(lines[i]).Groups[1].Value;
+                    if (IPAddress.TryParse(ip, out IPAddress _ip) && IsPrivateIP(_ip))
+                    {
+                        result.Add(_ip);
+                    }
+                    else
+                    {
+                        return i;
+                    }
                 }
-                else
+                catch (Exception)
                 {
-                    return i;
                 }
             }
 
