@@ -159,7 +159,7 @@ namespace linker.tunnel.transport
                         TransactionId = tunnelTransportInfo.TransactionId,
                         TransactionTag = tunnelTransportInfo.TransactionTag,
                         TransportName = tunnelTransportInfo.TransportName,
-                        IPEndPoint = NetworkHelper.TransEndpointFamily(result.RemoteEndPoint as IPEndPoint),
+                        IPEndPoint = (result.RemoteEndPoint as IPEndPoint).MapToIPv4(),
                         Label = string.Empty,
                         Receive = true,
                         SSL = tunnelTransportInfo.SSL,

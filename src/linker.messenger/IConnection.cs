@@ -252,8 +252,8 @@ namespace linker.messenger
             SourceStream = stream;
             SourceNetworkStream = networkStream;
             SourceSocket = socket;
-            Address = NetworkHelper.TransEndpointFamily(remote) ;
-            LocalAddress = NetworkHelper.TransEndpointFamily(local);
+            Address = remote.MapToIPv4();
+            LocalAddress = local.MapToIPv4();
 
         }
 

@@ -283,7 +283,7 @@ namespace linker.tunnel.transport
                     TransactionId = tunnelTransportInfo.TransactionId,
                     TransactionTag = tunnelTransportInfo.TransactionTag,
                     TransportName = tunnelTransportInfo.TransportName,
-                    IPEndPoint = NetworkHelper.TransEndpointFamily(socket.RemoteEndPoint as IPEndPoint),
+                    IPEndPoint = (socket.RemoteEndPoint as IPEndPoint).MapToIPv4(),
                     Label = string.Empty,
                     SSL = tunnelTransportInfo.SSL,
                     BufferSize = tunnelTransportInfo.BufferSize,
@@ -349,7 +349,7 @@ namespace linker.tunnel.transport
                     {
                         Stream = sslStream,
                         Socket = targetSocket,
-                        IPEndPoint = NetworkHelper.TransEndpointFamily(targetSocket.RemoteEndPoint as IPEndPoint),
+                        IPEndPoint = (targetSocket.RemoteEndPoint as IPEndPoint).MapToIPv4(),
                         TransactionId = tunnelTransportInfo.TransactionId,
                         TransactionTag = tunnelTransportInfo.TransactionTag,
                         RemoteMachineId = tunnelTransportInfo.Remote.MachineId,

@@ -508,6 +508,7 @@ namespace linker.messenger.node
                         {
                             using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(5000));
                             IPEndPoint remote = await NetworkHelper.GetEndPointAsync(c.Host, 1802).ConfigureAwait(false);
+                            LoggerHelper.Instance.Debug($"{Name} sign in to node {c.NodeId} {remote}");
                             Socket socket = new Socket(remote.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                             socket.KeepAlive();
                             try
@@ -543,7 +544,7 @@ namespace linker.messenger.node
                             {
                                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                                 {
-                                    LoggerHelper.Instance.Error($"{Name} sign in : {ex}");
+                                    LoggerHelper.Instance.Error($"{Name} sign in to node : {remote} {ex}");
                                 }
                                 socket.SafeClose();
                             }

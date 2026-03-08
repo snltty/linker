@@ -283,7 +283,7 @@ namespace linker.tunnel.transport
                     TransactionId = tunnelTransportInfo.TransactionId,
                     TransactionTag = tunnelTransportInfo.TransactionTag,
                     TransportName = tunnelTransportInfo.TransportName,
-                    IPEndPoint = NetworkHelper.TransEndpointFamily(state.RemoteEndPoint),
+                    IPEndPoint = state.RemoteEndPoint.MapToIPv4(),
                     Label = string.Empty,
                     BufferSize = tunnelTransportInfo.BufferSize,
                     Receive = false,
@@ -350,7 +350,7 @@ namespace linker.tunnel.transport
 
                     TunnelConnectionUdp result = new TunnelConnectionUdp
                     {
-                        IPEndPoint = NetworkHelper.TransEndpointFamily(ep),
+                        IPEndPoint = ep.MapToIPv4(),
                         TransactionId = tunnelTransportInfo.TransactionId,
                         TransactionTag = tunnelTransportInfo.TransactionTag,
                         RemoteMachineId = tunnelTransportInfo.Remote.MachineId,

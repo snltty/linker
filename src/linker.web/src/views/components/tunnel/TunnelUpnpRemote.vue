@@ -23,7 +23,7 @@
             <el-table-column prop="Description" label="描述" width="200"></el-table-column>
             <el-table-column property="Oper" label="" width="60" fixed="right">
                 <template #default="scope">
-                    <el-button size="small" type="danger" v-if="scope.row.Deletable" @click="handleDel(scope.row)"><el-icon><DeleteFilled></DeleteFilled></el-icon> </el-button>
+                    <el-button size="small" type="danger" @click="handleDel(scope.row)"><el-icon><DeleteFilled></DeleteFilled></el-icon> </el-button>
                 </template>
             </el-table-column>
         </el-table>

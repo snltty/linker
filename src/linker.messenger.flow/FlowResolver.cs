@@ -116,7 +116,7 @@ namespace linker.messenger.flow
 
         private void OnlineTask()
         {
-            UdpClient udpClient = new UdpClient(AddressFamily.InterNetwork);
+            UdpClient udpClient = new UdpClient();
             udpClient.Client.WindowsUdpBug();
             TimerHelper.SetIntervalLong(() =>
             {

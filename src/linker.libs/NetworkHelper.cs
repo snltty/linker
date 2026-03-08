@@ -42,38 +42,6 @@ namespace linker.libs
 
     public static partial class NetworkHelper
     {
-        private static readonly HashSet<System.Net.IPNetwork> privateNetworks = new HashSet<System.Net.IPNetwork>
-        {
-            // IPv4 私有网络
-            System.Net.IPNetwork.Parse("127.0.0.0/8"),    // 回环
-            System.Net.IPNetwork.Parse("10.0.0.0/8"),      // 私有A类
-            System.Net.IPNetwork.Parse("172.16.0.0/12"),   // 私有B类
-            System.Net.IPNetwork.Parse("192.168.0.0/16"),  // 私有C类
-            System.Net.IPNetwork.Parse("169.254.0.0/16"),  // 链路本地
-            System.Net.IPNetwork.Parse("100.64.0.0/10"),   // CGNAT (可选)
-        
-            // IPv6 私有网络
-            System.Net.IPNetwork.Parse("fc00::/7"),         // ULA
-            System.Net.IPNetwork.Parse("fe80::/10"),        // 链路本地
-            System.Net.IPNetwork.Parse("::1/128"),          // 回环
-        };
-        public static bool IsPrivateIP(IPAddress ip)
-        {
-            return privateNetworks.Any(network => network.Contains(ip));
-        }
-
-
-        public static IPEndPoint TransEndpointFamily(IPEndPoint ep)
-        {
-            if (ep.Address.AddressFamily == AddressFamily.InterNetworkV6 && ep.Address.IsIPv4MappedToIPv6)
-            {
-                Span<byte> bytes = stackalloc byte[16];
-                ep.Address.TryWriteBytes(bytes, out _);
-                return new IPEndPoint(new IPAddress(bytes[^4..]), ep.Port);
-            }
-            return ep;
-        }
-
         public static ushort ApplyNewPort()
         {
             using Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
@@ -165,7 +133,6 @@ namespace linker.libs
             return null;
         }
 
-        private readonly static List<string> starts = ["10.", "100.", "192.168.", "172."];
         public static ushort GetRouteLevel(string server, out List<IPAddress> result)
         {
             result = new List<IPAddress>();
@@ -197,7 +164,7 @@ namespace linker.libs
                 try
                 {
                     string ip = regex.Match(lines[i]).Groups[1].Value;
-                    if (IPAddress.TryParse(ip, out IPAddress _ip) && IsPrivateIP(_ip))
+                    if (IPAddress.TryParse(ip, out IPAddress _ip) && _ip.IsPrivateIP())
                     {
                         result.Add(_ip);
                     }
@@ -229,7 +196,7 @@ namespace linker.libs
                         continue;
                     }
 
-                    if (IsPrivateIP(reply.Address))
+                    if (reply.Address.IsPrivateIP())
                     {
                         result.Add(reply.Address);
                     }
@@ -247,7 +214,6 @@ namespace linker.libs
 
 
         private readonly static byte[] ipv6LocalBytes = [254, 128, 0, 0, 0, 0, 0, 0];
-
         private static IPAddress[] GetIP()
         {
             if (OperatingSystem.IsAndroid() == false)

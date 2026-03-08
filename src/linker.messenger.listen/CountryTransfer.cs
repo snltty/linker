@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.libs.extends;
 using linker.libs.timer;
 using System.Buffers;
 using System.Buffers.Binary;
@@ -65,7 +66,7 @@ namespace linker.messenger.listen
 
             Span<byte> address = stackalloc byte[4];
             ip.TryWriteBytes(address, out _);
-            if (NetworkHelper.IsPrivateIP(ip) )
+            if (ip.IsPrivateIP())
             {
                 return true;
             }
