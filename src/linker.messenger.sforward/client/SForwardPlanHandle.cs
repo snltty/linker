@@ -35,7 +35,7 @@ namespace linker.messenger.sforward.client
                     break;
             }
 
-            await Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false); ;
         }
     }
 }

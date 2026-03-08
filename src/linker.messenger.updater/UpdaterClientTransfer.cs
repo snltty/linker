@@ -33,10 +33,11 @@ namespace linker.messenger.updater
             signInClientState.OnSignInSuccessFirstTime += Init;
 
         }
-        private void Init()
+        private async Task Init()
         {
             UpdateTask();
             updateInfo.Update();
+            await Task.CompletedTask.ConfigureAwait(false);
         }
 
         /// <summary>

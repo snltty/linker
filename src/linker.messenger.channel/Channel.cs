@@ -168,7 +168,7 @@ namespace linker.messenger.channel
 
                 }, async (_connection) =>
                 {
-                    await Task.CompletedTask;
+                    await Task.CompletedTask.ConfigureAwait(false);
 
                 }, 3, 10000);
             }

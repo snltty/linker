@@ -1,6 +1,5 @@
 ﻿using linker.libs;
 using linker.libs.extends;
-using linker.libs.timer;
 using linker.messenger.decenter;
 using linker.messenger.signin;
 using linker.messenger.tunnel.stun.client;
@@ -23,8 +22,12 @@ namespace linker.messenger.tunnel.client
         private readonly ITunnelClientStore tunnelClientStore;
         private readonly IMessengerSender messengerSender;
         private readonly ISerializer serializer;
+        private readonly TunnelTransfer tunnelTransfer;
 
         public Action OnChange { get; set; } = () => { };
+
+        private readonly OperatingMultipleManager operatingManager = new OperatingMultipleManager();
+
 
         public TunnelNetworkTransfer(ISignInClientStore signInClientStore, SignInClientState signInClientState, ITunnelClientStore tunnelClientStore, IMessengerSender messengerSender, ISerializer serializer, TunnelTransfer tunnelTransfer, CounterDecenter counterDecenter)
         {
@@ -33,14 +36,12 @@ namespace linker.messenger.tunnel.client
             this.tunnelClientStore = tunnelClientStore;
             this.messengerSender = messengerSender;
             this.serializer = serializer;
+            this.tunnelTransfer = tunnelTransfer;
 
-            signInClientState.OnSignInSuccessBefore += async () => { RefreshRouteLevel(); tunnelTransfer.Refresh(); await Task.CompletedTask; };
+            signInClientState.OnSignInSuccessBefore += async () => { await GetRouteLevel().ConfigureAwait(false); tunnelTransfer.Refresh(); };
 
+            Refresh();
             TestQuic();
-
-            RefreshRouteLevel();
-            GetNet();
-
 
             PortMappingUtility.StartDiscovery();
             PortMappingUtility.OnChange += () =>
@@ -70,25 +71,81 @@ namespace linker.messenger.tunnel.client
         }
 
 
-        /// <summary>
-        /// 刷新网关等级数据
-        /// </summary>
-        private void RefreshRouteLevel()
+        public void Refresh()
         {
-            LoggerHelper.Instance.Info($"tunnel route level getting.");
-            tunnelClientStore.Network.RouteLevel = NetworkHelper.GetRouteLevel(signInClientStore.Server.Host, out List<IPAddress> ips);
-            LoggerHelper.Instance.Warning($"route ips:{string.Join(",", ips.Select(c => c.ToString()))}");
-            tunnelClientStore.Network.RouteIPs = ips.ToArray();
-            var ipv6 = NetworkHelper.GetIPV6();
-            LoggerHelper.Instance.Warning($"tunnel local ip6 :{string.Join(",", ipv6.Select(c => c.ToString()))}");
-            var ipv4 = NetworkHelper.GetIPV4();
-            LoggerHelper.Instance.Warning($"tunnel local ip4 :{string.Join(",", ipv4.Select(c => c.ToString()))}");
-            tunnelClientStore.Network.LocalIPs = ipv6.Concat(ipv4).ToArray();
-            LoggerHelper.Instance.Warning($"tunnel route level:{tunnelClientStore.Network.RouteLevel}");
+            _ = GetNet();
+            _ = GetRouteLevel();
+            tunnelTransfer.Refresh();
+        }
+        private async Task GetRouteLevel()
+        {
+            await Task.Run(async () =>
+            {
+                if (operatingManager.StartOperation("get_level") == false)
+                {
+                    return;
+                }
+                try
+                {
+                    LoggerHelper.Instance.Info($"tunnel route level getting.");
+                    (int level, List<IPAddress> ips) = await NetworkHelper.GetRouteLevel(signInClientStore.Server.Host).ConfigureAwait(false);
+                    tunnelClientStore.Network.RouteLevel = level;
+                    LoggerHelper.Instance.Warning($"route ips:{string.Join(",", ips.Select(c => c.ToString()))}");
+                    tunnelClientStore.Network.RouteIPs = ips.ToArray();
+                    var ipv6 = NetworkHelper.GetIPV6();
+                    LoggerHelper.Instance.Warning($"tunnel local ip6 :{string.Join(",", ipv6.Select(c => c.ToString()))}");
+                    var ipv4 = NetworkHelper.GetIPV4();
+                    LoggerHelper.Instance.Warning($"tunnel local ip4 :{string.Join(",", ipv4.Select(c => c.ToString()))}");
+                    tunnelClientStore.Network.LocalIPs = ipv6.Concat(ipv4).ToArray();
+                    LoggerHelper.Instance.Warning($"tunnel route level:{tunnelClientStore.Network.RouteLevel}");
 
-            tunnelClientStore.SetNetwork(tunnelClientStore.Network);
+                    await tunnelClientStore.SetNetwork(tunnelClientStore.Network).ConfigureAwait(false);
+                }
+                catch (Exception)
+                {
+                }
+                operatingManager.StopOperation("get_level");
+            }).ConfigureAwait(false);
         }
 
+        private async Task GetNet()
+        {
+            if (operatingManager.StartOperation("get_net") == false)
+            {
+                return;
+            }
+
+            try
+            {
+                bool isp = false, city = false, nat = false;
+                for (int i = 0; i < 10; i++)
+                {
+                    if (isp == false) isp = await GetIsp();
+                    if (city == false) city = await GetPosition();
+                    if (nat == false) nat = await TestNatTypeAsync();
+                    if (isp && city && nat)
+                    {
+                        break;
+                    }
+                    await Task.Delay(10000);
+                }
+                await tunnelClientStore.SetNetwork(tunnelClientStore.Network);
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    Connection = signInClientState.Connection,
+                    MessengerId = (ushort)SignInMessengerIds.PushArg,
+                    Payload = serializer.Serialize(new SignInPushArgInfo
+                    {
+                        Key = "tunnelNet",
+                        Value = new SignInArgsNetInfo { Lat = tunnelClientStore.Network.Net.Lat, Lon = tunnelClientStore.Network.Net.Lon, City = tunnelClientStore.Network.Net.City }.ToJson()
+                    })
+                });
+            }
+            catch (Exception)
+            {
+            }
+            operatingManager.StopOperation("get_net");
+        }
         private async Task<bool> GetIsp()
         {
             using CancellationTokenSource cts = new CancellationTokenSource(3000);
@@ -169,38 +226,9 @@ namespace linker.messenger.tunnel.client
             }
             return false;
         }
-        private void GetNet()
-        {
-            TimerHelper.Async(async () =>
-            {
-                bool isp = false, city = false, nat = false;
-                for (int i = 0; i < 10; i++)
-                {
-                    if (isp == false) isp = await GetIsp();
-                    if (city == false) city = await GetPosition();
-                    if (nat == false) nat = await TestNatTypeAsync();
-                    if (isp && city && nat)
-                    {
-                        break;
-                    }
-                    await Task.Delay(10000);
-                }
-                await tunnelClientStore.SetNetwork(tunnelClientStore.Network);
-                await messengerSender.SendOnly(new MessageRequestWrap
-                {
-                    Connection = signInClientState.Connection,
-                    MessengerId = (ushort)SignInMessengerIds.PushArg,
-                    Payload = serializer.Serialize(new SignInPushArgInfo
-                    {
-                        Key = "tunnelNet",
-                        Value = new SignInArgsNetInfo { Lat = tunnelClientStore.Network.Net.Lat, Lon = tunnelClientStore.Network.Net.Lon, City = tunnelClientStore.Network.Net.City }.ToJson()
-                    })
-                });
-            });
-        }
 
 
-        public TunnelLocalNetworkInfo GetLocalNetwork()
+        public TunnelLocalNetworkInfo GetNetwork()
         {
             return new TunnelLocalNetworkInfo
             {
@@ -210,8 +238,6 @@ namespace linker.messenger.tunnel.client
                 Routes = tunnelClientStore.Network.RouteIPs,
             };
         }
-
-        private static byte[] ipv6LocalBytes = new byte[] { 254, 128, 0, 0, 0, 0, 0, 0 };
         private TunnelInterfaceInfo[] GetInterfaces()
         {
             return NetworkInterface.GetAllNetworkInterfaces().Select(c => new TunnelInterfaceInfo
@@ -220,9 +246,11 @@ namespace linker.messenger.tunnel.client
                 Desc = c.Description,
                 Mac = Regex.Replace(c.GetPhysicalAddress().ToString(), @"(.{2})", $"$1-").Trim('-'),
                 Ips = c.GetIPProperties().UnicastAddresses.Select(c => c.Address)
-                .Where(c => c.AddressFamily == AddressFamily.InterNetwork || (c.AddressFamily == AddressFamily.InterNetworkV6 && c.GetAddressBytes().AsSpan(0, 8).SequenceEqual(ipv6LocalBytes) == false)).ToArray()
+                .Where(c => c.AddressFamily == AddressFamily.InterNetwork || (c.AddressFamily == AddressFamily.InterNetworkV6 && c.GetAddressBytes().AsSpan(0, 8).SequenceEqual(new byte[] { 254, 128, 0, 0, 0, 0, 0, 0 }) == false)).ToArray()
             }).Where(c => c.Ips.Length > 0 && c.Ips.Any(d => d.Equals(IPAddress.Loopback)) == false).ToArray();
         }
+
+
 
 #pragma warning disable CA2252 // 此 API 需要选择加入预览功能
         private void TestQuic()

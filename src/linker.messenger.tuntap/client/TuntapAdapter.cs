@@ -50,10 +50,11 @@ namespace linker.messenger.tuntap.client
             TimerHelper.SetIntervalLong(CheckDevice, 30000);
         }
 
-        private void SignInSuccess(int times)
+        private async Task SignInSuccess(int times)
         {
             _ = CheckDevice();
             FireWallHelper.WriteIcmp(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName, tuntapConfigTransfer.Info.IP, tuntapConfigTransfer.Info.PrefixLength);
+            await Task.CompletedTask.ConfigureAwait(false);
         }
         private void Update()
         {

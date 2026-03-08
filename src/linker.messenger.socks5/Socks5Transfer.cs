@@ -26,7 +26,7 @@ namespace linker.messenger.socks5
         {
             tunnelProxy.Start(socks5Store.Port);
             socks5Store.SetRunning(tunnelProxy.Running, tunnelProxy.Error);
-            socks5Decenter.Refresh();
+            _ = socks5Decenter.Refresh();
         }
         /// <summary>
         /// 关闭
@@ -35,7 +35,7 @@ namespace linker.messenger.socks5
         {
             tunnelProxy.Stop();
             socks5Store.SetRunning(tunnelProxy.Running, tunnelProxy.Error);
-            socks5Decenter.Refresh();
+            _ = socks5Decenter.Refresh();
         }
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace linker.messenger.socks5
                 {
                     Retstart();
                 }
-                socks5Decenter.Refresh();
+                _ = socks5Decenter.Refresh();
             });
         }
     }

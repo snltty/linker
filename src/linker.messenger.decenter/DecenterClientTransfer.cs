@@ -207,12 +207,13 @@ namespace linker.messenger.decenter
                 }
             }, 300);
 
-            signInClientState.OnSignInSuccess += (times) =>
+            signInClientState.OnSignInSuccess += async (times) =>
             {
                 foreach (IDecenter item in decenters)
                 {
                     item.PushVersion.Increment();
                 }
+                await Task.CompletedTask.ConfigureAwait(false);
             };
         }
 

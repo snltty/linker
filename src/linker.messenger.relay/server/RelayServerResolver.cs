@@ -82,7 +82,7 @@ namespace linker.messenger.relay.server
 
         public async Task Resolve(Socket socket, IPEndPoint ep, Memory<byte> memory)
         {
-            await Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false); ;
         }
         public async Task Resolve(Socket socket, Memory<byte> memory)
         {

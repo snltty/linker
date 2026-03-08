@@ -30,6 +30,7 @@ namespace linker.tunnel
         /// <param name="privatePort"></param>
         public void SetMap(int privatePort)
         {
+            DeleteMap();
             MapInfo = new MapInfo { PrivatePort = privatePort, PublicPort = privatePort };
 
             PortMappingInfo tcp = new PortMappingInfo { PrivatePort = privatePort, PublicPort = privatePort, ProtocolType = ProtocolType.Tcp, Description = $"linker tunnel tcp", DeviceType = DeviceType.All, LeaseDuration = 7 * 24 * 60 * 60, Deletable = false };
@@ -47,7 +48,10 @@ namespace linker.tunnel
         /// <param name="publicPort"></param>
         public void SetMap(int privatePort, int publicPort)
         {
+
+            DeleteMap();
             MapInfo1 = new MapInfo { PrivatePort = privatePort, PublicPort = publicPort };
+
             PortMappingInfo tcp = new PortMappingInfo { PrivatePort = privatePort, PublicPort = publicPort, ProtocolType = ProtocolType.Tcp, Description = $"linker tunnel tcp", DeviceType = DeviceType.All, LeaseDuration = 7 * 24 * 60 * 60, Deletable = false };
             _ = PortMappingUtility.Add(tcp).ConfigureAwait(false);
             PortMappingInfo udp = new PortMappingInfo { PrivatePort = privatePort, PublicPort = publicPort, ProtocolType = ProtocolType.Udp, Description = $"linker tunnel udp", DeviceType = DeviceType.All, LeaseDuration = 7 * 24 * 60 * 60, Deletable = false };
@@ -55,6 +59,20 @@ namespace linker.tunnel
 
             _ = transportTcpPortMap.Listen(privatePort).ConfigureAwait(false);
             _ = transportUdpPortMap.Listen(privatePort).ConfigureAwait(false);
+        }
+
+        private void DeleteMap()
+        {
+            if (MapInfo != null)
+            {
+                PortMappingUtility.Delete(MapInfo.PublicPort, ProtocolType.Tcp, true).ConfigureAwait(false);
+                PortMappingUtility.Delete(MapInfo.PublicPort, ProtocolType.Udp, true).ConfigureAwait(false);
+            }
+            if (MapInfo1 != null)
+            {
+                PortMappingUtility.Delete(MapInfo1.PublicPort, ProtocolType.Tcp, true).ConfigureAwait(false);
+                PortMappingUtility.Delete(MapInfo1.PublicPort, ProtocolType.Udp, true).ConfigureAwait(false);
+            }
         }
     }
 

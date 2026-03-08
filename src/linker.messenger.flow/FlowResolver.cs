@@ -25,6 +25,8 @@ namespace linker.messenger.flow
         /// </summary>
         public long SendtBytes { get; private set; }
 
+        private readonly ConcurrentQueue<(IPEndPoint ep, int online, int total, List<FlowReportNetInfo> nets)> onlineQueue = new();
+
 
         private readonly ConcurrentDictionary<IPAddress, OnlineFlowInfo> servers = new();
         private readonly SignInServerCaching signCaching;
@@ -48,34 +50,14 @@ namespace linker.messenger.flow
         {
             try
             {
-                long time = Environment.TickCount64;
-
-                if (servers.TryGetValue(ep.Address, out OnlineFlowInfo onlineFlowInfo) == false)
-                {
-                    onlineFlowInfo = new OnlineFlowInfo { Time = time };
-                    servers.TryAdd(ep.Address, onlineFlowInfo);
-                }
-                onlineFlowInfo.Time = time;
-                onlineFlowInfo.Online = memory.Slice(0, 4).ToInt32();
-                onlineFlowInfo.Total = memory.Slice(4, 4).ToInt32();
-
-                long online = (long)servers.Where(c => time - c.Value.Time < 15000).Sum(c => c.Value.Online) << 32;
-                long total = servers.Where(c => time - c.Value.Time < 15000).Sum(c => c.Value.Total);
-                ReceiveBytes = online | total;
-                SendtBytes = servers.Count(c => time - c.Value.Time < 15000);
-
+                int online = memory.Slice(0, 4).ToInt32();
+                int total = memory.Slice(4, 4).ToInt32();
+                List<FlowReportNetInfo> nets = new List<FlowReportNetInfo>();
                 if (memory.Length > 8)
                 {
-                    var nets = serializer.Deserialize<List<FlowReportNetInfo>>(memory.Slice(8).Span);
-                    onlineFlowInfo.Nets = nets.Where(c => c.Lon > 0 && c.Lat > 0 && (string.IsNullOrWhiteSpace(c.City) || c.City.IndexOf('-') < 0)).ToList();
-                    onlineFlowInfo.Systems = nets.Where(c => c.Lon == 0 && c.Lat == 0 && string.IsNullOrWhiteSpace(c.City) == false && c.City.IndexOf('-') > 0).ToList();
+                    nets = serializer.Deserialize<List<FlowReportNetInfo>>(memory.Slice(8).Span);
                 }
-                Version.Increment();
-
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Debug($"online:{online},total:{total},server:{SendtBytes}");
-                }
+                onlineQueue.Enqueue((ep, online, total, nets));
             }
             catch (Exception ex)
             {
@@ -131,6 +113,38 @@ namespace linker.messenger.flow
                         LoggerHelper.Instance.Error(ex);
                     }
                 }
+
+                while (onlineQueue.TryDequeue(out (IPEndPoint ep, int online, int total, List<FlowReportNetInfo> nets) value))
+                {
+                    long time = Environment.TickCount64;
+
+                    if (servers.TryGetValue(value.ep.Address, out OnlineFlowInfo onlineFlowInfo) == false)
+                    {
+                        onlineFlowInfo = new OnlineFlowInfo { Time = time };
+                        servers.TryAdd(value.ep.Address, onlineFlowInfo);
+                    }
+                    onlineFlowInfo.Time = time;
+                    onlineFlowInfo.Online = value.online;
+                    onlineFlowInfo.Total = value.total;
+
+                    long online = (long)servers.Where(c => time - c.Value.Time < 15000).Sum(c => c.Value.Online) << 32;
+                    long total = servers.Where(c => time - c.Value.Time < 15000).Sum(c => c.Value.Total);
+                    ReceiveBytes = online | total;
+                    SendtBytes = servers.Count(c => time - c.Value.Time < 15000);
+
+                    if (value.nets != null && value.nets.Count > 0)
+                    {
+                        onlineFlowInfo.Nets = value.nets.Where(c => c.Lon > 0 && c.Lat > 0 && (string.IsNullOrWhiteSpace(c.City) || c.City.IndexOf('-') < 0)).ToList();
+                        onlineFlowInfo.Systems = value.nets.Where(c => c.Lon == 0 && c.Lat == 0 && string.IsNullOrWhiteSpace(c.City) == false && c.City.IndexOf('-') > 0).ToList();
+                    }
+                    Version.Increment();
+
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Debug($"online:{value.online},total:{value.total},server:{SendtBytes}");
+                    }
+                }
+
             }, 5000);
         }
 

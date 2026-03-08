@@ -57,10 +57,8 @@ namespace linker.tunnel.transport
 
 
         Socket socket;
-        SemaphoreSlim slim = new SemaphoreSlim(1);
         public async Task Listen(int localPort)
         {
-            await slim.WaitAsync().ConfigureAwait(false);
             try
             {
                 if (localPort == 0) return;
@@ -132,10 +130,6 @@ namespace linker.tunnel.transport
                 {
                     LoggerHelper.Instance.Error(ex);
                 }
-            }
-            finally
-            {
-                slim.Release();
             }
         }
 

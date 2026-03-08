@@ -54,35 +54,35 @@ namespace linker.messenger.signin
 
         private int signInTimes = 0;
         [JsonIgnore]
-        public Action OnSignInSuccessBefore { get; set; } = () => { };
+        public Func<Task> OnSignInSuccessBefore { get; set; } = async () => { await Task.CompletedTask.ConfigureAwait(false); };
         /// <summary>
         /// 上线事件
         /// </summary>
         [JsonIgnore]
-        public Action<int> OnSignInSuccess { get; set; } = (i) => { };
+        public Func<int, Task> OnSignInSuccess { get; set; } = async (i) => { await Task.CompletedTask.ConfigureAwait(false); };
         /// <summary>
         /// 第一次上线
         /// </summary>
         [JsonIgnore]
-        public Action OnSignInSuccessFirstTime { get; set; } = () => { };
+        public Func<Task> OnSignInSuccessFirstTime { get; set; } = async () => { await Task.CompletedTask.ConfigureAwait(false); };
 
         /// <summary>
         /// 发布上线事件
         /// </summary>
-        public void PushSignInSuccessBefore()
+        public async Task PushSignInSuccessBefore()
         {
-            OnSignInSuccessBefore?.Invoke();
+            await (OnSignInSuccessBefore?.Invoke()).ConfigureAwait(false);
         }
         /// <summary>
         /// 发布上线事件
         /// </summary>
-        public void PushSignInSuccess()
+        public async Task PushSignInSuccess()
         {
             if (signInTimes == 0)
             {
-                OnSignInSuccessFirstTime?.Invoke();
+                await (OnSignInSuccessFirstTime?.Invoke()).ConfigureAwait(false);
             }
-            OnSignInSuccess?.Invoke(signInTimes);
+            await (OnSignInSuccess?.Invoke(signInTimes)).ConfigureAwait(false);
             signInTimes++;
         }
 

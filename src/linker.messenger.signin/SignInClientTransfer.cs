@@ -172,11 +172,11 @@ namespace linker.messenger.signin
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Info($"get server version:{clientSignInState.Version}");
 
-                clientSignInState.PushSignInSuccessBefore();
+                await clientSignInState.PushSignInSuccessBefore().ConfigureAwait(false);
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Info($"push signin success before");
 
-                clientSignInState.PushSignInSuccess();
+               await clientSignInState.PushSignInSuccess().ConfigureAwait(false);
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Info($"push signin success");

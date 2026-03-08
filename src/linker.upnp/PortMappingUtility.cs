@@ -231,11 +231,15 @@ namespace linker.upnp
         /// <param name="publicPort"></param>
         /// <param name="protocol"></param>
         /// <returns></returns>
-        public static async Task Delete(int publicPort, ProtocolType protocol)
+        public static async Task Delete(int publicPort, ProtocolType protocol, bool force = false)
         {
             if (localMappings.TryGetValue((publicPort, protocol), out MappingCacheInfo cache))
             {
                 cache.Deleted = true;
+                if (cache.Info.Deletable == false && force)
+                {
+                    cache.Info.Deletable = true;
+                }
             }
             else
             {

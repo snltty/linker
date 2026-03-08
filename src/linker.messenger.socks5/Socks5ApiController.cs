@@ -54,7 +54,7 @@ namespace linker.messenger.socks5
         /// <param name="param"></param>
         public void Refresh(ApiControllerParamsInfo param)
         {
-            socks5Decenter.Refresh();
+            _ = socks5Decenter.Refresh();
         }
 
         /// <summary>

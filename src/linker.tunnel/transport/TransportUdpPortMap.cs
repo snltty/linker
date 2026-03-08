@@ -315,7 +315,7 @@ namespace linker.tunnel.transport
 
             List<IPEndPoint> eps = tunnelTransportInfo.RemoteEndPoints.Select(c => c.Address).Distinct().Select(c => new IPEndPoint(c, tunnelTransportInfo.Remote.PortMapWan)).ToList();
 
-            using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent( 1024);
+            using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(1024);
             foreach (var ep in eps)
             {
                 Socket targetSocket = new(ep.AddressFamily, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
@@ -334,7 +334,7 @@ namespace linker.tunnel.transport
                     byte[] sendt = $"{flagTexts}-{tunnelTransportInfo.Local.MachineId}-{tunnelTransportInfo.FlowId}".ToBytes();
                     await targetSocket.SendToAsync(sendt, ep).ConfigureAwait(false);
 
-                    SocketReceiveFromResult recvRestlt = await targetSocket.ReceiveFromAsync(buffer.Memory, new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, 0),cts.Token).ConfigureAwait(false);
+                    SocketReceiveFromResult recvRestlt = await targetSocket.ReceiveFromAsync(buffer.Memory, new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, 0), cts.Token).ConfigureAwait(false);
 
                     if (buffer.Memory.Span.Slice(0, recvRestlt.ReceivedBytes).SequenceEqual(sendt) == false)
                     {

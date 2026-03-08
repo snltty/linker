@@ -188,6 +188,7 @@ namespace linker.messenger.tunnel.client
                 await tunnelClientStore.SetRouteLevelPlus(tunnelSetRouteLevelInfo.RouteLevelPlus).ConfigureAwait(false);
                 await tunnelClientStore.SetPortMap(tunnelSetRouteLevelInfo.PortMapLan, tunnelSetRouteLevelInfo.PortMapWan).ConfigureAwait(false);
                 await tunnelClientStore.SetInIp(tunnelSetRouteLevelInfo.InIp).ConfigureAwait(false);
+                tunnelNetworkTransfer.Refresh();
             }
             else
             {
@@ -256,7 +257,7 @@ namespace linker.messenger.tunnel.client
         {
             if (param.Content == signInClientStore.Id)
             {
-                return tunnelNetworkTransfer.GetLocalNetwork();
+                return tunnelNetworkTransfer.GetNetwork();
             }
             else
             {

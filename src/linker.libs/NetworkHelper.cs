@@ -133,9 +133,9 @@ namespace linker.libs
             return null;
         }
 
-        public static ushort GetRouteLevel(string server, out List<IPAddress> result)
+        public static async Task<(ushort, List<IPAddress>)> GetRouteLevel(string server)
         {
-            result = new List<IPAddress>();
+            List<IPAddress> result = new List<IPAddress>();
             if (string.IsNullOrWhiteSpace(server) == false)
             {
                 server = server.Split(':')[0];
@@ -143,17 +143,17 @@ namespace linker.libs
 
             if (OperatingSystem.IsWindows())
             {
-                return GetRouteLevelWindows(server, out result);
+                return await GetRouteLevelWindows(server).ConfigureAwait(false);
             }
             else if (OperatingSystem.IsLinux())
             {
-                return GetRouteLevelLinux(server, out result);
+                return GetRouteLevelLinux(server);
             }
-            return 3;
+            return (3, result);
         }
-        private static ushort GetRouteLevelLinux(string server, out List<IPAddress> result)
+        private static (ushort, List<IPAddress>) GetRouteLevelLinux(string server)
         {
-            result = new List<IPAddress>();
+            List<IPAddress> result = new List<IPAddress>();
 
             string str = CommandHelper.Linux(string.Empty, new string[] { $"traceroute {server} -4 -m 5 -w 1" });
             string[] lines = str.Split(Environment.NewLine);
@@ -170,7 +170,7 @@ namespace linker.libs
                     }
                     else
                     {
-                        return i;
+                        return (i, result);
                     }
                 }
                 catch (Exception)
@@ -178,14 +178,14 @@ namespace linker.libs
                 }
             }
 
-            return 3;
+            return (3, result);
         }
-        private static ushort GetRouteLevelWindows(string server, out List<IPAddress> result)
+        private static async Task<(ushort, List<IPAddress>)> GetRouteLevelWindows(string server)
         {
-            result = new List<IPAddress>();
+            List<IPAddress> result = new List<IPAddress>();
             try
             {
-                IPAddress target = Dns.GetHostEntry(server).AddressList.FirstOrDefault(c => c.AddressFamily == AddressFamily.InterNetwork);
+                IPAddress target = (await Dns.GetHostEntryAsync(server).ConfigureAwait(false)).AddressList.FirstOrDefault(c => c.AddressFamily == AddressFamily.InterNetwork);
 
                 for (ushort i = 1; i <= 5; i++)
                 {
@@ -202,14 +202,14 @@ namespace linker.libs
                     }
                     else
                     {
-                        return i;
+                        return (i, result);
                     }
                 }
             }
             catch (Exception)
             {
             }
-            return 3;
+            return (3, result);
         }
 
 

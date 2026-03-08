@@ -87,19 +87,19 @@ namespace linker.messenger.tuntap.lease
 
         private void LeaseExpTask()
         {
-            signInClientState.OnSignInSuccess += (times) =>
+            signInClientState.OnSignInSuccess += async (times) =>
             {
                 TimerHelper.Async(async () =>
                 {
                     try
                     {
-                        LeaseInfo info = await GetNetwork();
+                        LeaseInfo info = await GetNetwork().ConfigureAwait(false);
                         if (info.IP.Equals(IPAddress.Any))
                         {
                             info = leaseClientStore.Get(signInClientStore.Group.Id);
                             if (info != null && info.IP.Equals(IPAddress.Any) == false)
                             {
-                                await AddNetwork(info);
+                                await AddNetwork(info).ConfigureAwait(false);
                             }
                         }
                     }
@@ -108,6 +108,7 @@ namespace linker.messenger.tuntap.lease
                         LoggerHelper.Instance.Error(ex);
                     }
                 });
+                await Task.CompletedTask.ConfigureAwait(false);
             };
 
             TimerHelper.SetIntervalLong(async () =>

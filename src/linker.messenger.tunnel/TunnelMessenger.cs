@@ -106,12 +106,13 @@ namespace linker.messenger.tunnel
             await tunnelClientStore.SetRouteLevelPlus(tunnelTransportFileConfigInfo.RouteLevelPlus).ConfigureAwait(false);
             await tunnelClientStore.SetPortMap(tunnelTransportFileConfigInfo.PortMapLan, tunnelTransportFileConfigInfo.PortMapWan).ConfigureAwait(false);
             await tunnelClientStore.SetInIp(tunnelTransportFileConfigInfo.InIp).ConfigureAwait(false);
+            tunnelNetworkTransfer.Refresh();
         }
 
         [MessengerId((ushort)TunnelMessengerIds.Network)]
         public void Network(IConnection connection)
         {
-            connection.Write(serializer.Serialize(tunnelNetworkTransfer.GetLocalNetwork()));
+            connection.Write(serializer.Serialize(tunnelNetworkTransfer.GetNetwork()));
         }
 
         [MessengerId((ushort)TunnelMessengerIds.TransportGet)]

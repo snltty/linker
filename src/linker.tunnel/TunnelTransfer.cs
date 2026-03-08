@@ -81,27 +81,26 @@ namespace linker.tunnel
         }
         private void RefreshNetwork()
         {
-            TimerHelper.Async(() =>
+            TimerHelper.Async(async () =>
             {
                 if (tunnelMessengerAdapter.ServerHost == null) return;
 
-                GetLocalIP(tunnelMessengerAdapter.ServerHost).ContinueWith((result) =>
+                if (tunnelMessengerAdapter.PortMapPrivate > 0)
                 {
-                    if (tunnelMessengerAdapter.PortMapPrivate > 0)
+                    tunnelUpnpTransfer.SetMap(tunnelMessengerAdapter.PortMapPrivate, tunnelMessengerAdapter.PortMapPublic);
+                }
+                else
+                {
+                    IPAddress ip = await GetLocalIP(tunnelMessengerAdapter.ServerHost).ConfigureAwait(false);
+                    if (IPAddress.Any.Equals(ip) == false)
                     {
-                        tunnelUpnpTransfer.SetMap(tunnelMessengerAdapter.PortMapPrivate, tunnelMessengerAdapter.PortMapPublic);
+                        tunnelUpnpTransfer.SetMap(18180 + ip.GetAddressBytes()[3]);
                     }
-                    else
-                    {
-                        if (result.Result.Equals(IPAddress.Any) == false)
-                        {
-                            int ip = result.Result.GetAddressBytes()[3];
-                            tunnelUpnpTransfer.SetMap(18180 + ip);
-                        }
-                    }
-                });
+                }
 
-                networkInfo.RouteLevel = NetworkHelper.GetRouteLevel(tunnelMessengerAdapter.ServerHost.ToString(), out List<IPAddress> ips);
+
+                (int level, List<IPAddress> ips) = await NetworkHelper.GetRouteLevel(tunnelMessengerAdapter.ServerHost.ToString()).ConfigureAwait(false);
+                networkInfo.RouteLevel = level;
                 networkInfo.LocalIps = NetworkHelper.GetIPV6().Concat(NetworkHelper.GetIPV4()).ToArray();
                 networkInfo.MachineId = tunnelMessengerAdapter.MachineId;
 
