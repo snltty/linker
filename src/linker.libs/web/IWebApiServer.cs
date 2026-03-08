@@ -12,7 +12,7 @@ namespace linker.libs.web
         /// <summary>
         /// 开始
         /// </summary>
-        public void Start(int port);
+        public void Start(int port,bool ipv6 = false);
 
         public void AddController(IWebApiController controller);
         public void AddControllers(List<IWebApiController> controllers);

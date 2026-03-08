@@ -147,7 +147,7 @@ namespace linker.messenger
                     await socket.SendAsync(data).ConfigureAwait(false);
                 }
 
-                using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(60000));
+                using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(5000));
                 NetworkStream networkStream = new NetworkStream(socket, false);
                 SslStream sslStream = new SslStream(networkStream, true, ValidateServerCertificate, null);
                 try

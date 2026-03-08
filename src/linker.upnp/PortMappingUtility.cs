@@ -72,8 +72,16 @@ namespace linker.upnp
                 {
                     while (cts.IsCancellationRequested == false)
                     {
-                        var _services = services.Where(service => (service.Type & deviceType) == service.Type).Select(c => c.Discovery(cts.Token)).ToList();
-                        await Task.WhenAll(_services).ConfigureAwait(false);
+                        for (int i = 0; i < services.Length; i++)
+                        {
+                            try
+                            {
+                                await services[i].Discovery(cts.Token).ConfigureAwait(false);
+                            }
+                            catch (Exception)
+                            {
+                            }
+                        }
 
                         RefreshDevice();
 
@@ -258,7 +266,7 @@ namespace linker.upnp
                     }
                 }
             }
-            foreach (var key in localMappings.Where(c => c.Value.Deleted).Select(c => c.Key).ToList())
+            foreach (var key in localMappings.Where(c => c.Value.Deleted && c.Value.Info.Deletable).Select(c => c.Key).ToList())
             {
                 localMappings.TryRemove(key, out _);
             }

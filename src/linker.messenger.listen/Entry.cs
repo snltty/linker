@@ -38,7 +38,7 @@ namespace linker.messenger.listen
                 LoggerHelper.Instance.Info($"start server web api");
                 try
                 {
-                    webapiServer.Start(listenStore.ApiPort);
+                    webapiServer.Start(listenStore.ApiPort, listenStore.Ipv6);
                 }
                 catch (Exception ex)
                 {

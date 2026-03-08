@@ -20,7 +20,7 @@ namespace linker.libs.web
         /// <summary>
         /// 开启web api
         /// </summary>
-        public void Start(int port)
+        public void Start(int port, bool ipv6 = false)
         {
             Task.Factory.StartNew(async () =>
             {
@@ -28,7 +28,7 @@ namespace linker.libs.web
                 {
                     HttpListener http = new HttpListener();
                     http.IgnoreWriteExceptions = true;
-                    http.Prefixes.Add($"http://+:{port}/");
+                    http.Prefixes.Add($"http://{(ipv6 ? "*" : "+")}:{port}/");
                     http.Start();
 
                     while (true)
