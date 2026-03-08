@@ -37,7 +37,7 @@ namespace linker.libs.extends
         {
             if (ep.Address.AddressFamily == AddressFamily.InterNetworkV6 && ep.Address.IsIPv4MappedToIPv6)
             {
-                ep.Address = ep.Address.MapToIPv4();
+                return new IPEndPoint(ep.Address.MapToIPv4(), ep.Port);
             }
             return ep;
         }

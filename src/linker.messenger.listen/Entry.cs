@@ -8,7 +8,7 @@ namespace linker.messenger.listen
         public static ServiceCollection AddListen(this ServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton<TcpServer>();
-            serviceCollection.AddSingleton<IWebApiServer,WebApiServer>();
+            serviceCollection.AddSingleton<IWebApiServer, WebApiServer>();
 
             serviceCollection.AddSingleton<CountryTransfer>();
 
@@ -25,7 +25,7 @@ namespace linker.messenger.listen
             LoggerHelper.Instance.Info($"start server");
             try
             {
-                tcpServer.Start(listenStore.Port);
+                tcpServer.Start(listenStore.Port, listenStore.Ipv6);
             }
             catch (Exception ex)
             {

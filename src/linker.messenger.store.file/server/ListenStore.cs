@@ -6,6 +6,7 @@ namespace linker.messenger.store.file.server
     {
         public int Port => config.Data.Server.ServicePort;
         public int ApiPort => config.Data.Server.ApiPort;
+        public bool Ipv6 => config.Data.Server.Ipv6;
 
         public GeoRegistryInfo GeoRegistry => config.Data.Server.GeoRegistry;
 

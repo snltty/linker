@@ -134,7 +134,7 @@ namespace linker.messenger.relay.server
 
                 TaskCompletionSource<Socket> tcs = new TaskCompletionSource<Socket>(TaskCreationOptions.RunContinuationsAsynchronously);
                 Socket answerSocket = null;
-                IPEndPoint fromep = socket.RemoteEndPoint as IPEndPoint, toep = null;
+                IPEndPoint fromep = (socket.RemoteEndPoint as IPEndPoint).MapToIPv4(), toep = null;
                 try
                 {
                     await socket.SendAsync(Helper.TrueArray).ConfigureAwait(false);

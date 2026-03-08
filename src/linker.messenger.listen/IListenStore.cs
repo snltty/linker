@@ -7,6 +7,8 @@ namespace linker.messenger.listen
         public int Port { get; }
         public int ApiPort { get; }
 
+        public bool Ipv6 { get; }
+
         public GeoRegistryInfo GeoRegistry { get; }
 
         public bool SetPort(int port);

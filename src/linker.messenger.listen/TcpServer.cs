@@ -22,25 +22,24 @@ namespace linker.messenger.listen
 
         }
 
-        public void Start(int port)
+        public void Start(int port, bool ipv6 = false)
         {
             if (port <= 0) return;
             if (socket == null)
             {
-                socket = BindAccept(port);
-                _ = BindUdp(port);
+                socket = BindAccept(port, ipv6);
             }
         }
 
-      
-        private async Task BindUdp(int port)
+
+        private async Task BindUdp(int port, bool ipv6 = false)
         {
-            IPEndPoint localEndPoint = new IPEndPoint(IPAddress.IPv6Any, port);
+            IPEndPoint localEndPoint = ipv6 ? new IPEndPoint(IPAddress.IPv6Any, port) : new IPEndPoint(IPAddress.Any, port);
             socketUdp = new Socket(localEndPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
-            socketUdp.IPv6Only(localEndPoint.AddressFamily,false);
+            socketUdp.IPv6Only(localEndPoint.AddressFamily, false);
             socketUdp.Bind(localEndPoint);
             socketUdp.WindowsUdpBug();
-            IPEndPoint endPoint = new IPEndPoint(IPAddress.IPv6Any, IPEndPoint.MinPort);
+            IPEndPoint endPoint = ipv6 ? new IPEndPoint(IPAddress.IPv6Any, IPEndPoint.MinPort) : new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
             using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(65535);
             while (true)
             {
@@ -75,9 +74,9 @@ namespace linker.messenger.listen
             }
         }
 
-        private Socket BindAccept(int port)
+        private Socket BindAccept(int port, bool ipv6 = false)
         {
-            IPEndPoint localEndPoint = new IPEndPoint(IPAddress.IPv6Any, port);
+            IPEndPoint localEndPoint = ipv6 ? new IPEndPoint(IPAddress.IPv6Any, port) : new IPEndPoint(IPAddress.Any, port);
             Socket socket = new Socket(localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             socket.IPv6Only(localEndPoint.AddressFamily, false);
             socket.Bind(localEndPoint);
@@ -91,6 +90,7 @@ namespace linker.messenger.listen
             acceptEventArg.Completed += IO_Completed;
             StartAccept(acceptEventArg);
 
+            _ = BindUdp(port, ipv6);
 
             return socket;
         }
