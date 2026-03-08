@@ -266,9 +266,14 @@ namespace linker.upnp
                     }
                 }
             }
-            foreach (var key in localMappings.Where(c => c.Value.Deleted && c.Value.Info.Deletable).Select(c => c.Key).ToList())
+            foreach (var kv in localMappings.Where(c => c.Value.Deleted).ToList())
             {
-                localMappings.TryRemove(key, out _);
+                if (kv.Value.Info.Deletable)
+                    localMappings.TryRemove(kv.Key, out _);
+                else
+                {
+                    kv.Value.Deleted = false;
+                }
             }
         }
 
