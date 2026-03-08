@@ -35,8 +35,7 @@
                                     :class="scope.row.hook_counter['upnp-w'] > 0 && scope.row.hook_counter['upnp-d'] > 0
                                         ? 'green' : (scope.row.hook_counter['upnp-w']> 0 || scope.row.hook_counter['upnp-d'] > 0
                                         ? 'yellow' : '')">
-
-                                        <img title="upnp" class="system" 
+                                        <img class="system" 
                                         :src="scope.row.hook_counter['upnp-w'] > 0 && scope.row.hook_counter['upnp-d'] > 0
                                             ? '/upnp-green.svg' : (scope.row.hook_counter['upnp-w']> 0 || scope.row.hook_counter['upnp-d'] > 0
                                             ? '/upnp-yellow.svg' : '/upnp.svg')"/>

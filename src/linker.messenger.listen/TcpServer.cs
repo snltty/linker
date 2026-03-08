@@ -131,6 +131,7 @@ namespace linker.messenger.listen
         }
         private async Task BeginReceive(Socket socket)
         {
+            IPEndPoint ep = socket.RemoteEndPoint as IPEndPoint;
             byte[] buffer = ArrayPool<byte>.Shared.Rent(32);
             using CancellationTokenSource cts = new CancellationTokenSource(5000);
             try
@@ -160,6 +161,7 @@ namespace linker.messenger.listen
             }
             finally
             {
+               
                 ArrayPool<byte>.Shared.Return(buffer);
             }
         }

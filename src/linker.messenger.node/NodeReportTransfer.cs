@@ -515,7 +515,9 @@ namespace linker.messenger.node
                             {
 
                                 await socket.ConnectAsync(remote, cts.Token).ConfigureAwait(false);
+                                LoggerHelper.Instance.Debug($"{Name} sign in to node {c.NodeId} {remote} connect sucess");
                                 var connection = await messengerResolver.BeginReceiveClient(socket, true, (byte)ResolverType.NodeConnection, Helper.EmptyArray).ConfigureAwait(false);
+                                LoggerHelper.Instance.Debug($"{Name} sign in to node {c.NodeId} {remote} recv success");
 
                                 connection.Id = c.NodeId;
                                 var resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -549,7 +551,7 @@ namespace linker.messenger.node
                                 socket.SafeClose();
                             }
                         });
-                        await Task.WhenAll(tasks).ConfigureAwait(false);
+                        await Task.WhenAll(tasks.ToList()).ConfigureAwait(false);
                     }
                 }
                 catch (Exception ex)
