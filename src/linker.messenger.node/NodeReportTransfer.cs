@@ -504,7 +504,7 @@ namespace linker.messenger.node
                             {
                                 if (nodeConnectionTransfer.TryGet(ConnectionSideType.Node, node.NodeId, out ConnectionInfo _connection))
                                 {
-                                    LoggerHelper.Instance.Debug($"{Name} node {node.NodeId} {node.Name} connected {_connection?.Connection?.Connected}");
+                                    LoggerHelper.Instance.Debug($"{Name} node {node.Name} connected {_connection?.Connection?.Connected}");
                                 }
                             }
                             catch (Exception ex)
@@ -514,16 +514,23 @@ namespace linker.messenger.node
 
                             using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(2000));
                             IPEndPoint remote = await NetworkHelper.GetEndPointAsync(node.Host, 1802).ConfigureAwait(false);
-                            LoggerHelper.Instance.Debug($"{Name} sign in to node {node.NodeId} {node.Name} {remote}");
+                            LoggerHelper.Instance.Debug($"{Name} sign in to node {node.Name} {remote}");
                             Socket socket = new Socket(remote.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
                             socket.KeepAlive();
                             try
                             {
                                 await socket.ConnectAsync(remote, cts.Token).ConfigureAwait(false);
-                                LoggerHelper.Instance.Debug($"{Name} sign in to node {node.NodeId} {node.Name} {remote} connect sucess");
+                                LoggerHelper.Instance.Debug($"{Name} sign in to node {node.Name} {remote} connect sucess");
                                 var connection = await messengerResolver.BeginReceiveClient(socket, true, (byte)ResolverType.NodeConnection, Helper.EmptyArray).ConfigureAwait(false);
 
-                                LoggerHelper.Instance.Debug($"{Name} sign in to node {node.NodeId} {node.Name} {remote} recv success");
+                                if (connection == null || connection.Connected == false)
+                                {
+                                    LoggerHelper.Instance.Debug($"{Name} sign in to node {node.Name} {remote} recv fail");
+                                    socket.SafeClose();
+                                    return;
+                                }
+
+                                LoggerHelper.Instance.Debug($"{Name} sign in to node {node.Name} {remote} recv success");
 
                                 connection.Id = node.NodeId;
                                 var resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -535,7 +542,7 @@ namespace linker.messenger.node
                                 }).ConfigureAwait(false);
                                 if (resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray))
                                 {
-                                    LoggerHelper.Instance.Debug($"{Name} sign in to node {node.NodeId} {node.Name} success");
+                                    LoggerHelper.Instance.Debug($"{Name} sign in to node {node.Name} success");
                                     nodeConnectionTransfer.TryAdd(ConnectionSideType.Node, node.NodeId, new ConnectionInfo
                                     {
                                         Connection = connection,
@@ -544,7 +551,7 @@ namespace linker.messenger.node
                                 }
                                 else
                                 {
-                                    LoggerHelper.Instance.Error($"{Name} sign in to node {node.NodeId} {node.Name} {remote} fail");
+                                    LoggerHelper.Instance.Error($"{Name} sign in to node {node.Name} {remote} fail");
                                     connection?.Disponse();
                                 }
                             }
@@ -552,7 +559,7 @@ namespace linker.messenger.node
                             {
                                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                                 {
-                                    LoggerHelper.Instance.Error($"{Name} sign in to node {node.NodeId} {node.Name} {remote} : {ex}");
+                                    LoggerHelper.Instance.Error($"{Name} sign in to node {node.Name} {remote} : {ex}");
                                 }
                                 socket.SafeClose();
                             }
