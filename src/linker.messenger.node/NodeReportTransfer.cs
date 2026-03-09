@@ -496,10 +496,22 @@ namespace linker.messenger.node
             {
                 try
                 {
-                    List<TStore> nodes = (await nodeStore.GetAll()).Where(c => nodeConnectionTransfer.TryGet(ConnectionSideType.Node, c.NodeId, out ConnectionInfo connection) == false || connection == null || connection.Connection == null || connection.Connection.Connected == false).ToList();
+                    List<TStore> nodes = (await nodeStore.GetAll()).Where(node => nodeConnectionTransfer.TryGet(ConnectionSideType.Node, node.NodeId, out ConnectionInfo _connection) == false || _connection.Connection == null || _connection.Connection.Connected == false).ToList();
 
                     var tasks = nodes.Select(async node =>
                         {
+                            try
+                            {
+                                if (nodeConnectionTransfer.TryGet(ConnectionSideType.Node, node.NodeId, out ConnectionInfo _connection))
+                                {
+                                    LoggerHelper.Instance.Debug($"{Name} node {node.NodeId} {node.Name} connected {_connection?.Connection?.Connected}");
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                LoggerHelper.Instance.Error(ex);
+                            }
+
                             using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(2000));
                             IPEndPoint remote = await NetworkHelper.GetEndPointAsync(node.Host, 1802).ConfigureAwait(false);
                             LoggerHelper.Instance.Debug($"{Name} sign in to node {node.NodeId} {node.Name} {remote}");
