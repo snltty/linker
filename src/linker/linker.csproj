@@ -21,14 +21,15 @@
 4. 优化客户端管理ws并发
 5. 减少服务器推送，减轻主服务器压力
 6. 优化中继，针对无法连接自己的外网IP的情况
-7. 优化upnp，自己实现了一遍</Description>
+7. 优化upnp，自己实现了一遍
+8. 服务端支持ipv6</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>1.9.91</Version>
-		<AssemblyVersion>1.9.91</AssemblyVersion>
-		<FileVersion>1.9.91</FileVersion>
+		<Version>1.9.92</Version>
+		<AssemblyVersion>1.9.92</AssemblyVersion>
+		<FileVersion>1.9.92</FileVersion>
 		<DelaySign>False</DelaySign>
 
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
