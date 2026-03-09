@@ -1,7 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.extends;
 using linker.libs.timer;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 
@@ -499,58 +498,55 @@ namespace linker.messenger.node
                 {
                     List<TStore> nodes = (await nodeStore.GetAll()).Where(c => nodeConnectionTransfer.TryGet(ConnectionSideType.Node, c.NodeId, out ConnectionInfo connection) == false || connection == null || connection.Connection == null || connection.Connection.Connected == false).ToList();
 
-                    foreach (TStore node in nodes)
-                    {
-                        using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(2000));
-                        IPEndPoint remote = await NetworkHelper.GetEndPointAsync(node.Host, 1802).ConfigureAwait(false);
-                        LoggerHelper.Instance.Debug($"{Name} sign in to node {node.NodeId} {remote}");
-                        Socket socket = new Socket(remote.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                        socket.KeepAlive();
-                        try
+                    var tasks = nodes.Select(async node =>
                         {
-                            await socket.ConnectAsync(remote, cts.Token).ConfigureAwait(false);
-                            LoggerHelper.Instance.Debug($"{Name} sign in to node {node.NodeId} {remote} connect sucess");
-                            var connection = await messengerResolver.BeginReceiveClient(socket, true, (byte)ResolverType.NodeConnection, Helper.EmptyArray).ConfigureAwait(false);
-
-                            if (connection == null)
+                            using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(2000));
+                            IPEndPoint remote = await NetworkHelper.GetEndPointAsync(node.Host, 1802).ConfigureAwait(false);
+                            LoggerHelper.Instance.Debug($"{Name} sign in to node {node.NodeId} {node.Name} {remote}");
+                            Socket socket = new Socket(remote.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                            socket.KeepAlive();
+                            try
                             {
-                                continue;
-                            }
+                                await socket.ConnectAsync(remote, cts.Token).ConfigureAwait(false);
+                                LoggerHelper.Instance.Debug($"{Name} sign in to node {node.NodeId} {node.Name} {remote} connect sucess");
+                                var connection = await messengerResolver.BeginReceiveClient(socket, true, (byte)ResolverType.NodeConnection, Helper.EmptyArray).ConfigureAwait(false);
 
-                            LoggerHelper.Instance.Debug($"{Name} sign in to node {node.NodeId} {remote} recv success");
+                                LoggerHelper.Instance.Debug($"{Name} sign in to node {node.NodeId} {node.Name} {remote} recv success");
 
-                            connection.Id = node.NodeId;
-                            var resp = await messengerSender.SendReply(new MessageRequestWrap
-                            {
-                                Connection = connection,
-                                MessengerId = MessengerIdSignIn,
-                                Payload = serializer.Serialize(new ValueTuple<string, string, string>(Config.NodeId, node.MasterKey, node.ShareKey)),
-                                Timeout = 5000
-                            }).ConfigureAwait(false);
-                            if (resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray))
-                            {
-                                LoggerHelper.Instance.Debug($"{Name} sign in to node {node.NodeId} success");
-                                nodeConnectionTransfer.TryAdd(ConnectionSideType.Node, node.NodeId, new ConnectionInfo
+                                connection.Id = node.NodeId;
+                                var resp = await messengerSender.SendReply(new MessageRequestWrap
                                 {
                                     Connection = connection,
-                                    Manageable = node.Manageable
-                                });
+                                    MessengerId = MessengerIdSignIn,
+                                    Payload = serializer.Serialize(new ValueTuple<string, string, string>(Config.NodeId, node.MasterKey, node.ShareKey)),
+                                    Timeout = 2000
+                                }).ConfigureAwait(false);
+                                if (resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray))
+                                {
+                                    LoggerHelper.Instance.Debug($"{Name} sign in to node {node.NodeId} {node.Name} success");
+                                    nodeConnectionTransfer.TryAdd(ConnectionSideType.Node, node.NodeId, new ConnectionInfo
+                                    {
+                                        Connection = connection,
+                                        Manageable = node.Manageable
+                                    });
+                                }
+                                else
+                                {
+                                    LoggerHelper.Instance.Error($"{Name} sign in to node {node.NodeId} {node.Name} {remote} fail");
+                                    connection?.Disponse();
+                                }
                             }
-                            else
+                            catch (Exception ex)
                             {
-                                LoggerHelper.Instance.Error($"{Name} sign in to node {node.NodeId} fail");
-                                connection?.Disponse();
+                                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                                {
+                                    LoggerHelper.Instance.Error($"{Name} sign in to node {node.NodeId} {node.Name} {remote} : {ex}");
+                                }
+                                socket.SafeClose();
                             }
-                        }
-                        catch (Exception ex)
-                        {
-                            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                            {
-                                LoggerHelper.Instance.Error($"{Name} sign in to node : {remote} {ex}");
-                            }
-                            socket.SafeClose();
-                        }
-                    }
+                        }).ToList();
+
+                    await Task.WhenAll(tasks).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {

@@ -28,7 +28,7 @@ namespace linker.libs.web
                 {
                     HttpListener http = new HttpListener();
                     http.IgnoreWriteExceptions = true;
-                    http.Prefixes.Add($"http://{(ipv6 ? "*" : "+")}:{port}/");
+                    http.Prefixes.Add($"http://+:{port}/");
                     http.Start();
 
                     while (true)

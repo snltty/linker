@@ -113,39 +113,47 @@ namespace linker.messenger.flow
                         LoggerHelper.Instance.Error(ex);
                     }
                 }
-
+            }, 5000);
+            TimerHelper.SetIntervalLong(() =>
+            {
                 while (onlineQueue.TryDequeue(out (IPEndPoint ep, int online, int total, List<FlowReportNetInfo> nets) value))
                 {
-                    long time = Environment.TickCount64;
-
-                    if (servers.TryGetValue(value.ep.Address, out OnlineFlowInfo onlineFlowInfo) == false)
+                    try
                     {
-                        onlineFlowInfo = new OnlineFlowInfo { Time = time };
-                        servers.TryAdd(value.ep.Address, onlineFlowInfo);
+                        long time = Environment.TickCount64;
+
+                        if (servers.TryGetValue(value.ep.Address, out OnlineFlowInfo onlineFlowInfo) == false)
+                        {
+                            onlineFlowInfo = new OnlineFlowInfo { Time = time };
+                            servers.TryAdd(value.ep.Address, onlineFlowInfo);
+                        }
+                        onlineFlowInfo.Time = time;
+                        onlineFlowInfo.Online = value.online;
+                        onlineFlowInfo.Total = value.total;
+
+                        long online = (long)servers.Where(c => time - c.Value.Time < 15000).Sum(c => c.Value.Online) << 32;
+                        long total = servers.Where(c => time - c.Value.Time < 15000).Sum(c => c.Value.Total);
+                        ReceiveBytes = online | total;
+                        SendtBytes = servers.Count(c => time - c.Value.Time < 15000);
+
+                        if (value.nets != null && value.nets.Count > 0)
+                        {
+                            onlineFlowInfo.Nets = value.nets.Where(c => c.Lon > 0 && c.Lat > 0 && (string.IsNullOrWhiteSpace(c.City) || c.City.IndexOf('-') < 0)).ToList();
+                            onlineFlowInfo.Systems = value.nets.Where(c => c.Lon == 0 && c.Lat == 0 && string.IsNullOrWhiteSpace(c.City) == false && c.City.IndexOf('-') > 0).ToList();
+                        }
+                        Version.Increment();
+
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        {
+                            LoggerHelper.Instance.Debug($"online:{value.online},total:{value.total},server:{SendtBytes}");
+                        }
                     }
-                    onlineFlowInfo.Time = time;
-                    onlineFlowInfo.Online = value.online;
-                    onlineFlowInfo.Total = value.total;
-
-                    long online = (long)servers.Where(c => time - c.Value.Time < 15000).Sum(c => c.Value.Online) << 32;
-                    long total = servers.Where(c => time - c.Value.Time < 15000).Sum(c => c.Value.Total);
-                    ReceiveBytes = online | total;
-                    SendtBytes = servers.Count(c => time - c.Value.Time < 15000);
-
-                    if (value.nets != null && value.nets.Count > 0)
+                    catch (Exception)
                     {
-                        onlineFlowInfo.Nets = value.nets.Where(c => c.Lon > 0 && c.Lat > 0 && (string.IsNullOrWhiteSpace(c.City) || c.City.IndexOf('-') < 0)).ToList();
-                        onlineFlowInfo.Systems = value.nets.Where(c => c.Lon == 0 && c.Lat == 0 && string.IsNullOrWhiteSpace(c.City) == false && c.City.IndexOf('-') > 0).ToList();
-                    }
-                    Version.Increment();
-
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    {
-                        LoggerHelper.Instance.Debug($"online:{value.online},total:{value.total},server:{SendtBytes}");
                     }
                 }
 
-            }, 5000);
+            }, 3000);
         }
 
         byte[] oldBuffer = [];
