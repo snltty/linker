@@ -71,7 +71,7 @@ namespace linker.messenger.tunnel.server
         }
         private Memory<byte> BuildSendData(byte[] data, IPEndPoint ep)
         {
-            ep.MapToIPv4();
+            ep = ep.MapToIPv4();
             //给客户端返回他的IP+端口
             data[0] = (byte)ep.AddressFamily;
             ep.Address.TryWriteBytes(data.AsSpan(1), out int length);
