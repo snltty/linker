@@ -94,11 +94,17 @@ namespace linker.messenger.relay.server
 
             try
             {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Warning($"server relay begin get message");
                 RelayMessageInfo relayMessage = await GetMessage(socket).ConfigureAwait(false);
                 if(relayMessage == null)
                 {
+                    LoggerHelper.Instance.Error($"server relay get message:fail");
+                    await socket.SendAsync(Helper.FalseArray).ConfigureAwait(false);
                     return;
                 }
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Warning($"server relay get message:{relayMessage.ToJson()}");
                 //获取缓存
                 RelayCacheInfo relayCache = await relayServerNodeTransfer.TryGetRelayCache(relayMessage).ConfigureAwait(false);
                 if (relayCache == null)

@@ -1,10 +1,11 @@
 ﻿using linker.libs;
-using System.ServiceProcess;
-using System.Diagnostics;
 using linker.messenger.entry;
+using linker.messenger.store.file;
+using System.Diagnostics;
+using System.Net;
+using System.ServiceProcess;
 using System.Text;
 using System.Text.Json;
-using linker.messenger.store.file;
 
 namespace linker
 {
@@ -13,6 +14,7 @@ namespace linker
         static async Task Main(string[] args)
         {
 
+            ServicePointManager.CheckCertificateRevocationList = false;
 #if DEBUG
 #else
             //添加防火墙，不添加ICMP

@@ -98,7 +98,8 @@ namespace linker.tunnel.transport
                     {
                         EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls,
                         CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
-                        ClientCertificates = new X509CertificateCollection { messengerStore.Certificate }
+                        ClientCertificates = new X509CertificateCollection { messengerStore.Certificate },
+                        TargetHost = "snltty.com"
                     }).ConfigureAwait(false);
 #pragma warning restore SYSLIB0039 // 类型或成员已过时
                 }
@@ -178,8 +179,8 @@ namespace linker.tunnel.transport
                     {
                         ask.Info.Host = node.Host;
                         ask.Info.NodeId = node.NodeId;
-                        await GetEndpoint(ask.Info);
-                       
+                        await GetEndpoint(ask.Info).ConfigureAwait(false);
+
                         Socket socket = new Socket(ask.Info.Node.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                         socket.KeepAlive();
                         socket.IPv6Only(ask.Info.Node.AddressFamily, false);
@@ -239,6 +240,11 @@ namespace linker.tunnel.transport
         }
         private bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+            {
+                LoggerHelper.Instance.Info($"【Relay】Certificate validation: {certificate?.Subject}");
+                LoggerHelper.Instance.Info($"【Relay】SSL Policy Errors: {sslPolicyErrors}");
+            }
             return true;
         }
 
@@ -408,7 +414,7 @@ namespace linker.tunnel.transport
 
         private async Task GetEndpoint(RelayInfo relay)
         {
-            if(string.IsNullOrWhiteSpace(relay.Host) == false)
+            if (string.IsNullOrWhiteSpace(relay.Host) == false)
             {
                 relay.Node = NetworkHelper.GetEndPoint(relay.Host, 1802);
             }
@@ -421,7 +427,7 @@ namespace linker.tunnel.transport
             {
                 using Socket socketTest = new Socket(relay.Node.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 await socketTest.ConnectAsync(relay.Node).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
-                socketTest.SafeClose();
+                socketTest.Send(new byte[] { 255 });
             }
             catch (Exception)
             {

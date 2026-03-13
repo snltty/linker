@@ -131,7 +131,6 @@ namespace linker.messenger.listen
         }
         private async Task BeginReceive(Socket socket)
         {
-            IPEndPoint ep = socket.RemoteEndPoint as IPEndPoint;
             byte[] buffer = ArrayPool<byte>.Shared.Rent(32);
             using CancellationTokenSource cts = new CancellationTokenSource(5000);
             try
@@ -142,6 +141,13 @@ namespace linker.messenger.listen
                 }
 
                 int length = await socket.ReceiveAsync(buffer.AsMemory(0, 1), SocketFlags.None, cts.Token).ConfigureAwait(false);
+                if(length == 0)
+                {
+                    cts.Cancel();
+                    socket.SafeClose();
+                    return;
+                }
+                //LoggerHelper.Instance.Warning($"tcp server recv {length} from {socket.RemoteEndPoint}");
                 byte type = buffer[0];
                 if (countryTransfer.Test(type, (socket.RemoteEndPoint as IPEndPoint).Address) == false)
                 {
@@ -149,15 +155,14 @@ namespace linker.messenger.listen
                     socket.SafeClose();
                     return;
                 }
-                _ = resolverTransfer.BeginReceive(type, socket);
+                _ = resolverTransfer.BeginReceive(type, socket).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
                 cts.Cancel();
+                socket.SafeClose();
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Error(ex);
-
-                socket.SafeClose();
             }
             finally
             {

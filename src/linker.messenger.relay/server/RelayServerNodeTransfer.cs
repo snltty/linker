@@ -34,6 +34,8 @@ namespace linker.messenger.relay.server
             {
                 if (relayServerConnectionTransfer.TryGet(ConnectionSideType.Master, relayMessage.MasterId, out ConnectionInfo connection) == false)
                 {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        LoggerHelper.Instance.Error($"relay server {relayMessage.Type} get cache not connect,flowid:{relayMessage.FlowId}");
                     return null;
                 }
 
@@ -51,6 +53,8 @@ namespace linker.messenger.relay.server
                     RelayCacheInfo result = serializer.Deserialize<RelayCacheInfo>(resp.Data.Span);
                     return result;
                 }
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Error($"relay server {relayMessage.Type} get cache fail code {resp.Code},flowid:{relayMessage.FlowId}");
             }
             catch (Exception ex)
             {

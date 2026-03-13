@@ -81,7 +81,6 @@ namespace linker.messenger
 
 #pragma warning restore SYSLIB0039 // 类型或成员已过时
                 IConnection connection = CreateConnection(sslStream, networkStream, socket, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
-
                 connection.BeginReceive(this, null, true);
             }
             catch (Exception ex)
@@ -142,7 +141,7 @@ namespace linker.messenger
                     await socket.SendAsync(data).ConfigureAwait(false);
                 }
 
-                using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(5000));
+                using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(60000));
                 NetworkStream networkStream = new NetworkStream(socket, false);
                 SslStream sslStream = new SslStream(networkStream, true, ValidateServerCertificate, null);
                 try
@@ -153,6 +152,7 @@ namespace linker.messenger
                         EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls,
                         CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
                         ClientCertificates = new X509CertificateCollection { messengerStore.Certificate },
+                        TargetHost = "linker.snltty.com"
                     }, cts.Token).ConfigureAwait(false);
 #pragma warning restore SYSLIB0039 // 类型或成员已过时
 
@@ -182,8 +182,11 @@ namespace linker.messenger
         }
         private bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
-            LoggerHelper.Instance.Error($"Certificate validation: {certificate?.Subject}");
-            LoggerHelper.Instance.Error($"SSL Policy Errors: {sslPolicyErrors}");
+            if(LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+            {
+                LoggerHelper.Instance.Info($"【Messenger】Certificate validation: {certificate?.Subject}");
+                LoggerHelper.Instance.Info($"【Messenger】SSL Policy Errors: {sslPolicyErrors}");
+            }
             return true;
         }
         private static TcpConnection CreateConnection(SslStream stream, NetworkStream networkStream, Socket socket, IPEndPoint local, IPEndPoint remote)

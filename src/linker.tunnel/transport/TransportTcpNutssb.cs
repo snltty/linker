@@ -185,7 +185,8 @@ namespace linker.tunnel.transport
                         {
                             EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls,
                             CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
-                            ClientCertificates = new X509CertificateCollection { certificate }
+                            ClientCertificates = new X509CertificateCollection { certificate },
+                            TargetHost = "snltty.com"
                         }).ConfigureAwait(false);
 #pragma warning restore SYSLIB0039 // 类型或成员已过时
                     }
@@ -218,6 +219,11 @@ namespace linker.tunnel.transport
         }
         private bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+            {
+                LoggerHelper.Instance.Info($"【P2P {Name}】Certificate validation: {certificate?.Subject}");
+                LoggerHelper.Instance.Info($"【P2P {Name}】SSL Policy Errors: {sslPolicyErrors}");
+            }
             return true;
         }
         private static void BindAndTTL(TunnelTransportInfo tunnelTransportInfo)
