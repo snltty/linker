@@ -100,6 +100,11 @@ namespace linker.messenger.flow
         {
             UdpClient udpClient = new UdpClient();
             udpClient.Client.WindowsUdpBug();
+            string domain = "linker.snltty.com";
+#if DEBUG
+            domain = "127.0.0.1";
+#endif
+            udpClient.Connect(domain, 1802);
             TimerHelper.SetIntervalLong(() =>
             {
                 try
@@ -181,16 +186,11 @@ namespace linker.messenger.flow
 
             if (buffer.SequenceEqual(oldBuffer))
             {
+                udpClient.Send(buffer.Slice(0, 9));
                 return;
             }
             oldBuffer = buffer.ToArray();
-
-
-            string domain = "linker.snltty.com";
-#if DEBUG
-            domain = "127.0.0.1";
-#endif
-            udpClient.Send(buffer.Slice(0, 9 + netBytes.Length), domain, 1802);
+            udpClient.Send(buffer.Slice(0, 9 + netBytes.Length));
         }
     }
 

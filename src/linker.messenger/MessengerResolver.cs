@@ -1,12 +1,12 @@
 ﻿using linker.libs;
+using linker.libs.extends;
+using System.Buffers;
+using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
-using System.Net;
 using System.Reflection;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
-using linker.libs.extends;
-using System.Buffers;
 
 namespace linker.messenger
 {
@@ -77,13 +77,8 @@ namespace linker.messenger
             try
             {
 #pragma warning disable SYSLIB0039 // 类型或成员已过时
-                await sslStream.AuthenticateAsServerAsync(new SslServerAuthenticationOptions
-                {
-                    ServerCertificate = messengerStore.Certificate,
-                    ClientCertificateRequired = OperatingSystem.IsAndroid(),
-                    EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls,
-                    CertificateRevocationCheckMode = X509RevocationMode.NoCheck
-                }, cts.Token).ConfigureAwait(false);
+                await sslStream.AuthenticateAsServerAsync(messengerStore.Certificate, OperatingSystem.IsAndroid(), SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls, false).ConfigureAwait(false);
+
 #pragma warning restore SYSLIB0039 // 类型或成员已过时
                 IConnection connection = CreateConnection(sslStream, networkStream, socket, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
 
@@ -155,10 +150,9 @@ namespace linker.messenger
 #pragma warning disable SYSLIB0039 // 类型或成员已过时
                     await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
                     {
-                        AllowRenegotiation = true,
                         EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls,
                         CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
-                        ClientCertificates = new X509CertificateCollection { messengerStore.Certificate }
+                        ClientCertificates = new X509CertificateCollection { messengerStore.Certificate },
                     }, cts.Token).ConfigureAwait(false);
 #pragma warning restore SYSLIB0039 // 类型或成员已过时
 
@@ -188,6 +182,8 @@ namespace linker.messenger
         }
         private bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
+            LoggerHelper.Instance.Error($"Certificate validation: {certificate?.Subject}");
+            LoggerHelper.Instance.Error($"SSL Policy Errors: {sslPolicyErrors}");
             return true;
         }
         private static TcpConnection CreateConnection(SslStream stream, NetworkStream networkStream, Socket socket, IPEndPoint local, IPEndPoint remote)

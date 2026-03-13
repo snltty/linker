@@ -152,7 +152,7 @@ export default {
             state.showNodes = false;
         }
         const handlePortChange = ()=>{
-            state.nodeIds = [];
+            //state.nodeIds = [];
             formatNodes();        
         }
         const handleMachineIdChange = ()=>{
