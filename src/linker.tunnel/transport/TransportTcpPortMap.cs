@@ -260,7 +260,7 @@ namespace linker.tunnel.transport
 
                     sslStream = new SslStream(new NetworkStream(socket, false), false, ValidateServerCertificate, null);
 #pragma warning disable SYSLIB0039 // 类型或成员已过时
-                    await sslStream.AuthenticateAsServerAsync(certificate, OperatingSystem.IsAndroid(), SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls, false).ConfigureAwait(false);
+                    await sslStream.AuthenticateAsServerAsync(certificate, OperatingSystem.IsAndroid(), SslProtocols.Tls13 | SslProtocols.Tls12, false).ConfigureAwait(false);
 #pragma warning restore SYSLIB0039 // 类型或成员已过时
                 }
 
@@ -332,10 +332,9 @@ namespace linker.tunnel.transport
 #pragma warning disable SYSLIB0039 // 类型或成员已过时
                         await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
                         {
-                            EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls,
+                            EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12,
                             CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
                             ClientCertificates = new X509CertificateCollection { certificate },
-                            TargetHost = "snltty.com"
                         }, cts.Token).ConfigureAwait(false);
 #pragma warning restore SYSLIB0039 // 类型或成员已过时
                     }

@@ -229,7 +229,7 @@ namespace linker.tunnel.transport
                     ClientAuthenticationOptions = new SslClientAuthenticationOptions
                     {
                         ApplicationProtocols = new List<SslApplicationProtocol> { SslApplicationProtocol.Http3 },
-                        EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls,
+                        EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12,
                         RemoteCertificateValidationCallback = (sender, certificate, chain, errors) =>
                         {
                             return true;
@@ -720,7 +720,7 @@ namespace linker.tunnel.transport
                             ServerAuthenticationOptions = new SslServerAuthenticationOptions
                             {
                                 ServerCertificate = certificate,
-                                EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls,
+                                EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12,
                                 ApplicationProtocols = new List<SslApplicationProtocol> { SslApplicationProtocol.Http3 }
                             }
                         });

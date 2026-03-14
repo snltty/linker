@@ -220,7 +220,6 @@ namespace linker.upnp
 
 
         private readonly ConcurrentDictionary<string, IPortMappingDevice> upnpDevices = new();
-        private CancellationTokenSource cts;
         private const string discoveryMessage =
                          "M-SEARCH * HTTP/1.1\r\n" +
                          "HOST: 239.255.255.250:1900\r\n" +

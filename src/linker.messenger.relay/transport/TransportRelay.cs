@@ -96,10 +96,9 @@ namespace linker.tunnel.transport
 #pragma warning disable SYSLIB0039 // 类型或成员已过时
                     await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
                     {
-                        EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls,
+                        EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12,
                         CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
-                        ClientCertificates = new X509CertificateCollection { messengerStore.Certificate },
-                        TargetHost = "snltty.com"
+                        ClientCertificates = new X509CertificateCollection { messengerStore.Certificate }
                     }).ConfigureAwait(false);
 #pragma warning restore SYSLIB0039 // 类型或成员已过时
                 }
@@ -183,7 +182,6 @@ namespace linker.tunnel.transport
 
                         Socket socket = new Socket(ask.Info.Node.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                         socket.KeepAlive();
-                        socket.IPv6Only(ask.Info.Node.AddressFamily, false);
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                             LoggerHelper.Instance.Debug($"relay client connect server {ask.Info.Node}");
 
@@ -295,7 +293,7 @@ namespace linker.tunnel.transport
                 }
 
                 RelayInfo relay = tunnelTransportInfo.TransactionTag.DeJson<RelayInfo>();
-                await GetEndpoint(relay);
+                await GetEndpoint(relay).ConfigureAwait(false);
 
 
                 Socket socket = new Socket(relay.Node.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
@@ -422,18 +420,6 @@ namespace linker.tunnel.transport
             {
                 relay.Node = signInClientState.Connection.Address;
             }
-
-            try
-            {
-                using Socket socketTest = new Socket(relay.Node.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
-                await socketTest.ConnectAsync(relay.Node).WaitAsync(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
-                socketTest.Send(new byte[] { 255 });
-            }
-            catch (Exception)
-            {
-                relay.Node = signInClientState.Connection.Address;
-            }
-
         }
     }
 

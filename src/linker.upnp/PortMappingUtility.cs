@@ -74,13 +74,7 @@ namespace linker.upnp
                     {
                         for (int i = 0; i < services.Length; i++)
                         {
-                            try
-                            {
-                                await services[i].Discovery(cts.Token).ConfigureAwait(false);
-                            }
-                            catch (Exception)
-                            {
-                            }
+                            await services[i].Discovery(cts.Token).ConfigureAwait(false);
                         }
 
                         RefreshDevice();
@@ -216,9 +210,13 @@ namespace linker.upnp
                 {
                     await services[i].Add(mapping).ConfigureAwait(false);
                     PortMappingInfo _mapping = await services[i].Get(mapping.PublicPort, mapping.ProtocolType).ConfigureAwait(false);
-                    if (_mapping != null && _mapping.LeaseDuration > 0)
+                    if (_mapping != null && _mapping.LeaseDuration > 0 && _mapping.Description == mapping.Description)
                     {
                         break;
+                    }
+                    if (_mapping.Description != mapping.Description)
+                    {
+                        await services[i].Delete(mapping.PublicPort, mapping.ProtocolType).ConfigureAwait(false);
                     }
                 }
             }
