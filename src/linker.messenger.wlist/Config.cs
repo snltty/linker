@@ -2,7 +2,7 @@
 {
     public sealed class WhiteListConfigServerInfo
     {
-        public string Type { get; set; } = "afdian";
+        public string Type { get; set; } = "ifdian";
         public string Value { get; set; } = string.Empty;
     }
 

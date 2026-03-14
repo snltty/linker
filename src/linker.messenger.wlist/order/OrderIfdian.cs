@@ -5,14 +5,14 @@ using System.Text.Json;
 
 namespace linker.messenger.wlist.order
 {
-    public sealed class OrderAfdian : IOrder
+    public sealed class OrderIfdian : IOrder
     {
-        public string Type => "afdian";
+        public string Type => "ifdian";
 
-        private const string api = "https://afdian.com/api/open/query-order";
+        private const string api = "https://ifdian.net/api/open/query-order";
 
         private readonly IWhiteListServerStore whiteListServerStore;
-        public OrderAfdian(IWhiteListServerStore whiteListServerStore)
+        public OrderIfdian(IWhiteListServerStore whiteListServerStore)
         {
             this.whiteListServerStore = whiteListServerStore;
         }
@@ -21,24 +21,24 @@ namespace linker.messenger.wlist.order
         {
             if (string.IsNullOrWhiteSpace(whiteListServerStore.Config.Value))
             {
-                return "Afdian userid and token not found";
+                return "Ifdian userid and token not found";
             }
             string[] arr = whiteListServerStore.Config.Value.Split(new char[] { '&' }, StringSplitOptions.RemoveEmptyEntries);
             if (arr.Length != 2)
             {
-                return "Afdian userid and token config error";
+                return "Ifdian userid and token config error";
             }
 
             WhiteListInfo white = await whiteListServerStore.Get(tradeNo).ConfigureAwait(false);
             if (white != null)
             {
-                return "Afdian order is already in use";
+                return "Ifdian order is already in use";
             }
 
 
-            (AfdianOrderData data, string error) = await Get(arr[0], arr[1], tradeNo).ConfigureAwait(false);
-            if (string.IsNullOrWhiteSpace(error) == false) return $"Afdian query order error {error}";
-            if (data == null || data.List.Length == 0) return "Afdian order not found";
+            (IfdianOrderData data, string error) = await Get(arr[0], arr[1], tradeNo).ConfigureAwait(false);
+            if (string.IsNullOrWhiteSpace(error) == false) return $"Ifdian query order error {error}";
+            if (data == null || data.List.Length == 0) return "Ifdian order not found";
 
             try
             {
@@ -71,7 +71,7 @@ namespace linker.messenger.wlist.order
                 && whiteListServerStore.Config.Value.Split(new char[] { '&' }, StringSplitOptions.RemoveEmptyEntries).Length == 2;
         }
 
-        private async Task<(AfdianOrderData data, string error)> Get(string userid, string token, string tradeNo)
+        private async Task<(IfdianOrderData data, string error)> Get(string userid, string token, string tradeNo)
         {
             try
             {
@@ -90,10 +90,10 @@ namespace linker.messenger.wlist.order
                 if (resp.IsSuccessStatusCode)
                 {
                     string str = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
-                    AfdianOrderResponse orderResp = str.DeJson<AfdianOrderResponse>();
+                    IfdianOrderResponse orderResp = str.DeJson<IfdianOrderResponse>();
                     return (orderResp.Data, orderResp.Ec == 200 ? string.Empty : orderResp.Em);
                 }
-                return (null, $"Afdian api http error {resp.StatusCode}");
+                return (null, $"Ifdian api http error {resp.StatusCode}");
             }
             catch (Exception ex)
             {
@@ -105,20 +105,20 @@ namespace linker.messenger.wlist.order
             }
         }
 
-        public sealed class AfdianOrderResponse
+        public sealed class IfdianOrderResponse
         {
             public int Ec { get; set; }
             public string Em { get; set; }
-            public AfdianOrderData Data { get; set; }
+            public IfdianOrderData Data { get; set; }
         }
 
-        public sealed class AfdianOrderData
+        public sealed class IfdianOrderData
         {
             public int Total_count { get; set; }
             public int Total_page { get; set; }
-            public AfdianOrderItem[] List { get; set; } = Array.Empty<AfdianOrderItem>();
+            public IfdianOrderItem[] List { get; set; } = Array.Empty<IfdianOrderItem>();
         }
-        public sealed class AfdianOrderItem
+        public sealed class IfdianOrderItem
         {
             public string Out_trade_no { get; set; }
             public string User_id { get; set; }

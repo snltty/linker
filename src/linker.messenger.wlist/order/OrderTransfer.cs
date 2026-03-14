@@ -6,7 +6,7 @@ namespace linker.messenger.wlist.order
         private readonly FrozenDictionary<string, IOrder> orders;
 
         private readonly IWhiteListServerStore whiteListServerStore;
-        public OrderTransfer(OrderAfdian orderAfdian, IWhiteListServerStore whiteListServerStore)
+        public OrderTransfer(OrderIfdian orderAfdian, IWhiteListServerStore whiteListServerStore)
         {
             orders = new Dictionary<string, IOrder> {
                 {orderAfdian.Type,orderAfdian }

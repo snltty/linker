@@ -6,7 +6,7 @@
     <el-dialog v-model="state.showPay" :title="$t('status.support')" width="80%">
         <div class="pay">
             <p class="t-c">
-                <a href="https://afdian.com/a/snltty" class="memory a-line" :title="$t('status.support')" target="_blank">
+                <a href="https://ifdian.net/a/snltty" class="memory a-line" :title="$t('status.support')" target="_blank">
                     <img src="@/assets/dianchi.svg" alt="memory" />
                     <span>{{$t('status.support')}}</span>
                 </a>

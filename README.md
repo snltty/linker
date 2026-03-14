@@ -79,9 +79,9 @@
 
 爱发电订单号可用于解锁官方服务器的中继带宽，善款将用于数字签名证书，望支持。
 
-[![Contributors](https://github.com/snltty/linker/raw/refs/heads/sponsor/afdian-sponsor.svg)](https://afdian.com/a/snltty)
+[![Contributors](https://github.com/snltty/linker/raw/refs/heads/sponsor/ifdian-sponsor.svg)](https://ifdian.com/a/snltty)
 
-使用 **[🔋为爱发电](https://afdian.com/a/snltty)**、或
+使用 **[🔋为爱发电](https://ifdian.com/a/snltty)**、或
 
 ![pay](readme/pay.png)
 

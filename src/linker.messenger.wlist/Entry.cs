@@ -25,7 +25,7 @@ namespace linker.messenger.wlist
             serviceCollection.AddSingleton<WhiteListServerMessenger>();
 
             serviceCollection.AddSingleton<OrderTransfer>();
-            serviceCollection.AddSingleton<OrderAfdian>();
+            serviceCollection.AddSingleton<OrderIfdian>();
 
 
             return serviceCollection;

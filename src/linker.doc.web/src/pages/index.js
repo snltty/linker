@@ -34,7 +34,7 @@ function HomepageHeader() {
                     </Link>
                     <Link
                         className="button button--secondary button--lg button--outline"
-                        to="https://afdian.com/a/snltty" style={{ marginLeft: '10px',color:'#fff'} }>
+                        to="https://ifdian.net/a/snltty" style={{ marginLeft: '10px',color:'#fff'} }>
                         捐助
                     </Link>
                 </div>
