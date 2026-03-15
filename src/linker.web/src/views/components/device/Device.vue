@@ -1,5 +1,5 @@
 <template>
-<el-table-column prop="MachineId" :label="$t('home.device')" width="180">
+<el-table-column prop="MachineId" :label="$t('home.device')" width="200">
     <template #header>
         <div class="flex">
             <span>{{$t('home.device')}}</span>
@@ -8,31 +8,43 @@
     </template>
     <template #default="scope">
         <template v-if="scope.row">
-            <p>
-                <DeviceName :config="true" :item="scope.row"></DeviceName>
-            </p>
-            <p class="flex">
-                <template v-if="scope.row.Connected">
-                    <SystemInfo :item="scope.row"></SystemInfo>
-                    <WlistShow type="Relay" :item="scope.row"></WlistShow>
-                    <UpdaterBtn :config="true" :item="scope.row"></UpdaterBtn>
-                </template>
-                <template v-else-if="scope.row.LastSignIn">
-                    <span>{{ scope.row.LastSignIn }}-{{ scope.row.Version }}</span>
-                </template>
-                <template v-else>
-                    <el-skeleton animated >
-                        <template #template>
-                            <div class="flex">
-                                <el-skeleton-item variant="text" class="el-skeleton-item" />
-                                <el-skeleton-item variant="text" class="el-skeleton-item" />
-                                <span class="flex-1"></span>
-                                <el-skeleton-item variant="text" class="el-skeleton-item" />
-                            </div>
+            <div class="flex">
+                <div class="avatar">
+                    <template v-if="scope.row.Args && scope.row.Args.avatar">
+                        <el-avatar shape="square" :size="30" :src="scope.row.Args.avatar" />
+                    </template>
+                    <template v-else>
+                        <el-avatar shape="square" :size="30" src="user.png"/>
+                    </template>
+                </div>
+                <div class="flex-1 name">
+                    <p>
+                        <DeviceName :config="true" :item="scope.row"></DeviceName>
+                    </p>
+                    <p class="flex">
+                        <template v-if="scope.row.Connected">
+                            <SystemInfo :item="scope.row"></SystemInfo>
+                            <WlistShow type="Relay" :item="scope.row"></WlistShow>
+                            <UpdaterBtn :config="true" :item="scope.row"></UpdaterBtn>
                         </template>
-                    </el-skeleton>
-                </template>
-            </p>
+                        <template v-else-if="scope.row.LastSignIn">
+                            <span>{{ scope.row.LastSignIn }}-{{ scope.row.Version }}</span>
+                        </template>
+                        <template v-else>
+                            <el-skeleton animated >
+                                <template #template>
+                                    <div class="flex">
+                                        <el-skeleton-item variant="text" class="el-skeleton-item" />
+                                        <el-skeleton-item variant="text" class="el-skeleton-item" />
+                                        <span class="flex-1"></span>
+                                        <el-skeleton-item variant="text" class="el-skeleton-item" />
+                                    </div>
+                                </template>
+                            </el-skeleton>
+                        </template>
+                    </p>
+                </div>
+            </div>
         </template>
         <div class="device-remark"></div>
     </template>
@@ -40,16 +52,17 @@
 </template>
 <script>
 import { ref } from 'vue';
-import {Search} from '@element-plus/icons-vue'
+import {Search,UserFilled} from '@element-plus/icons-vue'
 import UpdaterBtn from '../updater/UpdaterBtn.vue';
 import DeviceName from './DeviceName.vue';
 import SystemInfo from '../tuntap/SystemInfo.vue'; 
 import WlistShow from '../wlist/Device.vue'
 
 
+
 export default {
     emits:['refresh'],
-    components:{Search,UpdaterBtn,DeviceName,SystemInfo,WlistShow},
+    components:{Search,UserFilled,UpdaterBtn,DeviceName,SystemInfo,WlistShow},
     setup(props,{emit}) {
 
         const name = ref(sessionStorage.getItem('search-name') || '');
@@ -72,5 +85,17 @@ export default {
 }
 .el-skeleton-item{
     vertical-align: middle;width: 20%;
+}
+.avatar{
+    
+    padding-right:.5rem;
+    display: flex;
+    align-items: center;
+    img{
+        width:3rem;
+    }
+}
+.name p{
+    line-height:1.8rem;
 }
 </style>

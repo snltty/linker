@@ -76,6 +76,7 @@ namespace linker.messenger.signin
     public sealed partial class SignInConfigSetNameInfo
     {
         public string Id { get; set; }
-        public string NewName { get; set; }
+        public string Name { get; set; }
+        public string Avatar { get; set; } = string.Empty;
     }
 }

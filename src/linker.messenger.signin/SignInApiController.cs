@@ -46,7 +46,8 @@ namespace linker.messenger.signin
             if (info.Id == signInClientStore.Id)
             {
                 if (accessStore.HasAccess(AccessValue.RenameSelf) == false) return false;
-                signInClientStore.SetName(info.NewName);
+                signInClientStore.SetName(info.Name);
+                signInClientStore.SetAvatar(info.Avatar);
                 signInClientTransfer.ReSignIn();
             }
             else

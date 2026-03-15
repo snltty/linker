@@ -2,8 +2,6 @@
 using linker.libs.extends;
 using linker.messenger.decenter;
 using linker.messenger.signin;
-using linker.messenger.tunnel.stun.client;
-using linker.messenger.tunnel.stun.enums;
 using linker.tunnel;
 using linker.upnp;
 using System.Net;
@@ -117,17 +115,16 @@ namespace linker.messenger.tunnel.client
 
             try
             {
-                bool isp = false, city = false, nat = false;
-                for (int i = 0; i < 10; i++)
+                bool isp = false, city = false;
+                while (true)
                 {
-                    if (isp == false) isp = await GetIsp();
-                    if (city == false) city = await GetPosition();
-                    if (nat == false) nat = await TestNatTypeAsync();
-                    if (isp && city && nat)
+                    if (isp == false) isp = await GetIsp().ConfigureAwait(false);
+                    if (city == false) city = await GetPosition().ConfigureAwait(false);
+                    if (isp && city)
                     {
                         break;
                     }
-                    await Task.Delay(10000);
+                    await Task.Delay(10000).ConfigureAwait(false);
                 }
                 await tunnelClientStore.SetNetwork(tunnelClientStore.Network);
                 await messengerSender.SendOnly(new MessageRequestWrap
@@ -164,10 +161,9 @@ namespace linker.messenger.tunnel.client
                     return true;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 cts.Cancel();
-                LoggerHelper.Instance.Warning(ex);
             }
             return false;
         }
@@ -189,40 +185,9 @@ namespace linker.messenger.tunnel.client
                     return true;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 cts.Cancel();
-                LoggerHelper.Instance.Warning(ex);
-            }
-            return false;
-        }
-        private async Task<bool> TestNatTypeAsync()
-        {
-            try
-            {
-                IPEndPoint serverEP = NetworkHelper.GetEndPoint("stun.miwifi.com", 3478);
-
-                using StunClient3489 client = new(serverEP, new IPEndPoint(IPAddress.Any, 0), null);
-                await client.ConnectProxyAsync();
-                try
-                {
-                    await client.QueryAsync();
-                    tunnelClientStore.Network.Net.Nat = client.State.NatType.ToString();
-                }
-                finally
-                {
-                    await client.CloseProxyAsync();
-                }
-                OnChange?.Invoke();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Error(ex);
-                }
-                tunnelClientStore.Network.Net.Nat = NatType.Unknown.ToString();
             }
             return false;
         }

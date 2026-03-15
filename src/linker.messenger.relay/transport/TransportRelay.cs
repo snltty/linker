@@ -93,14 +93,12 @@ namespace linker.tunnel.transport
                 if (tunnelTransportInfo.SSL)
                 {
                     sslStream = new SslStream(new NetworkStream(socket, false), false, ValidateServerCertificate, null);
-#pragma warning disable SYSLIB0039 // 类型或成员已过时
                     await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
                     {
                         EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12,
                         CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
                         ClientCertificates = new X509CertificateCollection { messengerStore.Certificate }
                     }).ConfigureAwait(false);
-#pragma warning restore SYSLIB0039 // 类型或成员已过时
                 }
 
                 await tunnelMessengerAdapter.SendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
@@ -180,37 +178,30 @@ namespace linker.tunnel.transport
                         ask.Info.NodeId = node.NodeId;
                         await GetEndpoint(ask.Info).ConfigureAwait(false);
 
-                        Socket socket = new Socket(ask.Info.Node.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
-                        socket.KeepAlive();
-                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                            LoggerHelper.Instance.Debug($"relay client connect server {ask.Info.Node}");
-
-                        using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(5000));
-                        try
+                        //连接中继服务器
+                        Socket socket = await ConnectServer(ask.Info.Node).ConfigureAwait(false);
+                        if (socket == null)
                         {
-                            //连接中继服务器
-                            await socket.ConnectAsync(ask.Info.Node, cts.Token).ConfigureAwait(false);
-                            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                            {
-                                LoggerHelper.Instance.Debug($"relay client connected {ask.Info.Node}");
-                            }
-
-                            //建立关联
-                            RelayMessageInfo relayMessage = new RelayMessageInfo
-                            {
-                                FlowId = tunnelTransportInfo.FlowId,
-                                Type = RelayMessengerType.Ask,
-                                FromId = tunnelTransportInfo.Local.MachineId,
-                                ToId = tunnelTransportInfo.Remote.MachineId,
-                                MasterId = ask.MasterId,
-                            };
-                            if (await SendMessage(socket, relayMessage).ConfigureAwait(false))
-                            {
-                                return socket;
-                            }
+                            continue;
                         }
-                        catch (Exception)
+
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         {
+                            LoggerHelper.Instance.Debug($"relay client connected {ask.Info.Node}");
+                        }
+
+                        //建立关联
+                        RelayMessageInfo relayMessage = new RelayMessageInfo
+                        {
+                            FlowId = tunnelTransportInfo.FlowId,
+                            Type = RelayMessengerType.Ask,
+                            FromId = tunnelTransportInfo.Local.MachineId,
+                            ToId = tunnelTransportInfo.Remote.MachineId,
+                            MasterId = ask.MasterId,
+                        };
+                        if (await SendMessage(socket, relayMessage).ConfigureAwait(false))
+                        {
+                            return socket;
                         }
                         socket.SafeClose();
                     }
@@ -223,12 +214,8 @@ namespace linker.tunnel.transport
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Error(ex);
-                }
             }
             finally
             {
@@ -257,9 +244,7 @@ namespace linker.tunnel.transport
 
                 buffer.Memory.Span[0] = (byte)ResolverType.Relay;
                 sendBytes.Length.ToBytes(buffer.Memory.Slice(1));
-
                 sendBytes.CopyTo(buffer.Memory.Slice(5));
-
                 await socket.SendAsync(buffer.Memory.Slice(0, sendBytes.Length + 5)).ConfigureAwait(false);
 
                 int length = await socket.ReceiveAsync(buffer.Memory.Slice(0, 1), cts.Token).ConfigureAwait(false);
@@ -288,45 +273,37 @@ namespace linker.tunnel.transport
                 if (tunnelTransportInfo.SSL && certificate == null)
                 {
                     LoggerHelper.Instance.Error($"relay client {Name}->ssl Certificate not found");
+                    OnConnected(null);
                     await tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
                     return;
                 }
 
                 RelayInfo relay = tunnelTransportInfo.TransactionTag.DeJson<RelayInfo>();
                 await GetEndpoint(relay).ConfigureAwait(false);
-
-
-                Socket socket = new Socket(relay.Node.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
-                socket.KeepAlive();
-
-                using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(5000));
-                try
+                Socket socket = await ConnectServer(relay.Node).ConfigureAwait(false);
+                if (socket == null)
                 {
-                    await socket.ConnectAsync(relay.Node, cts.Token).ConfigureAwait(false);
-                    RelayMessageInfo relayMessage = new RelayMessageInfo
-                    {
-                        FlowId = tunnelTransportInfo.FlowId,
-                        Type = RelayMessengerType.Answer,
-                        FromId = tunnelTransportInfo.Local.MachineId,
-                        ToId = tunnelTransportInfo.Remote.MachineId,
-                        MasterId = relay.MasterId,
-                    };
-                    if (await SendMessage(socket, relayMessage).ConfigureAwait(false))
-                    {
-                        ITunnelConnection connection = await WaitSSL(socket, tunnelTransportInfo, relay);
-                        OnConnected(connection);
-                        await tunnelMessengerAdapter.SendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
-                        return;
-                    }
+                    OnConnected(null);
+                    await tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
+                    return;
                 }
-                catch (Exception ex)
+
+                RelayMessageInfo relayMessage = new RelayMessageInfo
                 {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    {
-                        LoggerHelper.Instance.Error($"relay client connect server {relay.Node} {ex}");
-                    }
-                    socket.SafeClose();
+                    FlowId = tunnelTransportInfo.FlowId,
+                    Type = RelayMessengerType.Answer,
+                    FromId = tunnelTransportInfo.Local.MachineId,
+                    ToId = tunnelTransportInfo.Remote.MachineId,
+                    MasterId = relay.MasterId,
+                };
+                if (await SendMessage(socket, relayMessage).ConfigureAwait(false))
+                {
+                    ITunnelConnection connection = await WaitSSL(socket, tunnelTransportInfo, relay);
+                    OnConnected(connection);
+                    await tunnelMessengerAdapter.SendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
+                    return;
                 }
+                socket.SafeClose();
             }
             catch (Exception ex)
             {
@@ -340,15 +317,22 @@ namespace linker.tunnel.transport
         }
         private async Task<TunnelConnectionTcp> WaitSSL(Socket socket, TunnelTransportInfo tunnelTransportInfo, RelayInfo relayInfo)
         {
+            socket.KeepAlive();
+            SslStream sslStream = null;
             try
             {
-                SslStream sslStream = null;
+
                 if (tunnelTransportInfo.SSL)
                 {
                     sslStream = new SslStream(new NetworkStream(socket, false), false, ValidateServerCertificate, null);
-#pragma warning disable SYSLIB0039 // 类型或成员已过时
-                    await sslStream.AuthenticateAsServerAsync(messengerStore.Certificate, OperatingSystem.IsAndroid(), SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls, false).ConfigureAwait(false);
-#pragma warning restore SYSLIB0039 // 类型或成员已过时
+                    using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(5000));
+                    await sslStream.AuthenticateAsServerAsync(new SslServerAuthenticationOptions
+                    {
+                        ServerCertificate = messengerStore.Certificate,
+                        EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12,
+                        CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
+                        ClientCertificateRequired = OperatingSystem.IsAndroid(),
+                    }, cts.Token).ConfigureAwait(false);
                 }
                 return new TunnelConnectionTcp
                 {
@@ -374,7 +358,8 @@ namespace linker.tunnel.transport
                 {
                     LoggerHelper.Instance.Error($"relay client wait ssl {ex}");
                 }
-                socket.SafeClose();
+                socket?.SafeClose();
+                sslStream?.Dispose();
             }
             return null;
         }
@@ -410,6 +395,40 @@ namespace linker.tunnel.transport
         }
 
 
+        private async Task<Socket> ConnectServer(IPEndPoint ep)
+        {
+            Socket socket = new Socket(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
+            socket.KeepAlive();
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Debug($"relay client connect server {ep}");
+
+            try
+            {
+                using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(3000));
+                await socket.ConnectAsync(ep, cts.Token).ConfigureAwait(false);
+                return socket;
+            }
+            catch (Exception)
+            {
+                using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(5000));
+                try
+                {
+                    using HttpClient httpClient = new HttpClient();
+                    string ip = await httpClient.GetStringAsync($"https://linker.snltty.com/ip", cts.Token).ConfigureAwait(false);
+                    if (ip == ep.Address.ToString())
+                    {
+                        socket = new Socket(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
+                        socket.KeepAlive();
+                        await socket.ConnectAsync(new IPEndPoint(IPAddress.Parse(ip), ep.Port), cts.Token).ConfigureAwait(false);
+                        return socket;
+                    }
+                }
+                catch (Exception)
+                {
+                }
+            }
+            return null;
+        }
         private async Task GetEndpoint(RelayInfo relay)
         {
             if (string.IsNullOrWhiteSpace(relay.Host) == false)

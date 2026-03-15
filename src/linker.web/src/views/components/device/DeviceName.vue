@@ -74,5 +74,4 @@ export default {
 strong{
     font-weight:bold;
 }
-
 </style>

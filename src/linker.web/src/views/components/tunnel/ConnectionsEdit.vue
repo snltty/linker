@@ -165,7 +165,7 @@ export default {
         const _setRelaySubscribe = () => {
             clearTimeout(state.timer);
             setRelaySubscribe().then((res) => {
-                state.nodes = res;
+                state.nodes = res.filter(c=>c.LastTicks < 15000);
                 state.nodesDic = res.reduce((a, b) => {
                     a[b.NodeId] = b.Name;
                     return a;

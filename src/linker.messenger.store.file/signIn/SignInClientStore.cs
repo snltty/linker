@@ -10,6 +10,7 @@ namespace linker.messenger.store.file.signIn
 
         public string Id => config.Data.Client.Id;
         public string Name => config.Data.Client.Name;
+        public string Avatar => config.Data.Client.Avatar;
 
         public string[] Hosts => Server.Hosts;
 
@@ -22,6 +23,11 @@ namespace linker.messenger.store.file.signIn
         public void SetName(string newName)
         {
             config.Data.Client.Name = newName;
+            config.Data.Update();
+        }
+        public void SetAvatar(string avatar)
+        {
+            config.Data.Client.Avatar = avatar;
             config.Data.Update();
         }
         public void SetGroups(SignInClientGroupInfo[] groups)

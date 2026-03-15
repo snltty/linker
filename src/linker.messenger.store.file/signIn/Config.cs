@@ -40,6 +40,7 @@ namespace linker.messenger.store.file
                 name = value.SubStr(0, 32);
             }
         }
+        public string Avatar { get; set; }
 
         private SignInClientGroupInfo[] groups = new[] { new SignInClientGroupInfo { } };
 

@@ -6,22 +6,22 @@
                     <span>{{item.Version}}</span>
                     <template v-if="item.hook_updater">
                         <template v-if="item.hook_updater.Status == 1">
-                            <el-icon size="14" class="loading"><Loading /></el-icon>
+                            <el-icon size="12" class="loading"><Loading /></el-icon>
                         </template>
                         <template v-else-if="item.hook_updater.Status == 2">
-                            <el-icon size="14"><Download /></el-icon>
+                            <el-icon size="12"><Download /></el-icon>
                         </template>
                         <template v-else-if="item.hook_updater.Status == 3 || item.hook_updater.Status == 5">
-                            <el-icon size="14" class="loading"><Loading /></el-icon>
+                            <el-icon size="12" class="loading"><Loading /></el-icon>
                             <span class="progress" v-if="item.hook_updater.Length ==0">0%</span>
                             <span class="progress" v-else>{{parseInt(item.hook_updater.Current/item.hook_updater.Length*100)}}%</span>
                         </template>
                         <template v-else-if="item.hook_updater.Status == 6">
-                            <el-icon size="14" class="yellow"><CircleCheck /></el-icon>
+                            <el-icon size="12" class="yellow"><CircleCheck /></el-icon>
                         </template>
                     </template>
                     <template v-else>
-                        <el-icon size="14"><Download /></el-icon>
+                        <el-icon size="12"><Download /></el-icon>
                     </template>
                 </span>
             </a>

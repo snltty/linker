@@ -8,6 +8,9 @@
                 <el-form-item label="设备名" prop="MachineName">
                     <el-input v-trim maxlength="32" show-word-limit v-model="state.ruleForm.MachineName" />
                 </el-form-item>
+                <el-form-item label="头像URL" prop="Avatar">
+                    <el-input v-trim v-model="state.ruleForm.Avatar" />
+                </el-form-item>
                 <el-form-item label="" prop="Btns">
                     <div class="t-c w-100">
                         <el-button @click="state.show = false">取消</el-button>
@@ -31,8 +34,8 @@ export default {
         const state = reactive({
             show: true,
             ruleForm: {
-                MachineName1: props.data.MachineName,
                 MachineName: props.data.MachineName,
+                Avatar: props.data.Args['avatar'] || '',
             },
             rules: {}
         });
@@ -45,10 +48,10 @@ export default {
         });
 
         const handleSave = () => {
-            if(props.data.MachineName == state.ruleForm.MachineName) return;
             setSignInName({
                 Id:props.data.MachineId,
-                newName:state.ruleForm.MachineName
+                newname:state.ruleForm.MachineName,
+                avatar:state.ruleForm.Avatar,
             }).then(() => {
                 state.show = false;
                 ElMessage.success('已操作！');

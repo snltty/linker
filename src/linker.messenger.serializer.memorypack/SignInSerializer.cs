@@ -1,4 +1,5 @@
-﻿using linker.messenger.signin;
+﻿using linker.messenger.node;
+using linker.messenger.signin;
 using MemoryPack;
 using System.Net;
 
@@ -621,13 +622,14 @@ namespace linker.messenger.serializer.memorypack
         string Id => info.Id;
 
         [MemoryPackInclude]
-        string NewName => info.NewName;
-
+        string Name => info.Name;
+        [MemoryPackInclude]
+        string Avatar => info.Avatar;
 
         [MemoryPackConstructor]
-        SerializableSignInConfigSetNameInfo(string id, string newName)
+        SerializableSignInConfigSetNameInfo(string id, string name, string avatar)
         {
-            var info = new SignInConfigSetNameInfo { Id = id, NewName = newName };
+            var info = new SignInConfigSetNameInfo { Id = id, Name = name, Avatar = avatar };
             this.info = info;
         }
 
@@ -658,8 +660,15 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableSignInConfigSetNameInfo>();
-            value = wrapped.info;
+            value = new SignInConfigSetNameInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.Id = reader.ReadValue<string>();
+            value.Name = reader.ReadValue<string>();
+
+            if (count > 2)
+            {
+                value.Avatar = reader.ReadValue<string>();
+            }
         }
     }
 

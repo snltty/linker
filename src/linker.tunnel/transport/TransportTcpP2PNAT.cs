@@ -187,14 +187,12 @@ namespace linker.tunnel.transport
                 if (state.SSL)
                 {
                     sslStream = new SslStream(new NetworkStream(socket, false), false, ValidateServerCertificate, null);
-#pragma warning disable SYSLIB0039 // 类型或成员已过时
                     await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
                     {
                         EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12,
                         CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
                         ClientCertificates = new X509CertificateCollection { certificate }
                     }).ConfigureAwait(false);
-#pragma warning restore SYSLIB0039 // 类型或成员已过时
                 }
 
                 return new TunnelConnectionTcp
@@ -229,6 +227,8 @@ namespace linker.tunnel.transport
         {
             using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(4 * 1024);
             using CancellationTokenSource cts = new CancellationTokenSource(500);
+            SslStream sslStream = null;
+            socket.KeepAlive();
             try
             {
                 //对方会随便发个消息，不管是啥
@@ -239,9 +239,7 @@ namespace linker.tunnel.transport
                 }
                 //回个消息给它就完了
                 await socket.SendAsync(endBytes).ConfigureAwait(false);
-
-                socket.KeepAlive();
-                SslStream sslStream = null;
+               
                 if (state.SSL)
                 {
                     if (certificate == null)
@@ -252,9 +250,14 @@ namespace linker.tunnel.transport
                     }
 
                     sslStream = new SslStream(new NetworkStream(socket, false), false, ValidateServerCertificate, null);
-#pragma warning disable SYSLIB0039 // 类型或成员已过时
-                    await sslStream.AuthenticateAsServerAsync(certificate, OperatingSystem.IsAndroid(), SslProtocols.Tls13 | SslProtocols.Tls12, false).ConfigureAwait(false);
-#pragma warning restore SYSLIB0039 // 类型或成员已过时
+                    using CancellationTokenSource _cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(5000));
+                    await sslStream.AuthenticateAsServerAsync(new SslServerAuthenticationOptions
+                    {
+                        ServerCertificate = certificate,
+                        EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12,
+                        CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
+                        ClientCertificateRequired = OperatingSystem.IsAndroid(),
+                    }, _cts.Token).ConfigureAwait(false);
                 }
 
                 return new TunnelConnectionTcp
@@ -282,6 +285,8 @@ namespace linker.tunnel.transport
                 {
                     LoggerHelper.Instance.Error(ex);
                 }
+                socket?.SafeClose();
+                sslStream?.Dispose();
             }
             return null;
         }

@@ -71,15 +71,19 @@ namespace linker.messenger
         /// <returns></returns>
         public async Task BeginReceiveServer(Socket socket, Memory<byte> memory)
         {
-            using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(5000));
+            
             NetworkStream networkStream = new NetworkStream(socket, false);
             SslStream sslStream = new SslStream(networkStream, true, ValidateServerCertificate, null);
             try
             {
-#pragma warning disable SYSLIB0039 // 类型或成员已过时
-                await sslStream.AuthenticateAsServerAsync(messengerStore.Certificate, OperatingSystem.IsAndroid(), SslProtocols.Tls13 | SslProtocols.Tls12 | SslProtocols.Tls11 | SslProtocols.Tls, false).ConfigureAwait(false);
-
-#pragma warning restore SYSLIB0039 // 类型或成员已过时
+                using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(5000));
+                await sslStream.AuthenticateAsServerAsync(new SslServerAuthenticationOptions
+                {
+                    ServerCertificate = messengerStore.Certificate,
+                    EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12,
+                    CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
+                    ClientCertificateRequired = OperatingSystem.IsAndroid(),
+                }, cts.Token).ConfigureAwait(false);
                 IConnection connection = CreateConnection(sslStream, networkStream, socket, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
                 connection.BeginReceive(this, null, true);
             }
@@ -146,14 +150,12 @@ namespace linker.messenger
                 SslStream sslStream = new SslStream(networkStream, true, ValidateServerCertificate, null);
                 try
                 {
-#pragma warning disable SYSLIB0039 // 类型或成员已过时
                     await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
                     {
                         EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12,
                         CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
                         ClientCertificates = new X509CertificateCollection { messengerStore.Certificate }
                     }, cts.Token).ConfigureAwait(false);
-#pragma warning restore SYSLIB0039 // 类型或成员已过时
 
                     IConnection connection = CreateConnection(sslStream, networkStream, socket, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
                     connection.BeginReceive(this, null, true);
@@ -181,7 +183,7 @@ namespace linker.messenger
         }
         private bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
-            if(LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
                 LoggerHelper.Instance.Info($"【Messenger】Certificate validation: {certificate?.Subject}");
                 LoggerHelper.Instance.Info($"【Messenger】SSL Policy Errors: {sslPolicyErrors}");

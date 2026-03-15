@@ -20,6 +20,7 @@
         /// 名称
         /// </summary>
         public string Name { get; }
+        public string Avatar { get; }
         public string[] Hosts { get; }
 
         /// <summary>
@@ -27,6 +28,7 @@
         /// </summary>
         /// <param name="newName"></param>
         public void SetName(string newName);
+        public void SetAvatar(string avatar);
         /// <summary>
         /// 设置分组，第一个生效
         /// </summary>

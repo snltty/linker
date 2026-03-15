@@ -16,6 +16,7 @@
         public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
             args.TryAdd("userid", signInClientStore.Server.UserId);
+            args.TryAdd("avatar", signInClientStore.Avatar);
             return await Task.FromResult(string.Empty);
         }
     }
