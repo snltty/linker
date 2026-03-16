@@ -43,6 +43,11 @@ namespace linker.messenger
         /// 节点联机
         /// </summary>
         NodeConnection = 9,
+
+        /// <summary>
+        /// 检测NAT类型
+        /// </summary>
+        Stun = 10,
     }
     public interface IResolver
     {

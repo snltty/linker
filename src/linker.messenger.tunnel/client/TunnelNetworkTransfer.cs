@@ -105,7 +105,6 @@ namespace linker.messenger.tunnel.client
                 operatingManager.StopOperation("get_level");
             }).ConfigureAwait(false);
         }
-
         private async Task GetNet()
         {
             if (operatingManager.StartOperation("get_net") == false)
@@ -191,8 +190,6 @@ namespace linker.messenger.tunnel.client
             }
             return false;
         }
-
-
         public TunnelLocalNetworkInfo GetNetwork()
         {
             return new TunnelLocalNetworkInfo

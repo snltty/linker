@@ -27,18 +27,22 @@
                 
                 <el-descriptions-item label="中继" >
                     <div>
-                        <!-- <a v-if="state.connecting" href="javascript:;" class="a-line">
-                            <span>操作中.</span><el-icon size="14" class="loading"><Loading /></el-icon>
-                        </a> -->
-                        <a href="javascript:;" class="a-line" @click="handleNode">{{ state.nodesDic[state.connection.NodeId] || '选择节点' }}</a>
+                        <a v-if="state.operating.relay" href="javascript:;" class="a-line">
+                            <span>手动操作中</span><el-icon size="14" class="loading"><Loading /></el-icon>
+                        </a>
+                        <a v-else href="javascript:;" class="a-line" @click="handleNode">{{ state.nodesDic[state.connection.NodeId] || '选择节点' }}</a>
                     </div>
                 </el-descriptions-item>
                 <el-descriptions-item label="打洞" >
                     <div>
-                        <a v-if="state.connecting" href="javascript:;" class="a-line">
-                            <span>操作中.</span><el-icon size="14" class="loading"><Loading /></el-icon>
+                        <a v-if="state.operating.hand" href="javascript:;" class="a-line">
+                            <span>手动操作中</span><el-icon size="14" class="loading"><Loading /></el-icon>
                         </a>
-                        <a v-else href="javascript:;" class="a-line" @click="handlep2p">尝试打洞</a>
+                        <template v-else>
+                            <a href="javascript:;" class="a-line" @click="handlep2p">尝试打洞</a>
+                            <span class="mgl-1">自动中<el-icon v-if="state.operating.default" size="14" class="loading"><Loading /></el-icon></span>
+                            <span class="mgl-1">后台中<el-icon v-if="state.operating.back" size="14" class="loading"><Loading /></el-icon></span>
+                        </template>
                     </div>
                 </el-descriptions-item>
                 <el-descriptions-item label="延迟" >{{ state.connection.Delay }}</el-descriptions-item>
@@ -140,7 +144,7 @@ export default {
             transactions: { 'forward': '端口转发', 'tuntap': '虚拟网卡', 'socks5': '代理转发' },
             device: connections.value.device,
             transactionId: connections.value.transactionId,
-            connecting:computed(()=>connections.value.device.hook_operating?connections.value.device.hook_operating[connections.value.transactionId]:false),
+            operating:computed(()=>connections.value.device.hook_operating?connections.value.device.hook_operating[connections.value.transactionId]:{}),
             connection:connection,
 
             showNodes: false,

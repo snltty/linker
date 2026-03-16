@@ -35,8 +35,16 @@ export const provideTunnel = () => {
         const json = {};
         for(let key in operatings){
             let arr = key.split('@');
-            json[arr[0]] = json[arr[0]] ||{};
-            json[arr[0]][arr[1]] = operatings[key];
+            const _json = {
+                [arr[0]]: {
+                    [arr[1]]: {
+                        [arr[2]]: operatings[key],
+                        loading: (json[arr[0]] && json[arr[0]][arr[1]] && json[arr[0]][arr[1]].loading) || operatings[key]
+                    }
+                }
+            };
+           
+            Object.assign(json,_json);
         }
         return json;
     }
@@ -47,6 +55,7 @@ export const provideTunnel = () => {
                 if (res.List)
                 {
                     tunnel.value.operatings = parseOperating(res.List);
+                    console.log(tunnel.value.operatings);
                     resolve(true);
                     return;
                 }

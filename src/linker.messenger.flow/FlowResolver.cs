@@ -104,18 +104,37 @@ namespace linker.messenger.flow
 #if DEBUG
             domain = "127.0.0.1";
 #endif
-            udpClient.Connect(domain, 1802);
+
+            bool connected = false;
             TimerHelper.SetIntervalLong(() =>
             {
-                try
+                if(connected == false)
                 {
-                    Report(udpClient);
-                }
-                catch (Exception ex)
-                {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    try
                     {
-                        LoggerHelper.Instance.Error(ex);
+                        udpClient.Connect(domain, 1802);
+                        connected = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        {
+                            LoggerHelper.Instance.Error(ex);
+                        }
+                    }
+                }
+                else
+                {
+                    try
+                    {
+                        Report(udpClient);
+                    }
+                    catch (Exception ex)
+                    {
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        {
+                            LoggerHelper.Instance.Error(ex);
+                        }
                     }
                 }
 

@@ -98,7 +98,6 @@ export default {
             state.list.forEach((item,index)=>{
                 item.Addr = item._addr.reduce((a,b)=>a|b,0);
             });
-            console.log(state.list);
             setTunnelTransports({
                 machineid:state.machineid,
                 data:state.list
