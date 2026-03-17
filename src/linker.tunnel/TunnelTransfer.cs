@@ -234,19 +234,19 @@ namespace linker.tunnel
 
                                 if (localInfo.Result == null)
                                 {
-                                    LoggerHelper.Instance.Error($"tunnel {transport.Name} get local external ip fail ");
+                                    LoggerHelper.Instance.Error($"tunnel {transport.Name} get local wan ip fail ");
                                     break;
                                 }
 
                                 if (remoteInfo.Result == null)
                                 {
-                                    LoggerHelper.Instance.Error($"tunnel {transport.Name} get remote {remoteMachineId} external ip fail ");
+                                    LoggerHelper.Instance.Error($"tunnel {transport.Name} get remote {remoteMachineId} wan ip fail ");
                                     break;
                                 }
                                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                                    LoggerHelper.Instance.Info($"tunnel {transport.Name} got local external ip {localInfo.Result.ToJson()}");
+                                    LoggerHelper.Instance.Info($"tunnel {transport.Name} got local wan ip {localInfo.Result.ToJson()}");
                                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                                    LoggerHelper.Instance.Info($"tunnel {transport.Name} got remote external ip {remoteInfo.Result.ToJson()}");
+                                    LoggerHelper.Instance.Info($"tunnel {transport.Name} got remote wan ip {remoteInfo.Result.ToJson()}");
                                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                                     LoggerHelper.Instance.Info($"tunnel {transportItem.ToJson()}");
 

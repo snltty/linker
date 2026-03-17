@@ -52,7 +52,7 @@ namespace linker.messenger.tunnel.server
         /// <returns></returns>
         public async Task Resolve(Socket socket, Memory<byte> memory)
         {
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{socket.RemoteEndPoint} get tcp external port");
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{socket.RemoteEndPoint} get tcp wan port");
             byte[] sendData = ArrayPool<byte>.Shared.Rent(1024);
             try
             {
