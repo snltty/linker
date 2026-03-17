@@ -78,7 +78,7 @@ namespace linker.messenger.flow
             serviceCollection.AddSingleton<RelayServerReportResolver, RelayReportResolverFlow>();
 
             serviceCollection.AddSingleton<FlowExternal>();
-            serviceCollection.AddSingleton<TunnelServerExternalResolver, ExternalResolverFlow>();
+            serviceCollection.AddSingleton<TunnelServerWanResolver, ExternalResolverFlow>();
 
             serviceCollection.AddSingleton<FlowSForward>();
             serviceCollection.AddSingleton<SForwardProxy, FlowSForwardProxy>();

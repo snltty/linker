@@ -55,7 +55,6 @@ export const provideTunnel = () => {
                 if (res.List)
                 {
                     tunnel.value.operatings = parseOperating(res.List);
-                    console.log(tunnel.value.operatings);
                     resolve(true);
                     return;
                 }
@@ -88,6 +87,12 @@ export const provideTunnel = () => {
             hook_operating: tunnel.value.operatings[device.MachineId],
             hook_operating_load: true,
         });
+        if(json.hook_tunnel.Net){
+            const arr = json.hook_tunnel.Net.Nat.split('-');
+            const arr1 = arr[0].split('/');
+            json.hook_tunnel.Net.nat_number = parseInt(arr[1] || '0');
+            json.hook_tunnel.Net.Nat = `RFC 5780\n映射类型 : ${arr1[0] || 'Unknown'}\n过滤类型 : ${arr[0] || 'Unknown'}\n成功几率 : ${json.hook_tunnel.Net.nat_number}%`;
+        }
     }
     
     const sortTunnel = (asc) => {

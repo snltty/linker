@@ -16,7 +16,7 @@ namespace linker.tunnel.wanport
             buffer[0] = 0;
             buffer[1] = i;
 
-            return buffer.AsMemory(0, temp.Length);
+            return buffer.AsMemory(0, 2 + temp.Length);
         }
         protected IPEndPoint UnpackRecvData(byte[] buffer, int length)
         {
@@ -122,7 +122,7 @@ namespace linker.tunnel.wanport
 
                 int length = await socket.ReceiveAsync(buffer.AsMemory(), SocketFlags.None, cts.Token).ConfigureAwait(false);
                 IPEndPoint localEP = socket.LocalEndPoint as IPEndPoint;
-                
+
                 return new TunnelWanPortEndPoint { Local = localEP, Remote = UnpackRecvData(buffer, length) };
             }
             catch (Exception ex)

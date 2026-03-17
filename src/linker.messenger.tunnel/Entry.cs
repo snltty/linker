@@ -73,7 +73,7 @@ namespace linker.messenger.tunnel
         public static ServiceCollection AddTunnelServer(this ServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton<TunnelServerMessenger>();
-            serviceCollection.AddSingleton<TunnelServerExternalResolver>();
+            serviceCollection.AddSingleton<TunnelServerWanResolver>();
             return serviceCollection;
         }
         public static ServiceProvider UseTunnelServer(this ServiceProvider serviceProvider)
@@ -82,7 +82,7 @@ namespace linker.messenger.tunnel
             messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<TunnelServerMessenger>() });
 
             ResolverTransfer resolverTransfer = serviceProvider.GetService<ResolverTransfer>();
-            resolverTransfer.AddResolvers(new List<IResolver> { serviceProvider.GetService<TunnelServerExternalResolver>() });
+            resolverTransfer.AddResolvers(new List<IResolver> { serviceProvider.GetService<TunnelServerWanResolver>() });
 
             return serviceProvider;
         }

@@ -8,7 +8,7 @@ namespace linker.messenger
         /// <summary>
         /// 外网端口
         /// </summary>
-        External = 0,
+        Wan = 0,
         /// <summary>
         /// 信标
         /// </summary>

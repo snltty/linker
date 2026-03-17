@@ -10,9 +10,9 @@ namespace linker.messenger.tunnel.server
     /// <summary>
     /// 外网端口处理器
     /// </summary>
-    public class TunnelServerExternalResolver : IResolver
+    public class TunnelServerWanResolver : IResolver
     {
-        public byte Type => (byte)ResolverType.External;
+        public byte Type => (byte)ResolverType.Wan;
 
         public virtual void Add(long recvBytes, long sendtBytes) { }
 
@@ -25,7 +25,7 @@ namespace linker.messenger.tunnel.server
         /// <returns></returns>
         public async Task Resolve(Socket socket, IPEndPoint ep, Memory<byte> memory)
         {
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{ep} get udp external port");
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG) LoggerHelper.Instance.Debug($"{ep} get udp wan port");
 
             Add(memory.Length, 0);
 

@@ -1,7 +1,7 @@
 <template>
     <AccessBoolean value="TunnelChangeSelf,TunnelChangeOther">
         <template #default="{values}">
-            <el-table-column prop="tunnel" :label="$t('home.tunnel')" width="86">
+            <el-table-column prop="tunnel" :label="$t('home.tunnel')" width="100">
                 <template #default="scope">
                     <template v-if="scope.row && scope.row.hook_tunnel">
                         <div class="skeleton-animation" :style="`animation-delay:${scope.row.animationDelay}ms`">
@@ -19,7 +19,11 @@
                                     <img class="system" title="?" src="/system.svg" />
                                 </template>
                                 <template v-if="scope.row.hook_tunnel.Net.Nat">
-                                    <span class="nat" :title="scope.row.hook_tunnel.Net.Nat">{{ natMap[scope.row.hook_tunnel.Net.Nat]  }}</span>
+                                    <span class="nat" :class="{
+                                        green:scope.row.hook_tunnel.Net.nat_number>=50,
+                                        yellow:scope.row.hook_tunnel.Net.nat_number>0,
+                                        red:scope.row.hook_tunnel.Net.nat_number==0
+                                    }" :title="scope.row.hook_tunnel.Net.Nat">{{ scope.row.hook_tunnel.Net.nat_number }}%</span>
                                 </template>
                                 <template v-else>
                                     <img title="?" class="system" src="/system.svg" />
@@ -112,17 +116,6 @@ export default {
             }
             return `./system.svg`;
         }
-        const natMap = {
-            "Unknown":'?',
-            "UnsupportedServer":'?',
-            "UdpBlocked":'?',
-            "OpenInternet":'?',
-            "SymmetricUdpFirewall":'?',
-            "FullCone":'1',
-            "RestrictedCone":'2',
-            "PortRestrictedCone":'3',
-            "Symmetric":'4',
-        }
 
         const handleTunnel = (_tunnel,row,access) => {
             if(machineId.value === _tunnel.MachineId){
@@ -158,7 +151,7 @@ export default {
         }
 
         return {
-            handleTunnel,handleUpnp,netImg,natMap
+            handleTunnel,handleUpnp,netImg
         }
     }
 }
@@ -176,7 +169,7 @@ export default {
 
 img.system,span.nat{
     height:1.4rem;
-    margin-right:.4rem
+    margin-right:.4rem;
     border: 1px solid #eee;
     line-height:1.4rem;
     vertical-align:middle;

@@ -33,7 +33,7 @@ namespace linker.messenger.flow
     /// <summary>
     /// 外网端口处理器
     /// </summary>
-    public sealed class ExternalResolverFlow : TunnelServerExternalResolver
+    public sealed class ExternalResolverFlow : TunnelServerWanResolver
     {
         private readonly FlowExternal externalFlow;
         public ExternalResolverFlow(FlowExternal externalFlow)

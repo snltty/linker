@@ -1,5 +1,5 @@
 <template>
-<el-table-column prop="MachineId" :label="$t('home.device')" width="200">
+<el-table-column prop="MachineId" :label="$t('home.device')" width="196">
     <template #header>
         <div class="flex">
             <span>{{$t('home.device')}}</span>

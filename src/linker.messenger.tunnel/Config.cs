@@ -47,7 +47,7 @@ namespace linker.messenger.tunnel
         public double Lat { get; set; }
         public double Lon { get; set; }
         public string Isp { get; set; } = string.Empty;
-        public string Nat { get; set; } = "Unknown";
+        public string Nat { get; set; } = "Unknown/Unknown-0";
     }
 
     public sealed partial class TunnelSetRouteLevelInfo

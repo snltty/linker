@@ -2,6 +2,8 @@
 using linker.libs.extends;
 using linker.messenger.decenter;
 using linker.messenger.signin;
+using linker.messenger.tunnel.stun.clients;
+using linker.messenger.tunnel.stun.enums;
 using linker.tunnel;
 using linker.upnp;
 using System.Net;
@@ -107,40 +109,85 @@ namespace linker.messenger.tunnel.client
         }
         private async Task GetNet()
         {
+
             if (operatingManager.StartOperation("get_net") == false)
             {
                 return;
             }
 
-            try
+            await Task.Run(async () =>
             {
-                bool isp = false, city = false;
-                while (true)
+
+                try
                 {
-                    if (isp == false) isp = await GetIsp().ConfigureAwait(false);
-                    if (city == false) city = await GetPosition().ConfigureAwait(false);
-                    if (isp && city)
+                    bool isp = false, city = false, nat = false;
+                    while (true)
                     {
-                        break;
+                        if (isp == false) isp = await GetIsp().ConfigureAwait(false);
+                        if (city == false) city = await GetPosition().ConfigureAwait(false);
+                        if (nat == false) nat = await GetNat().ConfigureAwait(false);
+                        if (isp && city && nat)
+                        {
+                            break;
+                        }
+                        await Task.Delay(10000).ConfigureAwait(false);
                     }
-                    await Task.Delay(10000).ConfigureAwait(false);
-                }
-                await tunnelClientStore.SetNetwork(tunnelClientStore.Network);
-                await messengerSender.SendOnly(new MessageRequestWrap
-                {
-                    Connection = signInClientState.Connection,
-                    MessengerId = (ushort)SignInMessengerIds.PushArg,
-                    Payload = serializer.Serialize(new SignInPushArgInfo
+                    await tunnelClientStore.SetNetwork(tunnelClientStore.Network);
+                    await messengerSender.SendOnly(new MessageRequestWrap
                     {
-                        Key = "tunnelNet",
-                        Value = new SignInArgsNetInfo { Lat = tunnelClientStore.Network.Net.Lat, Lon = tunnelClientStore.Network.Net.Lon, City = tunnelClientStore.Network.Net.City }.ToJson()
-                    })
-                });
-            }
-            catch (Exception)
-            {
-            }
+                        Connection = signInClientState.Connection,
+                        MessengerId = (ushort)SignInMessengerIds.PushArg,
+                        Payload = serializer.Serialize(new SignInPushArgInfo
+                        {
+                            Key = "tunnelNet",
+                            Value = new SignInArgsNetInfo { Lat = tunnelClientStore.Network.Net.Lat, Lon = tunnelClientStore.Network.Net.Lon, City = tunnelClientStore.Network.Net.City }.ToJson()
+                        })
+                    });
+                }
+                catch (Exception)
+                {
+                }
+
+            });
             operatingManager.StopOperation("get_net");
+        }
+        private async Task<bool> GetNat()
+        {
+            IPEndPoint server = await NetworkHelper.GetEndPointAsync("stun.hot-chilli.net", 3478);
+            await using StunClient5389UDP client = new(server, new IPEndPoint(IPAddress.Any, 0));
+            await client.MappingBehaviorTestAsync().ConfigureAwait(false);
+
+            MappingBehavior mapping = client.State?.MappingBehavior ?? MappingBehavior.Unknown;
+            await client.FilteringBehaviorTestAsync().ConfigureAwait(false);
+            FilteringBehavior filtering = client.State?.FilteringBehavior ?? FilteringBehavior.Unknown;
+
+
+
+            bool result = filtering != FilteringBehavior.UnsupportedServer && mapping != MappingBehavior.UnsupportedServer
+                && filtering != FilteringBehavior.Unknown && mapping != MappingBehavior.Unknown
+                && filtering != FilteringBehavior.None && mapping != MappingBehavior.Fail;
+            if (result)
+            {
+                tunnelClientStore.Network.Net.Nat = $"{mapping}/{filtering}-{GetSuccessRateValue(mapping, filtering)}%";
+            }
+
+            return result;
+        }
+        public static int GetSuccessRateValue(MappingBehavior mapping, FilteringBehavior filtering)
+        {
+            return (mapping, filtering) switch
+            {
+                (MappingBehavior.Direct, _) => 100,
+                (MappingBehavior.EndpointIndependent, FilteringBehavior.EndpointIndependent) => 98,
+                (MappingBehavior.EndpointIndependent, FilteringBehavior.AddressDependent) => 85,
+                (MappingBehavior.EndpointIndependent, FilteringBehavior.AddressAndPortDependent) => 80,
+                (MappingBehavior.AddressDependent, FilteringBehavior.EndpointIndependent) => 50,
+                (MappingBehavior.AddressDependent, FilteringBehavior.AddressDependent) => 40,
+                (MappingBehavior.AddressAndPortDependent, FilteringBehavior.EndpointIndependent) => 35,
+                (MappingBehavior.AddressAndPortDependent, FilteringBehavior.AddressDependent) => 25,
+                (MappingBehavior.AddressAndPortDependent, FilteringBehavior.AddressAndPortDependent) => 3,
+                _ => 0
+            };
         }
         private async Task<bool> GetIsp()
         {

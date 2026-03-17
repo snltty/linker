@@ -24,7 +24,7 @@ namespace linker.messenger.listen
 
         [JsonIgnore]
         public byte[] Messengers { get; set; } = [
-            (byte)ResolverType.External,
+            (byte)ResolverType.Wan,
             (byte)ResolverType.Messenger,
             (byte)ResolverType.Relay,
             (byte)ResolverType.Socks4,
