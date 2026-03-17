@@ -167,7 +167,7 @@ namespace linker.tunnel.transport
 
                     targetSocket.KeepAlive();
                     targetSocket.IPv6Only(ep.AddressFamily, false);
-                    targetSocket.ReuseBind(new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
+                    targetSocket.ReuseBind(new IPEndPoint(IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
 
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     {
@@ -225,25 +225,22 @@ namespace linker.tunnel.transport
         }
         private static void BindAndTTL(TunnelTransportInfo tunnelTransportInfo)
         {
-            IEnumerable<Socket> sockets = tunnelTransportInfo.RemoteEndPoints.Select(ip =>
+            IPEndPoint local = new IPEndPoint(IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port);
+
+            foreach (var ip in tunnelTransportInfo.RemoteEndPoints)
             {
                 Socket targetSocket = new(ip.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 try
                 {
-                    targetSocket.Ttl = ip.Address.AddressFamily == AddressFamily.InterNetworkV6 ? (short)2 : (short)(tunnelTransportInfo.Local.RouteLevel);
-                    targetSocket.IPv6Only(IPAddress.IPv6Any.AddressFamily, false);
-                    targetSocket.ReuseBind(new IPEndPoint(IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
+                    targetSocket.IPv6Only(ip.AddressFamily, false);
+                    targetSocket.ReuseBind(local);
+                    targetSocket.Ttl = (short)(tunnelTransportInfo.Local.RouteLevel);
                     _ = targetSocket.ConnectAsync(ip);
-                    return targetSocket;
+                    targetSocket.SafeClose();
                 }
                 catch (Exception)
                 {
                 }
-                return null;
-            });
-            foreach (Socket item in sockets.Where(c => c != null))
-            {
-                item.SafeClose();
             }
         }
 
