@@ -165,7 +165,7 @@ setup_docker() {
         --name ${DOCKER_CONTAINER} \
         -v $INSTALL_DIR/configs:/app/configs \
         -v $INSTALL_DIR/logs:/app/logs \
-        ---device /dev/net/tun \
+        --device /dev/net/tun \
         --restart=always \
         --privileged=true \
         --network host \
