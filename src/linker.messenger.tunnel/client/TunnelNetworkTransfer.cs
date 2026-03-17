@@ -165,7 +165,7 @@ namespace linker.messenger.tunnel.client
             try
             {
                 IPEndPoint server = await NetworkHelper.GetEndPointAsync("stun.hot-chilli.net", 3478);
-                await using StunClient5389UDP client = new(server, new IPEndPoint(IPAddress.Any, 0));
+                await using StunClient5389UDP client = new(server, new IPEndPoint(server.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, 0));
                 await client.MappingBehaviorTestAsync().ConfigureAwait(false);
 
                 MappingBehavior mapping = client.State?.MappingBehavior ?? MappingBehavior.Unknown;
@@ -181,7 +181,7 @@ namespace linker.messenger.tunnel.client
                     && filtering != FilteringBehavior.None && mapping != MappingBehavior.Fail;
                 if (result)
                 {
-                    tunnelClientStore.Network.Net.Nat = $"{mapping}/{filtering}-{GetSuccessRateValue(mapping, filtering)}%";
+                    tunnelClientStore.Network.Net.Nat = $"{mapping}/{filtering}/{(server.AddressFamily == AddressFamily.InterNetwork ? "IPV4" : "IPV6")}-{GetSuccessRateValue(mapping, filtering)}%";
                     await tunnelClientStore.SetNetwork(tunnelClientStore.Network);
                     OnChange?.Invoke();
                 }

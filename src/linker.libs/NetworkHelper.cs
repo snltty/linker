@@ -54,7 +54,7 @@ namespace linker.libs
             return port;
         }
 
-        public static IPAddress GetDomainIp(string domain)
+        public static IPAddress GetDomainIp(string domain, AddressFamily addressFamily = AddressFamily.Unspecified)
         {
             try
             {
@@ -66,14 +66,14 @@ namespace linker.libs
                 {
                     return ip;
                 }
-                return Dns.GetHostEntry(domain).AddressList.FirstOrDefault();
+                return Dns.GetHostEntry(domain, addressFamily).AddressList.FirstOrDefault();
             }
             catch (Exception)
             {
             }
             return null;
         }
-        public static async Task<IPAddress> GetDomainIpAsync(string domain)
+        public static async Task<IPAddress> GetDomainIpAsync(string domain, AddressFamily addressFamily = AddressFamily.Unspecified)
         {
             try
             {
@@ -85,14 +85,14 @@ namespace linker.libs
                 {
                     return ip;
                 }
-                return (await Dns.GetHostEntryAsync(domain).ConfigureAwait(false)).AddressList.FirstOrDefault();
+                return (await Dns.GetHostEntryAsync(domain, addressFamily).ConfigureAwait(false)).AddressList.FirstOrDefault();
             }
             catch (Exception)
             {
             }
             return null;
         }
-        public static IPEndPoint GetEndPoint(string host, int defaultPort)
+        public static IPEndPoint GetEndPoint(string host, int defaultPort, AddressFamily addressFamily = AddressFamily.Unspecified)
         {
             try
             {
@@ -104,7 +104,7 @@ namespace linker.libs
                     port = int.Parse(hostArr[1]);
                     domain = string.Join(":", hostArr.Take(hostArr.Length - 1));
                 }
-                IPAddress ip = GetDomainIp(domain);
+                IPAddress ip = GetDomainIp(domain, addressFamily);
                 return new IPEndPoint(ip, port);
             }
             catch (Exception)
@@ -112,7 +112,7 @@ namespace linker.libs
             }
             return null;
         }
-        public static async Task<IPEndPoint> GetEndPointAsync(string host, int defaultPort)
+        public static async Task<IPEndPoint> GetEndPointAsync(string host, int defaultPort, AddressFamily addressFamily = AddressFamily.Unspecified)
         {
             try
             {
@@ -124,7 +124,7 @@ namespace linker.libs
                     port = int.Parse(hostArr[^1]);
                     domain = string.Join(":", hostArr.Take(hostArr.Length - 1));
                 }
-                IPAddress ip = await GetDomainIpAsync(domain).ConfigureAwait(false);
+                IPAddress ip = await GetDomainIpAsync(domain, addressFamily).ConfigureAwait(false);
                 return new IPEndPoint(ip, port);
             }
             catch (Exception)

@@ -21,7 +21,7 @@
                                 <template v-if="scope.row.hook_tunnel.Net.Nat">
                                     <span class="nat" :class="{
                                         green:scope.row.hook_tunnel.Net.nat_number>=50,
-                                        yellow:scope.row.hook_tunnel.Net.nat_number>0,
+                                        yellow:scope.row.hook_tunnel.Net.nat_number>0 && scope.row.hook_tunnel.Net.nat_number<50,
                                         red:scope.row.hook_tunnel.Net.nat_number==0
                                     }" :title="scope.row.hook_tunnel.Net.Nat">{{ scope.row.hook_tunnel.Net.nat_number }}%</span>
                                 </template>
