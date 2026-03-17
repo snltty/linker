@@ -120,19 +120,25 @@ namespace linker.messenger.tunnel.client
 
                 try
                 {
-                    bool isp = false, city = false, nat = false;
+                    int isp = 0, city = 0, nat = 0;
                     while (true)
                     {
-                        if (isp == false) isp = await GetIsp().ConfigureAwait(false);
-                        if (city == false) city = await GetPosition().ConfigureAwait(false);
-                        if (nat == false) nat = await GetNat().ConfigureAwait(false);
-                        if (isp && city && nat)
+                        using CancellationTokenSource cts = new CancellationTokenSource(15000);
+
+                        int[] results = await Task.WhenAll([
+                            GetIsp(cts.Token, isp),
+                            GetPosition(cts.Token, city),
+                            GetNat(cts.Token, nat)
+                         ]).ConfigureAwait(false);
+                        isp += results[0];
+                        city += results[1];
+                        nat += results[2];
+                        if (isp > 0 && city > 0 && nat > 0)
                         {
                             break;
                         }
                         await Task.Delay(10000).ConfigureAwait(false);
                     }
-                    await tunnelClientStore.SetNetwork(tunnelClientStore.Network);
                     await messengerSender.SendOnly(new MessageRequestWrap
                     {
                         Connection = signInClientState.Connection,
@@ -144,37 +150,52 @@ namespace linker.messenger.tunnel.client
                         })
                     });
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        LoggerHelper.Instance.Error(ex);
                 }
 
             });
             operatingManager.StopOperation("get_net");
         }
-        private async Task<bool> GetNat()
+        private async Task<int> GetNat(CancellationToken token, int flag)
         {
-            IPEndPoint server = await NetworkHelper.GetEndPointAsync("stun.hot-chilli.net", 3478);
-            await using StunClient5389UDP client = new(server, new IPEndPoint(IPAddress.Any, 0));
-            await client.MappingBehaviorTestAsync().ConfigureAwait(false);
-
-            MappingBehavior mapping = client.State?.MappingBehavior ?? MappingBehavior.Unknown;
-            await client.FilteringBehaviorTestAsync().ConfigureAwait(false);
-            FilteringBehavior filtering = client.State?.FilteringBehavior ?? FilteringBehavior.Unknown;
-
-            if(LoggerHelper.Instance.LoggerLevel < LoggerTypes.DEBUG)
+            if (flag > 0) return 0;
+            try
             {
-                LoggerHelper.Instance.Debug($"NAT {mapping}/{filtering}");
-            }
+                IPEndPoint server = await NetworkHelper.GetEndPointAsync("stun.hot-chilli.net", 3478);
+                await using StunClient5389UDP client = new(server, new IPEndPoint(IPAddress.Any, 0));
+                await client.MappingBehaviorTestAsync().ConfigureAwait(false);
 
-            bool result = filtering != FilteringBehavior.UnsupportedServer && mapping != MappingBehavior.UnsupportedServer
-                && filtering != FilteringBehavior.Unknown && mapping != MappingBehavior.Unknown
-                && filtering != FilteringBehavior.None && mapping != MappingBehavior.Fail;
-            if (result)
+                MappingBehavior mapping = client.State?.MappingBehavior ?? MappingBehavior.Unknown;
+                await client.FilteringBehaviorTestAsync(token).ConfigureAwait(false);
+                FilteringBehavior filtering = client.State?.FilteringBehavior ?? FilteringBehavior.Unknown;
+
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Debug($"NAT {mapping}/{filtering}");
+
+
+                bool result = filtering != FilteringBehavior.UnsupportedServer && mapping != MappingBehavior.UnsupportedServer
+                    && filtering != FilteringBehavior.Unknown && mapping != MappingBehavior.Unknown
+                    && filtering != FilteringBehavior.None && mapping != MappingBehavior.Fail;
+                if (result)
+                {
+                    tunnelClientStore.Network.Net.Nat = $"{mapping}/{filtering}-{GetSuccessRateValue(mapping, filtering)}%";
+                    await tunnelClientStore.SetNetwork(tunnelClientStore.Network);
+                    OnChange?.Invoke();
+                }
+
+                return result ? 1 : 0;
+            }
+            catch (TaskCanceledException) { }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
             {
-                tunnelClientStore.Network.Net.Nat = $"{mapping}/{filtering}-{GetSuccessRateValue(mapping, filtering)}%";
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Error(ex);
             }
-
-            return result;
+            return 0;
         }
         public static int GetSuccessRateValue(MappingBehavior mapping, FilteringBehavior filtering)
         {
@@ -192,37 +213,40 @@ namespace linker.messenger.tunnel.client
                 _ => 0
             };
         }
-        private async Task<bool> GetIsp()
+        private async Task<int> GetIsp(CancellationToken token, int flag)
         {
-            using CancellationTokenSource cts = new CancellationTokenSource(3000);
+            if (flag > 0) return 0;
             try
             {
                 using HttpClient httpClient = new HttpClient();
-                string str = await httpClient.GetStringAsync($"http://ip-api.com/json", cts.Token).ConfigureAwait(false);
+                string str = await httpClient.GetStringAsync($"http://ip-api.com/json", token).ConfigureAwait(false);
 
                 if (string.IsNullOrWhiteSpace(str) == false)
                 {
                     TunnelNetInfo net = str.DeJson<TunnelNetInfo>();
                     tunnelClientStore.Network.Net.Isp = net.Isp;
                     tunnelClientStore.Network.Net.CountryCode = net.CountryCode;
-
+                    await tunnelClientStore.SetNetwork(tunnelClientStore.Network);
                     OnChange?.Invoke();
-                    return true;
+                    return 1;
                 }
             }
-            catch (Exception)
+            catch (TaskCanceledException) { }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
             {
-                cts.Cancel();
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Error(ex);
             }
-            return false;
+            return 0;
         }
-        private async Task<bool> GetPosition()
+        private async Task<int> GetPosition(CancellationToken token, int flag)
         {
-            using CancellationTokenSource cts = new CancellationTokenSource(5000);
+            if (flag > 0) return 0;
             try
             {
                 using HttpClient httpClient = new HttpClient();
-                string str = await httpClient.GetStringAsync($"https://api.myip.la/en?json", cts.Token).ConfigureAwait(false);
+                string str = await httpClient.GetStringAsync($"https://api.myip.la/en?json", token).ConfigureAwait(false);
 
                 if (string.IsNullOrWhiteSpace(str) == false)
                 {
@@ -230,15 +254,19 @@ namespace linker.messenger.tunnel.client
                     tunnelClientStore.Network.Net.City = json["location"]["city"].ToString();
                     tunnelClientStore.Network.Net.Lat = double.Parse(json["location"]["latitude"].ToString());
                     tunnelClientStore.Network.Net.Lon = double.Parse(json["location"]["longitude"].ToString());
+                    await tunnelClientStore.SetNetwork(tunnelClientStore.Network);
                     OnChange?.Invoke();
-                    return true;
+                    return 1;
                 }
             }
-            catch (Exception)
+            catch (TaskCanceledException) { }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
             {
-                cts.Cancel();
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Error(ex);
             }
-            return false;
+            return 0;
         }
         public TunnelLocalNetworkInfo GetNetwork()
         {
@@ -261,7 +289,6 @@ namespace linker.messenger.tunnel.client
                 .Where(c => c.AddressFamily == AddressFamily.InterNetwork || (c.AddressFamily == AddressFamily.InterNetworkV6 && c.GetAddressBytes().AsSpan(0, 8).SequenceEqual(new byte[] { 254, 128, 0, 0, 0, 0, 0, 0 }) == false)).ToArray()
             }).Where(c => c.Ips.Length > 0 && c.Ips.Any(d => d.Equals(IPAddress.Loopback)) == false).ToArray();
         }
-
 
 
 #pragma warning disable CA2252 // 此 API 需要选择加入预览功能
