@@ -2,7 +2,7 @@
    <el-table border style="width: 100%" height="32px" size="small" @sort-change="handleSortChange" class="table-sort">
         <el-table-column prop="MachineId" :label="$t('home.device')" width="98" sortable="custom" ></el-table-column>
         <el-table-column prop="Version" :label="$t('home.version')" width="98" sortable="custom"></el-table-column>
-        <el-table-column prop="tunnel" :label="$t('home.tunnel')" width="100" sortable="custom"></el-table-column>
+        <el-table-column prop="tunnel" :label="$t('home.tunnel')" width="94" sortable="custom"></el-table-column>
         <el-table-column prop="tuntap" :label="$t('home.tuntapIP')" width="160" sortable="custom"></el-table-column>
         <el-table-column prop="socks5" :label="$t('home.proxy')" width="140" sortable="custom"></el-table-column>
         <el-table-column label="..." fixed="right"  min-width="110">
