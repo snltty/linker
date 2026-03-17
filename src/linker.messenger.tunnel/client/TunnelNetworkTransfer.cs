@@ -161,7 +161,10 @@ namespace linker.messenger.tunnel.client
             await client.FilteringBehaviorTestAsync().ConfigureAwait(false);
             FilteringBehavior filtering = client.State?.FilteringBehavior ?? FilteringBehavior.Unknown;
 
-
+            if(LoggerHelper.Instance.LoggerLevel < LoggerTypes.DEBUG)
+            {
+                LoggerHelper.Instance.Debug($"NAT {mapping}/{filtering}");
+            }
 
             bool result = filtering != FilteringBehavior.UnsupportedServer && mapping != MappingBehavior.UnsupportedServer
                 && filtering != FilteringBehavior.Unknown && mapping != MappingBehavior.Unknown
