@@ -76,8 +76,9 @@ namespace linker.messenger.tuntap.cidr
 
             var removeItems = routeItems.Except(_routeItems, new LinkerTunDeviceRouteItemComparer()).ToArray();
             if (removeItems.Length > 0)
+            {
                 tuntapTransfer.RemoveRoute(removeItems);
-
+            }
             tuntapTransfer.AddRoute(_routeItems);
 
             SetIPs(ips);
@@ -104,16 +105,19 @@ namespace linker.messenger.tuntap.cidr
 
             HashSet<uint> hashSet = new HashSet<uint>();
             IPAddress wan = signInClientState.WanAddress.Address;
+            hashSet.Add(NetworkHelper.ToValue(wan));
 
-            foreach (var item in infos.Where(c => c.Available == true).OrderBy(c => c.IP, new IPAddressComparer()).OrderByDescending(c => c.Status))
+            //虚拟ip
+            foreach (var item in infos.Where(c => c.Available).OrderBy(c => c.IP, new IPAddressComparer()).OrderByDescending(c => c.Status))
             {
                 item.Exists = item.IP.Equals(IPAddress.Any) == false && hashSet.Contains(NetworkHelper.ToValue(item.IP));
                 hashSet.Add(NetworkHelper.ToValue(item.IP));
             }
 
+            //局域网ip
             return infos
                 .Where(c => c.MachineId != signInClientStore.Id)
-                .Where(c => c.Available && c.Exists == false)
+                .Where(c => c.Available)
                 .OrderBy(c => c.IP, new IPAddressComparer()).OrderByDescending(c => c.Status)
                 .Select(c =>
                 {

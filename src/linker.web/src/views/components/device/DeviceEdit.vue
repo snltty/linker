@@ -50,7 +50,7 @@ export default {
         const handleSave = () => {
             setSignInName({
                 Id:props.data.MachineId,
-                newname:state.ruleForm.MachineName,
+                name:state.ruleForm.MachineName,
                 avatar:state.ruleForm.Avatar,
             }).then(() => {
                 state.show = false;

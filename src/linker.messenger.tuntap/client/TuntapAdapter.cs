@@ -253,7 +253,5 @@ namespace linker.messenger.tuntap.client
         {
             return tuntapConfigTransfer.Info.Forwards.Select(c => new LinkerTunDeviceForwardItem { ListenAddr = c.ListenAddr, ListenPort = c.ListenPort, ConnectAddr = c.ConnectAddr, ConnectPort = c.ConnectPort }).ToList();
         }
-
-
     }
 }

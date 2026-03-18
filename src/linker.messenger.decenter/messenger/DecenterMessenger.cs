@@ -1,7 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.timer;
 using linker.messenger.signin;
-using System;
 using System.Collections.Concurrent;
 
 namespace linker.messenger.decenter
@@ -28,21 +27,25 @@ namespace linker.messenger.decenter
         [MessengerId((ushort)DecenterMessengerIds.Push)]
         public void Push(IConnection connection)
         {
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo signin) == false) return;
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo signin) == false)
+            {
+                return;
+            }
             DecenterSyncInfo info = serializer.Deserialize<DecenterSyncInfo>(connection.ReceiveRequestWrap.Payload.Span);
 
             bool changed = false;
             lock (decenters)
             {
+                int hashcode = connection.GetHashCode();
                 if (decenters.TryGetValue(info.Name, out ConcurrentDictionary<int, DecenterCacheInfo> dic) == false)
                 {
                     dic = new ConcurrentDictionary<int, DecenterCacheInfo>();
                     decenters.TryAdd(info.Name, dic);
                 }
-                if (dic.TryGetValue(connection.GetHashCode(), out DecenterCacheInfo cache) == false)
+                if (dic.TryGetValue(hashcode, out DecenterCacheInfo cache) == false)
                 {
                     cache = new DecenterCacheInfo();
-                    dic.TryAdd(connection.GetHashCode(), cache);
+                    dic.TryAdd(hashcode, cache);
                 }
 
                 changed = cache.Data.Length != info.Data.Length || info.Data.Span.SequenceEqual(cache.Data.Span) == false;
@@ -70,7 +73,10 @@ namespace linker.messenger.decenter
         [MessengerId((ushort)DecenterMessengerIds.Pull)]
         public void Pull(IConnection connection)
         {
-            if (signCaching.TryGet(connection.Id, out SignCacheInfo signin) == false) return;
+            if (signCaching.TryGet(connection.Id, out SignCacheInfo signin) == false)
+            {
+                return;
+            }
 
             KeyValuePair<string, bool> info;
             try
@@ -88,17 +94,19 @@ namespace linker.messenger.decenter
                 return;
             }
 
+            int hashcode = connection.GetHashCode();
             IEnumerable<Memory<byte>> data = dic.Where(c =>
             {
-                c.Value.Versions.TryGetValue(connection.GetHashCode(), out DecenterCacheVersionInfo version);
-                bool result = c.Key != connection.GetHashCode()
+                c.Value.Versions.TryGetValue(hashcode, out DecenterCacheVersionInfo version);
+                bool result = c.Key != hashcode
                 && c.Value.SignIn.SameGroup(signin)
+                && c.Value.SignIn.Connected
                 && (info.Value || version == null || c.Value.Version.Eq(version.Value, out ulong newVersion) == false);
 
                 if (version == null)
                 {
                     version = new DecenterCacheVersionInfo { Connection = connection, Value = c.Value.Version.Value };
-                    c.Value.Versions.TryAdd(connection.GetHashCode(), version);
+                    c.Value.Versions.TryAdd(hashcode, version);
                 }
                 version.Value = c.Value.Version.Value;
 

@@ -8,7 +8,7 @@
     </template>
     <template #default="scope">
         <template v-if="scope.row">
-            <div class="flex">
+            <div class="flex flex-nowrap">
                 <div class="avatar">
                     <template v-if="scope.row.Args && scope.row.Args.avatar">
                         <el-avatar shape="square" :size="30" :src="scope.row.Args.avatar" />

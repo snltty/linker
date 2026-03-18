@@ -85,6 +85,7 @@ namespace linker.messenger.tuntap.client
                 info.Delay = old.Delay;
             }
             tuntapInfos.AddOrUpdate(info.MachineId, info, (a, b) => info);
+            DataVersion.Increment();
         }
         public void AddData(List<ReadOnlyMemory<byte>> data)
         {
