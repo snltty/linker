@@ -10,11 +10,16 @@
         <template v-if="scope.row">
             <div class="flex flex-nowrap">
                 <div class="avatar">
-                    <template v-if="scope.row.Args && scope.row.Args.avatar">
-                        <el-avatar shape="square" :size="30" :src="scope.row.Args.avatar" />
+                    <template v-if="scope.row.avatar">
+                        <template v-if="scope.row.avatar_url">
+                            <el-avatar shape="square" :size="30" :src="scope.row.avatar_url" />
+                        </template>
+                        <template v-else>
+                            <el-avatar shape="square" :size="30" :style="scope.row.avatar_style" >{{scope.row.avatar_text}}</el-avatar>
+                        </template>
                     </template>
                     <template v-else>
-                        <el-avatar shape="square" :size="30" src="user.png"/>
+                        <el-avatar shape="square" :size="30" src="user.png"></el-avatar>
                     </template>
                 </div>
                 <div class="flex-1 name">

@@ -8,8 +8,18 @@
                 <el-form-item label="设备名" prop="MachineName">
                     <el-input v-trim maxlength="32" show-word-limit v-model="state.ruleForm.MachineName" />
                 </el-form-item>
-                <el-form-item label="头像URL" prop="Avatar">
+                <el-form-item label="头像" prop="Avatar">
                     <el-input v-trim v-model="state.ruleForm.Avatar" />
+                </el-form-item>
+                <el-form-item label="说明" prop="A">
+                    <div>
+                        <p>url 或 json，必须标准格式，key要双引号</p>
+                        <p>ff : font-family</p>
+                        <p>fs : font-size</p>
+                        <p>fc : color</p>
+                        <p>ft : 文本</p>
+                        <p>bc : background-color</p>
+                    </div>
                 </el-form-item>
                 <el-form-item label="" prop="Btns">
                     <div class="t-c w-100">

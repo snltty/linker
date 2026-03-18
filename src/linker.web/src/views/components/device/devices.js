@@ -102,17 +102,34 @@ export const provideDevices = () => {
                 devices.page.Count = res.Count;
                 
                 for (let j in res.List) {
-                    
-                    Object.assign(res.List[j], {
-                        showDel: machineId.value != res.List[j].MachineId && res.List[j].Connected == false,
-                        showAccess: machineId.value != res.List[j].MachineId && res.List[j].Connected,
-                        showReboot: res.List[j].Connected,
-                        isSelf: machineId.value == res.List[j].MachineId,
+                    const item = res.List[j];
+                    Object.assign(item, {
+                        showDel: machineId.value != item.MachineId && item.Connected == false,
+                        showAccess: machineId.value != item.MachineId && item.Connected,
+                        showReboot: item.Connected,
+                        isSelf: machineId.value == item.MachineId,
+                        avatar: item.Args['avatar'] || '{}',
                         animationDelay: j*50
                     });
-                    if (res.List[j].isSelf) {
-                        globalData.value.self = res.List[j];
+                    if (item.isSelf) {
+                        globalData.value.self = item;
                     }
+                    if(item.avatar.startsWith('http') == false){
+                        try{
+                            item.avatar = JSON.parse(item.avatar || "{}");
+                            item.avatar_style = `
+                            line-height: 0;
+                            font-family:${item.avatar.ff || 'auto'};
+                            font-size:${item.avatar.fs||'none'};
+                            color:${item.avatar.fc || 'none'};
+                            background-color:${item.avatar.bc || 'none'}
+                            `;
+                            item.avatar_text = item.avatar.ft ||  item.MachineName.split('')[0];
+                        }catch(e){}
+                    }else{
+                        item.avatar_url = item.avatar;
+                    }
+                    
                 }
                 devices.page.List = res.List;
                 for(let name in hooks) {
