@@ -13,7 +13,7 @@
     <template v-else>
         <el-skeleton animated >
             <template #template>
-                <el-skeleton-item variant="text" style="vertical-align: middle;width: 50%;"/>
+                <el-skeleton-item variant="text" class="vam w-50-"/>
             </template>
         </el-skeleton>
     </template>

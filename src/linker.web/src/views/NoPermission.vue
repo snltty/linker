@@ -4,11 +4,11 @@
             <img src="@/assets/no-permission.svg" alt="">
         </p>
         <h3>{{$t('permission.closed')}}</h3>
-        <p class="flex" style="margin-top:1rem;font-size:1.4rem;">
+        <p class="flex mgt-1 fs-14">
             <router-link :to="{name:'Network'}">{{$t('permission.simple')}}</router-link>
-            <span style="padding:0 1rem"></span>
+            <span class="split"></span>
             <router-link :to="{name:'Full'}">{{$t('permission.full')}}</router-link>
-            <span style="padding:0 1rem"></span>
+            <span class="split"></span>
             <a href="javascript:;" @click="handleResetConnect">{{$t('permission.clear')}}</a>
         </p>
     </div>
@@ -28,6 +28,9 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
+.split{
+    padding:0 1rem;
+}
 .no-permission-wrap{
     padding:2rem;
     border:1px solid #ddd;

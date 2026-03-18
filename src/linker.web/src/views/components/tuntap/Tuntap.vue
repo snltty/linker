@@ -14,9 +14,9 @@
                     <div class="skeleton-animation">
                         <el-skeleton animated>
                             <template #template>
-                                <el-skeleton-item variant="text" style="width: 60%;" />
-                                <el-skeleton-item variant="text" style="width: 20%;margin-left:20%" />
-                                <el-skeleton-item variant="text" style="width: 70%" />
+                                <el-skeleton-item variant="text" class="w-60-"/>
+                                <el-skeleton-item variant="text" class="w-20- mgl-20-"/>
+                                <el-skeleton-item variant="text" class="w-70-"/>
                             </template>
                         </el-skeleton>
                     </div>

@@ -9,7 +9,7 @@
                     <el-row class="w-100">
                         <el-col :span="12">
                             <el-form-item label="网关层级" prop="RouteLevel">
-                                <el-input v-trim readonly v-model="state.ruleForm.RouteLevel" style="width:15rem" />
+                                <el-input v-trim readonly v-model="state.ruleForm.RouteLevel" class="w-15" />
                             </el-form-item>
                         </el-col>
                         <el-col :span="12">
@@ -37,7 +37,7 @@
                     <el-row class="w-100">
                         <el-col :span="12">
                             <el-form-item label="入口IP" prop="InIp">
-                                <el-input v-model="state.ruleForm.InIp" style="width:15rem"/>
+                                <el-input v-model="state.ruleForm.InIp" class="w-15"/>
                             </el-form-item>
                         </el-col>
                         <el-col :span="12">

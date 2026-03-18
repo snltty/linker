@@ -1,19 +1,23 @@
 <template>
     <el-dialog class="options-center" title="管理接口" destroy-on-close v-model="showPort" center :show-close="false" :close-on-click-modal="false" align-center width="200">
         <div class="port-wrap t-c">
-            <div>
-                接口 : <el-input v-trim v-model="state.api" style="width:70%" @keyup.enter="handleConnectReload"></el-input>
-            </div>
-            <div class="pdt-10">
-                秘钥 : <el-input v-trim show-password type="password" v-model="state.psd" style="width:70%" @keyup.enter="handleConnectReload"></el-input>
-            </div>
-            <div>
-                <el-checkbox v-model="state.save" >保存密码</el-checkbox>
-            </div>
+            <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="auto">
+                <el-form-item label="接口" prop="ws">
+                    <el-input v-trim v-model="state.api" @keyup.enter="handleConnectReload"></el-input>
+                </el-form-item>
+                <el-form-item label="秘钥" prop="ps">
+                    <el-input v-trim show-password type="password" v-model="state.psd" @keyup.enter="handleConnectReload"></el-input>
+                </el-form-item>
+                <el-form-item label="保存" prop="save">
+                    <el-checkbox v-model="state.save" >保存密码</el-checkbox>
+                </el-form-item>
+                <el-form-item label="" prop="Btns">
+                    <div class="t-c w-100">
+                        <el-button type="success" @click="handleConnectReload" plain>确 定</el-button>
+                    </div>
+                </el-form-item>
+            </el-form>
         </div>
-        <template #footer>
-            <el-button type="success" @click="handleConnectReload" plain>确 定</el-button>
-        </template>
     </el-dialog>
 </template>
 <script>

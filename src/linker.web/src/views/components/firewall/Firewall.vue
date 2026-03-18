@@ -4,17 +4,17 @@
             <div class="flex">
                 <div class="flex mgt-1">
                     <div>
-                        <el-select v-model="state.search.Data.Action" @change="loadData" size="small" class="mgr-1" style="width: 9rem;">
+                        <el-select v-model="state.search.Data.Action" @change="loadData" size="small" class="mgr-1 w-9">
                             <el-option :value="item.value" :label="item.label" v-for="(item,index) in state.actions"></el-option>
                         </el-select>
                     </div>
                     <div>
-                        <el-select v-model="state.search.Data.Protocol" @change="loadData" size="small" class="mgr-1" style="width: 9rem;">
+                        <el-select v-model="state.search.Data.Protocol" @change="loadData" size="small" class="mgr-1 w-9">
                             <el-option :value="item.value" :label="item.label" v-for="(item,index) in state.protocols"></el-option>
                         </el-select>
                     </div>
                     <div>
-                        <el-select v-model="state.search.Data.Disabled" @change="loadData" size="small" class="mgr-1" style="width: 9rem;">
+                        <el-select v-model="state.search.Data.Disabled" @change="loadData" size="small" class="mgr-1 w-9">
                             <el-option :value="item.value" :label="item.label" v-for="(item,index) in state.states"></el-option>
                         </el-select>
                     </div>
@@ -22,7 +22,7 @@
                 <div class="flex mgt-1">
                     <div>
                         <span>{{$t('firewall.srcName')}}/{{$t('firewall.dstCidr')}}/{{$t('firewall.dstPort')}}/{{$t('firewall.remark')}}</span>
-                        <el-input v-trim v-model="state.search.Data.Str" @change="loadData" size="small" style="width:7rem"></el-input>
+                        <el-input v-trim v-model="state.search.Data.Str" @change="loadData" size="small" class="w-7"></el-input>
                     </div>
                     <div class="mgl-1">
                         <el-button size="small" :loading="state.loading" @click="loadData">{{$t('common.refresh')}}</el-button>

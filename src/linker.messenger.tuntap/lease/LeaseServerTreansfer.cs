@@ -278,6 +278,31 @@ namespace linker.messenger.tuntap.lease
         /// 网卡名
         /// </summary>
         public string Name { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 仅传输，不需要任何设置
+        /// </summary>
+        public string SubName { get; set; } = string.Empty;
+
+        public List<LeaseSubInfo> Subs { get; set; } = [];
+    }
+    public sealed partial class LeaseSubInfo
+    {
+        public LeaseSubInfo() { }
+       
+        /// <summary>
+        /// 网络号
+        /// </summary>
+        public IPAddress IP { get; set; } = IPAddress.Any;
+        /// <summary>
+        /// 前缀，掩码长度
+        /// </summary>
+        public byte PrefixLength { get; set; } = 32;
+        /// <summary>
+        /// 网络名
+        /// </summary>
+        public string Name { get; set; } = string.Empty;
+
     }
 
     public sealed class LeaseCacheInfo
@@ -302,7 +327,6 @@ namespace linker.messenger.tuntap.lease
 
         public List<LeaseCacheUserInfo> Users { get; set; } = new List<LeaseCacheUserInfo>();
     }
-
     public sealed class LeaseCacheUserInfo
     {
         public string Id { get; set; }

@@ -63,9 +63,7 @@ namespace linker.messenger.tuntap.client
         {
             TimerHelper.Async(async () =>
             {
-                IPAddress ip = Info.IP;
-                byte prefixLength = Info.PrefixLength;
-                string name = Info.Name;
+                string old = info.DiffValue;
 
                 Info.IP = info.IP ?? IPAddress.Any;
                 Info.Lans = info.Lans;
@@ -73,13 +71,14 @@ namespace linker.messenger.tuntap.client
                 Info.Name = info.Name;
                 Info.Switch = info.Switch;
                 Info.Forwards = info.Forwards;
+                Info.NetworkName = info.NetworkName;
 
                 tuntapStore.Confirm();
 
                 await LeaseIP().ConfigureAwait(false);
                 SetGroupIP();
 
-                if (ip.Equals(Info.IP) == false || prefixLength != Info.PrefixLength || string.Equals(name, Info.Name) == false)
+                if (old != info.DiffValue)
                 {
                     Version.Increment();
                 }
@@ -128,7 +127,7 @@ namespace linker.messenger.tuntap.client
         /// <returns></returns>
         private async Task LeaseIP()
         {
-            LeaseInfo leaseInfo = await leaseClientTreansfer.LeaseIp(Info.IP, Info.PrefixLength).ConfigureAwait(false);
+            LeaseInfo leaseInfo = await leaseClientTreansfer.LeaseIp(Info.IP, Info.PrefixLength, Info.NetworkName).ConfigureAwait(false);
             Info.IP = leaseInfo.IP;
             Info.PrefixLength = leaseInfo.PrefixLength;
             name = leaseInfo.Name;
@@ -142,10 +141,11 @@ namespace linker.messenger.tuntap.client
         {
             if (Info.Group2IP.TryGetValue(signInClientStore.Group.Id, out TuntapGroup2IPInfo tuntapGroup2IPInfo))
             {
-                if (tuntapGroup2IPInfo.IP.Equals(Info.IP) == false || tuntapGroup2IPInfo.PrefixLength != Info.PrefixLength)
+                if (tuntapGroup2IPInfo.IP.Equals(Info.IP) == false || tuntapGroup2IPInfo.PrefixLength != Info.PrefixLength || tuntapGroup2IPInfo.NetworkName != Info.NetworkName)
                 {
                     Info.IP = tuntapGroup2IPInfo.IP;
                     Info.PrefixLength = tuntapGroup2IPInfo.PrefixLength;
+                    Info.NetworkName = tuntapGroup2IPInfo.NetworkName;
                 }
             }
         }
@@ -154,9 +154,8 @@ namespace linker.messenger.tuntap.client
         /// </summary>
         private void SetGroupIP()
         {
-            TuntapGroup2IPInfo tuntapGroup2IPInfo = new TuntapGroup2IPInfo { IP = Info.IP, PrefixLength = Info.PrefixLength };
+            TuntapGroup2IPInfo tuntapGroup2IPInfo = new TuntapGroup2IPInfo { IP = Info.IP, PrefixLength = Info.PrefixLength, NetworkName = Info.NetworkName };
             Info.Group2IP[signInClientStore.Group.Id] = tuntapGroup2IPInfo;
-            //  .AddOrUpdate(signInClientStore.Group.Id, tuntapGroup2IPInfo, (a, b) => tuntapGroup2IPInfo);
         }
 
     }

@@ -65,13 +65,13 @@ namespace linker.messenger.tuntap.lease
             }).ConfigureAwait(false);
         }
 
-        public async Task<LeaseInfo> LeaseIp(IPAddress ip, byte prefixLength)
+        public async Task<LeaseInfo> LeaseIp(IPAddress ip, byte prefixLength,string networkName)
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)TuntapMessengerIds.LeaseIP,
-                Payload = serializer.Serialize(new LeaseInfo { IP = ip, PrefixLength = prefixLength })
+                Payload = serializer.Serialize(new LeaseInfo { IP = ip, PrefixLength = prefixLength, SubName= networkName })
 
             }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK)

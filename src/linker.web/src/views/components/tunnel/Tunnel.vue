@@ -59,17 +59,21 @@
                         <div class="skeleton-animation">
                             <el-skeleton animated >
                                 <template #template>
-                                    <el-skeleton-item variant="text" class="el-skeleton-item" />
-                                    <el-skeleton-item variant="text" class="el-skeleton-item" />
-                                    <el-skeleton-item variant="text" class="el-skeleton-item-last"/>
-                                    <el-skeleton-item variant="text" class="el-skeleton-item2" />
+                                    <div>
+                                        <el-skeleton-item variant="text" class="w-20- mgr-1-" />
+                                        <el-skeleton-item variant="text" class="w-20- mgr-1-" />
+                                        <el-skeleton-item variant="text" class="w-20-" />
+                                    </div>
+                                    <div>
+                                        <el-skeleton-item variant="text" class="w-50-" />
+                                        <el-skeleton-item variant="text" class="w-50-" />
+                                    </div>
                                 </template>
                             </el-skeleton>
                         </div>
                     </template>
                     <div class="device-remark"></div>
                 </template>
-
             </el-table-column>
         </template>
     </AccessBoolean>

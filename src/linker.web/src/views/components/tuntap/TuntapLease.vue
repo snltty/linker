@@ -6,13 +6,13 @@
                     <p>网络租期30天、IP租期7天</p>
                 </el-form-item>
                 <el-form-item label="网卡名" prop="Name">
-                    <el-input v-trim v-model="state.ruleForm.Name" style="width:14rem"/>
+                    <el-input v-trim v-model="state.ruleForm.Name" class="w-14"/>
                 </el-form-item>
                 <el-form-item label="网络前缀" prop="IP">
-                    <el-input v-trim v-model="state.ruleForm.IP" style="width:14rem" @change="handlePrefixLengthChange" />
+                    <el-input v-trim v-model="state.ruleForm.IP" class="w-14" @change="handlePrefixLengthChange" />
                     <span>/</span>
-                    <el-input v-trim @change="handlePrefixLengthChange" v-model="state.ruleForm.PrefixLength" style="width:4rem" />
-                    <span style="width: 1rem;"></span>
+                    <el-input v-trim @change="handlePrefixLengthChange" v-model="state.ruleForm.PrefixLength" class="w-4" />
+                    <span class="w-1"></span>
                     <el-button @click="handleClear">重置</el-button>
                 </el-form-item>
                 <el-form-item label="" prop="IP1">
@@ -54,7 +54,8 @@ export default {
             ruleForm: {
                 Name:'',
                 IP:'0.0.0.0',
-                PrefixLength:24
+                PrefixLength:24,
+                Subs:[]
             },
             rules: {
                 Name: {
@@ -86,6 +87,7 @@ export default {
                 state.ruleForm.Name = res.Name;
                 state.ruleForm.IP = res.IP;
                 state.ruleForm.PrefixLength = res.PrefixLength;
+                state.ruleForm.Subs = res.Subs;
                 _calcNetwork();
             });
         }
@@ -107,7 +109,7 @@ export default {
             })
         }
         const handleClear = ()=>{
-            addNetwork({Name:'',IP:'0.0.0.0',PrefixLength:24}).then(()=>{
+            addNetwork({Name:'',IP:'0.0.0.0',PrefixLength:24,Subs:[]}).then(()=>{
                 ElMessage.success('已操作');
                 _getNetwork();
             }).catch((err)=>{

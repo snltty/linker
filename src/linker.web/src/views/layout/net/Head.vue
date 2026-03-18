@@ -6,7 +6,7 @@
             <el-button size="small" @click="handleRefresh">
                 刷新(F5)<el-icon><Refresh /></el-icon>
             </el-button>
-            <div style="margin-left:1rem ;">
+            <div class="mgl-1">
                 <Background name="net" ></Background>
             </div>
         </div>

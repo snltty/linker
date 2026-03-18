@@ -2,11 +2,11 @@
      <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap" :title="`设置[${state.machineName}]代理`" top="1vh" width="780">
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="140">
-                <el-form-item prop="gateway" style="margin-bottom:0">
+                <el-form-item prop="gateway" class="mb-0">
                     配置代理，通过代理访问其它设备
                 </el-form-item>
                 <el-form-item label="代理端口" prop="Port">
-                    <el-input v-trim v-model="state.ruleForm.Port" style="width:14rem" />
+                    <el-input v-trim v-model="state.ruleForm.Port"  class="w-14" />
                 </el-form-item>
                 <div class="upgrade-wrap">
                     <Socks5Lan ref="socks5Dom"></Socks5Lan>

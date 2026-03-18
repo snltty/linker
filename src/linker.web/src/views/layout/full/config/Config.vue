@@ -12,7 +12,7 @@
                 <el-form label-width="auto" :label-position="state.position">
                     <el-form-item :label="$t('server.messengerAddr')">
                         <div class="flex">
-                            <el-input v-trim :class="{success:state.list.Host==state.signinHost}" style="width:20rem;" v-model="state.list.Host" @blur="handleSave" />
+                            <el-input v-trim :class="{success:state.list.Host==state.signinHost}" class="w-20" v-model="state.list.Host" @blur="handleSave" />
                             <span class="mgl-1"></span>
                             <Sync name="SignInServer"></Sync>
                             <PcShow>
@@ -22,26 +22,26 @@
                     </el-form-item>
                     <el-form-item :label="`${$t('server.messengerAddr')}1`">
                         <div class="flex">
-                            <el-input v-trim :class="{success:state.list.Host1==state.signinHost}" style="width:20rem;" v-model="state.list.Host1" @blur="handleSave" />
+                            <el-input v-trim :class="{success:state.list.Host1==state.signinHost}" class="w-20" v-model="state.list.Host1" @blur="handleSave" />
                         </div>
                     </el-form-item>
                     <el-form-item></el-form-item>
                     <el-form-item :label="$t('server.messengerSuperKey')">
                         <div class="flex">
-                            <el-input v-trim :class="{success:state.super,error:state.super==false}" style="width:20rem;" type="password" show-password maxlength="36" v-model="state.list.SuperKey" @blur="handleSave" />
+                            <el-input v-trim :class="{success:state.super,error:state.super==false}" class="w-20" type="password" show-password maxlength="36" v-model="state.list.SuperKey" @blur="handleSave" />
                             <span class="mgl-1"></span>
                             <Sync name="SignInSuperKey"></Sync>
                         </div>
                     </el-form-item>
                     <el-form-item :label="$t('server.messengerSuperPassword')">
                         <div class="flex">
-                            <el-input v-trim :class="{success:state.super,error:state.super==false}" style="width:20rem;" type="password" show-password maxlength="36" v-model="state.list.SuperPassword" @blur="handleSave" />
+                            <el-input v-trim :class="{success:state.super,error:state.super==false}" class="w-20" type="password" show-password maxlength="36" v-model="state.list.SuperPassword" @blur="handleSave" />
                         </div>
                     </el-form-item>
                     <el-form-item></el-form-item>   
                     <el-form-item :label="$t('server.messengerUserId')">
                         <div class="flex">
-                            <el-input v-trim style="width:20rem;" type="password" show-password maxlength="36" v-model="state.list.UserId" @blur="handleSave" />
+                            <el-input v-trim class="w-20" type="password" show-password maxlength="36" v-model="state.list.UserId" @blur="handleSave" />
                             <span class="mgl-1"></span>
                             <Sync name="SignInUserId"></Sync>
                             <PcShow>

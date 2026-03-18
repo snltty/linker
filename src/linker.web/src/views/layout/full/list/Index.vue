@@ -1,7 +1,7 @@
 <template>
     <div class="home-list-wrap absolute flex flex-column flex-nowrap" >
         <Sort @sort="handleSortChange"></Sort>
-        <el-table :data="devices.page.List" stripe border style="width: 100%" size="small" class="flex-1">
+        <el-table :data="devices.page.List" stripe border size="small" class="flex-1 w-100">
             <Device  @refresh="handlePageRefresh"></Device>
             <Tunnel  @refresh="deviceRefreshHook('tunnel')"></Tunnel>
             <Tuntap></Tuntap>

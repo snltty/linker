@@ -1,5 +1,5 @@
 <template>
-   <el-table border style="width: 100%" height="32px" size="small" @sort-change="handleSortChange" class="table-sort">
+   <el-table border height="32px" size="small" @sort-change="handleSortChange" class="table-sort w-100">
         <el-table-column prop="MachineId" :label="$t('home.device')" width="98" sortable="custom" ></el-table-column>
         <el-table-column prop="Version" :label="$t('home.version')" width="98" sortable="custom"></el-table-column>
         <el-table-column prop="tunnel" :label="$t('home.tunnel')" width="94" sortable="custom"></el-table-column>

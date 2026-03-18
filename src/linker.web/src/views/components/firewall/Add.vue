@@ -49,7 +49,7 @@
                 </el-form-item>
                 <el-form-item></el-form-item>
                 <el-form-item :label="$t('firewall.orderby')" prop="OrderBy">
-                     <el-input-number v-model="state.ruleForm.Data.OrderBy" :min="0" :max="65535" style="width:13rem" />
+                     <el-input-number v-model="state.ruleForm.Data.OrderBy" :min="0" :max="65535" class="w-13" />
                 </el-form-item>
                 <el-form-item :label="$t('firewall.disabled')" prop="Disabled">
                     <div class="flex">

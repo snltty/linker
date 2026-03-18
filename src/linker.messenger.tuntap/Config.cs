@@ -21,6 +21,7 @@ namespace linker.messenger.tuntap
         public List<TuntapLanInfo> Lans { get; set; } = new List<TuntapLanInfo>();
 
         public string Name { get; set; } = string.Empty;
+        public string NetworkName { get; set; } = string.Empty;
 
         public Guid Guid { get; set; } = Guid.Parse("771EF382-8718-5BC5-EBF0-A28B86142278");
 
@@ -53,6 +54,7 @@ namespace linker.messenger.tuntap
     {
         public IPAddress IP { get; set; } = IPAddress.Any;
         public byte PrefixLength { get; set; } = 24;
+        public string NetworkName { get; set; } = string.Empty;
     }
 
     public sealed partial class TuntapVeaLanIPAddress
@@ -361,6 +363,11 @@ namespace linker.messenger.tuntap
                 }
             }
         }
+
+        public string NetworkName { get; set; }
+
+
+        public string DiffValue => $"{IP}->{PrefixLength}->{Name}->{NetworkName}";
     }
 
 

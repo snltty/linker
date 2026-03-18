@@ -1,7 +1,7 @@
 <template>
     <div>
         <a v-if="state.status.Enabled" @click="handleImport" href="javascript:;" class="a-line blue">
-            <img :src="`./${state.status.Type}.png`" height="20" style="vertical-align: middle;">
+            <img :src="`./${state.status.Type}.png`" height="20" class="vam">
             <span>使用{{state.status.Type}}订单</span>
         </a>
         <strong v-if="state.status.Info" class="mgl-1">

@@ -3,8 +3,8 @@
     <div class="group-wrap">
         <div class="head">
             <div class="search flex">
-                <div><span>{{$t('server.wlistName')}}</span> <el-input v-trim v-model="state.page.Name" style="width:8rem" size="small" clearable @change="handleSearch" /></div>
-                <div><span>{{$t('server.wlistRemark')}}</span> <el-input v-trim v-model="state.page.Remark" style="width:8rem" size="small" clearable @change="handleSearch" /></div>
+                <div><span>{{$t('server.wlistName')}}</span> <el-input v-trim v-model="state.page.Name" class="w-8" size="small" clearable @change="handleSearch" /></div>
+                <div><span>{{$t('server.wlistRemark')}}</span> <el-input v-trim v-model="state.page.Remark" class="w-8" size="small" clearable @change="handleSearch" /></div>
                 <div>
                     <el-button size="small" @click="handleSearch()">
                         <el-icon><Search /></el-icon>

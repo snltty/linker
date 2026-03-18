@@ -1,7 +1,9 @@
-﻿using MemoryPack;
-using linker.messenger.tuntap;
-using System.Net;
+﻿using linker.messenger.tuntap;
 using linker.messenger.tuntap.lease;
+using MemoryPack;
+using System.Net;
+using System.Reflection.PortableExecutable;
+using System.Xml.Linq;
 
 namespace linker.messenger.serializer.memorypack
 {
@@ -171,9 +173,12 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         TuntapSwitch Switch => info.Switch;
 
+        [MemoryPackInclude]
+        string NetworkName => info.NetworkName;
+
         [MemoryPackConstructor]
         SerializableTuntapInfo(string machineId, TuntapStatus status, IPAddress ip, byte prefixLength, string name,
-            List<TuntapLanInfo> lans, IPAddress wan, string setupError, string natError, string systemInfo, List<TuntapForwardInfo> forwards, TuntapSwitch Switch)
+            List<TuntapLanInfo> lans, IPAddress wan, string setupError, string natError, string systemInfo, List<TuntapForwardInfo> forwards, TuntapSwitch Switch, string networkName)
         {
             var info = new TuntapInfo
             {
@@ -189,6 +194,7 @@ namespace linker.messenger.serializer.memorypack
                 Name = name,
                 Status = status,
                 Switch = Switch,
+                NetworkName = networkName
             };
             this.info = info;
         }
@@ -220,8 +226,23 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableTuntapInfo>();
-            value = wrapped.info;
+            reader.TryReadObjectHeader(out byte count);
+            value = new TuntapInfo();
+            value.MachineId = reader.ReadValue<string>();
+            value.Status = reader.ReadValue<TuntapStatus>();
+            value.IP = reader.ReadValue<IPAddress>();
+            value.PrefixLength = reader.ReadValue<byte>();
+            value.Name = reader.ReadValue<string>();
+            value.Lans = reader.ReadValue<List<TuntapLanInfo>>();
+            value.Wan = reader.ReadValue<IPAddress>();
+            value.SetupError = reader.ReadValue<string>();
+            value.NatError = reader.ReadValue<string>();
+            value.SystemInfo = reader.ReadValue<string>();
+            value.Forwards = reader.ReadValue<List<TuntapForwardInfo>>();
+            value.Switch = reader.ReadValue<TuntapSwitch>();
+
+            if (count > 12)
+                value.NetworkName = reader.ReadValue<string>();
         }
     }
 
@@ -521,14 +542,22 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude, MemoryPackAllowSerialize]
         string Name => info.Name;
 
+        [MemoryPackInclude, MemoryPackAllowSerialize]
+        string SubName => info.SubName;
+
+        [MemoryPackInclude, MemoryPackAllowSerialize]
+        List<LeaseSubInfo> Subs => info.Subs;
+
         [MemoryPackConstructor]
-        SerializableLeaseInfo(IPAddress ip, byte prefixLength, string name)
+        SerializableLeaseInfo(IPAddress ip, byte prefixLength, string name, string subname, List<LeaseSubInfo> subs)
         {
             var info = new LeaseInfo
             {
                 IP = ip,
                 PrefixLength = prefixLength,
-                Name = name
+                Name = name,
+                SubName = subname,
+                Subs = subs
             };
             this.info = info;
         }
@@ -560,8 +589,82 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableLeaseInfo>();
-            value = wrapped.info;
+            reader.TryReadObjectHeader(out byte count);
+            value = new LeaseInfo();
+            value.IP = reader.ReadValue<IPAddress>();
+            value.PrefixLength = reader.ReadValue<byte>();
+            value.Name = reader.ReadValue<string>();
+            if (count > 3)
+                value.SubName = reader.ReadValue<string>();
+
+            if (count > 4)
+                value.Subs = reader.ReadValue<List<LeaseSubInfo>>();
+
+        }
+    }
+
+
+    [MemoryPackable]
+    public readonly partial struct SerializableLeaseSubInfo
+    {
+        [MemoryPackIgnore]
+        public readonly LeaseSubInfo info;
+
+        [MemoryPackInclude, MemoryPackAllowSerialize]
+        IPAddress IP => info.IP;
+
+        [MemoryPackInclude, MemoryPackAllowSerialize]
+        byte PrefixLength => info.PrefixLength;
+
+        [MemoryPackInclude, MemoryPackAllowSerialize]
+        string Name => info.Name;
+
+
+        [MemoryPackConstructor]
+        SerializableLeaseSubInfo(IPAddress ip, byte prefixLength, string name)
+        {
+            var info = new LeaseSubInfo
+            {
+                IP = ip,
+                PrefixLength = prefixLength,
+                Name = name
+            };
+            this.info = info;
+        }
+
+        public SerializableLeaseSubInfo(LeaseSubInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class LeaseSubInfoFormatter : MemoryPackFormatter<LeaseSubInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref LeaseSubInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableLeaseSubInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref LeaseSubInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            reader.TryReadObjectHeader(out byte count);
+            value = new LeaseSubInfo();
+            value.IP = reader.ReadValue<IPAddress>();
+            value.PrefixLength = reader.ReadValue<byte>();
+            value.Name = reader.ReadValue<string>();
+
         }
     }
 }

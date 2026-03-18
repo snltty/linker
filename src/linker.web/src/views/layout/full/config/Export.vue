@@ -76,7 +76,7 @@
                     <div>
                         <el-input v-trim v-model="state.saveServer" readonly></el-input>
                     </div>
-                    <div style="margin-top:1rem">
+                    <div class="mgt-1">
                         <el-input v-trim v-model="state.saveContent" readonly></el-input>
                     </div>
                 </div>

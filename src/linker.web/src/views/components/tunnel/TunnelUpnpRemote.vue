@@ -1,7 +1,7 @@
 <template>
     <div>
         <div class="head pdb-6 t-c">
-            <el-input size="small" v-model="state.name" @change="handleSearch" clearable style="width:10rem;margin-right:1rem"></el-input>
+            <el-input size="small" v-model="state.name" @change="handleSearch" clearable class="w-10 mgr-1"></el-input>
             <el-button size="small" :loading="state.loading" @click="handleSearch"><el-icon><Search></Search></el-icon> </el-button>
             <el-button size="small" type="danger" @click="handleDel()"><el-icon><DeleteFilled></DeleteFilled></el-icon> </el-button>
         </div>

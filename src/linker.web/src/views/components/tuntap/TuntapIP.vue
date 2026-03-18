@@ -2,17 +2,23 @@
     <div class="wrap">
         <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="8rem">
             <el-form-item label="网卡ID" prop="Guid" v-if="state.showGuid">
-                <el-input v-trim v-model="state.ruleForm.Guid" style="width:14rem" disabled />
+                <el-input v-trim v-model="state.ruleForm.Guid" class="w-14" disabled />
                 <el-button  @click="handleNewId" class="mgl-1">新ID</el-button>
             </el-form-item>
             <el-form-item label="网卡名" prop="Name">
-                <el-input v-trim v-model="state.ruleForm.Name" style="width:14rem" />
+                <el-input v-trim v-model="state.ruleForm.Name" class="w-14" />
                 <span class="mgl-1">留空则使用【本组网络】的设置</span>
             </el-form-item>
+            <el-form-item label="网络名" prop="NetworkName">
+                <el-select v-model="state.ruleForm.NetworkName"  class="w-14">
+                    <el-option :value="item.value" :label="item.label" v-for="(item,index) in state.networks"></el-option>
+                </el-select>
+                <span class="mgl-1">选择子网或留空或选择主网</span>
+            </el-form-item>
             <el-form-item label="网卡IP" prop="IP" class="mgb-0">
-                <el-input v-trim v-model="state.ruleForm.IP" style="width:14rem" />
+                <el-input v-trim v-model="state.ruleForm.IP" class="w-14" />
                     <span>/</span>
-                    <el-input v-trim @change="handlePrefixLengthChange" v-model="state.ruleForm.PrefixLength" style="width:4rem" />
+                    <el-input v-trim @change="handlePrefixLengthChange" v-model="state.ruleForm.PrefixLength" class="w-4" />
             </el-form-item>
             <el-form-item label="" class="mgb-0">
                     <el-checkbox class="mgr-1" v-model="state.ruleForm.ShowDelay" label="显示延迟" size="large" />
@@ -31,7 +37,7 @@ import { useTuntap } from './tuntap';
 import TuntapForward from './TuntapForward.vue'
 import TuntapLan from './TuntapLan.vue'
 import { Delete, Plus, Warning, Refresh } from '@element-plus/icons-vue'
-import { getid, setid } from '@/apis/tuntap';
+import { getid, getNetwork, setid } from '@/apis/tuntap';
 import { ElMessage } from 'element-plus';
 export default {
     emits: ['change'],
@@ -59,6 +65,7 @@ export default {
                 SrcProxy: tuntap.value.current.SrcProxy,
                 Forwards: tuntap.value.current.Forwards,
                 Name: tuntap.value.current.Name,
+                NetworkName: tuntap.value.current.NetworkName,
                 Guid: '',
             },
             rules: {
@@ -70,7 +77,8 @@ export default {
                         return value.trim();
                     },
                 }
-            }
+            },
+            networks:[]
         });
         const handlePrefixLengthChange = () => {
             var value = +state.ruleForm.PrefixLength;
@@ -89,7 +97,6 @@ export default {
         }
 
         const getData = ()=>{
-            console.log(tuntap.value.current);
             const json = JSON.parse(JSON.stringify(tuntap.value.current,(key,value)=> key =='device'?'':value ));
             json.IP = state.ruleForm.IP.replace(/\s/g, '') || '0.0.0.0';
             json.PrefixLength = +state.ruleForm.PrefixLength;
@@ -111,6 +118,9 @@ export default {
         onMounted(()=>{
             getid(tuntap.value.current.device.MachineId).then(res=>{
                 state.ruleForm.Guid = res;
+            });
+            getNetwork().then(res=>{
+                state.networks = [{value:'default',label:'主网'}].concat(res.Subs.reduce((a,b)=>a.concat([{value:b.Name,label:`${b.IP}/${b.PrefixLength}`}]),[]));
             });
         })
 

@@ -39,10 +39,10 @@
                             <el-skeleton animated >
                                 <template #template>
                                     <div class="flex">
-                                        <el-skeleton-item variant="text" class="el-skeleton-item" />
-                                        <el-skeleton-item variant="text" class="el-skeleton-item" />
+                                        <el-skeleton-item variant="text" class="vam w-20-" />
+                                        <el-skeleton-item variant="text" class="vam w-20-" />
                                         <span class="flex-1"></span>
-                                        <el-skeleton-item variant="text" class="el-skeleton-item" />
+                                        <el-skeleton-item variant="text" class="vam w-20-" />
                                     </div>
                                 </template>
                             </el-skeleton>
@@ -87,9 +87,6 @@ export default {
 .el-input{
     width:12rem;
     margin-right:.6rem
-}
-.el-skeleton-item{
-    vertical-align: middle;width: 20%;
 }
 .avatar{
     
