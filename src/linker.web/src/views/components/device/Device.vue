@@ -28,7 +28,7 @@
                             <UpdaterBtn :config="true" :item="scope.row"></UpdaterBtn>
                         </template>
                         <template v-else-if="scope.row.LastSignIn">
-                            <span>{{ scope.row.LastSignIn }}-{{ scope.row.Version }}</span>
+                            <span class="ellipsis" :title="`${scope.row.LastSignIn}-${scope.row.Version}`">{{ scope.row.LastSignIn }}-{{ scope.row.Version }}</span>
                         </template>
                         <template v-else>
                             <el-skeleton animated >
