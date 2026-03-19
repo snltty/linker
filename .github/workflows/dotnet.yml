@@ -15,8 +15,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
-          tag_name: v1.9.94
-          release_name: v1.9.94.${{ steps.date.outputs.today }}
+          tag_name: v1.9.95
+          release_name: v1.9.95.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
           body: "1. 一些累计更新，一些BUG修复\r\n2. #92 松开打洞loading限制，允许选择中继节点\r\n3. #89 windows下利用任务计划进行进程守护，定时检查服务\r\n4. 优化客户端管理ws并发\r\n5. 减少服务器推送，减轻主服务器压力\r\n6. 优化中继，针对无法连接自己的外网IP的情况\r\n7. 优化upnp，自己实现了一遍\r\n8. 服务端支持ipv6\r\n9. 客户端可以设置头像\r\n10. 变长掩码子网络隔离"
@@ -43,7 +43,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-win-x86.zip
-          target-path: /downloads/linker/v1.9.94/linker-win-x86.zip
+          target-path: /downloads/linker/v1.9.95/linker-win-x86.zip
       - name: upload-win-x86
         id: upload-win-x86
         uses: actions/upload-release-asset@master
@@ -63,7 +63,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-win-x64.zip
-          target-path: /downloads/linker/v1.9.94/linker-win-x64.zip
+          target-path: /downloads/linker/v1.9.95/linker-win-x64.zip
       - name: upload-win-x64
         id: upload-win-x64
         uses: actions/upload-release-asset@master
@@ -83,7 +83,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-win-arm64.zip
-          target-path: /downloads/linker/v1.9.94/linker-win-arm64.zip
+          target-path: /downloads/linker/v1.9.95/linker-win-arm64.zip
       - name: upload-win-arm64
         id: upload-win-arm64
         uses: actions/upload-release-asset@master
@@ -103,7 +103,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-linux-x64.zip
-          target-path: /downloads/linker/v1.9.94/linker-linux-x64.zip
+          target-path: /downloads/linker/v1.9.95/linker-linux-x64.zip
       - name: upload-linux-x64
         id: upload-linux-x64
         uses: actions/upload-release-asset@master
@@ -123,7 +123,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-linux-arm.zip
-          target-path: /downloads/linker/v1.9.94/linker-linux-arm.zip
+          target-path: /downloads/linker/v1.9.95/linker-linux-arm.zip
       - name: upload-linux-arm
         id: upload-linux-arm
         uses: actions/upload-release-asset@master
@@ -143,7 +143,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-linux-arm64.zip
-          target-path: /downloads/linker/v1.9.94/linker-linux-arm64.zip
+          target-path: /downloads/linker/v1.9.95/linker-linux-arm64.zip
       - name: upload-linux-arm64
         id: upload-linux-arm64
         uses: actions/upload-release-asset@master
@@ -163,7 +163,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-linux-musl-x64.zip
-          target-path: /downloads/linker/v1.9.94/linker-linux-musl-x64.zip
+          target-path: /downloads/linker/v1.9.95/linker-linux-musl-x64.zip
       - name: upload-linux-musl-x64
         id: upload-linux-musl-x64
         uses: actions/upload-release-asset@master
@@ -183,7 +183,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-linux-musl-arm.zip
-          target-path: /downloads/linker/v1.9.94/linker-linux-musl-arm.zip
+          target-path: /downloads/linker/v1.9.95/linker-linux-musl-arm.zip
       - name: upload-linux-musl-arm
         id: upload-linux-musl-arm
         uses: actions/upload-release-asset@master
@@ -203,7 +203,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-linux-musl-arm64.zip
-          target-path: /downloads/linker/v1.9.94/linker-linux-musl-arm64.zip
+          target-path: /downloads/linker/v1.9.95/linker-linux-musl-arm64.zip
       - name: upload-linux-musl-arm64
         id: upload-linux-musl-arm64
         uses: actions/upload-release-asset@master
@@ -223,7 +223,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-osx-x64.zip
-          target-path: /downloads/linker/v1.9.94/linker-osx-x64.zip
+          target-path: /downloads/linker/v1.9.95/linker-osx-x64.zip
       - name: upload-osx-x64
         id: upload-osx-x64
         uses: actions/upload-release-asset@master
@@ -243,7 +243,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-osx-arm64.zip
-          target-path: /downloads/linker/v1.9.94/linker-osx-arm64.zip
+          target-path: /downloads/linker/v1.9.95/linker-osx-arm64.zip
       - name: upload-osx-arm64
         id: upload-osx-arm64
         uses: actions/upload-release-asset@master
@@ -263,7 +263,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-any.zip
-          target-path: /downloads/linker/v1.9.94/linker-any.zip
+          target-path: /downloads/linker/v1.9.95/linker-any.zip
       - name: upload-any
         id: upload-any
         uses: actions/upload-release-asset@master
@@ -313,7 +313,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker.apk
-          target-path: /downloads/linker/v1.9.94/linker.apk
+          target-path: /downloads/linker/v1.9.95/linker.apk
       - name: upload-apk
         id: upload-apk
         uses: actions/upload-release-asset@master
