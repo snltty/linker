@@ -217,7 +217,7 @@ namespace linker.messenger.tuntap.client
         }
         public async Task<bool> SetId(ApiControllerParamsInfo param)
         {
-            KeyValueInfo<string, Guid> info = param.Content.DeJson<KeyValueInfo<string,Guid>>();
+            KeyValueInfo<string, Guid> info = param.Content.DeJson<KeyValueInfo<string, Guid>>();
             if (info.Key == signInClientStore.Id)
             {
                 tuntapConfigTransfer.SetID(info.Value);
@@ -244,7 +244,15 @@ namespace linker.messenger.tuntap.client
         public NetworkInfo CalcNetwork(ApiControllerParamsInfo param)
         {
             NetworkParamInfo info = param.Content.DeJson<NetworkParamInfo>();
-
+            return CalcNetwork(info);
+        }
+        public List<NetworkInfo> CalcNetworks(ApiControllerParamsInfo param)
+        {
+            NetworkParamInfo[] info = param.Content.DeJson<NetworkParamInfo[]>();
+            return info.Select(CalcNetwork).ToList();
+        }
+        private NetworkInfo CalcNetwork(NetworkParamInfo info)
+        {
             uint ip = NetworkHelper.ToValue(info.IP);
             uint prefixValue = NetworkHelper.ToPrefixValue(info.PrefixLength);
             uint network = NetworkHelper.ToNetworkValue(ip, prefixValue);
@@ -259,6 +267,13 @@ namespace linker.messenger.tuntap.client
                 Count = (int)(broadcast - network - 2),
             };
         }
+        public KeyValueInfo<IPAddress, byte> CalcSubNetwork(ApiControllerParamsInfo param)
+        {
+            PrefixLengthParamInfo info = param.Content.DeJson<PrefixLengthParamInfo>();
+            (IPAddress network, byte prefixLength) = NetworkHelper.FindSubNetwork(info.PrefixLength, info.StartIp, info.StartEnd);
+            return new KeyValueInfo<IPAddress, byte> { Key = network, Value = prefixLength };
+        }
+
         /// <summary>
         /// 添加网络
         /// </summary>
@@ -326,8 +341,15 @@ namespace linker.messenger.tuntap.client
         public ConcurrentDictionary<string, TuntapInfo> List { get; set; }
         public ulong HashCode { get; set; }
     }
+    public sealed class PrefixLengthParamInfo
+    {
+        public byte PrefixLength { get; set; }
+        public IPAddress StartIp { get; set; }
+        public IPAddress StartEnd { get; set; }
+    }
     public sealed class NetworkParamInfo
     {
+
         public IPAddress IP { get; set; }
         public byte PrefixLength { get; set; }
     }

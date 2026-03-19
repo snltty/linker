@@ -41,8 +41,7 @@ namespace linker.tunnel
                 new TransportTcpP2PNAT(tunnelMessengerAdapter),
                 new TransportTcpNutssb(tunnelMessengerAdapter),
                 transportUdpPortMap,
-                transportTcpPortMap,
-                new TransportMsQuic(tunnelMessengerAdapter)
+                transportTcpPortMap
             };
 
             foreach (var item in transports)

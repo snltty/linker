@@ -114,17 +114,17 @@ export const provideDevices = () => {
                     if (item.isSelf) {
                         globalData.value.self = item;
                     }
-                    if(item.avatar.startsWith('http') == false){
+                    if(item.avatar.startsWith('http') == false){    
                         try{
-                            item.avatar = JSON.parse(item.avatar || "{}");
+                            item.avatar_ = JSON.parse(item.avatar || "{}");
                             item.avatar_style = `
                             line-height: 0;
-                            font-family:${item.avatar.ff || 'auto'};
-                            font-size:${item.avatar.fs||'none'};
-                            color:${item.avatar.fc || 'none'};
-                            background-color:${item.avatar.bc || 'none'}
+                            font-family:${item.avatar_.ff || 'auto'};
+                            font-size:${item.avatar_.fs||'none'};
+                            color:${item.avatar_.fc || 'none'};
+                            background-color:${item.avatar_.bc || 'none'}
                             `;
-                            item.avatar_text = item.avatar.ft ||  item.MachineName.split('')[0];
+                            item.avatar_text = item.avatar_.ft ||  item.MachineName.split('')[0];
                         }catch(e){}
                     }else{
                         item.avatar_url = item.avatar;

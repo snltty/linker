@@ -1,30 +1,66 @@
 <template>
-     <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap" title="配置本组的网络" top="1vh" width="400">
+     <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap" title="配置本组的网络" top="1vh" width="500">
         <div>
-            <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="100">
-                <el-form-item prop="gateway">
-                    <p>网络租期30天、IP租期7天</p>
-                </el-form-item>
+            <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="60">
                 <el-form-item label="网卡名" prop="Name">
-                    <el-input v-trim v-model="state.ruleForm.Name" class="w-14"/>
+                    <el-row class="w-100">
+                        <el-col :span="10">
+                            <el-input v-trim v-model="state.ruleForm.Name"/>
+                        </el-col>
+                        <el-col :span="14"></el-col>
+                    </el-row>
                 </el-form-item>
-                <el-form-item label="网络前缀" prop="IP">
-                    <el-input v-trim v-model="state.ruleForm.IP" class="w-14" @change="handlePrefixLengthChange" />
-                    <span>/</span>
-                    <el-input v-trim @change="handlePrefixLengthChange" v-model="state.ruleForm.PrefixLength" class="w-4" />
-                    <span class="w-1"></span>
-                    <el-button @click="handleClear">重置</el-button>
+                <el-form-item label="网络号" prop="IP">
+                    <el-row class="w-100">
+                        <el-col :span="13">
+                            <el-input v-trim v-model="state.ruleForm.IP" @change="handlePrefixLengthChange" />
+                        </el-col>
+                        <el-col :span="1" class="t-c">/</el-col>
+                        <el-col :span="3">
+                            <el-input v-trim @change="handlePrefixLengthChange" v-model="state.ruleForm.PrefixLength" />
+                        </el-col>
+                        <el-col :span="1" class="t-c"></el-col>
+                        <el-col :span="6">
+                            <el-button @click="handleClear"><el-icon><Refresh /></el-icon></el-button>
+                        </el-col>
+                    </el-row>
                 </el-form-item>
                 <el-form-item label="" prop="IP1">
-                    <div class="calc">
-                        <p><span class="label">网络号</span><span class="value">{{ state.values.Network }}</span></p>
-                        <p><span class="label">网关</span><span class="value">{{ state.values.Gateway }}</span></p>
-                        <p><span class="label">开始IP</span><span class="value">{{ state.values.Start }}</span></p>
-                        <p><span class="label">结束IP</span><span class="value">{{ state.values.End }}</span></p>
-                        <p><span class="label">广播号</span><span class="value">{{ state.values.Broadcast }}</span></p>
-                        <p><span class="label">IP数量</span><span class="value">{{ state.values.Count }}</span></p>
+                    <div class="w-100">
+                        <el-descriptions :column="2" size="small" border title="">
+                            <el-descriptions-item label="网络号">{{ state.values.Network }}</el-descriptions-item>
+                            <el-descriptions-item label="网关">{{ state.values.Gateway }}</el-descriptions-item>
+                            <el-descriptions-item label="开始IP">{{ state.values.Start }}</el-descriptions-item>
+                            <el-descriptions-item label="结束IP">{{ state.values.End }}</el-descriptions-item>
+                            <el-descriptions-item label="广播号">{{ state.values.Broadcast }}</el-descriptions-item>
+                            <el-descriptions-item label="IP数量">{{ state.values.Count }}</el-descriptions-item>
+                        </el-descriptions>
                     </div>
                 </el-form-item>
+                <el-form-item label="子网" prop="Subs">
+                    <div class="subs">
+                        <template v-for="(item,index) in state.ruleForm.Subs">
+                            <el-row class="w-100">
+                                <el-col :span="4" class="pdr-10">
+                                    <el-input v-trim v-model="item.Name"/>
+                                </el-col>
+                                <el-col :span="7">
+                                    <el-input v-trim v-model="item.IP"/>
+                                </el-col>
+                                <el-col :span="1" class="t-c">/</el-col>
+                                <el-col :span="3">
+                                    <el-input v-trim v-model="item.PrefixLength"/>
+                                </el-col>
+                                <el-col :span="9" class="t-r">
+                                    <el-button type="danger"><el-icon><Delete></Delete></el-icon></el-button>
+                                    <el-button type="info"><el-icon><Edit></Edit></el-icon></el-button>
+                                    <el-button type="primary"><el-icon><Plus></Plus></el-icon></el-button>
+                                </el-col>
+                            </el-row>
+                        </template>
+                    </div>
+                </el-form-item>
+                <el-form-item label="" prop="alert"></el-form-item>
                 <AccessShow value="Lease">
                     <el-form-item label="" prop="Btns">
                         <div>
@@ -41,11 +77,11 @@
 import {getNetwork,addNetwork,calcNetwork } from '@/apis/tuntap';
 import { ElMessage } from 'element-plus';
 import { onMounted, reactive, ref, watch } from 'vue';
-import { Delete, Plus } from '@element-plus/icons-vue'
+import { Delete, Plus,Refresh,Edit } from '@element-plus/icons-vue'
 export default {
     props: ['modelValue'],
     emits: ['change','update:modelValue'],
-    components: {Delete,Plus},
+    components: {Delete,Plus,Refresh,Edit},
     setup(props, { emit }) {
 
         const ruleFormRef = ref(null);
@@ -87,6 +123,9 @@ export default {
                 state.ruleForm.Name = res.Name;
                 state.ruleForm.IP = res.IP;
                 state.ruleForm.PrefixLength = res.PrefixLength;
+                if(res.Subs.length == 0){
+                    res.Subs = [{Name:'子网1',IP:'0.0.0.0',PrefixLength:24}];
+                }
                 state.ruleForm.Subs = res.Subs;
                 _calcNetwork();
             });
@@ -130,11 +169,7 @@ export default {
 </script>
 <style lang="stylus" scoped>
 .el-switch.is-disabled{opacity :1;}
-.calc{
-    span{
-        display: inline-block;
-        &.label{width:6rem;}
-    }
+.el-button+.el-button{
+    margin-left: .4rem;
 }
-
 </style>

@@ -23,7 +23,8 @@
 6. 优化中继，针对无法连接自己的外网IP的情况
 7. 优化upnp，自己实现了一遍
 8. 服务端支持ipv6
-9. 客户端可以设置头像</Description>
+9. 客户端可以设置头像
+10. 变长掩码子网络隔离</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>

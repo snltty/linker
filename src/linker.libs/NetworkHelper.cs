@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Numerics;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -265,6 +266,60 @@ namespace linker.libs
                 .Where(c => c.Equals(IPAddress.Loopback) == false)
                 .Distinct().ToArray();
         }
+
+
+        /// <summary>
+        ///| Method | Mean     | Error     | StdDev    | Allocated |
+        ///|------- |---------:|----------:|----------:|----------:|
+        ///| Test   | 1.142 ns | 0.0045 ns | 0.0035 ns |         - |
+        /// </summary>
+        /// <param name="mainPrefixLength"></param>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <returns></returns>
+        public static (IPAddress network, byte prefixLength) FindSubNetwork(byte mainPrefixLength, IPAddress start, IPAddress end)
+        {
+            //主网络掩码
+            uint mainPrefixValue = ToPrefixValue(mainPrefixLength);
+
+            //按范围找到最接近的子网段
+            uint startIpValue = ToValue(start);
+            uint endIpValue = ToValue(end);
+
+            //开始 62
+            uint originStart = startIpValue & ~mainPrefixValue;
+            //结束 90
+            uint originEnd = endIpValue & ~mainPrefixValue;
+            //开始最近二次幂数 64
+            uint startValue = FindNearestPowerOfTwo(originStart);
+            //掩码26
+            byte prefixLength = (byte)(32 - (int)Math.Log2(FindNearestPowerOfTwo(originEnd - startValue + 1 + 2)));
+            uint prefixLengthValue = prefixLength < 1 ? 0 : 0xffffffff << (32 - prefixLength);
+
+            //网络号 192.168.0.64
+            uint networkValue = (startIpValue & prefixLengthValue) | startValue;
+
+            //广播号 192.168.0.95
+            //uint broadcastValue = startIpValue | ~prefixLengthValue;
+
+            return (ToIP(networkValue), prefixLength);
+        }
+        private static uint FindNearestPowerOfTwo(uint number)
+        {
+            if (number <= 1)
+            {
+                return 1;
+            }
+            // 31 - 左边1之前的全0个数 = 最后一个1的位置
+            // 66 01100000 -> 6  1<<6=64 和 1<<7=128
+            int highestBit = 31 - BitOperations.LeadingZeroCount(number);
+
+            uint lower = 1U << highestBit;
+            uint upper = 1U << (highestBit + 1);
+
+            return (number - lower <= upper - number) ? lower : upper;
+        }
+
 
         public static byte ToPrefixLength(uint ip)
         {
