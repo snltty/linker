@@ -207,6 +207,7 @@ namespace linker.messenger.tunnel.client
                 (MappingBehavior.EndpointIndependent, FilteringBehavior.AddressAndPortDependent) => 80,
                 (MappingBehavior.AddressDependent, FilteringBehavior.EndpointIndependent) => 50,
                 (MappingBehavior.AddressDependent, FilteringBehavior.AddressDependent) => 40,
+                (MappingBehavior.AddressDependent, FilteringBehavior.AddressAndPortDependent) => 35,
                 (MappingBehavior.AddressAndPortDependent, FilteringBehavior.EndpointIndependent) => 35,
                 (MappingBehavior.AddressAndPortDependent, FilteringBehavior.AddressDependent) => 25,
                 (MappingBehavior.AddressAndPortDependent, FilteringBehavior.AddressAndPortDependent) => 3,

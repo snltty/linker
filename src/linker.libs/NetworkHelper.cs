@@ -293,14 +293,13 @@ namespace linker.libs
             //开始最近二次幂数 64
             uint startValue = FindNearestPowerOfTwo(originStart);
             //掩码26
-            byte prefixLength = (byte)(32 - (int)Math.Log2(FindNearestPowerOfTwo(originEnd - startValue + 1 + 2)));
-            uint prefixLengthValue = prefixLength < 1 ? 0 : 0xffffffff << (32 - prefixLength);
+            byte prefixLength = (byte)(32 - (int)Math.Log2(FindNearestPowerOfTwo(originEnd - startValue + 1)));
+            uint prefixLengthValue = ToPrefixValue(prefixLength);
 
             //网络号 192.168.0.64
             uint networkValue = (startIpValue & prefixLengthValue) | startValue;
-
             //广播号 192.168.0.95
-            //uint broadcastValue = startIpValue | ~prefixLengthValue;
+            uint broadcastValue = startIpValue | ~prefixLengthValue;
 
             return (ToIP(networkValue), prefixLength);
         }

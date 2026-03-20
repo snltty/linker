@@ -15,12 +15,16 @@ namespace linker.messenger.tuntap
         /// </summary>
         public byte PrefixLength { get; set; } = 24;
 
+        public int Mtu { get; set; } = 1420;
+
+        public int MssFix { get; set; }
+
         /// <summary>
         /// 局域网配置列表
         /// </summary>
         public List<TuntapLanInfo> Lans { get; set; } = new List<TuntapLanInfo>();
 
-        public string Name { get; set; } = string.Empty;
+        public string Name { get; set; } = "linker";
         public string NetworkName { get; set; } = string.Empty;
 
         public Guid Guid { get; set; } = Guid.Parse("771EF382-8718-5BC5-EBF0-A28B86142278");
@@ -54,7 +58,10 @@ namespace linker.messenger.tuntap
     {
         public IPAddress IP { get; set; } = IPAddress.Any;
         public byte PrefixLength { get; set; } = 24;
+        public string Name { get; set; } = string.Empty;
         public string NetworkName { get; set; } = string.Empty;
+        public int Mtu { get; set; } = 1420;
+        public int MssFix { get; set; }
     }
 
     public sealed partial class TuntapVeaLanIPAddress
@@ -101,6 +108,9 @@ namespace linker.messenger.tuntap
         /// 前缀长度
         /// </summary>
         public byte PrefixLength { get; set; } = 24;
+        public int Mtu { get; set; } = 1420;
+        public int MssFix { get; set; }
+
         /// <summary>
         /// 网卡名
         /// </summary>
@@ -127,7 +137,7 @@ namespace linker.messenger.tuntap
         /// <summary>
         /// 端口转发列表
         /// </summary>
-        
+
         public List<TuntapForwardInfo> Forwards { get; set; } = new List<TuntapForwardInfo>();
         /// <summary>
         /// 开关，多个bool集合
@@ -473,7 +483,7 @@ namespace linker.messenger.tuntap
         /// <summary>
         /// 源代理
         /// </summary>
-        SrcProxy = 1024,
+        SrcProxy = 1024
     }
 
 

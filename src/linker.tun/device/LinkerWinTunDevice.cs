@@ -184,6 +184,10 @@ namespace linker.tun.device
             }
         }
 
+        public void SetMssFix(int value = 0)
+        {
+
+        }
         public void SetMtu(int value)
         {
             CommandHelper.Windows(string.Empty, new string[] {

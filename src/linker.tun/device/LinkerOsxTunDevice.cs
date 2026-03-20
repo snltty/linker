@@ -131,7 +131,7 @@ namespace linker.tun.device
                 {
                     // Configure interface - use gateway as destination
                     $"sudo ifconfig {interfaceMac} {address} {gatewayAddr} netmask 255.255.255.255 up",
-                    $"sudo ifconfig {interfaceMac} mtu 1500",
+                    $"sudo ifconfig {interfaceMac} mtu 1420",
                     
                     // Enable IP forwarding
                     "sudo sysctl -w net.inet.ip.forwarding=1",
@@ -225,6 +225,10 @@ namespace linker.tun.device
             }
         }
 
+        public void SetMssFix(int value = 0)
+        {
+
+        }
         public void SetMtu(int value)
         {
             if (!string.IsNullOrEmpty(interfaceMac))

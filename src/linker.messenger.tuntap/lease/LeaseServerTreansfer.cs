@@ -273,11 +273,11 @@ namespace linker.messenger.tuntap.lease
         /// <summary>
         /// 前缀，掩码长度
         /// </summary>
-        public byte PrefixLength { get; set; } = 32;
+        public byte PrefixLength { get; set; } = 24;
         /// <summary>
         /// 网卡名
         /// </summary>
-        public string Name { get; set; } = string.Empty;
+        public string Name { get; set; } = "linker";
 
         /// <summary>
         /// 仅传输，不需要任何设置
@@ -285,11 +285,15 @@ namespace linker.messenger.tuntap.lease
         public string SubName { get; set; } = string.Empty;
 
         public List<LeaseSubInfo> Subs { get; set; } = [];
+
+        public int Mtu { get; set; } = 1420;
+
+        public int MssFix { get; set; }
     }
     public sealed partial class LeaseSubInfo
     {
         public LeaseSubInfo() { }
-       
+
         /// <summary>
         /// 网络号
         /// </summary>

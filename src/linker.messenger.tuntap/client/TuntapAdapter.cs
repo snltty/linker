@@ -161,8 +161,9 @@ namespace linker.messenger.tuntap.client
                 Name = tuntapConfigTransfer.Name,
                 Address = tuntapConfigTransfer.Info.IP,
                 PrefixLength = tuntapConfigTransfer.Info.PrefixLength,
-                Mtu = 1420,
+                Mtu = tuntapConfigTransfer.Info.Mtu,
                 Guid = tuntapConfigTransfer.Info.Guid,
+                MssFix = tuntapConfigTransfer.Info.MssFix
             });
         }
         /// <summary>

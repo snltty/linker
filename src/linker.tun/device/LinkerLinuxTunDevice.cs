@@ -141,6 +141,26 @@ namespace linker.tun.device
             }
         }
 
+        public void SetMssFix(int value = 0)
+        {
+            if (value >= 0 && value < 1500)
+            {
+                string _value = value == 0 ? "--clamp-mss-to-pmtu" : $"--set-mss {value}";
+
+                CommandHelper.Linux(string.Empty, new string[] {
+                    $"iptables -t mangle -A POSTROUTING -o {Name} -p tcp --tcp-flags SYN,RST SYN -j TCPMSS {_value}",
+                    $"iptables -t mangle -A FORWARD -o {Name} -p tcp --tcp-flags SYN,RST SYN -j TCPMSS {_value}",
+                });
+            }
+            else
+            {
+                CommandHelper.Linux(string.Empty, new string[] {
+                    @$"iptables-save | grep -v -E -- ""-o {Name}\s*.*\s* -j TCPMSS"" | iptables-restore",
+                });
+            }
+
+
+        }
         public void SetMtu(int value)
         {
             CommandHelper.Linux(string.Empty, new string[] { $"ip link set dev {Name} mtu {value}" });
@@ -190,31 +210,9 @@ namespace linker.tun.device
             if (address == null || address.Equals(IPAddress.Any)) return;
             try
             {
-                string support = CommandHelper.Linux(string.Empty, new string[] { "iptables -m state -h" }, out string supportError);
-                bool isSupport = string.IsNullOrWhiteSpace(supportError) && support.Contains("No such file or directory") == false;
-
                 CommandHelper.Linux(string.Empty, new string[] {
-                    $"iptables -D FORWARD -i {interfaceLinux} -o {Name} -j ACCEPT",
-                    $"iptables -D FORWARD -i {Name} -j ACCEPT",
-                    $"iptables -t nat -D POSTROUTING -o {Name} -j MASQUERADE",
-
-                    isSupport ? $"iptables -D FORWARD -i {Name} -o {interfaceLinux} -m state --state ESTABLISHED,RELATED -j ACCEPT"
-                    : $"iptables -D FORWARD -i {Name} -o {interfaceLinux} -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT",
-
-                    isSupport ? $"iptables -D FORWARD -o {Name} -m state --state ESTABLISHED,RELATED -j ACCEPT"
-                    : $"iptables -D FORWARD -o {Name} -m conntrack  --ctstate ESTABLISHED,RELATED -j ACCEPT"
+                    @$"iptables-save | grep -v -E -- ""-[oi] {Name}\s*.*\s* -j (ACCEPT|MASQUERADE|DROP|REJECT)"" | iptables-restore",
                 });
-
-
-                IPAddress network = NetworkHelper.ToNetworkIP(address, NetworkHelper.ToPrefixValue(prefixLength));
-                string iptableLineNumbers = CommandHelper.Linux(string.Empty, new string[] { $"iptables -t nat -L --line-numbers | grep {network}/{prefixLength} | cut -d' ' -f1" });
-                if (string.IsNullOrWhiteSpace(iptableLineNumbers) == false)
-                {
-                    string[] commands = iptableLineNumbers.Split(Environment.NewLine)
-                        .Where(c => string.IsNullOrWhiteSpace(c) == false)
-                        .Select(c => $"iptables -t nat -D POSTROUTING {c}").ToArray();
-                    CommandHelper.Linux(string.Empty, commands);
-                }
                 RestartFirewall();
             }
             catch (Exception ex)

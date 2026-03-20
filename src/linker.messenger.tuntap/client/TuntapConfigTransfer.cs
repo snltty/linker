@@ -11,8 +11,7 @@ namespace linker.messenger.tuntap.client
     {
         public TuntapConfigInfo Info => tuntapStore.Info;
 
-        private string name = string.Empty;
-        public string Name => string.IsNullOrWhiteSpace(Info.Name) ? (string.IsNullOrWhiteSpace(name) ? "linker" : name) : Info.Name;
+        public string Name => string.IsNullOrWhiteSpace(Info.Name) ? "linker" : Info.Name;
 
 
         private ulong configVersion = 0;
@@ -63,8 +62,6 @@ namespace linker.messenger.tuntap.client
         {
             TimerHelper.Async(async () =>
             {
-                string old = info.DiffValue;
-
                 Info.IP = info.IP ?? IPAddress.Any;
                 Info.Lans = info.Lans;
                 Info.PrefixLength = info.PrefixLength;
@@ -72,16 +69,15 @@ namespace linker.messenger.tuntap.client
                 Info.Switch = info.Switch;
                 Info.Forwards = info.Forwards;
                 Info.NetworkName = info.NetworkName;
+                Info.Mtu = info.Mtu;
+                Info.MssFix = info.MssFix;
 
                 tuntapStore.Confirm();
 
                 await LeaseIP().ConfigureAwait(false);
                 SetGroupIP();
 
-                if (old != info.DiffValue)
-                {
-                    Version.Increment();
-                }
+                Version.Increment();
 
                 OnUpdate();
             });
@@ -127,10 +123,12 @@ namespace linker.messenger.tuntap.client
         /// <returns></returns>
         private async Task LeaseIP()
         {
-            LeaseInfo leaseInfo = await leaseClientTreansfer.LeaseIp(Info.IP, Info.PrefixLength, Info.NetworkName).ConfigureAwait(false);
+            LeaseInfo leaseInfo = await leaseClientTreansfer.LeaseIp(Info.IP, Info.PrefixLength, Info.NetworkName, Info.Name, Info.Mtu, Info.MssFix).ConfigureAwait(false);
             Info.IP = leaseInfo.IP;
             Info.PrefixLength = leaseInfo.PrefixLength;
-            name = leaseInfo.Name;
+            Info.Mtu = leaseInfo.Mtu;
+            Info.MssFix = leaseInfo.MssFix;
+            Info.Name = leaseInfo.Name;
             tuntapStore.Confirm();
         }
 
@@ -146,6 +144,9 @@ namespace linker.messenger.tuntap.client
                     Info.IP = tuntapGroup2IPInfo.IP;
                     Info.PrefixLength = tuntapGroup2IPInfo.PrefixLength;
                     Info.NetworkName = tuntapGroup2IPInfo.NetworkName;
+                    Info.Mtu = tuntapGroup2IPInfo.Mtu;
+                    Info.MssFix = tuntapGroup2IPInfo.MssFix;
+                    Info.Name = tuntapGroup2IPInfo.Name;
                 }
             }
         }
@@ -154,7 +155,15 @@ namespace linker.messenger.tuntap.client
         /// </summary>
         private void SetGroupIP()
         {
-            TuntapGroup2IPInfo tuntapGroup2IPInfo = new TuntapGroup2IPInfo { IP = Info.IP, PrefixLength = Info.PrefixLength, NetworkName = Info.NetworkName };
+            TuntapGroup2IPInfo tuntapGroup2IPInfo = new TuntapGroup2IPInfo
+            {
+                IP = Info.IP,
+                PrefixLength = Info.PrefixLength,
+                NetworkName = Info.NetworkName,
+                Mtu = Info.Mtu,
+                MssFix = Info.MssFix,
+                Name = Info.Name,
+            };
             Info.Group2IP[signInClientStore.Group.Id] = tuntapGroup2IPInfo;
         }
 

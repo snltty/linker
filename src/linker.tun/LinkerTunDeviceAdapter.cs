@@ -134,6 +134,7 @@ namespace linker.tun
                     return false;
                 }
                 linkerTunDevice.SetMtu(info.Mtu);
+                linkerTunDevice.SetMssFix(info.MssFix);
                 Read();
                 lanSrcProxy.Setup(address, prefixLength, this, ref natError);
                 return true;

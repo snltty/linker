@@ -432,6 +432,10 @@ namespace linker.app
         public void SetMtu(int value)
         {
         }
+        public void SetMssFix(int value = 0)
+        {
+
+        }
         public void SetNat(out string error)
         {
             error = string.Empty;

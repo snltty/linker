@@ -38,6 +38,7 @@ namespace linker.tun.device
         /// </summary>
         public void Refresh();
 
+        public void SetMssFix(int value = 0);
         /// <summary>
         /// 设置MTU
         /// </summary>
@@ -122,6 +123,10 @@ namespace linker.tun.device
         /// MTU
         /// </summary>
         public int Mtu { get; set; } = 1420;
+        /// <summary>
+        /// MSS 钳制
+        /// </summary>
+        public int MssFix { get; set; }
     }
 
     /// <summary>

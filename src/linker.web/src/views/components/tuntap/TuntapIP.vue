@@ -9,16 +9,26 @@
                 <el-input v-trim v-model="state.ruleForm.Name" class="w-14" />
                 <span class="mgl-1">留空则使用【本组网络】的设置</span>
             </el-form-item>
+            <el-form-item label="MTU" prop="MTU">
+                <el-input-number v-trim v-model="state.ruleForm.Mtu" :min="0" :max="1500" class="w-14" />
+                <span class="mgl-1">一般来说不用动，不要超过1440</span>
+            </el-form-item>
+            <el-form-item label="MSS钳制" prop="MssFix">
+                <el-select v-model="state.ruleForm.MssFix" class="w-14">
+                    <el-option :value="item.value" :label="item.label" v-for="(item,index) in state.msss"></el-option>
+                </el-select>
+                <span class="mgl-1">TCP MSS Clamping，仅linux</span>
+            </el-form-item>
             <el-form-item label="网络名" prop="NetworkName">
                 <el-select v-model="state.ruleForm.NetworkName"  class="w-14">
                     <el-option :value="item.value" :label="item.label" v-for="(item,index) in state.networks"></el-option>
                 </el-select>
-                <span class="mgl-1">选择子网或留空或选择主网</span>
+                <span class="mgl-1">需要变长掩码子网隔离就选子网、否则留空或选择主网</span>
             </el-form-item>
-            <el-form-item label="网卡IP" prop="IP" class="mgb-0">
+            <el-form-item label="网卡IP" prop="IP">
                 <el-input v-trim v-model="state.ruleForm.IP" class="w-14" />
-                    <span>/</span>
-                    <el-input v-trim @change="handlePrefixLengthChange" v-model="state.ruleForm.PrefixLength" class="w-4" />
+                <span> / </span>
+                <el-input v-trim @change="handlePrefixLengthChange" v-model="state.ruleForm.PrefixLength" class="w-4" />
             </el-form-item>
             <el-form-item label="" class="mgb-0">
                     <el-checkbox class="mgr-1" v-model="state.ruleForm.ShowDelay" label="显示延迟" size="large" />
@@ -66,6 +76,8 @@ export default {
                 Forwards: tuntap.value.current.Forwards,
                 Name: tuntap.value.current.Name,
                 NetworkName: tuntap.value.current.NetworkName,
+                Mtu: tuntap.value.current.Mtu,
+                MssFix: tuntap.value.current.MssFix,
                 Guid: '',
             },
             rules: {
@@ -78,7 +90,22 @@ export default {
                     },
                 }
             },
-            networks:[]
+            networks:[],
+            msss:[
+                {value:-1,label:'不启用'},
+                {value:0,label:'自动计算'},
+                {value:1400,label:'启用1400'},
+                {value:1380,label:'启用1380'},
+                {value:1360,label:'启用1360'},
+                {value:1340,label:'启用1340'},
+                {value:1320,label:'启用1320'},
+                {value:1300,label:'启用1300'},
+                {value:1280,label:'启用1280'},
+                {value:1260,label:'启用1260'},
+                {value:1240,label:'启用1240'},
+                {value:1220,label:'启用1220'},
+                {value:1200,label:'启用1200'}
+            ]
         });
         const handlePrefixLengthChange = () => {
             var value = +state.ruleForm.PrefixLength;
@@ -111,6 +138,9 @@ export default {
             json.FakeAck = state.ruleForm.FakeAck;
             json.SrcProxy = state.ruleForm.SrcProxy;
             json.Name = state.ruleForm.Name;
+            json.NetworkName = state.ruleForm.NetworkName;
+            json.Mtu = state.ruleForm.Mtu;
+            json.MssFix = state.ruleForm.MssFix;
 
             return json;
         }

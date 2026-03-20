@@ -73,7 +73,10 @@ namespace linker.messenger.tuntap.client
                 NatError = tuntapTransfer.NatError,
                 SystemInfo = systemInformation.Get(),
                 Forwards = tuntapConfigTransfer.Info.Forwards,
-                Switch = tuntapConfigTransfer.Info.Switch
+                Switch = tuntapConfigTransfer.Info.Switch,
+                NetworkName = tuntapConfigTransfer.Info.NetworkName,
+                Mtu = tuntapConfigTransfer.Info.Mtu,
+                MssFix = tuntapConfigTransfer.Info.MssFix,
             });
         }
         public void AddData(Memory<byte> data)
@@ -134,7 +137,7 @@ namespace linker.messenger.tuntap.client
             {
                 if (DataVersion.Eq(version, out ulong _version) == false)
                 {
-                    if(await CheckOffline() || await CheckOnline())
+                    if (await CheckOffline() || await CheckOnline())
                     {
                         ProcData();
                     }

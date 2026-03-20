@@ -48,12 +48,12 @@ namespace linker.messenger.tuntap.lease
                 info = serializer.Deserialize<LeaseInfo>(resp.Data.Span);
             }
 
-            if(info.IP.Equals(IPAddress.Any) == false)
+            if (info.IP.Equals(IPAddress.Any) == false)
             {
                 leaseClientStore.Set(signInClientStore.Group.Id, info);
                 leaseClientStore.Confirm();
             }
-           
+
             return info;
         }
         public async Task LeaseChange()
@@ -65,13 +65,13 @@ namespace linker.messenger.tuntap.lease
             }).ConfigureAwait(false);
         }
 
-        public async Task<LeaseInfo> LeaseIp(IPAddress ip, byte prefixLength,string networkName)
+        public async Task<LeaseInfo> LeaseIp(IPAddress ip, byte prefixLength, string networkName, string name, int mtu, int mssfix)
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)TuntapMessengerIds.LeaseIP,
-                Payload = serializer.Serialize(new LeaseInfo { IP = ip, PrefixLength = prefixLength, SubName= networkName })
+                Payload = serializer.Serialize(new LeaseInfo { IP = ip, PrefixLength = prefixLength, SubName = networkName, Mtu = mtu, MssFix = mssfix, Name = name })
 
             }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK)
@@ -82,7 +82,7 @@ namespace linker.messenger.tuntap.lease
                     return newip;
                 }
             }
-            return new LeaseInfo { IP = ip, PrefixLength = prefixLength };
+            return new LeaseInfo { IP = ip, PrefixLength = prefixLength, Mtu = mtu, MssFix = mssfix, Name = name };
         }
 
         private void LeaseExpTask()

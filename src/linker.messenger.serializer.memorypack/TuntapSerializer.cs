@@ -176,9 +176,14 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         string NetworkName => info.NetworkName;
 
+        [MemoryPackInclude]
+        int Mtu => info.Mtu;
+        [MemoryPackInclude]
+        int MssFix => info.MssFix;
+
         [MemoryPackConstructor]
         SerializableTuntapInfo(string machineId, TuntapStatus status, IPAddress ip, byte prefixLength, string name,
-            List<TuntapLanInfo> lans, IPAddress wan, string setupError, string natError, string systemInfo, List<TuntapForwardInfo> forwards, TuntapSwitch Switch, string networkName)
+            List<TuntapLanInfo> lans, IPAddress wan, string setupError, string natError, string systemInfo, List<TuntapForwardInfo> forwards, TuntapSwitch Switch, string networkName, int mtu, int mssfix)
         {
             var info = new TuntapInfo
             {
@@ -194,7 +199,9 @@ namespace linker.messenger.serializer.memorypack
                 Name = name,
                 Status = status,
                 Switch = Switch,
-                NetworkName = networkName
+                NetworkName = networkName,
+                Mtu = mtu,
+                MssFix = mssfix
             };
             this.info = info;
         }
@@ -243,6 +250,12 @@ namespace linker.messenger.serializer.memorypack
 
             if (count > 12)
                 value.NetworkName = reader.ReadValue<string>();
+
+            if (count > 13)
+                value.Mtu = reader.ReadValue<int>();
+
+            if (count > 14)
+                value.MssFix = reader.ReadValue<int>();
         }
     }
 
@@ -548,8 +561,13 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude, MemoryPackAllowSerialize]
         List<LeaseSubInfo> Subs => info.Subs;
 
+        [MemoryPackInclude, MemoryPackAllowSerialize]
+        int Mtu => info.Mtu;
+        [MemoryPackInclude, MemoryPackAllowSerialize]
+        int MssFix => info.MssFix;
+
         [MemoryPackConstructor]
-        SerializableLeaseInfo(IPAddress ip, byte prefixLength, string name, string subname, List<LeaseSubInfo> subs)
+        SerializableLeaseInfo(IPAddress ip, byte prefixLength, string name, string subname, List<LeaseSubInfo> subs, int mtu, int mssfix)
         {
             var info = new LeaseInfo
             {
@@ -557,7 +575,9 @@ namespace linker.messenger.serializer.memorypack
                 PrefixLength = prefixLength,
                 Name = name,
                 SubName = subname,
-                Subs = subs
+                Subs = subs,
+                Mtu = mtu,
+                MssFix = mssfix
             };
             this.info = info;
         }
@@ -599,6 +619,12 @@ namespace linker.messenger.serializer.memorypack
 
             if (count > 4)
                 value.Subs = reader.ReadValue<List<LeaseSubInfo>>();
+
+            if (count > 5)
+                value.Mtu = reader.ReadValue<int>();
+
+            if (count > 6)
+                value.MssFix = reader.ReadValue<int>();
 
         }
     }
