@@ -141,7 +141,7 @@ namespace linker.nat
                     state.ReadPacket.TotalLength = 40;
                     state.ReadPacket.Length = 44;
                     await callback.Callback(state.ReadPacket).ConfigureAwait(false);
-                    state.Disponse();
+                    state.Dispose();
                 }
 
                 ArrayPool<byte>.Shared.Return(buffer);
@@ -154,7 +154,7 @@ namespace linker.nat
 
             foreach (var item in connections.Values)
             {
-                item.Disponse();
+                item.Dispose();
             }
             srcMap.Clear();
             connections.Clear();
@@ -253,7 +253,7 @@ namespace linker.nat
                     connection.ReadPacket.TotalLength = 40;
                     connection.ReadPacket.Length = 44;
                     await callback.Callback(connection.ReadPacket).ConfigureAwait(false);
-                    connection.Disponse();
+                    connection.Dispose();
                 }
                 ArrayPool<byte>.Shared.Return(buffer);
             }
@@ -286,7 +286,7 @@ namespace linker.nat
                     await callback.Callback(state.ReadPacket).ConfigureAwait(false);
 
                     connections.TryRemove(key, out _);
-                    state.Disponse();
+                    state.Dispose();
 
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         LoggerHelper.Instance.Error(ex);
@@ -360,7 +360,7 @@ namespace linker.nat
         {
             if (connections.TryRemove(key, out ConnectionState state))
             {
-                state.Disponse();
+                state.Dispose();
             }
         }
 
@@ -476,7 +476,7 @@ namespace linker.nat
             public bool NeedPause => Received > 512 * 1024 && Receiving;
             public bool NeedResume => Received < 128 * 1024 && Receiving == false;
 
-            public void Disponse()
+            public void Dispose()
             {
                 Pipe?.Writer.Complete();
                 Pipe?.Reader.Complete();

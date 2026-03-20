@@ -102,7 +102,7 @@ namespace linker.messenger.forward.proxy
                     if (token.Connection == null || token.ReadPacket.DstAddr == 0)
                     {
                         if (closeConnect)
-                            token.Disponse();
+                            token.Dispose();
                         return;
                     }
 
@@ -132,7 +132,7 @@ namespace linker.messenger.forward.proxy
                     token.ReadPacket.Flag = ForwardFlags.Rst;
                     token.ReadPacket.Length = token.ReadPacket.HeaderLength;
                     await SendToConnection(token).ConfigureAwait(false);
-                    token.Disponse();
+                    token.Dispose();
                 }
                 else
                 {
@@ -214,7 +214,7 @@ namespace linker.messenger.forward.proxy
                     token.ReadPacket.Flag = ForwardFlags.RstAck;
                     token.ReadPacket.Length = token.ReadPacket.HeaderLength;
                     await SendToConnection(token).ConfigureAwait(false);
-                    token.Disponse();
+                    token.Dispose();
                 }
             }
         }
@@ -371,7 +371,7 @@ namespace linker.messenger.forward.proxy
         {
             if (tcpConnections.TryRemove((packet.SrcAddr, packet.SrcPort, packet.DstAddr, packet.DstPort), out AsyncUserToken token))
             {
-                token.Disponse();
+                token.Dispose();
             }
         }
         /// <summary>
@@ -383,7 +383,7 @@ namespace linker.messenger.forward.proxy
         {
             if (tcpConnections.TryRemove((0, packet.SrcPort, packet.DstAddr, packet.DstPort), out AsyncUserToken token))
             {
-                token.Disponse();
+                token.Dispose();
             }
         }
 
@@ -415,7 +415,7 @@ namespace linker.messenger.forward.proxy
             }
             foreach (var item in tcpConnections.Where(c => c.Value.ListenPort == port).ToList())
             {
-                item.Value.Disponse();
+                item.Value.Dispose();
                 tcpConnections.TryRemove(item.Key, out _);
             }
         }

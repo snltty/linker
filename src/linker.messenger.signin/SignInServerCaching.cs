@@ -56,7 +56,7 @@ namespace linker.messenger.signin
                 return verifyResult;
             }
             //无限制，则挤压下线
-            cache.Connection?.Disponse(9);
+            cache.Connection?.Dispose(9);
             if (has == false)
             {
                 cache.Id = signInfo.MachineId;

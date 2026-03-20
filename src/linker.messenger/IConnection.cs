@@ -116,7 +116,7 @@ namespace linker.messenger
         /// <returns></returns>
         public Task<bool> SendAsync(byte[] data, int length);
 
-        public void Disponse(int value = 0);
+        public void Dispose(int value = 0);
 
         #region 回复消息相关
 
@@ -237,7 +237,7 @@ namespace linker.messenger
         public abstract Task<bool> SendAsync(ReadOnlyMemory<byte> data);
         public abstract Task<bool> SendAsync(byte[] data, int length);
 
-        public virtual void Disponse(int value = 0)
+        public virtual void Dispose(int value = 0)
         {
         }
     }
@@ -304,7 +304,7 @@ namespace linker.messenger
                     }
                     if (length == 0)
                     {
-                        Disponse(1);
+                        Dispose(1);
                         break;
                     }
                     ReceiveBytes += length;
@@ -325,7 +325,7 @@ namespace linker.messenger
             }
             finally
             {
-                Disponse(2);
+                Dispose(2);
             }
         }
         private async Task ReadPacket(Memory<byte> buffer)
@@ -471,7 +471,7 @@ namespace linker.messenger
                 {
                     LoggerHelper.Instance.Error(ex);
                 }
-                Disponse(3);
+                Dispose(3);
             }
             finally
             {
@@ -484,7 +484,7 @@ namespace linker.messenger
             return await SendAsync(data.AsMemory(0, length)).ConfigureAwait(false);
         }
 
-        public override void Disponse(int value = 0)
+        public override void Dispose(int value = 0)
         {
             callback = null;
             userToken = null;
@@ -492,7 +492,7 @@ namespace linker.messenger
             bufferCache.Clear(true);
 
             cancellationTokenSourceWrite?.Cancel();
-            base.Disponse();
+            base.Dispose();
 
             try
             {

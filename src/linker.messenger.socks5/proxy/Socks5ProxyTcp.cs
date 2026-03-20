@@ -100,7 +100,7 @@ namespace linker.messenger.socks5
                     int length = await Tunneling(token, ProtocolType.Tcp).ConfigureAwait(false);
                     if (token.Connection == null || token.ReadPacket.DstAddr == 0)
                     {
-                        token.Disponse();
+                        token.Dispose();
                         return;
                     }
 
@@ -131,7 +131,7 @@ namespace linker.messenger.socks5
                     token.ReadPacket.Length = token.ReadPacket.HeaderLength;
                     await SendToConnection(token).ConfigureAwait(false);
 
-                    token.Disponse();
+                    token.Dispose();
                 }
                 else
                 {
@@ -210,7 +210,7 @@ namespace linker.messenger.socks5
                     token.ReadPacket.Flag = ForwardFlags.RstAck;
                     token.ReadPacket.Length = token.ReadPacket.HeaderLength;
                     await SendToConnection(token).ConfigureAwait(false);
-                    token.Disponse();
+                    token.Dispose();
                 }
             }
         }
@@ -368,7 +368,7 @@ namespace linker.messenger.socks5
         {
             if (tcpConnections.TryRemove((packet.SrcAddr, packet.SrcPort, packet.DstAddr, packet.DstPort), out AsyncUserToken token))
             {
-                token.Disponse();
+                token.Dispose();
             }
         }
         /// <summary>
@@ -380,7 +380,7 @@ namespace linker.messenger.socks5
         {
             if (tcpConnections.TryRemove((0, packet.SrcPort, packet.DstAddr, packet.DstPort), out AsyncUserToken token))
             {
-                token.Disponse();
+                token.Dispose();
             }
         }
 

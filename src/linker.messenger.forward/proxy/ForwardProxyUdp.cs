@@ -95,7 +95,7 @@ namespace linker.messenger.forward.proxy
             finally
             {
                 udpListens.TryRemove(port, out _);
-                token.Disponse();
+                token.Dispose();
             }
         }
 
@@ -129,7 +129,7 @@ namespace linker.messenger.forward.proxy
                     LoggerHelper.Instance.Error(ex);
                 if (udpConnections.TryRemove(connectId, out AsyncUserToken token))
                 {
-                    token.Disponse();
+                    token.Dispose();
                 }
             }
         }
@@ -227,7 +227,7 @@ namespace linker.messenger.forward.proxy
                 ArrayPool<byte>.Shared.Return(buffer);
                 if (udpConnections.TryRemove(connectId, out AsyncUserToken token))
                 {
-                    token.Disponse();
+                    token.Dispose();
                 }
             }
         }
@@ -246,7 +246,7 @@ namespace linker.messenger.forward.proxy
                     {
                         if (udpConnections.TryRemove(item, out AsyncUserToken token))
                         {
-                            token.Disponse();
+                            token.Dispose();
                         }
                     }
                 }
@@ -260,13 +260,13 @@ namespace linker.messenger.forward.proxy
         {
             foreach (var item in udpListens)
             {
-                item.Value.Disponse();
+                item.Value.Dispose();
             }
             udpListens.Clear();
 
             foreach (var item in udpConnections)
             {
-                item.Value.Disponse();
+                item.Value.Dispose();
             }
             udpConnections.Clear();
         }
@@ -278,14 +278,14 @@ namespace linker.messenger.forward.proxy
         {
             if (udpListens.TryRemove(port, out AsyncUserToken token))
             {
-                token.Disponse();
+                token.Dispose();
             }
 
             if (udpListens.IsEmpty)
             {
                 foreach (var item in udpConnections)
                 {
-                    item.Value.Disponse();
+                    item.Value.Dispose();
                 }
                 udpConnections.Clear();
             }

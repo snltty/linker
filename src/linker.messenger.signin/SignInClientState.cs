@@ -16,7 +16,7 @@ namespace linker.messenger.signin
 
         private void Helper_OnAppExit(object sender, EventArgs e)
         {
-            Disponse();
+            Dispose();
         }
 
         public string SignInHost { get; set; }
@@ -86,9 +86,9 @@ namespace linker.messenger.signin
             signInTimes++;
         }
 
-        public void Disponse()
+        public void Dispose()
         {
-            Connection?.Disponse();
+            Connection?.Dispose();
         }
     }
 }

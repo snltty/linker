@@ -49,7 +49,7 @@ namespace linker.messenger.signin
         public void SignIn(IConnection connection)
 #pragma warning restore CA1822 // 将成员标记为 static
         {
-            connection.Disponse();
+            connection.Dispose();
             return;
         }
 

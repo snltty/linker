@@ -552,7 +552,7 @@ namespace linker.messenger.node
                                 else
                                 {
                                     LoggerHelper.Instance.Error($"{Name} sign in to node {node.Name} {remote} fail");
-                                    connection?.Disponse();
+                                    connection?.Dispose();
                                 }
                             }
                             catch (Exception ex)

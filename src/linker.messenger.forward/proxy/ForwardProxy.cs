@@ -370,7 +370,7 @@ namespace linker.messenger.forward.proxy
         public bool NeedPause => Received > 512 * 1024 && Receiving;
         public bool NeedResume => Received < 128 * 1024 && Receiving == false;
 
-        public void Disponse()
+        public void Dispose()
         {
             Pipe?.Writer.Complete();
             Pipe?.Reader.Complete();

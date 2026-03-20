@@ -26,7 +26,7 @@ namespace linker.messenger.node
         {
             if (connections[(byte)type].TryRemove(id, out ConnectionInfo _connection) && _connection.Connection.GetHashCode() != connection.Connection.GetHashCode())
             {
-                _connection.Connection.Disponse();
+                _connection.Connection.Dispose();
             }
 
             return connections[(byte)type].TryAdd(id, connection);

@@ -177,7 +177,7 @@ namespace linker.messenger.listen
             socket?.SafeClose();
             socket = null;
         }
-        public void Disponse()
+        public void Dispose()
         {
             Stop();
         }
