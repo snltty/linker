@@ -267,11 +267,46 @@ namespace linker.messenger.tuntap.client
                 Count = (int)(broadcast - network - 2),
             };
         }
-        public KeyValueInfo<IPAddress, byte> CalcSubNetwork(ApiControllerParamsInfo param)
+        public List<SubResultInfo> CalcSubNetwork(ApiControllerParamsInfo param)
         {
-            PrefixLengthParamInfo info = param.Content.DeJson<PrefixLengthParamInfo>();
-            (IPAddress network, byte prefixLength) = NetworkHelper.FindSubNetwork(info.PrefixLength, info.StartIp, info.StartEnd);
-            return new KeyValueInfo<IPAddress, byte> { Key = network, Value = prefixLength };
+            SubParamInfo info = param.Content.DeJson<SubParamInfo>();
+
+            uint ip = NetworkHelper.ToValue(info.IP);
+            uint prefixValue = NetworkHelper.ToPrefixValue(info.PrefixLength);
+            uint network = NetworkHelper.ToNetworkValue(ip, prefixValue);
+            uint broadcast = NetworkHelper.ToBroadcastValue(ip, prefixValue);
+
+            uint blockSize = (uint)(1 << (32 - info.SubPrefixLength));
+            uint blockCount = (uint)(broadcast - network + 1) / blockSize;
+
+            List<(uint start, uint end)> exists = info.Subs.Where(c => IPAddress.Any.Equals(c.IP) == false).Select(c =>
+            {
+                uint ip = NetworkHelper.ToValue(c.IP);
+                uint prefixValue = NetworkHelper.ToPrefixValue(c.PrefixLength);
+                uint network = NetworkHelper.ToNetworkValue(ip, prefixValue);
+                uint broadcast = NetworkHelper.ToBroadcastValue(ip, prefixValue);
+                return (network, broadcast);
+            }).ToList();
+
+            return UIntRange(0, blockCount).Select(c =>
+            {
+                uint start = network + c * blockSize;
+                uint end = network + c * blockSize + blockSize - 1;
+                return new SubResultInfo
+                {
+                    Start = NetworkHelper.ToIP(start),
+                    End = NetworkHelper.ToIP(end),
+                    Disabled = exists.Any(d => Math.Max(start, d.start) <= Math.Min(end, d.end)),
+                };
+            }).ToList();
+
+            IEnumerable<uint> UIntRange(uint start, uint count)
+            {
+                for (uint i = 0; i < count; i++)
+                {
+                    yield return start + i;
+                }
+            }
         }
 
         /// <summary>
@@ -341,11 +376,18 @@ namespace linker.messenger.tuntap.client
         public ConcurrentDictionary<string, TuntapInfo> List { get; set; }
         public ulong HashCode { get; set; }
     }
-    public sealed class PrefixLengthParamInfo
+    public sealed class SubParamInfo
     {
+        public IPAddress IP { get; set; }
         public byte PrefixLength { get; set; }
-        public IPAddress StartIp { get; set; }
-        public IPAddress StartEnd { get; set; }
+        public byte SubPrefixLength { get; set; }
+        public List<NetworkParamInfo> Subs { get; set; } = [];
+    }
+    public sealed class SubResultInfo
+    {
+        public IPAddress Start { get; set; }
+        public IPAddress End { get; set; }
+        public bool Disabled { get; set; }
     }
     public sealed class NetworkParamInfo
     {

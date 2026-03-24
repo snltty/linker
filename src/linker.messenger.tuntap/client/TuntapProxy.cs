@@ -138,11 +138,11 @@ namespace linker.messenger.tuntap.client
 
             if (tuntapCidrDecenterManager.FindValue(ip, out string machineId))
             {
-                connection = await ConnectTunnel(machineId, TunnelProtocolType.Quic).ConfigureAwait(false);
+                connection = await ConnectTunnel(machineId, TunnelProtocolType.None).ConfigureAwait(false);
             }
             else if (tuntapCidrMapfileManager.FindValue(ip, out machineId))
             {
-                connection = await ConnectTunnel(machineId, TunnelProtocolType.Quic).ConfigureAwait(false);
+                connection = await ConnectTunnel(machineId, TunnelProtocolType.None).ConfigureAwait(false);
             }
             if (connection != null)
             {

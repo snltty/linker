@@ -10,7 +10,7 @@ export const provideTuntap = () => {
         list: null,
         hashcode: 0,
 
-        showLease: true,
+        showLease: false,
         
         device: {id:'',name:''},
         showRoutes:false,

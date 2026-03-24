@@ -6,7 +6,6 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Net.Sockets;
 using System.IO.Pipelines;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace linker.tunnel.connection
 {

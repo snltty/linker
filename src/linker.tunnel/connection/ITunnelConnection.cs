@@ -12,7 +12,6 @@ namespace linker.tunnel.connection
         None = 0,
         Tcp = 1,
         Udp = 2,
-        Quic = 4,
         All = 255
     }
     /// <summary>

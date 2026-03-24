@@ -90,11 +90,40 @@
             </el-form>
         </div>
     </el-dialog>
+    <el-dialog v-model="state.showEdit" append-to=".app-wrap" title="选择子网" top="1vh" width="440">
+        <div>
+            <div class="head t-c mgb-1">
+                <el-select  v-model="state.prefixLength" class="w-20 mgl-1" @change="handleSubChange">
+                    <el-option v-for="value in state.prefixLengths" :value="value.value" :label="`/${value.value}、每段 : ${value.length}个IP`"></el-option>
+                </el-select>
+            </div>
+            <el-table :data="state.subs.list" size="small" border height="400">
+                <el-table-column property="CIDR" label="CIDR">
+                    <template #default="scope">
+                        <el-tag>{{ scope.row.Start }}/{{ state.prefixLength }}</el-tag>
+                    </template>
+                </el-table-column>
+                <el-table-column property="Start" label="开始"></el-table-column>
+                <el-table-column property="End" label="结束"></el-table-column>
+                <el-table-column property="Oper" label="操作" width="60">
+                    <template #default="scope">
+                        <el-button size="small" v-if="scope.row.Disabled == false" @click="handleUseSub(scope.row)">选用</el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <div class="t-c mgt-1">
+                <div class="inline">
+                    <el-pagination small background layout="total,prev,pager, next" :total="state.subs.count"
+                    :page-size="state.subs.size" :current-page="state.subs.page" @current-change="handleSubPageChange"/>
+                </div>
+            </div>
+        </div>
+    </el-dialog>
 </template>
 <script>
-import {getNetwork,addNetwork,calcNetwork } from '@/apis/tuntap';
+import {getNetwork,addNetwork,calcNetwork, calcSubNetwork } from '@/apis/tuntap';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { onMounted, reactive, ref, watch } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { Delete, Plus,Refresh,Edit } from '@element-plus/icons-vue'
 export default {
     props: ['modelValue'],
@@ -138,7 +167,21 @@ export default {
                 {value:1240,label:'启用1240'},
                 {value:1220,label:'启用1220'},
                 {value:1200,label:'启用1200'}
-            ]
+            ],
+
+            showEdit: false,
+            editIndex : -1,
+            prefixLengths: Array.from({ length: 17 }, (_, i) => { return {value:32-i,length:1<<(32-(32-i))} }),
+            prefixLength:29,
+            subs:{
+                list:computed(c=>{
+                    return state.subs._list.slice((state.subs.page-1)*state.subs.size,state.subs.page*state.subs.size);
+                }),
+                _list:[],
+                page:1,
+                size:10,
+                count:0
+            }
         });
         watch(() => state.show, (val) => {
             if (!val) {
@@ -213,12 +256,40 @@ export default {
            
         }
 
+        const handleSubChange = ()=>{
+            calcSubNetwork({
+                Subs:state.ruleForm.Subs,
+                PrefixLength:state.ruleForm.PrefixLength,
+                IP:state.ruleForm.IP,
+                SubPrefixLength:state.prefixLength
+            }).then((res)=>{
+                state.subs._list = res.sort((a,b)=>b.Disabled-a.Disabled);
+                state.subs.count = res.length;
+                state.subs.page = 1;
+            });
+        }
+        const handleEditSub = (index)=>{
+            state.showEdit = true;
+            state.editIndex = index;
+            handleSubChange();
+        }
+        const handleSubPageChange = (page)=>{
+            state.subs.page = page;
+        }
+        const handleUseSub = (row)=>{
+            state.ruleForm.Subs[state.editIndex].IP = row.Start;
+            state.ruleForm.Subs[state.editIndex].PrefixLength = state.prefixLength;
+            state.showEdit = false;
+            handleSubChange();
+        }
+
         onMounted(()=>{
             _getNetwork();
         })
 
         return {
-           state,ruleFormRef, handleSave,handlePrefixLengthChange,handleClear,handleDelSub,handleAddSub
+           state,ruleFormRef, handleSave,handlePrefixLengthChange,handleClear,
+           handleDelSub,handleAddSub,handleEditSub,handleUseSub,handleSubPageChange,handleSubChange
         }
     }
 }

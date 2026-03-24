@@ -150,7 +150,8 @@ export default {
                 state.ruleForm.Guid = res;
             });
             getNetwork().then(res=>{
-                state.networks = [{value:'default',label:'主网'}].concat(res.Subs.reduce((a,b)=>a.concat([{value:b.Name,label:`${b.IP}/${b.PrefixLength}`}]),[]));
+                state.networks = [{value:'default',label:'主网'}]
+                .concat(res.Subs.reduce((a,b)=>a.concat([{value:b.Name,label:`${b.Name}->${b.IP}/${b.PrefixLength}`}]),[]));
             });
         })
 

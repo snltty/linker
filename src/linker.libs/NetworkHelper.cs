@@ -267,17 +267,14 @@ namespace linker.libs
                 .Distinct().ToArray();
         }
 
-
         /// <summary>
-        ///| Method | Mean     | Error     | StdDev    | Allocated |
-        ///|------- |---------:|----------:|----------:|----------:|
-        ///| Test   | 1.142 ns | 0.0045 ns | 0.0035 ns |         - |
+        /// 找到合适的子网CIDR
         /// </summary>
         /// <param name="mainPrefixLength"></param>
         /// <param name="start"></param>
         /// <param name="end"></param>
         /// <returns></returns>
-        public static (IPAddress network, byte prefixLength) FindSubNetwork(byte mainPrefixLength, IPAddress start, IPAddress end)
+        public static (IPAddress network, byte prefixLength) FindSubNetworkCidr(byte mainPrefixLength, IPAddress start, IPAddress end)
         {
             //主网络掩码
             uint mainPrefixValue = ToPrefixValue(mainPrefixLength);
@@ -286,22 +283,30 @@ namespace linker.libs
             uint startIpValue = ToValue(start);
             uint endIpValue = ToValue(end);
 
-            //开始 62
+            //开始
             uint originStart = startIpValue & ~mainPrefixValue;
-            //结束 90
+            //结束
             uint originEnd = endIpValue & ~mainPrefixValue;
-            //开始最近二次幂数 64
-            uint startValue = FindNearestPowerOfTwo(originStart);
-            //掩码26
-            byte prefixLength = (byte)(32 - (int)Math.Log2(FindNearestPowerOfTwo(originEnd - startValue + 1)));
-            uint prefixLengthValue = ToPrefixValue(prefixLength);
+
+            //掩码
+            byte prefixLength = (byte)(32 - (int)Math.Log2(FindNearestPowerOfTwo(originEnd - originStart + 1)));
+
+            //最靠近的网络号
+            uint startValue = FindNearestMultiple(originStart, prefixLength);
 
             //网络号 192.168.0.64
-            uint networkValue = (startIpValue & prefixLengthValue) | startValue;
-            //广播号 192.168.0.95
-            uint broadcastValue = startIpValue | ~prefixLengthValue;
+            uint networkValue = (startIpValue & mainPrefixValue) | startValue;
 
             return (ToIP(networkValue), prefixLength);
+        }
+        public static uint FindNearestMultiple(uint originStart, byte prefixLength)
+        {
+            uint ratio = (uint)(1 << (32 - prefixLength));
+
+            uint lower = (originStart / ratio) * ratio;
+            uint upper = lower + ratio;
+
+            return originStart - lower <= upper - originStart ? lower : upper;
         }
         private static uint FindNearestPowerOfTwo(uint number)
         {
@@ -322,21 +327,11 @@ namespace linker.libs
 
         public static byte ToPrefixLength(uint ip)
         {
-            int maskLength = 32, i;
-            for (i = 0; i < sizeof(uint) * 8; i++)
-            {
-                if (((ip >> i) & 0x01) != 0)
-                {
-                    break;
-                }
-            }
-            return (byte)(maskLength - i);
+            return (byte)BitOperations.PopCount(ip);
         }
         public static uint ToPrefixValue(byte prefixLength)
         {
-            //最多<<31 所以0需要单独计算
-            if (prefixLength < 1) return 0;
-            return 0xffffffff << (32 - prefixLength);
+            return prefixLength == 0 ? 0 : 0xffffffff << (32 - prefixLength);
         }
 
         public static uint ToValue(IPAddress ip)

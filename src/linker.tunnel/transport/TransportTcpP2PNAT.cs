@@ -174,6 +174,7 @@ namespace linker.tunnel.transport
         {
             using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(4 * 1024);
             using CancellationTokenSource cts = new CancellationTokenSource(500);
+            using CancellationTokenSource ctsSsl = new CancellationTokenSource(3000);
             try
             {
                 //随便发个消息看对方有没有收到
@@ -192,7 +193,7 @@ namespace linker.tunnel.transport
                         EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12,
                         CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
                         ClientCertificates = new X509CertificateCollection { certificate }
-                    }).ConfigureAwait(false);
+                    },ctsSsl.Token).ConfigureAwait(false);
                 }
 
                 return new TunnelConnectionTcp

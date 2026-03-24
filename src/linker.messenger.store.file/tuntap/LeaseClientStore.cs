@@ -1,6 +1,5 @@
 ﻿using linker.messenger.tuntap;
 using linker.messenger.tuntap.lease;
-using System.Collections.Concurrent;
 
 namespace linker.messenger.store.file.tuntap
 {

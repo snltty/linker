@@ -87,7 +87,7 @@ export const provideTunnel = () => {
             hook_operating: tunnel.value.operatings[device.MachineId],
             hook_operating_load: true,
         });
-        if(json.hook_tunnel && json.hook_tunnel.Net){
+        if(json.hook_tunnel && json.hook_tunnel.Net && json.hook_tunnel.Net.Nat){
             const arr = json.hook_tunnel.Net.Nat.split('-');
             const arr1 = arr[0].split('/');
             json.hook_tunnel.Net.nat_number = parseInt(arr[1] || '0');

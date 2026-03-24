@@ -161,6 +161,7 @@ namespace linker.tunnel.transport
             foreach (IPEndPoint ep in tunnelTransportInfo.RemoteEndPoints)
             {
                 using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(ep.Address.Equals(tunnelTransportInfo.Remote.Remote.Address) ? 500 : 100));
+                using CancellationTokenSource ctsSsl = new CancellationTokenSource(3000);
                 Socket targetSocket = new(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
                 try
                 {
@@ -185,7 +186,7 @@ namespace linker.tunnel.transport
                             EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12,
                             CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
                             ClientCertificates = new X509CertificateCollection { certificate }
-                        }).ConfigureAwait(false);
+                        }, ctsSsl.Token).ConfigureAwait(false);
                     }
 
                     return new TunnelConnectionTcp
