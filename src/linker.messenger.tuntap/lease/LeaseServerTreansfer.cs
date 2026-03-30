@@ -72,7 +72,7 @@ namespace linker.messenger.tuntap.lease
                 {
                     caches.TryRemove(item, out _);
                 }
-                cache.CacheSubs = cache.Info.Subs.Select(c =>
+                cache.CacheSubs = cache.Info.Subs.Where(c => IPAddress.Any.Equals(c.IP) == false).Select(c =>
                 {
                     string _key = $"{key}-{c.Name}";
                     if (caches.TryGetValue(_key, out LeaseCacheInfo _cache) == false)
@@ -142,7 +142,7 @@ namespace linker.messenger.tuntap.lease
             {
                 //已有ip
                 uint newIPValue = ExistsIp(userId, info.IP, cache);
-                if(newIPValue != 0)
+                if (newIPValue != 0)
                 {
                     info.IP = NetworkHelper.ToIP(newIPValue);
                     return info;
@@ -355,7 +355,9 @@ namespace linker.messenger.tuntap.lease
 
         public int Mtu { get; set; } = 1420;
 
-        public int MssFix { get; set; }
+        public int MssFix { get; set; } = 2;
+
+        public TuntapVlsmStatus VlsmStatus { get; set; } = TuntapVlsmStatus.OneWay;
     }
     public sealed partial class LeaseSubInfo
     {

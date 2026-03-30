@@ -39,18 +39,32 @@ namespace linker.messenger.tuntap.cidr
             tuntapDecenter.OnChanged += AddRoute;
         }
 
-        public void SetIPs(TuntapVeaLanIPAddress[] ips)
+        public void SetIPs(List<TuntapVeaLanIPAddressList> ips)
         {
             foreach (var ip in ips)
             {
-                tuntapCidrConnectionManager.RemoveNotMachine(ip.NetWork, ip.MaskValue, ip.MachineId);
+                foreach (var item in ip.IPS)
+                {
+                    tuntapCidrConnectionManager.RemoveNotMachine(item.NetWork, item.MaskValue, item.MachineId);
+                }
             }
-            cidrManager.Add(ips.Select(c => new CidrAddInfo<string> { IPAddress = c.IPAddress, PrefixLength = c.PrefixLength, Value = c.MachineId }).ToArray());
+            foreach (var ip in ips)
+            {
+                cidrManager.Add(ip.IPS.Select(c => new CidrAddInfo<string>
+                {
+                    IPAddress = c.IPAddress,
+                    PrefixLength = c.PrefixLength,
+                    Value = c.MachineId,
+                    DstIp = ip.DstIp,
+                    DstPrefixValue = ip.DstPrefixValue,
+                }).ToArray());
+            }
+
 
         }
-        public void SetIP(string machineId, uint ip)
+        public void SetIP(string machineId, uint ip, uint prefixValue)
         {
-            cidrManager.Add(new CidrAddInfo<string> { IPAddress = ip, PrefixLength = 32, Value = machineId });
+            cidrManager.Add(new CidrAddInfo<string> { IPAddress = ip, PrefixLength = 32, Value = machineId, DstIp = ip, DstPrefixValue = prefixValue });
             tuntapCidrConnectionManager.RemoveNotMachine(ip, machineId);
         }
         public void RemoveIP(string machineId)
@@ -58,9 +72,22 @@ namespace linker.messenger.tuntap.cidr
             cidrManager.Delete(machineId, (a, b) => a == b);
             tuntapCidrConnectionManager.Remove(machineId);
         }
-        public bool FindValue(uint ip, out string value)
+        public bool FindValue(uint ip, out string value, out uint dst, out uint prefix)
         {
-            return cidrManager.FindValue(ip, out value);
+            bool result = cidrManager.FindValue(ip, out CidrAddInfo<string> _value);
+
+            value = string.Empty;
+            dst = 0;
+            prefix = 0;
+            if (result)
+            {
+                value = _value.Value;
+                dst = _value.DstIp;
+                prefix = _value.DstPrefixValue;
+            }
+
+
+            return result;
         }
         private void Clear()
         {
@@ -71,7 +98,6 @@ namespace linker.messenger.tuntap.cidr
         private void AddRoute()
         {
             List<TuntapVeaLanIPAddressList> ipsList = ParseIPs(tuntapDecenter.Infos.Values.ToList());
-            TuntapVeaLanIPAddress[] ips = ipsList.SelectMany(c => c.IPS).ToArray();
             var _routeItems = ipsList.SelectMany(c => c.IPS).Select(c => new LinkerTunDeviceRouteItem { Address = c.OriginIPAddress, PrefixLength = c.PrefixLength }).ToArray();
 
             var removeItems = routeItems.Except(_routeItems, new LinkerTunDeviceRouteItemComparer()).ToArray();
@@ -81,10 +107,10 @@ namespace linker.messenger.tuntap.cidr
             }
             tuntapTransfer.AddRoute(_routeItems);
 
-            SetIPs(ips);
+            SetIPs(ipsList);
             foreach (var item in tuntapDecenter.Infos.Values.Where(c => c.Available && c.Exists == false))
             {
-                SetIP(item.MachineId, NetworkHelper.ToValue(item.IP));
+                SetIP(item.MachineId, NetworkHelper.ToValue(item.IP), NetworkHelper.ToPrefixValue(item.PrefixLength));
             }
             foreach (var item in tuntapDecenter.Infos.Values.Where(c => c.Available == false || c.Exists || c.IP.Equals(IPAddress.Any)))
             {
@@ -150,6 +176,8 @@ namespace linker.messenger.tuntap.cidr
                     return new TuntapVeaLanIPAddressList
                     {
                         MachineId = c.MachineId,
+                        DstIp = NetworkHelper.ToValue(c.IP),
+                        DstPrefixValue = NetworkHelper.ToPrefixValue(c.PrefixLength),
                         IPS = ParseIPs(lans, c.MachineId),
                     };
                 }).ToList();

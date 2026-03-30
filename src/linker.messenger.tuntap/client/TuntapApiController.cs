@@ -86,10 +86,11 @@ namespace linker.messenger.tuntap.client
                 return new TuntabListInfo
                 {
                     List = tuntapDecenter.Infos,
-                    HashCode = version
+                    HashCode = version,
+                     Network = tuntapConfigTransfer.Network,
                 };
             }
-            return new TuntabListInfo { HashCode = version };
+            return new TuntabListInfo { HashCode = version, Network = tuntapConfigTransfer.Network };
         }
         public TuntapStatus Status(ApiControllerParamsInfo param)
         {
@@ -374,6 +375,7 @@ namespace linker.messenger.tuntap.client
     public sealed class TuntabListInfo
     {
         public ConcurrentDictionary<string, TuntapInfo> List { get; set; }
+        public LeaseInfo Network { get; set; }
         public ulong HashCode { get; set; }
     }
     public sealed class SubParamInfo

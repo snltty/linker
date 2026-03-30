@@ -1,6 +1,5 @@
 ﻿using System.Net;
 using linker.libs;
-using linker.libs.extends;
 using linker.libs.timer;
 using linker.messenger.signin;
 using linker.messenger.tuntap.messenger;
@@ -66,13 +65,13 @@ namespace linker.messenger.tuntap.lease
             }).ConfigureAwait(false);
         }
 
-        public async Task<LeaseInfo> LeaseIp(IPAddress ip, byte prefixLength, string networkName, string name, int mtu, int mssfix)
+        public async Task<LeaseInfo> LeaseIp(IPAddress ip, byte prefixLength, string networkName, string name, int mtu, int mssfix,TuntapVlsmStatus vlsm)
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
                 MessengerId = (ushort)TuntapMessengerIds.LeaseIP,
-                Payload = serializer.Serialize(new LeaseInfo { IP = ip, PrefixLength = prefixLength, SubName = networkName, Mtu = mtu, MssFix = mssfix, Name = name })
+                Payload = serializer.Serialize(new LeaseInfo { IP = ip, PrefixLength = prefixLength, SubName = networkName, Mtu = mtu, MssFix = mssfix, VlsmStatus= vlsm, Name = name })
 
             }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK)
@@ -83,7 +82,7 @@ namespace linker.messenger.tuntap.lease
                     return newip;
                 }
             }
-            return new LeaseInfo { IP = ip, PrefixLength = prefixLength, Mtu = mtu, MssFix = mssfix, Name = name };
+            return new LeaseInfo { IP = ip, PrefixLength = prefixLength, Mtu = mtu, MssFix = mssfix, Name = name, VlsmStatus= vlsm };
         }
 
         private void LeaseExpTask()

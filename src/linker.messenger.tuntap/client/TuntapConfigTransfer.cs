@@ -1,9 +1,9 @@
 ﻿
 using linker.libs;
-using System.Net;
+using linker.libs.timer;
 using linker.messenger.signin;
 using linker.messenger.tuntap.lease;
-using linker.libs.timer;
+using System.Net;
 
 namespace linker.messenger.tuntap.client
 {
@@ -11,9 +11,21 @@ namespace linker.messenger.tuntap.client
     {
         public TuntapConfigInfo Info => tuntapStore.Info;
 
-        public string Name => string.IsNullOrWhiteSpace(Info.Name) ? "linker" : Info.Name;
+        public string Name => string.IsNullOrWhiteSpace(Info.Name) == false
+            ? Info.Name
+            : string.IsNullOrWhiteSpace(networkInfo.Name) == false
+            ? networkInfo.Name
+            : "linker";
+        public int Mtu => Info.Mtu > 0 ? Info.Mtu : networkInfo.Mtu > 0 ? networkInfo.Mtu : 1420;
+        public int MssFix => Info.MssFix > 0 ? Info.MssFix : networkInfo.MssFix > 0 ? networkInfo.MssFix : 0;
+        public TuntapVlsmStatus VlsmStatus => Info.VlsmStatus == TuntapVlsmStatus.None ? networkInfo.VlsmStatus : Info.VlsmStatus;
+        public byte PrefixLength => networkInfo.IP.Equals(IPAddress.Any) ? Info.PrefixLength : networkInfo.PrefixLength;
 
+        public int SubCount => networkInfo.Subs.Count;
 
+        public LeaseInfo Network => networkInfo;
+
+        private LeaseInfo networkInfo = new LeaseInfo();
         private ulong configVersion = 0;
         public bool Changed
         {
@@ -62,6 +74,15 @@ namespace linker.messenger.tuntap.client
         {
             TimerHelper.Async(async () =>
             {
+                string oldStr = string.Join(",", [
+                    $"{Info.IP}",
+                    $"{Info.PrefixLength}",
+                    $"{Info.Name}",
+                    $"{Info.NetworkName}",
+                    $"{Info.Mtu}",
+                    $"{Info.MssFix}"
+                ]);
+
                 Info.IP = info.IP ?? IPAddress.Any;
                 Info.Lans = info.Lans;
                 Info.PrefixLength = info.PrefixLength;
@@ -71,13 +92,26 @@ namespace linker.messenger.tuntap.client
                 Info.NetworkName = info.NetworkName;
                 Info.Mtu = info.Mtu;
                 Info.MssFix = info.MssFix;
+                Info.VlsmStatus = info.VlsmStatus;
+
+                string newStr = string.Join(",", [
+                    $"{Info.IP}",
+                    $"{Info.PrefixLength}",
+                    $"{Info.Name}",
+                    $"{Info.NetworkName}",
+                    $"{Info.Mtu}",
+                    $"{Info.MssFix}"
+                ]);
 
                 tuntapStore.Confirm();
 
                 await LeaseIP().ConfigureAwait(false);
                 SetGroupIP();
 
-                Version.Increment();
+                if (newStr != oldStr)
+                {
+                    Version.Increment();
+                }
 
                 OnUpdate();
             });
@@ -123,12 +157,11 @@ namespace linker.messenger.tuntap.client
         /// <returns></returns>
         private async Task LeaseIP()
         {
-            LeaseInfo leaseInfo = await leaseClientTreansfer.LeaseIp(Info.IP, Info.PrefixLength, Info.NetworkName, Info.Name, Info.Mtu, Info.MssFix).ConfigureAwait(false);
+            networkInfo = await leaseClientTreansfer.GetNetwork().ConfigureAwait(false);
+            var leaseInfo = await leaseClientTreansfer.LeaseIp(Info.IP, Info.PrefixLength, Info.NetworkName, Info.Name, Info.Mtu, Info.MssFix, Info.VlsmStatus).ConfigureAwait(false);
             Info.IP = leaseInfo.IP;
             Info.PrefixLength = leaseInfo.PrefixLength;
-            Info.Mtu = leaseInfo.Mtu;
-            Info.MssFix = leaseInfo.MssFix;
-            Info.Name = leaseInfo.Name;
+
             tuntapStore.Confirm();
         }
 

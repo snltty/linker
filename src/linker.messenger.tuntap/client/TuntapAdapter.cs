@@ -53,7 +53,7 @@ namespace linker.messenger.tuntap.client
         private async Task SignInSuccess(int times)
         {
             _ = CheckDevice();
-            FireWallHelper.WriteIcmp(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName, tuntapConfigTransfer.Info.IP, tuntapConfigTransfer.Info.PrefixLength);
+            FireWallHelper.WriteIcmp(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName, tuntapConfigTransfer.Info.IP, tuntapConfigTransfer.PrefixLength);
             await Task.CompletedTask.ConfigureAwait(false);
         }
         private void Update()
@@ -160,10 +160,10 @@ namespace linker.messenger.tuntap.client
             {
                 Name = tuntapConfigTransfer.Name,
                 Address = tuntapConfigTransfer.Info.IP,
-                PrefixLength = tuntapConfigTransfer.Info.PrefixLength,
-                Mtu = tuntapConfigTransfer.Info.Mtu,
+                PrefixLength = tuntapConfigTransfer.PrefixLength,
+                Mtu = tuntapConfigTransfer.Mtu,
                 Guid = tuntapConfigTransfer.Info.Guid,
-                MssFix = tuntapConfigTransfer.Info.MssFix
+                MssFix = tuntapConfigTransfer.MssFix
             });
         }
         /// <summary>

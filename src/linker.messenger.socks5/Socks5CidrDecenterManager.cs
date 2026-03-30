@@ -37,7 +37,13 @@ namespace linker.messenger.socks5
         }
         public bool FindValue(uint ip, out string value)
         {
-            return cidrManager.FindValue(ip, out value);
+            value = string.Empty;
+            bool result = cidrManager.FindValue(ip, out CidrAddInfo<string> _value);
+
+            if (result)
+                value = _value.Value;
+
+            return result;
         }
 
         private void SetMaps()

@@ -16,9 +16,9 @@
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker messenger signin</PackageReleaseNotes>
-		<Version>1.9.95</Version>
-		<AssemblyVersion>1.9.95</AssemblyVersion>
-		<FileVersion>1.9.95</FileVersion>
+		<Version>1.9.96</Version>
+		<AssemblyVersion>1.9.96</AssemblyVersion>
+		<FileVersion>1.9.96</FileVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

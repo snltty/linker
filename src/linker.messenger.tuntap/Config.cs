@@ -1,5 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Net;
+﻿using System.Net;
 
 namespace linker.messenger.tuntap
 {
@@ -15,7 +14,7 @@ namespace linker.messenger.tuntap
         /// </summary>
         public byte PrefixLength { get; set; } = 24;
 
-        public int Mtu { get; set; } = 1420;
+        public int Mtu { get; set; }
 
         public int MssFix { get; set; }
 
@@ -26,6 +25,8 @@ namespace linker.messenger.tuntap
 
         public string Name { get; set; } = "linker";
         public string NetworkName { get; set; } = string.Empty;
+        public TuntapVlsmStatus VlsmStatus { get; set; } = TuntapVlsmStatus.None;
+
 
         public Guid Guid { get; set; } = Guid.Parse("771EF382-8718-5BC5-EBF0-A28B86142278");
 
@@ -84,6 +85,8 @@ namespace linker.messenger.tuntap
     public sealed partial class TuntapVeaLanIPAddressList
     {
         public string MachineId { get; set; }
+        public uint DstIp { get; set; }
+        public uint DstPrefixValue { get; set; }
         public List<TuntapVeaLanIPAddress> IPS { get; set; }
 
     }
@@ -108,7 +111,7 @@ namespace linker.messenger.tuntap
         /// 前缀长度
         /// </summary>
         public byte PrefixLength { get; set; } = 24;
-        public int Mtu { get; set; } = 1420;
+        public int Mtu { get; set; }
         public int MssFix { get; set; }
 
         /// <summary>
@@ -376,6 +379,7 @@ namespace linker.messenger.tuntap
 
         public string NetworkName { get; set; }
 
+        public TuntapVlsmStatus VlsmStatus { get; set; } = TuntapVlsmStatus.None;
 
         public string DiffValue => $"{IP}->{PrefixLength}->{Name}->{NetworkName}";
     }
@@ -484,6 +488,25 @@ namespace linker.messenger.tuntap
         /// 源代理
         /// </summary>
         SrcProxy = 1024
+    }
+    public enum TuntapVlsmStatus : byte
+    {
+        /// <summary>
+        /// 未设置
+        /// </summary>
+        None = 0,
+        /// <summary>
+        /// 丢弃
+        /// </summary>
+        Drop = 1,
+        /// <summary>
+        /// 单向
+        /// </summary>
+        OneWay = 2,
+        /// <summary>
+        /// 双向
+        /// </summary>
+        TwoWay = 4
     }
 
 

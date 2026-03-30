@@ -7,29 +7,29 @@
                     <a href="javascript:;" class="a-line" @click="handleTuntapIP(item.hook_tuntap,values)" title="虚拟网卡IP">
                         <template v-if="item.Connected">
                             <template v-if="item.hook_tuntap.SetupError">
-                                <strong class="red" :title="`setup ${item.hook_tuntap.SetupError}`">{{ item.hook_tuntap.IP }}</strong>
+                                <strong class="red" :title="`setup ${item.hook_tuntap.SetupError}`">{{ item.hook_tuntap.IP }}/{{ item.hook_tuntap.PrefixLength }}</strong>
                             </template>
                             <template v-else-if="item.hook_tuntap.Exists">
-                                <strong class="red" title="IP存在冲突，请使用新IP">{{ item.hook_tuntap.IP }}</strong>
+                                <strong class="red" title="IP存在冲突，请使用新IP">{{ item.hook_tuntap.IP }}/{{ item.hook_tuntap.PrefixLength }}</strong>
                             </template>
                             <template v-else-if="item.hook_tuntap.Available == false">
-                                <strong class="disable" title="IP不生效，可能是设备不在线">{{ item.hook_tuntap.IP }}</strong>
+                                <strong class="disable" title="IP不生效，可能是设备不在线">{{ item.hook_tuntap.IP }}/{{ item.hook_tuntap.PrefixLength }}</strong>
                             </template>
                             <template v-else-if="item.hook_tuntap.NatError">
-                                <strong class="yellow" :title="`nat ${item.hook_tuntap.NatError}`">{{ item.hook_tuntap.IP }}</strong>
+                                <strong class="yellow" :title="`nat ${item.hook_tuntap.NatError}`">{{ item.hook_tuntap.IP }}/{{ item.hook_tuntap.PrefixLength }}</strong>
                             </template>
                             <template v-else-if="item.hook_tuntap.AppNat && item.hook_tuntap.running">
-                                <strong class="app-nat" :title="`虚拟网卡IP\r\n应用层DNAT`">{{ item.hook_tuntap.IP }}</strong>
+                                <strong class="app-nat" :title="`虚拟网卡IP\r\n应用层DNAT`">{{ item.hook_tuntap.IP }}/{{ item.hook_tuntap.PrefixLength }}</strong>
                             </template>
                             <template v-else-if="item.hook_tuntap.running">
-                                <strong class="green gateway" :title="`虚拟网卡IP\r\n系统NAT`">{{ item.hook_tuntap.IP }}</strong>
+                                <strong class="green gateway" :title="`虚拟网卡IP\r\n系统NAT`">{{ item.hook_tuntap.IP }}/{{ item.hook_tuntap.PrefixLength }}</strong>
                             </template>
                             <template v-else>
-                                <strong>{{ item.hook_tuntap.IP }}</strong>
+                                <strong>{{ item.hook_tuntap.IP }}/{{ item.hook_tuntap.PrefixLength }}</strong>
                             </template>
                         </template>
                         <template v-else>
-                            <strong class="disable" title="IP不生效，可能是设备不在线">{{ item.hook_tuntap.IP }}</strong>
+                            <strong class="disable" title="IP不生效，可能是设备不在线">{{ item.hook_tuntap.IP }}/{{ item.hook_tuntap.PrefixLength }}</strong>
                         </template>
                     </a>
                 </div>

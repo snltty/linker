@@ -143,9 +143,9 @@ namespace linker.tun.device
 
         public void SetMssFix(int value = 0)
         {
-            if (value >= 0 && value < 1500)
+            if (value > 1 && value < 1500)
             {
-                string _value = value == 0 ? "--clamp-mss-to-pmtu" : $"--set-mss {value}";
+                string _value = value == 2 ? "--clamp-mss-to-pmtu" : $"--set-mss {value}";
 
                 CommandHelper.Linux(string.Empty, new string[] {
                     $"iptables -t mangle -A POSTROUTING -o {Name} -p tcp --tcp-flags SYN,RST SYN -j TCPMSS {_value}",
@@ -163,7 +163,15 @@ namespace linker.tun.device
         }
         public void SetMtu(int value)
         {
-            CommandHelper.Linux(string.Empty, new string[] { $"ip link set dev {Name} mtu {value}" });
+            if (value > 0)
+            {
+                CommandHelper.Linux(string.Empty, new string[] { $"ip link set dev {Name} mtu {value}" });
+            }
+            else
+            {
+                CommandHelper.Linux(string.Empty, new string[] { $"ip link set dev {Name} mtu 1420" });
+            }
+
         }
 
         private string GetDefaultInterface()

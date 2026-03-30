@@ -25,20 +25,18 @@ namespace linker.messenger.tuntap.client
         private readonly TuntapConfigTransfer tuntapConfigTransfer;
         private readonly TuntapCidrConnectionManager tuntapCidrConnectionManager;
         private readonly TuntapCidrDecenterManager tuntapCidrDecenterManager;
-        private readonly TuntapCidrMapfileManager tuntapCidrMapfileManager;
         private readonly TuntapDecenter tuntapDecenter;
 
         public TuntapProxy(ISignInClientStore signInClientStore,
             TunnelTransfer tunnelTransfer, PcpTransfer pcpTransfer,
             SignInClientTransfer signInClientTransfer, TuntapConfigTransfer tuntapConfigTransfer,
             TuntapCidrConnectionManager tuntapCidrConnectionManager, TuntapCidrDecenterManager tuntapCidrDecenterManager,
-            TuntapCidrMapfileManager tuntapCidrMapfileManager, TuntapDecenter tuntapDecenter, ChannelConnectionCaching channelConnectionCaching)
+            TuntapDecenter tuntapDecenter, ChannelConnectionCaching channelConnectionCaching)
             : base(tunnelTransfer, pcpTransfer, signInClientTransfer, signInClientStore, channelConnectionCaching)
         {
             this.tuntapConfigTransfer = tuntapConfigTransfer;
             this.tuntapCidrConnectionManager = tuntapCidrConnectionManager;
             this.tuntapCidrDecenterManager = tuntapCidrDecenterManager;
-            this.tuntapCidrMapfileManager = tuntapCidrMapfileManager;
             this.tuntapDecenter = tuntapDecenter;
         }
 
@@ -136,11 +134,7 @@ namespace linker.messenger.tuntap.client
         {
             ITunnelConnection connection = null;
 
-            if (tuntapCidrDecenterManager.FindValue(ip, out string machineId))
-            {
-                connection = await ConnectTunnel(machineId, TunnelProtocolType.None).ConfigureAwait(false);
-            }
-            else if (tuntapCidrMapfileManager.FindValue(ip, out machineId))
+            if (tuntapCidrDecenterManager.FindValue(ip, out string machineId,out uint dst,out uint prefix))
             {
                 connection = await ConnectTunnel(machineId, TunnelProtocolType.None).ConfigureAwait(false);
             }

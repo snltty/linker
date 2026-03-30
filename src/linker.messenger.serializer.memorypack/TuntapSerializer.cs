@@ -2,8 +2,6 @@
 using linker.messenger.tuntap.lease;
 using MemoryPack;
 using System.Net;
-using System.Reflection.PortableExecutable;
-using System.Xml.Linq;
 
 namespace linker.messenger.serializer.memorypack
 {
@@ -88,13 +86,20 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         List<TuntapVeaLanIPAddress> IPS => info.IPS;
 
+        [MemoryPackInclude]
+        uint DstIp => info.DstIp;
+        [MemoryPackInclude]
+        uint DstPrefixValue => info.DstPrefixValue;
+
         [MemoryPackConstructor]
-        SerializableTuntapVeaLanIPAddressList(string machineId, List<TuntapVeaLanIPAddress> ips)
+        SerializableTuntapVeaLanIPAddressList(string machineId, List<TuntapVeaLanIPAddress> ips, uint dstIp, uint dstPrefixValue)
         {
             var info = new TuntapVeaLanIPAddressList
             {
                 IPS = ips,
-                MachineId = machineId
+                MachineId = machineId,
+                DstIp = dstIp,
+                DstPrefixValue = dstPrefixValue
             };
             this.info = info;
         }
@@ -181,9 +186,12 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         int MssFix => info.MssFix;
 
+        [MemoryPackInclude]
+        TuntapVlsmStatus VlsmStatus => info.VlsmStatus;
+
         [MemoryPackConstructor]
         SerializableTuntapInfo(string machineId, TuntapStatus status, IPAddress ip, byte prefixLength, string name,
-            List<TuntapLanInfo> lans, IPAddress wan, string setupError, string natError, string systemInfo, List<TuntapForwardInfo> forwards, TuntapSwitch Switch, string networkName, int mtu, int mssfix)
+            List<TuntapLanInfo> lans, IPAddress wan, string setupError, string natError, string systemInfo, List<TuntapForwardInfo> forwards, TuntapSwitch Switch, string networkName, int mtu, int mssfix, TuntapVlsmStatus vlsmStatus)
         {
             var info = new TuntapInfo
             {
@@ -201,7 +209,8 @@ namespace linker.messenger.serializer.memorypack
                 Switch = Switch,
                 NetworkName = networkName,
                 Mtu = mtu,
-                MssFix = mssfix
+                MssFix = mssfix,
+                VlsmStatus = vlsmStatus
             };
             this.info = info;
         }
@@ -256,6 +265,9 @@ namespace linker.messenger.serializer.memorypack
 
             if (count > 14)
                 value.MssFix = reader.ReadValue<int>();
+
+            if (count > 15)
+                value.VlsmStatus = reader.ReadValue<TuntapVlsmStatus>();
         }
     }
 
@@ -566,8 +578,11 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude, MemoryPackAllowSerialize]
         int MssFix => info.MssFix;
 
+        [MemoryPackInclude]
+        TuntapVlsmStatus VlsmStatus => info.VlsmStatus;
+
         [MemoryPackConstructor]
-        SerializableLeaseInfo(IPAddress ip, byte prefixLength, string name, string subname, List<LeaseSubInfo> subs, int mtu, int mssfix)
+        SerializableLeaseInfo(IPAddress ip, byte prefixLength, string name, string subname, List<LeaseSubInfo> subs, int mtu, int mssfix, TuntapVlsmStatus vlsmStatus)
         {
             var info = new LeaseInfo
             {
@@ -577,7 +592,8 @@ namespace linker.messenger.serializer.memorypack
                 SubName = subname,
                 Subs = subs,
                 Mtu = mtu,
-                MssFix = mssfix
+                MssFix = mssfix,
+                VlsmStatus = vlsmStatus
             };
             this.info = info;
         }
@@ -625,6 +641,9 @@ namespace linker.messenger.serializer.memorypack
 
             if (count > 6)
                 value.MssFix = reader.ReadValue<int>();
+
+            if (count > 7)
+                value.VlsmStatus = reader.ReadValue<TuntapVlsmStatus>();
 
         }
     }

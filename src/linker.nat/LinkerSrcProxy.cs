@@ -21,8 +21,8 @@ namespace linker.nat
 
         private ILinkerSrcProxyCallback callback;
 
-        private readonly ConcurrentDictionary<(uint srcIp, ushort srcPort), SrcCacheInfo> srcMap = new();
-        private readonly ConcurrentDictionary<ConnectionKey, ConnectionState> connections = new(new ConnectionKeyComparer());
+        private readonly ConcurrentDictionary<SrcKey, SrcCacheInfo> srcMap = new(new SrcKeyComparer());
+        private readonly ConcurrentDictionary<NatKey, ConnectionState> connections = new(new NatKeyComparer());
 
         public LinkerSrcProxy()
         {
@@ -65,7 +65,7 @@ namespace linker.nat
                     IPEndPoint local = source.LocalEndPoint as IPEndPoint;
                     IPEndPoint remote = source.RemoteEndPoint as IPEndPoint;
 
-                    (uint srcIp, ushort srcPort) key = (NetworkHelper.ToValue(local.Address), (ushort)remote.Port);
+                    SrcKey key = new SrcKey(NetworkHelper.ToValue(local.Address), (ushort)remote.Port);
                     if (srcMap.TryGetValue(key, out SrcCacheInfo cache) == false)
                     {
                         source.SafeClose();
@@ -86,7 +86,7 @@ namespace linker.nat
         private async Task ConnectAsync(Socket source, SrcCacheInfo cache)
         {
             byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024 + 40 + 4);
-            ConnectionKey key = new() { srcAddr = tunIp, srcPort = cache.SrcPort, dstAddr = cache.DstAddr, dstPort = cache.DstPort };
+            NatKey key = new NatKey(tunIp, cache.SrcPort, cache.DstAddr, cache.DstPort);
             try
             {
                 ConnectionState state = new ConnectionState
@@ -163,7 +163,7 @@ namespace linker.nat
 
         public async ValueTask<bool> WriteAsync(ReadOnlyMemory<byte> packet, uint originDstIp)
         {
-            (ConnectionKey key, LinkerSrcProxyFlags flag, ushort win, bool next) = GetKeyAndFlag(packet);
+            (NatKey key, LinkerSrcProxyFlags flag, ushort win, bool next) = GetKeyAndFlag(packet);
             if (next == false) return true;
 
             switch (flag)
@@ -185,24 +185,24 @@ namespace linker.nat
             }
             return false;
         }
-        private unsafe (ConnectionKey key, LinkerSrcProxyFlags flag, ushort win, bool next) GetKeyAndFlag(ReadOnlyMemory<byte> packet)
+        private unsafe (NatKey key, LinkerSrcProxyFlags flag, ushort win, bool next) GetKeyAndFlag(ReadOnlyMemory<byte> packet)
         {
             fixed (byte* ptr = packet.Span)
             {
                 LinkerSrcProxyWritePacket writePacket = new LinkerSrcProxyWritePacket(ptr);
-                return (new() { srcAddr = writePacket.SrcAddr, srcPort = writePacket.SrcPort, dstAddr = writePacket.DstAddr, dstPort = writePacket.DstPort },
+                return (new NatKey(writePacket.SrcAddr, writePacket.SrcPort, writePacket.DstAddr, writePacket.DstPort),
                     writePacket.Flag, writePacket.WindowSize, writePacket.Seq == 0 && writePacket.Cq == 0);
             }
         }
 
-        private async Task HandleSyn(ConnectionKey key, uint originDstIp)
+        private async Task HandleSyn(NatKey key, uint originDstIp)
         {
             using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(5000));
             byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024 + 40 + 4);
             try
             {
                 Socket source = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                await source.ConnectAsync(new IPEndPoint(NetworkHelper.ToIP(key.dstAddr), key.dstPort), cts.Token).ConfigureAwait(false);
+                await source.ConnectAsync(new IPEndPoint(NetworkHelper.ToIP(key.DstIp), key.DstPort), cts.Token).ConfigureAwait(false);
 
                 ConnectionState state = new ConnectionState
                 {
@@ -218,11 +218,11 @@ namespace linker.nat
                 state.ReadPacket.Ttl = 64;
                 state.ReadPacket.ProtocolType = ProtocolType.Tcp;
                 state.ReadPacket.SrcAddr = originDstIp;
-                state.ReadPacket.DstAddr = key.srcAddr;
+                state.ReadPacket.DstAddr = key.SrcIp;
                 state.ReadPacket.IPChecksum = 1;
 
-                state.ReadPacket.SrcPort = key.dstPort;
-                state.ReadPacket.DstPort = key.srcPort;
+                state.ReadPacket.SrcPort = key.DstPort;
+                state.ReadPacket.DstPort = key.SrcPort;
                 state.ReadPacket.Seq = 0;
                 state.ReadPacket.Cq = 0;
                 state.ReadPacket.HeadLength = 20;
@@ -258,14 +258,14 @@ namespace linker.nat
                 ArrayPool<byte>.Shared.Return(buffer);
             }
         }
-        private void HandleSynAck(ConnectionKey key)
+        private void HandleSynAck(NatKey key)
         {
             if (connections.TryGetValue(key, out ConnectionState state))
             {
                 state.Tcs?.SetResult();
             }
         }
-        private async ValueTask HandlePsh(ReadOnlyMemory<byte> packet, ConnectionKey key, ushort window)
+        private async ValueTask HandlePsh(ReadOnlyMemory<byte> packet, NatKey key, ushort window)
         {
             if (connections.TryGetValue(key, out ConnectionState state))
             {
@@ -356,7 +356,7 @@ namespace linker.nat
             }
         }
 
-        private void HandleRst(ConnectionKey key)
+        private void HandleRst(NatKey key)
         {
             if (connections.TryRemove(key, out ConnectionState state))
             {
@@ -378,7 +378,7 @@ namespace linker.nat
                 if (srcProxyPacket.SrcPort == proxyPort)
                 {
                     //(10.18.18.2,22222)、取到说明已建立连接，包括[SYN+ACK/PSH+ACK/ACK/FIN/RST]的任意包
-                    if (srcMap.TryGetValue((srcProxyPacket.SrcAddr, srcProxyPacket.DstPort), out SrcCacheInfo cache))
+                    if (srcMap.TryGetValue(new SrcKey(srcProxyPacket.SrcAddr, srcProxyPacket.DstPort), out SrcCacheInfo cache))
                     {
                         if (srcProxyPacket.TcpFinOrRst) cache.Fin = true;
                         cache.LastTime = Environment.TickCount64;
@@ -393,7 +393,7 @@ namespace linker.nat
                 }
                 else //从访问端来的
                 {
-                    (uint srcIp, ushort srcPort) key = (srcProxyPacket.SrcAddr, srcProxyPacket.SrcPort);
+                    SrcKey key = new SrcKey(srcProxyPacket.SrcAddr, srcProxyPacket.SrcPort);
                     //(10.18.18.2,11111)、取不到是SYN包则建立映射，不是SYN包则继续走原路
                     if (srcMap.TryGetValue(key, out SrcCacheInfo cache) == false)
                     {
@@ -409,8 +409,8 @@ namespace linker.nat
                             NewPort = NetworkHelper.ApplyNewPort() //随机新端口,比如 22222，windows某些版本不需要新端口，可以直接使用11111
                         };
                         //添加 (10.18.18.2,11111)、(10.18.18.2,22222) 作为key的缓存
-                        srcMap.AddOrUpdate((srcProxyPacket.SrcAddr, cache.SrcPort), cache, (a, b) => cache);
-                        srcMap.AddOrUpdate((srcProxyPacket.SrcAddr, cache.NewPort), cache, (a, b) => cache);
+                        srcMap.AddOrUpdate(new SrcKey(srcProxyPacket.SrcAddr, cache.SrcPort), cache, (a, b) => cache);
+                        srcMap.AddOrUpdate(new SrcKey(srcProxyPacket.SrcAddr, cache.NewPort), cache, (a, b) => cache);
                     }
                     if (srcProxyPacket.TcpFinOrRst) cache.Fin = true;
                     cache.LastTime = Environment.TickCount64;
@@ -437,26 +437,59 @@ namespace linker.nat
             }, 30000);
         }
 
-        struct ConnectionKey
-        {
-            public uint srcAddr;
-            public ushort srcPort;
-            public uint dstAddr;
-            public ushort dstPort;
-        }
-        sealed class ConnectionKeyComparer : IEqualityComparer<ConnectionKey>
-        {
-            public bool Equals(ConnectionKey x, ConnectionKey y)
-            {
-                return (x.srcAddr, x.srcPort, x.dstAddr, x.dstPort) == (y.srcAddr, y.srcPort, y.dstAddr, y.dstPort)
-                    || (x.dstAddr, x.dstPort, x.srcAddr, x.srcPort) == (y.srcAddr, y.srcPort, y.dstAddr, y.dstPort);
-            }
 
-            public int GetHashCode(ConnectionKey obj)
+
+
+        readonly struct SrcKey
+        {
+            public readonly uint SrcIp;
+            public readonly uint SrcPort;
+
+            public SrcKey(uint srcIp, uint srcPort)
             {
-                return (int)obj.srcAddr ^ obj.srcPort ^ (int)obj.dstAddr ^ obj.dstPort;
+                SrcIp = srcIp;
+                SrcPort = srcPort;
             }
         }
+        class SrcKeyComparer : IEqualityComparer<SrcKey>
+        {
+            public bool Equals(SrcKey x, SrcKey y) => x.SrcIp == y.SrcIp &&
+                      x.SrcPort == y.SrcPort;
+
+            public int GetHashCode(SrcKey obj)
+            {
+                return HashCode.Combine(obj.SrcIp, obj.SrcPort);
+            }
+        }
+        readonly struct NatKey
+        {
+            public readonly uint SrcIp;
+            public readonly ushort SrcPort;
+            public readonly uint DstIp;
+            public readonly ushort DstPort;
+
+            public NatKey(uint srcIp, ushort srcPort, uint dstIp, ushort dstPort)
+            {
+                SrcIp = srcIp;
+                SrcPort = srcPort;
+                DstIp = dstIp;
+                DstPort = dstPort;
+            }
+        }
+        class NatKeyComparer : IEqualityComparer<NatKey>
+        {
+            public bool Equals(NatKey x, NatKey y) => x.SrcIp == y.SrcIp &&
+                      x.SrcPort == y.SrcPort &&
+                       x.DstIp == y.DstIp &&
+                       x.DstPort == y.DstPort;
+
+            public int GetHashCode(NatKey obj)
+            {
+                return HashCode.Combine(obj.SrcIp, obj.SrcPort, obj.DstIp, obj.DstPort);
+            }
+        }
+
+
         sealed class ConnectionState
         {
             public Socket Socket { get; set; }

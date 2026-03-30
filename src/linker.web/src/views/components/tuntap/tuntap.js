@@ -16,6 +16,8 @@ export const provideTuntap = () => {
         showRoutes:false,
         showFirewall:false,
         showWakeup:false,
+        network:'-',
+        networks:{}
     });
     provide(tuntapSymbol, tuntap);
 
@@ -27,6 +29,14 @@ export const provideTuntap = () => {
 
                 subscribePing();
                 tuntap.value.hashcode = res.HashCode;
+
+                tuntap.value.networks = [{value:'-',label:'全部'}].concat(res.Network.Subs.map(c=>{
+                    return {
+                        value:c.Name,
+                        label:`${c.Name} : ${c.IP}/${c.PrefixLength}`
+                    }
+                }));
+
                 if (res.List) {
                     for (let j in res.List) {
                         const systemStr = res.List[j].SystemInfo.toLowerCase();
@@ -41,6 +51,7 @@ export const provideTuntap = () => {
                     resolve(true);
                     return;
                 }
+                tuntap.value.list = [];
                 resolve(false);
             }).catch((e) => {
                 resolve(false);
@@ -58,9 +69,18 @@ export const provideTuntap = () => {
         });
     }
     const getTuntapMachines = (name) => {
-        return Object.values(tuntap.value.list)
+        let result = [];
+        if(name){
+            result = result.concat(Object.values(tuntap.value.list)
             .filter(c => c.IP.indexOf(name) >= 0 || (c.Lans.filter(d => d.IP.indexOf(name) >= 0).length > 0))
-            .map(c => c.MachineId);
+            .map(c => c.MachineId))
+        }
+        if(tuntap.network != '-'){
+            result = result.concat(Object.values(tuntap.value.list)
+            .filter(c => c.NetworkName == tuntap.value.network)
+            .map(c => c.MachineId));
+        }
+        return result;
     }
     const sortTuntapIP = (asc) => {
         const sort = Object.values(tuntap.value.list).filter(c => c.IP).sort((a, b) => {

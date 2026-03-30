@@ -10,20 +10,28 @@
                 <span class="mgl-1">留空则使用【本组网络】的设置</span>
             </el-form-item>
             <el-form-item label="MTU" prop="MTU">
-                <el-input-number v-trim v-model="state.ruleForm.Mtu" :min="0" :max="1500" class="w-14" />
-                <span class="mgl-1">一般来说不用动，不要超过1440</span>
+                <el-select v-model="state.ruleForm.Mtu" class="w-14">
+                    <el-option :value="item.value" :label="item.label" v-for="(item,index) in state.mtus"></el-option>
+                </el-select>
+                <span class="mgl-1">留空使用【本组网络】的设置</span>
             </el-form-item>
             <el-form-item label="MSS钳制" prop="MssFix">
                 <el-select v-model="state.ruleForm.MssFix" class="w-14">
                     <el-option :value="item.value" :label="item.label" v-for="(item,index) in state.msss"></el-option>
                 </el-select>
-                <span class="mgl-1">TCP MSS Clamping，仅linux</span>
+                <span class="mgl-1">留空则使用【本组网络】的设置</span>
             </el-form-item>
-            <el-form-item label="网络名" prop="NetworkName">
+            <el-form-item label="子网络" prop="NetworkName">
                 <el-select v-model="state.ruleForm.NetworkName"  class="w-14">
                     <el-option :value="item.value" :label="item.label" v-for="(item,index) in state.networks"></el-option>
                 </el-select>
                 <span class="mgl-1">需要变长掩码子网隔离就选子网、否则留空或选择主网</span>
+            </el-form-item>
+            <el-form-item label="主子网隔离" prop="VlsmStatus">
+                <el-select v-model="state.ruleForm.VlsmStatus" class="w-14">
+                    <el-option :value="item.value" :label="item.label" v-for="(item,index) in state.vlsms"></el-option>
+                </el-select>
+                <span class="mgl-1">留空则使用【本组网络】的设置</span>
             </el-form-item>
             <el-form-item label="网卡IP" prop="IP">
                 <el-input v-trim v-model="state.ruleForm.IP" class="w-14" />
@@ -78,6 +86,7 @@ export default {
                 NetworkName: tuntap.value.current.NetworkName,
                 Mtu: tuntap.value.current.Mtu,
                 MssFix: tuntap.value.current.MssFix,
+                VlsmStatus: tuntap.value.current.VlsmStatus,
                 Guid: '',
             },
             rules: {
@@ -91,9 +100,34 @@ export default {
                 }
             },
             networks:[],
+            vlsms:[
+                {value:0,label:''},
+                {value:1,label:'隔离'},
+                {value:2,label:'主->子单向'},
+                {value:4,label:'主<->子双向'},
+            ],
+            mtus:[
+                {value:0,label:''},
+                {value:1480,label:'使用1480'},
+                {value:1460,label:'使用1460'},
+                {value:1440,label:'使用1440'},
+                {value:1420,label:'使用1420'},
+                {value:1400,label:'使用1400'},
+                {value:1380,label:'使用1380'},
+                {value:1360,label:'使用1360'},
+                {value:1340,label:'使用1340'},
+                {value:1320,label:'使用1320'},
+                {value:1300,label:'使用1300'},
+                {value:1280,label:'使用1280'},
+                {value:1260,label:'使用1260'},
+                {value:1240,label:'使用1240'},
+                {value:1220,label:'使用1220'},
+                {value:1200,label:'使用1200'}
+            ],
             msss:[
-                {value:-1,label:'不启用'},
-                {value:0,label:'自动计算'},
+                {value:0,label:''},
+                {value:1,label:'不启用'},
+                {value:2,label:'自动计算'},
                 {value:1400,label:'启用1400'},
                 {value:1380,label:'启用1380'},
                 {value:1360,label:'启用1360'},

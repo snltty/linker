@@ -115,6 +115,10 @@ namespace linker.messenger.signin
                 {
                     list = list.Where(c => c.Version.Contains(request.Name) || c.IP.ToString().Contains(request.Name) || c.MachineName.Contains(request.Name) || request.Ids.Contains(c.MachineId));
                 }
+                else if (request.Ids.Length > 0)
+                {
+                    list = list.Where(c => request.Ids.Contains(c.MachineId));
+                }
 
                 if (string.IsNullOrWhiteSpace(request.Prop) == false)
                 {

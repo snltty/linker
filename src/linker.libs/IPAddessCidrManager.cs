@@ -44,16 +44,16 @@ namespace linker.libs
             routes.Clear();
         }
 
-        public bool FindValue(IPAddress ip, out T value)
+        public bool FindValue(IPAddress ip, out CidrAddInfo<T> value)
         {
             return FindValue(NetworkHelper.ToValue(ip), out value);
         }
-        public bool FindValue(uint ip, out T value)
+        public bool FindValue(uint ip, out CidrAddInfo<T> value)
         {
             value = default;
             if (ip2value.TryGetValue(ip, out CidrAddInfo<T> item))
             {
-                value = item.Value;
+                value = item;
                 return true;
             }
             foreach (var mask in masks)
@@ -61,7 +61,7 @@ namespace linker.libs
                 uint network = ip & mask;
                 if (ip2value.TryGetValue(network, out item))
                 {
-                    value = item.Value;
+                    value = item;
                     return true;
                 }
             }
@@ -76,6 +76,10 @@ namespace linker.libs
         /// </summary>
         public uint IPAddress { get; set; }
         public byte PrefixLength { get; set; }
+
+        public uint DstIp { get; set; }
+        public uint DstPrefixValue { get; set; }
+
         public T Value { get; set; }
     }
 }

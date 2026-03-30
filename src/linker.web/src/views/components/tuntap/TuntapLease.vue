@@ -1,7 +1,7 @@
 <template>
-     <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap" title="配置本组的网络" top="1vh" width="500">
+     <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap" title="配置本组的网络" top="1vh" width="510">
         <div>
-            <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="70">
+            <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="80">
                 <el-form-item label="网卡名" prop="Name">
                     <el-row class="w-100">
                         <el-col :span="10">
@@ -13,7 +13,9 @@
                 <el-form-item label="MTU" prop="MTU">
                     <el-row class="w-100">
                         <el-col :span="10">
-                            <el-input-number v-trim v-model="state.ruleForm.Mtu" :min="0" :max="1500" class="w-100" />
+                            <el-select v-model="state.ruleForm.Mtu" class="w-100">
+                                <el-option :value="item.value" :label="item.label" v-for="(item,index) in state.mtus"></el-option>
+                            </el-select>
                         </el-col>
                         <el-col :span="14"></el-col>
                     </el-row>
@@ -55,6 +57,11 @@
                         </el-descriptions>
                     </div>
                 </el-form-item>
+                <el-form-item label="主子网隔离" prop="VlsmStatus">
+                    <el-select v-model="state.ruleForm.VlsmStatus" class="w-14">
+                        <el-option :value="item.value" :label="item.label" v-for="(item,index) in state.vlsms"></el-option>
+                    </el-select>
+                </el-form-item>
                 <el-form-item label="子网" prop="Subs">
                     <div class="subs">
                         <template v-for="(item,index) in state.ruleForm.Subs">
@@ -78,6 +85,7 @@
                         </template>
                     </div>
                 </el-form-item>
+                
                 <el-form-item label="" prop="alert"></el-form-item>
                 <AccessShow value="Lease">
                     <el-form-item label="" prop="Btns">
@@ -140,7 +148,8 @@ export default {
                 PrefixLength:24,
                 Subs:[],
                 Mtu:1420,
-                MssFix:0,
+                MssFix:2,
+                VlsmStatus:2,
             },
             rules: {
                 Name: {
@@ -153,9 +162,31 @@ export default {
                 }
             },
             values:{},
+            vlsms:[
+                {value:1,label:'隔离'},
+                {value:2,label:'主->子单向'},
+                {value:4,label:'主<->子双向'},
+            ],
+            mtus:[
+                {value:1480,label:'使用1480'},
+                {value:1460,label:'使用1460'},
+                {value:1440,label:'使用1440'},
+                {value:1420,label:'使用1420'},
+                {value:1400,label:'使用1400'},
+                {value:1380,label:'使用1380'},
+                {value:1360,label:'使用1360'},
+                {value:1340,label:'使用1340'},
+                {value:1320,label:'使用1320'},
+                {value:1300,label:'使用1300'},
+                {value:1280,label:'使用1280'},
+                {value:1260,label:'使用1260'},
+                {value:1240,label:'使用1240'},
+                {value:1220,label:'使用1220'},
+                {value:1200,label:'使用1200'}
+            ],
             msss:[
-                {value:-1,label:'不启用'},
-                {value:0,label:'自动计算'},
+                {value:1,label:'不启用'},
+                {value:2,label:'自动计算'},
                 {value:1400,label:'启用1400'},
                 {value:1380,label:'启用1380'},
                 {value:1360,label:'启用1360'},
@@ -207,6 +238,7 @@ export default {
                 state.ruleForm.Subs = res.Subs;
                 state.ruleForm.Mtu = res.Mtu;
                 state.ruleForm.MssFix = res.MssFix;
+                state.ruleForm.VlsmStatus = res.VlsmStatus;
                 _calcNetwork();
             });
         }
@@ -219,6 +251,8 @@ export default {
             _calcNetwork();
         }
         const handleSave = () => {
+            const json = JSON.parse(JSON.stringify(state.ruleForm));
+            json.Subs = json.Subs.filter(c=>c.IP != '0.0.0.0');
             addNetwork(state.ruleForm).then(()=>{
                 ElMessage.success('已操作');
                 state.show = false;

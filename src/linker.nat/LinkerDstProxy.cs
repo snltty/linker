@@ -24,8 +24,8 @@ namespace linker.nat
         uint tunIp = 0;
 
         private (uint min, uint max)[] lans = [];
-        private readonly ConcurrentDictionary<(uint srcIp, uint srcPort), DstCacheInfo> dic = new();
-        private readonly ConcurrentDictionary<(uint srcIp, ushort srcPort, uint dstIp, ushort dstPort), UdpState> udpMap = new();
+        private readonly ConcurrentDictionary<SrcKey, DstCacheInfo> dic = new(new SrcKeyComparer());
+        private readonly ConcurrentDictionary<NatKey, UdpState> udpMap = new(new NatKeyComparer());
         private readonly ConcurrentDictionary<uint, IcmpState> icmpMap = new();
         public LinkerDstProxy()
         {
@@ -78,7 +78,7 @@ namespace linker.nat
                 {
                     Socket source = await listenSocketTcp.AcceptAsync();
                     IPEndPoint ep = source.RemoteEndPoint as IPEndPoint;
-                    (uint srcIp, ushort srcPort) key = (NetworkHelper.ToValue(ep.Address), (ushort)ep.Port);
+                    SrcKey key = new SrcKey(NetworkHelper.ToValue(ep.Address), (ushort)ep.Port);
                     if (dic.TryGetValue(key, out DstCacheInfo cache) == false)
                     {
                         source.SafeClose();
@@ -159,11 +159,11 @@ namespace linker.nat
                     if (result.ReceivedBytes == 0) continue;
 
                     IPEndPoint ep = result.RemoteEndPoint as IPEndPoint;
-                    (uint srcIp, ushort srcPort) key = (NetworkHelper.ToValue(ep.Address), (ushort)ep.Port);
+                    SrcKey key = new SrcKey(NetworkHelper.ToValue(ep.Address), (ushort)ep.Port);
                     if (dic.TryGetValue(key, out DstCacheInfo cache) == false) continue;
                     cache.LastTime = Environment.TickCount64;
 
-                    (uint srcIp, ushort srcPort, uint dstIp, ushort dstPort) keyUdp = (key.srcIp, key.srcPort, cache.IP, cache.Port);
+                    NatKey keyUdp = new NatKey(key.SrcIp, (ushort)key.SrcPort, cache.IP, cache.Port);
                     if (udpMap.TryGetValue(keyUdp, out UdpState state) == false)
                     {
                         state = new UdpState
@@ -191,7 +191,7 @@ namespace linker.nat
                     Shutdown();
             }
         }
-        private async void ConnectCallback((uint srcIp, ushort srcPort, uint dstIp, ushort dstPort) keyUdp, DstCacheInfo cache, UdpState state)
+        private async void ConnectCallback(NatKey keyUdp, DstCacheInfo cache, UdpState state)
         {
             try
             {
@@ -246,7 +246,7 @@ namespace linker.nat
 
                 if (p.Protocol == ProtocolType.Tcp || p.Protocol == ProtocolType.Udp)
                 {
-                    if (dic.TryGetValue((p.DstAddr, p.DstPort), out DstCacheInfo cache))
+                    if (dic.TryGetValue(new SrcKey(p.DstAddr, p.DstPort), out DstCacheInfo cache))
                     {
                         cache.LastTime = Environment.TickCount64;
                         p.SrcAddr = cache.IP;
@@ -262,7 +262,7 @@ namespace linker.nat
                 }
                 else if (p.Protocol == ProtocolType.Icmp && p.IcmpType == 0)
                 {
-                    if (dic.TryGetValue((p.DstAddr, p.IcmpId), out DstCacheInfo cache))
+                    if (dic.TryGetValue(new SrcKey(p.DstAddr, p.IcmpId), out DstCacheInfo cache))
                     {
                         cache.LastTime = Environment.TickCount64;
                         p.SrcAddr = cache.IP;
@@ -302,7 +302,7 @@ namespace linker.nat
         }
         private bool WriteTcp(DstProxyPacket p)
         {
-            (uint srcIp, uint srcPort) key = (p.SrcAddr, p.SrcPort);
+            SrcKey key = new SrcKey(p.SrcAddr, p.SrcPort);
             if (dic.TryGetValue(key, out DstCacheInfo cache) == false || cache.IP != p.DstAddr || cache.Port != p.DstPort)
             {
                 //仅SYN包建立映射
@@ -333,7 +333,7 @@ namespace linker.nat
         }
         private bool WriteUdp(DstProxyPacket p)
         {
-            (uint srcIp, uint srcPort) key = (p.SrcAddr, p.SrcPort);
+            SrcKey key = new SrcKey(p.SrcAddr, p.SrcPort);
             if (dic.TryGetValue(key, out DstCacheInfo cache) == false || cache.IP != p.DstAddr || cache.Port != p.DstPort)
             {
                 cache = new DstCacheInfo { IP = p.DstAddr, Port = p.DstPort, Fin = true };
@@ -372,7 +372,7 @@ namespace linker.nat
                 return false;
             }
 
-            (uint srcIp, uint icmpid) key = (p.SrcAddr, p.IcmpId);
+            SrcKey key = new SrcKey(p.SrcAddr, p.IcmpId);
             if (dic.TryGetValue(key, out DstCacheInfo cache) == false || cache.IP != p.DstAddr)
             {
                 cache = new DstCacheInfo { IP = p.DstAddr, Port = 0, Fin = true };
@@ -408,7 +408,7 @@ namespace linker.nat
                 {
                     if (dic.TryRemove(key, out var cache))
                     {
-                        if (udpMap.TryRemove((key.srcIp, (ushort)key.srcPort, cache.IP, cache.Port), out var udpCache))
+                        if (udpMap.TryRemove(new NatKey(key.SrcIp, (ushort)key.SrcPort, cache.IP, cache.Port), out var udpCache))
                         {
                             udpCache.Target?.SafeClose();
                         }
@@ -602,6 +602,56 @@ namespace linker.nat
             public DstProxyPacket(byte* ptr)
             {
                 this.ptr = ptr;
+            }
+        }
+
+
+        readonly struct SrcKey
+        {
+            public readonly uint SrcIp;
+            public readonly uint SrcPort;
+
+            public SrcKey(uint srcIp, uint srcPort)
+            {
+                SrcIp = srcIp;
+                SrcPort = srcPort;
+            }
+        }
+        class SrcKeyComparer : IEqualityComparer<SrcKey>
+        {
+            public bool Equals(SrcKey x, SrcKey y) => x.SrcIp == y.SrcIp &&
+                      x.SrcPort == y.SrcPort;
+
+            public int GetHashCode(SrcKey obj)
+            {
+                return HashCode.Combine(obj.SrcIp, obj.SrcPort);
+            }
+        }
+        readonly struct NatKey
+        {
+            public readonly uint SrcIp;
+            public readonly ushort SrcPort;
+            public readonly uint DstIp;
+            public readonly ushort DstPort;
+
+            public NatKey(uint srcIp, ushort srcPort, uint dstIp, ushort dstPort)
+            {
+                SrcIp = srcIp;
+                SrcPort = srcPort;
+                DstIp = dstIp;
+                DstPort = dstPort;
+            }
+        }
+        class NatKeyComparer : IEqualityComparer<NatKey>
+        {
+            public bool Equals(NatKey x, NatKey y) => x.SrcIp == y.SrcIp &&
+                      x.SrcPort == y.SrcPort &&
+                       x.DstIp == y.DstIp &&
+                       x.DstPort == y.DstPort;
+
+            public int GetHashCode(NatKey obj)
+            {
+                return HashCode.Combine (obj.SrcIp ,obj.SrcPort, obj.DstIp, obj.DstPort);
             }
         }
     }

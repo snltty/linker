@@ -11,6 +11,7 @@ using linker.messenger.tuntap.lease;
 using linker.messenger.tuntap.messenger;
 using linker.nat;
 using linker.tun;
+using linker.tun.hook;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Text.Json;
@@ -43,8 +44,8 @@ namespace linker.messenger.tuntap
 
             serviceCollection.AddSingleton<TuntapCidrConnectionManager>();
             serviceCollection.AddSingleton<TuntapCidrDecenterManager>();
-            serviceCollection.AddSingleton<TuntapCidrMapfileManager>();
 
+            serviceCollection.AddSingleton<LinkerTunPacketHookVlsm>();
 
             return serviceCollection;
         }
@@ -78,7 +79,8 @@ namespace linker.messenger.tuntap
             DecenterClientTransfer decenterClientTransfer = serviceProvider.GetService<DecenterClientTransfer>();
             decenterClientTransfer.AddDecenters(new List<IDecenter> { serviceProvider.GetService<TuntapDecenter>() });
 
-            TuntapCidrMapfileManager tuntapCidrMapfileManager = serviceProvider.GetService<TuntapCidrMapfileManager>();
+            LinkerTunDeviceAdapter linkerTunDeviceAdapter = serviceProvider.GetService<LinkerTunDeviceAdapter>();
+            linkerTunDeviceAdapter.AddHooks(new List<ILinkerTunPacketHook> { serviceProvider.GetService<LinkerTunPacketHookVlsm>() });
 
             return serviceProvider;
         }

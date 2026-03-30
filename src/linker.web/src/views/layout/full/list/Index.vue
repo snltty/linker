@@ -4,7 +4,7 @@
         <el-table :data="devices.page.List" stripe border size="small" class="flex-1 w-100">
             <Device  @refresh="handlePageRefresh"></Device>
             <Tunnel  @refresh="deviceRefreshHook('tunnel')"></Tunnel>
-            <Tuntap></Tuntap>
+            <Tuntap @refresh="handlePageRefresh"></Tuntap>
             <Socks5  @refresh="deviceRefreshHook('socks5')"></Socks5> 
             <Forward ></Forward> 
             <Oper  @refresh="handlePageRefresh"></Oper>
@@ -184,18 +184,14 @@ export default {
 
         const handlePageRefresh = (name)=>{
             devices.page.Request.Name = name || '';
-            if(devices.page.Request.Name){
-                devices.page.Request.Ids = getTuntapMachines(devices.page.Request.Name)
-                .concat(getSocks5Machines(devices.page.Request.Name))
-                .reduce((arr,id)=>{
-                    if(arr.indexOf(id) == -1){
-                        arr.push(id);
-                    }
-                    return arr;
-               },[]);
-            }else{
-                devices.page.Request.Ids = [];
-            }
+            devices.page.Request.Ids = getTuntapMachines(devices.page.Request.Name)
+            .concat(getSocks5Machines(devices.page.Request.Name))
+            .reduce((arr,id)=>{
+                if(arr.indexOf(id) == -1){
+                    arr.push(id);
+                }
+                return arr;
+            },[]);
             handlePageChange();
         }
 

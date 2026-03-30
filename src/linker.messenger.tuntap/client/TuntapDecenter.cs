@@ -77,6 +77,7 @@ namespace linker.messenger.tuntap.client
                 NetworkName = tuntapConfigTransfer.Info.NetworkName,
                 Mtu = tuntapConfigTransfer.Info.Mtu,
                 MssFix = tuntapConfigTransfer.Info.MssFix,
+                VlsmStatus = tuntapConfigTransfer.Info.VlsmStatus,
             });
         }
         public void AddData(Memory<byte> data)
