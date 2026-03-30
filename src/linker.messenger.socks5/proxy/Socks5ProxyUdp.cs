@@ -93,7 +93,7 @@ namespace linker.messenger.socks5
             }
             finally
             {
-                token.Disponse();
+                token.Dispose();
                 if (socketUdp != null && socketUdp.GetHashCode() == hashcode)
                     StopUdp();
             }
@@ -128,7 +128,7 @@ namespace linker.messenger.socks5
                     LoggerHelper.Instance.Error(ex);
                 if (udpConnections.TryRemove(connectId, out AsyncUserToken token))
                 {
-                    token.Disponse();
+                    token.Dispose();
                 }
             }
         }
@@ -230,7 +230,7 @@ namespace linker.messenger.socks5
                 ArrayPool<byte>.Shared.Return(buffer);
                 if (udpConnections.TryRemove(connectId, out AsyncUserToken token))
                 {
-                    token.Disponse();
+                    token.Dispose();
                 }
             }
         }
@@ -249,7 +249,7 @@ namespace linker.messenger.socks5
                     {
                         if (udpConnections.TryRemove(item, out AsyncUserToken token))
                         {
-                            token.Disponse();
+                            token.Dispose();
                         }
                     }
                 }
@@ -266,7 +266,7 @@ namespace linker.messenger.socks5
 
             foreach (var item in udpConnections)
             {
-                item.Value.Disponse();
+                item.Value.Dispose();
             }
             udpConnections.Clear();
         }

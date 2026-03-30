@@ -233,7 +233,7 @@ namespace linker.messenger.signin
             if (string.IsNullOrWhiteSpace(argResult) == false)
             {
                 LoggerHelper.Instance.Error(argResult);
-                connection?.Disponse(6);
+                connection?.Dispose(6);
                 return false;
             }
 
@@ -253,7 +253,7 @@ namespace linker.messenger.signin
             if (resp.Code != MessageResponeCodes.OK)
             {
                 LoggerHelper.Instance.Error($"sign in fail : {resp.Code}");
-                connection?.Disponse(6);
+                connection?.Dispose(6);
                 return false;
             }
 
@@ -261,7 +261,7 @@ namespace linker.messenger.signin
             if (signResp.Status == false)
             {
                 LoggerHelper.Instance.Error($"sign in fail : {signResp.Msg}");
-                connection?.Disponse(6);
+                connection?.Dispose(6);
                 return false;
             }
             clientSignInState.Connection = connection;
@@ -278,7 +278,7 @@ namespace linker.messenger.signin
         public void SignOut()
         {
             if (clientSignInState.Connected)
-                clientSignInState.Connection.Disponse(5);
+                clientSignInState.Connection.Dispose(5);
         }
 
         /// <summary>

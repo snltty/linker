@@ -127,7 +127,7 @@ namespace linker.tunnel.connection
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Error($"tunnel connection writer offline {cts.IsCancellationRequested}");
-                LoggerHelper.Instance.Error($"tunnel connection disponse 6");
+                LoggerHelper.Instance.Error($"tunnel connection dispose 6");
                 Dispose();
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Error($"tunnel connection writer offline {ToString()}");
@@ -166,7 +166,7 @@ namespace linker.tunnel.connection
                     }
                     else if (memory.Span.SequenceEqual(finBytes))
                     {
-                        LoggerHelper.Instance.Error($"tunnel connection disponse 5");
+                        LoggerHelper.Instance.Error($"tunnel connection dispose 5");
                         Dispose();
                     }
                     return;
@@ -193,7 +193,7 @@ namespace linker.tunnel.connection
                 {
                     if (Connected == false)
                     {
-                        LoggerHelper.Instance.Error($"tunnel connection disponse 4");
+                        LoggerHelper.Instance.Error($"tunnel connection dispose 4");
                         Dispose();
                         break;
                     }
@@ -321,7 +321,7 @@ namespace linker.tunnel.connection
                 {
                     LoggerHelper.Instance.Error(ex);
                 }
-                LoggerHelper.Instance.Error($"tunnel connection disponse 2");
+                LoggerHelper.Instance.Error($"tunnel connection dispose 2");
                 Dispose();
             }
             finally
