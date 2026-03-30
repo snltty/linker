@@ -19,7 +19,7 @@ jobs:
           release_name: v1.9.96.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 一些累计更新，一些BUG修复\r\n2. #92 松开打洞loading限制，允许选择中继节点\r\n3. #89 windows下利用任务计划进行进程守护，定时检查服务\r\n4. 优化客户端管理ws并发\r\n5. 减少服务器推送，减轻主服务器压力\r\n6. 优化中继，针对无法连接自己的外网IP的情况\r\n7. 优化upnp，自己实现了一遍\r\n8. 服务端支持ipv6\r\n9. 客户端可以设置头像，可以是图片url或json描述样式\r\n10. 变长掩码子网络隔离"
+          body: "1. 一些累计更新，一些BUG修复\r\n2. #92 松开打洞loading限制，允许选择中继节点\r\n3. #89 windows下利用任务计划进行进程守护，定时检查服务\r\n4. 优化客户端管理ws并发\r\n5. 减少服务器推送，减轻主服务器压力\r\n6. 优化中继，针对无法连接自己的外网IP的情况\r\n7. 优化upnp，自己实现了一遍\r\n8. #91 服务端支持ipv6\r\n9. #94 客户端可以设置头像，可以是图片url或json描述样式\r\n10. #96 变长掩码子网络隔离\r\n11. #98 mss钳制"
       - name: setup node.js
         uses: actions/setup-node@v2
         with:

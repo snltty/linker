@@ -22,6 +22,22 @@ namespace linker.libs.extends
                 {
                 }
             }
+            try
+            {
+
+                if (socket.AddressFamily == AddressFamily.InterNetworkV6)
+                {
+                    socket.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.TypeOfService, 46 << 2);
+                }
+                else
+                {
+                    socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.TypeOfService, 46 << 2);
+                }
+
+            }
+            catch (Exception)
+            {
+            }
         }
         public static void IPv6Only(this Socket socket, AddressFamily family, bool val)
         {
@@ -35,6 +51,22 @@ namespace linker.libs.extends
                 catch (Exception)
                 {
                 }
+            }
+            try
+            {
+
+                if (socket.AddressFamily == AddressFamily.InterNetworkV6)
+                {
+                    socket.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.TypeOfService, 46 << 2);
+                }
+                else
+                {
+                    socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.TypeOfService, 46 << 2);
+                }
+
+            }
+            catch (Exception)
+            {
             }
         }
         public static void SafeClose(this Socket socket)
@@ -67,12 +99,28 @@ namespace linker.libs.extends
         {
             socket.ExclusiveAddressUse = !reuse;
             socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, reuse);
+            try
+            {
+
+                if (socket.AddressFamily == AddressFamily.InterNetworkV6)
+                {
+                    socket.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.TypeOfService, 46 << 2);
+                }
+                else
+                {
+                    socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.TypeOfService, 46 << 2);
+                }
+
+            }
+            catch (Exception)
+            {
+            }
         }
         public static void ReuseBind(this Socket socket, IPEndPoint ip)
         {
-            if(ip.AddressFamily == AddressFamily.InterNetworkV6)
+            if (ip.AddressFamily == AddressFamily.InterNetworkV6)
             {
-                socket.IPv6Only(ip.AddressFamily,false);
+                socket.IPv6Only(ip.AddressFamily, false);
             }
             socket.Reuse(true);
             socket.Bind(ip);
@@ -84,6 +132,22 @@ namespace linker.libs.extends
             socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, interval);
             //socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, retryCount);
             socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, time);
+            try
+            {
+
+                if (socket.AddressFamily == AddressFamily.InterNetworkV6)
+                {
+                    socket.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.TypeOfService, 46 << 2);
+                }
+                else
+                {
+                    socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.TypeOfService, 46 << 2);
+                }
+
+            }
+            catch (Exception)
+            {
+            }
         }
     }
 }

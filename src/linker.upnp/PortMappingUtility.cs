@@ -92,33 +92,24 @@ namespace linker.upnp
         }
         private static void RefreshDevice()
         {
-            bool changed = false;
             foreach (var device in services.Select(c => c.GetDevices()).ToList().SelectMany(c => c))
             {
                 if (devices.TryGetValue((device.GatewayIp, device.Type), out IPortMappingDevice _device) == false)
                 {
-                    changed = true;
                     devices.TryAdd((device.GatewayIp, device.Type), device);
                     DeviceFound?.Invoke(device);
                 }
             }
-            if (changed)
-            {
-                Change?.Invoke();
-            }
+            Change?.Invoke();
         }
         private static async Task RefreshMappings()
         {
-            int count = mappings.Count;
             mappings = (await Task.WhenAll(services.Select(c => c.Get()).ToList()).ConfigureAwait(false))
                        .SelectMany(c => c)
                        .Where(c => localMappings.TryGetValue((c.PublicPort, c.ProtocolType), out MappingCacheInfo cache) == false || cache.Deleted == false)
                        .ToList();
 
-            if (mappings.Count != count)
-            {
-                Change?.Invoke();
-            }
+            Change?.Invoke();
         }
         private static async Task Delay()
         {
