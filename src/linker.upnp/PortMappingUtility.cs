@@ -68,9 +68,9 @@ namespace linker.upnp
 
             Task.Run(async () =>
             {
-                try
+                while (cts.IsCancellationRequested == false)
                 {
-                    while (cts.IsCancellationRequested == false)
+                    try
                     {
                         for (int i = 0; i < services.Length; i++)
                         {
@@ -84,10 +84,11 @@ namespace linker.upnp
                         await RefreshMappings().ConfigureAwait(false);
                         await Delay().ConfigureAwait(false);
                     }
+                    catch (Exception)
+                    {
+                    }
                 }
-                catch (Exception)
-                {
-                }
+               
             });
         }
         private static void RefreshDevice()
@@ -108,7 +109,6 @@ namespace linker.upnp
                        .SelectMany(c => c)
                        .Where(c => localMappings.TryGetValue((c.PublicPort, c.ProtocolType), out MappingCacheInfo cache) == false || cache.Deleted == false)
                        .ToList();
-
             Change?.Invoke();
         }
         private static async Task Delay()
