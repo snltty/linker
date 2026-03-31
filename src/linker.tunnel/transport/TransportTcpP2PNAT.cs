@@ -145,10 +145,6 @@ namespace linker.tunnel.transport
                     targetSocket.IPv6Only(ep.AddressFamily, false);
                     targetSocket.ReuseBind(new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
 
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    {
-                        LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep}");
-                    }
                     await targetSocket.ConnectAsync(ep,cts.Token).ConfigureAwait(false);
 
                     return (true, targetSocket);

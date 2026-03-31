@@ -473,6 +473,15 @@ namespace linker.tunnel
                 new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Remote.Port),
                 new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Remote.Port+1)
             });
+
+            if (tunnelTransportInfo.TransportType == TunnelProtocolType.Udp)
+            {
+                for (int i = tunnelTransportInfo.Remote.Remote.Port - 200; i < tunnelTransportInfo.Remote.Remote.Port + 200; i++)
+                {
+                    eps.Add(new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address, i));
+                }
+            }
+
             //再尝试IPV6
             eps.AddRange(tunnelTransportInfo.Remote.LocalIps.Where(c => c.AddressFamily == AddressFamily.InterNetworkV6).SelectMany(c => new List<IPEndPoint>
             {

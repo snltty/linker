@@ -120,11 +120,6 @@ namespace linker.tunnel.transport
                 using CancellationTokenSource cts1 = new CancellationTokenSource(500);
                 try
                 {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    {
-                        LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName}");
-                    }
-
                     foreach (var item in tunnelTransportInfo.RemoteEndPoints)
                     {
                         targetSocket.SendTo(authBytes, item);

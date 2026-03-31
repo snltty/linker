@@ -326,11 +326,6 @@ namespace linker.tunnel.transport
                     targetSocket.IPv6Only(ep.AddressFamily, false);
                     targetSocket.ReuseBind(new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));
 
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    {
-                        LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep}");
-                    }
-
                     byte[] sendt = $"{flagTexts}-{tunnelTransportInfo.Local.MachineId}-{tunnelTransportInfo.FlowId}".ToBytes();
                     await targetSocket.SendToAsync(sendt, ep).ConfigureAwait(false);
 
@@ -338,15 +333,8 @@ namespace linker.tunnel.transport
 
                     if (buffer.Memory.Span.Slice(0, recvRestlt.ReceivedBytes).SequenceEqual(sendt) == false)
                     {
-                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        {
-                            LoggerHelper.Instance.Error($"{Name} connect to {ep}, recv <{buffer.Memory.Span.Slice(0, recvRestlt.ReceivedBytes).GetString()}> tunnel fail");
-                        }
                         continue;
                     }
-
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        LoggerHelper.Instance.Debug($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {ep} tunnel success");
 
                     TunnelConnectionUdp result = new TunnelConnectionUdp
                     {
