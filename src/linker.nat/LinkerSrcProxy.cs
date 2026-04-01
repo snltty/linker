@@ -1,12 +1,14 @@
-﻿using linker.libs.extends;
-using linker.libs;
+﻿using linker.libs;
+using linker.libs.extends;
+using linker.libs.timer;
 using System.Buffers;
-using System.Net;
-using System.Net.Sockets;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
-using linker.libs.timer;
 using System.IO.Pipelines;
+using System.Net;
+using System.Net.Sockets;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace linker.nat
 {
@@ -461,11 +463,13 @@ namespace linker.nat
                 return HashCode.Combine(obj.SrcIp, obj.SrcPort);
             }
         }
+
+        [StructLayout(LayoutKind.Sequential)]
         readonly struct NatKey
         {
             public readonly uint SrcIp;
-            public readonly ushort SrcPort;
             public readonly uint DstIp;
+            public readonly ushort SrcPort;
             public readonly ushort DstPort;
 
             public NatKey(uint srcIp, ushort srcPort, uint dstIp, ushort dstPort)
@@ -478,8 +482,9 @@ namespace linker.nat
         }
         class NatKeyComparer : IEqualityComparer<NatKey>
         {
-            public bool Equals(NatKey x, NatKey y) => (x.SrcIp, x.SrcPort, x.DstIp, x.DstPort) == (y.SrcIp, y.SrcPort, y.DstIp, y.DstPort)
-                    || (x.DstIp, x.DstPort, x.SrcIp, x.SrcPort) == (y.SrcIp, y.SrcPort, y.DstIp, y.DstPort);
+            public bool Equals(NatKey x, NatKey y) => (x.SrcIp == y.SrcIp && x.SrcPort == y.SrcPort &&
+                    x.DstIp == y.DstIp && x.DstPort == y.DstPort) || (x.SrcIp == y.DstIp && x.SrcPort == y.DstPort &&
+                       x.DstIp == y.SrcIp && x.DstPort == y.SrcPort);
 
             public int GetHashCode(NatKey obj)
             {
