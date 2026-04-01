@@ -175,6 +175,7 @@ export default {
             json.NetworkName = state.ruleForm.NetworkName;
             json.Mtu = state.ruleForm.Mtu;
             json.MssFix = state.ruleForm.MssFix;
+            json.VlsmStatus = state.ruleForm.VlsmStatus;
 
             return json;
         }

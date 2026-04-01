@@ -13,7 +13,7 @@
                 <el-form-item label="MTU" prop="MTU">
                     <el-row class="w-100">
                         <el-col :span="10">
-                            <el-select v-model="state.ruleForm.Mtu" class="w-100">
+                            <el-select v-model="state.ruleForm.Mtu" class="w-100" :disabled="state.ruleForm.IP == '0.0.0.0'">
                                 <el-option :value="item.value" :label="item.label" v-for="(item,index) in state.mtus"></el-option>
                             </el-select>
                         </el-col>
@@ -23,7 +23,7 @@
                 <el-form-item label="MSS钳制" prop="MssFix">
                     <el-row class="w-100">
                         <el-col :span="10">
-                            <el-select v-model="state.ruleForm.MssFix" class="w-100">
+                            <el-select v-model="state.ruleForm.MssFix" class="w-100" :disabled="state.ruleForm.IP == '0.0.0.0'">
                                 <el-option :value="item.value" :label="item.label" v-for="(item,index) in state.msss"></el-option>
                             </el-select>
                         </el-col>
@@ -33,11 +33,11 @@
                 <el-form-item label="网络号" prop="IP">
                     <el-row class="w-100">
                         <el-col :span="13">
-                            <el-input v-trim v-model="state.ruleForm.IP" @change="handlePrefixLengthChange" />
+                            <el-input v-trim v-model="state.ruleForm.IP" :disabled="state.disabled" @change="handlePrefixLengthChange" />
                         </el-col>
                         <el-col :span="1" class="t-c">/</el-col>
                         <el-col :span="3">
-                            <el-input v-trim @change="handlePrefixLengthChange" v-model="state.ruleForm.PrefixLength" />
+                            <el-input v-trim @change="handlePrefixLengthChange" :disabled="state.disabled" v-model="state.ruleForm.PrefixLength" />
                         </el-col>
                         <el-col :span="1" class="t-c"></el-col>
                         <el-col :span="6">
@@ -58,7 +58,7 @@
                     </div>
                 </el-form-item>
                 <el-form-item label="主子网隔离" prop="VlsmStatus">
-                    <el-select v-model="state.ruleForm.VlsmStatus" class="w-14">
+                    <el-select v-model="state.ruleForm.VlsmStatus" class="w-14" :disabled="state.ruleForm.IP == '0.0.0.0'">
                         <el-option :value="item.value" :label="item.label" v-for="(item,index) in state.vlsms"></el-option>
                     </el-select>
                 </el-form-item>
@@ -67,7 +67,7 @@
                         <template v-for="(item,index) in state.ruleForm.Subs">
                             <el-row class="w-100 sub-item">
                                 <el-col :span="4" class="pdr-10">
-                                    <el-input v-trim v-model="item.Name"/>
+                                    <el-input v-trim v-model="item.Name" :disabled="state.ruleForm.IP == '0.0.0.0'"/>
                                 </el-col>
                                 <el-col :span="7">
                                     <el-input v-trim v-model="item.IP" disabled/>
@@ -77,9 +77,11 @@
                                     <el-input v-trim v-model="item.PrefixLength" disabled/>
                                 </el-col>
                                 <el-col :span="9" class="t-r">
-                                    <el-button type="danger" @click="handleDelSub(index)"><el-icon><Delete></Delete></el-icon></el-button>
-                                    <el-button type="info" @click="handleEditSub(index)"><el-icon><Edit></Edit></el-icon></el-button>
-                                    <el-button type="primary" @click="handleAddSub(index)"><el-icon><Plus></Plus></el-icon></el-button>
+                                    <template v-if="state.ruleForm.IP != '0.0.0.0'">
+                                        <el-button type="danger" @click="handleDelSub(index)"><el-icon><Delete></Delete></el-icon></el-button>
+                                        <el-button type="info" @click="handleEditSub(index)"><el-icon><Edit></Edit></el-icon></el-button>
+                                        <el-button type="primary" @click="handleAddSub(index)"><el-icon><Plus></Plus></el-icon></el-button>
+                                    </template>
                                 </el-col>
                             </el-row>
                         </template>
@@ -101,8 +103,8 @@
     <el-dialog v-model="state.showEdit" append-to=".app-wrap" title="选择子网" top="1vh" width="440">
         <div>
             <div class="head t-c mgb-1">
-                <el-select  v-model="state.prefixLength" class="w-20 mgl-1" @change="handleSubChange">
-                    <el-option v-for="value in state.prefixLengths" :value="value.value" :label="`/${value.value}、每段 : ${value.length}个IP`"></el-option>
+                <el-select  v-model="state.prefixLength" class="w-20 mgl-1" @change="handleSubChange" :disabled="state.disabled">
+                    <el-option v-for="value in state.prefixLengths" :value="value.value" :label="value.label"></el-option>
                 </el-select>
             </div>
             <el-table :data="state.subs.list" size="small" border height="400">
@@ -132,7 +134,7 @@
 import {getNetwork,addNetwork,calcNetwork, calcSubNetwork } from '@/apis/tuntap';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
-import { Delete, Plus,Refresh,Edit } from '@element-plus/icons-vue'
+import { Delete, Plus,Refresh,Edit, MessageBox } from '@element-plus/icons-vue'
 export default {
     props: ['modelValue'],
     emits: ['change','update:modelValue'],
@@ -142,6 +144,7 @@ export default {
         const ruleFormRef = ref(null);
         const state = reactive({
             show: true,
+            disabled:computed(()=>state.ruleForm.Subs.filter(c=>c.IP != '0.0.0.0').length > 0),
             ruleForm: {
                 Name:'',
                 IP:'0.0.0.0',
@@ -202,7 +205,12 @@ export default {
 
             showEdit: false,
             editIndex : -1,
-            prefixLengths: Array.from({ length: 17 }, (_, i) => { return {value:32-i,length:1<<(32-(32-i))} }),
+            prefixLengths: Array.from({ length: 17 }, (_, i) => { 
+                return {
+                    value:32-i,
+                    label:`/${32-i}、每段 : ${(1<<(32-(32-i)))}个IP`
+                } 
+            }),
             prefixLength:29,
             subs:{
                 list:computed(c=>{
@@ -233,7 +241,12 @@ export default {
                 state.ruleForm.IP = res.IP;
                 state.ruleForm.PrefixLength = res.PrefixLength;
                 if(res.Subs.length == 0){
-                    res.Subs = [{Name:'子网1',IP:'0.0.0.0',PrefixLength:24}];
+                    res.Subs = [{Name:'子网1',IP:'0.0.0.0',PrefixLength:29}];
+                }else{
+                    const sub = res.Subs.filter(c=>c.IP != '0.0.0.0')[0];
+                    if(sub){
+                        state.prefixLength = sub.PrefixLength;
+                    }
                 }
                 state.ruleForm.Subs = res.Subs;
                 state.ruleForm.Mtu = res.Mtu;
@@ -262,6 +275,19 @@ export default {
             })
         }
         const handleClear = ()=>{
+            ElMessageBox.confirm('确定要清空吗？', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(() => {
+                state.ruleForm.IP = '0.0.0.0';
+                state.ruleForm.PrefixLength = 24;
+                state.ruleForm.Subs = [{Name:'子网1',IP:'0.0.0.0',PrefixLength:29}];
+                _calcNetwork();
+            }).catch(() => {
+            });
+        
+            /*
             addNetwork({Name:'',IP:'0.0.0.0',PrefixLength:24,Subs:[]}).then(()=>{
                 ElMessage.success('已操作');
                 _getNetwork();
@@ -269,14 +295,15 @@ export default {
                 console.log(err);
                 ElMessage.error('操作失败');
             });
+            */
         }
 
         const handleAddSub = (index)=>{
-            state.ruleForm.Subs.splice(index+1,0,{Name:'子网'+(state.ruleForm.Subs.length+1),IP:'0.0.0.0',PrefixLength:24});
+            state.ruleForm.Subs.splice(index+1,0,{Name:'子网'+(state.ruleForm.Subs.length+1),IP:'0.0.0.0',PrefixLength:29});
         }
         const handleDelSub = (index)=>{
             if(state.ruleForm.Subs.length <= 1){
-                state.ruleForm.Subs = [{Name:'子网1',IP:'0.0.0.0',PrefixLength:24}];
+                state.ruleForm.Subs = [{Name:'子网1',IP:'0.0.0.0',PrefixLength:29}];
                 return;
             }
             ElMessageBox.confirm('确定要删除吗？', '提示', {

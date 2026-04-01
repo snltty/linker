@@ -21,7 +21,7 @@ namespace linker.messenger.tuntap.client
         public TuntapVlsmStatus VlsmStatus => Info.VlsmStatus == TuntapVlsmStatus.None ? networkInfo.VlsmStatus : Info.VlsmStatus;
         public byte PrefixLength => networkInfo.IP.Equals(IPAddress.Any) ? Info.PrefixLength : networkInfo.PrefixLength;
 
-        public int SubCount => networkInfo.Subs.Count;
+        public int SubCount => networkInfo.Subs.Count(c => IPAddress.Any.Equals(c.IP) == false);
 
         public LeaseInfo Network => networkInfo;
 
