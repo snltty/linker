@@ -478,10 +478,8 @@ namespace linker.nat
         }
         class NatKeyComparer : IEqualityComparer<NatKey>
         {
-            public bool Equals(NatKey x, NatKey y) => x.SrcIp == y.SrcIp &&
-                      x.SrcPort == y.SrcPort &&
-                       x.DstIp == y.DstIp &&
-                       x.DstPort == y.DstPort;
+            public bool Equals(NatKey x, NatKey y) => (x.SrcIp, x.SrcPort, x.DstIp, x.DstPort) == (y.SrcIp, y.SrcPort, y.DstIp, y.DstPort)
+                    || (x.DstIp, x.DstPort, x.SrcIp, x.SrcPort) == (y.SrcIp, y.SrcPort, y.DstIp, y.DstPort);
 
             public int GetHashCode(NatKey obj)
             {
