@@ -147,8 +147,23 @@ namespace linker.messenger.tuntap.lease
                     info.IP = NetworkHelper.ToIP(newIPValue);
                     return info;
                 }
-                newIPValue = info.IP.Equals(IPAddress.Any) ? DynamicIp(userId, cache) : StaticIp(userId, info.IP, cache);
-                if (newIPValue == 0)
+
+                //0.0.0.0 表示动态分配
+                if (info.IP.Equals(IPAddress.Any))
+                {
+                    newIPValue = DynamicIp(userId, cache);
+                }
+                else
+                {
+                    newIPValue = StaticIp(userId, info.IP, cache);
+                    //静态分配失败
+                    if (newIPValue == 1)
+                    {
+                        newIPValue = DynamicIp(userId, cache);
+                    }
+                }
+                //还是失败了
+                if (newIPValue <= 1)
                 {
                     //更新一下网络号
                     info.IP = NetworkHelper.ToIP(NetworkHelper.ToValue(info.IP) & ~cache.PrefixValue | cache.Network);
@@ -205,12 +220,12 @@ namespace linker.messenger.tuntap.lease
             //不在范围内
             if (cache.InRange(value) == false)
             {
-                return 0;
+                return 1;
             }
             //被子网占用
             if (cache.InSub(value))
             {
-                return 0;
+                return 1;
             }
             //已被分配
             if (cache.InLease(userId, value, leaseServerStore.Info.IPDays))
