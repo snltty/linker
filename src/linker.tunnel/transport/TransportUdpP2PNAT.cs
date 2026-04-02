@@ -103,7 +103,7 @@ namespace linker.tunnel.transport
         {
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
             {
-                LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {string.Join("\r\n", tunnelTransportInfo.RemoteEndPoints.Select(c => c.ToString()))}");
+                LoggerHelper.Instance.Warning($"{Name} connect to {tunnelTransportInfo.Remote.MachineId}->{tunnelTransportInfo.Remote.MachineName} {tunnelTransportInfo.RemoteEndPoints.FirstOrDefault()}");
             }
 
             using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(1024);

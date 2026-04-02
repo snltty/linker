@@ -482,6 +482,7 @@ namespace linker.tunnel
                 }
             }
 
+
             //再尝试IPV6
             eps.AddRange(tunnelTransportInfo.Remote.LocalIps.Where(c => c.AddressFamily == AddressFamily.InterNetworkV6).SelectMany(c => new List<IPEndPoint>
             {

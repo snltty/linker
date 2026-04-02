@@ -147,22 +147,7 @@ namespace linker.messenger.tuntap.lease
                     info.IP = NetworkHelper.ToIP(newIPValue);
                     return info;
                 }
-
-                //0.0.0.0 表示动态分配
-                if (info.IP.Equals(IPAddress.Any))
-                {
-                    newIPValue = DynamicIp(userId, cache);
-                }
-                else
-                {
-                    newIPValue = StaticIp(userId, info.IP, cache);
-                    //静态分配失败
-                    if (newIPValue == 0)
-                    {
-                        newIPValue = DynamicIp(userId, cache);
-                    }
-                }
-                //还是失败了
+                newIPValue = info.IP.Equals(IPAddress.Any) ? DynamicIp(userId, cache) : StaticIp(userId, info.IP, cache);
                 if (newIPValue == 0)
                 {
                     //更新一下网络号
