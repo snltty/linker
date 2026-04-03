@@ -79,9 +79,7 @@ namespace linker.messenger.tuntap.client
             SetMaps();
             AddForward();
 
-            string fileName = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
-            FireWallHelper.Write(fileName, tuntapConfigTransfer.Info.IP, tuntapConfigTransfer.PrefixLength);
-            FireWallHelper.Write(fileName,tuntapConfigTransfer.Info.Lans.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false).Select(c => (c.IP,c.MapIP, c.PrefixLength)).ToArray());
+            FireWallHelper.Write(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName, tuntapConfigTransfer.Info.IP, tuntapConfigTransfer.PrefixLength, tuntapConfigTransfer.Info.Lans.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false).Select(c => (c.IP, c.MapIP, c.PrefixLength)).ToArray());
         }
         private void ShutdownBefore()
         {
