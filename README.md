@@ -72,7 +72,7 @@
 
 客户端监听1804，HTTP+Websocket，对客户端进行日常管理。
 
-<p><img src="./readme/home.png"></p> 
+<p><img src="./readme/home.jpg"></p> 
 
 
 ## [🎁]为爱发电
