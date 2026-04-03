@@ -240,7 +240,11 @@ namespace linker.messenger.tunnel.client
             TunnelTransportItemSetInfo info = param.Content.DeJson<TunnelTransportItemSetInfo>();
             if (info.MachineId == signInClientStore.Id || string.IsNullOrWhiteSpace(info.MachineId))
             {
-                await tunnelMessengerAdapter.SetTunnelTransports(Helper.GlobalString, info.Data).ConfigureAwait(false);
+                if(info.Data.Count > 0)
+                {
+                    await tunnelMessengerAdapter.SetTunnelTransports(Helper.GlobalString, info.Data).ConfigureAwait(false);
+                }
+               
                 return true;
             }
             await tunnelMessengerAdapter.SetTunnelTransports(info.MachineId, info.Data).ConfigureAwait(false);

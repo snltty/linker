@@ -53,7 +53,6 @@ namespace linker.messenger.tuntap.client
         private async Task SignInSuccess(int times)
         {
             _ = CheckDevice();
-            FireWallHelper.WriteIcmp(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName, tuntapConfigTransfer.Info.IP, tuntapConfigTransfer.PrefixLength);
             await Task.CompletedTask.ConfigureAwait(false);
         }
         private void Update()
@@ -79,6 +78,7 @@ namespace linker.messenger.tuntap.client
             SetNat();
             SetMaps();
             AddForward();
+            FireWallHelper.Write(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName, tuntapConfigTransfer.Info.IP, tuntapConfigTransfer.PrefixLength);
         }
         private void ShutdownBefore()
         {

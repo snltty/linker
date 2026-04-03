@@ -6,6 +6,7 @@ using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text.RegularExpressions;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace linker.tun.device
 {
@@ -194,6 +195,7 @@ namespace linker.tun.device
                 $"netsh interface ipv4 set subinterface {interfaceNumber}  mtu={value} store=persistent" ,
                  $"netsh interface ipv6 set subinterface {interfaceNumber}  mtu={value} store=persistent"
             });
+            CommandHelper.PowerShell($"Set-NetConnectionProfile -InterfaceAlias {Name} -NetworkCategory Private", [], out string error);
         }
 
         public void SetNat(out string error)
@@ -206,7 +208,7 @@ namespace linker.tun.device
                     error = "NetNat need CIDR,like 10.18.18.0/24";
                     return;
                 }
-
+               
                 SetupNat();
                 IPAddress network = NetworkHelper.ToNetworkIP(address, NetworkHelper.ToPrefixValue(prefixLength));
                 RemoveOldNat($"{network}/{prefixLength}");

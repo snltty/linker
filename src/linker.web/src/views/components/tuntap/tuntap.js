@@ -75,10 +75,13 @@ export const provideTuntap = () => {
             .filter(c => c.IP.indexOf(name) >= 0 || (c.Lans.filter(d => d.IP.indexOf(name) >= 0).length > 0))
             .map(c => c.MachineId))
         }
-        if(tuntap.network != '-'){
+        if(tuntap.value.network != '-'){
             result = result.concat(Object.values(tuntap.value.list)
             .filter(c => c.NetworkName == tuntap.value.network)
             .map(c => c.MachineId));
+        }
+        if(name || tuntap.value.network != '-' && result.length == 0){
+            result = ['-'];
         }
         return result;
     }

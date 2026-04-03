@@ -172,7 +172,7 @@ namespace linker.tunnel.transport
             try
             {
                 //然后等待对方回复，如果能收到回复，就说明是通了
-                IPEndPoint remoteEP = await taskCompletionSource.WithTimeout(TimeSpan.FromMilliseconds(500)).ConfigureAwait(false);
+                IPEndPoint remoteEP = await taskCompletionSource.WithTimeout(TimeSpan.FromMilliseconds(2000)).ConfigureAwait(false);
                 return new TunnelConnectionUdp
                 {
                     UdpClient = remoteUdp,

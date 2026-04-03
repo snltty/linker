@@ -45,12 +45,16 @@ export const provideSocks5 = () => {
         refreshSocks5();
     }
     const getSocks5Machines = (name) => {
+        let result = [];
         if(name){
-            return Object.values(socks5.value.list)
+            result = Object.values(socks5.value.list)
             .filter(c => c.Port.toString().indexOf(name) >= 0 || (c.Lans.filter(d => d.IP.indexOf(name) >= 0).length > 0))
             .map(c => c.MachineId);
+            if(result.length == 0){
+                result = ['-'];
+            }
         }
-        return []
+        return result;
     }
     const sortSocks5 = (asc) => {
         const sort = Object.values(socks5.value.list).sort((a, b) => a.Port - b.Port);
