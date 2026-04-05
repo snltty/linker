@@ -23,6 +23,8 @@ namespace linker.messenger.tuntap.client
         private readonly TuntapDecenter tuntapDecenter;
         private readonly TuntapProxy tuntapProxy;
 
+        private bool _checked = false;
+
         public TuntapAdapter(TuntapTransfer tuntapTransfer, TuntapConfigTransfer tuntapConfigTransfer, TuntapDecenter tuntapDecenter, TuntapProxy tuntapProxy, SignInClientState signInClientState, ISignInClientStore signInClientStore, ExRouteTransfer exRouteTransfer)
         {
             this.tuntapTransfer = tuntapTransfer;
@@ -47,12 +49,16 @@ namespace linker.messenger.tuntap.client
 
             //隧道回调
             tuntapProxy.Callback = this;
-            TimerHelper.SetIntervalLong(CheckDevice, 30000);
         }
 
         private async Task SignInSuccess(int times)
         {
             _ = CheckDevice();
+            if(_checked == false)
+            {
+                _checked = true;
+                TimerHelper.SetIntervalLong(CheckDevice, 30000);
+            }
             await Task.CompletedTask.ConfigureAwait(false);
         }
         private void Update()
@@ -155,8 +161,8 @@ namespace linker.messenger.tuntap.client
         /// <returns></returns>
         public async Task RetstartDevice()
         {
-            tuntapTransfer.Shutdown();
             await tuntapConfigTransfer.RefreshIPAsync().ConfigureAwait(false);
+            tuntapTransfer.Shutdown();
             tuntapTransfer.Setup(new LinkerTunDeviceSetupInfo
             {
                 Name = tuntapConfigTransfer.Name,

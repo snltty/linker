@@ -38,19 +38,25 @@ namespace linker.messenger.store.file.tunnel
         }
         public async Task<bool> SetTunnelTransports(string machineId, List<ITunnelTransport> list)
         {
-            if (string.IsNullOrWhiteSpace(machineId)) return false;
-
+            if (string.IsNullOrWhiteSpace(machineId))
+            {
+                return false;
+            }
             if (runningConfig.Data.Tunnel.Transports.TryGetValue(machineId, out List<TunnelTransportItemInfo> transportItems) == false)
             {
                 transportItems = new List<TunnelTransportItemInfo>();
             }
 
+            if (machineId == Helper.GlobalString)
+            {
+                foreach (var item in runningConfig.Data.Tunnel.Transports)
+                {
+                    Rebuild(item.Value, list);
+                }
+            }
             Rebuild(transportItems, list);
-            ForceUpdate(transportItems, list);
-
             runningConfig.Data.Tunnel.Transports[machineId] = transportItems;
             runningConfig.Data.Update();
-
             OnChanged();
 
             return await Task.FromResult(true).ConfigureAwait(false);
@@ -60,14 +66,6 @@ namespace linker.messenger.store.file.tunnel
         {
             if (runningConfig.Data.Tunnel.Transports.TryGetValue(machineId, out List<TunnelTransportItemInfo> list) && list != null && list.Count > 0)
             {
-                if (runningConfig.Data.Tunnel.Transports.TryGetValue(Helper.GlobalString, out List<TunnelTransportItemInfo> defaults))
-                {
-                    if (Rebuild(list, defaults))
-                    {
-                        runningConfig.Data.Tunnel.Transports[machineId] = list;
-                        runningConfig.Data.Update();
-                    }
-                }
                 return list;
             }
             if (runningConfig.Data.Tunnel.Transports.TryGetValue(Helper.GlobalString, out list))
@@ -76,10 +74,23 @@ namespace linker.messenger.store.file.tunnel
             }
             return await Task.FromResult(new List<TunnelTransportItemInfo>()).ConfigureAwait(false);
         }
-
-        private void ForceUpdate(List<TunnelTransportItemInfo> currents, List<ITunnelTransport> news)
+        private bool Rebuild(List<TunnelTransportItemInfo> currents, List<ITunnelTransport> news)
         {
-            //强制更新一些信息
+            return Rebuild(currents, news.Select(c => new TunnelTransportItemInfo
+            {
+                Label = c.Label,
+                Name = c.Name,
+                ProtocolType = c.ProtocolType.ToString(),
+                Reverse = c.Reverse,
+                DisableReverse = c.DisableReverse,
+                SSL = c.SSL,
+                DisableSSL = c.DisableSSL,
+                Order = c.Order,
+                TunnelType = c.TunnelType
+            }).ToList());
+        }
+        private bool Rebuild(List<TunnelTransportItemInfo> currents, List<TunnelTransportItemInfo> news)
+        {
             foreach (var item in currents)
             {
                 var transport = news.FirstOrDefault(c => c.Name == item.Name);
@@ -105,24 +116,6 @@ namespace linker.messenger.store.file.tunnel
                 }
             }
 
-        }
-        private bool Rebuild(List<TunnelTransportItemInfo> currents, List<ITunnelTransport> news)
-        {
-            return Rebuild(currents, news.Select(c => new TunnelTransportItemInfo
-            {
-                Label = c.Label,
-                Name = c.Name,
-                ProtocolType = c.ProtocolType.ToString(),
-                Reverse = c.Reverse,
-                DisableReverse = c.DisableReverse,
-                SSL = c.SSL,
-                DisableSSL = c.DisableSSL,
-                Order = c.Order,
-                TunnelType = c.TunnelType
-            }).ToList());
-        }
-        private bool Rebuild(List<TunnelTransportItemInfo> currents, List<TunnelTransportItemInfo> news)
-        {
             //有新的协议
             var newTransportNames = news.Select(c => c.Name).Except(currents.Select(c => c.Name));
             if (newTransportNames.Any())
@@ -141,6 +134,7 @@ namespace linker.messenger.store.file.tunnel
                     TunnelType = c.TunnelType
                 }));
             }
+
             //有已移除的协议
             var oldTransportNames = currents.Select(c => c.Name).Except(news.Select(c => c.Name));
             if (oldTransportNames.Any())

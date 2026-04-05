@@ -7,7 +7,6 @@ using System.Collections.Concurrent;
 using System.IO.Pipelines;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace linker.nat
@@ -88,7 +87,7 @@ namespace linker.nat
         private async Task ConnectAsync(Socket source, SrcCacheInfo cache)
         {
             byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024 + 40 + 4);
-            NatKey key = new NatKey(tunIp, cache.SrcPort, cache.DstAddr, cache.DstPort);
+            NatKey key = new(tunIp, cache.SrcPort, cache.DstAddr, cache.DstPort);
             try
             {
                 ConnectionState state = new ConnectionState
@@ -143,7 +142,7 @@ namespace linker.nat
                     state.ReadPacket.TotalLength = 40;
                     state.ReadPacket.Length = 44;
                     await callback.Callback(state.ReadPacket).ConfigureAwait(false);
-                    state.Dispose();
+                    state.Disponse();
                 }
 
                 ArrayPool<byte>.Shared.Return(buffer);
@@ -156,7 +155,7 @@ namespace linker.nat
 
             foreach (var item in connections.Values)
             {
-                item.Dispose();
+                item.Disponse();
             }
             srcMap.Clear();
             connections.Clear();
@@ -192,7 +191,7 @@ namespace linker.nat
             fixed (byte* ptr = packet.Span)
             {
                 LinkerSrcProxyWritePacket writePacket = new LinkerSrcProxyWritePacket(ptr);
-                return (new NatKey(writePacket.SrcAddr, writePacket.SrcPort, writePacket.DstAddr, writePacket.DstPort),
+                return (new(writePacket.SrcAddr, writePacket.SrcPort, writePacket.DstAddr, writePacket.DstPort),
                     writePacket.Flag, writePacket.WindowSize, writePacket.Seq == 0 && writePacket.Cq == 0);
             }
         }
@@ -255,7 +254,7 @@ namespace linker.nat
                     connection.ReadPacket.TotalLength = 40;
                     connection.ReadPacket.Length = 44;
                     await callback.Callback(connection.ReadPacket).ConfigureAwait(false);
-                    connection.Dispose();
+                    connection.Disponse();
                 }
                 ArrayPool<byte>.Shared.Return(buffer);
             }
@@ -288,7 +287,7 @@ namespace linker.nat
                     await callback.Callback(state.ReadPacket).ConfigureAwait(false);
 
                     connections.TryRemove(key, out _);
-                    state.Dispose();
+                    state.Disponse();
 
                     if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         LoggerHelper.Instance.Error(ex);
@@ -362,7 +361,7 @@ namespace linker.nat
         {
             if (connections.TryRemove(key, out ConnectionState state))
             {
-                state.Dispose();
+                state.Disponse();
             }
         }
 
@@ -439,15 +438,32 @@ namespace linker.nat
             }, 30000);
         }
 
+        struct ConnectionKey
+        {
+            public uint srcAddr;
+            public ushort srcPort;
+            public uint dstAddr;
+            public ushort dstPort;
+        }
+        sealed class ConnectionKeyComparer : IEqualityComparer<ConnectionKey>
+        {
+            public bool Equals(ConnectionKey x, ConnectionKey y)
+            {
+                return (x.srcAddr, x.srcPort, x.dstAddr, x.dstPort) == (y.srcAddr, y.srcPort, y.dstAddr, y.dstPort)
+                    || (x.dstAddr, x.dstPort, x.srcAddr, x.srcPort) == (y.srcAddr, y.srcPort, y.dstAddr, y.dstPort);
+            }
 
-
-
+            public int GetHashCode(ConnectionKey obj)
+            {
+                return (int)obj.srcAddr ^ obj.srcPort ^ (int)obj.dstAddr ^ obj.dstPort;
+            }
+        }
         readonly struct SrcKey
         {
             public readonly uint SrcIp;
-            public readonly uint SrcPort;
+            public readonly ushort SrcPort;
 
-            public SrcKey(uint srcIp, uint srcPort)
+            public SrcKey(uint srcIp, ushort srcPort)
             {
                 SrcIp = srcIp;
                 SrcPort = srcPort;
@@ -464,7 +480,6 @@ namespace linker.nat
             }
         }
 
-        [StructLayout(LayoutKind.Sequential)]
         readonly struct NatKey
         {
             public readonly uint SrcIp;
@@ -482,15 +497,15 @@ namespace linker.nat
         }
         class NatKeyComparer : IEqualityComparer<NatKey>
         {
-            public bool Equals(NatKey x, NatKey y) => (x.SrcIp == y.SrcIp && x.SrcPort == y.SrcPort &&
-                    x.DstIp == y.DstIp && x.DstPort == y.DstPort) || (x.SrcIp == y.DstIp && x.SrcPort == y.DstPort &&
-                       x.DstIp == y.SrcIp && x.DstPort == y.SrcPort);
+            public bool Equals(NatKey x, NatKey y) => (x.SrcIp, x.SrcPort, x.DstIp, x.DstPort) == (y.SrcIp, y.SrcPort, y.DstIp, y.DstPort)
+                    || (x.DstIp, x.DstPort, x.SrcIp, x.SrcPort) == (y.SrcIp, y.SrcPort, y.DstIp, y.DstPort);
 
             public int GetHashCode(NatKey obj)
             {
-                return HashCode.Combine(obj.SrcIp, obj.SrcPort, obj.DstIp, obj.DstPort);
+                return (int)obj.SrcIp ^ obj.SrcPort ^ (int)obj.DstIp ^ obj.DstPort;
             }
         }
+
 
 
         sealed class ConnectionState
@@ -512,7 +527,7 @@ namespace linker.nat
             public bool NeedPause => Received > 512 * 1024 && Receiving;
             public bool NeedResume => Received < 128 * 1024 && Receiving == false;
 
-            public void Dispose()
+            public void Disponse()
             {
                 Pipe?.Writer.Complete();
                 Pipe?.Reader.Complete();

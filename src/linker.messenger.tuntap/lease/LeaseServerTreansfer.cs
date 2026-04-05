@@ -250,7 +250,8 @@ namespace linker.messenger.tuntap.lease
             uint length = lastIPValue - cache.Network;
 
             //子网，排除子网
-            IEnumerable<uint> subs = cache.CacheSubs.SelectMany(c => UIntRange(c.Network, c.Broadcast));
+            IEnumerable<uint> subs = cache.CacheSubs.SelectMany(c => UIntRange(c.Network, c.Broadcast - c.Network + 1));
+
             //空闲的IP
             IEnumerable<uint> idleIPs = UIntRange(firstIPValue, length + 1).Except(cache.Users.Select(c => c.IP)).Except(subs);
             //过期的IP
