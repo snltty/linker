@@ -224,9 +224,11 @@ namespace linker.messenger.tunnel.client
 
                 if (string.IsNullOrWhiteSpace(str) == false)
                 {
-                    TunnelNetInfo net = str.DeJson<TunnelNetInfo>();
-                    tunnelClientStore.Network.Net.Isp = net.Isp;
-                    tunnelClientStore.Network.Net.CountryCode = net.CountryCode;
+                    JsonNode json = JsonObject.Parse(str);
+                    tunnelClientStore.Network.Net.Isp = json["isp"].ToString();
+                    tunnelClientStore.Network.Net.CountryCode = json["countryCode"].ToString();
+                    tunnelClientStore.Network.Net.Lat = double.Parse(json["lat"].ToString());
+                    tunnelClientStore.Network.Net.Lon = double.Parse(json["lon"].ToString());
                     await tunnelClientStore.SetNetwork(tunnelClientStore.Network);
                     OnChange?.Invoke();
                     return 1;
