@@ -3,8 +3,8 @@
     "head.server": "Сервер",
     "head.protocol": "Туннель",
     "head.action": "Проверка",
-    "head.firewall": "Брандмауэр",
-    "head.wakeup": "Пробуждение",
+    "head.firewall": "брандмауэр",
+    "head.wakeup": "проснуться",
     "head.logger": "Журнал",
     "head.refresh": "Обновить"
 }

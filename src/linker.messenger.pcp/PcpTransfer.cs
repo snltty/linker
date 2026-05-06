@@ -3,6 +3,7 @@ using linker.libs.extends;
 using linker.messenger.signin;
 using linker.tunnel;
 using linker.tunnel.connection;
+using System.Collections.Concurrent;
 
 namespace linker.messenger.pcp
 {
@@ -10,32 +11,141 @@ namespace linker.messenger.pcp
     {
         private readonly string transactionId = "pcp";
 
+        private readonly ConcurrentDictionary<string, TaskCompletionSource<bool>> watingDic = new();
+        private readonly ConcurrentDictionary<string, ITunnelConnection> swapDic = new();
+
+        private readonly SwapTransfer swapTransfer = new SwapTransfer();
+
         private readonly IPcpStore pcpStore;
         private readonly TunnelTransfer tunnelTransfer;
         private readonly ISignInClientStore signInClientStore;
-        public PcpTransfer(IPcpStore pcpStore, TunnelTransfer tunnelTransfer, ISignInClientStore signInClientStore)
+        private readonly MessengerSender messengerSender;
+        private readonly ISerializer serializer;
+        public PcpTransfer(IPcpStore pcpStore, TunnelTransfer tunnelTransfer, ISignInClientStore signInClientStore, MessengerSender messengerSender, ISerializer serializer)
         {
             this.pcpStore = pcpStore;
             this.tunnelTransfer = tunnelTransfer;
             this.signInClientStore = signInClientStore;
-
+            this.messengerSender = messengerSender;
+            this.serializer = serializer;
             tunnelTransfer.SetConnectedCallback(transactionId, OnConnected);
         }
-
-
-        /// <summary>
-        /// a<->b<->c  在ac通知，b交换数据，不通知
-        /// </summary>
-        /// <param name="connection"></param>
         private void OnConnected(ITunnelConnection connection)
         {
             TunnelTagInfo tag = connection.TransactionTag.DeJson<TunnelTagInfo>();
-            //我是节点
             if (tag.NodeId == signInClientStore.Id)
             {
+                string key = $"{tag.FromMachineId}@{tag.ToMachineId}@{tag.TransactionId}";    
+                if (swapDic.TryRemove(key,out ITunnelConnection _connection) && _connection.Connected)
+                {
+                    swapTransfer.Swap(_connection, connection);
+                }
+                else
+                {
+                    swapDic.AddOrUpdate(key, connection, (k, v) => connection);
+                }
+
                 return;
             }
+        }
+        public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId, TunnelProtocolType denyProtocols)
+        {
+            List<string> nodes = pcpStore.PcpHistory.History.Intersect(await GetNodes(remoteMachineId).ConfigureAwait(false)).ToList();
 
+            ITunnelConnection connection = null;
+            foreach (var node in nodes)
+            {
+                try
+                {
+                    string tag = new TunnelTagInfo { FromMachineId = signInClientStore.Id, ToMachineId = remoteMachineId, TransactionId = transactionId, NodeId = node, DenyProtocols = denyProtocols }.ToJson();
+                    connection = await tunnelTransfer.ConnectAsync(node, this.transactionId, denyProtocols, tag).ConfigureAwait(false);
+                    if (connection == null)
+                    {
+                        continue;
+                    }
+                    await messengerSender.SendOnly(new MessageRequestWrap
+                    {
+                        MessengerId = (ushort)PcpMessengerIds.BeginForward,
+                        Payload = serializer.Serialize(tag),
+                    }).ConfigureAwait(false);
+
+                    TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
+                    watingDic.AddOrUpdate($"{remoteMachineId}@{transactionId}", tcs, (k, v) => tcs);
+                    bool result = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(60000)).ConfigureAwait(false);
+                    if (result)
+                    {
+                        ExecConnectedCallbacks(transactionId, connection);
+                        return connection;
+                    }
+                }
+                catch (Exception)
+                {
+                }
+                finally
+                {
+                    watingDic.TryRemove($"{remoteMachineId}@{transactionId}", out _);
+                }
+            }
+            connection?.Dispose();
+            return connection;
+        }
+        public async Task Begin(string tagStr)
+        {
+            TunnelTagInfo tag = tagStr.DeJson<TunnelTagInfo>();
+            ITunnelConnection connection = await tunnelTransfer.ConnectAsync(tag.NodeId, this.transactionId, tag.DenyProtocols, tagStr).ConfigureAwait(false);
+            if (connection == null)
+            {
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    MessengerId = (ushort)PcpMessengerIds.FailForward,
+                    Payload = serializer.Serialize(tagStr),
+                }).ConfigureAwait(false);
+            }
+            else
+            {
+                await messengerSender.SendOnly(new MessageRequestWrap
+                {
+                    MessengerId = (ushort)PcpMessengerIds.SuccessForward,
+                    Payload = serializer.Serialize(tagStr),
+                }).ConfigureAwait(false);
+                ExecConnectedCallbacks(tag.TransactionId, connection);
+            }
+        }
+        public async Task Fail(string tagStr)
+        {
+            TunnelTagInfo tag = tagStr.DeJson<TunnelTagInfo>();
+            if(watingDic.TryRemove($"{tag.ToMachineId}@{tag.TransactionId}", out TaskCompletionSource<bool> tcs))
+            {
+                tcs.SetResult(false);
+            }
+        }
+        public async Task Success(string tagStr)
+        {
+            TunnelTagInfo tag = tagStr.DeJson<TunnelTagInfo>();
+            if (watingDic.TryRemove($"{tag.ToMachineId}@{tag.TransactionId}", out TaskCompletionSource<bool> tcs))
+            {
+                tcs.SetResult(true);
+            }
+        }
+        private async Task<List<string>> GetNodes(string machineId)
+        {
+            var resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                MessengerId = (ushort)PcpMessengerIds.NodesForward,
+                Payload = serializer.Serialize(machineId),
+                Timeout = 5000,
+            }).ConfigureAwait(false);
+            if (resp.Code == MessageResponeCodes.OK)
+            {
+                return serializer.Deserialize<List<string>>(resp.Data.Span);
+            }
+            return [];
+        }
+
+
+        private Dictionary<string, List<Action<ITunnelConnection>>> OnConnectedCallbacks { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
+        private void ExecConnectedCallbacks(string transactionId, ITunnelConnection connection)
+        {
             if (OnConnectedCallbacks.TryGetValue(Helper.GlobalString, out List<Action<ITunnelConnection>> callbacks))
             {
                 foreach (var item in callbacks)
@@ -43,7 +153,7 @@ namespace linker.messenger.pcp
                     item(connection);
                 }
             }
-            if (OnConnectedCallbacks.TryGetValue(tag.TransactionId, out callbacks))
+            if (OnConnectedCallbacks.TryGetValue(transactionId, out callbacks))
             {
                 foreach (var item in callbacks)
                 {
@@ -51,27 +161,6 @@ namespace linker.messenger.pcp
                 }
             }
         }
-        /// <summary>
-        /// 连接
-        /// </summary>
-        /// <param name="remoteMachineId">目标id</param>
-        /// <param name="transactionId">事务ID，属于什么事务的，端口转发还是虚拟网卡</param>
-        /// <param name="denyProtocols">不想使用哪些打洞协议</param>
-        /// <returns></returns>
-        public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId, TunnelProtocolType denyProtocols)
-        {
-            //TunnelTagInfo tag = new TunnelTagInfo { FromMachineId = signInClientStore.Id, ToMachineId = remoteMachineId, TransactionId = transactionId, NodeId = string.Empty, NodeIds = pcpStore.PcpHistory.History };
-
-            await Task.CompletedTask.ConfigureAwait(false);
-            return null;
-        }
-
-        private Dictionary<string, List<Action<ITunnelConnection>>> OnConnectedCallbacks { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
-        /// <summary>
-        /// 设置成功回调
-        /// </summary>
-        /// <param name="transactionId">事务</param>
-        /// <param name="callback"></param>
         public void SetConnectedCallback(string transactionId, Action<ITunnelConnection> callback)
         {
             if (OnConnectedCallbacks.TryGetValue(transactionId, out List<Action<ITunnelConnection>> callbacks) == false)
@@ -81,11 +170,6 @@ namespace linker.messenger.pcp
             }
             callbacks.Add(callback);
         }
-        /// <summary>
-        /// 移除成功回调
-        /// </summary>
-        /// <param name="transactionId">事务</param>
-        /// <param name="callback"></param>
         public void RemoveConnectedCallback(string transactionId, Action<ITunnelConnection> callback)
         {
             if (OnConnectedCallbacks.TryGetValue(transactionId, out List<Action<ITunnelConnection>> callbacks))
@@ -102,7 +186,6 @@ namespace linker.messenger.pcp
             }
             pcpStore.AddHistory(connection);
         }
-
         sealed class TunnelTagInfo
         {
             /// <summary>
@@ -122,10 +205,7 @@ namespace linker.messenger.pcp
             /// </summary>
             public string TransactionId { get; set; }
 
-            /// <summary>
-            /// 所有尝试的节点id
-            /// </summary>
-            public List<string> NodeIds { get; set; }
+            public TunnelProtocolType DenyProtocols { get; set; }
         }
     }
 }

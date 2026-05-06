@@ -1,5 +1,5 @@
 {
-    "tuntap": "ネットワークカード",
+    "tuntap": "アダプター",
     "tuntap.title": "{0}のネットワークカードを設定",
     "tuntap.ip": "カードIP",
     "tuntap.id": "カードID",

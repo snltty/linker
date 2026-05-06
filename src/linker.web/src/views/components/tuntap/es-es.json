@@ -1,5 +1,5 @@
 {
-    "tuntap": "Adaptador de red",
+    "tuntap": "Adaptador",
     "tuntap.title": "Configurar adaptador de red de {0}",
     "tuntap.ip": "IP del adaptador",
     "tuntap.id": "ID del adaptador",

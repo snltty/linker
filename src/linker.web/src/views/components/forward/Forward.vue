@@ -1,5 +1,5 @@
 <template>
-    <el-table-column prop="forward" :label="$t('forward')" width="96">
+    <el-table-column prop="forward" :label="$t('forward.port')" width="96">
         <template #default="scope">
             <template v-if="scope.row &&scope.row.hook_counter">
                 <AccessBoolean value="ForwardOther,ForwardSelf">

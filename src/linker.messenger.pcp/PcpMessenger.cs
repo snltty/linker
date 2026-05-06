@@ -1,5 +1,4 @@
-﻿using linker.tunnel;
-using linker.tunnel.transport;
+﻿using linker.tunnel.transport;
 using linker.libs;
 using linker.messenger.signin;
 
@@ -7,33 +6,34 @@ namespace linker.messenger.pcp
 {
     public sealed class PcpClientMessenger : IMessenger
     {
-        private readonly TunnelTransfer tunnel;
-        private readonly IMessengerSender messengerSender;
         private readonly ISerializer serializer;
         private readonly IPcpStore pcpStore;
+        private readonly PcpTransfer transfer;
 
-        public PcpClientMessenger(TunnelTransfer tunnel, IMessengerSender messengerSender, ISerializer serializer, IPcpStore pcpStore)
+        public PcpClientMessenger(ISerializer serializer, IPcpStore pcpStore, PcpTransfer transfer)
         {
-            this.tunnel = tunnel;
-            this.messengerSender = messengerSender;
             this.serializer = serializer;
             this.pcpStore = pcpStore;
+            this.transfer = transfer;
         }
 
         [MessengerId((ushort)PcpMessengerIds.Begin)]
         public void Begin(IConnection connection)
         {
+            _ = transfer.Begin(serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span));
             connection.Write(Helper.TrueArray);
         }
 
         [MessengerId((ushort)PcpMessengerIds.Fail)]
         public void Fail(IConnection connection)
         {
+            _ = transfer.Fail(serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span));
         }
 
         [MessengerId((ushort)PcpMessengerIds.Success)]
         public void Success(IConnection connection)
         {
+            _ = transfer.Success(serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span));
         }
 
         [MessengerId((ushort)PcpMessengerIds.Nodes)]
@@ -133,10 +133,8 @@ namespace linker.messenger.pcp
                             RequestId = requestid,
                         }, (ushort)PcpMessengerIds.NodesForward).ConfigureAwait(false);
                     }
-
                 });
             }
         }
     }
-
 }

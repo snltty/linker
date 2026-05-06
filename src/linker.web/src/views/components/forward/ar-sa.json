@@ -1,6 +1,6 @@
 {
     "forward": "إعادة توجيه المنفذ",
-    "forward.port": "إعادة التوجيه",
+    "forward.port": "إعادة نشر",
     "forward.server": "نفق",
     "forward.stop": "يرجى الإيقاف قبل التشغيل",
     "forward.title": "إعادة توجيه منفذ {0}",

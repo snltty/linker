@@ -27,7 +27,7 @@ namespace linker.tunnel
         }
         public async Task<ITunnelConnection> Transform(ITunnelConnection connection, TunnelTransportInfo info)
         {
-            if (connection is TunnelConnectionUdp udp == false || udp.TransactionId == "tuntap")
+            if (connection is TunnelConnectionUdp udp == false || udp.TransactionId == "tuntap" || string.IsNullOrWhiteSpace(info.TransactionTag) == false)
             {
                 return connection;
             }
@@ -236,7 +236,6 @@ namespace linker.tunnel
                 }
             }
         }
-
 
         private void TestQuic()
         {

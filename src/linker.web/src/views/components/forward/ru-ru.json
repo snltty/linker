@@ -1,6 +1,6 @@
 {
     "forward": "Переадресация портов",
-    "forward.port": "Переадресация",
+    "forward.port": "репост",
     "forward.server": "Туннель",
     "forward.stop": "Остановите перед операцией",
     "forward.title": "Переадресация портов {0}",

@@ -447,8 +447,6 @@ namespace linker.tunnel
                     }
                 }
             });
-
-
         }
         private static void OnConnectFail(TunnelTransportInfo tunnelTransportInfo)
         {
