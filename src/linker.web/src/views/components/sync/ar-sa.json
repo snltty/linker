@@ -1,0 +1,15 @@
+{
+    "sync.alert": "إلى العملاء المحددين، إذا لم يتم التحديد فذلك يعني جميع العملاء",
+    "sync.select": "يرجى الاختيار",
+    "sync.SignInSuperKey": "مفتاح الخادم",
+    "sync.SignInSecretKey": "مفتاح المنارة",
+    "sync.SignInServer": "خادم المنارة",
+    "sync.GroupSecretKey": "مفتاح المجموعة",
+    "sync.RelaySecretKey": "مفتاح المرحل",
+    "sync.SForwardSecretKey": "مفتاح نفق الخادم",
+    "sync.UpdaterSecretKey": "تحديث التكوين",
+    "sync.TunnelTransports": "بروتوكولات النفق",
+    "sync.SignInUserId": "معرف المستخدم الفريد",
+    "sync.ActionStatic": "معلمات التحقق المخصصة",
+    "sync.Firewall": "عناصر جدار الحماية المحددة"
+}

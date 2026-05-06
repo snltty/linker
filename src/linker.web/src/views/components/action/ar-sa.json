@@ -1,0 +1,5 @@
+{
+    "action.text": "تعيين معلمات JSON الثابتة لتحديد التحقق",
+    "action.jsonError": "خطأ في تنسيق JSON",
+    "action.title": "معلمات التحقق لـ {0}"
+}

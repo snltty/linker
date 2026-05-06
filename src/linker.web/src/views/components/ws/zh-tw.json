@@ -1,0 +1,14 @@
+{
+    "permission.closed": "禁止通行",
+    "permission.simple": "簡單管理",
+    "permission.full": "專業管理",
+    "permission.clear": "清除連接",
+
+    "api.title": "管理介面",
+    "api.api": "介面",
+    "api.pwd": "密碼",
+    "api.remember": "記住{0}",
+    "api": "管理介面",
+    "api.clear": "清除",
+    "api.alter": "更改"
+}

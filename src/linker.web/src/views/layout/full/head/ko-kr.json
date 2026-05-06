@@ -1,0 +1,10 @@
+{
+    "head.home": "홈",
+    "head.server": "서버",
+    "head.protocol": "터널",
+    "head.action": "검증",
+    "head.firewall": "방화벽",
+    "head.wakeup": "웨이크업",
+    "head.logger": "로그",
+    "head.refresh": "새로고침"
+}

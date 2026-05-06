@@ -3,12 +3,42 @@ const langs = [
     {
         label: '简体中文',
         value: 'zh-CN',
-        ctx: require.context('../', true,/zh-cn\.json$/)
+        ctx: require.context('../', true, /zh-cn\.json$/)
+    },
+    {
+        label: '繁体中文',
+        value: 'zh-TW',
+        ctx: require.context('../', true, /zh-tw\.json$/)
     },
     {
         label: 'English',
         value: 'en-US',
-        ctx: require.context('../', true,/en-us\.json$/)
+        ctx: require.context('../', true, /en-us\.json$/)
+    },
+    {
+        label: 'Español',
+        value: 'es-ES',
+        ctx: require.context('../', true, /es-es\.json$/)
+    },
+    {
+        label: 'العربية',
+        value: 'ar-SA',
+        ctx: require.context('../', true, /ar-sa\.json$/)
+    },
+    {
+        label: 'Русский',
+        value: 'ru-RU',
+        ctx: require.context('../', true, /ru-ru\.json$/)
+    },
+    {
+        label: '日本語',
+        value: 'ja-JP',
+        ctx: require.context('../', true, /ja-jp\.json$/)
+    },
+    {
+        label: '한국어',
+        value: 'ko-KR',
+        ctx: require.context('../', true, /ko-kr\.json$/)
     }
 ]
 

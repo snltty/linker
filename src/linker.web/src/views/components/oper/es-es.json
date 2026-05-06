@@ -1,0 +1,10 @@
+{
+    "oper.reboot": "Reiniciar",
+    "oper.access": "Acceso",
+    "oper.manageApi": "Administrar API",
+    "oper.passwd.new": "Nueva contraseña",
+    "oper.passwd.set": "Contraseña de administración de {0}",
+    "oper.action": "Verificar",
+    "oper.messenger": "Mensajero",
+    "oper.flow": "Tráfico"
+}

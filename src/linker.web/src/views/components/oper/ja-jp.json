@@ -1,0 +1,10 @@
+{
+    "oper.reboot": "再起動",
+    "oper.access": "アクセス",
+    "oper.manageApi": "API管理",
+    "oper.passwd.new": "新しいパスワード",
+    "oper.passwd.set": "{0}の管理パスワード",
+    "oper.action": "検証",
+    "oper.messenger": "メッセンジャー",
+    "oper.flow": "トラフィック"
+}

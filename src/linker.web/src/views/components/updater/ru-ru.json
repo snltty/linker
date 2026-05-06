@@ -1,0 +1,18 @@
+{
+    "updater": "Обновление",
+    "updater.sync2Server": "Автообновление до версии сервера",
+    "updater.no": "Обновления не обнаружены",
+    "updater.notnew": "Не последняя версия",
+    "updater.new": "Последняя версия",
+    "updater.same": "Не совпадает с версией сервера",
+    "updater.downloading": "Загрузка",
+    "updater.downloaded": "Загружено",
+    "updater.unziping": "Распаковка",
+    "updater.unzip": "Распаковано",
+    "updater.close": "Подтвердить закрытие?",
+    "updater.latest": "Последняя версия",
+    "updater.server": "Версия сервера",
+    "updater.this.group": "Эта группа",
+    "updater.this.server": "Этот сервер",
+    "updater.only": "Только"
+}

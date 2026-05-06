@@ -1,0 +1,8 @@
+{
+    "deny.title":"【{0}】上のホスト",
+    "deny.online":"オンラインのホスト",
+    "deny.list":"無効リスト",
+    "deny.add":"無効化",
+    "deny.str":"項目",
+    "deny.remark":"備考"
+}

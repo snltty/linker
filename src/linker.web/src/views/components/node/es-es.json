@@ -1,0 +1,8 @@
+{
+    "deny.title":"Hosts en 【{0}】",
+    "deny.online":"Hosts en línea",
+    "deny.list":"Lista de denegados",
+    "deny.add":"Denegar",
+    "deny.str":"elementos",
+    "deny.remark":"Observaciones"
+}

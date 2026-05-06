@@ -1,0 +1,15 @@
+{
+    "socks5": "الوكيل",
+    "socks5.title": "وكيل {0}",
+    "socks5.alert": "خادم الوكيل",
+    "socks5.port": "المنفذ",
+    "socks5.p2n.routeIp": "IP التوجيه",
+    "socks5.p2n.routePrefix": "قناع الشبكة",
+    "socks5.p2n.dstIp": "IP الحقيقي",
+    "socks5.p2n.dstPrefix": "قناع الشبكة",
+    "socks5.p2n.remark": "ملاحظات",
+    "socks5.p2n.disabled": "معطل",
+    "socks5.show.clash": "تعارض في عنوان IP",
+    "socks5.show.disabled": "معطل",
+    "socks5.show.normal": "عادي"
+}

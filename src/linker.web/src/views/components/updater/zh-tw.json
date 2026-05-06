@@ -1,0 +1,18 @@
+{
+    "updater": "更新",
+    "updater.sync2Server": "自動更新到伺服器版本",
+    "updater.no": "未檢測到更新",
+    "updater.notnew": "不是最新版本",
+    "updater.new": "是最新版本",
+    "updater.same": "與伺服器版本不一致",
+    "updater.downloading": "正在下載",
+    "updater.downloaded": "已下載",
+    "updater.unziping": "正在解壓",
+    "updater.unzip": "已解壓",
+    "updater.close": "確定關閉嗎？",
+    "updater.latest": "最新版本",
+    "updater.server": "伺服器版本",
+    "updater.this.group": "本組",
+    "updater.this.server": "本伺服器",
+    "updater.only": "僅"
+}

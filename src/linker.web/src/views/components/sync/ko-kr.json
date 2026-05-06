@@ -1,0 +1,15 @@
+{
+    "sync.alert": "선택한 클라이언트로, 선택하지 않으면 모든 클라이언트",
+    "sync.select": "선택하세요",
+    "sync.SignInSuperKey": "서버 키",
+    "sync.SignInSecretKey": "비콘 키",
+    "sync.SignInServer": "비콘 서버",
+    "sync.GroupSecretKey": "그룹 키",
+    "sync.RelaySecretKey": "릴레이 키",
+    "sync.SForwardSecretKey": "서버 터널 키",
+    "sync.UpdaterSecretKey": "구성 업데이트",
+    "sync.TunnelTransports": "터널 프로토콜",
+    "sync.SignInUserId": "사용자 고유 식별자",
+    "sync.ActionStatic": "사용자 정의 검증 매개변수",
+    "sync.Firewall": "방화벽 선택 항목"
+}

@@ -1,0 +1,27 @@
+{
+    "messenger": "خادم المنارة",
+    "messenger.addr": "عنوان الخادم",
+    "messenger.alert": "IP/نطاق:منفذ، المنفذ الافتراضي 1802",
+    "messenger.super.key": "مفتاح الخادم",
+    "messenger.super.password": "كلمة مرور الخادم",
+    "messenger.userid": "معرف المستخدم",
+    "messenger.userid.alert": "معرفك الفريد",
+
+    "export": "تصدير الإعدادات",
+    "export.alert": "تصدير الإعدادات، يقوم العميل بالكتابة فوق ملف الإعدادات، أو لصق معلومات الإعدادات، أو التحميل عبر الإنترنت",
+    "export.signle": "جهاز واحد",
+    "export.name": "اسم الجهاز",
+    "export.name.alert": "الرجاء إدخال اسم الجهاز",
+    "export.psswd": "كلمة مرور الإدارة",
+    "export.psswd.alert": "الرجاء إدخال كلمة مرور الواجهة",
+    "export.webport": "منفذ الإدارة",
+    "export.webport.alert": "الرجاء إدخال منفذ الويب",
+    "export.download": "تنزيل",
+    "export.copy": "نسخ",
+    "export.save": "حفظ",
+    "export.updater": "تحديث الإعدادات",
+    "export.server": "إعدادات الخادم",
+    "export.super": "كلمة مرور الخادم",
+    "export.group": "المجموعة الحالية",
+    "export.tunnel": "بروتوكول النفق"
+}

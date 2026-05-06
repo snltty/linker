@@ -1,0 +1,10 @@
+{
+    "oper.reboot": "Перезагрузка",
+    "oper.access": "Доступ",
+    "oper.manageApi": "Управление API",
+    "oper.passwd.new": "Новый пароль",
+    "oper.passwd.set": "Пароль администратора {0}",
+    "oper.action": "Проверить",
+    "oper.messenger": "Мессенджер",
+    "oper.flow": "Трафик"
+}

@@ -1,0 +1,10 @@
+{
+    "head.home": "Inicio",
+    "head.server": "Servidor",
+    "head.protocol": "Túnel",
+    "head.action": "Verificación",
+    "head.firewall": "Cortafuegos",
+    "head.wakeup": "Despertar",
+    "head.logger": "Registro",
+    "head.refresh": "Actualizar"
+}

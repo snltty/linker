@@ -1,0 +1,18 @@
+{
+    "updater": "تحديث",
+    "updater.sync2Server": "التحديث التلقائي إلى إصدار الخادم",
+    "updater.no": "لم يتم اكتشاف تحديثات",
+    "updater.notnew": "ليس أحدث إصدار",
+    "updater.new": "أحدث إصدار",
+    "updater.same": "غير متطابق مع إصدار الخادم",
+    "updater.downloading": "جاري التنزيل",
+    "updater.downloaded": "تم التنزيل",
+    "updater.unziping": "جاري فك الضغط",
+    "updater.unzip": "تم فك الضغط",
+    "updater.close": "هل تريد تأكيد الإغلاق؟",
+    "updater.latest": "أحدث إصدار",
+    "updater.server": "إصدار الخادم",
+    "updater.this.group": "هذه المجموعة",
+    "updater.this.server": "هذا الخادم",
+    "updater.only": "فقط"
+}

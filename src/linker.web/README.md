@@ -1,19 +1,4 @@
-# cmonitor.web.client
 
-## Project setup
-```
-npm install
-```
+### 语言
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
-
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+根据zh-cn.json翻译为 繁体中文、西班牙语、阿拉伯语、俄语、日语、韩语。并放到同一目录下，要用标准命名，但是全小写命名

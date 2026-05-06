@@ -1,0 +1,5 @@
+{
+    "action.text": "검증을 정의하는 정적 JSON 매개변수 설정",
+    "action.jsonError": "JSON 형식 오류",
+    "action.title": "{0}의 검증 매개변수"
+}

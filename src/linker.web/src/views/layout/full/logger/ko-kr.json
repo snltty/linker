@@ -1,0 +1,10 @@
+{
+    "logger.list": "목록",
+    "logger.setting": "설정",
+    "logger.clear": "지우기",
+    "logger.refresh": "새로 고침",
+    "logger.count": "수량",
+    "logger.level": "등급",
+    "logger.time": "시간",
+    "logger.content": "내용"
+}

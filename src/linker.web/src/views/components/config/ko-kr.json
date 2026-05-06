@@ -1,0 +1,27 @@
+{
+    "messenger": "비콘 서버",
+    "messenger.addr": "서버 주소",
+    "messenger.alert": "IP/도메인:포트, 기본 포트 1802",
+    "messenger.super.key": "서버 키",
+    "messenger.super.password": "서버 비밀번호",
+    "messenger.userid": "사용자 ID",
+    "messenger.userid.alert": "당신의 고유 식별자",
+
+    "export": "설정 내보내기",
+    "export.alert": "설정을 내보내고, 클라이언트가 구성 파일을 덮어쓰거나, 구성 정보를 붙여넣거나, 온라인으로 로드합니다",
+    "export.signle": "단일 장치",
+    "export.name": "장치 이름",
+    "export.name.alert": "장치 이름을 입력하세요",
+    "export.psswd": "관리 비밀번호",
+    "export.psswd.alert": "인터페이스 비밀번호를 입력하세요",
+    "export.webport": "관리 포트",
+    "export.webport.alert": "웹 포트를 입력하세요",
+    "export.download": "다운로드",
+    "export.copy": "복사",
+    "export.save": "저장",
+    "export.updater": "설정 업데이트",
+    "export.server": "서버 설정",
+    "export.super": "서버 비밀번호",
+    "export.group": "현재 그룹",
+    "export.tunnel": "터널 프로토콜"
+}

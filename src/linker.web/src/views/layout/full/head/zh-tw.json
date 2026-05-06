@@ -1,0 +1,10 @@
+{
+    "head.home": "首頁",
+    "head.server": "伺服器",
+    "head.protocol": "隧道",
+    "head.action": "驗證",
+    "head.firewall": "防火牆",
+    "head.wakeup": "喚醒",
+    "head.logger": "日誌",
+    "head.refresh": "刷新"
+}

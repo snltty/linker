@@ -1,0 +1,8 @@
+{
+    "group": "管理群組",
+    "group.share": "分享群組",
+    "group.join": "加入群組",
+    "group.name": "名稱",
+    "group.psswd": "密碼",
+    "group.validate": "有名稱或者id未設置的項"
+}

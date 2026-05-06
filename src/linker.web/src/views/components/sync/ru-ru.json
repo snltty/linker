@@ -1,0 +1,15 @@
+{
+    "sync.alert": "К выбранным клиентам, если не выбрано, то ко всем клиентам",
+    "sync.select": "Пожалуйста, выберите",
+    "sync.SignInSuperKey": "Ключ сервера",
+    "sync.SignInSecretKey": "Ключ маяка",
+    "sync.SignInServer": "Сервер маяка",
+    "sync.GroupSecretKey": "Ключ группы",
+    "sync.RelaySecretKey": "Ключ реле",
+    "sync.SForwardSecretKey": "Ключ серверного туннеля",
+    "sync.UpdaterSecretKey": "Обновить конфигурацию",
+    "sync.TunnelTransports": "Протоколы туннеля",
+    "sync.SignInUserId": "Уникальный идентификатор пользователя",
+    "sync.ActionStatic": "Пользовательские параметры проверки",
+    "sync.Firewall": "Выбранные элементы брандмауэра"
+}

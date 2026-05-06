@@ -1,0 +1,14 @@
+{
+    "permission.closed": "통행 금지",
+    "permission.simple": "간단 관리",
+    "permission.full": "전문 관리",
+    "permission.clear": "연결 지우기",
+
+    "api.title": "API 관리",
+    "api.api": "API",
+    "api.pwd": "비밀번호",
+    "api.remember": "{0} 기억하기",
+    "api": "API 관리",
+    "api.clear": "지우기",
+    "api.alter": "변경"
+}

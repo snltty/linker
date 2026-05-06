@@ -1,0 +1,18 @@
+{
+    "updater": "Actualizar",
+    "updater.sync2Server": "Actualizar automáticamente a la versión del servidor",
+    "updater.no": "No se detectaron actualizaciones",
+    "updater.notnew": "No es la última versión",
+    "updater.new": "Es la última versión",
+    "updater.same": "No coincide con la versión del servidor",
+    "updater.downloading": "Descargando",
+    "updater.downloaded": "Descargado",
+    "updater.unziping": "Descomprimiendo",
+    "updater.unzip": "Descomprimido",
+    "updater.close": "¿Confirmar cierre?",
+    "updater.latest": "Última versión",
+    "updater.server": "Versión del servidor",
+    "updater.this.group": "Este grupo",
+    "updater.this.server": "Este servidor",
+    "updater.only": "Solo"
+}

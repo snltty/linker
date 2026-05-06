@@ -1,0 +1,10 @@
+{
+    "logger.list": "Список",
+    "logger.setting": "Настройки",
+    "logger.clear": "Очистить",
+    "logger.refresh": "Обновить",
+    "logger.count": "Количество",
+    "logger.level": "Уровень",
+    "logger.time": "Время",
+    "logger.content": "Содержимое"
+}

@@ -1,0 +1,15 @@
+{
+    "socks5": "プロキシ",
+    "socks5.title": "{0}プロキシ",
+    "socks5.alert": "プロキシサーバー",
+    "socks5.port": "ポート",
+    "socks5.p2n.routeIp": "ルーティングIP",
+    "socks5.p2n.routePrefix": "サブネットマスク",
+    "socks5.p2n.dstIp": "実際のIP",
+    "socks5.p2n.dstPrefix": "サブネットマスク",
+    "socks5.p2n.remark": "備考",
+    "socks5.p2n.disabled": "無効",
+    "socks5.show.clash": "IPの競合",
+    "socks5.show.disabled": "無効済み",
+    "socks5.show.normal": "正常"
+}

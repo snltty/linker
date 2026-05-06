@@ -1,0 +1,18 @@
+{
+    "updater": "업데이트",
+    "updater.sync2Server": "서버 버전으로 자동 업데이트",
+    "updater.no": "업데이트가 감지되지 않음",
+    "updater.notnew": "최신 버전이 아님",
+    "updater.new": "최신 버전임",
+    "updater.same": "서버 버전과 일치하지 않음",
+    "updater.downloading": "다운로드 중",
+    "updater.downloaded": "다운로드 완료",
+    "updater.unziping": "압축 해제 중",
+    "updater.unzip": "압축 해제 완료",
+    "updater.close": "종료하시겠습니까?",
+    "updater.latest": "최신 버전",
+    "updater.server": "서버 버전",
+    "updater.this.group": "이 그룹",
+    "updater.this.server": "이 서버",
+    "updater.only": "만"
+}

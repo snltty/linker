@@ -1,0 +1,15 @@
+{
+    "sync.alert": "A los clientes seleccionados, si no se selecciona ninguno, significa todos los clientes",
+    "sync.select": "Por favor seleccione",
+    "sync.SignInSuperKey": "Clave del servidor",
+    "sync.SignInSecretKey": "Clave de baliza",
+    "sync.SignInServer": "Servidor de baliza",
+    "sync.GroupSecretKey": "Clave de grupo",
+    "sync.RelaySecretKey": "Clave de relé",
+    "sync.SForwardSecretKey": "Clave de túnel del servidor",
+    "sync.UpdaterSecretKey": "Configuración de actualización",
+    "sync.TunnelTransports": "Protocolos de túnel",
+    "sync.SignInUserId": "ID único de usuario",
+    "sync.ActionStatic": "Parámetros de verificación personalizados",
+    "sync.Firewall": "Elementos seleccionados del firewall"
+}

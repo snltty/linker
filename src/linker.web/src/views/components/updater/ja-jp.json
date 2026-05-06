@@ -1,0 +1,18 @@
+{
+    "updater": "更新",
+    "updater.sync2Server": "サーバーバージョンに自動更新",
+    "updater.no": "更新を検出できませんでした",
+    "updater.notnew": "最新バージョンではありません",
+    "updater.new": "最新バージョンです",
+    "updater.same": "サーバーバージョンと一致しません",
+    "updater.downloading": "ダウンロード中",
+    "updater.downloaded": "ダウンロード済み",
+    "updater.unziping": "解凍中",
+    "updater.unzip": "解凍済み",
+    "updater.close": "閉じますか？",
+    "updater.latest": "最新バージョン",
+    "updater.server": "サーバーバージョン",
+    "updater.this.group": "このグループ",
+    "updater.this.server": "このサーバー",
+    "updater.only": "のみ"
+}

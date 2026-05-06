@@ -1,0 +1,15 @@
+{
+    "socks5": "代理",
+    "socks5.title": "{0}代理",
+    "socks5.alert": "代理伺服器",
+    "socks5.port": "埠",
+    "socks5.p2n.routeIp": "路由IP",
+    "socks5.p2n.routePrefix": "子網掩碼",
+    "socks5.p2n.dstIp": "真實IP",
+    "socks5.p2n.dstPrefix": "子網掩碼",
+    "socks5.p2n.remark": "備註",
+    "socks5.p2n.disabled": "禁用",
+    "socks5.show.clash": "IP存在衝突",
+    "socks5.show.disabled": "已禁用",
+    "socks5.show.normal": "正常"
+}

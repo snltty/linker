@@ -1,0 +1,7 @@
+{
+    "device": "Dispositivo",
+    "device.title": "Configuración de {0}",
+    "device.restart": "Es recomendable reiniciar el cliente después de modificar",
+    "device.name": "Nombre del dispositivo",
+    "device.avatar": "Avatar"
+}

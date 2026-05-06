@@ -1,0 +1,8 @@
+{
+    "deny.title":"【{0}】의 호스트",
+    "deny.online":"온라인 호스트",
+    "deny.list":"차단 목록",
+    "deny.add":"차단",
+    "deny.str":"항목",
+    "deny.remark":"비고"
+}

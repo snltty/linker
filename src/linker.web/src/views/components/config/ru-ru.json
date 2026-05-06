@@ -1,0 +1,27 @@
+{
+    "messenger": "Сервер маяка",
+    "messenger.addr": "Адрес сервера",
+    "messenger.alert": "IP/Домен:Порт, порт по умолчанию 1802",
+    "messenger.super.key": "Ключ сервера",
+    "messenger.super.password": "Пароль сервера",
+    "messenger.userid": "ID пользователя",
+    "messenger.userid.alert": "Ваш уникальный идентификатор",
+
+    "export": "Экспорт конфигурации",
+    "export.alert": "Экспорт конфигурации, клиент перезаписывает файл конфигурации, или вставляет информацию о конфигурации, или загружает онлайн",
+    "export.signle": "Одно устройство",
+    "export.name": "Имя устройства",
+    "export.name.alert": "Пожалуйста, введите имя устройства",
+    "export.psswd": "Пароль администратора",
+    "export.psswd.alert": "Пожалуйста, введите пароль интерфейса",
+    "export.webport": "Порт управления",
+    "export.webport.alert": "Пожалуйста, введите веб-порт",
+    "export.download": "Скачать",
+    "export.copy": "Копировать",
+    "export.save": "Сохранить",
+    "export.updater": "Обновить конфигурацию",
+    "export.server": "Конфигурация сервера",
+    "export.super": "Пароль сервера",
+    "export.group": "Текущая группа",
+    "export.tunnel": "Протокол туннеля"
+}

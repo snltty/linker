@@ -1,0 +1,27 @@
+{
+    "messenger": "Servidor de baliza",
+    "messenger.addr": "Dirección del servidor",
+    "messenger.alert": "IP/Dominio:Puerto, puerto por defecto 1802",
+    "messenger.super.key": "Clave del servidor",
+    "messenger.super.password": "Contraseña del servidor",
+    "messenger.userid": "ID de usuario",
+    "messenger.userid.alert": "Tu identificador único",
+
+    "export": "Exportar configuración",
+    "export.alert": "Exportar configuración, el cliente sobrescribe el archivo de configuración, o pega la información de configuración, o carga en línea",
+    "export.signle": "Dispositivo único",
+    "export.name": "Nombre del dispositivo",
+    "export.name.alert": "Por favor, introduce el nombre del dispositivo",
+    "export.psswd": "Contraseña de administración",
+    "export.psswd.alert": "Por favor, introduce la contraseña de la interfaz",
+    "export.webport": "Puerto de administración",
+    "export.webport.alert": "Por favor, introduce el puerto web",
+    "export.download": "Descargar",
+    "export.copy": "Copiar",
+    "export.save": "Guardar",
+    "export.updater": "Actualizar configuración",
+    "export.server": "Configuración del servidor",
+    "export.super": "Contraseña del servidor",
+    "export.group": "Grupo actual",
+    "export.tunnel": "Protocolo de túnel"
+}

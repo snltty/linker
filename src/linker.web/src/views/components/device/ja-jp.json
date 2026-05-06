@@ -1,0 +1,7 @@
+{
+    "device": "デバイス",
+    "device.title": "{0}の設定",
+    "device.restart": "変更後はクライアントを再起動することをお勧めします",
+    "device.name": "デバイス名",
+    "device.avatar": "アバター"
+}

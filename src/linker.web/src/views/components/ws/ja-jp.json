@@ -1,0 +1,14 @@
+{
+    "permission.closed": "通行禁止",
+    "permission.simple": "簡易管理",
+    "permission.full": "専門管理",
+    "permission.clear": "接続をクリア",
+
+    "api.title": "API管理",
+    "api.api": "API",
+    "api.pwd": "パスワード",
+    "api.remember": "{0}を記憶する",
+    "api": "API管理",
+    "api.clear": "クリア",
+    "api.alter": "変更"
+}

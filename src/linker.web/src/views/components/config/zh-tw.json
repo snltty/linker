@@ -1,0 +1,27 @@
+{
+    "messenger": "信標伺服器",
+    "messenger.addr": "伺服器地址",
+    "messenger.alert": "IP/網域:端口，端口預設1802",
+    "messenger.super.key": "伺服器金鑰",
+    "messenger.super.password": "伺服器密碼",
+    "messenger.userid": "使用者ID",
+    "messenger.userid.alert": "你的唯一標識",
+
+    "export": "匯出配置",
+    "export.alert": "匯出配置，客戶端覆蓋配置文件，或貼上配置資訊，或在線載入",
+    "export.signle": "單設備",
+    "export.name": "設備名",
+    "export.name.alert": "請輸入設備名",
+    "export.psswd": "管理密碼",
+    "export.psswd.alert": "請輸入介面密碼",
+    "export.webport": "管理端口",
+    "export.webport.alert": "請輸入網頁端口",
+    "export.download": "下載",
+    "export.copy": "複製",
+    "export.save": "儲存",
+    "export.updater": "更新配置",
+    "export.server": "伺服器配置",
+    "export.super": "伺服器密碼",
+    "export.group": "當前分組",
+    "export.tunnel": "隧道協議"
+}

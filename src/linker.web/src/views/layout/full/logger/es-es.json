@@ -1,0 +1,10 @@
+{
+    "logger.list": "Lista",
+    "logger.setting": "Configuración",
+    "logger.clear": "Limpiar",
+    "logger.refresh": "Actualizar",
+    "logger.count": "Cantidad",
+    "logger.level": "Nivel",
+    "logger.time": "Hora",
+    "logger.content": "Contenido"
+}

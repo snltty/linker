@@ -1,0 +1,10 @@
+{
+    "oper.reboot": "재부팅",
+    "oper.access": "접근",
+    "oper.manageApi": "API 관리",
+    "oper.passwd.new": "새 비밀번호",
+    "oper.passwd.set": "{0}의 관리 비밀번호",
+    "oper.action": "확인",
+    "oper.messenger": "메신저",
+    "oper.flow": "트래픽"
+}

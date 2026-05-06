@@ -1,0 +1,7 @@
+{
+    "device": "장치",
+    "device.title": "{0}의 설정",
+    "device.restart": "수정 후 클라이언트를 다시 시작하는 것이 좋습니다",
+    "device.name": "장치 이름",
+    "device.avatar": "아바타"
+}

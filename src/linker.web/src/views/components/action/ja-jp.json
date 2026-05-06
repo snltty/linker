@@ -1,0 +1,5 @@
+{
+    "action.text": "検証を定義するための静的JSONパラメータを設定",
+    "action.jsonError": "JSON形式エラー",
+    "action.title": "{0}の検証パラメータ"
+}

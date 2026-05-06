@@ -1,0 +1,27 @@
+{
+    "messenger": "ビーコンサーバー",
+    "messenger.addr": "サーバーアドレス",
+    "messenger.alert": "IP/ドメイン:ポート、デフォルトポート1802",
+    "messenger.super.key": "サーバーキー",
+    "messenger.super.password": "サーバーパスワード",
+    "messenger.userid": "ユーザーID",
+    "messenger.userid.alert": "あなたの一意の識別子",
+
+    "export": "設定のエクスポート",
+    "export.alert": "設定をエクスポートし、クライアントが設定ファイルを上書きするか、設定情報を貼り付けるか、オンラインでロードします",
+    "export.signle": "単一デバイス",
+    "export.name": "デバイス名",
+    "export.name.alert": "デバイス名を入力してください",
+    "export.psswd": "管理パスワード",
+    "export.psswd.alert": "インターフェースパスワードを入力してください",
+    "export.webport": "管理ポート",
+    "export.webport.alert": "ウェブポートを入力してください",
+    "export.download": "ダウンロード",
+    "export.copy": "コピー",
+    "export.save": "保存",
+    "export.updater": "設定を更新",
+    "export.server": "サーバー設定",
+    "export.super": "サーバーパスワード",
+    "export.group": "現在のグループ",
+    "export.tunnel": "トンネルプロトコル"
+}

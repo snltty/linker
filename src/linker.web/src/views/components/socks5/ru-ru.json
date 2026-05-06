@@ -1,0 +1,15 @@
+{
+    "socks5": "Прокси",
+    "socks5.title": "Прокси {0}",
+    "socks5.alert": "Прокси-сервер",
+    "socks5.port": "Порт",
+    "socks5.p2n.routeIp": "Маршрутизируемый IP",
+    "socks5.p2n.routePrefix": "Маска подсети",
+    "socks5.p2n.dstIp": "Реальный IP",
+    "socks5.p2n.dstPrefix": "Маска подсети",
+    "socks5.p2n.remark": "Примечание",
+    "socks5.p2n.disabled": "Отключено",
+    "socks5.show.clash": "Конфликт IP",
+    "socks5.show.disabled": "Отключено",
+    "socks5.show.normal": "Нормально"
+}

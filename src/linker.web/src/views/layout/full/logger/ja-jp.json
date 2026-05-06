@@ -1,0 +1,10 @@
+{
+    "logger.list": "リスト",
+    "logger.setting": "設定",
+    "logger.clear": "クリア",
+    "logger.refresh": "更新",
+    "logger.count": "数",
+    "logger.level": "レベル",
+    "logger.time": "時間",
+    "logger.content": "内容"
+}

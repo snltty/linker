@@ -1,0 +1,8 @@
+{
+    "group": "Gestionar grupos",
+    "group.share": "Compartir grupo",
+    "group.join": "Unirse al grupo",
+    "group.name": "Nombre",
+    "group.psswd": "Contraseña",
+    "group.validate": "Hay elementos con nombre o ID no configurados"
+}

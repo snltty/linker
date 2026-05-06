@@ -1,0 +1,15 @@
+{
+    "sync.alert": "選択したクライアントへ、選択しない場合はすべてのクライアント",
+    "sync.select": "選択してください",
+    "sync.SignInSuperKey": "サーバーキー",
+    "sync.SignInSecretKey": "ビーコンキー",
+    "sync.SignInServer": "ビーコンサーバー",
+    "sync.GroupSecretKey": "グループキー",
+    "sync.RelaySecretKey": "リレーキー",
+    "sync.SForwardSecretKey": "サーバートンネルキー",
+    "sync.UpdaterSecretKey": "設定を更新",
+    "sync.TunnelTransports": "トンネルプロトコル",
+    "sync.SignInUserId": "ユーザー固有ID",
+    "sync.ActionStatic": "カスタム検証パラメータ",
+    "sync.Firewall": "ファイアウォール選択項目"
+}

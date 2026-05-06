@@ -1,0 +1,10 @@
+{
+    "oper.reboot": "重啟",
+    "oper.access": "權限",
+    "oper.manageApi": "管理介面",
+    "oper.passwd.new": "新密碼",
+    "oper.passwd.set": "{0}的管理密碼",
+    "oper.action": "驗證",
+    "oper.messenger": "信標",
+    "oper.flow": "流量"
+}

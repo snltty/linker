@@ -1,0 +1,5 @@
+{
+    "action.text": "Establecer parámetros JSON estáticos para definir la validación",
+    "action.jsonError": "Error de formato JSON",
+    "action.title": "Parámetros de validación de {0}"
+}

@@ -1,0 +1,14 @@
+{
+    "permission.closed": "ممنوع المرور",
+    "permission.simple": "إدارة بسيطة",
+    "permission.full": "إدارة احترافية",
+    "permission.clear": "مسح الاتصال",
+
+    "api.title": "إدارة واجهة برمجة التطبيقات",
+    "api.api": "واجهة برمجة التطبيقات",
+    "api.pwd": "كلمة المرور",
+    "api.remember": "تذكر {0}",
+    "api": "إدارة واجهة برمجة التطبيقات",
+    "api.clear": "مسح",
+    "api.alter": "تعديل"
+}

@@ -1,0 +1,10 @@
+{
+    "oper.reboot": "إعادة التشغيل",
+    "oper.access": "الوصول",
+    "oper.manageApi": "إدارة واجهة برمجة التطبيقات",
+    "oper.passwd.new": "كلمة المرور الجديدة",
+    "oper.passwd.set": "كلمة مرور إدارة {0}",
+    "oper.action": "تحقق",
+    "oper.messenger": "الرسول",
+    "oper.flow": "حركة المرور"
+}

@@ -1,0 +1,8 @@
+{
+    "group": "グループ管理",
+    "group.share": "グループを共有",
+    "group.join": "グループに参加",
+    "group.name": "名前",
+    "group.psswd": "パスワード",
+    "group.validate": "名前またはIDが設定されていない項目があります"
+}

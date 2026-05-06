@@ -1,0 +1,10 @@
+{
+    "head.home": "ホーム",
+    "head.server": "サーバー",
+    "head.protocol": "トンネル",
+    "head.action": "検証",
+    "head.firewall": "ファイアウォール",
+    "head.wakeup": "ウェイクアップ",
+    "head.logger": "ログ",
+    "head.refresh": "更新"
+}

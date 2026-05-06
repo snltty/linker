@@ -1,0 +1,15 @@
+{
+    "sync.alert": "到選中的客戶端，不選擇表示所有客戶端",
+    "sync.select": "請選擇",
+    "sync.SignInSuperKey": "伺服器密鑰",
+    "sync.SignInSecretKey": "信標密鑰",
+    "sync.SignInServer": "信標伺服器",
+    "sync.GroupSecretKey": "分組密鑰",
+    "sync.RelaySecretKey": "中繼密鑰",
+    "sync.SForwardSecretKey": "伺服器穿透密鑰",
+    "sync.UpdaterSecretKey": "更新配置",
+    "sync.TunnelTransports": "隧道協議",
+    "sync.SignInUserId": "用戶唯一標識",
+    "sync.ActionStatic": "自定義驗證參數",
+    "sync.Firewall": "防火牆選中項"
+}

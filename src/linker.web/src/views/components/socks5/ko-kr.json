@@ -1,0 +1,15 @@
+{
+    "socks5": "프록시",
+    "socks5.title": "{0} 프록시",
+    "socks5.alert": "프록시 서버",
+    "socks5.port": "포트",
+    "socks5.p2n.routeIp": "라우팅 IP",
+    "socks5.p2n.routePrefix": "서브넷 마스크",
+    "socks5.p2n.dstIp": "실제 IP",
+    "socks5.p2n.dstPrefix": "서브넷 마스크",
+    "socks5.p2n.remark": "비고",
+    "socks5.p2n.disabled": "사용 안 함",
+    "socks5.show.clash": "IP 충돌",
+    "socks5.show.disabled": "사용 안 함",
+    "socks5.show.normal": "정상"
+}

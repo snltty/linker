@@ -1,0 +1,15 @@
+{
+    "socks5": "Proxy",
+    "socks5.title": "Proxy {0}",
+    "socks5.alert": "Servidor proxy",
+    "socks5.port": "Puerto",
+    "socks5.p2n.routeIp": "IP de enrutamiento",
+    "socks5.p2n.routePrefix": "Máscara de subred",
+    "socks5.p2n.dstIp": "IP real",
+    "socks5.p2n.dstPrefix": "Máscara de subred",
+    "socks5.p2n.remark": "Observaciones",
+    "socks5.p2n.disabled": "Deshabilitado",
+    "socks5.show.clash": "Conflicto de IP",
+    "socks5.show.disabled": "Deshabilitado",
+    "socks5.show.normal": "Normal"
+}

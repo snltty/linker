@@ -1,0 +1,14 @@
+{
+    "permission.closed": "Acceso prohibido",
+    "permission.simple": "Gestión simple",
+    "permission.full": "Gestión profesional",
+    "permission.clear": "Limpiar conexión",
+
+    "api.title": "Administrar API",
+    "api.api": "API",
+    "api.pwd": "Contraseña",
+    "api.remember": "Recordar {0}",
+    "api": "Administrar API",
+    "api.clear": "Limpiar",
+    "api.alter": "Modificar"
+}

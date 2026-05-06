@@ -1,0 +1,5 @@
+{
+    "action.text": "設置定義驗證的靜態Json參數",
+    "action.jsonError": "json格式錯誤",
+    "action.title": "{0}的驗證參數"
+}

@@ -1,0 +1,14 @@
+{
+    "permission.closed": "Доступ запрещен",
+    "permission.simple": "Простое управление",
+    "permission.full": "Профессиональное управление",
+    "permission.clear": "Очистить соединение",
+
+    "api.title": "Управление API",
+    "api.api": "API",
+    "api.pwd": "Пароль",
+    "api.remember": "Запомнить {0}",
+    "api": "Управление API",
+    "api.clear": "Очистить",
+    "api.alter": "Изменить"
+}

@@ -1,0 +1,7 @@
+{
+    "device": "設備",
+    "device.title": "{0}的設定",
+    "device.restart": "修改後最好能重啟一次客戶端",
+    "device.name": "設備名",
+    "device.avatar": "頭像"
+}
