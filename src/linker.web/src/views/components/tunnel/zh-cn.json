@@ -51,5 +51,6 @@
     "network.tunnel.manual":"手动",
     "network.tunnel.auto":"自动",
     "network.tunnel.back":"后台",
+    "network.tunnel.pcp":"节点中继",
     "network.tunnel.delay":"延迟"
 }

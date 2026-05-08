@@ -1,7 +1,7 @@
 <template>
-    <el-dialog v-model="state.show" append-to=".app-wrap" :title="$t('network.tunnel.title',[state.device.MachineName])" top="1vh" width="350">
+    <el-dialog v-model="state.show" append-to=".app-wrap" :title="$t('network.tunnel.title',[state.device.MachineName])" top="1vh" width="400">
         <div>
-            <el-descriptions border size="small" :column="1" label-width="6rem" >
+            <el-descriptions border size="small" :column="1" label-width="8rem" >
                 <el-descriptions-item :label="$t('network.tunnel.target')" >
                     <div class="break-all">{{ state.connection.IPEndPoint }}</div>
                 </el-descriptions-item>
@@ -33,6 +33,14 @@
                         <a v-else href="javascript:;" class="a-line" @click="handleNode">{{ state.nodesDic[state.connection.NodeId] || $t('network.tunnel.relay') }}</a>
                     </div>
                 </el-descriptions-item>
+                <el-descriptions-item :label="$t('network.tunnel.pcp')">
+                    <div>
+                        <a v-if="state.operating.pcp" href="javascript:;" class="a-line">
+                            <span>{{$t('network.tunnel.manual')}}</span><el-icon size="14" class="loading"><Loading /></el-icon>
+                        </a>
+                        <a v-else href="javascript:;" class="a-line">{{$t('network.tunnel.pcp') }}</a>
+                    </div>
+                </el-descriptions-item>
                 <el-descriptions-item :label="$t('network.tunnel.p2p')">
                     <div>
                         <a v-if="state.operating.hand" href="javascript:;" class="a-line">
@@ -42,6 +50,7 @@
                             <a href="javascript:;" class="a-line" @click="handlep2p">{{$t('network.tunnel.p2p')}}</a>
                             <span class="mgl-1">{{$t('network.tunnel.auto')}}<el-icon v-if="state.operating.default" size="14" class="loading"><Loading /></el-icon></span>
                             <span class="mgl-1">{{$t('network.tunnel.back')}}<el-icon v-if="state.operating.back" size="14" class="loading"><Loading /></el-icon></span>
+                            <span class="mgl-1">{{$t('network.tunnel.pcp')}}<el-icon v-if="state.operating.pcp" size="14" class="loading"><Loading /></el-icon></span>
                         </template>
                     </div>
                 </el-descriptions-item>
@@ -142,7 +151,7 @@ export default {
         const state = reactive({
             show: true,
             protocolTypes: { 1: 'tcp', 2: 'udp', 4: 'msquic' },
-            types: { 0: t('network.tunnel.p2p'), 1: t('network.tunnel.relay'), 2: t('network.tunnel.node') },
+            types: { 0: t('network.tunnel.p2p'), 1: t('network.tunnel.relay'), 2: t('network.tunnel.pcp') },
             transactions: { 'forward': t('forward'), 'tuntap': t('tuntap'), 'socks5': t('socks5') },
             device: connections.value.device,
             transactionId: connections.value.transactionId,

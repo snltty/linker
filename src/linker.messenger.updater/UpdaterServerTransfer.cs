@@ -36,7 +36,7 @@ namespace linker.messenger.updater
         {
             TimerHelper.SetIntervalLong(async () =>
             {
-                if (updaterCommonTransfer.CheckUpdate)
+                if (updaterCommonTransfer.CheckUpdate && DateTime.Now.Hour > 6)
                 {
                     await updaterHelper.GetUpdateInfo(updateInfo).ConfigureAwait(false);
                 }

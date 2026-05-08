@@ -6,13 +6,11 @@ namespace linker.messenger.updater
 {
     public sealed class UpdaterHelper
     {
-        private readonly IUpdaterCommonStore updaterCommonTransfer;
         private readonly IUpdaterInstaller updaterInstaller;
         private UpdaterInfo updateInfo;
 
         public UpdaterHelper(IUpdaterCommonStore updaterCommonTransfer, IUpdaterInstaller updaterInstaller)
         {
-            this.updaterCommonTransfer = updaterCommonTransfer;
             this.updaterInstaller = updaterInstaller;
 
             updaterCommonTransfer.SetInterval(900);
@@ -36,7 +34,7 @@ namespace linker.messenger.updater
             {
                 updateInfo.Status = UpdaterStatus.Checking;
 
-                (string datetime, string[] msg, string version) = await updaterInstaller.Check();
+                (string datetime, string[] msg, string version) = await updaterInstaller.Check().ConfigureAwait(false);
                 if (string.IsNullOrWhiteSpace(datetime))
                 {
                     updateInfo.Status = status;
@@ -110,7 +108,7 @@ namespace linker.messenger.updater
 
                 using Stream contentStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
                 using FileStream fileStream = new FileStream(savePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-                using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(4*1024);
+                using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(4 * 1024);
                 int readBytes = 0;
                 while ((readBytes = await contentStream.ReadAsync(buffer.Memory).ConfigureAwait(false)) != 0)
                 {
@@ -155,7 +153,7 @@ namespace linker.messenger.updater
                 {
                     updateInfo.Length = total;
                     updateInfo.Current += length;
-                });
+                }).ConfigureAwait(false);
 
                 updateInfo.Status = UpdaterStatus.Extracted;
             }

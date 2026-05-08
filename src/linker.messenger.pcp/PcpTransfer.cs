@@ -13,15 +13,19 @@ namespace linker.messenger.pcp
 
         private readonly ConcurrentDictionary<string, TaskCompletionSource<bool>> watingDic = new();
         private readonly ConcurrentDictionary<string, ITunnelConnection> swapDic = new();
-
         private readonly SwapTransfer swapTransfer = new SwapTransfer();
+        public VersionManager OperatingVersion => operating.DataVersion;
+        public ConcurrentDictionary<string, bool> Operating => operating.StringKeyValue;
+        private readonly OperatingMultipleManager operating = new OperatingMultipleManager();
+
+
 
         private readonly IPcpStore pcpStore;
         private readonly TunnelTransfer tunnelTransfer;
         private readonly ISignInClientStore signInClientStore;
-        private readonly MessengerSender messengerSender;
+        private readonly IMessengerSender messengerSender;
         private readonly ISerializer serializer;
-        public PcpTransfer(IPcpStore pcpStore, TunnelTransfer tunnelTransfer, ISignInClientStore signInClientStore, MessengerSender messengerSender, ISerializer serializer)
+        public PcpTransfer(IPcpStore pcpStore, TunnelTransfer tunnelTransfer, ISignInClientStore signInClientStore, IMessengerSender messengerSender, ISerializer serializer)
         {
             this.pcpStore = pcpStore;
             this.tunnelTransfer = tunnelTransfer;
@@ -35,8 +39,8 @@ namespace linker.messenger.pcp
             TunnelTagInfo tag = connection.TransactionTag.DeJson<TunnelTagInfo>();
             if (tag.NodeId == signInClientStore.Id)
             {
-                string key = $"{tag.FromMachineId}@{tag.ToMachineId}@{tag.TransactionId}";    
-                if (swapDic.TryRemove(key,out ITunnelConnection _connection) && _connection.Connected)
+                string key = $"{tag.FromMachineId}@{tag.ToMachineId}@{tag.TransactionId}";
+                if (swapDic.TryRemove(key, out ITunnelConnection _connection) && _connection.Connected)
                 {
                     swapTransfer.Swap(_connection, connection);
                 }
@@ -44,50 +48,65 @@ namespace linker.messenger.pcp
                 {
                     swapDic.AddOrUpdate(key, connection, (k, v) => connection);
                 }
-
                 return;
             }
         }
         public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId, TunnelProtocolType denyProtocols)
         {
-            List<string> nodes = pcpStore.PcpHistory.History.Intersect(await GetNodes(remoteMachineId).ConfigureAwait(false)).ToList();
-
-            ITunnelConnection connection = null;
-            foreach (var node in nodes)
+            string key = $"{remoteMachineId}@{transactionId}";
+            if (operating.StartOperation(key) == false)
             {
-                try
-                {
-                    string tag = new TunnelTagInfo { FromMachineId = signInClientStore.Id, ToMachineId = remoteMachineId, TransactionId = transactionId, NodeId = node, DenyProtocols = denyProtocols }.ToJson();
-                    connection = await tunnelTransfer.ConnectAsync(node, this.transactionId, denyProtocols, tag).ConfigureAwait(false);
-                    if (connection == null)
-                    {
-                        continue;
-                    }
-                    await messengerSender.SendOnly(new MessageRequestWrap
-                    {
-                        MessengerId = (ushort)PcpMessengerIds.BeginForward,
-                        Payload = serializer.Serialize(tag),
-                    }).ConfigureAwait(false);
+                return null;
+            }
 
-                    TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
-                    watingDic.AddOrUpdate($"{remoteMachineId}@{transactionId}", tcs, (k, v) => tcs);
-                    bool result = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(60000)).ConfigureAwait(false);
-                    if (result)
+            try
+            {
+                List<string> nodes = pcpStore.PcpHistory.History.Intersect(await GetNodes(remoteMachineId).ConfigureAwait(false)).ToList();
+                foreach (var node in nodes)
+                {
+                    ITunnelConnection connection = null;
+                    try
                     {
-                        ExecConnectedCallbacks(transactionId, connection);
-                        return connection;
+                        string tag = new TunnelTagInfo { FromMachineId = signInClientStore.Id, ToMachineId = remoteMachineId, TransactionId = transactionId, NodeId = node, DenyProtocols = denyProtocols }.ToJson();
+                        connection = await tunnelTransfer.ConnectAsync(node, this.transactionId, denyProtocols, tag, flag: "pcp").ConfigureAwait(false);
+                        if (connection == null)
+                        {
+                            continue;
+                        }
+                        await messengerSender.SendOnly(new MessageRequestWrap
+                        {
+                            MessengerId = (ushort)PcpMessengerIds.BeginForward,
+                            Payload = serializer.Serialize(tag),
+                        }).ConfigureAwait(false);
+
+                        TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
+                        watingDic.AddOrUpdate($"{remoteMachineId}@{transactionId}", tcs, (k, v) => tcs);
+                        bool result = await tcs.Task.WaitAsync(TimeSpan.FromMilliseconds(60000)).ConfigureAwait(false);
+                        if (result)
+                        {
+                            ExecConnectedCallbacks(transactionId, connection);
+                            return connection;
+                        }
                     }
-                }
-                catch (Exception)
-                {
-                }
-                finally
-                {
-                    watingDic.TryRemove($"{remoteMachineId}@{transactionId}", out _);
+                    catch (Exception)
+                    {
+                        connection?.Dispose();
+                    }
+                    finally
+                    {
+                        watingDic.TryRemove($"{remoteMachineId}@{transactionId}", out _);
+                    }
                 }
             }
-            connection?.Dispose();
-            return connection;
+            catch (Exception)
+            {
+            }
+            finally
+            {
+                operating.StopOperation(key);
+            }
+
+            return null;
         }
         public async Task Begin(string tagStr)
         {
@@ -114,7 +133,7 @@ namespace linker.messenger.pcp
         public async Task Fail(string tagStr)
         {
             TunnelTagInfo tag = tagStr.DeJson<TunnelTagInfo>();
-            if(watingDic.TryRemove($"{tag.ToMachineId}@{tag.TransactionId}", out TaskCompletionSource<bool> tcs))
+            if (watingDic.TryRemove($"{tag.ToMachineId}@{tag.TransactionId}", out TaskCompletionSource<bool> tcs))
             {
                 tcs.SetResult(false);
             }

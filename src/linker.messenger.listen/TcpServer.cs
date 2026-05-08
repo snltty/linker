@@ -24,7 +24,10 @@ namespace linker.messenger.listen
 
         public void Start(int port, bool ipv6 = false)
         {
-            if (port <= 0) return;
+            if (port <= 0)
+            {
+                return;
+            }
             if (socket == null)
             {
                 socket = BindAccept(port, ipv6);

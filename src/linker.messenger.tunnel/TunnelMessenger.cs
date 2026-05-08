@@ -44,7 +44,7 @@ namespace linker.messenger.tunnel
             _ = tunnel.OnBegin(tunnelTransportInfo);
             connection.Write(Helper.TrueArray);
         }
-
+        
         [MessengerId((ushort)TunnelMessengerIds.Info)]
         public void Info(IConnection connection)
         {

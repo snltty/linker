@@ -51,5 +51,6 @@
     "network.tunnel.manual": "Manual",
     "network.tunnel.auto": "Auto",
     "network.tunnel.back": "Background",
+    "network.tunnel.pcp": "Node Relay",
     "network.tunnel.delay": "Delay"
 }

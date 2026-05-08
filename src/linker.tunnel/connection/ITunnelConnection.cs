@@ -30,7 +30,7 @@ namespace linker.tunnel.connection
     {
         P2P = 0,
         Relay = 1,
-        Node = 2,
+        PCP = 2,
     }
     /// <summary>
     /// 隧道方向
