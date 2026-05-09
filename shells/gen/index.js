@@ -115,7 +115,6 @@ function writeUpload(data, tagName) {
         }
     });
     
-    
     data.jobs.build.steps.push({
         name: `upload-version-oss`,
         id: `upload-version-oss`,
@@ -125,7 +124,7 @@ function writeUpload(data, tagName) {
             'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
             'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
             'bucket': 'ide-qbcode',
-            'asset-path': `./public/version.txt`,
+            'asset-path': `./version.txt`,
             'target-path': `/downloads/linker/version.txt`
         }
     });
@@ -297,7 +296,7 @@ readVersionDesc().then((desc) => {
     data.jobs.build.steps.filter(c => c.id == 'create_release')[0].with.tag_name = `v${desc.version}`;
     data.jobs.build.steps.filter(c => c.id == 'create_release')[0].with.release_name = `v${desc.version}.\${{ steps.date.outputs.today }}`;
 
-    fs.writeFileSync('../version.txt', `v${desc.version}\n${moment().format('YYYY-MM-DD HH:mm:ss')}\n${desc.desc}`, 'utf8');
+    fs.writeFileSync('../../version.txt', `v${desc.version}\n${moment().format('YYYY-MM-DD HH:mm:ss')}\n${desc.desc}`, 'utf8');
 
     writeUpload(data, `v${desc.version}`);
     writeYaml('../../.github/workflows/dotnet.yml', data);

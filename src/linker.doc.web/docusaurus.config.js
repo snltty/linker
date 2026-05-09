@@ -9,7 +9,7 @@ import { themes as prismThemes } from 'prism-react-renderer';
 /** @type {import('@docusaurus/types').Config} */
 const config = {
     title: 'linker-doc',
-    tagline: '自由哒。',
+    tagline: '自由、自由、还是自由',
     favicon: 'img/favicon.ico',
 
     // Set the production url of your site here

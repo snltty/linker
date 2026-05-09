@@ -282,7 +282,7 @@ jobs:
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
-          asset-path: ./public/version.txt
+          asset-path: ./version.txt
           target-path: /downloads/linker/version.txt
       - name: upload-install-service-oss
         id: upload-install-service-oss
