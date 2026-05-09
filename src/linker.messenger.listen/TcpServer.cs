@@ -144,19 +144,27 @@ namespace linker.messenger.listen
                 }
 
                 int length = await socket.ReceiveAsync(buffer.AsMemory(0, 1), SocketFlags.None, cts.Token).ConfigureAwait(false);
-                if(length == 0)
+                if (length == 0)
                 {
                     cts.Cancel();
                     socket.SafeClose();
                     return;
                 }
-                //LoggerHelper.Instance.Warning($"tcp server recv {length} from {socket.RemoteEndPoint}");
+
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Debug($"tcp server recv {length} from {socket.RemoteEndPoint} {buffer[0]}");
+                }
                 byte type = buffer[0];
                 if (countryTransfer.Test(type, (socket.RemoteEndPoint as IPEndPoint).Address) == false)
                 {
                     cts.Cancel();
                     socket.SafeClose();
                     return;
+                }
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Debug($"tcp server begin recv {length} from {socket.RemoteEndPoint} {buffer[0]}");
                 }
                 _ = resolverTransfer.BeginReceive(type, socket).ConfigureAwait(false);
             }
@@ -169,7 +177,7 @@ namespace linker.messenger.listen
             }
             finally
             {
-               
+
                 ArrayPool<byte>.Shared.Return(buffer);
             }
         }

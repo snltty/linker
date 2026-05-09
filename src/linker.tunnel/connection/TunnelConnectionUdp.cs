@@ -67,8 +67,8 @@ namespace linker.tunnel.connection
         private readonly byte[] pingBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.udp.ping");
         private readonly byte[] pongBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.udp.pong");
         private readonly byte[] finBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.udp.fing");
-        private readonly byte[] encodeBuffer = ArrayPool<byte>.Shared.Rent(8 * 1024);
-        private readonly byte[] decodeBuffer = ArrayPool<byte>.Shared.Rent(8 * 1024);
+        private readonly byte[] encodeBuffer = new byte[8 * 1024];
+        private readonly byte[] decodeBuffer = new byte[8 * 1024];
 
         public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken)
         {
@@ -258,7 +258,6 @@ namespace linker.tunnel.connection
                 {
                     LoggerHelper.Instance.Error(ex);
                 }
-                LoggerHelper.Instance.Error($"tunnel connection dispose 2");
                 Dispose();
             }
             finally

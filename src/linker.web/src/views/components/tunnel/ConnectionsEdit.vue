@@ -33,14 +33,14 @@
                         <a v-else href="javascript:;" class="a-line" @click="handleNode">{{ state.nodesDic[state.connection.NodeId] || $t('network.tunnel.relay') }}</a>
                     </div>
                 </el-descriptions-item>
-                <el-descriptions-item :label="$t('network.tunnel.pcp')">
+                <!-- <el-descriptions-item :label="$t('network.tunnel.pcp')">
                     <div>
                         <a v-if="state.operating.pcp" href="javascript:;" class="a-line">
                             <span>{{$t('network.tunnel.manual')}}</span><el-icon size="14" class="loading"><Loading /></el-icon>
                         </a>
                         <a v-else href="javascript:;" class="a-line">{{$t('network.tunnel.pcp') }}</a>
                     </div>
-                </el-descriptions-item>
+                </el-descriptions-item> -->
                 <el-descriptions-item :label="$t('network.tunnel.p2p')">
                     <div>
                         <a v-if="state.operating.hand" href="javascript:;" class="a-line">

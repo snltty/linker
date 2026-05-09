@@ -53,6 +53,9 @@ namespace linker.messenger.pcp
         }
         public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId, TunnelProtocolType denyProtocols)
         {
+
+            return null;
+            /*
             string key = $"{remoteMachineId}@{transactionId}";
             if (operating.StartOperation(key) == false)
             {
@@ -107,6 +110,7 @@ namespace linker.messenger.pcp
             }
 
             return null;
+            */
         }
         public async Task Begin(string tagStr)
         {

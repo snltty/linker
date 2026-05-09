@@ -85,7 +85,7 @@ const config = {
             },
             announcementBar: {
                 id: 'support_us',
-                content: '<span style="font-size:14px;color:#f7033a;">可以在<a target="_blank" href="https://ifdian.net/a/snltty">【🔋爱发电】</a>对项目稍加支持，公共服务器被封禁，请各位尽快自建</span>',
+                content: '<span style="font-size:14px;color:#f7033a;">可以在<a target="_blank" href="https://ifdian.net/a/snltty">【🔋爱发电】</a>对项目稍加支持，建议各位自建服务端</span>',
                 backgroundColor: '#f5f5f5',
                 textColor: '#ff0000',
                 isCloseable: false,

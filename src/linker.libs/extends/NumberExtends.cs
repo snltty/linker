@@ -33,6 +33,13 @@ namespace linker.libs.extends
                 *(long*)p = value;
             }
         }
+        public static unsafe void ToBytes(this long value, Span<byte> memory)
+        {
+            fixed (void* p = memory)
+            {
+                *(long*)p = value;
+            }
+        }
         public static unsafe void ToBytes(this long[] value, Memory<byte> memory)
         {
             fixed (void* p = &value[0])
