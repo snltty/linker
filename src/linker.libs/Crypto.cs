@@ -1,5 +1,6 @@
 ﻿using linker.libs.extends;
 using System;
+using System.Buffers;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;

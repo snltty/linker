@@ -202,7 +202,7 @@ namespace linker.messenger.updater
                 }
                 foreach (var item in Directory.GetDirectories(fullPath))
                 {
-                    ClearTempFiles(item);
+                    ClearTempFiles(item, ext);
                 }
             }
         }
