@@ -174,9 +174,9 @@ namespace linker.tunnel.connection
         public LastTicksManager LastTicks { get; }
 
         /// <summary>
-        /// 缓冲区
+        /// 代理
         /// </summary>
-        public byte[] PacketBuffer { get; set; }
+        public bool Proxy { get; set; }
 
         /// <summary>
         /// 发送数据

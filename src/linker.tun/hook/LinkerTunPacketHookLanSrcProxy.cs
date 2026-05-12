@@ -44,9 +44,9 @@ namespace linker.tun.hook
         {
             if (await LinkerSrcProxy.WriteAsync(packet, originDstIp).ConfigureAwait(false))
             {
-                return await ValueTask.FromResult((LinkerTunPacketHookFlags.None, LinkerTunPacketHookFlags.None));
+                return await ValueTask.FromResult((LinkerTunPacketHookFlags.None, LinkerTunPacketHookFlags.None)).ConfigureAwait(false);
             }
-            return await ValueTask.FromResult((LinkerTunPacketHookFlags.None, LinkerTunPacketHookFlags.Next | LinkerTunPacketHookFlags.Write));
+            return await ValueTask.FromResult((LinkerTunPacketHookFlags.None, LinkerTunPacketHookFlags.Next | LinkerTunPacketHookFlags.Write)).ConfigureAwait(false);
         }
     }
 }

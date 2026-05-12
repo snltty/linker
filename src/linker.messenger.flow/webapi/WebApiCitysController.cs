@@ -12,9 +12,9 @@ namespace linker.messenger.flow.webapi
         {
             this.flowResolver = flowResolver;
         }
-        public async Task<Memory<byte>> Handle(string query)
+        public Task<Memory<byte>> Handle(string query)
         {
-            return await Task.FromResult(flowResolver.GetCitys().ToJson().ToBytes()).ConfigureAwait(false);
+            return Task.FromResult(flowResolver.GetCitys().ToJson().ToBytes().AsMemory());
         }
 
         public void Free()

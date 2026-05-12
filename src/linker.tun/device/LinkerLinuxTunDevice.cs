@@ -356,10 +356,10 @@ namespace linker.tun.device
             return output;
         }
 
-        public async Task<bool> CheckAvailable(bool order = false)
+        public  Task<bool> CheckAvailable(bool order = false)
         {
             string output = CommandHelper.Linux(string.Empty, new string[] { $"ip link show {Name}" });
-            return await Task.FromResult(output.Contains("state UP")).ConfigureAwait(false);
+            return  Task.FromResult(output.Contains("state UP"));
         }
     }
 }

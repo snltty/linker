@@ -138,11 +138,16 @@ namespace linker.messenger.listen
             using CancellationTokenSource cts = new CancellationTokenSource(5000);
             try
             {
+                
                 if (socket == null || socket.RemoteEndPoint == null)
                 {
                     return;
                 }
 
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Debug($"tcp server connect from {socket.RemoteEndPoint}");
+                }
                 int length = await socket.ReceiveAsync(buffer.AsMemory(0, 1), SocketFlags.None, cts.Token).ConfigureAwait(false);
                 if (length == 0)
                 {
@@ -151,11 +156,11 @@ namespace linker.messenger.listen
                     return;
                 }
 
+                byte type = buffer[0];
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    LoggerHelper.Instance.Debug($"tcp server recv {length} from {socket.RemoteEndPoint} {buffer[0]}");
+                    LoggerHelper.Instance.Debug($"tcp server got {type} from {socket.RemoteEndPoint}");
                 }
-                byte type = buffer[0];
                 if (countryTransfer.Test(type, (socket.RemoteEndPoint as IPEndPoint).Address) == false)
                 {
                     cts.Cancel();
@@ -164,7 +169,7 @@ namespace linker.messenger.listen
                 }
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 {
-                    LoggerHelper.Instance.Debug($"tcp server begin recv {length} from {socket.RemoteEndPoint} {buffer[0]}");
+                    LoggerHelper.Instance.Debug($"tcp server begin recv {type} with {socket.RemoteEndPoint}");
                 }
                 _ = resolverTransfer.BeginReceive(type, socket).ConfigureAwait(false);
             }

@@ -51,7 +51,7 @@ namespace linker.messenger.tuntap.client
             tuntapProxy.Callback = this;
         }
 
-        private async Task SignInSuccess(int times)
+        private Task SignInSuccess(int times)
         {
             _ = CheckDevice();
             if(_checked == false)
@@ -59,7 +59,7 @@ namespace linker.messenger.tuntap.client
                 _checked = true;
                 TimerHelper.SetIntervalLong(CheckDevice, 30000);
             }
-            await Task.CompletedTask.ConfigureAwait(false);
+            return Task.CompletedTask;
         }
         private void Update()
         {

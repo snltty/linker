@@ -38,7 +38,7 @@ namespace linker.messenger.forward
             signInClientState.OnSignInSuccess += Reset;
         }
 
-        private async Task Reset(int times)
+        private Task Reset(int times)
         {
             TimerHelper.Async(async () =>
             {
@@ -50,7 +50,7 @@ namespace linker.messenger.forward
                 await Task.Delay(5000).ConfigureAwait(false);
                 Start(false);
             });
-            await Task.CompletedTask.ConfigureAwait(false);
+            return Task.CompletedTask;
         }
 
         private void Start(bool errorStop = true)

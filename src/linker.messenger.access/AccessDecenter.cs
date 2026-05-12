@@ -29,7 +29,7 @@ namespace linker.messenger.access
             this.accessStore = accessStore;
             this.serializer = serializer;
 
-            signInClientState.OnSignInSuccess += async (times) => { PushVersion.Increment(); await Task.CompletedTask.ConfigureAwait(false);  };
+            signInClientState.OnSignInSuccess += (times) => { PushVersion.Increment(); return Task.CompletedTask;  };
             accessStore.OnChanged += PushVersion.Increment;
 
         }

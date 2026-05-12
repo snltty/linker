@@ -145,9 +145,9 @@ namespace linker.messenger.store.file
                 ArrayPool<byte>.Shared.Return(buffer);
             }
         }
-        public async Task Resolve(Socket socket, IPEndPoint ep, Memory<byte> memory)
+        public Task Resolve(Socket socket, IPEndPoint ep, Memory<byte> memory)
         {
-            await Task.CompletedTask;
+            return Task.CompletedTask;
         }
     }
 

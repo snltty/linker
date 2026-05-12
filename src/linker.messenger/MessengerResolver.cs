@@ -104,9 +104,9 @@ namespace linker.messenger
         /// <param name="ep"></param>
         /// <param name="memory"></param>
         /// <returns></returns>
-        public async Task BeginReceiveServer(Socket socket, IPEndPoint ep, Memory<byte> memory)
+        public Task BeginReceiveServer(Socket socket, IPEndPoint ep, Memory<byte> memory)
         {
-            await Task.CompletedTask.ConfigureAwait(false);
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -114,9 +114,9 @@ namespace linker.messenger
         /// </summary>
         /// <param name="socket"></param>
         /// <returns></returns>
-        public async Task<IConnection> BeginReceiveClient(Socket socket)
+        public Task<IConnection> BeginReceiveClient(Socket socket)
         {
-            return await BeginReceiveClient(socket, false, 0, Helper.EmptyArray).ConfigureAwait(false);
+            return BeginReceiveClient(socket, false, 0, Helper.EmptyArray);
         }
         /// <summary>
         /// 以客户端模式接收数据

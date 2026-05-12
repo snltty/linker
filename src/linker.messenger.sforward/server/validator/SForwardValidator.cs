@@ -16,13 +16,13 @@ namespace linker.messenger.sforward.server.validator
             this.nodeConfigStore = nodeConfigStore;
         }
 
-        public async Task<string> Validate(SignCacheInfo signCacheInfo, SForwardAddInfo sForwardAddInfo)
+        public Task<string> Validate(SignCacheInfo signCacheInfo, SForwardAddInfo sForwardAddInfo)
         {
             if (ValidatePort(sForwardAddInfo.RemotePort) == false)
             {
-                return $"port out of range";
+                return Task.FromResult($"port out of range");
             }
-            return await Task.FromResult(string.Empty);
+            return Task.FromResult(string.Empty);
         }
         private bool ValidatePort(int port)
         {

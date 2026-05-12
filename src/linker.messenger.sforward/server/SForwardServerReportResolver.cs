@@ -55,9 +55,9 @@ namespace linker.messenger.sforward.server
             }
         }
 
-        public async Task Resolve(Socket socket, IPEndPoint ep, Memory<byte> memory)
+        public Task Resolve(Socket socket, IPEndPoint ep, Memory<byte> memory)
         {
-            await Task.CompletedTask.ConfigureAwait(false);
+            return Task.CompletedTask;
         }
     }
 }

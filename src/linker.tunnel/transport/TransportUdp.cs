@@ -395,7 +395,7 @@ namespace linker.tunnel.transport
             }
         }
 
-        private async Task OnUdpConnected(object _state, Socket localUdp, IPEndPoint remoteEP)
+        private Task OnUdpConnected(object _state, Socket localUdp, IPEndPoint remoteEP)
         {
             TunnelTransportInfo state = _state as TunnelTransportInfo;
             if (state.TransportName == Name)
@@ -423,7 +423,7 @@ namespace linker.tunnel.transport
                     if (reverseDic.TryRemove(state.Remote.MachineId, out TaskCompletionSource<ITunnelConnection> tcs))
                     {
                         tcs.TrySetResult(result);
-                        return;
+                        return Task.CompletedTask;
                     }
                     OnConnected(result, state);
                 }
@@ -435,7 +435,7 @@ namespace linker.tunnel.transport
                     }
                 }
             }
-            await Task.CompletedTask.ConfigureAwait(false);
+            return Task.CompletedTask;
         }
 
         sealed class ListenAsyncToken

@@ -34,6 +34,10 @@ namespace linker.tunnel.connection
 
         public bool Connected => UdpClient != null && LastTicks.Expired(60000) == false;
         public int Delay { get; private set; }
+
+        public LastTicksManager LastTicks { get; private set; } = new LastTicksManager();
+        public bool Proxy { get; set; }
+
         public long SendBytes { get; private set; }
         public long ReceiveBytes { get; private set; }
 
@@ -44,11 +48,6 @@ namespace linker.tunnel.connection
 
         public long RecvBufferRemaining { get; }
         public long RecvBufferFree { get => maxRemaining; }
-
-        public LastTicksManager LastTicks { get; private set; } = new LastTicksManager();
-
-        [JsonIgnore]
-        public byte[] PacketBuffer { get; set; } = Helper.EmptyArray;
 
         public bool Receive { get; init; } = true;
         public bool Send { get; set; } = true;
@@ -234,6 +233,7 @@ namespace linker.tunnel.connection
 
             ArrayPool<byte>.Shared.Return(heartData);
         }
+
 
         private readonly SemaphoreSlim slm = new SemaphoreSlim(1);
         public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)

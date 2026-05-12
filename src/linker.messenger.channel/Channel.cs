@@ -131,7 +131,8 @@ namespace linker.messenger.channel
             //开始失败，说明在操作中
             if (operatingMultipleManager.StartOperation($"{machineId}@{TransactionId}") == false)
             {
-                return null;
+                connection = await tunnelTransfer.ConnectAsync(machineId, TransactionId, denyProtocols, flag: "relay", tunnelTypes: [TunnelType.Relay]).ConfigureAwait(false);
+                return connection;
             }
             _ = RelayAndP2P(machineId, denyProtocols).ContinueWith((result) =>
             {
@@ -166,9 +167,9 @@ namespace linker.messenger.channel
                     && _connection.Connected
                     && _connection.Type == TunnelType.P2P;
 
-                }, async (_connection) =>
+                }, (_connection) =>
                 {
-                    await Task.CompletedTask.ConfigureAwait(false);
+                    return Task.CompletedTask;
 
                 }, 3, 10000);
             }

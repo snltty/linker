@@ -284,11 +284,11 @@ namespace linker.tunnel
             this.quic = quic;
         }
 
-        public async Task Closed(ITunnelConnection connection, object state)
+        public Task Closed(ITunnelConnection connection, object state)
         {
             cts?.Cancel();
             quic?.Dispose();
-            await Task.CompletedTask.ConfigureAwait(false);
+            return Task.CompletedTask;
         }
 
         public async Task<bool> Receive()

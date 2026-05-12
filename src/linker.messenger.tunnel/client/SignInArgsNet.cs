@@ -13,7 +13,7 @@ namespace linker.messenger.tunnel.client
         {
             this.tunnelClientStore = tunnelClientStore;
         }
-        public async Task<string> Invoke(string host, Dictionary<string, string> args)
+        public Task<string> Invoke(string host, Dictionary<string, string> args)
         {
             args.TryAdd("tunnelNet", new SignInArgsNetInfo
             {
@@ -21,7 +21,7 @@ namespace linker.messenger.tunnel.client
                 Lon = tunnelClientStore.Network.Net.Lon,
                 City = tunnelClientStore.Network.Net.City,
             }.ToJson());
-            return await Task.FromResult(string.Empty);
+            return Task.FromResult(string.Empty);
         }
     }
     public sealed class SignInArgsNetInfo

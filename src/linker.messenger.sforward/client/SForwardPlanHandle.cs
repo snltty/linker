@@ -19,9 +19,9 @@ namespace linker.messenger.sforward.client
             sForwardClientTransfer.OnClose += (id, _flag) => { if (_flag != flag) planTransfer.Trigger(CategoryName, id.ToString(), "stop"); };
         }
 
-        public async Task HandleAsync(string handle, string key, string value)
+        public Task HandleAsync(string handle, string key, string value)
         {
-            if (int.TryParse(key, out int id) == false) return;
+            if (int.TryParse(key, out int id) == false) return Task.CompletedTask;
 
             switch (handle)
             {
@@ -35,7 +35,7 @@ namespace linker.messenger.sforward.client
                     break;
             }
 
-            await Task.CompletedTask.ConfigureAwait(false); ;
+            return Task.CompletedTask;
         }
     }
 }

@@ -208,7 +208,7 @@ namespace linker.tun.device
                     error = "NetNat need CIDR,like 10.18.18.0/24";
                     return;
                 }
-               
+
                 SetupNat();
                 IPAddress network = NetworkHelper.ToNetworkIP(address, NetworkHelper.ToPrefixValue(prefixLength));
                 RemoveOldNat($"{network}/{prefixLength}");
@@ -448,7 +448,7 @@ namespace linker.tun.device
             }
         }
 
-        public async Task<bool> CheckAvailable(bool order = false)
+        public Task<bool> CheckAvailable(bool order = false)
         {
             NetworkInterface[] interfaces = NetworkInterface.GetAllNetworkInterfaces();
 
@@ -461,9 +461,9 @@ namespace linker.tun.device
 
             if (networkInterface == null || firstIpv4 == null || firstIpv4.Address == null || firstIpv4.Address.Equals(address) == false)
             {
-                return false;
+                return Task.FromResult(false);
             }
-            return await Task.FromResult(true);
+            return Task.FromResult(true);
         }
         private void InterfaceOrder(NetworkInterface[] interfaces)
         {

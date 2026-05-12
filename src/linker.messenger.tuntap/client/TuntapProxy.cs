@@ -44,7 +44,7 @@ namespace linker.messenger.tuntap.client
         {
             if (connection.ProtocolType == TunnelProtocolType.Tcp && tuntapConfigTransfer.Info.SrcProxy && tuntapDecenter.HasSwitchFlag(connection.RemoteMachineId, TuntapSwitch.SrcProxy))
             {
-                connection.PacketBuffer = Helper.TrueArray;
+                connection.Proxy = true;
             }
 
             Add(connection);
@@ -105,7 +105,7 @@ namespace linker.messenger.tuntap.client
         {
             if (tuntapCidrConnectionManager.TryGet(packet.DstAddr, out ITunnelConnection connection) && connection.Connected)
             {
-                if (connection.PacketBuffer.Length > 0)
+                if (connection.Proxy)
                 {
                     return await connection.SendAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);
                 }
@@ -114,7 +114,7 @@ namespace linker.messenger.tuntap.client
             await ConnectTunnel(packet.DstAddr).ConfigureAwait(false);
             if (tuntapCidrConnectionManager.TryGet(packet.DstAddr, out connection) && connection.Connected)
             {
-                if (connection.PacketBuffer.Length > 0)
+                if (connection.Proxy)
                 {
                     return await connection.SendAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);
                 }
@@ -125,7 +125,7 @@ namespace linker.messenger.tuntap.client
         {
             if (tuntapCidrConnectionManager.TryGet(ip, out ITunnelConnection connection) && connection.Connected)
             {
-                return connection.PacketBuffer.Length > 0;
+                return connection.Proxy;
             }
             _ = ConnectTunnel(ip).ConfigureAwait(false);
             return false;

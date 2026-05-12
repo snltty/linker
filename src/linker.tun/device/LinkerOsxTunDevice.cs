@@ -508,22 +508,22 @@ pass inet proto icmp all
             }
         }
 
-        public async Task<bool> CheckAvailable(bool order = false)
+        public Task<bool> CheckAvailable(bool order = false)
         {
             if (string.IsNullOrEmpty(interfaceMac))
-                return await Task.FromResult(false);
+                return Task.FromResult(false);
 
             try
             {
                 string output = CommandHelper.Osx(string.Empty, new string[] { $"ifconfig {interfaceMac}" });
-                return await Task.FromResult(output.Contains("UP") && output.Contains(address.ToString()));
+                return Task.FromResult(output.Contains("UP") && output.Contains(address.ToString()));
             }
             catch (Exception)
             {
-                return await Task.FromResult(false);
+                return Task.FromResult(false);
             }
         }
     }
 
-   
+
 }

@@ -31,16 +31,16 @@ namespace linker.messenger.store.file.relay
             return result;
         }
 
-        public async Task<List<RelayServerNodeStoreInfo>> GetAll()
+        public Task<List<RelayServerNodeStoreInfo>> GetAll()
         {
-            return await Task.FromResult(nodes).ConfigureAwait(false);
+            return Task.FromResult(nodes);
         }
 
-        public async Task<RelayServerNodeStoreInfo> GetByNodeId(string nodeId)
+        public Task<RelayServerNodeStoreInfo> GetByNodeId(string nodeId)
         {
-            return await Task.FromResult(nodes.FirstOrDefault(c => c.NodeId == nodeId)).ConfigureAwait(false);
+            return Task.FromResult(nodes.FirstOrDefault(c => c.NodeId == nodeId));
         }
-        public async Task<bool> Report(RelayServerNodeReportInfo info)
+        public Task<bool> Report(RelayServerNodeReportInfo info)
         {
             int length = liteCollection.UpdateMany(p => new RelayServerNodeStoreInfo
             {
@@ -59,10 +59,10 @@ namespace linker.messenger.store.file.relay
                 MasterCount = info.MasterCount,
             }, c => c.NodeId == info.NodeId);
             LoadNodes();
-            return await Task.FromResult(length > 0).ConfigureAwait(false);
+            return Task.FromResult(length > 0);
         }
 
-        public async Task<bool> Update(RelayServerNodeStoreInfo info)
+        public Task<bool> Update(RelayServerNodeStoreInfo info)
         {
             int length = liteCollection.UpdateMany(p => new RelayServerNodeStoreInfo
             {
@@ -71,7 +71,7 @@ namespace linker.messenger.store.file.relay
                 BandwidthEach = info.BandwidthEach,
             }, c => c.NodeId == info.NodeId);
             LoadNodes();
-            return await Task.FromResult(length > 0).ConfigureAwait(false); ;
+            return  Task.FromResult(length > 0) ;
         }
 
         private void LoadNodes()

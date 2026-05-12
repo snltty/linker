@@ -476,9 +476,9 @@ namespace linker.app
         public void RemoveRoute(LinkerTunDeviceRouteItem[] ips)
         {
         }
-        public async Task<bool> CheckAvailable(bool order = false)
+        public Task<bool> CheckAvailable(bool order = false)
         {
-            return await Task.FromResult(fd > 0);
+            return Task.FromResult(fd > 0);
         }
 
 

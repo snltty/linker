@@ -19,7 +19,7 @@ namespace linker.messenger.store.file.wlist
             LoadList();
         }
 
-        public async Task<bool> Add(WhiteListInfo info)
+        public Task<bool> Add(WhiteListInfo info)
         {
             if (info.Id == 0)
             {
@@ -41,7 +41,7 @@ namespace linker.messenger.store.file.wlist
                 }, c => c.Id == info.Id);
             }
             LoadList();
-            return await Task.FromResult(true).ConfigureAwait(false);
+            return Task.FromResult(true);
         }
         public async Task<bool> Del(int id)
         {
@@ -55,9 +55,9 @@ namespace linker.messenger.store.file.wlist
 
             return await Task.FromResult(list.Where(c => c.Type == type && (userids.Contains(c.UserId) || machineIds.Contains(c.MachineId))).ToList()).ConfigureAwait(false);
         }
-        public async Task<WhiteListInfo> Get(string tradeNo)
+        public Task<WhiteListInfo> Get(string tradeNo)
         {
-            return await Task.FromResult(liteCollection.FindOne(c => c.TradeNo == tradeNo)).ConfigureAwait(false);
+            return Task.FromResult(liteCollection.FindOne(c => c.TradeNo == tradeNo));
         }
         public async Task<WhiteListPageResultInfo> Page(WhiteListPageRequestInfo info)
         {

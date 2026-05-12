@@ -65,9 +65,9 @@ namespace linker.messenger.store.file.tunnel
         }
 
 
-        public async Task<List<string>> GetTunnelTransportMachineIds()
+        public Task<List<string>> GetTunnelTransportMachineIds()
         {
-            return await Task.FromResult(runningConfig.Data.Tunnel.Transports.Keys.ToList()).ConfigureAwait(false);
+            return Task.FromResult(runningConfig.Data.Tunnel.Transports.Keys.ToList());
         }
         public async Task<List<TunnelTransportItemInfo>> GetTunnelTransports(string machineId)
         {
@@ -154,12 +154,12 @@ namespace linker.messenger.store.file.tunnel
             return newTransportNames.Any() || oldTransportNames.Any();
         }
 
-        public async Task<bool> SetRouteLevelPlus(int level)
+        public Task<bool> SetRouteLevelPlus(int level)
         {
             runningConfig.Data.Tunnel.RouteLevelPlus = level;
             runningConfig.Data.Update();
             OnChanged();
-            return await Task.FromResult(true).ConfigureAwait(false);
+            return Task.FromResult(true);
         }
         public async Task<bool> SetPortMap(int privatePort, int publicPort)
         {
@@ -169,19 +169,19 @@ namespace linker.messenger.store.file.tunnel
             OnChanged();
             return await Task.FromResult(true).ConfigureAwait(false);
         }
-        public async Task<bool> SetNetwork(TunnelPublicNetworkInfo network)
+        public Task<bool> SetNetwork(TunnelPublicNetworkInfo network)
         {
             runningConfig.Data.Update();
             OnChanged();
-            return false;
+            return Task.FromResult(false);
         }
 
-        public async Task<bool> SetInIp(IPAddress ip)
+        public Task<bool> SetInIp(IPAddress ip)
         {
             runningConfig.Data.Tunnel.InIp = ip;
             runningConfig.Data.Update();
             OnChanged();
-            return await Task.FromResult(true).ConfigureAwait(false);
+            return  Task.FromResult(true);
         }
     }
 }

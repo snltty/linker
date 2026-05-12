@@ -54,17 +54,17 @@ namespace linker.messenger.signin
 
         private int signInTimes = 0;
         [JsonIgnore]
-        public Func<Task> OnSignInSuccessBefore { get; set; } = async () => { await Task.CompletedTask.ConfigureAwait(false); };
+        public Func<Task> OnSignInSuccessBefore { get; set; } = () => { return Task.CompletedTask; };
         /// <summary>
         /// 上线事件
         /// </summary>
         [JsonIgnore]
-        public Func<int, Task> OnSignInSuccess { get; set; } = async (i) => { await Task.CompletedTask.ConfigureAwait(false); };
+        public Func<int, Task> OnSignInSuccess { get; set; } =  (i) => { return Task.CompletedTask; };
         /// <summary>
         /// 第一次上线
         /// </summary>
         [JsonIgnore]
-        public Func<Task> OnSignInSuccessFirstTime { get; set; } = async () => { await Task.CompletedTask.ConfigureAwait(false); };
+        public Func<Task> OnSignInSuccessFirstTime { get; set; } = () => { return Task.CompletedTask; };
 
         /// <summary>
         /// 发布上线事件

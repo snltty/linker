@@ -13,11 +13,11 @@
         {
             this.signInClientStore = signInClientStore;
         }
-        public async Task<string> Invoke(string host, Dictionary<string, string> args)
+        public Task<string> Invoke(string host, Dictionary<string, string> args)
         {
             args.TryAdd("userid", signInClientStore.Server.UserId);
             args.TryAdd("avatar", signInClientStore.Avatar);
-            return await Task.FromResult(string.Empty);
+            return Task.FromResult(string.Empty);
         }
     }
     public sealed class SignInArgsUserIdServer : ISignInArgsServer
@@ -31,13 +31,13 @@
         /// <param name="signInfo">新登录参数</param>
         /// <param name="cache">之前的登录信息</param>
         /// <returns></returns>
-        public async Task<string> Validate(SignInfo signInfo, SignCacheInfo cache)
+        public Task<string> Validate(SignInfo signInfo, SignCacheInfo cache)
         {
             if (signInfo.Args.TryGetValue("userid", out string userid) && string.IsNullOrWhiteSpace(userid) == false)
             {
                 signInfo.UserId = userid;
             }
-            return await Task.FromResult(string.Empty);
+            return Task.FromResult(string.Empty);
         }
     }
 }

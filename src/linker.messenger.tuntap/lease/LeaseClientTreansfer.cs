@@ -87,7 +87,7 @@ namespace linker.messenger.tuntap.lease
 
         private void LeaseExpTask()
         {
-            signInClientState.OnSignInSuccess += async (times) =>
+            signInClientState.OnSignInSuccess += (times) =>
             {
                 TimerHelper.Async(async () =>
                 {
@@ -108,7 +108,7 @@ namespace linker.messenger.tuntap.lease
                         LoggerHelper.Instance.Error(ex);
                     }
                 });
-                await Task.CompletedTask.ConfigureAwait(false);
+                return Task.CompletedTask;
             };
 
             TimerHelper.SetIntervalLong(async () =>

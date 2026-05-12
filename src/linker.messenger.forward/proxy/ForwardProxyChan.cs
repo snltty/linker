@@ -104,10 +104,10 @@ namespace linker.messenger.forward.proxy
         /// <param name="connection"></param>
         /// <param name="userToken"></param>
         /// <returns></returns>
-        public async Task Closed(ITunnelConnection connection, object userToken)
+        public Task Closed(ITunnelConnection connection, object userToken)
         {
             Version.Increment();
-            await Task.CompletedTask.ConfigureAwait(false);
+            return Task.CompletedTask;
         }
 
         /// <summary>

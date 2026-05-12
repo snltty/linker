@@ -38,11 +38,11 @@ namespace linker.messenger.store.file.sforward
             return await Task.FromResult(list).ConfigureAwait(false);
         }
 
-        public async Task<SForwardServerNodeStoreInfo> GetByNodeId(string nodeId)
+        public Task<SForwardServerNodeStoreInfo> GetByNodeId(string nodeId)
         {
-            return await Task.FromResult(list.FirstOrDefault(c => c.NodeId == nodeId)).ConfigureAwait(false);
+            return Task.FromResult(list.FirstOrDefault(c => c.NodeId == nodeId));
         }
-        public async Task<bool> Report(SForwardServerNodeReportInfo info)
+        public Task<bool> Report(SForwardServerNodeReportInfo info)
         {
             int length = liteCollection.UpdateMany(p => new SForwardServerNodeStoreInfo
             {
@@ -63,10 +63,10 @@ namespace linker.messenger.store.file.sforward
                 TunnelPorts = info.TunnelPorts,
             }, c => c.NodeId == info.NodeId);
             LoadList();
-            return await Task.FromResult(length > 0).ConfigureAwait(false);
+            return Task.FromResult(length > 0);
         }
 
-        public async Task<bool> Update(SForwardServerNodeStoreInfo info)
+        public Task<bool> Update(SForwardServerNodeStoreInfo info)
         {
             int length = liteCollection.UpdateMany(p => new SForwardServerNodeStoreInfo
             {
@@ -75,7 +75,7 @@ namespace linker.messenger.store.file.sforward
                 Host = info.Host,
             }, c => c.NodeId == info.NodeId);
             LoadList();
-            return await Task.FromResult(length > 0).ConfigureAwait(false); ;
+            return Task.FromResult(length > 0);
         }
 
         private void LoadList()

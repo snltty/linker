@@ -16,8 +16,8 @@ namespace linker.plugins.sforward.proxy
         private readonly ConcurrentDictionary<ulong, AsyncUserToken> httpConnections = new ConcurrentDictionary<ulong, AsyncUserToken>();
         private readonly ConcurrentDictionary<string, TrafficCacheInfo> httpCaches = new ConcurrentDictionary<string, TrafficCacheInfo>();
 
-        public Func<int, ulong, Task<string>> TunnelConnect { get; set; } = async (port, id) => { return await Task.FromResult(string.Empty).ConfigureAwait(false); };
-        public Func<string, int, ulong, Task<string>> WebConnect { get; set; } = async (host, port, id) => { return await Task.FromResult(string.Empty).ConfigureAwait(false); };
+        public Func<int, ulong, Task<string>> TunnelConnect { get; set; } = (port, id) => { return Task.FromResult(string.Empty); };
+        public Func<string, int, ulong, Task<string>> WebConnect { get; set; } = (host, port, id) => { return Task.FromResult(string.Empty); };
 
         #region 服务端
 

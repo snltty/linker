@@ -22,7 +22,7 @@ namespace linker.plugins.sforward.proxy
         //本地服务表，其实不必要，只是缓存一下去定时检测过期没有
         private readonly ConcurrentDictionary<ulong, UdpConnectedCache> udpConnecteds = new();
 
-        public Func<int, ulong, Task<bool>> UdpConnect { get; set; } = async (port, id) => { return await Task.FromResult(false).ConfigureAwait(false); };
+        public Func<int, ulong, Task<bool>> UdpConnect { get; set; } = (port, id) => { return Task.FromResult(false); };
 
         #region 服务端
 
