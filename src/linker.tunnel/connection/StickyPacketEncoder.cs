@@ -41,7 +41,6 @@ namespace linker.tunnel.connection
             pipe.Reader.AdvanceTo(consumed);
         }
 
-
         public void Dispose()
         {
             try

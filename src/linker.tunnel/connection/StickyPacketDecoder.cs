@@ -48,6 +48,10 @@ namespace linker.tunnel.connection
                 IsCompleted = true;
                 return Memory<byte>.Empty;
             }
+            if(result.Buffer.Length < 4)
+            {
+                return Memory<byte>.Empty;
+            }
 
             ReadOnlySequence<byte> buffer = result.Buffer;
             if (packetBuffer.Memory.Length < buffer.Length)
@@ -57,23 +61,13 @@ namespace linker.tunnel.connection
             }
 
             long offset = 0;
-
             do
             {
                 Memory<byte> packet = packetBuffer.Memory.Slice((int)offset);
 
                 //读取包长度
-                int packetLength = 0;
-                if (buffer.First.Length >= 4)
-                {
-                    packetLength = Unsafe.As<byte, int>(ref MemoryMarshal.GetReference(buffer.First.Span));
-                }
-                else
-                {
-                    //长度标识跨段了
-                    buffer.Slice(0, 4).CopyTo(packet.Span);
-                    packetLength = Unsafe.As<byte, int>(ref MemoryMarshal.GetReference(packet.Span));
-                }
+                buffer.Slice(0, 4).CopyTo(packet.Span);
+                int packetLength = Unsafe.As<byte, int>(ref MemoryMarshal.GetReference(packet.Span));
                 //数据量不够
                 if (packetLength + 4 > buffer.Length)
                 {
@@ -112,5 +106,4 @@ namespace linker.tunnel.connection
             GC.Collect();
         }
     }
-
 }
