@@ -176,7 +176,7 @@ namespace linker.messenger.signin
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Info($"push signin success before");
 
-               await clientSignInState.PushSignInSuccess().ConfigureAwait(false);
+                await clientSignInState.PushSignInSuccess().ConfigureAwait(false);
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Info($"push signin success");

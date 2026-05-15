@@ -131,6 +131,7 @@ namespace linker.messenger
             buffer.Memory.Span[0] = flag;
             try
             {
+                LoggerHelper.Instance.Debug("BeginReceiveClient");
                 if (socket == null || socket.RemoteEndPoint == null)
                 {
                     LoggerHelper.Instance.Error("socket or remote endpoint is null");
@@ -139,10 +140,12 @@ namespace linker.messenger
                 socket.KeepAlive();
                 if (sendFlag)
                 {
+                    LoggerHelper.Instance.Debug($"BeginReceiveClient send flag: {buffer.Memory.Slice(0, 1).Span[0]}");
                     await socket.SendAsync(buffer.Memory.Slice(0, 1)).ConfigureAwait(false);
                 }
                 if (data.Length > 0)
                 {
+                    LoggerHelper.Instance.Debug($"BeginReceiveClient send data {data.Length} bytes");
                     await socket.SendAsync(data).ConfigureAwait(false);
                 }
 
@@ -151,6 +154,7 @@ namespace linker.messenger
                 SslStream sslStream = new SslStream(networkStream, true, ValidateServerCertificate, null);
                 try
                 {
+                    LoggerHelper.Instance.Debug($"BeginReceiveClient AuthenticateAsClientAsync");
                     await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
                     {
                         EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12,
@@ -164,8 +168,8 @@ namespace linker.messenger
                 }
                 catch (Exception ex)
                 {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        LoggerHelper.Instance.Error(ex);
+                    //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Error(ex);
                     socket.SafeClose();
                     sslStream.Dispose();
                     networkStream.Dispose();
@@ -175,8 +179,8 @@ namespace linker.messenger
             }
             catch (Exception ex)
             {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Error(ex);
+                // if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Error(ex);
 
                 socket.SafeClose();
             }
