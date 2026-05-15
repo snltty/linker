@@ -271,6 +271,22 @@ namespace linker.tunnel.connection
             return await SendAsync(buffer.AsMemory(offset, length)).ConfigureAwait(false);
         }
 
+        private async void FlushTask()
+        {
+            using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(2));
+
+            try
+            {
+                while (cts.IsCancellationRequested == false && await timer.WaitForNextTickAsync(cts.Token))
+                {
+                    //encoder.TryFlushExpiredRepairs(buffer, out var bytesWritten, out var packetCount);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }
+
         public void Dispose()
         {
             if (callback == null) return;
