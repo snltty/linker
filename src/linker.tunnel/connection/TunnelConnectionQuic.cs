@@ -121,10 +121,14 @@ namespace linker.tunnel.connection
                 while (cts.IsCancellationRequested == false)
                 {
                     Memory<byte> memory = await packetDecoder.ReadAsync(cts.Token).ConfigureAwait(false);
-                    if (packetDecoder.IsCompleted && memory.IsEmpty)
+                    if ( memory.IsEmpty)
                     {
-                        cts.Cancel();
-                        break;
+                        if (packetDecoder.IsCompleted)
+                        {
+                            cts.Cancel();
+                            break;
+                        }
+                        continue;
                     }
                     do
                     {
