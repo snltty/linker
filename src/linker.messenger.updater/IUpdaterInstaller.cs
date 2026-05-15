@@ -49,6 +49,10 @@ namespace linker.messenger.updater
                 using HttpClient httpClient = new HttpClient(handler);
                 string str = await httpClient.GetStringAsync($"{updaterCommonTransfer.UpdateUrl}/version.txt",cts.Token).ConfigureAwait(false);
                 string[] arr = str.Split(Environment.NewLine).Select(c => c.Trim('\r').Trim('\n')).ToArray();
+                if(arr.Length == 1)
+                {
+                    arr = str.Split('\n').Select(c => c.Trim('\r').Trim('\n')).ToArray();
+                }
                 string version = arr[0];
                 string datetime = DateTime.Parse(arr[1]).ToString("yyyy-MM-dd HH:mm:ss");
                 string[] msg = arr.Skip(2).ToArray();
