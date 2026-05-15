@@ -133,6 +133,7 @@ namespace linker.messenger
             {
                 if (socket == null || socket.RemoteEndPoint == null)
                 {
+                    LoggerHelper.Instance.Error("socket or remote endpoint is null");
                     return null;
                 }
                 socket.KeepAlive();
