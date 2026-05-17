@@ -67,6 +67,15 @@
 - **子网划分:** 对虚拟网络划分下级子网，类似vlsm，但可选的主网与子网选项，通信隔离、单向通信，双向通信。
 - **向前纠错:** 多倍或冗余发包，优化丢包链路
 
+### 5、向前纠错
+
+以下是 UDP隧道/UDP隧道+FEC 的效果对比，其中一端使用iptables模拟丢包，双向都是10%
+
+```
+iptables -A INPUT -p udp --dport 18183 -m statistic --mode random --probability 0.1 -j DROP
+iptables -A OUTPUT -p udp --sport 18183 -m statistic --mode random --probability 0.1 -j DROP
+```
+
 <p><img src="./readme/fec.jpg"></p> 
 
 
