@@ -89,7 +89,7 @@ namespace linker.tunnel.connection
             this.sendFunc = SendAsyncDefault;
             this.recvFunc = RecvAsyncDefault;
 
-            InitializeFec();
+            //InitializeFec();
 
             if (Receive)
             {
@@ -300,7 +300,6 @@ namespace linker.tunnel.connection
         private byte[] fecEncodeBuffer;
         private byte[] fecDecodeBuffer;
         private byte[] fecFlushBuffer;
-        private uint timerId = 0;
         private void InitializeFec()
         {
             fecEncoder = new LinkerFecStreamingEncoder(new LinkerFecOptions
@@ -368,14 +367,7 @@ namespace linker.tunnel.connection
         }
         private void FlushTask()
         {
-            if (OperatingSystem.IsWindows() && fecEncoder.RepairTimeout.TotalMilliseconds < 15)
-                timerId = timeSetEvent((uint)fecEncoder.RepairTimeout.TotalMilliseconds, 0, new TimerProc(FlushCallbackWindows), IntPtr.Zero, 1);
-            else
-                _ = FlushCallbackOther();
-        }
-        private void FlushCallbackWindows(uint uID, uint uMsg, IntPtr dwUser, IntPtr dw1, IntPtr dw2)
-        {
-            TryFlushRepairs();
+            _ = FlushCallbackOther();
         }
         private async Task FlushCallbackOther()
         {
@@ -414,25 +406,12 @@ namespace linker.tunnel.connection
             }
         }
 
-        [DllImport("winmm.dll")]
-        private static extern int timeBeginPeriod(int period);
-        [DllImport("winmm.dll")]
-        private static extern uint timeSetEvent(uint uDelay, uint uResolution, TimerProc lpTimeProc, IntPtr dwUser, uint fuEvent);
-        [DllImport("winmm.dll")]
-        private static extern uint timeKillEvent(uint uTimerID);
-        private delegate void TimerProc(uint uID, uint uMsg, IntPtr dwUser, IntPtr dw1, IntPtr dw2);
-
         public void Dispose()
         {
             if (callback == null) return;
 
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Error($"tunnel connection {this.GetHashCode()} writer offline {ToString()}");
-
-            if (timerId > 0)
-            {
-                timeKillEvent(timerId);
-            }
 
             SendPingPong(finBytes).ContinueWith((result) =>
             {
