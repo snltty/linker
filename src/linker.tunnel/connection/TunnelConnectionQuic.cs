@@ -38,7 +38,6 @@ namespace linker.tunnel.connection
         public bool Connected => Stream != null && Stream.CanWrite && LastTicks.HasValue();
         public int Delay { get; private set; }
         public LastTicksManager LastTicks { get; private set; } = new LastTicksManager();
-        public bool Proxy { get; set; }
 
         private const long maxRemaining = 128 * 1024;
         private readonly StickyPacketEncoder packetEncoder = new StickyPacketEncoder(maxRemaining);
@@ -60,7 +59,6 @@ namespace linker.tunnel.connection
         public Socket QuicUdp { get; init; }
         [JsonIgnore]
         public Socket RemoteUdp { get; init; }
-
 
         public ITunnelConnection OriginConnection { get; init; }
 

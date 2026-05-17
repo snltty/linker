@@ -1,26 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
+		<OutputType>Library</OutputType>
 		<TargetFrameworks>net8.0</TargetFrameworks>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>disable</Nullable>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<PublishAot>false</PublishAot>
-		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
-		<!--<EnablePreviewFeatures>True</EnablePreviewFeatures>-->
-		<Title>linker tunnel</Title>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<Configurations>Debug;Release</Configurations>
+		<Title>linker fec</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>linker tunnel</Description>
+		<Description>linker fec</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
-		<PackageReleaseNotes>linker tunnel</PackageReleaseNotes>
 		<Version>1.9.99</Version>
 		<AssemblyVersion>1.9.99</AssemblyVersion>
 		<FileVersion>1.9.99</FileVersion>
 	</PropertyGroup>
-
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 		<DebugType>full</DebugType>
 		<DebugSymbols>true</DebugSymbols>
@@ -36,14 +32,5 @@
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0|AnyCPU'">
 		<DebugType>embedded</DebugType>
 	</PropertyGroup>
-	<ItemGroup>
-	  <PackageReference Include="System.IO.Pipelines" Version="9.0.3" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<ProjectReference Include="..\linker.fec\linker.fec.csproj" />
-		<ProjectReference Include="..\linker.libs\linker.libs.csproj" />
-		<ProjectReference Include="..\linker.upnp\linker.upnp.csproj" />
-	</ItemGroup>
 
 </Project>

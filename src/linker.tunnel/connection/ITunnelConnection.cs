@@ -174,11 +174,6 @@ namespace linker.tunnel.connection
         public LastTicksManager LastTicks { get; }
 
         /// <summary>
-        /// 代理
-        /// </summary>
-        public bool Proxy { get; set; }
-
-        /// <summary>
         /// 发送数据
         /// </summary>
         /// <param name="data"></param>

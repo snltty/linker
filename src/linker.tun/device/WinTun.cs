@@ -97,7 +97,11 @@ namespace linker.tun.device
         string name);
 
         [DllImport("wintun.dll", SetLastError = true)]
-        internal static extern bool WintunDeleteDriver();
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static extern bool WintunDeleteAdapter(
+       IntPtr adapter,
+       [MarshalAs(UnmanagedType.Bool)] bool forceCloseSessions,
+       [MarshalAs(UnmanagedType.Bool)] out bool rebootRequired);
 
         [DllImport("wintun.dll", SetLastError = true)]
         internal static extern void WintunReleaseReceivePacket(nint session, nint packet);

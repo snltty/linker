@@ -37,7 +37,6 @@ namespace linker.tunnel.connection
         public int Delay { get; private set; }
 
         public LastTicksManager LastTicks { get; private set; } = new LastTicksManager();
-        public bool Proxy { get; set; }
 
         private const long maxRemaining = 128 * 1024;
         private readonly StickyPacketEncoder packetEncoder = new StickyPacketEncoder(maxRemaining);
@@ -50,12 +49,10 @@ namespace linker.tunnel.connection
         public long RecvBufferFree => packetDecoder.RecvBufferFree;
 
 
-
         [JsonIgnore]
         public SslStream Stream { get; init; }
         [JsonIgnore]
         public Socket Socket { get; init; }
-
 
         private ITunnelConnectionReceiveCallback callback;
         private CancellationTokenSource cts;

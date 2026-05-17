@@ -42,11 +42,6 @@ namespace linker.messenger.tuntap.client
 
         protected override void Connected(ITunnelConnection connection)
         {
-            if (connection.ProtocolType == TunnelProtocolType.Tcp && tuntapConfigTransfer.Info.SrcProxy && tuntapDecenter.HasSwitchFlag(connection.RemoteMachineId, TuntapSwitch.SrcProxy))
-            {
-                connection.Proxy = true;
-            }
-
             Add(connection);
             connection.BeginReceive(this, null);
             //有哪些目标IP用了相同目标隧道，更新一下
@@ -105,19 +100,12 @@ namespace linker.messenger.tuntap.client
         {
             if (tuntapCidrConnectionManager.TryGet(packet.DstAddr, out ITunnelConnection connection) && connection.Connected)
             {
-                if (connection.Proxy)
-                {
-                    return await connection.SendAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);
-                }
-                return false;
+                return  await connection.SendAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);
             }
             await ConnectTunnel(packet.DstAddr).ConfigureAwait(false);
             if (tuntapCidrConnectionManager.TryGet(packet.DstAddr, out connection) && connection.Connected)
             {
-                if (connection.Proxy)
-                {
-                    return await connection.SendAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);
-                }
+                return await connection.SendAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);
             }
             return false;
         }
@@ -125,7 +113,7 @@ namespace linker.messenger.tuntap.client
         {
             if (tuntapCidrConnectionManager.TryGet(ip, out ITunnelConnection connection) && connection.Connected)
             {
-                return connection.Proxy;
+                return connection.ProtocolType == TunnelProtocolType.Tcp && tuntapConfigTransfer.Info.SrcProxy && tuntapDecenter.HasSwitchFlag(connection.RemoteMachineId, TuntapSwitch.SrcProxy);
             }
             _ = ConnectTunnel(ip).ConfigureAwait(false);
             return false;
