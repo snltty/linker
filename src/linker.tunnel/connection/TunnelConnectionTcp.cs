@@ -7,7 +7,6 @@ using System.Net.Security;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json.Serialization;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace linker.tunnel.connection
 {
