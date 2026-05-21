@@ -168,7 +168,7 @@ namespace linker.messenger.forward.proxy
                 socket.KeepAlive();
                 await socket.ConnectAsync(ep,cts.Token).ConfigureAwait(false);
 
-                if (length > 0) await socket.SendAsync(buffer.AsMemory(0, length), SocketFlags.None).ConfigureAwait(false);
+                if (length > 0) await socket.SendAllAsync(buffer.AsMemory(0, length)).ConfigureAwait(false);
 
                 IPEndPoint local = socket.LocalEndPoint as IPEndPoint;
                 AsyncUserToken token = new AsyncUserToken
@@ -329,7 +329,7 @@ namespace linker.messenger.forward.proxy
                 ReadOnlySequence<byte> buffer = result.Buffer;
                 foreach (ReadOnlyMemory<byte> memoryBlock in result.Buffer)
                 {
-                    await token.Socket.SendAsync(memoryBlock, SocketFlags.None).ConfigureAwait(false);
+                    await token.Socket.SendAllAsync(memoryBlock).ConfigureAwait(false);
                     Add(token.Connection.RemoteMachineId, token.IPEndPoint, 0, memoryBlock.Length);
                     token.AddReceived(-memoryBlock.Length);
                     if (token.NeedResume) await SendWindow(token, 1).ConfigureAwait(false);

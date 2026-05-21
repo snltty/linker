@@ -11,13 +11,12 @@ namespace linker.fec;
 /// </summary>
 public sealed class LinkerFecEncodedSymbol
 {
-    public const int HeaderSize = 13;
+    public const int HeaderSize = 8;
 
-    internal const uint MaxBlockLength = 0x00FF_FFFF;
     internal const int RepairLengthSymbolSize = sizeof(ushort);
 
     private const byte Magic = 0x52; // 'R'
-    private const byte Version = 8;
+    private const byte Version = 10;
     private const byte VersionShift = 4;
     private const byte FlagsMask = 0x0F;
     private const byte FinalBlockFlag = 1 << 0;
@@ -26,10 +25,8 @@ public sealed class LinkerFecEncodedSymbol
     private const int MagicOffset = 0;
     private const int VersionFlagsOffset = 1;
     private const int BlockIdOffset = 2;
-    private const int BlockLengthOffset = 6;
-    private const int SourceSymbolCountOffset = 9;
-    private const int SymbolIdOffset = 10;
-    private const int PayloadLengthOffset = 11;
+    private const int SourceSymbolCountOffset = 6;
+    private const int SymbolIdOffset = 7;
 
     public LinkerFecEncodedSymbol(
         ulong blockId,
@@ -133,12 +130,6 @@ public sealed class LinkerFecEncodedSymbol
     public byte[] ToArray()
     {
         var frame = new byte[HeaderSize + (IsRepair ? RepairLengthSymbolSize : 0) + Payload.Length];
-        if (SourceSymbolCount == 0 && !IsRepair)
-        {
-            WriteStreamingSourceFrame(frame, BlockId, SymbolId, Payload.Span);
-            return frame;
-        }
-
         WriteFrame(
             frame,
             BlockId,
@@ -265,42 +256,8 @@ public sealed class LinkerFecEncodedSymbol
             (isFinalBlock ? FinalBlockFlag : 0) |
             (isRepair ? RepairFlag : 0));
         WriteUInt32LittleEndian(ref header, BlockIdOffset, unchecked((uint)blockId));
-        WriteUInt24LittleEndian(ref header, BlockLengthOffset, blockLength);
         Unsafe.Add(ref header, SourceSymbolCountOffset) = (byte)sourceSymbolCount;
         Unsafe.Add(ref header, SymbolIdOffset) = (byte)symbolId;
-        WriteUInt16LittleEndian(ref header, PayloadLengthOffset, checked((ushort)payloadLength));
-    }
-
-    internal static void WriteStreamingSourceFrame(
-        Span<byte> frame,
-        ulong blockId,
-        int symbolId,
-        ReadOnlySpan<byte> payload)
-    {
-        if (symbolId is < 0 or > byte.MaxValue)
-        {
-            throw new ArgumentOutOfRangeException(nameof(symbolId), symbolId, "Symbol id must fit in one byte.");
-        }
-
-        if (payload.Length > ushort.MaxValue)
-        {
-            throw new ArgumentOutOfRangeException(nameof(payload), payload.Length, "Payload length exceeds the compact frame limit.");
-        }
-
-        if (frame.Length < HeaderSize + payload.Length)
-        {
-            throw new ArgumentException("Destination frame buffer is too small.", nameof(frame));
-        }
-
-        ref var header = ref MemoryMarshal.GetReference(frame);
-        Unsafe.Add(ref header, MagicOffset) = Magic;
-        Unsafe.Add(ref header, VersionFlagsOffset) = (byte)(Version << VersionShift);
-        WriteUInt32LittleEndian(ref header, BlockIdOffset, unchecked((uint)blockId));
-        WriteUInt24LittleEndian(ref header, BlockLengthOffset, 0);
-        Unsafe.Add(ref header, SourceSymbolCountOffset) = 0;
-        Unsafe.Add(ref header, SymbolIdOffset) = checked((byte)symbolId);
-        WriteUInt16LittleEndian(ref header, PayloadLengthOffset, checked((ushort)payload.Length));
-        payload.CopyTo(frame.Slice(HeaderSize, payload.Length));
     }
 
     public static LinkerFecEncodedSymbol Parse(ReadOnlySpan<byte> frame)
@@ -340,12 +297,11 @@ public sealed class LinkerFecEncodedSymbol
 
         Span<byte> header = stackalloc byte[HeaderSize];
         frame.Slice(0, HeaderSize).CopyTo(header);
-        var payloadLength = ReadPayloadLength(header);
         var repairMetadataLength = GetRepairMetadataLength(header);
         ushort lengthSymbol;
         if (repairMetadataLength == 0)
         {
-            lengthSymbol = checked((ushort)payloadLength);
+            lengthSymbol = checked((ushort)(frame.Length - HeaderSize));
         }
         else
         {
@@ -354,7 +310,8 @@ public sealed class LinkerFecEncodedSymbol
             lengthSymbol = ReadUInt16LittleEndian(lengthSymbolBytes, 0);
         }
 
-        var payload = frame.Slice(HeaderSize + repairMetadataLength, payloadLength).ToArray();
+        var payloadOffset = HeaderSize + repairMetadataLength;
+        var payload = frame.Slice(payloadOffset, frame.Length - payloadOffset).ToArray();
         return CreateParsedSymbol(header, options, payload, lengthSymbol);
     }
 
@@ -374,14 +331,14 @@ public sealed class LinkerFecEncodedSymbol
             return false;
         }
 
-        var payloadLength = ReadPayloadLength(header);
-        frameLength = checked(HeaderSize + GetRepairMetadataLength(header) + payloadLength);
-        if (buffer.Length < frameLength)
+        var minimumFrameLength = checked(HeaderSize + GetRepairMetadataLength(header));
+        if (buffer.Length < minimumFrameLength)
         {
             error = "Incomplete FEC frame.";
             return false;
         }
 
+        frameLength = checked((int)buffer.Length);
         return true;
     }
 
@@ -399,14 +356,14 @@ public sealed class LinkerFecEncodedSymbol
             return false;
         }
 
-        var payloadLength = ReadPayloadLength(frame);
-        frameLength = checked(HeaderSize + GetRepairMetadataLength(frame) + payloadLength);
-        if (frame.Length < frameLength)
+        var minimumFrameLength = checked(HeaderSize + GetRepairMetadataLength(frame));
+        if (frame.Length < minimumFrameLength)
         {
             error = "Incomplete FEC frame.";
             return false;
         }
 
+        frameLength = frame.Length;
         return true;
     }
 
@@ -430,11 +387,6 @@ public sealed class LinkerFecEncodedSymbol
         return ReadUInt32LittleEndian(buffer, BlockIdOffset);
     }
 
-    internal static int ReadBlockLength(ReadOnlySpan<byte> buffer)
-    {
-        return checked((int)ReadUInt24LittleEndian(buffer, BlockLengthOffset));
-    }
-
     internal static int ReadSymbolId(ReadOnlySpan<byte> buffer)
     {
         return buffer[SymbolIdOffset];
@@ -447,9 +399,13 @@ public sealed class LinkerFecEncodedSymbol
 
     internal static int ReadPayloadLength(ReadOnlySpan<byte> frame)
     {
-        return frame.Length >= HeaderSize
-            ? ReadUInt16LittleEndian(frame, PayloadLengthOffset)
-            : 0;
+        if (frame.Length < HeaderSize)
+        {
+            return 0;
+        }
+
+        var payloadLength = frame.Length - GetPayloadOffset(frame);
+        return payloadLength > 0 ? payloadLength : 0;
     }
 
     internal static ushort ReadLengthSymbol(ReadOnlySpan<byte> frame)
@@ -471,7 +427,7 @@ public sealed class LinkerFecEncodedSymbol
     {
         if (GetRepairMetadataLength(header) == 0)
         {
-            return checked((ushort)ReadPayloadLength(header));
+            return checked((ushort)ReadPayloadLength(frame));
         }
 
         return ReadUInt16LittleEndian(frame, HeaderSize);
@@ -490,14 +446,6 @@ public sealed class LinkerFecEncodedSymbol
         return BitConverter.IsLittleEndian ? value : BinaryPrimitives.ReverseEndianness(value);
     }
 
-    internal static uint ReadUInt24LittleEndian(ReadOnlySpan<byte> buffer, int offset)
-    {
-        ref var reference = ref MemoryMarshal.GetReference(buffer);
-        return Unsafe.Add(ref reference, offset) |
-            ((uint)Unsafe.Add(ref reference, offset + 1) << 8) |
-            ((uint)Unsafe.Add(ref reference, offset + 2) << 16);
-    }
-
     internal static uint ReadUInt32LittleEndian(ReadOnlySpan<byte> buffer, int offset)
     {
         var value = Unsafe.ReadUnaligned<uint>(ref Unsafe.Add(ref MemoryMarshal.GetReference(buffer), offset));
@@ -508,14 +456,6 @@ public sealed class LinkerFecEncodedSymbol
     {
         var value = Unsafe.ReadUnaligned<ulong>(ref Unsafe.Add(ref MemoryMarshal.GetReference(buffer), offset));
         return BitConverter.IsLittleEndian ? value : BinaryPrimitives.ReverseEndianness(value);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void WriteUInt24LittleEndian(ref byte reference, int offset, uint value)
-    {
-        Unsafe.Add(ref reference, offset) = (byte)value;
-        Unsafe.Add(ref reference, offset + 1) = (byte)(value >> 8);
-        Unsafe.Add(ref reference, offset + 2) = (byte)(value >> 16);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -580,12 +520,12 @@ public sealed class LinkerFecEncodedSymbol
         try
         {
             var header = frame[..HeaderSize];
-            var payloadLength = ReadPayloadLength(header);
+            var payloadLength = ReadPayloadLength(frame);
             var lengthSymbol = ReadLengthSymbol(header, frame);
             symbol = CreateParsedSymbol(
                 header,
                 options,
-                frame.Slice(GetPayloadOffset(header), payloadLength).ToArray(),
+                frame.Slice(GetPayloadOffset(frame), payloadLength).ToArray(),
                 lengthSymbol);
         }
         catch (Exception ex) when (ex is ArgumentException or OverflowException or FormatException)
@@ -604,46 +544,8 @@ public sealed class LinkerFecEncodedSymbol
         ReadOnlyMemory<byte> payload,
         ushort lengthSymbol)
     {
-        var blockLength = ReadBlockLength(header);
         var symbolSize = options.SymbolSize;
         var sourceSymbolCount = ReadSourceSymbolCount(header);
-        var isRepair = (ReadFlags(header) & RepairFlag) != 0;
-        if (sourceSymbolCount == 0)
-        {
-            if (isRepair)
-            {
-                throw new FormatException("Streaming source frame cannot be marked as repair.");
-            }
-
-            if ((ReadFlags(header) & FinalBlockFlag) != 0)
-            {
-                throw new FormatException("Streaming source frame cannot mark a final block.");
-            }
-
-            var streamingSymbolId = ReadSymbolId(header);
-            if (streamingSymbolId >= options.SourceSymbolsPerBlock)
-            {
-                throw new FormatException("Streaming source symbol id exceeds configured source symbol limit.");
-            }
-
-            if (payload.Length > options.SymbolSize)
-            {
-                throw new FormatException("Streaming source payload exceeds the configured symbol size.");
-            }
-
-            return new LinkerFecEncodedSymbol(
-                ReadBlockId(header),
-                blockLength,
-                symbolSize,
-                sourceSymbolCount,
-                repairSymbolCount: 0,
-                streamingSymbolId,
-                isFinalBlock: false,
-                isRepair: false,
-                payload,
-                lengthSymbol);
-        }
-
         if (sourceSymbolCount > options.SourceSymbolsPerBlock)
         {
             throw new FormatException($"Source symbol count {sourceSymbolCount} exceeds configured limit.");
@@ -653,7 +555,7 @@ public sealed class LinkerFecEncodedSymbol
         var symbolId = ReadSymbolId(header);
         var symbol = new LinkerFecEncodedSymbol(
             ReadBlockId(header),
-            blockLength,
+            GetDecodedRecordCapacity(sourceSymbolCount, symbolSize),
             symbolSize,
             sourceSymbolCount,
             repairSymbolCount,
@@ -679,11 +581,6 @@ public sealed class LinkerFecEncodedSymbol
         if (blockLength < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(blockLength), blockLength, "Block length cannot be negative.");
-        }
-
-        if (blockLength > MaxBlockLength)
-        {
-            throw new ArgumentOutOfRangeException(nameof(blockLength), blockLength, "Block length exceeds the compact frame limit.");
         }
 
         if (symbolSize is < LinkerFecOptions.MinSymbolSize or > LinkerFecOptions.MaxSymbolSize)
@@ -727,6 +624,11 @@ public sealed class LinkerFecEncodedSymbol
         }
     }
 
+    internal static int GetDecodedRecordCapacity(int sourceSymbolCount, int symbolSize)
+    {
+        return checked(sourceSymbolCount * (symbolSize + sizeof(int)));
+    }
+
     private static bool IsValidRepairPayloadLength(
         int blockLength,
         int symbolSize,
@@ -742,11 +644,6 @@ public sealed class LinkerFecEncodedSymbol
         uint repairSymbolCount,
         uint symbolId)
     {
-        if (blockLength > MaxBlockLength)
-        {
-            throw new ArgumentOutOfRangeException(nameof(blockLength), blockLength, "Block length exceeds the compact frame limit.");
-        }
-
         if (sourceSymbolCount is 0 or > byte.MaxValue)
         {
             throw new ArgumentOutOfRangeException(nameof(sourceSymbolCount), sourceSymbolCount, "Invalid source symbol count.");

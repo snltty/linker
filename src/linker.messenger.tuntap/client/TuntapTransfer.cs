@@ -168,6 +168,11 @@ namespace linker.messenger.tuntap.client
             linkerTunDeviceAdapter.RemoveNat();
         }
 
+        public void SetMssfix(int mss)
+        {
+            linkerTunDeviceAdapter.SetMssFix(mss);
+        }
+
         /// <summary>
         /// 添加转发
         /// </summary>
@@ -212,7 +217,7 @@ namespace linker.messenger.tuntap.client
         }
         public void RemoveDstMap()
         {
-            linkerTunDeviceAdapter.RemoveNat();
+            linkerTunDeviceAdapter.RemoveMap();
         }
 
         /// <summary>

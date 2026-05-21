@@ -83,8 +83,8 @@ internal struct ReceivedSymbol : IDisposable
 
         Span<byte> header = stackalloc byte[LinkerFecEncodedSymbol.HeaderSize];
         frame.Slice(0, LinkerFecEncodedSymbol.HeaderSize).CopyTo(header);
-        var payloadLength = LinkerFecEncodedSymbol.ReadPayloadLength(header);
         var payloadOffset = LinkerFecEncodedSymbol.GetPayloadOffset(header);
+        var payloadLength = checked((int)frame.Length) - payloadOffset;
         ushort lengthSymbol;
         if (payloadOffset == LinkerFecEncodedSymbol.HeaderSize)
         {
@@ -263,13 +263,13 @@ internal struct ReceivedSymbol : IDisposable
         ushort lengthSymbol,
         byte[]? ownedBuffer)
     {
-        var blockLength = LinkerFecEncodedSymbol.ReadBlockLength(header);
         var sourceSymbolCount = LinkerFecEncodedSymbol.ReadSourceSymbolCount(header);
         if (sourceSymbolCount > options.SourceSymbolsPerBlock)
         {
             throw new FormatException($"Source symbol count {sourceSymbolCount} exceeds configured limit.");
         }
 
+        var blockLength = LinkerFecEncodedSymbol.GetDecodedRecordCapacity(sourceSymbolCount, options.SymbolSize);
         var symbol = new ReceivedSymbol(
             blockId,
             blockLength,

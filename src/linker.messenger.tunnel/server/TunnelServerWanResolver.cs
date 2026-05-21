@@ -58,7 +58,7 @@ namespace linker.messenger.tunnel.server
             {
                 memory = BuildSendData(sendData, socket.RemoteEndPoint as IPEndPoint);
                 Add(0, memory.Length);
-                await socket.SendAsync(memory, SocketFlags.None).ConfigureAwait(false);
+                await socket.SendAllAsync(memory).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

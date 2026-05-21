@@ -221,7 +221,7 @@ namespace linker.libs.extends
         #region 32
         public static int ToInt32(this byte[] bytes, int startindex = 0)
         {
-            return Unsafe.As<byte, ushort>(ref bytes[startindex]);
+            return Unsafe.As<byte, int>(ref bytes[startindex]);
         }
         public static int ToInt32(this ReadOnlySpan<byte> span)
         {

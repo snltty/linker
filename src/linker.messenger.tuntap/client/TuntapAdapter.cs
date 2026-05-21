@@ -83,6 +83,7 @@ namespace linker.messenger.tuntap.client
         {
             SetNat();
             SetMaps();
+            SetMssfix();
             AddForward();
 
             FireWallHelper.Write(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName, tuntapConfigTransfer.Info.IP, tuntapConfigTransfer.PrefixLength, tuntapConfigTransfer.Info.Lans.Where(c => c.IP != null && c.IP.Equals(IPAddress.Any) == false).Select(c => (c.IP, c.MapIP, c.PrefixLength)).ToArray());
@@ -221,7 +222,6 @@ namespace linker.messenger.tuntap.client
                     return;
                 }
             }
-            RemoveNat();
         }
         /// <summary>
         /// 移除NAT
@@ -229,6 +229,12 @@ namespace linker.messenger.tuntap.client
         private void RemoveNat()
         {
             tuntapTransfer.RemoveNat();
+        }
+
+
+        private void SetMssfix()
+        {
+            tuntapTransfer.SetMssfix(tuntapConfigTransfer.Info.MssFix);
         }
 
         // <summary>

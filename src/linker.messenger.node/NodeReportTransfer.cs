@@ -521,7 +521,7 @@ namespace linker.messenger.node
                             {
                                 await socket.ConnectAsync(remote, cts.Token).ConfigureAwait(false);
                                 LoggerHelper.Instance.Debug($"{Name} sign in to node {node.Name} {remote} connect sucess");
-                                var connection = await messengerResolver.BeginReceiveClient(socket, true, (byte)ResolverType.NodeConnection, Helper.EmptyArray).ConfigureAwait(false);
+                                var connection = await messengerResolver.BeginReceiveClient(socket, (byte)ResolverType.NodeConnection).ConfigureAwait(false);
 
                                 if (connection == null || connection.Connected == false)
                                 {

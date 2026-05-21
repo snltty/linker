@@ -226,7 +226,7 @@ namespace linker.messenger.signin
         /// <returns></returns>
         private async Task<bool> SignIn2Server(string host, Socket socket)
         {
-            IConnection connection = await messengerResolver.BeginReceiveClient(socket, true, (byte)ResolverType.Messenger, Helper.EmptyArray).ConfigureAwait(false);
+            IConnection connection = await messengerResolver.BeginReceiveClient(socket, (byte)ResolverType.Messenger).ConfigureAwait(false);
 
             Dictionary<string, string> args = [];
             string argResult = await signInArgsTransfer.Invoke(host, args).ConfigureAwait(false);

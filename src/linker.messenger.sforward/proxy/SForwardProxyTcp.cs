@@ -398,7 +398,7 @@ namespace linker.plugins.sforward.proxy
                         }
                     }
                     Add(key, groupid, bytesRead, bytesRead);
-                    await target.SendAsync(buffer.Slice(0, bytesRead), SocketFlags.None).ConfigureAwait(false);
+                    await target.SendAllAsync(buffer.Slice(0, bytesRead)).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)

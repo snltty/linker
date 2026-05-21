@@ -138,9 +138,9 @@ namespace linker.tun
                     return false;
                 }
                 linkerTunDevice.SetMtu(info.Mtu);
-                linkerTunDevice.SetMssFix(info.MssFix);
-                Read();
                 lanSrcProxy.Setup(address, prefixLength, this, ref natError);
+                Read();
+
                 return true;
             }
             catch (Exception ex)
@@ -226,6 +226,19 @@ namespace linker.tun
             lanDstProxy.Shutdown();
         }
 
+        public void SetMssFix(int mss)
+        {
+            if (linkerTunDevice == null)
+            {
+                return;
+            }
+            if (linkerTunDevice.Running)
+            {
+                linkerTunDevice.SetMssFix(mss);
+            }
+
+        }
+
         /// <summary>
         /// 获取端口转发
         /// </summary>
@@ -297,46 +310,31 @@ namespace linker.tun
             writeHooks = [.. hooks.OrderBy(c => c.WriteLevel)];
         }
 
+
+        private readonly SemaphoreSlim slm = new SemaphoreSlim(1);
         private void Read()
         {
             TimerHelper.Async(async () =>
             {
                 cancellationTokenSource?.Cancel();
+                await slm.WaitAsync().ConfigureAwait(false);
                 cancellationTokenSource = new CancellationTokenSource();
                 LinkerTunDevicPacket packet = new LinkerTunDevicPacket();
                 while (cancellationTokenSource.IsCancellationRequested == false)
                 {
-                    int length = 0;
                     try
                     {
-                        byte[] buffer = linkerTunDevice.Read(out length);
+                        byte[] buffer = linkerTunDevice.Read(out int length);
                         if (length == 0 || length <= 4)
                         {
-                            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                                LoggerHelper.Instance.Warning($"tuntap read buffer {length}");
                             await Task.Delay(1000);
                             continue;
                         }
 
                         packet.Unpacket(buffer, 0, length);
-                        if (packet.DstIp.Length == 0 || packet.Version != 4)
-                        {
-                            continue;
-                        }
+                        if (packet.DstIp.Length == 0 || packet.Version != 4) continue;
 
-                        LinkerTunPacketHookFlags flags = LinkerTunPacketHookFlags.Next | LinkerTunPacketHookFlags.Send;
-                        for (int i = 0; i < readHooks.Length; i++)
-                        {
-                            (LinkerTunPacketHookFlags addFlags, LinkerTunPacketHookFlags delFlags) = readHooks[i].Read(packet.RawPacket);
-                            flags |= addFlags;
-                            flags &= ~delFlags;
-                            if ((flags & LinkerTunPacketHookFlags.Next) != LinkerTunPacketHookFlags.Next)
-                            {
-                                break;
-                            }
-                        }
-                        ChecksumHelper.ChecksumWithZero(packet.RawPacket);
-
+                        LinkerTunPacketHookFlags flags = ExecReadHook(packet.RawPacket);
                         if ((flags & LinkerTunPacketHookFlags.WriteBack) == LinkerTunPacketHookFlags.WriteBack)
                         {
                             linkerTunDevice.Write(packet.RawPacket);
@@ -349,13 +347,31 @@ namespace linker.tun
                     catch (Exception ex)
                     {
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                            LoggerHelper.Instance.Warning($"tuntap read buffer Exception {length} {ex}");
+                            LoggerHelper.Instance.Warning($"tuntap read buffer Exception {ex}");
                         setupError = ex.Message;
                         await Task.Delay(1000);
                     }
                 }
+                slm.Release();
             });
         }
+        private LinkerTunPacketHookFlags ExecReadHook(Memory<byte> rawPacket)
+        {
+            LinkerTunPacketHookFlags flags = LinkerTunPacketHookFlags.Next | LinkerTunPacketHookFlags.Send;
+            for (int i = 0; i < readHooks.Length; i++)
+            {
+                (LinkerTunPacketHookFlags addFlags, LinkerTunPacketHookFlags delFlags) = readHooks[i].Read(rawPacket);
+                flags |= addFlags;
+                flags &= ~delFlags;
+                if ((flags & LinkerTunPacketHookFlags.Next) != LinkerTunPacketHookFlags.Next)
+                {
+                    break;
+                }
+            }
+            ChecksumHelper.ChecksumWithZero(rawPacket);
+            return flags;
+        }
+
         /// <summary>
         /// 写入一个TCP/IP数据包
         /// </summary>
@@ -364,23 +380,9 @@ namespace linker.tun
         public async ValueTask<bool> Write(string srcId, ReadOnlyMemory<byte> buffer)
         {
             uint dstIp = VerifyPacket(buffer);
+            if (Status != LinkerTunDeviceStatus.Running || dstIp == 0) return false;
 
-            if (Status != LinkerTunDeviceStatus.Running || dstIp == 0)
-            {
-                return false;
-            }
-            LinkerTunPacketHookFlags flags = LinkerTunPacketHookFlags.Next | LinkerTunPacketHookFlags.Write;
-            for (int i = 0; i < writeHooks.Length; i++)
-            {
-                (LinkerTunPacketHookFlags addFlags, LinkerTunPacketHookFlags delFlags) = await writeHooks[i].WriteAsync(buffer, dstIp, srcId).ConfigureAwait(false);
-                flags |= addFlags;
-                flags &= ~delFlags;
-                if ((flags & LinkerTunPacketHookFlags.Next) != LinkerTunPacketHookFlags.Next)
-                {
-                    break;
-                }
-            }
-            ChecksumHelper.ChecksumWithZero(buffer);
+            LinkerTunPacketHookFlags flags = await ExecWriteHook(buffer, dstIp, srcId).ConfigureAwait(false);
             return (flags & LinkerTunPacketHookFlags.Write) != LinkerTunPacketHookFlags.Write || linkerTunDevice.Write(buffer);
         }
         private unsafe uint VerifyPacket(ReadOnlyMemory<byte> buffer)
@@ -393,6 +395,22 @@ namespace linker.tun
                 }
             }
             return 0;
+        }
+        private async ValueTask<LinkerTunPacketHookFlags> ExecWriteHook(ReadOnlyMemory<byte> rawPacket, uint dstIp, string srcId)
+        {
+            LinkerTunPacketHookFlags flags = LinkerTunPacketHookFlags.Next | LinkerTunPacketHookFlags.Write;
+            for (int i = 0; i < writeHooks.Length; i++)
+            {
+                (LinkerTunPacketHookFlags addFlags, LinkerTunPacketHookFlags delFlags) = await writeHooks[i].WriteAsync(rawPacket, dstIp, srcId).ConfigureAwait(false);
+                flags |= addFlags;
+                flags &= ~delFlags;
+                if ((flags & LinkerTunPacketHookFlags.Next) != LinkerTunPacketHookFlags.Next)
+                {
+                    break;
+                }
+            }
+            ChecksumHelper.ChecksumWithZero(rawPacket);
+            return flags;
         }
 
         /// <summary>
@@ -421,6 +439,4 @@ namespace linker.tun
         }
 
     }
-
-
 }

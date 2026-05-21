@@ -28,7 +28,7 @@ namespace linker.libs
                 while (true)
                 {
                     LoggerModel model = await queue.Reader.ReadAsync().ConfigureAwait(false);
-                    if(model != null)
+                    if (model != null)
                     {
                         OnLogger?.Invoke(model);
                     }
@@ -57,11 +57,14 @@ namespace linker.libs
         }
         public void Info(string content, params object[] args)
         {
-            if (args != null && args.Length > 0)
+            lock (this)
             {
-                content = string.Format(content, args);
+                if (args != null && args.Length > 0)
+                {
+                    content = string.Format(content, args);
+                }
+                Enqueue(new LoggerModel { Type = LoggerTypes.INFO, Content = content });
             }
-            Enqueue(new LoggerModel { Type = LoggerTypes.INFO, Content = content });
         }
         public void Warning(string content, params object[] args)
         {

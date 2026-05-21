@@ -5,7 +5,6 @@ using System.Buffers;
 using System.Buffers.Binary;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -60,7 +59,6 @@ namespace linker.tunnel.connection
         public ICrypto Crypto { get; init; }
         private readonly byte[] cryptoEncodeBuffer = new byte[8 * 1024];
         private readonly byte[] cryptoDecodeBuffer = new byte[8 * 1024];
-
 
         private ITunnelConnectionReceiveCallback callback;
         private CancellationTokenSource cts;
@@ -296,13 +294,15 @@ namespace linker.tunnel.connection
         }
 
 
-        private LinkerFecStreamingEncoder fecEncoder;
+        private LinkerFecCodec fecEncoder;
+        private LinkerFecCodec fecDecoder;
         private byte[] fecEncodeBuffer;
         private byte[] fecDecodeBuffer;
-        private byte[] fecFlushBuffer;
+        private StickyPacketCodec stickyEncoder;
+        private LinkerFecOptions fecOption;
         private void InitializeFec()
         {
-            fecEncoder = new LinkerFecStreamingEncoder(new LinkerFecOptions
+            fecOption = new LinkerFecOptions
             {
                 SourceSymbolsPerBlock = 10,
                 RepairSymbolsPerBlock = 4,
@@ -311,42 +311,26 @@ namespace linker.tunnel.connection
                    new LinkerFecRepairProfilePoint(1, 3),
                     new LinkerFecRepairProfilePoint(10, 4)
                 ],
-            }, TimeSpan.FromMilliseconds(15));
-            fecEncodeBuffer = new byte[fecEncoder.MaxOutputBufferSize];
-            fecFlushBuffer = new byte[fecEncoder.MaxOutputBufferSize];
-            fecDecodeBuffer = new byte[fecEncoder.Options.MaxDecodeBufferSize];
+            };
+            fecEncoder = new LinkerFecCodec(fecOption);
+            fecDecoder = new LinkerFecCodec(fecOption);
+            fecEncodeBuffer = new byte[fecOption.MaxEncodeBufferSize];
+            fecDecodeBuffer = new byte[fecOption.MaxDecodeBufferSize];
+
+            stickyEncoder = new StickyPacketCodec(maxRemaining, fecOption.MaxEncodeBufferSize, fecOption.MaxSourceSymbolsPerEncodedBlock);
+
             sendFunc = SendAsyncFec;
             recvFunc = RecvAsyncFec;
             FlushTask();
         }
         private async ValueTask<int> SendAsyncFec(ReadOnlyMemory<byte> data)
         {
-            int length = 0;
-            if (fecEncoder.TryEncodePacket(data, fecEncodeBuffer, out int bytesWritten, out int packetCount))
-            {
-                var memory = fecEncodeBuffer.AsMemory(0, bytesWritten);
-                for (int i = 0; i < packetCount; i++)
-                {
-                    int packetLength = BinaryPrimitives.ReadInt32LittleEndian(memory.Span);
-                    Memory<byte> packet = memory.Slice(sizeof(int), packetLength);
-                    try
-                    {
-                        await UdpClient.SendToAsync(packet, IPEndPoint, cts.Token).ConfigureAwait(false);
-                        length += packetLength;
-                    }
-                    catch (Exception)
-                    {
-                    }
-
-
-                    memory = memory.Slice(sizeof(int) + packetLength);
-                }
-            }
-            return length;
+            await stickyEncoder.WriteAsync(data, cts.Token).ConfigureAwait(false);
+            return data.Length;
         }
         private async Task RecvAsyncFec(ReadOnlyMemory<byte> data)
         {
-            if (fecEncoder.TryDecodeFrame(data, fecDecodeBuffer, out int bytesWritten, out int packetCount))
+            if (fecDecoder.TryDecodeFrame(data, fecDecodeBuffer, out int bytesWritten, out int packetCount))
             {
                 Memory<byte> packets = fecDecodeBuffer.AsMemory(0, bytesWritten);
                 for (int i = 0; i < packetCount; i++)
@@ -371,37 +355,35 @@ namespace linker.tunnel.connection
         }
         private async Task FlushCallbackOther()
         {
-            using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(fecEncoder.RepairTimeout.TotalMilliseconds));
-            try
+            while (cts.IsCancellationRequested == false)
             {
-                while (cts.IsCancellationRequested == false && await timer.WaitForNextTickAsync(cts.Token))
+                ReadOnlyMemory<byte> packets = await stickyEncoder.ReadPacketsAsync(cts.Token).ConfigureAwait(false);
+                if (packets.Length == 0)
                 {
-                    TryFlushRepairs();
+                    if (stickyEncoder.IsCompleted)
+                    {
+                        cts.Cancel();
+                        break;
+                    }
+                    continue;
                 }
-            }
-            catch (Exception)
-            {
-            }
-        }
-        private void TryFlushRepairs()
-        {
-            if (fecEncoder.TryFlushRepairs(fecFlushBuffer.AsSpan(), out int bytesWritten, out int packetCount))
-            {
-                var memory = fecFlushBuffer.AsMemory(0, bytesWritten);
-                for (int i = 0; i < packetCount; i++)
+                if (fecEncoder.TryEncodePacket(packets, fecEncodeBuffer, out int bytesWritten, out int packetCount))
                 {
-                    int packetLength = BinaryPrimitives.ReadInt32LittleEndian(memory.Span);
-                    Memory<byte> packet = memory.Slice(sizeof(int), packetLength);
+                    var memory = fecEncodeBuffer.AsMemory(0, bytesWritten);
 
-                    try
+                    for (int i = 0; i < packetCount; i++)
                     {
-                        UdpClient.SendTo(packet.Span, IPEndPoint);
+                        int packetLength = BinaryPrimitives.ReadInt32LittleEndian(memory.Span);
+                        Memory<byte> packet = memory.Slice(sizeof(int), packetLength);
+                        try
+                        {
+                            await UdpClient.SendToAsync(packet, IPEndPoint, cts.Token).ConfigureAwait(false);
+                        }
+                        catch (Exception)
+                        {
+                        }
+                        memory = memory.Slice(sizeof(int) + packetLength);
                     }
-                    catch (Exception)
-                    {
-                    }
-
-                    memory = memory.Slice(sizeof(int) + packetLength);
                 }
             }
         }
@@ -426,6 +408,10 @@ namespace linker.tunnel.connection
                 userToken = null;
 
                 Crypto?.Dispose();
+
+                fecEncoder?.Dispose();
+                fecDecoder?.Dispose();
+                stickyEncoder?.Dispose();
 
                 GC.Collect();
             });

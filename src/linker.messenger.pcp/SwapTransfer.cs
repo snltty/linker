@@ -1,4 +1,5 @@
-﻿using linker.tunnel.connection;
+﻿using linker.libs.extends;
+using linker.tunnel.connection;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography;
@@ -124,7 +125,7 @@ namespace linker.messenger.pcp
 
         public async ValueTask<int> SendAsync(Memory<byte> memory)
         {
-            return await socket.SendAsync(memory, SocketFlags.None).ConfigureAwait(false);
+            return await socket.SendAllAsync(memory).ConfigureAwait(false);
         }
     }
 }

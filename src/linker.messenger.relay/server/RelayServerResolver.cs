@@ -219,7 +219,7 @@ namespace linker.messenger.relay.server
                     }
 
                     Add(trafficCacheInfo.Key, trafficCacheInfo.Cache1.FromName, trafficCacheInfo.Cache1.ToName, trafficCacheInfo.Cache1.GroupId, bytesRead, bytesRead);
-                    await destination.SendAsync(buffer.Memory.Slice(0, bytesRead), SocketFlags.None).ConfigureAwait(false);
+                    await destination.SendAllAsync(buffer.Memory.Slice(0, bytesRead)).ConfigureAwait(false);
                 }
             }
             catch (Exception)

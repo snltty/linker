@@ -36,7 +36,7 @@
 		<DebugType>embedded</DebugType>
 	</PropertyGroup>
 	<ItemGroup>
-	  <PackageReference Include="System.IO.Pipelines" Version="9.0.9" />
+	  <PackageReference Include="System.IO.Pipelines" Version="8.0.0" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\linker.libs\linker.libs.csproj" />

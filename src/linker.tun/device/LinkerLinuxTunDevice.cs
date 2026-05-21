@@ -4,6 +4,7 @@ using Microsoft.Win32.SafeHandles;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace linker.tun.device
 {
@@ -145,14 +146,13 @@ namespace linker.tun.device
         {
             CommandHelper.Linux(string.Empty, new string[] {
                 @$"iptables-save | grep -v -E -- ""-[oi] {Name}\s*.*\s* -j TCPMSS"" | iptables-restore",
-                @$"iptables-save | grep -v -E -- ""-[oi] {interfaceLinux}\s*.*\s* -j TCPMSS"" | iptables-restore",
             });
 
             if (value >= 7 && value < 1500)
             {
                 string _value = value == 7 ? "--clamp-mss-to-pmtu" : $"--set-mss {value}";
 
-                CommandHelper.Linux(string.Empty, new string[] {
+                string[] commands = new string[] {
                     $"iptables -t mangle -A INPUT -i {Name} -p tcp --syn -j TCPMSS {_value}",
                     $"iptables -t mangle -A INPUT -i {Name} -p tcp --tcp-flags SYN SYN -j TCPMSS {_value}",
                     $"iptables -t mangle -A OUTPUT -o {Name} -p tcp --syn -j TCPMSS {_value}",
@@ -161,8 +161,8 @@ namespace linker.tun.device
                     $"iptables -t mangle -A FORWARD -i {Name} -o {interfaceLinux} -p tcp --tcp-flags SYN SYN -j TCPMSS {_value}",
                     $"iptables -t mangle -A FORWARD -i {interfaceLinux} -o {Name} -p tcp --syn -j TCPMSS {_value}",
                     $"iptables -t mangle -A FORWARD -i {interfaceLinux} -o {Name} -p tcp --tcp-flags SYN SYN -j TCPMSS {_value}",
-                });
-
+                };
+                string str = CommandHelper.Linux(string.Empty, commands);
             }
         }
         public void SetMtu(int value)
@@ -185,12 +185,15 @@ namespace linker.tun.device
         public void SetNat(out string error)
         {
             error = string.Empty;
-            if (address == null || address.Equals(IPAddress.Any)) return;
+            if (address == null || address.Equals(IPAddress.Any))
+            {
+                return;
+            }
             try
             {
                 IPAddress network = NetworkHelper.ToNetworkIP(address, NetworkHelper.ToPrefixValue(prefixLength));
 
-                string str = CommandHelper.Linux(string.Empty, new string[] {
+                string[] commands = new string[] {
                     $"sysctl -w net.ipv4.ip_forward=1",
                     $"sysctl -w net.ipv4.conf.{Name}.forwarding=1",
                     @$"iptables-save | grep -v -E -- ""-[oi] {Name}\s*.*\s* -j (ACCEPT|MASQUERADE|DROP|REJECT)"" | iptables-restore",
@@ -200,8 +203,8 @@ namespace linker.tun.device
 
                     $"iptables -t nat -I POSTROUTING -o {Name} -j MASQUERADE",
                     $"iptables -t nat -I POSTROUTING ! -o {Name} -s {network}/{prefixLength} -j MASQUERADE",
-                });
-                //RestartFirewall();
+                };
+                string str = CommandHelper.Linux(string.Empty, commands);
             }
             catch (Exception ex)
             {
@@ -215,12 +218,11 @@ namespace linker.tun.device
             if (address == null || address.Equals(IPAddress.Any)) return;
             try
             {
-                CommandHelper.Linux(string.Empty, new string[] {
+                string[] commands = new string[] {
                     @$"iptables-save | grep -v -E -- ""-[oi] {Name}\s*.*\s* -j (ACCEPT|MASQUERADE|DROP|REJECT)"" | iptables-restore",
                     @$"iptables-save | grep -v -E -- ""-[oi] {Name}\s*.*\s* -j TCPMSS"" | iptables-restore",
-                    @$"iptables-save | grep -v -E -- ""-[oi] {interfaceLinux}\s*.*\s* -j TCPMSS"" | iptables-restore",
-                });
-                //RestartFirewall();
+                };
+                string str = CommandHelper.Linux(string.Empty, commands);
             }
             catch (Exception ex)
             {
@@ -328,6 +330,7 @@ namespace linker.tun.device
             length = fsRead.Read(buffer.AsSpan(4));
             length.ToBytes(buffer.AsSpan());
             length += 4;
+
             return buffer;
 
         }

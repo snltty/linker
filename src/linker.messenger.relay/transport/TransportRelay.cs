@@ -243,9 +243,11 @@ namespace linker.tunnel.transport
                 IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(sendBytes.Length + 5);
 
                 buffer.Memory.Span[0] = (byte)ResolverType.Relay;
+
                 sendBytes.Length.ToBytes(buffer.Memory.Slice(1));
                 sendBytes.CopyTo(buffer.Memory.Slice(5));
-                await socket.SendAsync(buffer.Memory.Slice(0, sendBytes.Length + 5)).ConfigureAwait(false);
+                var sendMemory = buffer.Memory.Slice(0, sendBytes.Length + 5);
+                await socket.SendAsync(sendMemory).ConfigureAwait(false);
 
                 int length = await socket.ReceiveAsync(buffer.Memory.Slice(0, 1), cts.Token).ConfigureAwait(false);
 

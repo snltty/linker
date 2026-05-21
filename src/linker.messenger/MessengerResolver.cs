@@ -15,9 +15,8 @@ namespace linker.messenger
     /// </summary>
     public interface IMessengerResolver
     {
-        public Task<IConnection> BeginReceiveClient(Socket socket);
-        public Task<IConnection> BeginReceiveClient(Socket socket, bool sendFlag, byte flag, Memory<byte> data);
         public void AddMessenger(List<IMessenger> list);
+        public Task<IConnection> BeginReceiveClient(Socket socket, byte flag);
         public Task BeginReceiveServer(Socket socket, Memory<byte> memory);
         public Task BeginReceiveServer(Socket socket, IPEndPoint ep, Memory<byte> memory);
     }
@@ -63,150 +62,6 @@ namespace linker.messenger
         public virtual void Add(ushort id, long receiveBytes, long sendtBytes) { }
         public virtual void AddStopwatch(ushort id, long time, MessageTypes type) { }
 
-        /// <summary>
-        /// 以服务器模式接收数据 TCP
-        /// </summary>
-        /// <param name="socket"></param>
-        /// <param name="memory"></param>
-        /// <returns></returns>
-        public async Task BeginReceiveServer(Socket socket, Memory<byte> memory)
-        {
-
-            NetworkStream networkStream = new NetworkStream(socket, false);
-            SslStream sslStream = new SslStream(networkStream, true, ValidateServerCertificate, null);
-            try
-            {
-                using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(5000));
-                await sslStream.AuthenticateAsServerAsync(new SslServerAuthenticationOptions
-                {
-                    ServerCertificate = messengerStore.Certificate,
-                    EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12,
-                    CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
-                    ClientCertificateRequired = OperatingSystem.IsAndroid(),
-                }, cts.Token).ConfigureAwait(false);
-                IConnection connection = CreateConnection(sslStream, networkStream, socket, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
-                connection.BeginReceive(this, null, true);
-            }
-            catch (Exception ex)
-            {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Error(ex);
-
-                socket.SafeClose();
-                sslStream.Dispose();
-                networkStream.Dispose();
-            }
-        }
-        /// <summary>
-        /// 以服务器模式接收数据 UDP
-        /// </summary>
-        /// <param name="socket"></param>
-        /// <param name="ep"></param>
-        /// <param name="memory"></param>
-        /// <returns></returns>
-        public Task BeginReceiveServer(Socket socket, IPEndPoint ep, Memory<byte> memory)
-        {
-            return Task.CompletedTask;
-        }
-
-        /// <summary>
-        /// 以客户端模式接收数据
-        /// </summary>
-        /// <param name="socket"></param>
-        /// <returns></returns>
-        public Task<IConnection> BeginReceiveClient(Socket socket)
-        {
-            return BeginReceiveClient(socket, false, 0, Helper.EmptyArray);
-        }
-        /// <summary>
-        /// 以客户端模式接收数据
-        /// </summary>
-        /// <param name="socket"></param>
-        /// <param name="sendFlag"></param>
-        /// <param name="flag"></param>
-        /// <returns></returns>
-        public async Task<IConnection> BeginReceiveClient(Socket socket, bool sendFlag, byte flag, Memory<byte> data)
-        {
-            using IMemoryOwner<byte> buffer = MemoryPool<byte>.Shared.Rent(16);
-            buffer.Memory.Span[0] = flag;
-            try
-            {
-                LoggerHelper.Instance.Debug("BeginReceiveClient");
-                if (socket == null || socket.RemoteEndPoint == null)
-                {
-                    LoggerHelper.Instance.Error("socket or remote endpoint is null");
-                    return null;
-                }
-                socket.KeepAlive();
-                if (sendFlag)
-                {
-                    LoggerHelper.Instance.Debug($"BeginReceiveClient send flag: {buffer.Memory.Slice(0, 1).Span[0]}");
-                    await socket.SendAsync(buffer.Memory.Slice(0, 1)).ConfigureAwait(false);
-                }
-                if (data.Length > 0)
-                {
-                    LoggerHelper.Instance.Debug($"BeginReceiveClient send data {data.Length} bytes");
-                    await socket.SendAsync(data).ConfigureAwait(false);
-                }
-
-                using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(60000));
-                NetworkStream networkStream = new NetworkStream(socket, false);
-                SslStream sslStream = new SslStream(networkStream, true, ValidateServerCertificate, null);
-                try
-                {
-                    LoggerHelper.Instance.Debug($"BeginReceiveClient AuthenticateAsClientAsync");
-                    await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
-                    {
-                        EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12,
-                        CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
-                        ClientCertificates = new X509CertificateCollection { messengerStore.Certificate },
-                    }, cts.Token).ConfigureAwait(false);
-
-                    IConnection connection = CreateConnection(sslStream, networkStream, socket, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
-                    connection.BeginReceive(this, null, true);
-                    return connection;
-                }
-                catch (Exception ex)
-                {
-                    //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Error(ex);
-                    socket.SafeClose();
-                    sslStream.Dispose();
-                    networkStream.Dispose();
-
-                    return null;
-                }
-            }
-            catch (Exception ex)
-            {
-                // if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                LoggerHelper.Instance.Error(ex);
-
-                socket.SafeClose();
-            }
-            return null;
-        }
-        private bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
-        {
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-            {
-                LoggerHelper.Instance.Info($"【Messenger】Certificate validation: {certificate?.Subject}");
-                LoggerHelper.Instance.Info($"【Messenger】SSL Policy Errors: {sslPolicyErrors}");
-            }
-            return true;
-        }
-        private static TcpConnection CreateConnection(SslStream stream, NetworkStream networkStream, Socket socket, IPEndPoint local, IPEndPoint remote)
-        {
-            return new TcpConnection(stream, networkStream, socket, local, remote)
-            {
-                ReceiveRequestWrap = new MessageRequestWrap(),
-                ReceiveResponseWrap = new MessageResponseWrap()
-            };
-        }
-
-        /// <summary>
-        /// 添加信标
-        /// </summary>
         public void AddMessenger(List<IMessenger> list)
         {
             Type voidType = typeof(void);
@@ -246,6 +101,103 @@ namespace linker.messenger
                 }
             }
 
+        }
+        public async Task BeginReceiveServer(Socket socket, Memory<byte> memory)
+        {
+
+            NetworkStream networkStream = new NetworkStream(socket, false);
+            SslStream sslStream = new SslStream(networkStream, true, ValidateServerCertificate, null);
+            try
+            {
+                using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(5000));
+                await sslStream.AuthenticateAsServerAsync(new SslServerAuthenticationOptions
+                {
+                    ServerCertificate = messengerStore.Certificate,
+                    EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12,
+                    CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
+                    ClientCertificateRequired = OperatingSystem.IsAndroid(),
+                }, cts.Token).ConfigureAwait(false);
+                IConnection connection = CreateConnection(sslStream, networkStream, socket, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
+                connection.BeginReceive(this, null, true);
+            }
+            catch (Exception ex)
+            {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    LoggerHelper.Instance.Error(ex);
+
+                socket.SafeClose();
+                sslStream.Dispose();
+                networkStream.Dispose();
+            }
+        }
+        public Task BeginReceiveServer(Socket socket, IPEndPoint ep, Memory<byte> memory)
+        {
+            return Task.CompletedTask;
+        }
+
+        public async Task<IConnection> BeginReceiveClient(Socket socket, byte flag)
+        {
+            try
+            {
+                if (socket == null || socket.RemoteEndPoint == null)
+                {
+                    return null;
+                }
+                socket.KeepAlive();
+
+                await socket.SendAsync(new byte[] { flag }).ConfigureAwait(false);
+                await Task.Delay(50).ConfigureAwait(false);
+
+                using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(60000));
+                NetworkStream networkStream = new NetworkStream(socket, false);
+                SslStream sslStream = new SslStream(networkStream, true, ValidateServerCertificate, null);
+                try
+                {
+                    await sslStream.AuthenticateAsClientAsync(new SslClientAuthenticationOptions
+                    {
+                        EnabledSslProtocols = SslProtocols.Tls13 | SslProtocols.Tls12,
+                        CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
+                        ClientCertificates = new X509CertificateCollection { messengerStore.Certificate },
+                    }, cts.Token).ConfigureAwait(false);
+
+                    IConnection connection = CreateConnection(sslStream, networkStream, socket, socket.LocalEndPoint as IPEndPoint, socket.RemoteEndPoint as IPEndPoint);
+                    connection.BeginReceive(this, null, true);
+                    return connection;
+                }
+                catch (Exception ex)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                    socket.SafeClose();
+                    sslStream.Dispose();
+                    networkStream.Dispose();
+
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                LoggerHelper.Instance.Error(ex);
+
+                socket.SafeClose();
+            }
+            return null;
+        }
+        private bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+            {
+                LoggerHelper.Instance.Info($"【Messenger】Certificate validation: {certificate?.Subject}");
+                LoggerHelper.Instance.Info($"【Messenger】SSL Policy Errors: {sslPolicyErrors}");
+            }
+            return true;
+        }
+        private static TcpConnection CreateConnection(SslStream stream, NetworkStream networkStream, Socket socket, IPEndPoint local, IPEndPoint remote)
+        {
+            return new TcpConnection(stream, networkStream, socket, local, remote)
+            {
+                ReceiveRequestWrap = new MessageRequestWrap(),
+                ReceiveResponseWrap = new MessageResponseWrap()
+            };
         }
 
         /// <summary>

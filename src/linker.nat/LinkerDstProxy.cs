@@ -129,7 +129,7 @@ namespace linker.nat
                 int bytesRead;
                 while ((bytesRead = await source.ReceiveAsync(buffer, SocketFlags.None).ConfigureAwait(false)) != 0)
                 {
-                    await target.SendAsync(buffer.Slice(0, bytesRead), SocketFlags.None).ConfigureAwait(false);
+                    await target.SendAllAsync(buffer.Slice(0, bytesRead)).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)

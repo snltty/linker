@@ -1,12 +1,13 @@
 ﻿using linker.libs;
 using linker.libs.extends;
 using System.Buffers;
-using System.Net.Security;
-using System.Net;
-using System.Text.Json.Serialization;
-using System.Text;
-using System.Net.Sockets;
 using System.IO.Pipelines;
+using System.Net;
+using System.Net.Security;
+using System.Net.Sockets;
+using System.Text;
+using System.Text.Json.Serialization;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace linker.tunnel.connection
 {
@@ -39,14 +40,14 @@ namespace linker.tunnel.connection
         public LastTicksManager LastTicks { get; private set; } = new LastTicksManager();
 
         private const long maxRemaining = 128 * 1024;
-        private readonly StickyPacketEncoder packetEncoder = new StickyPacketEncoder(maxRemaining);
+        private readonly StickyPacketCodec packetEncoder = new StickyPacketCodec(maxRemaining);
         public long SendBytes => packetEncoder.SendBytes;
         public long SendBufferRemaining => packetEncoder.SendBufferRemaining;
         public long SendBufferFree => packetEncoder.SendBufferFree;
-        private readonly StickyPacketDecoder packetDecoder = new StickyPacketDecoder(maxRemaining);
-        public long ReceiveBytes => packetDecoder.ReceiveBytes;
-        public long RecvBufferRemaining => packetDecoder.RecvBufferRemaining;
-        public long RecvBufferFree => packetDecoder.RecvBufferFree;
+        private readonly StickyPacketCodec packetDecoder = new StickyPacketCodec(maxRemaining);
+        public long ReceiveBytes => packetDecoder.SendBytes;
+        public long RecvBufferRemaining => packetDecoder.SendBufferRemaining;
+        public long RecvBufferFree => packetDecoder.SendBufferFree;
 
 
         [JsonIgnore]
@@ -82,25 +83,27 @@ namespace linker.tunnel.connection
         {
             try
             {
-                int length = 0;
-                while (cts.IsCancellationRequested == false)
+                if (Stream != null)
                 {
-                    if (Stream != null)
+                    while (cts.IsCancellationRequested == false)
                     {
                         Memory<byte> memory = packetDecoder.GetMemory(8 * 1024);
-                        length = await Stream.ReadAsync(memory, cts.Token).ConfigureAwait(false);
-                        if (length == 0) break;
-
-                        await packetDecoder.FlushAsync(length, cts.Token).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        Memory<byte> memory = packetDecoder.GetMemory(8 * 1024);
-                        length = await Socket.ReceiveAsync(memory, SocketFlags.None, cts.Token).ConfigureAwait(false);
+                        int length = await Stream.ReadAsync(memory, cts.Token).ConfigureAwait(false);
                         if (length == 0) break;
                         await packetDecoder.FlushAsync(length, cts.Token).ConfigureAwait(false);
                     }
                 }
+                else
+                {
+                    while (cts.IsCancellationRequested == false)
+                    {
+                        Memory<byte> memory = packetDecoder.GetMemory(8 * 1024);
+                        int length = await Socket.ReceiveAsync(memory, SocketFlags.None, cts.Token).ConfigureAwait(false);
+                        if (length == 0) break;
+                        await packetDecoder.FlushAsync(length, cts.Token).ConfigureAwait(false);
+                    }
+                }
+
             }
             catch (Exception ex)
             {
@@ -120,7 +123,7 @@ namespace linker.tunnel.connection
             {
                 while (cts.IsCancellationRequested == false)
                 {
-                    Memory<byte> memory = await packetDecoder.ReadAsync(cts.Token).ConfigureAwait(false);
+                    ReadOnlyMemory<byte> memory = await packetDecoder.ReadPacketsAsync(cts.Token).ConfigureAwait(false);
                     if (memory.IsEmpty)
                     {
                         if (packetDecoder.IsCompleted)
@@ -223,33 +226,38 @@ namespace linker.tunnel.connection
         {
             try
             {
+                byte[] bytes = new byte[16 * 1024];
                 while (cts.IsCancellationRequested == false)
                 {
+
                     ReadResult result = await packetEncoder.ReadAsync(cts.Token).ConfigureAwait(false);
                     if (result.Buffer.IsEmpty)
                     {
-                        if (result.IsCompleted)
+                        if (packetEncoder.IsCompleted)
                         {
                             cts.Cancel();
                             break;
                         }
                         continue;
                     }
-
-                    ReadOnlySequence<byte> buffer = result.Buffer;
-                    foreach (ReadOnlyMemory<byte> memoryBlock in result.Buffer)
+                    if (Stream != null)
                     {
-                        if (Stream != null)
+                        foreach (ReadOnlyMemory<byte> segment in result.Buffer)
                         {
-                            await Stream.WriteAsync(memoryBlock, cts.Token).ConfigureAwait(false);
+                            await Stream.WriteAsync(segment, cts.Token).ConfigureAwait(false);
+                            packetEncoder.Advance(segment.Length);
                         }
-                        else
-                        {
-                            await Socket.SendAsync(memoryBlock, SocketFlags.None, cts.Token).ConfigureAwait(false);
-                        }
-                        packetEncoder.Advance(memoryBlock.Length);
                     }
-                    packetEncoder.AdvanceTo(buffer.End);
+                    else
+                    {
+                        foreach (ReadOnlyMemory<byte> segment in result.Buffer)
+                        {
+                            await Socket.SendAllAsync(segment, cts.Token).ConfigureAwait(false);
+                            packetEncoder.Advance(segment.Length);
+                        }
+                    }
+
+                    packetEncoder.AdvanceTo(result.Buffer.End);
                     LastTicks.Update();
                 }
             }
@@ -275,8 +283,12 @@ namespace linker.tunnel.connection
                 await packetEncoder.WriteAsync(data, cts.Token).ConfigureAwait(false);
                 return true;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
                 Dispose();
             }
             finally
@@ -286,9 +298,9 @@ namespace linker.tunnel.connection
 
             return false;
         }
-        public async Task<bool> SendAsync(byte[] buffer, int offset, int length)
+        public Task<bool> SendAsync(byte[] buffer, int offset, int length)
         {
-            return await SendAsync(buffer.AsMemory(offset, length)).ConfigureAwait(false);
+            return SendAsync(buffer.AsMemory(offset, length));
         }
 
         public void Dispose()

@@ -329,7 +329,7 @@ namespace linker.nat
                 ReadOnlySequence<byte> buffer = result.Buffer;
                 foreach (ReadOnlyMemory<byte> memoryBlock in result.Buffer)
                 {
-                    int length = await state.Socket.SendAsync(memoryBlock, SocketFlags.None).ConfigureAwait(false);
+                    int length = await state.Socket.SendAllAsync(memoryBlock).ConfigureAwait(false);
                     state.AddReceived(-memoryBlock.Length);
                     if (state.NeedResume) await SendWindow(state, 1).ConfigureAwait(false);
                 }
