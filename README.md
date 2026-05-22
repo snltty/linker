@@ -76,6 +76,14 @@
 ```
 iptables -A INPUT -p udp --dport 18183 -m statistic --mode random --probability 0.1 -j DROP
 iptables -A OUTPUT -p udp --sport 18183 -m statistic --mode random --probability 0.1 -j DROP
+
+nft flush table inet linkerdrop
+nft delete table inet linkerdrop
+nft add table inet linkerdrop
+nft add chain inet linkerdrop input { type filter hook input priority -10 \; }
+nft add chain inet linkerdrop output { type filter hook output priority -10 \; }
+nft add rule inet linkerdrop input udp dport 18226 numgen random mod 100 lt 10 drop
+nft add rule inet linkerdrop output udp sport 18226 numgen random mod 100 lt 10 drop
 ```
 
 <p><img src="./readme/fec.jpg"></p> 
