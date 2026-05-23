@@ -114,7 +114,7 @@ namespace linker.messenger.listen
                 {
                     LoggerHelper.Instance.Debug($"tcp server got {type} from {socket.RemoteEndPoint}");
                 }
-                if (countryTransfer.Test(type, (socket.RemoteEndPoint as IPEndPoint).Address) == false)
+                if (countryTransfer.Test(type, (socket.RemoteEndPoint as IPEndPoint).Address.MapToIPv4()) == false)
                 {
                     cts.Cancel();
                     socket.SafeClose();

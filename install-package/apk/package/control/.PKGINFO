@@ -1,0 +1,23 @@
+# Generated package metadata for apk-tools.
+pkgname = linker
+pkgver = {version}-r0
+pkgdesc = A NAT transfer, Virtual Private Network, P2P Tunnel
+url = https://github.com/snltty/linker
+arch = {apk_arch}
+origin = linker
+maintainer = snltty <1069410172@qq.com>
+license = GPL-2.0
+depend = libc
+depend = procd
+depend = luci-base
+depend = rpcd
+depend = ucode
+depend = zlib
+depend = bash
+depend = iptables
+depend = kmod-tun
+depend = ip-full
+depend = kmod-ipt-nat
+depend = libstdcpp
+depend = libopenssl
+depend = libopenssl-legacy

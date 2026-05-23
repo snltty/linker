@@ -306,9 +306,9 @@ namespace linker.tunnel.connection
             {
                 SourceSymbolsPerBlock = 10,
                 RepairSymbolsPerBlock = 4,
-                SymbolSize = 1433,
+                SymbolSize = 1420 + LinkerFecEncodedSymbol.HeaderSize,
                 RepairProfile = [
-                   new LinkerFecRepairProfilePoint(1, 3),
+                   new LinkerFecRepairProfilePoint(1, 2),
                     new LinkerFecRepairProfilePoint(10, 4)
                 ],
             };

@@ -22,7 +22,7 @@ do
     mkdir -p public/publish-ipk/${r}/data/usr/bin/linker
     cp -rf public/publish/${r}/* public/publish-ipk/${r}/data/usr/bin/linker/
 
-    sed -i "s|{version}|{{version}}|g" public/publish-ipk/${r}/control/control
+    sed -i "s|{version}|1.9.99|g" public/publish-ipk/${r}/control/control
     sed -i 's/\r$//' public/publish-ipk/${r}/data/etc/init.d/linker
     sed -i 's/\r$//' public/publish-ipk/${r}/control/control
     sed -i 's/\r$//' public/publish-ipk/${r}/control/postinst
@@ -38,6 +38,27 @@ do
     tar -czf control.tar.gz -C control/ .
     echo "2.0" > debian-binary
     tar -czf linker-openwrt-${r}.ipk debian-binary data.tar.gz control.tar.gz
+    cd ../../../
+
+    mkdir -p public/publish-apk/${r}
+    cp -rf install-package/apk/package/* public/publish-apk/${r}/
+    cp -rf install-package/ipk/libs/${r}/* public/publish-apk/${r}/data/
+    mkdir -p public/publish-apk/${r}/data/usr/bin/linker
+    cp -rf public/publish/${r}/* public/publish-apk/${r}/data/usr/bin/linker/
+
+    sed -i "s|{version}|1.9.99|g" public/publish-apk/${r}/control/.PKGINFO
+    sed -i "s|{apk_arch}|noarch|g" public/publish-apk/${r}/control/.PKGINFO
+    sed -i 's/\r$//' public/publish-apk/${r}/data/etc/init.d/linker
+    sed -i 's/\r$//' public/publish-apk/${r}/control/.PKGINFO
+    sed -i 's/\r$//' public/publish-apk/${r}/control/.post-install
+    sed -i 's/\r$//' public/publish-apk/${r}/control/.pre-deinstall
+
+    chmod +x public/publish-apk/${r}/data/etc/init.d/linker
+    chmod +x public/publish-apk/${r}/control/.post-install
+    chmod +x public/publish-apk/${r}/control/.pre-deinstall
+
+    cd public/publish-apk/${r}
+    tar -czf control.tar.gz -C control/ . && tar -czf data.tar.gz -C data/ . && cat control.tar.gz data.tar.gz > linker-openwrt-${r}.apk
     cd ../../../
 
     ((index++))

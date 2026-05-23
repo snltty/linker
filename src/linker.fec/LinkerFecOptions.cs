@@ -25,7 +25,7 @@ public sealed class LinkerFecOptions
     public int RepairSymbolsPerBlock { get; init; } = 2;
     public IReadOnlyList<LinkerFecRepairProfilePoint>? RepairProfile { get; init; }
     public int MaxDecoderBlocks { get; init; } = 256;
-    public int MaxSkipBlocks { get; init; } = 10;
+    public int MaxSkipBlocks { get; init; } = 30;
     public LinkerFecRepairGenerationMode RepairGenerationMode { get; init; } = LinkerFecRepairGenerationMode.Auto;
 
     public int MaxSourceSymbolsPerEncodedBlock

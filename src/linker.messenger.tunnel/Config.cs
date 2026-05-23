@@ -1,4 +1,5 @@
-﻿using linker.tunnel.transport;
+﻿using linker.fec;
+using linker.tunnel.transport;
 using System.Net;
 
 namespace linker.messenger.tunnel
@@ -21,6 +22,8 @@ namespace linker.messenger.tunnel
         public int PortMapLan { get; set; }
         public TunnelNetInfo Net { get; set; } = new TunnelNetInfo();
         public IPAddress InIp { get; set; } = IPAddress.Any;
+
+        public LinkerFecRepairProfilePoint[] Fec { get; set; } = [];
     }
 
     public sealed partial class TunnelLocalNetworkInfo

@@ -1,0 +1,15 @@
+{
+	"luci-app-linker": {
+		"description": "Grant access to LuCI app linker",
+		"read": {
+			"file": {
+				"/etc/init.d/linker": [ "exec" ]
+			}
+		},
+		"write": {
+			"file": {
+				"/etc/init.d/linker": [ "exec" ]
+			}
+		}
+	}
+}
