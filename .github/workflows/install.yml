@@ -44,13 +44,17 @@ jobs:
         run: >
           for f in shells/publish-ipk.sh shells/publish-fpk.sh publish-ipk.sh;
           do
-            [ -f "$f" ] && sed -i 's/\r$//' "$f"
+            if [ -f "$f" ]; then
+              sed -i 's/\r$//' "$f"
+            fi
           done
       - name: chmod shell
         run: >
           for f in shells/publish-ipk.sh shells/publish-fpk.sh publish-ipk.sh;
           do
-            [ -f "$f" ] && chmod +x "$f"
+            if [ -f "$f" ]; then
+              chmod +x "$f"
+            fi
           done
       - name: publish projects
         run: |
