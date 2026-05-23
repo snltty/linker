@@ -1,7 +1,10 @@
+#!/usr/bin/env bash
+
 target=$(cd $(dirname $0)/..; pwd)
 
 rs=('x64' 'arm64' 'arm')
 index=0
+APK_CMD=${APK_CMD:-apk}
 
 cd src/linker.web 
 npm install &&
@@ -46,10 +49,10 @@ do
     mkdir -p public/publish-apk/${r}/data/usr/bin/linker
     cp -rf public/publish/${r}/* public/publish-apk/${r}/data/usr/bin/linker/
 
-    sed -i "s|{version}|1.9.99|g" public/publish-apk/${r}/control/.PKGINFO
-    sed -i "s|{apk_arch}|noarch|g" public/publish-apk/${r}/control/.PKGINFO
+    sed -i "s|{version}|1.9.99|g" public/publish-apk/${r}/control/package.info
+    sed -i "s|{apk_arch}|noarch|g" public/publish-apk/${r}/control/package.info
     sed -i 's/\r$//' public/publish-apk/${r}/data/etc/init.d/linker
-    sed -i 's/\r$//' public/publish-apk/${r}/control/.PKGINFO
+    sed -i 's/\r$//' public/publish-apk/${r}/control/package.info
     sed -i 's/\r$//' public/publish-apk/${r}/control/.post-install
     sed -i 's/\r$//' public/publish-apk/${r}/control/.pre-deinstall
 
@@ -58,7 +61,21 @@ do
     chmod +x public/publish-apk/${r}/control/.pre-deinstall
 
     cd public/publish-apk/${r}
-    tar -czf control.tar.gz -C control/ . && tar -czf data.tar.gz -C data/ . && cat control.tar.gz data.tar.gz > linker-openwrt-${r}.apk
+    mkdir -p data/lib/apk/packages
+    (cd data && find . \( -type f -o -type l \) | sed 's|^\./|/|' | sort > ../linker.list)
+    mv linker.list data/lib/apk/packages/linker.list
+
+    apk_info_args=()
+    while IFS= read -r line; do
+        [ -n "${line}" ] && apk_info_args+=(--info "${line}")
+    done < control/package.info
+
+    "${APK_CMD}" mkpkg "${apk_info_args[@]}" \
+        --script "post-install:control/.post-install" \
+        --script "post-upgrade:control/.post-install" \
+        --script "pre-deinstall:control/.pre-deinstall" \
+        --files data \
+        --output linker-openwrt-${r}.apk
     cd ../../../
 
     ((index++))

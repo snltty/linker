@@ -5,27 +5,61 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: setup node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: '16'
       - name: setup dotnet
-        uses: actions/setup-dotnet@v2
+        uses: actions/setup-dotnet@v4
         env:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
           dotnet-version: 8.0.x
       - name: setup install
-        run: sudo apt-get install binutils tar gzip
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y binutils tar gzip curl jq
+      - name: setup apk mkpkg
+        run: >
+          cat >/tmp/openwrt-apk <<'EOF'
+
+          #!/usr/bin/env bash
+
+          set -euo pipefail
+
+          docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:$PWD" -w "$PWD"
+          alpine:edge apk "$@"
+
+          EOF
+
+          chmod +x /tmp/openwrt-apk
+
+          /tmp/openwrt-apk mkpkg --help
       - name: sed shell
-        run: >-
-          sed -i 's/\r$//' shells/publish-ipk.sh ; sed -i 's/\r$//'
-          shells/publish-fpk.sh
+        run: >
+          for f in shells/publish-ipk.sh shells/publish-fpk.sh publish-ipk.sh;
+          do
+            [ -f "$f" ] && sed -i 's/\r$//' "$f"
+          done
       - name: chmod shell
-        run: chmod +x shells/publish-ipk.sh ; chmod +x shells/publish-fpk.sh
+        run: >
+          for f in shells/publish-ipk.sh shells/publish-fpk.sh publish-ipk.sh;
+          do
+            [ -f "$f" ] && chmod +x "$f"
+          done
       - name: publish projects
-        run: ./shells/publish-ipk.sh ; ./shells/publish-fpk.sh
+        run: |
+          set -e
+          if [ -x ./shells/publish-ipk.sh ]; then
+            APK_CMD=/tmp/openwrt-apk ./shells/publish-ipk.sh
+          else
+            APK_CMD=/tmp/openwrt-apk ./publish-ipk.sh
+          fi
+
+          if [ -x ./shells/publish-fpk.sh ]; then
+            ./shells/publish-fpk.sh
+          fi
       - name: get latest release
         id: get_release
         run: |
