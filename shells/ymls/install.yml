@@ -34,7 +34,9 @@ jobs:
           docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:$PWD" -w "$PWD" alpine:edge apk "$@"
           EOF
           chmod +x /tmp/openwrt-apk
-          /tmp/openwrt-apk mkpkg --help
+          /tmp/openwrt-apk --version
+          /tmp/openwrt-apk mkpkg --help >/tmp/apk-mkpkg-help.txt 2>&1 || true
+          grep -q 'apk mkpkg creates' /tmp/apk-mkpkg-help.txt
 
       - name: sed shell
         run: |
@@ -51,10 +53,13 @@ jobs:
       - name: publish projects
         run: |
           set -e
-          if [ -x ./shells/publish-ipk.sh ]; then
+          if [ -x ./publish-ipk.sh ]; then
+            APK_CMD=/tmp/openwrt-apk ./publish-ipk.sh
+          elif [ -x ./shells/publish-ipk.sh ]; then
             APK_CMD=/tmp/openwrt-apk ./shells/publish-ipk.sh
           else
-            APK_CMD=/tmp/openwrt-apk ./publish-ipk.sh
+            echo "publish-ipk.sh not found" >&2
+            exit 1
           fi
 
           if [ -x ./shells/publish-fpk.sh ]; then

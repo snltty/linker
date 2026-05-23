@@ -193,8 +193,8 @@ function writeUploadIpk(data, tagName) {
         let arch = platforms[i];
 
         data.jobs.build.steps.push({
-            name: `upload-${arch}-oss`,
-            id: `upload-${arch}-oss`,
+            name: `upload-${arch}-ipk-oss`,
+            id: `upload-${arch}-ipk-oss`,
             uses: 'tvrcgo/oss-action@v0.1.1',
             with: {
                 'region': 'oss-cn-shenzhen',
@@ -206,8 +206,8 @@ function writeUploadIpk(data, tagName) {
             }
         });
         data.jobs.build.steps.push({
-            name: `upload-${arch}`,
-            id: `upload-${arch}`,
+            name: `upload-${arch}-ipk`,
+            id: `upload-${arch}-ipk`,
             uses: 'actions/upload-release-asset@master',
             env: {
                 'GITHUB_TOKEN': '${{ secrets.ACTIONS_TOKEN }}'
@@ -217,6 +217,33 @@ function writeUploadIpk(data, tagName) {
                 'asset_path': `./public/publish-ipk/${arch}/linker-openwrt-${arch}.ipk`,
                 'asset_name': `linker-openwrt-${arch}.ipk`,
                 'asset_content_type': 'application/ipk'
+            }
+        });
+        data.jobs.build.steps.push({
+            name: `upload-${arch}-apk-oss`,
+            id: `upload-${arch}-apk-oss`,
+            uses: 'tvrcgo/oss-action@v0.1.1',
+            with: {
+                'region': 'oss-cn-shenzhen',
+                'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
+                'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
+                'bucket': 'ide-qbcode',
+                'asset-path': `./public/publish-apk/${arch}/linker-openwrt-${arch}.apk`,
+                'target-path': `/downloads/linker/${tagName}/linker-openwrt-${arch}.apk`
+            }
+        });
+        data.jobs.build.steps.push({
+            name: `upload-${arch}-apk`,
+            id: `upload-${arch}-apk`,
+            uses: 'actions/upload-release-asset@master',
+            env: {
+                'GITHUB_TOKEN': '${{ secrets.ACTIONS_TOKEN }}'
+            },
+            with: {
+                'upload_url': '${{ steps.get_release.outputs.upload_url }}',
+                'asset_path': `./public/publish-apk/${arch}/linker-openwrt-${arch}.apk`,
+                'asset_name': `linker-openwrt-${arch}.apk`,
+                'asset_content_type': 'application/apk'
             }
         });
     };
