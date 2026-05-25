@@ -25,18 +25,25 @@ namespace linker.messenger.pcp
         private readonly ISignInClientStore signInClientStore;
         private readonly IMessengerSender messengerSender;
         private readonly ISerializer serializer;
-        public PcpTransfer(IPcpStore pcpStore, TunnelTransfer tunnelTransfer, ISignInClientStore signInClientStore, IMessengerSender messengerSender, ISerializer serializer)
+        private readonly SignInClientState signInClientState;
+        public PcpTransfer(IPcpStore pcpStore, TunnelTransfer tunnelTransfer, ISignInClientStore signInClientStore,
+            IMessengerSender messengerSender, ISerializer serializer, SignInClientState signInClientState)
         {
             this.pcpStore = pcpStore;
             this.tunnelTransfer = tunnelTransfer;
             this.signInClientStore = signInClientStore;
             this.messengerSender = messengerSender;
             this.serializer = serializer;
+            this.signInClientState = signInClientState;
             tunnelTransfer.SetConnectedCallback(transactionId, OnConnected);
         }
         private void OnConnected(ITunnelConnection connection)
         {
-            TunnelTagInfo tag = connection.TransactionTag.DeJson<TunnelTagInfo>();
+            if (connection.Configure.TryGetValue("pcp", out string pcpTag) == false)
+            {
+                return;
+            }
+            TunnelTagInfo tag = pcpTag.DeJson<TunnelTagInfo>();
             if (tag.NodeId == signInClientStore.Id)
             {
                 string key = $"{tag.FromMachineId}@{tag.ToMachineId}@{tag.TransactionId}";
@@ -51,11 +58,8 @@ namespace linker.messenger.pcp
                 return;
             }
         }
-        public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId, TunnelProtocolType denyProtocols)
+        public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId, TunnelProtocolType denyProtocols = TunnelProtocolType.None)
         {
-
-            return null;
-            /*
             string key = $"{remoteMachineId}@{transactionId}";
             if (operating.StartOperation(key) == false)
             {
@@ -64,22 +68,26 @@ namespace linker.messenger.pcp
 
             try
             {
-                List<string> nodes = pcpStore.PcpHistory.History.Intersect(await GetNodes(remoteMachineId).ConfigureAwait(false)).ToList();
+                List<string> remoteNodes = await GetNodes(remoteMachineId).ConfigureAwait(false);
+                List<string> nodes = pcpStore.PcpHistory.History.Intersect(remoteNodes).ToList();
                 foreach (var node in nodes)
                 {
                     ITunnelConnection connection = null;
                     try
                     {
                         string tag = new TunnelTagInfo { FromMachineId = signInClientStore.Id, ToMachineId = remoteMachineId, TransactionId = transactionId, NodeId = node, DenyProtocols = denyProtocols }.ToJson();
-                        connection = await tunnelTransfer.ConnectAsync(node, this.transactionId, denyProtocols, tag, flag: "pcp").ConfigureAwait(false);
+                        Dictionary<string, string> configures = new() { ["flag"] = "pcp", ["pcp"] = tag };
+
+                        connection = await tunnelTransfer.ConnectAsync(node, this.transactionId, denyProtocols, configures: configures).ConfigureAwait(false);
                         if (connection == null)
                         {
                             continue;
                         }
                         await messengerSender.SendOnly(new MessageRequestWrap
                         {
+                            Connection = signInClientState.Connection,
                             MessengerId = (ushort)PcpMessengerIds.BeginForward,
-                            Payload = serializer.Serialize(tag),
+                            Payload = serializer.Serialize(configures),
                         }).ConfigureAwait(false);
 
                         TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
@@ -91,8 +99,9 @@ namespace linker.messenger.pcp
                             return connection;
                         }
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
+                        LoggerHelper.Instance.Error(ex);
                         connection?.Dispose();
                     }
                     finally
@@ -110,41 +119,42 @@ namespace linker.messenger.pcp
             }
 
             return null;
-            */
         }
-        public async Task Begin(string tagStr)
+        public async Task Begin(Dictionary<string, string> configures)
         {
-            TunnelTagInfo tag = tagStr.DeJson<TunnelTagInfo>();
-            ITunnelConnection connection = await tunnelTransfer.ConnectAsync(tag.NodeId, this.transactionId, tag.DenyProtocols, tagStr).ConfigureAwait(false);
+            TunnelTagInfo tag = configures["pcp"].DeJson<TunnelTagInfo>();
+            ITunnelConnection connection = await tunnelTransfer.ConnectAsync(tag.NodeId, this.transactionId, tag.DenyProtocols, configures).ConfigureAwait(false);
             if (connection == null)
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
+                    Connection = signInClientState.Connection,
                     MessengerId = (ushort)PcpMessengerIds.FailForward,
-                    Payload = serializer.Serialize(tagStr),
+                    Payload = serializer.Serialize(configures),
                 }).ConfigureAwait(false);
             }
             else
             {
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
+                    Connection = signInClientState.Connection,
                     MessengerId = (ushort)PcpMessengerIds.SuccessForward,
-                    Payload = serializer.Serialize(tagStr),
+                    Payload = serializer.Serialize(configures),
                 }).ConfigureAwait(false);
                 ExecConnectedCallbacks(tag.TransactionId, connection);
             }
         }
-        public async Task Fail(string tagStr)
+        public async Task Fail(Dictionary<string, string> configures)
         {
-            TunnelTagInfo tag = tagStr.DeJson<TunnelTagInfo>();
+            TunnelTagInfo tag = configures["pcp"].DeJson<TunnelTagInfo>();
             if (watingDic.TryRemove($"{tag.ToMachineId}@{tag.TransactionId}", out TaskCompletionSource<bool> tcs))
             {
                 tcs.SetResult(false);
             }
         }
-        public async Task Success(string tagStr)
+        public async Task Success(Dictionary<string, string> configures)
         {
-            TunnelTagInfo tag = tagStr.DeJson<TunnelTagInfo>();
+            TunnelTagInfo tag = configures["pcp"].DeJson<TunnelTagInfo>();
             if (watingDic.TryRemove($"{tag.ToMachineId}@{tag.TransactionId}", out TaskCompletionSource<bool> tcs))
             {
                 tcs.SetResult(true);
@@ -154,6 +164,7 @@ namespace linker.messenger.pcp
         {
             var resp = await messengerSender.SendReply(new MessageRequestWrap
             {
+                Connection = signInClientState.Connection,
                 MessengerId = (ushort)PcpMessengerIds.NodesForward,
                 Payload = serializer.Serialize(machineId),
                 Timeout = 5000,
@@ -209,7 +220,7 @@ namespace linker.messenger.pcp
             }
             pcpStore.AddHistory(connection);
         }
-        sealed class TunnelTagInfo
+        public sealed class TunnelTagInfo
         {
             /// <summary>
             /// 谁来的

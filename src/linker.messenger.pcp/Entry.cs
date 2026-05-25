@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using linker.libs.web;
+using Microsoft.Extensions.DependencyInjection;
 namespace linker.messenger.pcp
 {
     public static class Entry
@@ -7,12 +8,17 @@ namespace linker.messenger.pcp
         {
             serviceCollection.AddSingleton<PcpTransfer>();
             serviceCollection.AddSingleton<PcpClientMessenger>();
+            serviceCollection.AddSingleton<PcpApiController>();
             return serviceCollection;
         }
         public static ServiceProvider UsePcpClient(this ServiceProvider serviceProvider)
         {
             IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
             messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<PcpClientMessenger>() });
+
+            linker.messenger.api.IWebServer apiServer = serviceProvider.GetService<linker.messenger.api.IWebServer>();
+            apiServer.AddPlugins(new List<IApiController> { serviceProvider.GetService<PcpApiController>() });
+
             return serviceProvider;
         }
 

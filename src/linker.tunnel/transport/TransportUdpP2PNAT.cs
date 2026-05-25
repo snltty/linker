@@ -174,7 +174,7 @@ namespace linker.tunnel.transport
                         Type = TunnelType,
                         Mode = mode,
                         TransactionId = tunnelTransportInfo.TransactionId,
-                        TransactionTag = tunnelTransportInfo.TransactionTag,
+                        Configure = tunnelTransportInfo.Configure,
                         TransportName = tunnelTransportInfo.TransportName,
                         IPEndPoint = (result.RemoteEndPoint as IPEndPoint).MapToIPv4(),
                         Label = string.Empty,

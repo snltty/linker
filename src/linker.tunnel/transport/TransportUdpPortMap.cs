@@ -282,7 +282,7 @@ namespace linker.tunnel.transport
                     Type = TunnelType,
                     Mode = TunnelMode.Server,
                     TransactionId = tunnelTransportInfo.TransactionId,
-                    TransactionTag = tunnelTransportInfo.TransactionTag,
+                    Configure = tunnelTransportInfo.Configure,
                     TransportName = tunnelTransportInfo.TransportName,
                     IPEndPoint = state.RemoteEndPoint.MapToIPv4(),
                     Label = string.Empty,
@@ -343,7 +343,7 @@ namespace linker.tunnel.transport
                     {
                         IPEndPoint = ep.MapToIPv4(),
                         TransactionId = tunnelTransportInfo.TransactionId,
-                        TransactionTag = tunnelTransportInfo.TransactionTag,
+                        Configure = tunnelTransportInfo.Configure,
                         RemoteMachineId = tunnelTransportInfo.Remote.MachineId,
                         RemoteMachineName = tunnelTransportInfo.Remote.MachineName,
                         TransportName = Name,

@@ -2,7 +2,6 @@
 using linker.tunnel.connection;
 using System.Net;
 using System.Net.Sockets;
-using System.Security.Cryptography;
 
 namespace linker.messenger.pcp
 {

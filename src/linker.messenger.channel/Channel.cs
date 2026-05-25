@@ -122,56 +122,37 @@ namespace linker.messenger.channel
 
         protected async ValueTask<ITunnelConnection> ConnectTunnel(string machineId, TunnelProtocolType denyProtocols)
         {
-            //之前这个客户端已经连接过
             if (channelConnectionCaching.TryGetValue(machineId, TransactionId, out ITunnelConnection connection) && connection.Connected)
             {
                 return connection;
             }
 
-            //开始失败，说明在操作中
             if (operatingMultipleManager.StartOperation($"{machineId}@{TransactionId}") == false)
             {
-                connection = await tunnelTransfer.ConnectAsync(machineId, TransactionId, denyProtocols, flag: "relay", tunnelTypes: [TunnelType.Relay]).ConfigureAwait(false);
-                return connection;
+                return await tunnelTransfer.ConnectAsync(machineId, TransactionId, denyProtocols, configures: new() { ["flag"] = "relay" }, tunnelTypes: [TunnelType.Relay]).ConfigureAwait(false);
             }
-            _ = RelayAndP2P(machineId, denyProtocols).ContinueWith((result) =>
-            {
-                operatingMultipleManager.StopOperation($"{machineId}@{TransactionId}");
-                if (result.Result != null)
-                {
-                    channelConnectionCaching.Add(result.Result);
-                }
-            }).ConfigureAwait(false);
+            _ = RelayAndP2P(machineId, denyProtocols)
+                .ContinueWith((result) => operatingMultipleManager.StopOperation($"{machineId}@{TransactionId}"))
+                .ConfigureAwait(false);
 
             return null;
         }
         private async Task<ITunnelConnection> RelayAndP2P(string machineId, TunnelProtocolType denyProtocols)
         {
-            if (signInClientStore.Id == machineId)
+            if (signInClientStore.Id == machineId || await signInClientTransfer.GetOnline(machineId).ConfigureAwait(false) == false)
             {
                 return null;
             }
-            //不在线就不必连了
-            if (await signInClientTransfer.GetOnline(machineId).ConfigureAwait(false) == false)
-            {
-                return null;
-            }
-
             ITunnelConnection connection = await tunnelTransfer.ConnectAsync(machineId, TransactionId, denyProtocols).ConfigureAwait(false);
             if (connection != null && connection.Type != TunnelType.P2P)
             {
-                //后台打洞
                 tunnelTransfer.StartBackground(machineId, TransactionId, denyProtocols, () =>
                 {
                     return channelConnectionCaching.TryGetValue(machineId, TransactionId, out ITunnelConnection _connection)
                     && _connection.Connected
                     && _connection.Type == TunnelType.P2P;
 
-                }, (_connection) =>
-                {
-                    return Task.CompletedTask;
-
-                }, 3, 10000);
+                }, (_connection) => pcpTransfer.ConnectAsync(machineId, TransactionId, denyProtocols), 3, 10000);
             }
 
             return connection;

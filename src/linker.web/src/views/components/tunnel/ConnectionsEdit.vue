@@ -33,14 +33,14 @@
                         <a v-else href="javascript:;" class="a-line" @click="handleNode">{{ state.nodesDic[state.connection.NodeId] || $t('network.tunnel.relay') }}</a>
                     </div>
                 </el-descriptions-item>
-                <!-- <el-descriptions-item :label="$t('network.tunnel.pcp')">
+                <el-descriptions-item :label="$t('network.tunnel.pcp')">
                     <div>
                         <a v-if="state.operating.pcp" href="javascript:;" class="a-line">
                             <span>{{$t('network.tunnel.manual')}}</span><el-icon size="14" class="loading"><Loading /></el-icon>
                         </a>
-                        <a v-else href="javascript:;" class="a-line">{{$t('network.tunnel.pcp') }}</a>
+                        <a v-else href="javascript:;" class="a-line" @click="handlePcp">{{$t('network.tunnel.pcp') }}</a>
                     </div>
-                </el-descriptions-item> -->
+                </el-descriptions-item>
                 <el-descriptions-item :label="$t('network.tunnel.p2p')">
                     <div>
                         <a v-if="state.operating.hand" href="javascript:;" class="a-line">
@@ -136,6 +136,7 @@ import { injectGlobalData } from '@/provide';
 import { relayConnect, setRelaySubscribe } from '@/apis/relay';
 import { useI18n } from 'vue-i18n';
 import { removeTunnelConnection, tunnelConnect } from '@/apis/tunnel';
+import { pcpConnect } from '@/apis/pcp';
 export default {
     props: ['modelValue'],
     emits: ['change', 'update:modelValue'],
@@ -200,6 +201,14 @@ export default {
                 ElMessage.success(t('common.opered'));
             }).catch(()=>{ElMessage.success(t('common.operFail'));})
         }
+        const handlePcp = ()=>{
+            pcpConnect({
+                ToMachineId:state.device.MachineId,
+                TransactionId:state.transactionId
+            }).then(()=>{
+                ElMessage.success(t('common.opered'));
+            }).catch(()=>{ElMessage.success(t('common.operFail'));})
+        }
 
         const handleNode = () => {
             state.showNodes = true;
@@ -226,7 +235,7 @@ export default {
         })
 
         return {
-            state, handleDel,handlep2p, handleNode, handleConnect
+            state, handleDel,handlep2p, handleNode, handleConnect,handlePcp
         }
     }
 }

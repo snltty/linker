@@ -220,25 +220,21 @@ namespace linker.tunnel.transport
         public uint FlowId { get; set; }
 
         /// <summary>
-        /// 标签
+        /// 配置
         /// </summary>
-        public string TransactionTag { get; set; } = string.Empty;
+        public Dictionary<string, string> Configure { get; set; } = new();
 
         /// <summary>
         /// 目标ip列表
         /// </summary>
         public List<IPEndPoint> RemoteEndPoints { get; set; }
-
-        public string Flag { get; set; } = string.Empty;
     }
-
 
     public sealed class TunnelExIPInfo
     {
         public IPAddress IP { get; set; }
         public byte PrefixLength { get; set; }
     }
-
 
     public sealed class NetworkInfo
     {

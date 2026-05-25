@@ -23,7 +23,7 @@ namespace linker.tunnel.connection
         public string RemoteMachineId { get; init; }
         public string RemoteMachineName { get; init; }
         public string TransactionId { get; init; }
-        public string TransactionTag { get; init; }
+        public Dictionary<string, string> Configure { get; init; }
         public string TransportName { get; init; }
         public string Label { get; init; }
         public TunnelMode Mode { get; init; }
@@ -239,7 +239,6 @@ namespace linker.tunnel.connection
                         packetEncoder.Advance(memoryBlock.Length);
                     }
                     packetEncoder.AdvanceTo(result.Buffer.End);
-                    LastTicks.Update();
                 }
             }
             catch (Exception ex)

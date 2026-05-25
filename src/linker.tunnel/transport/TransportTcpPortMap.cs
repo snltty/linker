@@ -253,7 +253,7 @@ namespace linker.tunnel.transport
             {
                 socket = await tcs.WithTimeout(TimeSpan.FromMilliseconds(5000)).ConfigureAwait(false);
                 socket.KeepAlive();
-               
+
                 if (tunnelTransportInfo.SSL)
                 {
                     if (certificate == null)
@@ -285,7 +285,7 @@ namespace linker.tunnel.transport
                     Type = TunnelType,
                     Mode = TunnelMode.Server,
                     TransactionId = tunnelTransportInfo.TransactionId,
-                    TransactionTag = tunnelTransportInfo.TransactionTag,
+                    Configure = tunnelTransportInfo.Configure,
                     TransportName = tunnelTransportInfo.TransportName,
                     IPEndPoint = (socket.RemoteEndPoint as IPEndPoint).MapToIPv4(),
                     Label = string.Empty,
@@ -353,7 +353,7 @@ namespace linker.tunnel.transport
                         Socket = targetSocket,
                         IPEndPoint = (targetSocket.RemoteEndPoint as IPEndPoint).MapToIPv4(),
                         TransactionId = tunnelTransportInfo.TransactionId,
-                        TransactionTag = tunnelTransportInfo.TransactionTag,
+                        Configure = tunnelTransportInfo.Configure,
                         RemoteMachineId = tunnelTransportInfo.Remote.MachineId,
                         RemoteMachineName = tunnelTransportInfo.Remote.MachineName,
                         TransportName = Name,

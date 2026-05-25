@@ -80,7 +80,7 @@ namespace linker.tunnel.transport
                 {
                     throw new Exception("relay client connect node server fail");
                 }
-                tunnelTransportInfo.TransactionTag = ask.Info.ToJson();
+                tunnelTransportInfo.Configure["relay"] = ask.Info.ToJson();
 
                 //让对方确认中继
                 if (await tunnelMessengerAdapter.SendConnectBegin(tunnelTransportInfo).ConfigureAwait(false) == false)
@@ -140,7 +140,7 @@ namespace linker.tunnel.transport
             RelayInfo relayInfo = new RelayInfo();
             try
             {
-                relayInfo = tunnelTransportInfo.TransactionTag.DeJson<RelayInfo>();
+                relayInfo = tunnelTransportInfo.Configure["relay"].DeJson<RelayInfo>();
             }
             catch (Exception)
             {
@@ -280,7 +280,7 @@ namespace linker.tunnel.transport
                     return;
                 }
 
-                RelayInfo relay = tunnelTransportInfo.TransactionTag.DeJson<RelayInfo>();
+                RelayInfo relay = tunnelTransportInfo.Configure["relay"].DeJson<RelayInfo>();
                 await GetEndpoint(relay).ConfigureAwait(false);
                 Socket socket = await ConnectServer(relay.Node).ConfigureAwait(false);
                 if (socket == null)
@@ -366,7 +366,6 @@ namespace linker.tunnel.transport
             return null;
         }
 
-
         public virtual void OnFail(TunnelTransportInfo tunnelTransportInfo)
         {
         }
@@ -395,7 +394,6 @@ namespace linker.tunnel.transport
             }
             return new List<RelayServerNodeStoreInfo>();
         }
-
 
         private async Task<Socket> ConnectServer(IPEndPoint ep)
         {

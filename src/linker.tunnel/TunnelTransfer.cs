@@ -164,15 +164,19 @@ namespace linker.tunnel
         /// </summary>
         /// <param name="remoteMachineId">对方id</param>
         /// <param name="transactionId">事务id，随便起，你喜欢就好</param>
-        /// <param name="transactionTag">事务tag，随便起，你喜欢就好</param>
+        /// <param name="configures">一些配置</param>
         /// <param name="denyProtocols">本次连接排除那些打洞协议</param>
         /// <param name="tunnelTypes">只要哪些协议名</param>
         /// <param name="exTunnelTypes">排除哪些协议名</param>
         /// <returns></returns>
         public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId,
-            TunnelProtocolType denyProtocols, string transactionTag = "", string flag = "default", TunnelType[] tunnelTypes = null, TunnelType[] exTunnelTypes = null, CancellationToken token = default)
+            TunnelProtocolType denyProtocols, Dictionary<string, string> configures = null, TunnelType[] tunnelTypes = null, TunnelType[] exTunnelTypes = null, CancellationToken token = default)
         {
-
+            configures ??= [];
+            if(!configures.TryGetValue("flag", out string flag))
+            {
+                flag = "default";
+            }
             string key = BuildKey(remoteMachineId, transactionId, flag);
             if (operating.StartOperation(key) == false)
             {
@@ -257,14 +261,13 @@ namespace linker.tunnel
                                 {
                                     Direction = (TunnelDirection)i,
                                     TransactionId = transactionId,
-                                    TransactionTag = transactionTag,
+                                    Configure = configures,
                                     TransportName = transport.Name,
                                     TransportType = transport.ProtocolType,
                                     Local = localInfo.Result,
                                     Remote = remoteInfo.Result,
                                     SSL = transportItem.SSL,
                                     FlowId = Interlocked.Increment(ref flowid),
-                                    Flag = flag
                                 };
                                 OnConnecting(tunnelTransportInfo);
                                 ParseRemoteEndPoint(tunnelTransportInfo, transportItem.Addr);
@@ -309,7 +312,8 @@ namespace linker.tunnel
         /// <param name="tunnelTransportInfo"></param>
         public async Task OnBegin(TunnelTransportInfo tunnelTransportInfo)
         {
-            string key = BuildKey(tunnelTransportInfo.Remote.MachineId, tunnelTransportInfo.TransactionId, tunnelTransportInfo.Flag);
+            tunnelTransportInfo.Configure.TryGetValue("flag", out string flag);
+            string key = BuildKey(tunnelTransportInfo.Remote.MachineId, tunnelTransportInfo.TransactionId, flag);
             if (operating.StartOperation(key) == false)
             {
                 return;
@@ -560,7 +564,7 @@ namespace linker.tunnel
                     {
                         if (stopCallback()) break;
 
-                        connection = await ConnectAsync(remoteMachineId, transactionId, denyProtocols, flag: "back", tunnelTypes: [TunnelType.P2P], token: cts.Token).ConfigureAwait(false);
+                        connection = await ConnectAsync(remoteMachineId, transactionId, denyProtocols, configures: new() { ["flag"] = "back" }, tunnelTypes: [TunnelType.P2P], token: cts.Token).ConfigureAwait(false);
                         if (connection != null)
                         {
                             break;

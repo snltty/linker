@@ -277,14 +277,11 @@ namespace linker.messenger.serializer.memorypack
         uint FlowId => tunnelTransportInfo.FlowId;
 
         [MemoryPackInclude]
-        string TransactionTag => tunnelTransportInfo.TransactionTag;
-
-        [MemoryPackInclude]
-        string Flag => tunnelTransportInfo.Flag;
+        Dictionary<string, string> Configure => tunnelTransportInfo.Configure;
 
         [MemoryPackConstructor]
         SerializableTunnelTransportInfo(TunnelTransportWanPortInfo local, TunnelTransportWanPortInfo remote, string transactionId,
-            TunnelProtocolType transportType, string transportName, TunnelDirection direction, bool ssl, byte bufferSize, uint flowid, string transactionTag, string flag)
+            TunnelProtocolType transportType, string transportName, TunnelDirection direction, bool ssl, byte bufferSize, uint flowid, Dictionary<string, string> configure)
         {
             var tunnelTransportInfo = new TunnelTransportInfo
             {
@@ -297,8 +294,7 @@ namespace linker.messenger.serializer.memorypack
                 SSL = ssl,
                 BufferSize = bufferSize,
                 FlowId = flowid,
-                TransactionTag = transactionTag,
-                Flag = flag
+                Configure = Configure,
             };
             this.tunnelTransportInfo = tunnelTransportInfo;
         }
@@ -342,9 +338,7 @@ namespace linker.messenger.serializer.memorypack
             value.BufferSize = reader.ReadValue<byte>();
             value.FlowId = reader.ReadValue<uint>();
             if (count > 9)
-                value.TransactionTag = reader.ReadValue<string>();
-            if (count > 10)
-                value.Flag = reader.ReadValue<string>();
+                value.Configure = reader.ReadValue<Dictionary<string, string>>();
         }
     }
 
@@ -781,15 +775,15 @@ namespace linker.messenger.serializer.memorypack
         {
             var info = new PortMappingInfo
             {
-                 ClientIp = clientIp,
-                 PublicPort = publicPort,
-                 PrivatePort = privatePort,
-                 ProtocolType = protocolType,
-                 Enabled = enabled,
-                 Description = description,
-                 LeaseDuration = leaseDuration,
-                 DeviceType = deviceType,
-                 Deletable = deletable
+                ClientIp = clientIp,
+                PublicPort = publicPort,
+                PrivatePort = privatePort,
+                ProtocolType = protocolType,
+                Enabled = enabled,
+                Description = description,
+                LeaseDuration = leaseDuration,
+                DeviceType = deviceType,
+                Deletable = deletable
             };
             this.info = info;
         }

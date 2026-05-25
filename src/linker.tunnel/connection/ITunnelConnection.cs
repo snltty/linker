@@ -86,9 +86,9 @@ namespace linker.tunnel.connection
         /// </summary>
         public string TransactionId { get; }
         /// <summary>
-        /// 事务标签
+        /// 配置
         /// </summary>
-        public string TransactionTag { get; }
+        public Dictionary<string, string> Configure { get; }
         /// <summary>
         /// 协议
         /// </summary>

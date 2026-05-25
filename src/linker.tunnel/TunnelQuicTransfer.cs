@@ -27,7 +27,7 @@ namespace linker.tunnel
         }
         public async Task<ITunnelConnection> Transform(ITunnelConnection connection, TunnelTransportInfo info)
         {
-            if (connection is TunnelConnectionUdp udp == false || udp.TransactionId == "tuntap" || string.IsNullOrWhiteSpace(info.TransactionTag) == false)
+            if (connection is TunnelConnectionUdp udp == false || udp.TransactionId == "tuntap")
             {
                 return connection;
             }
@@ -77,7 +77,7 @@ namespace linker.tunnel
                         Connection = quicConnection,
                         IPEndPoint = udp.IPEndPoint.MapToIPv4(),
                         TransactionId = info.TransactionId,
-                        TransactionTag = info.TransactionTag,
+                        Configure = info.Configure,
                         RemoteMachineId = info.Remote.MachineId,
                         RemoteMachineName = info.Remote.MachineName,
                         TransportName = info.TransportName,
@@ -112,7 +112,7 @@ namespace linker.tunnel
                         Connection = quicConnection,
                         IPEndPoint = udp.IPEndPoint.MapToIPv4(),
                         TransactionId = info.TransactionId,
-                        TransactionTag = info.TransactionTag,
+                        Configure = info.Configure,
                         RemoteMachineId = info.Remote.MachineId,
                         RemoteMachineName = info.Remote.MachineName,
                         TransportName = info.TransportName,

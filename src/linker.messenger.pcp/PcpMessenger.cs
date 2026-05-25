@@ -1,6 +1,7 @@
-﻿using linker.tunnel.transport;
-using linker.libs;
+﻿using linker.libs;
 using linker.messenger.signin;
+using static linker.messenger.pcp.PcpTransfer;
+using linker.libs.extends;
 
 namespace linker.messenger.pcp
 {
@@ -20,20 +21,20 @@ namespace linker.messenger.pcp
         [MessengerId((ushort)PcpMessengerIds.Begin)]
         public void Begin(IConnection connection)
         {
-            _ = transfer.Begin(serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span));
+            _ = transfer.Begin(serializer.Deserialize<Dictionary<string,string>>(connection.ReceiveRequestWrap.Payload.Span));
             connection.Write(Helper.TrueArray);
         }
 
         [MessengerId((ushort)PcpMessengerIds.Fail)]
         public void Fail(IConnection connection)
         {
-            _ = transfer.Fail(serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span));
+            _ = transfer.Fail(serializer.Deserialize<Dictionary<string, string>>(connection.ReceiveRequestWrap.Payload.Span));
         }
 
         [MessengerId((ushort)PcpMessengerIds.Success)]
         public void Success(IConnection connection)
         {
-            _ = transfer.Success(serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span));
+            _ = transfer.Success(serializer.Deserialize<Dictionary<string, string>>(connection.ReceiveRequestWrap.Payload.Span));
         }
 
         [MessengerId((ushort)PcpMessengerIds.Nodes)]
@@ -58,18 +59,16 @@ namespace linker.messenger.pcp
         [MessengerId((ushort)PcpMessengerIds.BeginForward)]
         public async Task BeginForward(IConnection connection)
         {
-            TunnelTransportInfo info = serializer.Deserialize<TunnelTransportInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            Dictionary<string, string> configures = serializer.Deserialize<Dictionary<string, string>>(connection.ReceiveRequestWrap.Payload.Span);
+            TunnelTagInfo info = configures["pcp"].DeJson<TunnelTagInfo>();
 
-            if (signCaching.TryGet(connection.Id, info.Remote.MachineId, out SignCacheInfo from, out SignCacheInfo to))
+            if (signCaching.TryGet(connection.Id, info.ToMachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
-                info.Local.MachineName = from.MachineName;
-                info.Remote.MachineName = to.MachineName;
-
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = to.Connection,
                     MessengerId = (ushort)PcpMessengerIds.Begin,
-                    Payload = serializer.Serialize(info)
+                    Payload = serializer.Serialize(configures)
                 }).ConfigureAwait(false);
                 connection.Write(Helper.TrueArray);
             }
@@ -79,16 +78,16 @@ namespace linker.messenger.pcp
         [MessengerId((ushort)PcpMessengerIds.FailForward)]
         public async Task FailForward(IConnection connection)
         {
-            TunnelTransportInfo info = serializer.Deserialize<TunnelTransportInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id, info.Remote.MachineId, out SignCacheInfo from, out SignCacheInfo to))
+            Dictionary<string, string> configures = serializer.Deserialize<Dictionary<string, string>>(connection.ReceiveRequestWrap.Payload.Span);
+            TunnelTagInfo info = configures["pcp"].DeJson<TunnelTagInfo>();
+
+            if (signCaching.TryGet(connection.Id, info.ToMachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
-                info.Local.MachineName = from.MachineName;
-                info.Remote.MachineName = to.MachineName;
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = to.Connection,
                     MessengerId = (ushort)PcpMessengerIds.Fail,
-                    Payload = serializer.Serialize(info)
+                    Payload = serializer.Serialize(configures)
                 }).ConfigureAwait(false);
             }
         }
@@ -97,16 +96,15 @@ namespace linker.messenger.pcp
         [MessengerId((ushort)PcpMessengerIds.SuccessForward)]
         public async Task SuccessForward(IConnection connection)
         {
-            TunnelTransportInfo info = serializer.Deserialize<TunnelTransportInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            if (signCaching.TryGet(connection.Id, info.Remote.MachineId, out SignCacheInfo from, out SignCacheInfo to))
+            Dictionary<string, string> configures = serializer.Deserialize<Dictionary<string, string>>(connection.ReceiveRequestWrap.Payload.Span);
+            TunnelTagInfo info = configures["pcp"].DeJson<TunnelTagInfo>();
+            if (signCaching.TryGet(connection.Id, info.ToMachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
-                info.Local.MachineName = from.MachineName;
-                info.Remote.MachineName = to.MachineName;
                 await messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = to.Connection,
                     MessengerId = (ushort)PcpMessengerIds.Success,
-                    Payload = serializer.Serialize(info)
+                    Payload = serializer.Serialize(configures)
                 }).ConfigureAwait(false);
             }
         }
@@ -115,6 +113,7 @@ namespace linker.messenger.pcp
         public void NodesForward(IConnection connection)
         {
             string machineid = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+
             if (signCaching.TryGet(connection.Id, machineid, out SignCacheInfo from, out SignCacheInfo to))
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
