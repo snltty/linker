@@ -16,12 +16,12 @@ namespace linker.messenger.flow
     {
         private readonly FlowTunnel flowTunnel;
 
-        public FlowTuntapProxy(FlowTunnel flowTunnel, ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer, PcpTransfer pcpTransfer,
+        public FlowTuntapProxy(FlowTunnel flowTunnel, ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer,
             SignInClientTransfer signInClientTransfer, TuntapConfigTransfer tuntapConfigTransfer,
             TuntapCidrConnectionManager tuntapCidrConnectionManager, TuntapCidrDecenterManager tuntapCidrDecenterManager,
-            TuntapDecenter tuntapDecenter, ChannelConnectionCaching channelConnectionCaching) 
-            : base(signInClientStore, tunnelTransfer, pcpTransfer, signInClientTransfer,
-                  tuntapConfigTransfer, tuntapCidrConnectionManager, tuntapCidrDecenterManager, tuntapDecenter, channelConnectionCaching)
+            TuntapDecenter tuntapDecenter, ChannelConnectionCaching channelConnectionCaching,IPcpStore pcpStore) 
+            : base(signInClientStore, tunnelTransfer,  signInClientTransfer,
+                  tuntapConfigTransfer, tuntapCidrConnectionManager, tuntapCidrDecenterManager, tuntapDecenter, channelConnectionCaching, pcpStore)
         {
             this.flowTunnel = flowTunnel;
         }

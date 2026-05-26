@@ -15,7 +15,7 @@
         </el-table-column> -->
         <el-table-column prop="Addr" :label="$t('tunnel.addr')" width="155">
             <template #default="scope">
-                <template v-if="scope.row.Name != 'TcpRelay'">
+                <template v-if="scope.row.Name != 'TcpRelay' && scope.row.Name != 'PCP'">
                     <el-checkbox-group size="small" v-model="scope.row._addr" @change="handleSave" >
                         <el-checkbox-button :value="1" label="ipv6"/>
                         <el-checkbox-button :value="2" label="ipv4"/>

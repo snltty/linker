@@ -1,4 +1,5 @@
 ﻿using linker.libs.web;
+using linker.tunnel;
 using Microsoft.Extensions.DependencyInjection;
 namespace linker.messenger.pcp
 {
@@ -6,9 +7,12 @@ namespace linker.messenger.pcp
     {
         public static ServiceCollection AddPcpClient(this ServiceCollection serviceCollection)
         {
-            serviceCollection.AddSingleton<PcpTransfer>();
             serviceCollection.AddSingleton<PcpClientMessenger>();
             serviceCollection.AddSingleton<PcpApiController>();
+
+            serviceCollection.AddSingleton<TransportPcp>();
+            serviceCollection.AddSingleton<TunnelWanPortProtocolPcp>();
+
             return serviceCollection;
         }
         public static ServiceProvider UsePcpClient(this ServiceProvider serviceProvider)
@@ -18,6 +22,10 @@ namespace linker.messenger.pcp
 
             linker.messenger.api.IWebServer apiServer = serviceProvider.GetService<linker.messenger.api.IWebServer>();
             apiServer.AddPlugins(new List<IApiController> { serviceProvider.GetService<PcpApiController>() });
+
+            TunnelTransfer tunnelTransfer = serviceProvider.GetService<TunnelTransfer>();
+            tunnelTransfer.AddTransport(serviceProvider.GetService<TransportPcp>());
+            tunnelTransfer.AddProtocol(serviceProvider.GetService<TunnelWanPortProtocolPcp>());
 
             return serviceProvider;
         }

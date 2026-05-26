@@ -58,7 +58,6 @@ namespace linker.tunnel
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Info($"load tunnel transport:{string.Join(",", transports.Select(c => c.GetType().Name))}");
         }
-
         public void AddTransport(ITunnelTransport transport)
         {
             if (transports.Any(c => c.Name == transport.Name) == false)
@@ -72,10 +71,6 @@ namespace linker.tunnel
             tunnelWanPortTransfer.AddProtocol(protocol);
         }
 
-
-        /// <summary>
-        /// 刷新一下网络信息，比如路由级别，本机IP等
-        /// </summary>
         public void Refresh()
         {
             RefreshNetwork();
@@ -130,12 +125,6 @@ namespace linker.tunnel
             });
         }
 
-
-        /// <summary>
-        /// 设置成功打洞回调
-        /// </summary>
-        /// <param name="transactionId"></param>
-        /// <param name="callback"></param>
         public void SetConnectedCallback(string transactionId, Action<ITunnelConnection> callback)
         {
             if (OnConnectedDic.TryGetValue(transactionId, out List<Action<ITunnelConnection>> callbacks) == false)
@@ -145,11 +134,6 @@ namespace linker.tunnel
             }
             callbacks.Add(callback);
         }
-        /// <summary>
-        /// 移除打洞成功回调
-        /// </summary>
-        /// <param name="transactionId"></param>
-        /// <param name="callback"></param>
         public void RemoveConnectedCallback(string transactionId, Action<ITunnelConnection> callback)
         {
             if (OnConnectedDic.TryGetValue(transactionId, out List<Action<ITunnelConnection>> callbacks))
@@ -158,27 +142,24 @@ namespace linker.tunnel
             }
         }
 
+        public bool StartOperation(string remoteMachineId, string transactionId, string flag = "")
+        {
+            return operating.StartOperation(BuildKey(remoteMachineId, transactionId, flag));
+        }
+        public void StopOperation(string remoteMachineId, string transactionId, string flag = "")
+        {
+            operating.StopOperation(BuildKey(remoteMachineId, transactionId, flag));
+        }
 
-        /// <summary>
-        /// 开始连接对方
-        /// </summary>
-        /// <param name="remoteMachineId">对方id</param>
-        /// <param name="transactionId">事务id，随便起，你喜欢就好</param>
-        /// <param name="configures">一些配置</param>
-        /// <param name="denyProtocols">本次连接排除那些打洞协议</param>
-        /// <param name="tunnelTypes">只要哪些协议名</param>
-        /// <param name="exTunnelTypes">排除哪些协议名</param>
-        /// <returns></returns>
         public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId,
             TunnelProtocolType denyProtocols, Dictionary<string, string> configures = null, TunnelType[] tunnelTypes = null, TunnelType[] exTunnelTypes = null, CancellationToken token = default)
         {
             configures ??= [];
-            if(!configures.TryGetValue("flag", out string flag))
+            if (!configures.TryGetValue("flag", out string flag))
             {
                 flag = "default";
             }
-            string key = BuildKey(remoteMachineId, transactionId, flag);
-            if (operating.StartOperation(key) == false)
+            if (StartOperation(remoteMachineId, transactionId, flag) == false)
             {
                 return null;
             }
@@ -302,20 +283,17 @@ namespace linker.tunnel
             }
             finally
             {
-                operating.StopOperation(key);
+                StopOperation(remoteMachineId, transactionId, flag);
             }
             return null;
         }
-        /// <summary>
-        /// 收到对方开始连接的消息
-        /// </summary>
-        /// <param name="tunnelTransportInfo"></param>
         public async Task OnBegin(TunnelTransportInfo tunnelTransportInfo)
         {
             tunnelTransportInfo.Configure.TryGetValue("flag", out string flag);
             string key = BuildKey(tunnelTransportInfo.Remote.MachineId, tunnelTransportInfo.TransactionId, flag);
             if (operating.StartOperation(key) == false)
             {
+                _ = tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo);
                 return;
             }
             try
@@ -348,40 +326,22 @@ namespace linker.tunnel
                     LoggerHelper.Instance.Error(ex);
                 }
             }
-
-
         }
-        /// <summary>
-        /// 收到对方发来的连接失败的消息
-        /// </summary>
-        /// <param name="tunnelTransportInfo"></param>
         public void OnFail(TunnelTransportInfo tunnelTransportInfo)
         {
             ITunnelTransport _transports = transports.FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.ProtocolType == tunnelTransportInfo.TransportType);
             _transports?.OnFail(tunnelTransportInfo);
         }
-        /// <summary>
-        /// 收到对方发来的连接成功的消息
-        /// </summary>
-        /// <param name="tunnelTransportInfo"></param>
         public void OnSuccess(TunnelTransportInfo tunnelTransportInfo)
         {
             ITunnelTransport _transports = transports.FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.ProtocolType == tunnelTransportInfo.TransportType);
             _transports?.OnSuccess(tunnelTransportInfo);
         }
 
-        /// <summary>
-        /// 获取自己的外网IP，给别人调用
-        /// </summary>
-        /// <returns></returns>
         public async Task<TunnelTransportWanPortInfo> GetWanPort(TunnelWanPortProtocolInfo _info)
         {
             return await GetWanPort(_info.ProtocolType).ConfigureAwait(false);
         }
-        /// <summary>
-        /// 获取自己的外网IP
-        /// </summary>
-        /// <returns></returns>
         private async Task<TunnelTransportWanPortInfo> GetWanPort(TunnelWanPortProtocolType tunnelWanPortProtocolType)
         {
             if (tunnelMessengerAdapter.ServerHost == null || string.IsNullOrWhiteSpace(tunnelMessengerAdapter.MachineId))
@@ -413,7 +373,6 @@ namespace linker.tunnel
                 PortMapWan = portMapInfo.PublicPort,
             };
         }
-
 
         private static void OnConnecting(TunnelTransportInfo tunnelTransportInfo)
         {
@@ -457,7 +416,6 @@ namespace linker.tunnel
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Error($"tunnel connect {tunnelTransportInfo.Remote.MachineId} fail");
         }
-
 
         private void ParseRemoteEndPoint(TunnelTransportInfo tunnelTransportInfo, Addrs addr)
         {
@@ -541,7 +499,6 @@ namespace linker.tunnel
 
             return $"{remoteMachineId}@{transactionId}@{flag}";
         }
-
 
         private ConcurrentDictionary<string, CancellationTokenSource> backgroundDic = new ConcurrentDictionary<string, CancellationTokenSource>();
         public void StartBackground(string remoteMachineId, string transactionId, TunnelProtocolType denyProtocols, Func<bool> stopCallback, Func<ITunnelConnection, Task> resultCallback, int times = 10, int delay = 10000)

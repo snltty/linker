@@ -28,11 +28,11 @@ namespace linker.messenger.tuntap.client
         private readonly TuntapDecenter tuntapDecenter;
 
         public TuntapProxy(ISignInClientStore signInClientStore,
-            TunnelTransfer tunnelTransfer, PcpTransfer pcpTransfer,
+            TunnelTransfer tunnelTransfer,
             SignInClientTransfer signInClientTransfer, TuntapConfigTransfer tuntapConfigTransfer,
             TuntapCidrConnectionManager tuntapCidrConnectionManager, TuntapCidrDecenterManager tuntapCidrDecenterManager,
-            TuntapDecenter tuntapDecenter, ChannelConnectionCaching channelConnectionCaching)
-            : base(tunnelTransfer, pcpTransfer, signInClientTransfer, signInClientStore, channelConnectionCaching)
+            TuntapDecenter tuntapDecenter, ChannelConnectionCaching channelConnectionCaching,IPcpStore pcpStore)
+            : base(tunnelTransfer,  signInClientTransfer, signInClientStore, channelConnectionCaching, pcpStore)
         {
             this.tuntapConfigTransfer = tuntapConfigTransfer;
             this.tuntapCidrConnectionManager = tuntapCidrConnectionManager;

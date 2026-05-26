@@ -74,26 +74,22 @@ namespace linker.messenger.channel
         protected virtual string TransactionId { get; }
 
         private readonly TunnelTransfer tunnelTransfer;
-        private readonly PcpTransfer pcpTransfer;
         private readonly SignInClientTransfer signInClientTransfer;
         private readonly ISignInClientStore signInClientStore;
         private readonly ChannelConnectionCaching channelConnectionCaching;
         private readonly OperatingMultipleManager operatingMultipleManager = new OperatingMultipleManager();
+        private readonly IPcpStore pcpStore;
 
-        public Channel(TunnelTransfer tunnelTransfer, PcpTransfer pcpTransfer,
-            SignInClientTransfer signInClientTransfer, ISignInClientStore signInClientStore, ChannelConnectionCaching channelConnectionCaching)
+        public Channel(TunnelTransfer tunnelTransfer,
+            SignInClientTransfer signInClientTransfer, ISignInClientStore signInClientStore, ChannelConnectionCaching channelConnectionCaching, IPcpStore pcpStore)
         {
             this.tunnelTransfer = tunnelTransfer;
-            this.pcpTransfer = pcpTransfer;
             this.signInClientTransfer = signInClientTransfer;
             this.signInClientStore = signInClientStore;
             this.channelConnectionCaching = channelConnectionCaching;
-
-            //监听打洞成功
+            this.pcpStore = pcpStore;
             tunnelTransfer.SetConnectedCallback(TransactionId, OnConnected);
-            //监听节点中继成功回调
-            pcpTransfer.SetConnectedCallback(TransactionId, OnConnected);
-
+            
         }
         public virtual void Add(ITunnelConnection connection)
         {
@@ -112,7 +108,7 @@ namespace linker.messenger.channel
             {
                 TimerHelper.SetTimeout(connectionOld.Dispose, 5000);
             }
-            pcpTransfer.AddConnection(connection);
+            pcpStore.AddHistory(connection);
             connection = channelConnectionCaching.Add(connection);
             Version.Increment();
 
@@ -152,7 +148,7 @@ namespace linker.messenger.channel
                     && _connection.Connected
                     && _connection.Type == TunnelType.P2P;
 
-                }, (_connection) => pcpTransfer.ConnectAsync(machineId, TransactionId, denyProtocols), 3, 10000);
+                }, (_connection) => Task.CompletedTask, 3, 10000);
             }
 
             return connection;

@@ -1,21 +1,22 @@
 ﻿using linker.libs.extends;
 using linker.libs.web;
+using linker.tunnel;
+using linker.tunnel.connection;
 
 namespace linker.messenger.pcp
 {
     public sealed class PcpApiController : IApiController
     {
-        public PcpApiController(PcpTransfer pcpTransfer)
+        private readonly TunnelTransfer tunnelTransfer;
+        public PcpApiController(TunnelTransfer tunnelTransfer)
         {
-            this.pcpTransfer = pcpTransfer;
+            this.tunnelTransfer = tunnelTransfer;
         }
-
-        private readonly PcpTransfer pcpTransfer;
-
         public bool Connect(ApiControllerParamsInfo param)
         {
             PcpConnectInfo info = param.Content.DeJson<PcpConnectInfo>();
-            _ = pcpTransfer.ConnectAsync(info.ToMachineId, info.TransactionId);
+            _ = tunnelTransfer.ConnectAsync(info.ToMachineId, info.TransactionId, TunnelProtocolType.Udp,
+               configures: new() { ["flag"] = "pcp", ["pcp"] = new PcpInfo { NodeId = info.NodeId }.ToJson() }, tunnelTypes: [TunnelType.PCP]);
             return true;
         }
 

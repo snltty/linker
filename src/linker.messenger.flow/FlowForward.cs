@@ -17,9 +17,9 @@ namespace linker.messenger.flow
     {
         private readonly FlowForward forwardFlow;
         private readonly FlowTunnel flowTunnel;
-        public FlowForwardProxy(FlowForward forwardFlow, FlowTunnel flowTunnel, ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer, PcpTransfer pcpTransfer,
-            SignInClientTransfer signInClientTransfer, ChannelConnectionCaching  channelConnectionCaching) 
-            : base(signInClientStore, tunnelTransfer,  pcpTransfer, signInClientTransfer, channelConnectionCaching)
+        public FlowForwardProxy(FlowForward forwardFlow, FlowTunnel flowTunnel, ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer,
+            SignInClientTransfer signInClientTransfer, ChannelConnectionCaching channelConnectionCaching, IPcpStore pcpStore)
+            : base(signInClientStore, tunnelTransfer, signInClientTransfer, channelConnectionCaching, pcpStore)
         {
             this.forwardFlow = forwardFlow;
             this.flowTunnel = flowTunnel;

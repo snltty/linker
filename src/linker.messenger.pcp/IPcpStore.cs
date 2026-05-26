@@ -13,5 +13,6 @@ namespace linker.messenger.pcp
     {
         public PcpHistoryInfo PcpHistory { get; }
         public void AddHistory(ITunnelConnection connection);
+        public void RemoveHistorys(List<string> historys);
     }
 }

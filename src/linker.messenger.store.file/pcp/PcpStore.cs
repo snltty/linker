@@ -18,5 +18,11 @@ namespace linker.messenger.store.file.pcp
             runningConfig.Data.PcpHistory.History = runningConfig.Data.PcpHistory.History.Distinct().ToList();
             runningConfig.Data.Update();
         }
+
+        public void RemoveHistorys(List<string> historys)
+        {
+            runningConfig.Data.PcpHistory.History.RemoveAll(h => historys.Contains(h));
+            runningConfig.Data.Update();
+        }
     }
 }

@@ -17,8 +17,8 @@ export default {
         const state = reactive({
             transactionId:props.transactionId,
             connecting:computed(()=>{
-                if(props.row.hook_operating && props.row.hook_operating[props.transactionId]){
-                    return props.row.hook_operating[props.transactionId].loading;
+                if(props.row.hook_operating ){
+                    return (props.row.hook_operating[props.transactionId] || {loading:false}).loading;
                 }
                 return false;
             }),
