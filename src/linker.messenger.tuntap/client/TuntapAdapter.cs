@@ -119,9 +119,9 @@ namespace linker.messenger.tuntap.client
             //tuntapDecenter.Refresh();
             await ValueTask.CompletedTask.ConfigureAwait(false);
         }
-        public async ValueTask Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer)
+        public  ValueTask<bool> Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer)
         {
-            await tuntapTransfer.Write(connection.RemoteMachineId, buffer).ConfigureAwait(false);
+            return tuntapTransfer.Write(connection.RemoteMachineId, buffer);
         }
 
 

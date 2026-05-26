@@ -14,7 +14,7 @@ namespace linker.messenger.tuntap.client
     public interface ITuntapProxyCallback
     {
         public ValueTask Close(ITunnelConnection connection);
-        public ValueTask Receive(ITunnelConnection connection, ReadOnlyMemory<byte> packet);
+        public ValueTask<bool> Receive(ITunnelConnection connection, ReadOnlyMemory<byte> packet);
     }
 
     public class TuntapProxy : Channel, ITunnelConnectionReceiveCallback

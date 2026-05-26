@@ -46,9 +46,9 @@ namespace linker.messenger.tuntap.client
             linkerTunDeviceAdapter.Initialize(linkerTunDevice, linkerTunDeviceCallback);
         }
 
-        public async ValueTask<bool> Write(string srcId, ReadOnlyMemory<byte> buffer)
+        public ValueTask<bool> Write(string srcId, ReadOnlyMemory<byte> buffer)
         {
-            return await linkerTunDeviceAdapter.Write(srcId, buffer).ConfigureAwait(false);
+            return linkerTunDeviceAdapter.Write(srcId, buffer);
         }
 
         /// <summary>
@@ -88,7 +88,18 @@ namespace linker.messenger.tuntap.client
                 finally
                 {
 
-                    OnSetupAfter();
+                    try
+                    {
+                        OnSetupAfter();
+                    }
+                    catch (Exception ex)
+                    {
+
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        {
+                            LoggerHelper.Instance.Error(ex);
+                        }
+                    }
                     operatingManager.StopOperation();
                 }
             });
@@ -118,7 +129,17 @@ namespace linker.messenger.tuntap.client
             }
             finally
             {
-                OnShutdownAfter();
+                try
+                {
+                    OnShutdownAfter();
+                }
+                catch (Exception ex)
+                {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Error(ex);
+                    }
+                }
                 operatingManager.StopOperation();
             }
             return true;
@@ -225,9 +246,9 @@ namespace linker.messenger.tuntap.client
         /// </summary>
         /// <param name="order"></param>
         /// <returns></returns>
-        public async Task<bool> CheckAvailable(bool order = false)
+        public Task<bool> CheckAvailable(bool order = false)
         {
-            return await linkerTunDeviceAdapter.CheckAvailable(order).ConfigureAwait(false);
+            return linkerTunDeviceAdapter.CheckAvailable(order);
         }
     }
 }
