@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.libs.extends;
 using linker.messenger.channel;
 using linker.messenger.pcp;
 using linker.messenger.signin;
@@ -31,8 +32,8 @@ namespace linker.messenger.tuntap.client
             TunnelTransfer tunnelTransfer,
             SignInClientTransfer signInClientTransfer, TuntapConfigTransfer tuntapConfigTransfer,
             TuntapCidrConnectionManager tuntapCidrConnectionManager, TuntapCidrDecenterManager tuntapCidrDecenterManager,
-            TuntapDecenter tuntapDecenter, ChannelConnectionCaching channelConnectionCaching,IPcpStore pcpStore)
-            : base(tunnelTransfer,  signInClientTransfer, signInClientStore, channelConnectionCaching, pcpStore)
+            TuntapDecenter tuntapDecenter, ChannelConnectionCaching channelConnectionCaching, IPcpStore pcpStore)
+            : base(tunnelTransfer, signInClientTransfer, signInClientStore, channelConnectionCaching, pcpStore)
         {
             this.tuntapConfigTransfer = tuntapConfigTransfer;
             this.tuntapCidrConnectionManager = tuntapCidrConnectionManager;
@@ -44,63 +45,43 @@ namespace linker.messenger.tuntap.client
         {
             Add(connection);
             connection.BeginReceive(this, null);
-            //有哪些目标IP用了相同目标隧道，更新一下
             tuntapCidrConnectionManager.Update(connection);
         }
 
-        /// <summary>
-        /// 收到隧道数据，写入网卡
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="buffer"></param>
-        /// <param name="state"></param>
-        /// <returns></returns>
-        public async Task Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer, object state)
+        public async ValueTask Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer, object state)
         {
             await Callback.Receive(connection, buffer).ConfigureAwait(false);
         }
-        /// <summary>
-        /// 隧道关闭
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="state"></param>
-        /// <returns></returns>
-        public async Task Closed(ITunnelConnection connection, object state)
+
+        public async ValueTask Closed(ITunnelConnection connection, object state)
         {
             await Callback.Close(connection).ConfigureAwait(false);
             Version.Increment();
         }
-
-        /// <summary>
-        /// 收到网卡数据，发送给对方
-        /// </summary>
-        /// <param name="packet"></param>
-        /// <returns></returns>
-        public async Task InputPacket(LinkerTunDevicPacket packet)
+        public async ValueTask<bool> InputPacket(LinkerTunDevicPacket packet)
         {
-            //IPV4广播组播、IPV6 多播
             if ((packet.IPV4Broadcast || packet.IPV6Multicast) && tuntapConfigTransfer.Info.Multicast == false && Connections.IsEmpty == false)
             {
-                await Task.WhenAll(Connections.Values.Where(c => c != null && c.Connected).Select(c => c.SendAsync(packet.Buffer, packet.Offset, packet.Length))).ConfigureAwait(false);
-                return;
+                foreach (var item in Connections.Values)
+                {
+                    await item.SendAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);
+                }
+                return true;
             }
-
-            //IPV4+IPV6 单播
             uint ip = BinaryPrimitives.ReadUInt32BigEndian(packet.DstIp.Span[^4..]);
             if (tuntapCidrConnectionManager.TryGet(ip, out ITunnelConnection connection) && connection.Connected)
             {
-                await connection.SendAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);
-                return;
+                await connection.SendAsync(packet.Buffer, packet.Offset, packet.Length);
+                return true;
             }
-
             await ConnectTunnel(ip).ConfigureAwait(false);
-
+            return false;
         }
-        public async Task<bool> InputPacket(LinkerSrcProxyReadPacket packet)
+        public async ValueTask<bool> InputPacket(LinkerSrcProxyReadPacket packet)
         {
             if (tuntapCidrConnectionManager.TryGet(packet.DstAddr, out ITunnelConnection connection) && connection.Connected)
             {
-                return  await connection.SendAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);
+                return await connection.SendAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);
             }
             await ConnectTunnel(packet.DstAddr).ConfigureAwait(false);
             if (tuntapCidrConnectionManager.TryGet(packet.DstAddr, out connection) && connection.Connected)
@@ -119,19 +100,13 @@ namespace linker.messenger.tuntap.client
             return false;
         }
 
-
-        /// <summary>
-        /// 打洞或者中继
-        /// </summary>
-        /// <param name="ip"></param>
-        /// <returns></returns>
-        private async Task ConnectTunnel(uint ip)
+        private async ValueTask ConnectTunnel(uint ip)
         {
             ITunnelConnection connection = null;
 
-            if (tuntapCidrDecenterManager.FindValue(ip, out string machineId,out uint dst,out uint prefix))
+            if (tuntapCidrDecenterManager.FindValue(ip, out string machineId, out uint dst, out uint prefix))
             {
-                connection = await ConnectTunnel(machineId, TunnelProtocolType.None).ConfigureAwait(false);
+                connection = await ConnectTunnel(machineId, new Dictionary<string, string>() { ["fec"] = tuntapConfigTransfer.Info.FecProfile.ToJson() }).ConfigureAwait(false);
             }
             if (connection != null)
             {

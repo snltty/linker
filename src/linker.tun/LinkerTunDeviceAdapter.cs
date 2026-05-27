@@ -103,9 +103,9 @@ namespace linker.tun
             return true;
         }
 
-        public async Task<bool> Callback(LinkerSrcProxyReadPacket packet)
+        public ValueTask<bool> Callback(LinkerSrcProxyReadPacket packet)
         {
-            return await linkerTunDeviceCallback.Callback(packet);
+            return linkerTunDeviceCallback.Callback(packet);
         }
         public bool Callback(uint ip)
         {

@@ -2,7 +2,7 @@
 using linker.libs.extends;
 using linker.libs.timer;
 using linker.messenger.channel;
-using linker.messenger.forward.proxy;
+using linker.messenger.forward;
 using linker.messenger.pcp;
 using linker.messenger.signin;
 using linker.tunnel;

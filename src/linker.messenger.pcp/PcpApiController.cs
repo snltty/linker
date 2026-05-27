@@ -15,8 +15,9 @@ namespace linker.messenger.pcp
         public bool Connect(ApiControllerParamsInfo param)
         {
             PcpConnectInfo info = param.Content.DeJson<PcpConnectInfo>();
-            _ = tunnelTransfer.ConnectAsync(info.ToMachineId, info.TransactionId, TunnelProtocolType.Udp,
-               configures: new() { ["flag"] = "pcp", ["pcp"] = new PcpInfo { NodeId = info.NodeId }.ToJson() }, tunnelTypes: [TunnelType.PCP]);
+            info.Configures["flag"] = "pcp";
+            info.Configures["pcp"] = new PcpInfo { NodeId = info.NodeId }.ToJson();
+            _ = tunnelTransfer.ConnectAsync(info.ToMachineId, info.TransactionId, info.Configures, tunnelTypes: [TunnelType.PCP]);
             return true;
         }
 
@@ -28,5 +29,6 @@ namespace linker.messenger.pcp
         public string ToMachineId { get; set; }
         public string TransactionId { get; set; }
         public string NodeId { get; set; }
+        public Dictionary<string, string> Configures { get; set; } = [];
     }
 }

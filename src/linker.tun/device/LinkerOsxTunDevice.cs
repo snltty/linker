@@ -1,8 +1,7 @@
 ﻿using linker.libs;
+using linker.libs.extends;
 using Microsoft.Win32.SafeHandles;
-using System.Buffers.Binary;
 using System.Net;
-using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
@@ -423,81 +422,32 @@ pass inet proto icmp all
         public byte[] Read(out int length)
         {
             length = 0;
-            if (safeFileHandle == null || fsRead == null) return Helper.EmptyArray;
-
-            // UTUN: [AF(4) | IP(...)]
-            int n = fsRead.Read(buffer, 0, buffer.Length);
-            if (n < 5) return Helper.EmptyArray;
-
-            // AF header BIG-ENDIAN
-            uint af = BinaryPrimitives.ReadUInt32BigEndian(buffer.AsSpan(0, 4));
-            if (af != 2u && af != 30u)  // AF_INET=2, AF_INET6=30
+            if (safeFileHandle == null || fsRead == null)
+            {
                 return Helper.EmptyArray;
+            }
 
-            int payloadLen = n - 4;
+            length = fsRead.Read(buffer.AsSpan(4));
+            length.ToBytes(buffer.AsSpan());
+            buffer[2] = 0;
+            buffer[3] = 0;
 
-            // Your pipeline format: [LEN_LE(4) | IP]
-            BinaryPrimitives.WriteInt32LittleEndian(buffer.AsSpan(0, 4), payloadLen);
-            Buffer.BlockCopy(buffer, 4, buffer, 4, payloadLen);
-
-            length = payloadLen + 4;
+            length += 4;
             return buffer;
         }
 
         public bool Write(ReadOnlyMemory<byte> packet)
         {
-            if (safeFileHandle == null || fsWrite == null) return false;
+            if (safeFileHandle == null || fsWrite == null)
+            {
+                return false;
+            }
 
             lock (writeLockObj)
             {
                 try
                 {
-                    var span = packet.Span;
-                    if (span.Length < 1) return false;
-
-                    ReadOnlySpan<byte> ipSpan;
-
-                    // 1) UTUN frame? (AF header big-endian: 0x00000002 or 0x0000001E)
-                    if (span.Length >= 5)
-                    {
-                        uint afBe = BinaryPrimitives.ReadUInt32BigEndian(span.Slice(0, 4));
-                        if (afBe == 2u || afBe == 30u)
-                        {
-                            // Already [AF_BE][IP] -> write directly
-                            fsWrite.Write(span);
-                            return true;
-                        }
-                    }
-
-                    // 2) Raw IP packet (first nibble 4 or 6)
-                    byte v = (byte)(span[0] >> 4);
-                    if (v == 4 || v == 6)
-                    {
-                        ipSpan = span; // [IP]
-                    }
-                    else
-                    {
-                        // 3) [LEN_LE][IP] frame
-                        if (span.Length < 5) return false;
-                        int payloadLen = BinaryPrimitives.ReadInt32LittleEndian(span.Slice(0, 4));
-                        if (payloadLen <= 0 || payloadLen > span.Length - 4) return false;
-
-                        ipSpan = span.Slice(4, payloadLen);
-
-                        // Safety check
-                        byte v2 = (byte)(ipSpan[0] >> 4);
-                        if (v2 != 4 && v2 != 6) return false;
-                        v = v2;
-                    }
-
-                    uint af = (v == 6) ? 30u : 2u; // AF_INET6 / AF_INET
-
-                    // Create UTUN frame: [AF_BE(4)] + [IP]
-                    byte[] outBuf = new byte[4 + ipSpan.Length];
-                    BinaryPrimitives.WriteUInt32BigEndian(outBuf.AsSpan(0, 4), af);
-                    ipSpan.CopyTo(outBuf.AsSpan(4));
-
-                    fsWrite.Write(outBuf, 0, outBuf.Length);
+                    fsWrite.Write(packet.Span);
                     fsWrite.Flush();
                     return true;
                 }

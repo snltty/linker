@@ -109,7 +109,7 @@ namespace linker.messenger.pcp
 
                         Dictionary<string, string> configures = new() { ["flag"] = _transactionId, [_transactionId] = tag };
 
-                        connection = await tunnelTransfer.ConnectAsync(node, _transactionId, TunnelProtocolType.None, tunnelTypes: [TunnelType.P2P], configures: configures).ConfigureAwait(false);
+                        connection = await tunnelTransfer.ConnectAsync(node, _transactionId, configures: configures, tunnelTypes: [TunnelType.P2P]).ConfigureAwait(false);
                         if (connection == null)
                         {
                             continue;
@@ -155,7 +155,7 @@ namespace linker.messenger.pcp
             try
             {
                 Dictionary<string, string> configures = new() { ["flag"] = _transactionId, [_transactionId] = tunnelTransportInfo.Configure[_transactionId] };
-                ITunnelConnection connection = await tunnelTransfer.ConnectAsync(tag.NodeId, _transactionId, TunnelProtocolType.None, tunnelTypes: [TunnelType.P2P], configures: configures).ConfigureAwait(false);
+                ITunnelConnection connection = await tunnelTransfer.ConnectAsync(tag.NodeId, _transactionId, configures: configures, tunnelTypes: [TunnelType.P2P]).ConfigureAwait(false);
                 if (connection != null)
                 {
                     OnConnected(connection, tunnelTransportInfo);

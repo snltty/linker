@@ -22,9 +22,6 @@ echo F|xcopy "src\\linker.app\\bin\\Release\\net8.0-android\\publish\\com.snltty
 for %%r in (win-x86,win-x64,win-arm64,anywhere) do (
 	echo F|xcopy "src\\linker.tray.win\\dist\\*" "public\\extends\\%%r\\linker-%%r\\*"  /s /f /h /y
 	echo F|xcopy "src\\linker.route.win\\dist\\*" "public\\extends\\%%r\\linker-%%r\\*"  /s /f /h /y
-	echo F|xcopy "src\\linker\\msquic.dll" "public\\extends\\%%r\\linker-%%r\\msquic.dll"  /s /f /h /y
-	echo F|xcopy "src\\linker\\msquic-%%r.dll" "public\\extends\\%%r\\linker-%%r\\msquic.dll"  /s /f /h /y
-	echo F|xcopy "src\\linker\\msquic-openssl3-%%r.dll" "public\\extends\\%%r\\linker-%%r\\msquic-openssl.dll"  /s /f /h /y
 	echo F|xcopy "src\\linker\\wintun-%%r.dll" "public\\extends\\%%r\\linker-%%r\\wintun.dll"  /s /f /h /y
 )
 

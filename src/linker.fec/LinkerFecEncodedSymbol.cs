@@ -608,7 +608,7 @@ public sealed class LinkerFecEncodedSymbol
             throw new ArgumentOutOfRangeException(nameof(symbolId), symbolId, "Symbol id is outside the block.");
         }
 
-        if (blockLength > (long)sourceSymbolCount * (symbolSize + sizeof(int)))
+        if (blockLength > (long)sourceSymbolCount * (symbolSize + LinkerFecOptions.RecordLengthPrefixSize))
         {
             throw new ArgumentOutOfRangeException(nameof(blockLength), blockLength, "Decoded record list length exceeds source symbol capacity.");
         }
@@ -626,7 +626,7 @@ public sealed class LinkerFecEncodedSymbol
 
     internal static int GetDecodedRecordCapacity(int sourceSymbolCount, int symbolSize)
     {
-        return checked(sourceSymbolCount * (symbolSize + sizeof(int)));
+        return checked(sourceSymbolCount * (symbolSize + LinkerFecOptions.RecordLengthPrefixSize));
     }
 
     private static bool IsValidRepairPayloadLength(

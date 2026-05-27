@@ -222,7 +222,7 @@ namespace linker.tunnel.transport
         /// <summary>
         /// 配置
         /// </summary>
-        public Dictionary<string, string> Configure { get; set; } = new();
+        public Dictionary<string, string> Configure { get; set; } = [];
 
         /// <summary>
         /// 目标ip列表

@@ -189,9 +189,13 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         TuntapVlsmStatus VlsmStatus => info.VlsmStatus;
 
+        [MemoryPackInclude]
+        List<TuntapFecProfileInfo> FecProfile => info.FecProfile;
+
         [MemoryPackConstructor]
         SerializableTuntapInfo(string machineId, TuntapStatus status, IPAddress ip, byte prefixLength, string name,
-            List<TuntapLanInfo> lans, IPAddress wan, string setupError, string natError, string systemInfo, List<TuntapForwardInfo> forwards, TuntapSwitch Switch, string networkName, int mtu, int mssfix, TuntapVlsmStatus vlsmStatus)
+            List<TuntapLanInfo> lans, IPAddress wan, string setupError, string natError, string systemInfo, List<TuntapForwardInfo> forwards,
+            TuntapSwitch Switch, string networkName, int mtu, int mssfix, TuntapVlsmStatus vlsmStatus, List<TuntapFecProfileInfo> fecProfile)
         {
             var info = new TuntapInfo
             {
@@ -210,7 +214,8 @@ namespace linker.messenger.serializer.memorypack
                 NetworkName = networkName,
                 Mtu = mtu,
                 MssFix = mssfix,
-                VlsmStatus = vlsmStatus
+                VlsmStatus = vlsmStatus,
+                FecProfile = fecProfile
             };
             this.info = info;
         }
@@ -268,6 +273,9 @@ namespace linker.messenger.serializer.memorypack
 
             if (count > 15)
                 value.VlsmStatus = reader.ReadValue<TuntapVlsmStatus>();
+
+            if (count > 16)
+                value.FecProfile = reader.ReadValue<List<TuntapFecProfileInfo>>();
         }
     }
 
@@ -709,6 +717,65 @@ namespace linker.messenger.serializer.memorypack
             value.IP = reader.ReadValue<IPAddress>();
             value.PrefixLength = reader.ReadValue<byte>();
             value.Name = reader.ReadValue<string>();
+
+        }
+    }
+
+
+    [MemoryPackable]
+    public readonly partial struct SerializableTuntapFecProfileInfo
+    {
+        [MemoryPackIgnore]
+        public readonly TuntapFecProfileInfo info;
+
+        [MemoryPackInclude]
+        int SourceSymbols => info.SourceSymbols;
+        [MemoryPackInclude]
+        int RepairSymbols => info.RepairSymbols;
+
+
+        [MemoryPackConstructor]
+        SerializableTuntapFecProfileInfo(int sourceSymbols, int repairSymbols)
+        {
+            var info = new TuntapFecProfileInfo
+            {
+                SourceSymbols = sourceSymbols,
+                RepairSymbols = repairSymbols
+            };
+            this.info = info;
+        }
+
+        public SerializableTuntapFecProfileInfo(TuntapFecProfileInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class TuntapFecProfileInfoFormatter : MemoryPackFormatter<TuntapFecProfileInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TuntapFecProfileInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableTuntapFecProfileInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref TuntapFecProfileInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            reader.TryReadObjectHeader(out byte count);
+            value = new TuntapFecProfileInfo();
+            value.SourceSymbols = reader.ReadValue<int>();
+            value.SourceSymbols = reader.ReadValue<int>();
 
         }
     }

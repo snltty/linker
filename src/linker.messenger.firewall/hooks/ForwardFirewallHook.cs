@@ -1,12 +1,12 @@
 ﻿
-using linker.messenger.forward.proxy;
+using linker.forward;
 using linker.nat;
 using System.Net;
 using System.Net.Sockets;
 
 namespace linker.messenger.firewall.hooks
 {
-    public sealed class ForwardFirewallHook : ILinkerForwardHook
+    public sealed class ForwardFirewallHook : IForwardHook
     {
         private readonly LinkerFirewall linkerFirewall;
         public ForwardFirewallHook(LinkerFirewall linkerFirewall)

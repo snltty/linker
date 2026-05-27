@@ -13,6 +13,8 @@ namespace linker.fec;
 /// </summary>
 public sealed class LinkerFecCodec : IDisposable
 {
+    private const int RecordLengthPrefixSize = LinkerFecOptions.RecordLengthPrefixSize;
+
     private readonly LinkerFecOptions _options;
     private readonly Dictionary<ulong, DecoderBlock> _decoderBlocks = [];
     private byte[][]? _repairCoefficientCache;
@@ -48,9 +50,9 @@ public sealed class LinkerFecCodec : IDisposable
     public long FecRecoveredPacketCount { get; private set; }
 
     /// <summary>
-    /// Encodes one length-prefixed application record list synchronously and writes all generated frames into
+    /// Encodes one 2-byte length-prefixed application record list synchronously and writes all generated frames into
     /// <paramref name="destination"/> as [4-byte frame length][frame] records.
-    /// The length prefix is little-endian and does not include the 4 prefix bytes.
+    /// The record length prefix is little-endian and does not include the 2 prefix bytes.
     /// </summary>
     public int EncodePacket(
         byte[] rawPacket,
@@ -64,9 +66,9 @@ public sealed class LinkerFecCodec : IDisposable
     }
 
     /// <summary>
-    /// Encodes one length-prefixed application record list synchronously and writes all generated frames into
+    /// Encodes one 2-byte length-prefixed application record list synchronously and writes all generated frames into
     /// <paramref name="destination"/> as [4-byte frame length][frame] records.
-    /// The length prefix is little-endian and does not include the 4 prefix bytes.
+    /// The record length prefix is little-endian and does not include the 2 prefix bytes.
     /// </summary>
     public int EncodePacket(
         ReadOnlyMemory<byte> rawPacket,
@@ -78,9 +80,9 @@ public sealed class LinkerFecCodec : IDisposable
     }
 
     /// <summary>
-    /// Encodes one length-prefixed application record list synchronously and writes all generated frames into
+    /// Encodes one 2-byte length-prefixed application record list synchronously and writes all generated frames into
     /// <paramref name="destination"/> as [4-byte frame length][frame] records.
-    /// The length prefix is little-endian and does not include the 4 prefix bytes.
+    /// The record length prefix is little-endian and does not include the 2 prefix bytes.
     /// </summary>
     public int EncodePacket(
         ReadOnlySpan<byte> rawPacket,
@@ -106,7 +108,7 @@ public sealed class LinkerFecCodec : IDisposable
     }
 
     /// <summary>
-    /// Tries to encode one length-prefixed application record list synchronously into [4-byte frame length][frame]
+    /// Tries to encode one 2-byte length-prefixed application record list synchronously into [4-byte frame length][frame]
     /// records. Returns false if <paramref name="destination"/> is too small.
     /// </summary>
     public bool TryEncodePacket(
@@ -122,7 +124,7 @@ public sealed class LinkerFecCodec : IDisposable
     }
 
     /// <summary>
-    /// Tries to encode one length-prefixed application record list synchronously into [4-byte frame length][frame]
+    /// Tries to encode one 2-byte length-prefixed application record list synchronously into [4-byte frame length][frame]
     /// records. Returns false if <paramref name="destination"/> is too small.
     /// </summary>
     public bool TryEncodePacket(
@@ -136,7 +138,7 @@ public sealed class LinkerFecCodec : IDisposable
     }
 
     /// <summary>
-    /// Tries to encode one length-prefixed application record list synchronously into [4-byte frame length][frame]
+    /// Tries to encode one 2-byte length-prefixed application record list synchronously into [4-byte frame length][frame]
     /// records. Returns false if <paramref name="destination"/> is too small.
     /// </summary>
     public bool TryEncodePacket(
@@ -237,7 +239,7 @@ public sealed class LinkerFecCodec : IDisposable
 
     /// <summary>
     /// Tries to decode one FEC frame. On success, <paramref name="packetKinds"/> receives one entry per decoded
-    /// [4-byte length][payload] record, in the same order as those records are written to <paramref name="destination"/>.
+    /// [2-byte length][payload] record, in the same order as those records are written to <paramref name="destination"/>.
     /// </summary>
     public bool TryDecodeFrame(
         ReadOnlyMemory<byte> encodedFrame,
@@ -274,7 +276,7 @@ public sealed class LinkerFecCodec : IDisposable
 
     /// <summary>
     /// Tries to decode one FEC frame. On success, <paramref name="packetKinds"/> receives one entry per decoded
-    /// [4-byte length][payload] record, in the same order as those records are written to <paramref name="destination"/>.
+    /// [2-byte length][payload] record, in the same order as those records are written to <paramref name="destination"/>.
     /// </summary>
     public bool TryDecodeFrame(
         ReadOnlySpan<byte> encodedFrame,
@@ -938,8 +940,8 @@ public sealed class LinkerFecCodec : IDisposable
 
     private static ReadOnlySpan<byte> GetSingleRecordPayload(ReadOnlySpan<byte> record)
     {
-        var packetLength = BinaryPrimitives.ReadInt32LittleEndian(record[..sizeof(int)]);
-        return record.Slice(sizeof(int), packetLength);
+        var packetLength = ReadRecordLength(record);
+        return record.Slice(RecordLengthPrefixSize, packetLength);
     }
 
     private static int BuildSourceSegments(
@@ -952,18 +954,13 @@ public sealed class LinkerFecCodec : IDisposable
         var sourceCount = 0;
         while (offset < records.Length)
         {
-            if (records.Length - offset < sizeof(int))
+            if (records.Length - offset < RecordLengthPrefixSize)
             {
                 throw new ArgumentException("Record list ended inside a packet length prefix.", nameof(records));
             }
 
-            var packetLength = BinaryPrimitives.ReadInt32LittleEndian(records.Slice(offset, sizeof(int)));
-            if (packetLength < 0)
-            {
-                throw new ArgumentException("Packet length prefix cannot be negative.", nameof(records));
-            }
-
-            var recordLength = checked(sizeof(int) + packetLength);
+            var packetLength = ReadRecordLength(records, offset);
+            var recordLength = checked(RecordLengthPrefixSize + packetLength);
             if (recordLength > records.Length - offset)
             {
                 throw new ArgumentException("Packet length prefix exceeds the remaining payload bytes.", nameof(records));
@@ -985,7 +982,7 @@ public sealed class LinkerFecCodec : IDisposable
                     "Application record count exceeds the configured source symbol limit.");
             }
 
-            sourceOffsets[sourceCount] = offset + sizeof(int);
+            sourceOffsets[sourceCount] = offset + RecordLengthPrefixSize;
             sourceLengths[sourceCount] = packetLength;
             sourceCount++;
             offset += recordLength;
@@ -1047,29 +1044,23 @@ public sealed class LinkerFecCodec : IDisposable
     {
         error = string.Empty;
         packetCount = 0;
-        if (records.Length < sizeof(int))
+        if (records.Length < RecordLengthPrefixSize)
         {
-            error = "Expected at least one [4-byte length][payload] record.";
+            error = "Expected at least one [2-byte length][payload] record.";
             return false;
         }
 
         var offset = 0;
         while (offset < records.Length)
         {
-            if (records.Length - offset < sizeof(int))
+            if (records.Length - offset < RecordLengthPrefixSize)
             {
                 error = "Record list ended inside a packet length prefix.";
                 return false;
             }
 
-            var packetLength = BinaryPrimitives.ReadInt32LittleEndian(records.Slice(offset, sizeof(int)));
-            if (packetLength < 0)
-            {
-                error = "Packet length prefix cannot be negative.";
-                return false;
-            }
-
-            offset += sizeof(int);
+            var packetLength = ReadRecordLength(records, offset);
+            offset += RecordLengthPrefixSize;
             if (packetLength > records.Length - offset)
             {
                 error = "Packet length prefix exceeds the remaining payload bytes.";
@@ -1081,6 +1072,23 @@ public sealed class LinkerFecCodec : IDisposable
         }
 
         return true;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int ReadRecordLength(ReadOnlySpan<byte> records, int offset = 0)
+    {
+        return BinaryPrimitives.ReadUInt16LittleEndian(records.Slice(offset, RecordLengthPrefixSize));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void WriteRecordLength(Span<byte> destination, int offset, int value)
+    {
+        if ((uint)value > LinkerFecOptions.MaxRecordPayloadLength)
+        {
+            throw new ArgumentOutOfRangeException(nameof(value), value, "Record payload length exceeds the 2-byte record prefix limit.");
+        }
+
+        BinaryPrimitives.WriteUInt16LittleEndian(destination.Slice(offset, RecordLengthPrefixSize), checked((ushort)value));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1139,14 +1147,14 @@ public sealed class LinkerFecCodec : IDisposable
 
     private static int WriteSourcePayloadRecord(ReadOnlySpan<byte> payload, Span<byte> destination)
     {
-        var recordLength = checked(sizeof(int) + payload.Length);
+        var recordLength = checked(RecordLengthPrefixSize + payload.Length);
         if (destination.Length < recordLength)
         {
             throw new ArgumentException("Destination buffer is smaller than the decoded source packet.", nameof(destination));
         }
 
-        WriteInt32LittleEndian(destination, 0, payload.Length);
-        payload.CopyTo(destination.Slice(sizeof(int), payload.Length));
+        WriteRecordLength(destination, 0, payload.Length);
+        payload.CopyTo(destination.Slice(RecordLengthPrefixSize, payload.Length));
         return recordLength;
     }
 
@@ -1208,14 +1216,14 @@ public sealed class LinkerFecCodec : IDisposable
 
         if (!isRepair)
         {
-            var sourceRecordLength = checked(sizeof(int) + payloadLength);
+            var sourceRecordLength = checked(RecordLengthPrefixSize + payloadLength);
             if (destination.Length < sourceRecordLength)
             {
                 throw new ArgumentException("Destination buffer is smaller than the decoded source packet.", nameof(destination));
             }
 
-            WriteInt32LittleEndian(destination, 0, payloadLength);
-            payload.CopyTo(destination.Slice(sizeof(int), payloadLength));
+            WriteRecordLength(destination, 0, payloadLength);
+            payload.CopyTo(destination.Slice(RecordLengthPrefixSize, payloadLength));
 
             DisposeDecoderBlock(blockId);
             MarkDecodedWindowBlockId(blockId);
@@ -1243,14 +1251,14 @@ public sealed class LinkerFecCodec : IDisposable
             throw new InvalidDataException("Recovered source payload length is inconsistent with the FEC block.");
         }
 
-        var recoveredRecordLength = checked(sizeof(int) + recoveredPayloadLength);
+        var recoveredRecordLength = checked(RecordLengthPrefixSize + recoveredPayloadLength);
         if (destination.Length < recoveredRecordLength)
         {
             throw new ArgumentException("Destination buffer is smaller than the decoded source packet.", nameof(destination));
         }
 
-        WriteInt32LittleEndian(destination, 0, recoveredPayloadLength);
-        var recoveredPayload = destination.Slice(sizeof(int), recoveredPayloadLength);
+        WriteRecordLength(destination, 0, recoveredPayloadLength);
+        var recoveredPayload = destination.Slice(RecordLengthPrefixSize, recoveredPayloadLength);
         if (coefficient == 1)
         {
             payload[..recoveredPayloadLength].CopyTo(recoveredPayload);

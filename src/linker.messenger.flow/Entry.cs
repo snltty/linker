@@ -2,7 +2,7 @@
 using linker.messenger.flow.history;
 using linker.messenger.flow.messenger;
 using linker.messenger.flow.webapi;
-using linker.messenger.forward.proxy;
+using linker.messenger.forward;
 using linker.messenger.relay.server;
 using linker.messenger.socks5;
 using linker.messenger.tunnel.server;

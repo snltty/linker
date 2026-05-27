@@ -1,55 +1,50 @@
-﻿using linker.tunnel.connection;
-using linker.libs;
+﻿using linker.libs;
 using linker.libs.extends;
+using linker.tunnel.connection;
+using System;
 using System.Buffers;
 using System.Collections.Concurrent;
+using System.IO.Pipelines;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.IO.Pipelines;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace linker.messenger.socks5
+namespace linker.forward
 {
-    public partial class Socks5Proxy
+    public partial class ForwardProxy
     {
+        private readonly ConcurrentDictionary<int, Socket> tcpListens = new();
         private readonly ConcurrentDictionary<(uint srcAddr, ushort srcPort, uint dstAddr, ushort dstPort), AsyncUserToken> tcpConnections = new();
+      
         public IPEndPoint LocalEndpoint { get; private set; }
+        public bool Running => tcpListens.Count > 0;
 
-        private Socket listenSocketTcp;
-        public bool Running => listenSocketTcp != null;
-
-
-        /// <summary>
-        /// 启动TCP转发
-        /// </summary>
-        /// <param name="ep"></param>
-        /// <param name="bufferSize"></param>
         private void StartTcp(IPEndPoint ep, byte bufferSize)
         {
             IPEndPoint _localEndPoint = ep;
-            listenSocketTcp = new Socket(_localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            listenSocketTcp.IPv6Only(_localEndPoint.AddressFamily, false);
-            listenSocketTcp.Bind(_localEndPoint);
-            listenSocketTcp.Listen(int.MaxValue);
+            Socket socket = new Socket(_localEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            socket.IPv6Only(_localEndPoint.AddressFamily, false);
+            socket.Bind(_localEndPoint);
+            socket.Listen(int.MaxValue);
 
-            LocalEndpoint = listenSocketTcp.LocalEndPoint as IPEndPoint;
-            _ = StartAcceptTcp(bufferSize).ConfigureAwait(false);
+            LocalEndpoint = socket.LocalEndPoint as IPEndPoint;
+
+            _ = StartAcceptTcp(socket, bufferSize).ConfigureAwait(false);
         }
-        /// <summary>
-        /// 开始接收TCP连接
-        /// </summary>
-        /// <param name="socket"></param>
-        /// <param name="bufferSize"></param>
-        /// <returns></returns>
-        private async Task StartAcceptTcp(byte bufferSize)
-        {
-            int hashcode = listenSocketTcp.GetHashCode();
 
-            ushort port = (ushort)(listenSocketTcp.LocalEndPoint as IPEndPoint).Port;
+        private async Task StartAcceptTcp(Socket socket, byte bufferSize)
+        {
+            int hashcode = socket.GetHashCode();
+            ushort port = (ushort)(socket.LocalEndPoint as IPEndPoint).Port;
+            tcpListens.AddOrUpdate(port, socket, (a, b) => socket);
+
             try
             {
                 while (true)
                 {
-                    Socket client = await listenSocketTcp.AcceptAsync().ConfigureAwait(false);
+                    Socket client = await socket.AcceptAsync().ConfigureAwait(false);
                     _ = ProcessAcceptTcp(client, port, bufferSize).ConfigureAwait(false);
                 }
             }
@@ -58,18 +53,12 @@ namespace linker.messenger.socks5
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Error(ex);
 
-                if (listenSocketTcp != null && listenSocketTcp.GetHashCode() == hashcode)
-                    StopTcp();
+                tcpListens.TryRemove(port, out _);
+                socket.SafeClose();
             }
 
         }
-        /// <summary>
-        /// 处理接收的TCP连接
-        /// </summary>
-        /// <param name="socket"></param>
-        /// <param name="listenPort"></param>
-        /// <param name="bufferSize"></param>
-        /// <returns></returns>
+
         private async Task ProcessAcceptTcp(Socket socket, ushort listenPort, byte bufferSize)
         {
             byte[] buffer = ArrayPool<byte>.Shared.Rent((1 << bufferSize) * 1024);
@@ -140,16 +129,10 @@ namespace linker.messenger.socks5
             }
         }
 
-        /// <summary>
-        /// B端处理SYN
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="packet"></param>
-        /// <returns></returns>
         private async Task HandleSynTcp(ITunnelConnection connection, ForwardWritePacket packet, ReadOnlyMemory<byte> memory)
         {
             IPEndPoint target = new IPEndPoint(NetworkHelper.ToIP(packet.DstAddr), packet.DstPort);
-            target.Address = socks5CidrDecenterManager.GetMapRealDst(target.Address);
+            target.Address = MapIp(target.Address);
 
             if (HookConnect(connection.RemoteMachineId, target, ProtocolType.Tcp) == false) return;
 
@@ -214,11 +197,7 @@ namespace linker.messenger.socks5
                 }
             }
         }
-        /// <summary>
-        /// A端处理SYN+ACK
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="packet"></param>
+
         private void HandleSynAckTcp(ITunnelConnection connection, ForwardWritePacket packet)
         {
             if (tcpConnections.TryGetValue((0, packet.Port, packet.DstAddr, packet.DstPort), out AsyncUserToken token))
@@ -228,13 +207,6 @@ namespace linker.messenger.socks5
                 token.Tcs?.SetResult();
             }
         }
-        /// <summary>
-        /// B端处理PSH
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="packet"></param>
-        /// <param name="memory"></param>
-        /// <returns></returns>
         private async ValueTask HandlePshTcp(ITunnelConnection connection, ForwardWritePacket packet, ReadOnlyMemory<byte> memory)
         {
             if (tcpConnections.TryGetValue((packet.SrcAddr, packet.SrcPort, packet.DstAddr, packet.DstPort), out AsyncUserToken token))
@@ -259,13 +231,6 @@ namespace linker.messenger.socks5
                 }
             }
         }
-        /// <summary>
-        /// A端处理PSH+ACK
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="packet"></param>
-        /// <param name="memory"></param>
-        /// <returns></returns>
         private async ValueTask HandlePshAckTcp(ITunnelConnection connection, ForwardWritePacket packet, ReadOnlyMemory<byte> memory)
         {
             if (tcpConnections.TryGetValue((0, packet.Port, packet.DstAddr, packet.DstPort), out AsyncUserToken token))
@@ -290,7 +255,6 @@ namespace linker.messenger.socks5
                 }
             }
         }
-
 
         private async Task SendWindow(AsyncUserToken token, byte window)
         {
@@ -358,12 +322,6 @@ namespace linker.messenger.socks5
             }
         }
 
-
-        /// <summary>
-        /// B端处理RST
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="packet"></param>
         private void HandleRstTcp(ITunnelConnection connection, ForwardWritePacket packet)
         {
             if (tcpConnections.TryRemove((packet.SrcAddr, packet.SrcPort, packet.DstAddr, packet.DstPort), out AsyncUserToken token))
@@ -371,11 +329,7 @@ namespace linker.messenger.socks5
                 token.Dispose();
             }
         }
-        /// <summary>
-        /// A端处理RST+ACK
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="packet"></param>
+
         private void HandleRstAckTcp(ITunnelConnection connection, ForwardWritePacket packet)
         {
             if (tcpConnections.TryRemove((0, packet.SrcPort, packet.DstAddr, packet.DstPort), out AsyncUserToken token))
@@ -384,21 +338,30 @@ namespace linker.messenger.socks5
             }
         }
 
-        /// <summary>
-        /// 停止所有转发
-        /// </summary>
         private void StopTcp()
         {
-            listenSocketTcp?.SafeClose();
-            listenSocketTcp = null;
-
+            foreach (var item in tcpListens)
+            {
+                item.Value.SafeClose();
+            }
+            tcpListens.Clear();
             foreach (var item in tcpConnections)
             {
                 item.Value?.Socket?.SafeClose();
             }
             tcpConnections.Clear();
         }
-
+        private void StopTcp(int port)
+        {
+            if (tcpListens.TryRemove(port, out Socket socket))
+            {
+                socket.SafeClose();
+            }
+            foreach (var item in tcpConnections.Where(c => c.Value.ListenPort == port).ToList())
+            {
+                item.Value.Dispose();
+                tcpConnections.TryRemove(item.Key, out _);
+            }
+        }
     }
-
 }

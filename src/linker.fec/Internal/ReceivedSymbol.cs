@@ -323,7 +323,7 @@ internal struct ReceivedSymbol : IDisposable
             throw new ArgumentOutOfRangeException(nameof(symbolId), symbolId, "Symbol id is outside the block.");
         }
 
-        if (blockLength > (long)sourceSymbolCount * (symbolSize + sizeof(int)))
+        if (blockLength > (long)sourceSymbolCount * (symbolSize + LinkerFecOptions.RecordLengthPrefixSize))
         {
             throw new ArgumentOutOfRangeException(nameof(blockLength), blockLength, "Decoded record list length exceeds source symbol capacity.");
         }

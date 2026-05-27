@@ -151,7 +151,7 @@ export default {
 
         const state = reactive({
             show: true,
-            protocolTypes: { 1: 'tcp', 2: 'udp', 4: 'msquic' },
+            protocolTypes: { 1: 'tcp', 2: 'udp' },
             types: { 0: t('network.tunnel.p2p'), 1: t('network.tunnel.relay'), 2: t('network.tunnel.pcp') },
             transactions: { 'forward': t('forward'), 'tuntap': t('tuntap'), 'socks5': t('socks5') },
             device: connections.value.device,

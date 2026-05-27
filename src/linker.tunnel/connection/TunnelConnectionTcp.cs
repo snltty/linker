@@ -59,8 +59,12 @@ namespace linker.tunnel.connection
         private object userToken;
 
         private readonly LastTicksManager pingTicks = new LastTicksManager();
-        private readonly byte[] pingBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.ping");
-        private readonly byte[] pongBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.tcp.pong");
+        private readonly byte[] pingBytes = Encoding.UTF8.GetBytes($"{Guid.NewGuid()}.tcp.ping");
+        private readonly byte[] pongBytes = Encoding.UTF8.GetBytes($"{Guid.NewGuid()}.tcp.pong");
+
+        const byte PacketTypeData = 0;
+        const byte PacketTypePing = 1;
+        const byte PacketTypePong = 2;
 
         public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken)
         {
@@ -134,9 +138,9 @@ namespace linker.tunnel.connection
                     }
                     do
                     {
-                        int packetLength = memory.ToInt32();
-                        await WritePacket(memory.Slice(4, packetLength)).ConfigureAwait(false);
-                        memory = memory.Slice(4 + packetLength);
+                        int packetLength = memory.ToUInt16();
+                        await WritePacket(memory.Slice(2, packetLength)).ConfigureAwait(false);
+                        memory = memory.Slice(2 + packetLength);
 
                     } while (memory.Length > 0);
                 }
@@ -150,33 +154,31 @@ namespace linker.tunnel.connection
                 Dispose();
             }
         }
-        private async Task WritePacket(ReadOnlyMemory<byte> packet)
+        private ValueTask WritePacket(ReadOnlyMemory<byte> memory)
         {
-
             LastTicks.Update();
-            if (packet.Length == pingBytes.Length && packet.Span.Slice(0, pingBytes.Length - 4).SequenceEqual(pingBytes.AsSpan(0, pingBytes.Length - 4)))
-            {
-                if (packet.Span.SequenceEqual(pingBytes))
-                {
-                    await SendPingPong(pongBytes).ConfigureAwait(false);
-                    return;
-                }
-                else if (packet.Span.SequenceEqual(pongBytes))
-                {
-                    Delay = (int)pingTicks.Diff();
-                    return;
-                }
-            }
             try
             {
-                await callback.Receive(this, packet, this.userToken).ConfigureAwait(false);
+                if (memory.Span[0] == PacketTypeData)
+                {
+                    return callback.Receive(this, memory.Slice(2), this.userToken);
+                }
+                else if (memory.Span[0] == PacketTypePing)
+                {
+                    return SendPingPong(pongBytes, PacketTypePong);
+                }
+                else if (memory.Span[0] == PacketTypePong)
+                {
+                    Delay = (int)pingTicks.Diff();
+                }
             }
             catch (Exception ex)
             {
                 LoggerHelper.Instance.Error(ex);
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Error(string.Join(",", packet.ToArray()));
+                    LoggerHelper.Instance.Error(string.Join(",", memory.ToArray()));
             }
+            return ValueTask.CompletedTask;
         }
 
         private async Task ProcessHeart()
@@ -194,7 +196,7 @@ namespace linker.tunnel.connection
                     if (LastTicks.DiffGreater(3000))
                     {
                         pingTicks.Update();
-                        await SendPingPong(pingBytes).ConfigureAwait(false);
+                        await SendPingPong(pingBytes, PacketTypePing).ConfigureAwait(false);
 
                     }
                     await Task.Delay(3000).ConfigureAwait(false);
@@ -208,15 +210,14 @@ namespace linker.tunnel.connection
                 }
             }
         }
-        private async Task SendPingPong(byte[] data)
+        private async ValueTask SendPingPong(byte[] data, byte value)
         {
-            int length = 4 + data.Length;
-
-            byte[] heartData = ArrayPool<byte>.Shared.Rent(length);
-            data.Length.ToBytes(heartData.AsSpan());
+            byte[] heartData = ArrayPool<byte>.Shared.Rent(4 + data.Length);
+            ((ushort)data.Length).ToBytes(heartData.AsSpan());
             data.AsMemory().CopyTo(heartData.AsMemory(4));
+            heartData[2] = value;
 
-            await SendAsync(heartData.AsMemory(0, length));
+            await SendAsync(heartData.AsMemory(0, 4 + data.Length));
 
             ArrayPool<byte>.Shared.Return(heartData);
         }
@@ -271,7 +272,7 @@ namespace linker.tunnel.connection
         }
 
         private readonly SemaphoreSlim slm = new SemaphoreSlim(1);
-        public async Task<bool> SendAsync(ReadOnlyMemory<byte> data)
+        public async ValueTask<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
             if (callback == null) return false;
 
@@ -296,7 +297,7 @@ namespace linker.tunnel.connection
 
             return false;
         }
-        public Task<bool> SendAsync(byte[] buffer, int offset, int length)
+        public ValueTask<bool> SendAsync(byte[] buffer, int offset, int length)
         {
             return SendAsync(buffer.AsMemory(offset, length));
         }

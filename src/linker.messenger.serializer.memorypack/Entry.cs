@@ -140,6 +140,7 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new TuntapLanInfoFormatter());
             MemoryPackFormatterProvider.Register(new LeaseInfoFormatter());
             MemoryPackFormatterProvider.Register(new LeaseSubInfoFormatter());
+            MemoryPackFormatterProvider.Register(new TuntapFecProfileInfoFormatter());
 
 
             MemoryPackFormatterProvider.Register(new PlanInfoFormatter());

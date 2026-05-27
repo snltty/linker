@@ -17,8 +17,7 @@ do
     cp -rf public/extends/any/web public/publish/${r}/web
     mkdir -p public/publish/${r}/configs
     mkdir -p public/publish/${r}/logs
-    cp -rf src/linker/libmsquic-musl-${r}.so public/publish/${r}/libmsquic.so
-
+    
     mkdir -p public/publish-ipk/${r}
     cp -rf install-package/ipk/package/* public/publish-ipk/${r}/
     cp -rf install-package/ipk/libs/${r}/* public/publish-ipk/${r}/data/   

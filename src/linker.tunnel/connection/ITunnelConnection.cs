@@ -12,7 +12,6 @@ namespace linker.tunnel.connection
         None = 0,
         Tcp = 1,
         Udp = 2,
-        Quic = 4,
         All = 255
     }
     /// <summary>
@@ -56,14 +55,14 @@ namespace linker.tunnel.connection
         /// <param name="data"></param>
         /// <param name="state"></param>
         /// <returns></returns>
-        public Task Receive(ITunnelConnection connection, ReadOnlyMemory<byte> data, object state);
+        public ValueTask Receive(ITunnelConnection connection, ReadOnlyMemory<byte> data, object state);
         /// <summary>
         /// 收到隧道关闭
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="state"></param>
         /// <returns></returns>
-        public Task Closed(ITunnelConnection connection, object state);
+        public ValueTask Closed(ITunnelConnection connection, object state);
 
 
     }
@@ -178,7 +177,7 @@ namespace linker.tunnel.connection
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public Task<bool> SendAsync(ReadOnlyMemory<byte> data);
+        public ValueTask<bool> SendAsync(ReadOnlyMemory<byte> data);
         /// <summary>
         /// 发送数据
         /// </summary>
@@ -186,7 +185,7 @@ namespace linker.tunnel.connection
         /// <param name="offset"></param>
         /// <param name="length"></param>
         /// <returns></returns>
-        public Task<bool> SendAsync(byte[] buffer,int offset,int length);
+        public ValueTask<bool> SendAsync(byte[] buffer,int offset,int length);
         /// <summary>
         /// 开始接收数据
         /// </summary>

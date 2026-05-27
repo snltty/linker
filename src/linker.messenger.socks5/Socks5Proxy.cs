@@ -1,88 +1,37 @@
-﻿using linker.tunnel.connection;
+﻿using linker.forward;
 using linker.libs;
+using linker.libs.socks5;
+using linker.messenger.channel;
+using linker.messenger.pcp;
+using linker.messenger.signin;
+using linker.tunnel;
+using linker.tunnel.connection;
 using System.Buffers;
+using System.Buffers.Binary;
 using System.Net;
 using System.Net.Sockets;
-using linker.libs.socks5;
-using System.Buffers.Binary;
 using System.Text;
 
 namespace linker.messenger.socks5
 {
-    public partial class Socks5Proxy : ITunnelConnectionReceiveCallback
+    public partial class Socks5Proxy : linker.forward.ForwardProxy
     {
-        private ILinkerSocks5Hook[] hooks = [];
+        protected override string TransactionId => "socks5";
+        private readonly Socks5CidrDecenterManager socks5CidrDecenterManager;
 
-        public void Start(IPEndPoint ep, byte bufferSize)
+        public Socks5Proxy(ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer,
+            SignInClientTransfer signInClientTransfer, ChannelConnectionCaching channelConnectionCaching, IPcpStore pcpStore,
+            Socks5CidrDecenterManager socks5CidrDecenterManager)
+            : base(signInClientStore, tunnelTransfer, signInClientTransfer, channelConnectionCaching, pcpStore)
         {
-            StartTcp(ep, bufferSize);
-            StartUdp(new IPEndPoint(ep.Address, LocalEndpoint.Port), bufferSize);
-        }
-        /// <summary>
-        /// 隧道已连接
-        /// </summary>
-        /// <param name="connection"></param>
-        protected override void Connected(ITunnelConnection connection)
-        {
-            connection.BeginReceive(this, null);
+            this.socks5CidrDecenterManager = socks5CidrDecenterManager;
         }
 
-        /// <summary>
-        /// 隧道来数据了
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="memory"></param>
-        /// <param name="userToken"></param>
-        /// <returns></returns>
-        public async Task Receive(ITunnelConnection connection, ReadOnlyMemory<byte> memory, object userToken)
+        protected override IPAddress MapIp(IPAddress ip)
         {
-            await InputPacket(connection, memory).ConfigureAwait(false);
+            return socks5CidrDecenterManager.GetMapRealDst(ip);
         }
-
-        /// <summary>
-        /// 隧道已关闭
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="userToken"></param>
-        /// <returns></returns>
-        public Task Closed(ITunnelConnection connection, object userToken)
-        {
-            Version.Increment();
-            return Task.CompletedTask;
-        }
-        /// <summary>
-        /// 从隧道连接发送数据到对方
-        /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        private async Task<bool> SendToConnection(AsyncUserToken token)
-        {
-            if (token.Connection == null)
-            {
-                return false;
-            }
-            await token.Connection.SendAsync(token.ReadPacket.Buffer.AsMemory(token.ReadPacket.Offset, token.ReadPacket.Length)).ConfigureAwait(false);
-            Add(token.Connection.RemoteMachineId, token.IPEndPoint, token.ReadPacket.Length, 0);
-            return true;
-        }
-        private async Task<bool> SendToConnection(ITunnelConnection connection, ForwardReadPacket packet, IPEndPoint ep)
-        {
-            if (connection == null)
-            {
-                return false;
-            }
-            await connection.SendAsync(packet.Buffer.AsMemory(packet.Offset, packet.Length)).ConfigureAwait(false);
-            Add(connection.RemoteMachineId, ep, packet.Length, 0);
-            return true;
-        }
-
-
-        /// <summary>
-        /// 建立隧道
-        /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        private async ValueTask<int> Tunneling(AsyncUserToken token, ProtocolType protocolType)
+        protected override async ValueTask<int> Tunneling(AsyncUserToken token, ProtocolType protocolType)
         {
             Memory<byte> memory = token.ReadPacket.Buffer.AsMemory(token.ReadPacket.HeaderLength);
 
@@ -123,6 +72,15 @@ namespace linker.messenger.socks5
             }
             return 0;
         }
+        private async ValueTask<ITunnelConnection> ConnectTunnel(uint ip)
+        {
+            if (socks5CidrDecenterManager.FindValue(ip, out string machineId))
+            {
+                return await ConnectTunnel(machineId, []).ConfigureAwait(false);
+            }
+            return null;
+        }
+
 
         private readonly byte[] hostBytes = Encoding.UTF8.GetBytes("Host: ");
         private readonly byte[] newlineBytes = Encoding.UTF8.GetBytes("\r\n");
@@ -164,7 +122,7 @@ namespace linker.messenger.socks5
             //是UDP中继，不做连接操作，等UDP数据过去的时候再绑定
             if (command == Socks5EnumRequestCommand.UdpAssociate)
             {
-                await token.Socket.SendAsync(Socks5Parser.MakeConnectResponse(buffer.Memory, new IPEndPoint(IPAddress.Any, proxyEP.Port), (byte)Socks5EnumResponseCommand.ConnecSuccess)).ConfigureAwait(false);
+                await token.Socket.SendAsync(Socks5Parser.MakeConnectResponse(buffer.Memory, new IPEndPoint(IPAddress.Any, LocalEndpoint.Port), (byte)Socks5EnumResponseCommand.ConnecSuccess)).ConfigureAwait(false);
                 return;
             }
 
@@ -205,25 +163,6 @@ namespace linker.messenger.socks5
 
         }
 
-        /// <summary>
-        /// 打洞或者中继
-        /// </summary>
-        /// <param name="ip"></param>
-        /// <returns></returns>
-        private async ValueTask<ITunnelConnection> ConnectTunnel(uint ip)
-        {
-            if (socks5CidrDecenterManager.FindValue(ip, out string machineId))
-            {
-                return await ConnectTunnel(machineId, TunnelProtocolType.Udp).ConfigureAwait(false);
-            }
-            return null;
-
-        }
-        /// <summary>
-        /// 接收socks5完整数据包
-        /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
         private async ValueTask<bool> ReceiveCommandData(AsyncUserToken token, Memory<byte> memory, Socks5EnumStep step, int totalLength = 0)
         {
             using CancellationTokenSource cts = new CancellationTokenSource(3000);
@@ -231,7 +170,7 @@ namespace linker.messenger.socks5
             //太短
             while ((validate & EnumProxyValidateDataResult.TooShort) == EnumProxyValidateDataResult.TooShort)
             {
-                int length = await token.Socket.ReceiveAsync(memory.Slice(totalLength), SocketFlags.None,cts.Token);
+                int length = await token.Socket.ReceiveAsync(memory.Slice(totalLength), SocketFlags.None, cts.Token);
                 if (length == 0) return false;
                 totalLength += length;
                 validate = ValidateData(memory.Slice(0, totalLength), step);
@@ -239,11 +178,6 @@ namespace linker.messenger.socks5
 
             return (validate & EnumProxyValidateDataResult.Equal) == EnumProxyValidateDataResult.Equal;
         }
-        /// <summary>
-        /// 验证socks5数据包完整性
-        /// </summary>
-        /// <param name="info"></param>
-        /// <returns></returns>
         private EnumProxyValidateDataResult ValidateData(Memory<byte> memory, Socks5EnumStep step)
         {
             return step switch

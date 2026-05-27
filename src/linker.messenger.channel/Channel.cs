@@ -89,7 +89,7 @@ namespace linker.messenger.channel
             this.channelConnectionCaching = channelConnectionCaching;
             this.pcpStore = pcpStore;
             tunnelTransfer.SetConnectedCallback(TransactionId, OnConnected);
-            
+
         }
         public virtual void Add(ITunnelConnection connection)
         {
@@ -116,7 +116,7 @@ namespace linker.messenger.channel
             Add(connection);
         }
 
-        protected async ValueTask<ITunnelConnection> ConnectTunnel(string machineId, TunnelProtocolType denyProtocols)
+        protected async ValueTask<ITunnelConnection> ConnectTunnel(string machineId, Dictionary<string, string> configures)
         {
             if (channelConnectionCaching.TryGetValue(machineId, TransactionId, out ITunnelConnection connection) && connection.Connected)
             {
@@ -125,24 +125,24 @@ namespace linker.messenger.channel
 
             if (operatingMultipleManager.StartOperation($"{machineId}@{TransactionId}") == false)
             {
-                return await tunnelTransfer.ConnectAsync(machineId, TransactionId, denyProtocols, configures: new() { ["flag"] = "relay" }, tunnelTypes: [TunnelType.Relay]).ConfigureAwait(false);
+                return await tunnelTransfer.ConnectAsync(machineId, TransactionId, configures, tunnelTypes: [TunnelType.Relay]).ConfigureAwait(false);
             }
-            _ = RelayAndP2P(machineId, denyProtocols)
+            _ = RelayAndP2P(machineId, configures)
                 .ContinueWith((result) => operatingMultipleManager.StopOperation($"{machineId}@{TransactionId}"))
                 .ConfigureAwait(false);
 
             return null;
         }
-        private async Task<ITunnelConnection> RelayAndP2P(string machineId, TunnelProtocolType denyProtocols)
+        private async Task<ITunnelConnection> RelayAndP2P(string machineId, Dictionary<string, string> configures)
         {
             if (signInClientStore.Id == machineId || await signInClientTransfer.GetOnline(machineId).ConfigureAwait(false) == false)
             {
                 return null;
             }
-            ITunnelConnection connection = await tunnelTransfer.ConnectAsync(machineId, TransactionId, denyProtocols).ConfigureAwait(false);
+            ITunnelConnection connection = await tunnelTransfer.ConnectAsync(machineId, TransactionId, configures).ConfigureAwait(false);
             if (connection != null && connection.Type != TunnelType.P2P)
             {
-                tunnelTransfer.StartBackground(machineId, TransactionId, denyProtocols, () =>
+                tunnelTransfer.StartBackground(machineId, TransactionId, configures, () =>
                 {
                     return channelConnectionCaching.TryGetValue(machineId, TransactionId, out ITunnelConnection _connection)
                     && _connection.Connected

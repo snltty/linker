@@ -7,29 +7,27 @@ using System.Net.Sockets;
 using linker.libs.timer;
 using System.Buffers;
 using linker.libs.socks5;
+using System;
+using System.Threading.Tasks;
+using System.Linq;
 
-namespace linker.messenger.socks5
+namespace linker.forward
 {
-    public partial class Socks5Proxy
+    public partial class ForwardProxy
     {
-        private Socket socketUdp;
+        private readonly ConcurrentDictionary<int, AsyncUserToken> udpListens = new ConcurrentDictionary<int, AsyncUserToken>();
         private readonly ConcurrentDictionary<(int srcId, uint srcAddr, ushort srcPort, uint dstAddr, ushort dstPort), AsyncUserToken> udpConnections = new();
 
-        /// <summary>
-        /// 开始UDP转发
-        /// </summary>
-        /// <param name="ep"></param>
-        /// <param name="buffersize"></param>
         private void StartUdp(IPEndPoint ep, byte buffersize)
         {
             try
             {
-                socketUdp = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-                socketUdp.EnableBroadcast = true;
-                socketUdp.WindowsUdpBug();
-                socketUdp.Bind(ep);
+                Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                socket.EnableBroadcast = true;
+                socket.WindowsUdpBug();
+                socket.Bind(ep);
 
-                _ = ReceiveFromAsync(socketUdp, (ushort)ep.Port, buffersize).ConfigureAwait(false);
+                _ = ReceiveFromAsync(socket, (ushort)ep.Port, buffersize).ConfigureAwait(false);
 
             }
             catch (Exception ex)
@@ -38,16 +36,9 @@ namespace linker.messenger.socks5
                     LoggerHelper.Instance.Error(ex);
             }
         }
-        /// <summary>
-        /// 开始接收UDP数据
-        /// </summary>
-        /// <param name="socket"></param>
-        /// <param name="port"></param>
-        /// <param name="bufferSize"></param>
-        /// <returns></returns>
         private async Task ReceiveFromAsync(Socket socket, ushort port, byte bufferSize)
         {
-            int hashcode = socketUdp.GetHashCode();
+            int hashcode = socket.GetHashCode();
             byte[] buffer = ArrayPool<byte>.Shared.Rent(65535);
             AsyncUserToken token = new AsyncUserToken
             {
@@ -64,6 +55,7 @@ namespace linker.messenger.socks5
                     DstPort = 0
                 }
             };
+            udpListens.AddOrUpdate(port, token, (a, b) => token);
             try
             {
                 IPEndPoint ep = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
@@ -93,20 +85,12 @@ namespace linker.messenger.socks5
             }
             finally
             {
+                udpListens.TryRemove(port, out _);
                 token.Dispose();
-                if (socketUdp != null && socketUdp.GetHashCode() == hashcode)
-                    StopUdp();
             }
         }
 
-        /// <summary>
-        /// 处理UDP PSH
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="packet"></param>
-        /// <param name="memory"></param>
-        /// <returns></returns>
-        private async Task HndlePshUdp(ITunnelConnection connection, ForwardWritePacket packet, ReadOnlyMemory<byte> memory)
+        private async ValueTask HndlePshUdp(ITunnelConnection connection, ForwardWritePacket packet, ReadOnlyMemory<byte> memory)
         {
             var connectId = (connection.RemoteMachineId.GetHashCode(), packet.SrcAddr, packet.SrcPort, packet.DstAddr, packet.DstPort);
             try
@@ -132,16 +116,10 @@ namespace linker.messenger.socks5
                 }
             }
         }
-        /// <summary>
-        /// 处理UDP PSH+ACK
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="packet"></param>
-        /// <param name="memory"></param>
-        /// <returns></returns>
-        private async Task HndlePshAckUdp(ITunnelConnection connection, ForwardWritePacket packet, ReadOnlyMemory<byte> memory)
+
+        private async ValueTask HndlePshAckUdp(ITunnelConnection connection, ForwardWritePacket packet, ReadOnlyMemory<byte> memory)
         {
-            if (socketUdp != null)
+            if (udpListens.TryGetValue(packet.Port, out AsyncUserToken token))
             {
                 IPEndPoint src = new IPEndPoint(NetworkHelper.ToIP(packet.SrcAddr), packet.SrcPort);
                 IPEndPoint dst = new IPEndPoint(NetworkHelper.ToIP(packet.DstAddr), packet.DstPort);
@@ -151,7 +129,7 @@ namespace linker.messenger.socks5
                 try
                 {
                     Add(connection.RemoteMachineId, dst, 0, memory.Length);
-                    await socketUdp.SendToAsync(memoryOwner.Memory.Slice(0, length), src).ConfigureAwait(false);
+                    await token.Socket.SendToAsync(memoryOwner.Memory.Slice(0, length), src).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -164,7 +142,7 @@ namespace linker.messenger.socks5
         private async Task ConnectUdp(ITunnelConnection connection, ForwardWritePacket packet, ReadOnlyMemory<byte> memory)
         {
             IPEndPoint target = new IPEndPoint(NetworkHelper.ToIP(packet.DstAddr), packet.DstPort);
-            target.Address = socks5CidrDecenterManager.GetMapRealDst(target.Address);
+            target.Address = MapIp(target.Address);
 
             if (HookConnect(connection.RemoteMachineId, target, ProtocolType.Udp) == false)
             {
@@ -235,9 +213,6 @@ namespace linker.messenger.socks5
             }
         }
 
-        /// <summary>
-        /// 检查udp过期
-        /// </summary>
         private void TaskUdp()
         {
             TimerHelper.SetIntervalLong(() =>
@@ -256,19 +231,35 @@ namespace linker.messenger.socks5
             }, 30000);
         }
 
-        /// <summary>
-        /// 停止UDP所有转发
-        /// </summary>
         private void StopUdp()
         {
-            socketUdp?.SafeClose();
-            socketUdp = null;
+            foreach (var item in udpListens)
+            {
+                item.Value.Dispose();
+            }
+            udpListens.Clear();
 
             foreach (var item in udpConnections)
             {
                 item.Value.Dispose();
             }
             udpConnections.Clear();
+        }
+        private void StopUdp(int port)
+        {
+            if (udpListens.TryRemove(port, out AsyncUserToken token))
+            {
+                token.Dispose();
+            }
+
+            if (udpListens.IsEmpty)
+            {
+                foreach (var item in udpConnections)
+                {
+                    item.Value.Dispose();
+                }
+                udpConnections.Clear();
+            }
         }
     }
 }

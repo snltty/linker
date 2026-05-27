@@ -1,10 +1,7 @@
 ﻿using linker.libs.extends;
 using System.Net;
 using linker.libs;
-using linker.tunnel.connection;
-using System.Collections.Concurrent;
 using linker.messenger.signin;
-using linker.messenger.forward.proxy;
 using linker.messenger.api;
 using linker.libs.web;
 
@@ -13,17 +10,15 @@ namespace linker.messenger.forward
     public sealed class ForwardApiController : IApiController
     {
         private readonly ForwardTransfer forwardTransfer;
-        private readonly ForwardProxy forwardProxy;
         private readonly IMessengerSender messengerSender;
         private readonly SignInClientState signInClientState;
         private readonly IAccessStore accessStore;
         private readonly ISignInClientStore signInClientStore;
         private readonly ISerializer serializer;
 
-        public ForwardApiController(ForwardTransfer forwardTransfer, ForwardProxy forwardProxy, IMessengerSender messengerSender, SignInClientState signInClientState, IAccessStore accessStore, ISignInClientStore signInClientStore, ISerializer serializer)
+        public ForwardApiController(ForwardTransfer forwardTransfer, IMessengerSender messengerSender, SignInClientState signInClientState, IAccessStore accessStore, ISignInClientStore signInClientStore, ISerializer serializer)
         {
             this.forwardTransfer = forwardTransfer;
-            this.forwardProxy = forwardProxy;
             this.messengerSender = messengerSender;
             this.signInClientState = signInClientState;
             this.accessStore = accessStore;
@@ -31,7 +26,7 @@ namespace linker.messenger.forward
             this.serializer = serializer;
         }
 
-        
+
         /// <summary>
         /// 获取绑定IP列表
         /// </summary>

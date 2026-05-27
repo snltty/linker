@@ -999,7 +999,7 @@ namespace linker.nat
     }
     public interface ILinkerSrcProxyCallback
     {
-        public Task<bool> Callback(LinkerSrcProxyReadPacket packet);
+        public ValueTask<bool> Callback(LinkerSrcProxyReadPacket packet);
         public bool Callback(uint ip);
     }
 }

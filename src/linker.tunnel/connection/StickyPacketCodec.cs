@@ -25,7 +25,7 @@ namespace linker.tunnel.connection
             packetDst = MemoryPool<byte>.Shared.Rent(maxDecodeBufferSize);
             this.maxDecodePacketCount = maxDecodePacketCount;
 
-            pipe = new Pipe(new PipeOptions(pauseWriterThreshold: maxRemaining, resumeWriterThreshold: (maxRemaining / 2), useSynchronizationContext: false, minimumSegmentSize: 8*1024));
+            pipe = new Pipe(new PipeOptions(pauseWriterThreshold: maxRemaining, resumeWriterThreshold: (maxRemaining / 2), useSynchronizationContext: false, minimumSegmentSize: 8 * 1024));
         }
 
         public Memory<byte> GetMemory(int sizeHint = 8 * 1024)
@@ -57,11 +57,11 @@ namespace linker.tunnel.connection
             pipe.Reader.AdvanceTo(consumed);
         }
 
-        public  ValueTask<ReadOnlyMemory<byte>> ReadPacketsAsync(CancellationToken token = default)
+        public ValueTask<ReadOnlyMemory<byte>> ReadPacketsAsync(CancellationToken token = default)
         {
-            return ReadPacketsAsync(packetDst.Memory, maxDecodePacketCount,token);
+            return ReadPacketsAsync(packetDst.Memory, maxDecodePacketCount, token);
         }
-        public async ValueTask<ReadOnlyMemory<byte>> ReadPacketsAsync(Memory<byte> decodeBuffer,int maxDecodePacketCount, CancellationToken token = default)
+        public async ValueTask<ReadOnlyMemory<byte>> ReadPacketsAsync(Memory<byte> decodeBuffer, int maxDecodePacketCount, CancellationToken token = default)
         {
             ReadResult result = await pipe.Reader.ReadAsync(token).ConfigureAwait(false);
             if (result.IsCompleted && result.Buffer.IsEmpty)
@@ -69,7 +69,7 @@ namespace linker.tunnel.connection
                 IsCompleted = true;
                 return Memory<byte>.Empty;
             }
-            if (result.Buffer.Length < 4)
+            if (result.Buffer.Length < 2)
             {
                 pipe.Reader.AdvanceTo(result.Buffer.Start, result.Buffer.End);
                 return Memory<byte>.Empty;
@@ -80,26 +80,26 @@ namespace linker.tunnel.connection
             SequencePosition consumed = result.Buffer.Start, examined = result.Buffer.End;
             do
             {
-                buffer.Slice(0, 4).CopyTo(decodeBuffer.Span);
-                int packetLength = decodeBuffer.Span.ToInt32();
-                if (packetLength + 4 > buffer.Length)
+                buffer.Slice(0, 2).CopyTo(decodeBuffer.Span);
+                int packetLength = decodeBuffer.Span.ToUInt16();
+                if (packetLength + 2 > buffer.Length)
                 {
                     break;
                 }
-                offset += 4 + packetLength;
+                offset += 2 + packetLength;
                 packetCount++;
 
                 if (offset > decodeBuffer.Length || packetCount > maxDecodePacketCount)
                 {
-                    offset -= 4 + packetLength;
+                    offset -= 2 + packetLength;
                     examined = result.Buffer.GetPosition(offset);
                     break;
                 }
 
-                buffer = buffer.Slice(4 + packetLength);
+                buffer = buffer.Slice(2 + packetLength);
                 consumed = result.Buffer.GetPosition(offset);
 
-            } while (buffer.Length > 4);
+            } while (buffer.Length > 2);
 
             result.Buffer.Slice(0, offset).CopyTo(decodeBuffer.Span);
             Advance(offset);

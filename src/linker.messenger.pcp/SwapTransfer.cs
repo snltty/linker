@@ -65,15 +65,15 @@ namespace linker.messenger.pcp
             this.dst = dst;
         }
 
-        public Task Closed(ITunnelConnection connection, object state)
+        public ValueTask Closed(ITunnelConnection connection, object state)
         {
             dst.Dispose();
-            return Task.CompletedTask;
+            return ValueTask.CompletedTask;
         }
 
-        public Task Receive(ITunnelConnection connection, ReadOnlyMemory<byte> data, object state)
+        public async ValueTask Receive(ITunnelConnection connection, ReadOnlyMemory<byte> data, object state)
         {
-            return dst.SendAsync(data);
+            await dst.SendAsync(data).ConfigureAwait(false);
         }
     }
 

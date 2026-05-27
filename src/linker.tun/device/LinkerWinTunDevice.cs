@@ -363,6 +363,8 @@ namespace linker.tun.device
                 {
                     new Span<byte>((byte*)packetPtr, length).CopyTo(buffer.AsSpan(4, length));
                     length.ToBytes(buffer.AsSpan());
+                    buffer[2] = 0;
+                    buffer[3] = 0;
                     WinTun.WintunReleaseReceivePacket(session, packetPtr);
                     length += 4;
                     return buffer;

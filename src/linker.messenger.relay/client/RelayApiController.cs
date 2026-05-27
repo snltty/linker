@@ -45,8 +45,9 @@ namespace linker.messenger.relay.client
         public bool Connect(ApiControllerParamsInfo param)
         {
             RelayConnectInfo relayConnectInfo = param.Content.DeJson<RelayConnectInfo>();
-            _ = tunnelTransfer.ConnectAsync(relayConnectInfo.ToMachineId, relayConnectInfo.TransactionId, TunnelProtocolType.Udp,
-               configures: new() { ["flag"] = "relay", ["relay"] = new RelayInfo { NodeId = relayConnectInfo.NodeId }.ToJson() }, tunnelTypes: [TunnelType.Relay]);
+            relayConnectInfo.Configures["flag"] = "relay";
+            relayConnectInfo.Configures["relay"] = new RelayInfo { NodeId = relayConnectInfo.NodeId }.ToJson();
+            _ = tunnelTransfer.ConnectAsync(relayConnectInfo.ToMachineId, relayConnectInfo.TransactionId, relayConnectInfo.Configures, tunnelTypes: [TunnelType.Relay]);
             return true;
         }
 
@@ -194,5 +195,6 @@ namespace linker.messenger.relay.client
         public string ToMachineId { get; set; }
         public string TransactionId { get; set; }
         public string NodeId { get; set; }
+        public Dictionary<string, string> Configures { get; set; } = [];
     }
 }

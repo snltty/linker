@@ -325,10 +325,15 @@ namespace linker.tun.device
         public byte[] Read(out int length)
         {
             length = 0;
-            if (safeFileHandle == null) return Helper.EmptyArray;
+            if (safeFileHandle == null)
+            {
+                return Helper.EmptyArray;
+            }
 
             length = fsRead.Read(buffer.AsSpan(4));
             length.ToBytes(buffer.AsSpan());
+            buffer[2] = 0;
+            buffer[3] = 0;
             length += 4;
 
             return buffer;

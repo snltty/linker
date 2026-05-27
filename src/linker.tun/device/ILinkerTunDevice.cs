@@ -139,8 +139,8 @@ namespace linker.tun.device
         /// </summary>
         /// <param name="packet"></param>
         /// <returns></returns>
-        public Task Callback(LinkerTunDevicPacket packet);
-        public Task<bool> Callback(LinkerSrcProxyReadPacket proxy);
+        public ValueTask<bool> Callback(LinkerTunDevicPacket packet);
+        public ValueTask<bool> Callback(LinkerSrcProxyReadPacket proxy);
         public bool Callback(uint ip);
     }
 

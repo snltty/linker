@@ -30,10 +30,7 @@ do
 			cp -rf public/extends/any/web public/publish/docker/linux-${p}-${r}/${f}/web
             mkdir -p public/publish/docker/linux-${p}-${r}/${f}/configs
             mkdir -p public/publish/docker/linux-${p}-${r}/${f}/logs
-            if [ $p = "musl" ]
-            then
-                cp -rf src/linker/libmsquic-musl-${r}.so public/publish/docker/linux-${p}-${r}/${f}/libmsquic.so
-            fi
+            
             if [ $p = "kvm" ]
             then
                 cp -rf ../install-package/kvm/ public/publish/docker/linux-${p}-${r}/${f}/kvm/

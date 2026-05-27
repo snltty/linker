@@ -19,8 +19,9 @@ namespace linker.messenger.flow
         private readonly FlowTunnel flowTunnel;
 
         public FlowSocks5Proxy(FlowSocks5 flowSocks5, FlowTunnel flowTunnel, ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer,
-            SignInClientTransfer signInClientTransfer, Socks5CidrDecenterManager socks5CidrDecenterManager, ChannelConnectionCaching channelConnectionCaching,IPcpStore pcpStore) 
-            : base(signInClientStore, tunnelTransfer, signInClientTransfer, socks5CidrDecenterManager, channelConnectionCaching, pcpStore)
+            SignInClientTransfer signInClientTransfer, ChannelConnectionCaching channelConnectionCaching,IPcpStore pcpStore,
+            Socks5CidrDecenterManager socks5CidrDecenterManager) 
+            : base(signInClientStore, tunnelTransfer, signInClientTransfer,  channelConnectionCaching, pcpStore, socks5CidrDecenterManager)
         {
             this.flowSocks5 = flowSocks5;
             this.flowTunnel = flowTunnel;

@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using linker.libs.extends;
+using System.Net;
 
 namespace linker.messenger.tuntap
 {
@@ -21,7 +22,7 @@ namespace linker.messenger.tuntap
         /// <summary>
         /// 局域网配置列表
         /// </summary>
-        public List<TuntapLanInfo> Lans { get; set; } = new List<TuntapLanInfo>();
+        public List<TuntapLanInfo> Lans { get; set; } = [];
 
         public string Name { get; set; } = "linker";
         public string NetworkName { get; set; } = string.Empty;
@@ -43,9 +44,11 @@ namespace linker.messenger.tuntap
         /// <summary>
         /// 端口转发列表
         /// </summary>
-        public List<TuntapForwardInfo> Forwards { get; set; } = new List<TuntapForwardInfo>();
+        public List<TuntapForwardInfo> Forwards { get; set; } = [];
 
-        public Dictionary<string, TuntapGroup2IPInfo> Group2IP { get; set; } = new Dictionary<string, TuntapGroup2IPInfo>();
+        public List<TuntapFecProfileInfo> FecProfile {  get; set; } = [];
+
+        public Dictionary<string, TuntapGroup2IPInfo> Group2IP { get; set; } = [];
 
         public bool DisableNat => (Switch & TuntapSwitch.DisableNat) == TuntapSwitch.DisableNat;
         public bool TcpMerge => (Switch & TuntapSwitch.TcpMerge) == TuntapSwitch.TcpMerge;
@@ -53,6 +56,8 @@ namespace linker.messenger.tuntap
         public bool Multicast => (Switch & TuntapSwitch.Multicast) == TuntapSwitch.Multicast;
         public bool FakeAck => (Switch & TuntapSwitch.FakeAck) == TuntapSwitch.FakeAck;
         public bool SrcProxy => (Switch & TuntapSwitch.SrcProxy) == TuntapSwitch.SrcProxy;
+
+
     }
 
     public sealed class TuntapGroup2IPInfo
@@ -381,7 +386,7 @@ namespace linker.messenger.tuntap
 
         public TuntapVlsmStatus VlsmStatus { get; set; } = TuntapVlsmStatus.None;
 
-        public string DiffValue => $"{IP}->{PrefixLength}->{Name}->{NetworkName}";
+        public List<TuntapFecProfileInfo> FecProfile { get; set; } = [];
     }
 
 
@@ -507,6 +512,13 @@ namespace linker.messenger.tuntap
         /// 双向
         /// </summary>
         TwoWay = 4
+    }
+
+    public sealed partial class TuntapFecProfileInfo
+    {
+        public TuntapFecProfileInfo() { }
+        public int SourceSymbols { get; set; }
+        public int RepairSymbols { get; set; }
     }
 
 

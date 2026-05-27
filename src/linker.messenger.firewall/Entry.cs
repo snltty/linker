@@ -1,13 +1,14 @@
 ﻿
 using linker.libs.web;
 using linker.messenger.firewall.hooks;
-using linker.messenger.forward.proxy;
 using linker.messenger.socks5;
 using linker.messenger.sync;
 using linker.nat;
 using linker.tun.hook;
 using linker.tun;
 using Microsoft.Extensions.DependencyInjection;
+using linker.messenger.forward;
+using linker.forward;
 
 namespace linker.messenger.firewall
 {
@@ -48,10 +49,10 @@ namespace linker.messenger.firewall
             linkerTunDeviceAdapter.AddHooks(new List<ILinkerTunPacketHook> { serviceProvider.GetService<TuntapFirewallHook>() });
 
             Socks5Proxy socks5Proxy = serviceProvider.GetService<Socks5Proxy>();
-            socks5Proxy.AddHooks(new List<ILinkerSocks5Hook> { serviceProvider.GetService<Socks5FirewallHook>() });
+            socks5Proxy.AddHooks(new List<IForwardHook> { serviceProvider.GetService<Socks5FirewallHook>() });
 
-            ForwardProxy forwardProxy = serviceProvider.GetService<ForwardProxy>();
-            forwardProxy.AddHooks(new List<ILinkerForwardHook> { serviceProvider.GetService<ForwardFirewallHook>() });
+            forward.ForwardProxy forwardProxy = serviceProvider.GetService<forward.ForwardProxy>();
+            forwardProxy.AddHooks(new List<IForwardHook> { serviceProvider.GetService<ForwardFirewallHook>() });
 
             return serviceProvider;
         }

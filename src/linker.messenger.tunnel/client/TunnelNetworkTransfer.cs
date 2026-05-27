@@ -8,7 +8,6 @@ using linker.tunnel;
 using linker.upnp;
 using System.Net;
 using System.Net.NetworkInformation;
-using System.Net.Quic;
 using System.Net.Sockets;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;

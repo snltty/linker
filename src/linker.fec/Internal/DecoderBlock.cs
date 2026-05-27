@@ -553,14 +553,16 @@ internal sealed class DecoderBlock : IDisposable
 
     private void WriteRecordTo(ReadOnlySpan<byte> payload, Span<byte> destination, ref int writeOffset)
     {
-        var recordLength = checked(sizeof(int) + payload.Length);
+        var recordLength = checked(LinkerFecOptions.RecordLengthPrefixSize + payload.Length);
         if (recordLength > BlockLength - writeOffset)
         {
             throw new InvalidDataException("Decoded source payloads exceed the block length.");
         }
 
-        BinaryPrimitives.WriteInt32LittleEndian(destination.Slice(writeOffset, sizeof(int)), payload.Length);
-        writeOffset += sizeof(int);
+        BinaryPrimitives.WriteUInt16LittleEndian(
+            destination.Slice(writeOffset, LinkerFecOptions.RecordLengthPrefixSize),
+            checked((ushort)payload.Length));
+        writeOffset += LinkerFecOptions.RecordLengthPrefixSize;
         payload.CopyTo(destination.Slice(writeOffset, payload.Length));
         writeOffset += payload.Length;
     }

@@ -169,7 +169,8 @@ namespace linker.messenger.tunnel.client
         public bool Connect(ApiControllerParamsInfo param)
         {
             TunnelConnectInfo tunnelConnectInfo = param.Content.DeJson<TunnelConnectInfo>();
-            _ = tunnelTransfer.ConnectAsync(tunnelConnectInfo.ToMachineId, tunnelConnectInfo.TransactionId, tunnelConnectInfo.DenyProtocols, configures: new() { ["flag"] = "hand" }, exTunnelTypes: [TunnelType.Relay]);
+            tunnelConnectInfo.Configures["flag"] = "hand";
+            _ = tunnelTransfer.ConnectAsync(tunnelConnectInfo.ToMachineId, tunnelConnectInfo.TransactionId, tunnelConnectInfo.Configures, exTunnelTypes: [TunnelType.Relay]);
 
             return true;
         }
@@ -308,7 +309,7 @@ namespace linker.messenger.tunnel.client
         {
             public string ToMachineId { get; set; }
             public string TransactionId { get; set; }
-            public TunnelProtocolType DenyProtocols { get; set; }
+            public Dictionary<string, string> Configures { get; set; } = [];
         }
 
     }

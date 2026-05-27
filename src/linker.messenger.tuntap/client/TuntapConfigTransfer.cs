@@ -93,6 +93,7 @@ namespace linker.messenger.tuntap.client
                 Info.Mtu = info.Mtu;
                 Info.MssFix = info.MssFix;
                 Info.VlsmStatus = info.VlsmStatus;
+                Info.FecProfile = info.FecProfile;
 
                 string newStr = string.Join(",", [
                     $"{Info.IP}",

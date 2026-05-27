@@ -18,7 +18,6 @@ namespace linker.tunnel
         private readonly List<ITunnelTransport> transports;
         private readonly TunnelWanPortTransfer tunnelWanPortTransfer;
         private readonly TunnelUpnpTransfer tunnelUpnpTransfer;
-        private readonly TunnelQuicTransfer tunnelQuicTransfer = new TunnelQuicTransfer();
 
         public VersionManager OperatingVersion => operating.DataVersion;
         public ConcurrentDictionary<string, bool> Operating => operating.StringKeyValue;
@@ -31,7 +30,6 @@ namespace linker.tunnel
         public TunnelTransfer(ITunnelMessengerAdapter tunnelMessengerAdapter)
         {
             this.tunnelMessengerAdapter = tunnelMessengerAdapter;
-            tunnelQuicTransfer.Listen(tunnelMessengerAdapter.CertificateExport);
 
             TransportUdpPortMap transportUdpPortMap = new TransportUdpPortMap(tunnelMessengerAdapter);
             TransportTcpPortMap transportTcpPortMap = new TransportTcpPortMap(tunnelMessengerAdapter);
@@ -151,8 +149,7 @@ namespace linker.tunnel
             operating.StopOperation(BuildKey(remoteMachineId, transactionId, flag));
         }
 
-        public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId,
-            TunnelProtocolType denyProtocols, Dictionary<string, string> configures = null, TunnelType[] tunnelTypes = null, TunnelType[] exTunnelTypes = null, CancellationToken token = default)
+        public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId, Dictionary<string, string> configures, TunnelType[] tunnelTypes = null, TunnelType[] exTunnelTypes = null, CancellationToken token = default)
         {
             configures ??= [];
             if (!configures.TryGetValue("flag", out string flag))
@@ -180,9 +177,8 @@ namespace linker.tunnel
                 foreach (TunnelTransportItemInfo transportItem in query.ToList())
                 {
                     ITunnelTransport transport = transports.FirstOrDefault(c => c.Name == transportItem.Name);
-
-                    //找不到这个打洞协议，或者是不支持的协议
-                    if (transport == null /*|| (transport.ProtocolType & denyProtocols) == transport.ProtocolType*/)
+                    //找不到这个打洞协议
+                    if (transport == null)
                     {
                         continue;
                     }
@@ -386,30 +382,21 @@ namespace linker.tunnel
         }
         private void OnConnected(ITunnelConnection connection, TunnelTransportInfo info)
         {
-            tunnelQuicTransfer.Transform(connection, info).ContinueWith((result) =>
+            //调用以下别人注册的回调
+            if (OnConnectedDic.TryGetValue(Helper.GlobalString, out List<Action<ITunnelConnection>> callbacks))
             {
-                connection = result.Result;
-
-                if (connection == null) return;
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Debug($"tunnel connect {connection.RemoteMachineId}->{connection.RemoteMachineName} success->{connection.IPEndPoint}");
-
-                //调用以下别人注册的回调
-                if (OnConnectedDic.TryGetValue(Helper.GlobalString, out List<Action<ITunnelConnection>> callbacks))
+                foreach (var item in callbacks)
                 {
-                    foreach (var item in callbacks)
-                    {
-                        item(connection);
-                    }
+                    item(connection);
                 }
-                if (OnConnectedDic.TryGetValue(connection.TransactionId, out callbacks))
+            }
+            if (OnConnectedDic.TryGetValue(connection.TransactionId, out callbacks))
+            {
+                foreach (var item in callbacks)
                 {
-                    foreach (var item in callbacks)
-                    {
-                        item(connection);
-                    }
+                    item(connection);
                 }
-            });
+            }
         }
         private static void OnConnectFail(TunnelTransportInfo tunnelTransportInfo)
         {
@@ -501,7 +488,7 @@ namespace linker.tunnel
         }
 
         private ConcurrentDictionary<string, CancellationTokenSource> backgroundDic = new ConcurrentDictionary<string, CancellationTokenSource>();
-        public void StartBackground(string remoteMachineId, string transactionId, TunnelProtocolType denyProtocols, Func<bool> stopCallback, Func<ITunnelConnection, Task> resultCallback, int times = 10, int delay = 10000)
+        public void StartBackground(string remoteMachineId, string transactionId,Dictionary<string,string> configures,  Func<bool> stopCallback, Func<ITunnelConnection, Task> resultCallback, int times = 10, int delay = 10000)
         {
             if (AddBackground(remoteMachineId, transactionId, out CancellationTokenSource cts) == false)
             {
@@ -514,6 +501,7 @@ namespace linker.tunnel
             {
                 try
                 {
+                    configures["flag"] = "back";
                     ITunnelConnection connection = null;
 
                     await Task.Delay(delay).ConfigureAwait(false);
@@ -521,7 +509,7 @@ namespace linker.tunnel
                     {
                         if (stopCallback()) break;
 
-                        connection = await ConnectAsync(remoteMachineId, transactionId, denyProtocols, configures: new() { ["flag"] = "back" }, tunnelTypes: [TunnelType.P2P], token: cts.Token).ConfigureAwait(false);
+                        connection = await ConnectAsync(remoteMachineId, transactionId, configures, tunnelTypes: [TunnelType.P2P], token: cts.Token).ConfigureAwait(false);
                         if (connection != null)
                         {
                             break;
