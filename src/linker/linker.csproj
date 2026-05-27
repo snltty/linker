@@ -16,15 +16,10 @@
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Description>1. 一些累计更新，一些BUG修复
-2. 优化upnp，自己实现了一遍
-3. #89 windows任务计划进程守护
-4. #91 客户端、服务端差不多全面支持ipv6
-5. #94 客户端可以设置头像，可以是图片url或json描述样式
-6. #96 变长掩码子网、#98 mss钳制，优化之前版本的设置错误导致隧道断开
-7. 优化打洞，UDP、IPV4和IPV6冲突、局域网冲突、msquic包装UDP隧道
-8. FakeHTTP，可能有助于一些简单QOS的提速
-9. 优化UI，列表加载更流畅，更多排序选项
-10. 全面国际化</Description>
+2. 优化虚拟网卡，修复4字节包头错误导致的个别系统通信异常
+3. 虚拟网卡UDP隧道支持策略冗余FEC，优化丢包网络
+4. 转发类UDP隧道QUIC改为KCP，不再受系统限制
+5. 端口转发和Socks5代理抽象</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
