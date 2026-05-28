@@ -1,5 +1,7 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace linker.libs
 {
@@ -20,33 +22,110 @@ namespace linker.libs
 
     public sealed class OperatingMultipleManager
     {
-        public ConcurrentDictionary<string, bool> StringKeyValue=> dicOperating;
+        public ConcurrentDictionary<string, bool> StringKeyValue => dicOperating;
 
         public VersionManager DataVersion { get; } = new VersionManager();
 
         private readonly ConcurrentDictionary<string, bool> dicOperating = new ConcurrentDictionary<string, bool>();
-        private readonly ConcurrentDictionary<uint, bool> dicOperating1 = new ConcurrentDictionary<uint, bool>();
 
         public bool StartOperation(string key)
         {
             DataVersion.Increment();
             return dicOperating.TryAdd(key, true);
         }
+        public bool StartOperation(string key, Func<Task> func)
+        {
+            DataVersion.Increment();
+            if (dicOperating.TryAdd($"{key}-async", true))
+            {
+                func().ContinueWith(t =>
+                {
+                    StopOperation(key);
+                }).ConfigureAwait(false);
+                return true;
+            }
+            return false;
+        }
+        public async Task<bool> StartOperationAsync(string key, Func<Task> func)
+        {
+            DataVersion.Increment();
+            if (dicOperating.TryAdd($"{key}-async", true))
+            {
+                try
+                {
+                    await func().ConfigureAwait(false);
+                }
+                catch (Exception)
+                {
+                }
+                finally
+                {
+                    StopOperation(key);
+                }
+                return true;
+            }
+            return false;
+        }
+        public async Task<T> StartOperationAsync<T>(string key, T defaultReturnValue, Func<Task<T>> func)
+        {
+            DataVersion.Increment();
+            if (dicOperating.TryAdd($"{key}-async", true))
+            {
+                try
+                {
+                    return await func().ConfigureAwait(false);
+                }
+                catch (Exception)
+                {
+                }
+                finally
+                {
+                    StopOperation(key);
+                }
+            }
+            return defaultReturnValue;
+        }
+        public async Task<T> StartOperationAsync<T>(string key, bool autoStop, Func<string,Task<T>> hasIn, Func<string, Task<T>> hasOut)
+        {
+            DataVersion.Increment();
+
+            Func<string, Task<T>> func = dicOperating.TryAdd($"{key}-async", true) ? hasIn : hasOut;
+            try
+            {
+                return await func(key).ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+            }
+            finally
+            {
+                if (autoStop)
+                    StopOperation(key);
+            }
+            return default(T);
+        }
+        public async Task StartOperationAsync(string key, bool autoStop, Func<string, Task> hasIn, Func<string, Task> hasOut)
+        {
+            DataVersion.Increment();
+
+            Func<string, Task> func = dicOperating.TryAdd($"{key}-async", true) ? hasIn : hasOut;
+            try
+            {
+                await func(key).ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+            }
+            finally
+            {
+                if (autoStop)
+                    StopOperation(key);
+            }
+        }
         public void StopOperation(string key)
         {
             DataVersion.Increment();
             dicOperating.TryRemove(key, out _);
-        }
-
-        public bool StartOperation(uint key)
-        {
-            DataVersion.Increment();
-            return dicOperating1.TryAdd(key, true);
-        }
-        public void StopOperation(uint key)
-        {
-            DataVersion.Increment();
-            dicOperating1.TryRemove(key, out _);
         }
     }
 }

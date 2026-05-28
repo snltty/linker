@@ -81,6 +81,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "linker.kcp", "src\linker.kc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "linker.forward", "src\linker.forward\linker.forward.csproj", "{8E118E05-1549-40BF-AF8C-CC16D65C7B56}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "linker.stun", "src\linker.stun\linker.stun.csproj", "{B29904BE-759B-4779-84B4-208336340E30}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -565,6 +567,18 @@ Global
 		{8E118E05-1549-40BF-AF8C-CC16D65C7B56}.Release|x64.Build.0 = Release|Any CPU
 		{8E118E05-1549-40BF-AF8C-CC16D65C7B56}.Release|x86.ActiveCfg = Release|Any CPU
 		{8E118E05-1549-40BF-AF8C-CC16D65C7B56}.Release|x86.Build.0 = Release|Any CPU
+		{B29904BE-759B-4779-84B4-208336340E30}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B29904BE-759B-4779-84B4-208336340E30}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B29904BE-759B-4779-84B4-208336340E30}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B29904BE-759B-4779-84B4-208336340E30}.Debug|x64.Build.0 = Debug|Any CPU
+		{B29904BE-759B-4779-84B4-208336340E30}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B29904BE-759B-4779-84B4-208336340E30}.Debug|x86.Build.0 = Debug|Any CPU
+		{B29904BE-759B-4779-84B4-208336340E30}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B29904BE-759B-4779-84B4-208336340E30}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B29904BE-759B-4779-84B4-208336340E30}.Release|x64.ActiveCfg = Release|Any CPU
+		{B29904BE-759B-4779-84B4-208336340E30}.Release|x64.Build.0 = Release|Any CPU
+		{B29904BE-759B-4779-84B4-208336340E30}.Release|x86.ActiveCfg = Release|Any CPU
+		{B29904BE-759B-4779-84B4-208336340E30}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

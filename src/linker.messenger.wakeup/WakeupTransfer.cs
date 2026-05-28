@@ -77,12 +77,7 @@ namespace linker.messenger.wakeup
 
         public async Task<bool> Send(WakeupSendInfo info)
         {
-            if (operatingMultipleManager.StartOperation(info.Id) == false)
-            {
-                return false;
-            }
-
-            try
+            return await operatingMultipleManager.StartOperationAsync<bool>(info.Id, false, async () =>
             {
                 return info.Type switch
                 {
@@ -91,15 +86,7 @@ namespace linker.messenger.wakeup
                     WakeupType.Hid => await SendHid(info),
                     _ => false
                 };
-            }
-            catch (Exception)
-            {
-            }
-            finally
-            {
-                operatingMultipleManager.StopOperation(info.Id);
-            }
-            return false;
+            });
         }
         private bool SendWol(WakeupSendInfo info)
         {

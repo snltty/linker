@@ -1,13 +1,14 @@
-﻿using linker.tunnel.connection;
-using linker.tunnel.transport;
-using linker.libs;
+﻿using linker.libs;
 using linker.libs.extends;
-using System.Collections.Concurrent;
-using System.Net.Sockets;
-using System.Net;
-using linker.tunnel.wanport;
 using linker.libs.timer;
+using linker.tunnel.connection;
+using linker.tunnel.transport;
+using linker.tunnel.wanport;
 using System.Buffers;
+using System.Collections.Concurrent;
+using System.Net;
+using System.Net.Sockets;
+using System.Transactions;
 
 namespace linker.tunnel
 {
@@ -140,188 +141,166 @@ namespace linker.tunnel
             }
         }
 
-        public bool StartOperation(string remoteMachineId, string transactionId, string flag = "")
-        {
-            return operating.StartOperation(BuildKey(remoteMachineId, transactionId, flag));
-        }
-        public void StopOperation(string remoteMachineId, string transactionId, string flag = "")
-        {
-            operating.StopOperation(BuildKey(remoteMachineId, transactionId, flag));
-        }
-
-        public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId, Dictionary<string, string> configures, TunnelType[] tunnelTypes = null, TunnelType[] exTunnelTypes = null, CancellationToken token = default)
+        public async Task<ITunnelConnection> ConnectAsync(string remoteMachineId, string transactionId,
+            Dictionary<string, string> configures, TunnelType[] tunnelTypes = null, TunnelType[] exTunnelTypes = null,
+            CancellationToken token = default)
         {
             configures ??= [];
-            if (!configures.TryGetValue("flag", out string flag))
+            if (configures.TryGetValue("flag", out string flag) == false)
             {
                 flag = "default";
             }
-            if (StartOperation(remoteMachineId, transactionId, flag) == false)
+
+            return await operating.StartOperationAsync(BuildKey(remoteMachineId, transactionId, flag), true,
+            async (key) =>
             {
-                return null;
-            }
-
-            try
-            {
-                var query = (await tunnelMessengerAdapter.GetTunnelTransports(remoteMachineId).ConfigureAwait(false)).OrderBy(c => c.Order).Where(c => c.Disabled == false);
-                if (tunnelTypes != null && tunnelTypes.Length > 0)
-                {
-                    query = query.Where(c => tunnelTypes.Contains(c.TunnelType));
-                }
-                if (exTunnelTypes != null && exTunnelTypes.Length > 0)
-                {
-                    query = query.Where(c => exTunnelTypes.Contains(c.TunnelType) == false);
-
-                }
-
-                foreach (TunnelTransportItemInfo transportItem in query.ToList())
+                var transportItems = await GetTransports(remoteMachineId, tunnelTypes, exTunnelTypes).ConfigureAwait(false);
+                foreach (TunnelTransportItemInfo transportItem in transportItems)
                 {
                     ITunnelTransport transport = transports.FirstOrDefault(c => c.Name == transportItem.Name);
-                    //找不到这个打洞协议
-                    if (transport == null)
-                    {
-                        continue;
-                    }
                     transport.SetSSL(tunnelMessengerAdapter.Certificate);
 
-                    foreach (var wanPortProtocol in tunnelWanPortTransfer.Protocols)
+                    foreach (var wanPortProtocol in tunnelWanPortTransfer.Protocols.Where(c => (transport.AllowWanPortProtocolType & c) != c))
                     {
-
-                        //这个打洞协议不支持这个外网端口协议
-                        if ((transport.AllowWanPortProtocolType & wanPortProtocol) != wanPortProtocol)
-                        {
-                            continue;
-                        }
-
-                        TunnelTransportInfo tunnelTransportInfo = null;
-                        //是否在失败后尝试反向连接
-                        int times = transportItem.Reverse ? 1 : 0;
-                        for (int i = 0; i <= times; i++)
-                        {
-                            try
-                            {
-                                if (token.IsCancellationRequested)
-                                {
-                                    return null;
-                                }
-
-                                //获取自己的外网ip
-                                Task<TunnelTransportWanPortInfo> localInfo = GetWanPort(wanPortProtocol);
-                                //获取对方的外网ip
-                                Task<TunnelTransportWanPortInfo> remoteInfo = tunnelMessengerAdapter.GetRemoteWanPort(new TunnelWanPortProtocolInfo
-                                {
-                                    MachineId = remoteMachineId,
-                                    ProtocolType = wanPortProtocol
-                                });
-                                await Task.WhenAll(localInfo, remoteInfo).ConfigureAwait(false);
-
-                                if (localInfo.Result == null)
-                                {
-                                    LoggerHelper.Instance.Error($"tunnel {transport.Name} get local wan ip fail ");
-                                    break;
-                                }
-
-                                if (remoteInfo.Result == null)
-                                {
-                                    LoggerHelper.Instance.Error($"tunnel {transport.Name} get remote {remoteMachineId} wan ip fail ");
-                                    break;
-                                }
-                                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                                    LoggerHelper.Instance.Info($"tunnel {transport.Name} got local wan ip {localInfo.Result.ToJson()}");
-                                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                                    LoggerHelper.Instance.Info($"tunnel {transport.Name} got remote wan ip {remoteInfo.Result.ToJson()}");
-                                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                                    LoggerHelper.Instance.Info($"tunnel {transportItem.ToJson()}");
-
-
-                                tunnelTransportInfo = new TunnelTransportInfo
-                                {
-                                    Direction = (TunnelDirection)i,
-                                    TransactionId = transactionId,
-                                    Configure = configures,
-                                    TransportName = transport.Name,
-                                    TransportType = transport.ProtocolType,
-                                    Local = localInfo.Result,
-                                    Remote = remoteInfo.Result,
-                                    SSL = transportItem.SSL,
-                                    FlowId = Interlocked.Increment(ref flowid),
-                                };
-                                OnConnecting(tunnelTransportInfo);
-                                ParseRemoteEndPoint(tunnelTransportInfo, transportItem.Addr);
-                                ITunnelConnection connection = await transport.ConnectAsync(tunnelTransportInfo).ConfigureAwait(false);
-                                if (connection != null)
-                                {
-                                    OnConnected(connection, tunnelTransportInfo);
-                                    return connection;
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                                {
-                                    LoggerHelper.Instance.Error(ex);
-                                }
-                            }
-                        }
-                        if (tunnelTransportInfo != null)
-                        {
-                            OnConnectFail(tunnelTransportInfo);
-                        }
+                        ITunnelConnection connection = await GetConnection(remoteMachineId, transactionId, transport, transportItem, wanPortProtocol, configures, token).ConfigureAwait(false);
+                        if (connection != null) return connection;
                     }
                 }
-            }
-            catch (Exception ex)
+                return null;
+            },
+            async (key) => null).ConfigureAwait(false);
+        }
+        private async Task<List<TunnelTransportItemInfo>> GetTransports(string remoteMachineId, TunnelType[] tunnelTypes = null, TunnelType[] exTunnelTypes = null)
+        {
+            var query = (await tunnelMessengerAdapter.GetTunnelTransports(remoteMachineId).ConfigureAwait(false)).OrderBy(c => c.Order).Where(c => c.Disabled == false);
+            if (tunnelTypes != null && tunnelTypes.Length > 0)
             {
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                query = query.Where(c => tunnelTypes.Contains(c.TunnelType));
+            }
+            if (exTunnelTypes != null && exTunnelTypes.Length > 0)
+            {
+                query = query.Where(c => exTunnelTypes.Contains(c.TunnelType) == false);
+
+            }
+            return query.Where(c => transports.Any(t => t.Name == c.Name)).ToList();
+        }
+        private async Task<(TunnelTransportWanPortInfo local, TunnelTransportWanPortInfo remote)> GetWanPort(string machineId, TunnelWanPortProtocolType protocolType, ITunnelTransport transport)
+        {
+            //获取自己的外网ip
+            Task<TunnelTransportWanPortInfo> localInfo = GetWanPort(protocolType);
+            //获取对方的外网ip
+            Task<TunnelTransportWanPortInfo> remoteInfo = tunnelMessengerAdapter.GetRemoteWanPort(new TunnelWanPortProtocolInfo
+            {
+                MachineId = machineId,
+                ProtocolType = protocolType
+            });
+            await Task.WhenAll(localInfo, remoteInfo).ConfigureAwait(false);
+
+            if (localInfo.Result == null)
+            {
+                LoggerHelper.Instance.Error($"tunnel {transport.Name} get local wan ip fail ");
+                return (null, null);
+            }
+
+            if (remoteInfo.Result == null)
+            {
+                LoggerHelper.Instance.Error($"tunnel {transport.Name} get remote {machineId} wan ip fail ");
+                return (null, null);
+            }
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Info($"tunnel {transport.Name} got local wan ip {localInfo.Result.ToJson()}");
+            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                LoggerHelper.Instance.Info($"tunnel {transport.Name} got remote wan ip {remoteInfo.Result.ToJson()}");
+
+            return (localInfo.Result, remoteInfo.Result);
+        }
+        private async Task<ITunnelConnection> GetConnection(string remoteMachineId, string transactionId,
+            ITunnelTransport transport, TunnelTransportItemInfo transportItem,
+            TunnelWanPortProtocolType protocolType,
+            Dictionary<string, string> configures, CancellationToken token)
+        {
+            TunnelTransportInfo tunnelTransportInfo = null;
+            for (int i = 0; i <= Convert.ToInt32(transportItem.Reverse); i++)
+            {
+                if (token.IsCancellationRequested)
                 {
-                    LoggerHelper.Instance.Error(ex);
+                    return null;
+                }
+                (TunnelTransportWanPortInfo local, TunnelTransportWanPortInfo remote) = await GetWanPort(remoteMachineId, protocolType, transport).ConfigureAwait(false);
+
+                tunnelTransportInfo = new TunnelTransportInfo
+                {
+                    Direction = (TunnelDirection)i,
+                    TransactionId = transactionId,
+                    Configure = configures,
+                    TransportName = transport.Name,
+                    TransportType = transport.ProtocolType,
+                    Local = local,
+                    Remote = remote,
+                    SSL = transportItem.SSL,
+                    FlowId = Interlocked.Increment(ref flowid),
+                };
+                OnConnecting(tunnelTransportInfo);
+                ParseRemoteEndPoint(tunnelTransportInfo, transportItem.Addr);
+                ITunnelConnection connection = await transport.ConnectAsync(tunnelTransportInfo).ConfigureAwait(false);
+                if (connection != null)
+                {
+                    OnConnected(connection, tunnelTransportInfo);
+                    return connection;
                 }
             }
-            finally
+            if (tunnelTransportInfo != null)
             {
-                StopOperation(remoteMachineId, transactionId, flag);
+                OnConnectFail(tunnelTransportInfo);
             }
             return null;
         }
+
         public async Task OnBegin(TunnelTransportInfo tunnelTransportInfo)
         {
             tunnelTransportInfo.Configure.TryGetValue("flag", out string flag);
             string key = BuildKey(tunnelTransportInfo.Remote.MachineId, tunnelTransportInfo.TransactionId, flag);
-            if (operating.StartOperation(key) == false)
-            {
-                _ = tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo);
-                return;
-            }
-            try
-            {
-                var _transports = await tunnelMessengerAdapter.GetTunnelTransports(tunnelTransportInfo.Remote.MachineId).ConfigureAwait(false);
 
-                ITunnelTransport transport = transports.FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.ProtocolType == tunnelTransportInfo.TransportType);
-                TunnelTransportItemInfo item = _transports.FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.Disabled == false);
-                if (transport != null && item != null)
+            await operating.StartOperationAsync(key,
+            false,
+            async (key) =>
+            {
+                try
                 {
-                    transport.SetSSL(tunnelMessengerAdapter.Certificate);
-                    OnConnectBegin(tunnelTransportInfo);
-                    ParseRemoteEndPoint(tunnelTransportInfo, item.Addr);
-                    _ = transport.OnBegin(tunnelTransportInfo).ContinueWith((result) =>
+                    var _transports = await tunnelMessengerAdapter.GetTunnelTransports(tunnelTransportInfo.Remote.MachineId).ConfigureAwait(false);
+
+                    ITunnelTransport transport = transports.FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.ProtocolType == tunnelTransportInfo.TransportType);
+                    TunnelTransportItemInfo item = _transports.FirstOrDefault(c => c.Name == tunnelTransportInfo.TransportName && c.Disabled == false);
+                    if (transport != null && item != null)
+                    {
+                        transport.SetSSL(tunnelMessengerAdapter.Certificate);
+                        OnConnectBegin(tunnelTransportInfo);
+                        ParseRemoteEndPoint(tunnelTransportInfo, item.Addr);
+                        _ = transport.OnBegin(tunnelTransportInfo).ContinueWith((result) =>
+                        {
+                            operating.StopOperation(key);
+                        });
+                    }
+                    else
                     {
                         operating.StopOperation(key);
-                    });
+                        _ = tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo);
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
                     operating.StopOperation(key);
-                    _ = tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo);
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Error(ex);
+                    }
                 }
-            }
-            catch (Exception ex)
+            },
+            async (key) =>
             {
                 operating.StopOperation(key);
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
-                    LoggerHelper.Instance.Error(ex);
-                }
-            }
+                _ = tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo);
+            }).ConfigureAwait(false);
         }
         public void OnFail(TunnelTransportInfo tunnelTransportInfo)
         {
@@ -488,7 +467,7 @@ namespace linker.tunnel
         }
 
         private ConcurrentDictionary<string, CancellationTokenSource> backgroundDic = new ConcurrentDictionary<string, CancellationTokenSource>();
-        public void StartBackground(string remoteMachineId, string transactionId,Dictionary<string,string> configures,  Func<bool> stopCallback, Func<ITunnelConnection, Task> resultCallback, int times = 10, int delay = 10000)
+        public void StartBackground(string remoteMachineId, string transactionId, Dictionary<string, string> configures, Func<bool> stopCallback, Func<ITunnelConnection, Task> resultCallback, int times = 10, int delay = 10000)
         {
             if (AddBackground(remoteMachineId, transactionId, out CancellationTokenSource cts) == false)
             {

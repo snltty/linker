@@ -8,7 +8,7 @@ namespace linker.messenger.signin.args
     public sealed class SignInArgsVersionClient : ISignInArgsClient
     {
         public string Name => "version";
-        public SignInArgsLevel Level =>  SignInArgsLevel.Default;
+        public SignInArgsLevel Level => SignInArgsLevel.Default;
 
         public Task<string> Invoke(string host, Dictionary<string, string> args)
         {
@@ -33,9 +33,9 @@ namespace linker.messenger.signin.args
         /// <returns></returns>
         public Task<string> Validate(SignInfo signInfo, SignCacheInfo cache)
         {
-            if (VersionHelper.Compare(signInfo.Version, "v1.5.0", false) < 0)
+            if (VersionHelper.Compare(signInfo.Version, "v1.9.8", false) < 0)
             {
-                return Task.FromResult("need v1.5.0+");
+                return Task.FromResult("need v1.9.8+");
             }
             return Task.FromResult(string.Empty);
         }

@@ -2,8 +2,7 @@
 using linker.libs.extends;
 using linker.messenger.decenter;
 using linker.messenger.signin;
-using linker.messenger.tunnel.stun.clients;
-using linker.messenger.tunnel.stun.enums;
+using linker.stun;
 using linker.tunnel;
 using linker.upnp;
 using System.Net;
@@ -27,8 +26,9 @@ namespace linker.messenger.tunnel.client
 
         private readonly OperatingMultipleManager operatingManager = new OperatingMultipleManager();
 
-
-        public TunnelNetworkTransfer(ISignInClientStore signInClientStore, SignInClientState signInClientState, ITunnelClientStore tunnelClientStore, IMessengerSender messengerSender, ISerializer serializer, TunnelTransfer tunnelTransfer, CounterDecenter counterDecenter)
+        public TunnelNetworkTransfer(ISignInClientStore signInClientStore, SignInClientState signInClientState,
+            ITunnelClientStore tunnelClientStore, IMessengerSender messengerSender, ISerializer serializer,
+            TunnelTransfer tunnelTransfer, CounterDecenter counterDecenter)
         {
             this.signInClientStore = signInClientStore;
             this.signInClientState = signInClientState;
@@ -37,7 +37,7 @@ namespace linker.messenger.tunnel.client
             this.serializer = serializer;
             this.tunnelTransfer = tunnelTransfer;
 
-            signInClientState.OnSignInSuccessBefore += async () => { await GetRouteLevel().ConfigureAwait(false); tunnelTransfer.Refresh(); };
+            signInClientState.OnSignInSuccessBefore += async () => { RefreshRouteLevel(); tunnelTransfer.Refresh(); };
 
             Refresh();
 
@@ -71,18 +71,14 @@ namespace linker.messenger.tunnel.client
 
         public void Refresh()
         {
-            _ = GetNet();
-            _ = GetRouteLevel();
+            RefreshNet();
+            RefreshRouteLevel();
             tunnelTransfer.Refresh();
         }
-        private async Task GetRouteLevel()
+        private void RefreshRouteLevel()
         {
-            await Task.Run(async () =>
+            operatingManager.StartOperation("get_level", async () =>
             {
-                if (operatingManager.StartOperation("get_level") == false)
-                {
-                    return;
-                }
                 try
                 {
                     LoggerHelper.Instance.Info($"tunnel route level getting.");
@@ -102,83 +98,101 @@ namespace linker.messenger.tunnel.client
                 catch (Exception)
                 {
                 }
-                operatingManager.StopOperation("get_level");
-            }).ConfigureAwait(false);
-        }
-        private async Task GetNet()
-        {
-            if (operatingManager.StartOperation("get_net") == false)
-            {
-                return;
-            }
-
-            await Task.Run(async () =>
-            {
-                try
-                {
-                    int isp = 0, city = 0, nat = 0;
-                    while (true)
-                    {
-                        using CancellationTokenSource cts = new CancellationTokenSource(15000);
-
-                        int[] results = await Task.WhenAll([ GetIsp(cts.Token, isp), GetPosition(cts.Token, city),  GetNat(cts.Token, nat)]).ConfigureAwait(false);
-                        isp += results[0];
-                        city += results[1];
-                        nat += results[2];
-                        if (isp > 0 && city > 0 && nat > 0) break;
-                        await Task.Delay(10000).ConfigureAwait(false);
-                    }
-                    await messengerSender.SendOnly(new MessageRequestWrap
-                    {
-                        Connection = signInClientState.Connection,
-                        MessengerId = (ushort)SignInMessengerIds.PushArg,
-                        Payload = serializer.Serialize(new SignInPushArgInfo
-                        {
-                            Key = "tunnelNet",
-                            Value = new SignInArgsNetInfo { Lat = tunnelClientStore.Network.Net.Lat, Lon = tunnelClientStore.Network.Net.Lon, City = tunnelClientStore.Network.Net.City }.ToJson()
-                        })
-                    });
-                }
-                catch (Exception ex)
-                {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                        LoggerHelper.Instance.Error(ex);
-                }
 
             });
-            operatingManager.StopOperation("get_net");
         }
-        private async Task<int> GetNat(CancellationToken token, int flag)
+
+        sealed class NetInfo
         {
-            if (flag > 0) return 0;
+            public int Flag { get; set; }
+            public Func<CancellationToken, Task<int>> Func { get; set; }
+        }
+        private void RefreshNet()
+        {
+            operatingManager.StartOperation("get_net", async () =>
+            {
+                List<NetInfo> netInfos = new List<NetInfo>
+                {
+                    new NetInfo { Flag = 0, Func = GetIsp },
+                    new NetInfo { Flag = 0, Func = GetPosition },
+                    new NetInfo { Flag = 0, Func = GetNat }
+                };
+                while (true)
+                {
+                    try
+                    {
+                        using CancellationTokenSource cts = new CancellationTokenSource(30000);
+                        int[] results = await Task.WhenAll(netInfos.Where(c => c.Flag == 0).Select(async c =>
+                        {
+                            int value = await c.Func(cts.Token).ConfigureAwait(false);
+                            c.Flag += value;
+                            return value;
+                        }).ToList()).ConfigureAwait(false);
+
+                        if (results.Any(c => c > 0))
+                        {
+                            await UoloadNet().ConfigureAwait(false);
+                        }
+                        if (netInfos.All(c => c.Flag > 0))
+                        {
+                            break;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                            LoggerHelper.Instance.Error(ex);
+                    }
+
+                    await Task.Delay(10000).ConfigureAwait(false);
+                }
+            });
+        }
+        private async Task UoloadNet()
+        {
+            OnChange?.Invoke();
+            await messengerSender.SendOnly(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)SignInMessengerIds.PushArg,
+                Payload = serializer.Serialize(new SignInPushArgInfo
+                {
+                    Key = "tunnelNet",
+                    Value = new SignInArgsNetInfo
+                    {
+                        Lat = tunnelClientStore.Network.Net.Lat,
+                        Lon = tunnelClientStore.Network.Net.Lon,
+                        City = tunnelClientStore.Network.Net.City
+                    }.ToJson()
+                })
+            });
+        }
+
+        private readonly StunClient stun = new StunClient();
+        private async Task<int> GetNat(CancellationToken token)
+        {
             try
             {
-                IPEndPoint server = await NetworkHelper.GetEndPointAsync("stun.hot-chilli.net", 3478);
-                await using StunClient5389UDP client = new(server, new IPEndPoint(server.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, 0));
-                await client.MappingBehaviorTestAsync().ConfigureAwait(false);
-
-                MappingBehavior mapping = client.State?.MappingBehavior ?? MappingBehavior.Unknown;
-                await client.FilteringBehaviorTestAsync(token).ConfigureAwait(false);
-                FilteringBehavior filtering = client.State?.FilteringBehavior ?? FilteringBehavior.Unknown;
+                StunNatBehaviorResult result = await stun.DiscoverNatBehaviorAsync("stunserver2025.stunprotocol.org", 3478, new StunClientOptions
+                {
+                    AddressFamilyMode = StunAddressFamilyMode.Ipv6Preferred,
+                    MaxAttempts = 3
+                }, token).ConfigureAwait(false);
+                StunNatMappingBehavior mapping = result.MappingBehavior;
+                StunNatFilteringBehavior filtering = result.FilteringBehavior;
 
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Debug($"NAT {mapping}/{filtering}");
+                    LoggerHelper.Instance.Debug($"NAT {result.Status} {mapping}/{filtering}");
 
-
-                bool result = filtering != FilteringBehavior.UnsupportedServer && mapping != MappingBehavior.UnsupportedServer
-                    && filtering != FilteringBehavior.Unknown && mapping != MappingBehavior.Unknown
-                    && filtering != FilteringBehavior.None && mapping != MappingBehavior.Fail;
-                if (result)
+                if (result.Status == StunNatBehaviorStatus.Success)
                 {
-                    tunnelClientStore.Network.Net.Nat = $"{mapping}/{filtering}/{(server.AddressFamily == AddressFamily.InterNetwork ? "IPV4" : "IPV6")}-{GetSuccessRateValue(mapping, filtering)}%";
-                    await tunnelClientStore.SetNetwork(tunnelClientStore.Network);
-                    OnChange?.Invoke();
-                }
+                    tunnelClientStore.Network.Net.Nat = result.P2PSummary;
+                    await tunnelClientStore.SetNetwork(tunnelClientStore.Network).ConfigureAwait(false);
 
-                return result ? 1 : 0;
+                    return 1;
+                }
+                return 0;
             }
-            catch (TaskCanceledException) { }
-            catch (OperationCanceledException) { }
             catch (Exception ex)
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
@@ -186,26 +200,8 @@ namespace linker.messenger.tunnel.client
             }
             return 0;
         }
-        public static int GetSuccessRateValue(MappingBehavior mapping, FilteringBehavior filtering)
+        private async Task<int> GetIsp(CancellationToken token)
         {
-            return (mapping, filtering) switch
-            {
-                (MappingBehavior.Direct, _) => 100,
-                (MappingBehavior.EndpointIndependent, FilteringBehavior.EndpointIndependent) => 98,
-                (MappingBehavior.EndpointIndependent, FilteringBehavior.AddressDependent) => 85,
-                (MappingBehavior.EndpointIndependent, FilteringBehavior.AddressAndPortDependent) => 80,
-                (MappingBehavior.AddressDependent, FilteringBehavior.EndpointIndependent) => 50,
-                (MappingBehavior.AddressDependent, FilteringBehavior.AddressDependent) => 40,
-                (MappingBehavior.AddressDependent, FilteringBehavior.AddressAndPortDependent) => 35,
-                (MappingBehavior.AddressAndPortDependent, FilteringBehavior.EndpointIndependent) => 35,
-                (MappingBehavior.AddressAndPortDependent, FilteringBehavior.AddressDependent) => 25,
-                (MappingBehavior.AddressAndPortDependent, FilteringBehavior.AddressAndPortDependent) => 3,
-                _ => 0
-            };
-        }
-        private async Task<int> GetIsp(CancellationToken token, int flag)
-        {
-            if (flag > 0) return 0;
             try
             {
                 using HttpClient httpClient = new HttpClient();
@@ -219,7 +215,6 @@ namespace linker.messenger.tunnel.client
                     tunnelClientStore.Network.Net.Lat = double.Parse(json["lat"].ToString());
                     tunnelClientStore.Network.Net.Lon = double.Parse(json["lon"].ToString());
                     await tunnelClientStore.SetNetwork(tunnelClientStore.Network);
-                    OnChange?.Invoke();
                     return 1;
                 }
             }
@@ -232,9 +227,8 @@ namespace linker.messenger.tunnel.client
             }
             return 0;
         }
-        private async Task<int> GetPosition(CancellationToken token, int flag)
+        private async Task<int> GetPosition(CancellationToken token)
         {
-            if (flag > 0) return 0;
             try
             {
                 using HttpClient httpClient = new HttpClient();
@@ -247,7 +241,6 @@ namespace linker.messenger.tunnel.client
                     tunnelClientStore.Network.Net.Lat = double.Parse(json["location"]["latitude"].ToString());
                     tunnelClientStore.Network.Net.Lon = double.Parse(json["location"]["longitude"].ToString());
                     await tunnelClientStore.SetNetwork(tunnelClientStore.Network);
-                    OnChange?.Invoke();
                     return 1;
                 }
             }
@@ -260,6 +253,7 @@ namespace linker.messenger.tunnel.client
             }
             return 0;
         }
+
         public TunnelLocalNetworkInfo GetNetwork()
         {
             return new TunnelLocalNetworkInfo

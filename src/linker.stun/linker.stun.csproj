@@ -1,25 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
+		<OutputType>Library</OutputType>
 		<TargetFrameworks>net8.0</TargetFrameworks>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>disable</Nullable>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<PublishAot>false</PublishAot>
-		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
-		<Title>linker messenger tunnel</Title>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<Configurations>Debug;Release</Configurations>
+		<Title>linker stun</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>linker messenger tunnel</Description>
+		<Description>linker stun</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
-		<PackageReleaseNotes>linker messenger tunnel</PackageReleaseNotes>
 		<Version>1.9.99</Version>
 		<AssemblyVersion>1.9.99</AssemblyVersion>
 		<FileVersion>1.9.99</FileVersion>
 	</PropertyGroup>
-
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 		<DebugType>full</DebugType>
 		<DebugSymbols>true</DebugSymbols>
@@ -35,15 +32,7 @@
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0|AnyCPU'">
 		<DebugType>embedded</DebugType>
 	</PropertyGroup>
-	<ItemGroup>
-		<ProjectReference Include="..\linker.libs\linker.libs.csproj" />
-		<ProjectReference Include="..\linker.messenger.decenter\linker.messenger.decenter.csproj" />
-		<ProjectReference Include="..\linker.messenger.exroute\linker.messenger.exroute.csproj" />
-		<ProjectReference Include="..\linker.messenger.signin\linker.messenger.signin.csproj" />
-		<ProjectReference Include="..\linker.messenger.sync\linker.messenger.sync.csproj" />
-		<ProjectReference Include="..\linker.messenger\linker.messenger.csproj" />
-		<ProjectReference Include="..\linker.stun\linker.stun.csproj" />
-		<ProjectReference Include="..\linker.tunnel\linker.tunnel.csproj" />
-	</ItemGroup>
+
+
 
 </Project>

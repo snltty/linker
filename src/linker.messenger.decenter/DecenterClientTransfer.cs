@@ -92,17 +92,10 @@ namespace linker.messenger.decenter
         {
             foreach (IDecenter item in decenters)
             {
-                if (operatingMultipleManager.StartOperation(item.Name))
+                operatingMultipleManager.StartOperation(item.Name, async () =>
                 {
-                    if (versionMultipleManager.HasValueChange(item.Name))
-                    {
-                        Task.Run(item.ProcData).ContinueWith((result) => { operatingMultipleManager.StopOperation(item.Name); });
-                    }
-                    else
-                    {
-                        operatingMultipleManager.StopOperation(item.Name);
-                    }
-                }
+                    item.ProcData();
+                });
             }
         }
         private async Task CheckData()
