@@ -36,7 +36,7 @@ namespace linker.libs
         public bool StartOperation(string key, Func<Task> func)
         {
             DataVersion.Increment();
-            if (dicOperating.TryAdd($"{key}-async", true))
+            if (dicOperating.TryAdd(key, true))
             {
                 func().ContinueWith(t =>
                 {
@@ -49,7 +49,7 @@ namespace linker.libs
         public async Task<bool> StartOperationAsync(string key, Func<Task> func)
         {
             DataVersion.Increment();
-            if (dicOperating.TryAdd($"{key}-async", true))
+            if (dicOperating.TryAdd(key, true))
             {
                 try
                 {
@@ -69,7 +69,7 @@ namespace linker.libs
         public async Task<T> StartOperationAsync<T>(string key, T defaultReturnValue, Func<Task<T>> func)
         {
             DataVersion.Increment();
-            if (dicOperating.TryAdd($"{key}-async", true))
+            if (dicOperating.TryAdd(key, true))
             {
                 try
                 {
@@ -89,7 +89,7 @@ namespace linker.libs
         {
             DataVersion.Increment();
 
-            Func<string, Task<T>> func = dicOperating.TryAdd($"{key}-async", true) ? hasIn : hasOut;
+            Func<string, Task<T>> func = dicOperating.TryAdd(key, true) ? hasIn : hasOut;
             try
             {
                 return await func(key).ConfigureAwait(false);
@@ -108,7 +108,7 @@ namespace linker.libs
         {
             DataVersion.Increment();
 
-            Func<string, Task> func = dicOperating.TryAdd($"{key}-async", true) ? hasIn : hasOut;
+            Func<string, Task> func = dicOperating.TryAdd(key, true) ? hasIn : hasOut;
             try
             {
                 await func(key).ConfigureAwait(false);

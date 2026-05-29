@@ -106,10 +106,9 @@ namespace linker.messenger.pcp
                         info.NodeId = node;
                         string tag = info.ToJson();
                         tunnelTransportInfo.Configure[_transactionId] = tag;
+                        tunnelTransportInfo.Configure["flag"] = _transactionId;
 
-                        Dictionary<string, string> configures = new() { ["flag"] = _transactionId, [_transactionId] = tag };
-
-                        connection = await tunnelTransfer.ConnectAsync(node, _transactionId, configures: configures, tunnelTypes: [TunnelType.P2P]).ConfigureAwait(false);
+                        connection = await tunnelTransfer.ConnectAsync(node, _transactionId, configures: tunnelTransportInfo.Configure, tunnelTypes: [TunnelType.P2P]).ConfigureAwait(false);
                         if (connection == null)
                         {
                             continue;
@@ -154,8 +153,7 @@ namespace linker.messenger.pcp
             PcpInfo tag = tunnelTransportInfo.Configure[_transactionId].DeJson<PcpInfo>();
             try
             {
-                Dictionary<string, string> configures = new() { ["flag"] = _transactionId, [_transactionId] = tunnelTransportInfo.Configure[_transactionId] };
-                ITunnelConnection connection = await tunnelTransfer.ConnectAsync(tag.NodeId, _transactionId, configures: configures, tunnelTypes: [TunnelType.P2P]).ConfigureAwait(false);
+                ITunnelConnection connection = await tunnelTransfer.ConnectAsync(tag.NodeId, _transactionId, configures: tunnelTransportInfo.Configure, tunnelTypes: [TunnelType.P2P]).ConfigureAwait(false);
                 if (connection != null)
                 {
                     OnConnected(connection, tunnelTransportInfo);

@@ -3,7 +3,6 @@ using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using linker.fec.Internal;
 
 namespace linker.fec;
@@ -14,6 +13,7 @@ namespace linker.fec;
 public sealed class LinkerFecCodec : IDisposable
 {
     private const int RecordLengthPrefixSize = LinkerFecOptions.RecordLengthPrefixSize;
+    private const int FrameLengthPrefixSize = LinkerFecOptions.FrameLengthPrefixSize;
 
     private readonly LinkerFecOptions _options;
     private readonly Dictionary<ulong, DecoderBlock> _decoderBlocks = [];
@@ -51,7 +51,7 @@ public sealed class LinkerFecCodec : IDisposable
 
     /// <summary>
     /// Encodes one 2-byte length-prefixed application record list synchronously and writes all generated frames into
-    /// <paramref name="destination"/> as [4-byte frame length][frame] records.
+    /// <paramref name="destination"/> as [2-byte frame length][frame] records.
     /// The record length prefix is little-endian and does not include the 2 prefix bytes.
     /// </summary>
     public int EncodePacket(
@@ -67,7 +67,7 @@ public sealed class LinkerFecCodec : IDisposable
 
     /// <summary>
     /// Encodes one 2-byte length-prefixed application record list synchronously and writes all generated frames into
-    /// <paramref name="destination"/> as [4-byte frame length][frame] records.
+    /// <paramref name="destination"/> as [2-byte frame length][frame] records.
     /// The record length prefix is little-endian and does not include the 2 prefix bytes.
     /// </summary>
     public int EncodePacket(
@@ -81,7 +81,7 @@ public sealed class LinkerFecCodec : IDisposable
 
     /// <summary>
     /// Encodes one 2-byte length-prefixed application record list synchronously and writes all generated frames into
-    /// <paramref name="destination"/> as [4-byte frame length][frame] records.
+    /// <paramref name="destination"/> as [2-byte frame length][frame] records.
     /// The record length prefix is little-endian and does not include the 2 prefix bytes.
     /// </summary>
     public int EncodePacket(
@@ -108,7 +108,7 @@ public sealed class LinkerFecCodec : IDisposable
     }
 
     /// <summary>
-    /// Tries to encode one 2-byte length-prefixed application record list synchronously into [4-byte frame length][frame]
+    /// Tries to encode one 2-byte length-prefixed application record list synchronously into [2-byte frame length][frame]
     /// records. Returns false if <paramref name="destination"/> is too small.
     /// </summary>
     public bool TryEncodePacket(
@@ -124,7 +124,7 @@ public sealed class LinkerFecCodec : IDisposable
     }
 
     /// <summary>
-    /// Tries to encode one 2-byte length-prefixed application record list synchronously into [4-byte frame length][frame]
+    /// Tries to encode one 2-byte length-prefixed application record list synchronously into [2-byte frame length][frame]
     /// records. Returns false if <paramref name="destination"/> is too small.
     /// </summary>
     public bool TryEncodePacket(
@@ -138,7 +138,7 @@ public sealed class LinkerFecCodec : IDisposable
     }
 
     /// <summary>
-    /// Tries to encode one 2-byte length-prefixed application record list synchronously into [4-byte frame length][frame]
+    /// Tries to encode one 2-byte length-prefixed application record list synchronously into [2-byte frame length][frame]
     /// records. Returns false if <paramref name="destination"/> is too small.
     /// </summary>
     public bool TryEncodePacket(
@@ -574,9 +574,9 @@ public sealed class LinkerFecCodec : IDisposable
         var blockId = _nextEncodeBlockId++;
         var sourcePayload = GetSingleRecordPayload(rawPacket);
         var sourceFrameLength = LinkerFecEncodedSymbol.HeaderSize + sourcePayload.Length;
-        WriteInt32LittleEndian(destination, 0, sourceFrameLength);
+        WriteFrameLength(destination, 0, sourceFrameLength);
 
-        var sourceFrameOffset = sizeof(int);
+        var sourceFrameOffset = FrameLengthPrefixSize;
         var sourceFrame = destination.Slice(sourceFrameOffset, sourceFrameLength);
         sourcePayload.CopyTo(sourceFrame.Slice(LinkerFecEncodedSymbol.HeaderSize, sourcePayload.Length));
 
@@ -595,9 +595,9 @@ public sealed class LinkerFecCodec : IDisposable
             LinkerFecEncodedSymbol.RepairLengthSymbolSize +
             repairPayloadLength;
         var repairLengthPrefixOffset = sourceFrameOffset + sourceFrameLength;
-        WriteInt32LittleEndian(destination, repairLengthPrefixOffset, repairFrameLength);
+        WriteFrameLength(destination, repairLengthPrefixOffset, repairFrameLength);
 
-        var repairFrameOffset = repairLengthPrefixOffset + sizeof(int);
+        var repairFrameOffset = repairLengthPrefixOffset + FrameLengthPrefixSize;
         var repairFrame = destination.Slice(repairFrameOffset, repairFrameLength);
         var repairPayload = repairFrame.Slice(
             LinkerFecEncodedSymbol.HeaderSize + LinkerFecEncodedSymbol.RepairLengthSymbolSize,
@@ -708,8 +708,8 @@ public sealed class LinkerFecCodec : IDisposable
         ReadOnlySpan<byte> payload)
     {
         var frameLength = LinkerFecEncodedSymbol.HeaderSize + payload.Length;
-        BinaryPrimitives.WriteInt32LittleEndian(destination.Slice(bytesWritten, sizeof(int)), frameLength);
-        bytesWritten += sizeof(int);
+        WriteFrameLength(destination, bytesWritten, frameLength);
+        bytesWritten += FrameLengthPrefixSize;
 
         LinkerFecEncodedSymbol.WriteFrame(
             destination.Slice(bytesWritten, frameLength),
@@ -747,8 +747,8 @@ public sealed class LinkerFecCodec : IDisposable
         var frameLength = LinkerFecEncodedSymbol.HeaderSize +
             LinkerFecEncodedSymbol.RepairLengthSymbolSize +
             repairPayloadLength;
-        BinaryPrimitives.WriteInt32LittleEndian(destination.Slice(bytesWritten, sizeof(int)), frameLength);
-        bytesWritten += sizeof(int);
+        WriteFrameLength(destination, bytesWritten, frameLength);
+        bytesWritten += FrameLengthPrefixSize;
 
         var frame = destination.Slice(bytesWritten, frameLength);
         var lengthSymbol = GenerateRepairLengthSymbol(sourceLengths, coefficients);
@@ -833,7 +833,7 @@ public sealed class LinkerFecCodec : IDisposable
     private int GetPacketizedOutputSize(ReadOnlySpan<int> sourceLengths, int repairSymbolCount)
     {
         var sourceCount = sourceLengths.Length;
-        var size = checked((sourceCount + repairSymbolCount) * (sizeof(int) + LinkerFecEncodedSymbol.HeaderSize));
+        var size = checked((sourceCount + repairSymbolCount) * (FrameLengthPrefixSize + LinkerFecEncodedSymbol.HeaderSize));
         for (var i = 0; i < sourceLengths.Length; i++)
         {
             size = checked(size + sourceLengths[i]);
@@ -853,7 +853,7 @@ public sealed class LinkerFecCodec : IDisposable
     {
         return checked(
             (2 * sourcePayloadLength) +
-            (2 * (sizeof(int) + LinkerFecEncodedSymbol.HeaderSize)) +
+            (2 * (FrameLengthPrefixSize + LinkerFecEncodedSymbol.HeaderSize)) +
             LinkerFecEncodedSymbol.RepairLengthSymbolSize);
     }
 
@@ -1092,14 +1092,14 @@ public sealed class LinkerFecCodec : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void WriteInt32LittleEndian(Span<byte> destination, int offset, int value)
+    private static void WriteFrameLength(Span<byte> destination, int offset, int value)
     {
-        if (!BitConverter.IsLittleEndian)
+        if ((uint)value > LinkerFecOptions.MaxFrameLength)
         {
-            value = BinaryPrimitives.ReverseEndianness(value);
+            throw new InvalidOperationException("FEC frame length exceeds the 2-byte packetized frame prefix limit.");
         }
 
-        Unsafe.WriteUnaligned(ref Unsafe.Add(ref MemoryMarshal.GetReference(destination), offset), value);
+        BinaryPrimitives.WriteUInt16LittleEndian(destination.Slice(offset, FrameLengthPrefixSize), checked((ushort)value));
     }
 
     private bool TryDecodeReceivedBlock(

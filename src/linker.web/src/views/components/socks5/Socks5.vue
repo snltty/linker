@@ -1,5 +1,5 @@
 <template>
-    <el-table-column prop="socks5" :label="$t('socks5')" width="140">
+    <el-table-column prop="socks5" :label="`${$t('socks5')}socks5/http`" width="140">
         <template #default="scope">
             <template v-if="scope.row &&scope.row.hook_socks5">
                 <div class="skeleton-animation" :style="`animation-delay:${scope.row.animationDelay}ms`">

@@ -126,17 +126,17 @@ namespace linker.messenger.channel
             return await operatingMultipleManager.StartOperationAsync($"{machineId}@{TransactionId}", false,
             async (key) =>
             {
-                var connection = await tunnelTransfer.ConnectAsync(machineId, TransactionId, configures, tunnelTypes: [TunnelType.Relay]).ConfigureAwait(false);
-                operatingMultipleManager.StopOperation(key);
-                return connection;
-            },
-            async (key) =>
-            {
                 _ = RelayAndP2P(machineId, configures).ContinueWith((res) =>
                 {
                     operatingMultipleManager.StopOperation(key);
                 });
                 return null;
+            },
+            async (key) =>
+            {
+                var connection = await tunnelTransfer.ConnectAsync(machineId, TransactionId, configures, tunnelTypes: [TunnelType.Relay]).ConfigureAwait(false);
+                operatingMultipleManager.StopOperation(key);
+                return connection;
             });
         }
         private async Task<ITunnelConnection> RelayAndP2P(string machineId, Dictionary<string, string> configures)

@@ -48,7 +48,6 @@ namespace linker.tunnel.connection
         public long RecvBufferRemaining => packetDecoder.SendBufferRemaining;
         public long RecvBufferFree => packetDecoder.SendBufferFree;
 
-
         [JsonIgnore]
         public SslStream Stream { get; init; }
         [JsonIgnore]
@@ -139,7 +138,7 @@ namespace linker.tunnel.connection
                     do
                     {
                         int packetLength = memory.ToUInt16();
-                        await WritePacket(memory.Slice(2, packetLength)).ConfigureAwait(false);
+                        await ProcessPacket(memory.Slice(2, packetLength)).ConfigureAwait(false);
                         memory = memory.Slice(2 + packetLength);
 
                     } while (memory.Length > 0);
@@ -154,23 +153,18 @@ namespace linker.tunnel.connection
                 Dispose();
             }
         }
-        private ValueTask WritePacket(ReadOnlyMemory<byte> memory)
+        private ValueTask ProcessPacket(ReadOnlyMemory<byte> memory)
         {
             LastTicks.Update();
             try
             {
-                if (memory.Span[0] == PacketTypeData)
+                return memory.Span[0] switch
                 {
-                    return callback.Receive(this, memory.Slice(2), this.userToken);
-                }
-                else if (memory.Span[0] == PacketTypePing)
-                {
-                    return SendPingPong(pongBytes, PacketTypePong);
-                }
-                else if (memory.Span[0] == PacketTypePong)
-                {
-                    Delay = (int)pingTicks.Diff();
-                }
+                    PacketTypeData => callback.Receive(this, memory.Slice(2), this.userToken),
+                    PacketTypePing => SendPingPong(pongBytes, PacketTypePong),
+                    PacketTypePong => ProcessPong(),
+                    _ => ValueTask.CompletedTask
+                };
             }
             catch (Exception ex)
             {
@@ -178,6 +172,11 @@ namespace linker.tunnel.connection
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                     LoggerHelper.Instance.Error(string.Join(",", memory.ToArray()));
             }
+            return ValueTask.CompletedTask;
+        }
+        private ValueTask ProcessPong()
+        {
+            Delay = (int)pingTicks.Diff();
             return ValueTask.CompletedTask;
         }
 
@@ -270,7 +269,6 @@ namespace linker.tunnel.connection
             }
 
         }
-
         private readonly SemaphoreSlim slm = new SemaphoreSlim(1);
         public async ValueTask<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
@@ -279,6 +277,7 @@ namespace linker.tunnel.connection
             await slm.WaitAsync(cts.Token).ConfigureAwait(false);
             try
             {
+                ((ushort)(data.ToUInt16() + 2)).ToBytes(data);
                 await packetEncoder.WriteAsync(data, cts.Token).ConfigureAwait(false);
                 return true;
             }

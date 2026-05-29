@@ -160,7 +160,7 @@ namespace linker.tunnel
                     ITunnelTransport transport = transports.FirstOrDefault(c => c.Name == transportItem.Name);
                     transport.SetSSL(tunnelMessengerAdapter.Certificate);
 
-                    foreach (var wanPortProtocol in tunnelWanPortTransfer.Protocols.Where(c => (transport.AllowWanPortProtocolType & c) != c))
+                    foreach (var wanPortProtocol in tunnelWanPortTransfer.Protocols.Where(c => (transport.AllowWanPortProtocolType & c) == c))
                     {
                         ITunnelConnection connection = await GetConnection(remoteMachineId, transactionId, transport, transportItem, wanPortProtocol, configures, token).ConfigureAwait(false);
                         if (connection != null) return connection;

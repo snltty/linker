@@ -47,7 +47,6 @@ namespace linker.libs.extends
                 try
                 {
                     socket.Shutdown(SocketShutdown.Both);
-                    //调试注释
                     socket.Disconnect(false);
                 }
                 catch (Exception)
@@ -89,7 +88,7 @@ namespace linker.libs.extends
             socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, time);
         }
 
-        public static async ValueTask<int> SendAllAsync(this Socket socket, ReadOnlyMemory<byte> data,CancellationToken token = default)
+        public static async ValueTask<int> SendAllAsync(this Socket socket, ReadOnlyMemory<byte> data, CancellationToken token = default)
         {
             int sendt = 0;
             do

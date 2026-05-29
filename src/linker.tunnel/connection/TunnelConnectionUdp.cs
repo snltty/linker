@@ -8,7 +8,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json.Serialization;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace linker.tunnel.connection
 {
@@ -204,6 +203,7 @@ namespace linker.tunnel.connection
             await slm.WaitAsync(cts.Token).ConfigureAwait(false);
             try
             {
+                ((ushort)(data.ToUInt16() + 2)).ToBytes(data);
                 await SendHook(data).ConfigureAwait(false);
                 return true;
             }
@@ -234,7 +234,8 @@ namespace linker.tunnel.connection
 
                 SendBytes += bytesWritten;
 
-                return sendFunc(cryptoEncodeBuffer.AsMemory(0, bytesWritten + 2));
+                var memory = cryptoEncodeBuffer.AsMemory(0, bytesWritten + 2);
+                return sendFunc(memory);
             }
             else
             {
@@ -249,37 +250,35 @@ namespace linker.tunnel.connection
             return recvFunc(data);
 
         }
-        private ValueTask CallbackPacket(ReadOnlyMemory<byte> memory)
+        private ValueTask ProcessPacket(ReadOnlyMemory<byte> memory)
         {
             try
             {
-                if (memory.Span[0] == PacketTypeData)
+                return memory.Span[0] switch
                 {
-                    return callback.Receive(this, memory.Slice(2), this.userToken);
-                }
-                else if (memory.Span[0] == PacketTypePing)
-                {
-                    return SendPingPong(pongBytes, PacketTypePong);
-                }
-                else if (memory.Span[0] == PacketTypePong)
-                {
-                    Delay = (int)pingTicks.Diff();
-                }
-                else if (memory.Span[0] == PacketTypeFin)
-                {
-                    LoggerHelper.Instance.Error($"tunnel connection dispose 5");
-                    Dispose();
-                }
+                    PacketTypeData => callback.Receive(this, memory.Slice(2), this.userToken),
+                    PacketTypePing => SendPingPong(pongBytes, PacketTypePong),
+                    PacketTypePong => ProcessPong(),
+                    PacketTypeFin => ProcessFin(),
+                    _ => ValueTask.CompletedTask
+                };
             }
             catch (Exception ex)
             {
                 if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                {
                     LoggerHelper.Instance.Error(ex);
-                    LoggerHelper.Instance.Error(Encoding.UTF8.GetString(memory.Span));
-                    LoggerHelper.Instance.Error(string.Join(",", memory.ToArray()));
-                }
             }
+            return ValueTask.CompletedTask;
+        }
+        private ValueTask ProcessPong()
+        {
+            Delay = (int)pingTicks.Diff();
+            return ValueTask.CompletedTask;
+        }
+        private ValueTask ProcessFin()
+        {
+            LoggerHelper.Instance.Error($"tunnel connection dispose 5");
+            Dispose();
             return ValueTask.CompletedTask;
         }
 
@@ -294,7 +293,7 @@ namespace linker.tunnel.connection
                 Crypto.TryDecode(data.Span, cryptoDecodeBuffer, out int bytesWritten);
                 data = cryptoDecodeBuffer.AsMemory(0, bytesWritten);
             }
-            return CallbackPacket(data);
+            return ProcessPacket(data);
         }
 
 
@@ -347,7 +346,7 @@ namespace linker.tunnel.connection
                         Crypto.TryDecode(packet.Span, cryptoDecodeBuffer, out int _bytesWritten);
                         packet = cryptoDecodeBuffer.AsMemory(0, _bytesWritten);
                     }
-                    await CallbackPacket(packet).ConfigureAwait(false);
+                    await ProcessPacket(packet).ConfigureAwait(false);
 
                     packets = packets.Slice(LinkerFecOptions.RecordLengthPrefixSize + packetLength);
                 }
@@ -374,15 +373,23 @@ namespace linker.tunnel.connection
                     for (int i = 0; i < packetCount; i++)
                     {
                         int packetLength = BinaryPrimitives.ReadUInt16LittleEndian(memory.Span);
-                        Memory<byte> packet = memory.Slice(LinkerFecOptions.RecordLengthPrefixSize, packetLength);
+                        Memory<byte> packet = memory.Slice(LinkerFecOptions.FrameLengthPrefixSize, packetLength);
                         try
                         {
                             await UdpClient.SendToAsync(packet, IPEndPoint, cts.Token).ConfigureAwait(false);
                         }
-                        catch (Exception)
+                        catch (OperationCanceledException) when (cts.IsCancellationRequested)
+                        {
+                            break;
+                        }
+                        catch (SocketException)
                         {
                         }
-                        memory = memory.Slice(LinkerFecOptions.RecordLengthPrefixSize + packetLength);
+                        catch (ObjectDisposedException)
+                        {
+                            break;
+                        }
+                        memory = memory.Slice(LinkerFecOptions.FrameLengthPrefixSize + packetLength);
                     }
                 }
             }
@@ -420,13 +427,22 @@ namespace linker.tunnel.connection
                     return;
                 }
 
-                Memory<byte> memory = owner.Memory.Slice(0, length);
-                if (SSL)
+                Memory<byte> packets = owner.Memory.Slice(0, length);
+
+                do
                 {
-                    Crypto.TryDecode(memory.Span, cryptoDecodeBuffer, out int _bytesWritten);
-                    memory = cryptoDecodeBuffer.AsMemory(0, _bytesWritten);
-                }
-                await CallbackPacket(memory).ConfigureAwait(false);
+                    int packetLength = packets.ToUInt16();
+                    Memory<byte> packet = packets.Slice(2, packetLength);
+                    if (SSL)
+                    {
+                        Crypto.TryDecode(packet.Span, cryptoDecodeBuffer, out int _bytesWritten);
+                        packet = cryptoDecodeBuffer.AsMemory(0, _bytesWritten);
+                    }
+                    await ProcessPacket(packet).ConfigureAwait(false);
+
+                    packets = packets.Slice(2 + packetLength);
+
+                } while (packets.Length > 0);
             }
         }
 

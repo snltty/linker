@@ -152,7 +152,18 @@ namespace linker.libs.extends
                 *(ushort*)p = value;
             }
         }
+        public static unsafe void ToBytes(this ushort value, ReadOnlySpan<byte> span)
+        {
+            fixed (void* p = span)
+            {
+                *(ushort*)p = value;
+            }
+        }
         public static unsafe void ToBytes(this ushort value, Memory<byte> memory)
+        {
+            value.ToBytes(memory.Span);
+        }
+        public static unsafe void ToBytes(this ushort value, ReadOnlyMemory<byte> memory)
         {
             value.ToBytes(memory.Span);
         }

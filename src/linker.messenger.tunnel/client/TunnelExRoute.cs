@@ -12,8 +12,8 @@ namespace linker.messenger.tunnel.client
         }
         public List<IPAddress> Get()
         {
-            return tunnelClientStore.Network.LocalIPs.Where(c => c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-                //路由上的IP
+            return tunnelClientStore.Network.LocalIPs
+                .Where(c => c.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                 .Concat(tunnelClientStore.Network.RouteIPs).ToList();
         }
     }

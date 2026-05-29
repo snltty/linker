@@ -9,6 +9,7 @@ namespace linker.kcp;
 
 internal sealed class SpscReceiveBuffer : IDisposable
 {
+    private const int LengthPrefixSize = sizeof(ushort);
     private const int MinimumCapacity = 64 * 1024;
 
     private readonly object _syncRoot = new();
@@ -31,7 +32,12 @@ internal sealed class SpscReceiveBuffer : IDisposable
             return -1;
         }
 
-        var frameLength = checked(sizeof(int) + payloadLength);
+        if (payloadLength > ushort.MaxValue)
+        {
+            throw new InvalidDataException("KCP payload length exceeds the 2-byte receive record prefix limit.");
+        }
+
+        var frameLength = checked(LengthPrefixSize + payloadLength);
         TaskCompletionSource? waiter = null;
 
         try
@@ -44,15 +50,20 @@ internal sealed class SpscReceiveBuffer : IDisposable
                 }
 
                 EnsureWritableLocked(frameLength);
-                var payload = _buffer.AsSpan(_writeIndex + sizeof(int), payloadLength);
+                var payload = _buffer.AsSpan(_writeIndex + LengthPrefixSize, payloadLength);
                 var received = kcp.Recv(payload);
                 if (received <= 0)
                 {
                     return received;
                 }
 
-                BinaryPrimitives.WriteInt32LittleEndian(_buffer.AsSpan(_writeIndex, sizeof(int)), received);
-                _writeIndex += sizeof(int) + received;
+                if (received > ushort.MaxValue)
+                {
+                    throw new InvalidDataException("KCP payload length exceeds the 2-byte receive record prefix limit.");
+                }
+
+                BinaryPrimitives.WriteUInt16LittleEndian(_buffer.AsSpan(_writeIndex, LengthPrefixSize), (ushort)received);
+                _writeIndex += LengthPrefixSize + received;
                 waiter = _dataAvailable;
                 _dataAvailable = null;
                 return received;
@@ -185,7 +196,7 @@ internal sealed class SpscReceiveBuffer : IDisposable
         var scan = _readIndex;
         var written = 0;
 
-        while (_writeIndex - scan >= sizeof(int))
+        while (_writeIndex - scan >= LengthPrefixSize)
         {
             var frameLength = ReadFrameLengthLocked(scan);
             if (_writeIndex - scan < frameLength || destination.Length - written < frameLength)
@@ -211,7 +222,7 @@ internal sealed class SpscReceiveBuffer : IDisposable
     private bool TryGetFirstFrameLengthLocked(out int frameLength)
     {
         frameLength = 0;
-        if (_writeIndex - _readIndex < sizeof(int))
+        if (_writeIndex - _readIndex < LengthPrefixSize)
         {
             return false;
         }
@@ -225,7 +236,7 @@ internal sealed class SpscReceiveBuffer : IDisposable
         var count = 0;
         var scan = _readIndex;
 
-        while (count < maxRecords && _writeIndex - scan >= sizeof(int))
+        while (count < maxRecords && _writeIndex - scan >= LengthPrefixSize)
         {
             var frameLength = ReadFrameLengthLocked(scan);
             if (_writeIndex - scan < frameLength)
@@ -233,8 +244,8 @@ internal sealed class SpscReceiveBuffer : IDisposable
                 break;
             }
 
-            var payloadOffset = scan + sizeof(int);
-            var payloadLength = frameLength - sizeof(int);
+            var payloadOffset = scan + LengthPrefixSize;
+            var payloadLength = frameLength - LengthPrefixSize;
             handler(_buffer.AsSpan(payloadOffset, payloadLength));
 
             scan += frameLength;
@@ -253,18 +264,8 @@ internal sealed class SpscReceiveBuffer : IDisposable
 
     private int ReadFrameLengthLocked(int index)
     {
-        var payloadLength = BinaryPrimitives.ReadInt32LittleEndian(_buffer.AsSpan(index, sizeof(int)));
-        if (payloadLength < 0)
-        {
-            throw new InvalidDataException("Negative KCP payload length.");
-        }
-
-        if (payloadLength > int.MaxValue - sizeof(int))
-        {
-            throw new InvalidDataException("KCP payload length is too large.");
-        }
-
-        return sizeof(int) + payloadLength;
+        var payloadLength = BinaryPrimitives.ReadUInt16LittleEndian(_buffer.AsSpan(index, LengthPrefixSize));
+        return LengthPrefixSize + payloadLength;
     }
 
     private void EnsureWritableLocked(int length)

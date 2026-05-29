@@ -74,7 +74,7 @@ public sealed class KcpConnection : IAsyncDisposable
 
         _kcp.WindowSize(window, window);
         _kcp.NoDelay(nodelay, interval, resend, nc);
-        _receiveBuffer = new SpscReceiveBuffer(Math.Max((mtu + sizeof(int)) * 64, 64 * 1024));
+        _receiveBuffer = new SpscReceiveBuffer(Math.Max((mtu + sizeof(ushort)) * 64, 64 * 1024));
 
         _updateTask = Task.Run(UpdateLoopAsync);
         _receiveTask = recv ? Task.Run(ReceiveLoop) : null;
@@ -178,9 +178,9 @@ public sealed class KcpConnection : IAsyncDisposable
 
     public async ValueTask<int> ReceiveAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
     {
-        if (buffer.Length < sizeof(int))
+        if (buffer.Length < sizeof(ushort))
         {
-            throw new ArgumentException("The receive buffer must have room for at least a 4-byte length header.", nameof(buffer));
+            throw new ArgumentException("The receive buffer must have room for at least a 2-byte length header.", nameof(buffer));
         }
 
         return await _receiveBuffer.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
@@ -229,6 +229,11 @@ public sealed class KcpConnection : IAsyncDisposable
             lock (_syncRoot)
             {
                 ThrowIfDisposed();
+
+                if (data.Length > ushort.MaxValue)
+                {
+                    throw new ArgumentException("The payload is too large for the 2-byte receive record prefix.", nameof(data));
+                }
 
                 var waitSnd = _kcp.WaitSnd();
                 UpdateWaitSndPeak(waitSnd);

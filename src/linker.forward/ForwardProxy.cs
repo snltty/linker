@@ -52,7 +52,7 @@ namespace linker.forward
         {
             return 0;
         }
-        private async Task<bool> SendToConnection(AsyncUserToken token)
+        private async ValueTask<bool> SendToConnection(AsyncUserToken token)
         {
             if (token.Connection == null)
             {
@@ -62,7 +62,7 @@ namespace linker.forward
             Add(token.Connection.RemoteMachineId, token.IPEndPoint, token.ReadPacket.Length, 0);
             return true;
         }
-        private async Task<bool> SendToConnection(ITunnelConnection connection, ForwardReadPacket packet, IPEndPoint ep)
+        private async ValueTask<bool> SendToConnection(ITunnelConnection connection, ForwardReadPacket packet, IPEndPoint ep)
         {
             if (connection == null)
             {

@@ -6,9 +6,9 @@ namespace linker.messenger.decenter
 {
     public sealed class DecenterClientTransfer
     {
-        private StringChangedManager stringChangedManager = new StringChangedManager();
-        private VersionMultipleManager versionMultipleManager = new VersionMultipleManager();
-        private OperatingMultipleManager operatingMultipleManager = new OperatingMultipleManager();
+        private readonly StringChangedManager stringChangedManager = new StringChangedManager();
+        private readonly VersionMultipleManager versionMultipleManager = new VersionMultipleManager();
+        private readonly OperatingMultipleManager operatingMultipleManager = new OperatingMultipleManager();
 
         private List<IDecenter> decenters = new List<IDecenter>();
 
@@ -92,10 +92,13 @@ namespace linker.messenger.decenter
         {
             foreach (IDecenter item in decenters)
             {
-                operatingMultipleManager.StartOperation(item.Name, async () =>
+                if (versionMultipleManager.HasValueChange(item.Name))
                 {
-                    item.ProcData();
-                });
+                    operatingMultipleManager.StartOperation(item.Name, async () =>
+                    {
+                        item.ProcData();
+                    });
+                }
             }
         }
         private async Task CheckData()

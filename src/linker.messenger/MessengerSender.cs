@@ -51,42 +51,43 @@ namespace linker.messenger
         public virtual void Add(ushort id, long receiveBytes, long sendtBytes) { }
         public virtual void AddStopwatch(ushort id, long time, MessageTypes type) { }
 
-        public async Task<MessageResponeInfo> SendReply(MessageRequestWrap msg)
-        {
-            if (msg.Connection == null || msg.Connection.Connected == false)
-            {
-                return new MessageResponeInfo { Code = MessageResponeCodes.NOT_CONNECT };
-            }
 
+        private void ResetRequestId(MessageRequestWrap msg)
+        {
             if (msg.RequestId == 0)
             {
                 uint id = msg.RequestId;
                 Interlocked.CompareExchange(ref id, requestIdNumberSpace.Increment(), 0);
                 msg.RequestId = id;
             }
-
-            msg.Reply = true;
+        }
+        private void ValidateTimeout(MessageRequestWrap msg)
+        {
             if (msg.Timeout <= 0)
             {
                 msg.Timeout = 15000;
             }
-            TaskCompletionSource<MessageResponeInfo> tcs = new TaskCompletionSource<MessageResponeInfo>(TaskCreationOptions.RunContinuationsAsynchronously);
-            sends.TryAdd(msg.RequestId, new ReplyWrapInfo { Tcs = tcs, MessengerId = msg.MessengerId });
+        }
 
-            bool res = await SendOnly(msg).ConfigureAwait(false);
-            if (res == false)
+        public async Task<MessageResponeInfo> SendReply(MessageRequestWrap msg)
+        {
+            msg.Reply = true;
+            ResetRequestId(msg);
+            ValidateTimeout(msg);
+
+            if (await SendOnly(msg).ConfigureAwait(false) == false)
             {
-                sends.TryRemove(msg.RequestId, out _);
-                tcs.TrySetResult(new MessageResponeInfo { Code = MessageResponeCodes.NOT_CONNECT });
+                return new MessageResponeInfo { Code = MessageResponeCodes.NOT_CONNECT };
             }
 
             try
             {
+                TaskCompletionSource<MessageResponeInfo> tcs = new TaskCompletionSource<MessageResponeInfo>(TaskCreationOptions.RunContinuationsAsynchronously);
+                sends.TryAdd(msg.RequestId, new ReplyWrapInfo { Tcs = tcs, MessengerId = msg.MessengerId });
                 return await tcs.WithTimeout(msg.Timeout).ConfigureAwait(false);
             }
             catch (Exception)
             {
-                tcs.TrySetResult(new MessageResponeInfo { Code = MessageResponeCodes.NOT_CONNECT });
                 if (sends.TryRemove(msg.RequestId, out ReplyWrapInfo info))
                     AddStopwatch(info.MessengerId, Environment.TickCount64 - info.SendTime, MessageTypes.REQUEST);
                 return new MessageResponeInfo { Code = MessageResponeCodes.TIMEOUT };
@@ -99,26 +100,21 @@ namespace linker.messenger
                 return false;
             }
 
+            ResetRequestId(msg);
+            byte[] bytes = msg.ToArray(out int length);
+            Add(msg.MessengerId, 0, bytes.Length);
+
             try
             {
-                if (msg.RequestId == 0)
-                {
-                    uint id = msg.RequestId;
-                    Interlocked.CompareExchange(ref id, requestIdNumberSpace.Increment(), 0);
-                    msg.RequestId = id;
-                }
-
-                byte[] bytes = msg.ToArray(out int length);
-
-                Add(msg.MessengerId, 0, bytes.Length);
-
-                bool res = await msg.Connection.SendAsync(bytes.AsMemory(0, length)).ConfigureAwait(false);
-                msg.Return(bytes);
-                return res;
+                return await msg.Connection.SendAsync(bytes.AsMemory(0, length)).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
                 LoggerHelper.Instance.Error(ex);
+            }
+            finally
+            {
+                msg.Return(bytes);
             }
             return false;
         }

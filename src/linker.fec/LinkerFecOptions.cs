@@ -14,7 +14,7 @@ public enum LinkerFecRepairGenerationMode
 public sealed class LinkerFecOptions
 {
     public const int MinSymbolSize = 64;
-    public const int MaxSymbolSize = 65_535;
+    public const int MaxSymbolSize = MaxFrameLength - LinkerFecEncodedSymbol.HeaderSize - LinkerFecEncodedSymbol.RepairLengthSymbolSize;
     public const int MinSourceSymbolsPerBlock = 1;
     public const int MaxSourceSymbolsPerBlock = byte.MaxValue;
     public const int MinRepairSymbolsPerBlock = 1;
@@ -22,6 +22,8 @@ public sealed class LinkerFecOptions
     public const int MaxSymbolsPerBlock = byte.MaxValue + 1;
     public const int RecordLengthPrefixSize = sizeof(ushort);
     public const int MaxRecordPayloadLength = ushort.MaxValue;
+    public const int FrameLengthPrefixSize = sizeof(ushort);
+    public const int MaxFrameLength = ushort.MaxValue;
 
     public int SymbolSize { get; init; } = 1420 + LinkerFecEncodedSymbol.HeaderSize;
     public int SourceSymbolsPerBlock { get; init; } = 10;
@@ -57,8 +59,8 @@ public sealed class LinkerFecOptions
     }
 
     public int MaxEncodeBufferSize => checked(
-        SourceSymbolsPerBlock * (sizeof(int) + LinkerFecEncodedSymbol.HeaderSize + SymbolSize) +
-        MaxRepairSymbolsPerEncodedBlock * (sizeof(int) + LinkerFecEncodedSymbol.HeaderSize + sizeof(ushort) + SymbolSize));
+        SourceSymbolsPerBlock * (FrameLengthPrefixSize + LinkerFecEncodedSymbol.HeaderSize + SymbolSize) +
+        MaxRepairSymbolsPerEncodedBlock * (FrameLengthPrefixSize + LinkerFecEncodedSymbol.HeaderSize + sizeof(ushort) + SymbolSize));
 
     public int MaxDecodeBufferSize => checked((SymbolSize + RecordLengthPrefixSize) * SourceSymbolsPerBlock);
 

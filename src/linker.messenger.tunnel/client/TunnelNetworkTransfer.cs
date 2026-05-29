@@ -131,7 +131,7 @@ namespace linker.messenger.tunnel.client
 
                         if (results.Any(c => c > 0))
                         {
-                            await UoloadNet().ConfigureAwait(false);
+                            await UploadNet().ConfigureAwait(false);
                         }
                         if (netInfos.All(c => c.Flag > 0))
                         {
@@ -148,7 +148,7 @@ namespace linker.messenger.tunnel.client
                 }
             });
         }
-        private async Task UoloadNet()
+        private async Task UploadNet()
         {
             OnChange?.Invoke();
             await messengerSender.SendOnly(new MessageRequestWrap
@@ -167,7 +167,6 @@ namespace linker.messenger.tunnel.client
                 })
             });
         }
-
         private readonly StunClient stun = new StunClient();
         private async Task<int> GetNat(CancellationToken token)
         {

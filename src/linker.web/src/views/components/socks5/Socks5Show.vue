@@ -7,15 +7,15 @@
                     <a href="javascript:;" class="a-line" @click="handleSocks5Port(item.hook_socks5,values)" :title="$t('socks5')">
                         <template v-if="item.hook_socks5.SetupError">
                             <strong class="red" :title="item.hook_socks5.SetupError">
-                                socks5://*:{{ item.hook_socks5.Port }}
+                                //:{{ item.hook_socks5.Port }}
                             </strong>
                         </template>
                         <template v-else>
                             <template v-if="item.Connected &&item.hook_socks5.running">
-                                <strong class="green gateway">socks5://*:{{ item.hook_socks5.Port }}</strong>
+                                <strong class="green gateway">//:{{ item.hook_socks5.Port }}</strong>
                             </template>
                             <template v-else>
-                                <span>socks5://*:{{ item.hook_socks5.Port }}</span>
+                                <span>//:{{ item.hook_socks5.Port }}</span>
                             </template>
                         </template>
                     </a>

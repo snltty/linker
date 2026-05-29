@@ -17,7 +17,7 @@ namespace linker.forward
     {
         private readonly ConcurrentDictionary<int, Socket> tcpListens = new();
         private readonly ConcurrentDictionary<(uint srcAddr, ushort srcPort, uint dstAddr, ushort dstPort), AsyncUserToken> tcpConnections = new();
-      
+
         public IPEndPoint LocalEndpoint { get; private set; }
         public bool Running => tcpListens.Count > 0;
 
@@ -73,7 +73,6 @@ namespace linker.forward
                         Socket = socket,
                         ListenPort = listenPort,
                         Tcs = new TaskCompletionSource(),
-                        Pipe = new Pipe(new PipeOptions(minimumSegmentSize: 8192, pauseWriterThreshold: 2 * 1024 * 1024, resumeWriterThreshold: 512 * 1024, useSynchronizationContext: false)),
                         ReadPacket = new ForwardReadPacket(buffer)
                         {
                             ProtocolType = ProtocolType.Tcp,
@@ -157,7 +156,6 @@ namespace linker.forward
                     Socket = socket,
                     ListenPort = local.Port,
                     IPEndPoint = target,
-                    Pipe = new Pipe(new PipeOptions(minimumSegmentSize: 8192, pauseWriterThreshold: 2 * 1024 * 1024, resumeWriterThreshold: 512 * 1024, useSynchronizationContext: false)),
                     ReadPacket = new ForwardReadPacket(buffer)
                     {
                         ProtocolType = ProtocolType.Tcp,
@@ -256,7 +254,7 @@ namespace linker.forward
             }
         }
 
-        private async Task SendWindow(AsyncUserToken token, byte window)
+        private async ValueTask SendWindow(AsyncUserToken token, byte window)
         {
             byte[] buffer = ArrayPool<byte>.Shared.Rent(token.ReadPacket.HeaderLength);
             try
