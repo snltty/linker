@@ -1,7 +1,7 @@
 ﻿using linker.libs.web;
 using linker.messenger.action;
 using linker.messenger.relay.server.validator;
-using linker.messenger.sforward.server.validator;
+using linker.messenger.reverse.server.validator;
 using linker.messenger.signin.args;
 using linker.messenger.sync;
 using Microsoft.Extensions.DependencyInjection;
@@ -43,7 +43,7 @@ namespace linker.messenger.api
             serviceCollection.AddSingleton<ActionTransfer>();
             serviceCollection.AddSingleton<SignInArgsAction>();
             serviceCollection.AddSingleton<RelayValidatorAction>();
-            serviceCollection.AddSingleton<SForwardValidatorAction>();
+            serviceCollection.AddSingleton<ReverseValidatorAction>();
 
             serviceCollection.AddSingleton<ActionServerMessenger>();
             return serviceCollection;
@@ -57,8 +57,8 @@ namespace linker.messenger.api
             RelayServerValidatorTransfer relayServerValidatorTransfer = serviceProvider.GetService<RelayServerValidatorTransfer>();
             relayServerValidatorTransfer.AddValidators(new List<IRelayServerValidator> { serviceProvider.GetService<RelayValidatorAction>() });
 
-            SForwardValidatorTransfer sForwardValidatorTransfer = serviceProvider.GetService<SForwardValidatorTransfer>();
-            sForwardValidatorTransfer.AddValidators(new List<ISForwardValidator> { serviceProvider.GetService<SForwardValidatorAction>() });
+            ReverseValidatorTransfer reverseValidatorTransfer = serviceProvider.GetService<ReverseValidatorTransfer>();
+            reverseValidatorTransfer.AddValidators(new List<IReverseValidator> { serviceProvider.GetService<ReverseValidatorAction>() });
 
             IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
             messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<ActionServerMessenger>() });

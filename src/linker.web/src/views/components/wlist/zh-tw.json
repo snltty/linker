@@ -16,7 +16,7 @@
     "wlist.order": "訂單號",
     "wlist.order.use": "使用{0}訂單號",
     "wlist.relay": "中繼",
-    "wlist.sforward": "穿透",
+    "wlist.reverse": "穿透",
     "wlist.deny": "拒絕{0}",
     "wlist.allow": "允許{0}",
     "wlist.limit": "限速{0}",

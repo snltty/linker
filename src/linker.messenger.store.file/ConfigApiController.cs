@@ -77,8 +77,8 @@ namespace linker.messenger.store.file
                 config.Data.Server.SignIn.Anonymous = info.Server.Anonymous;
                 config.Data.Server.SignIn.SuperKey = info.Server.SuperKey;
                 config.Data.Server.SignIn.SuperPassword = info.Server.SuperPassword;
-                //config.Data.Server.SForward.WebPort = info.Server.SForward.WebPort;
-                //config.Data.Server.SForward.TunnelPorts = info.Server.SForward.TunnelPorts;
+                //config.Data.Server.Reverse.WebPort = info.Server.Reverse.WebPort;
+                //config.Data.Server.Reverse.TunnelPorts = info.Server.Reverse.TunnelPorts;
             }
 
             config.Data.Common.Modes = info.Common.Modes;
@@ -406,14 +406,14 @@ namespace linker.messenger.store.file
         public bool Anonymous { get; set; }
         public string SuperKey { get; set; }
         public string SuperPassword { get; set; }
-        public ConfigInstallServerSForwardInfo SForward { get; set; }
+        public ConfigInstallServerReverseInfo Reverse { get; set; }
     }
     public sealed class ConfigInstallServerSignInfo
     {
         public string SuperKey { get; set; }
         public string SuperPassword { get; set; }
     }
-    public sealed class ConfigInstallServerSForwardInfo
+    public sealed class ConfigInstallServerReverseInfo
     {
         public int WebPort { get; set; }
         public string TunnelPorts { get; set; }

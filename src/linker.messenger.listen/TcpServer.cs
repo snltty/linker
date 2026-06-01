@@ -43,10 +43,20 @@ namespace linker.messenger.listen
 
             while (true)
             {
-                var acceptTask = await socket.AcceptAsync(cancellationTokenSource.Token).ConfigureAwait(false);
-                if (acceptTask != null && acceptTask.RemoteEndPoint != null)
+                try
                 {
-                    _ = BeginReceive(acceptTask).ConfigureAwait(false);
+                    var acceptTask = await socket.AcceptAsync(cancellationTokenSource.Token).ConfigureAwait(false);
+                    if (acceptTask != null && acceptTask.RemoteEndPoint != null)
+                    {
+                        _ = BeginReceive(acceptTask).ConfigureAwait(false);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Debug($"tcp server accept {ex}");
+                    }
                 }
             }
         }

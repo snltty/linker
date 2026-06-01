@@ -29,7 +29,7 @@
         <TuntapLease v-if="tuntap.showLease" v-model="tuntap.showLease"  @change="deviceRefreshHook('tuntap')"></TuntapLease>
         <Socks5Edit v-if="socks5.showEdit" v-model="socks5.showEdit"  @change="deviceRefreshHook('socks5')"></Socks5Edit>
         <ForwardEdit v-if="forward.showEdit" v-model="forward.showEdit" ></ForwardEdit>
-        <SForwardEdit v-if="sforward.showEdit" v-model="sforward.showEdit" ></SForwardEdit>
+        <ReverseEdit v-if="reverse.showEdit" v-model="reverse.showEdit" ></ReverseEdit>
         <UpdaterConfirm v-if="updater.show" v-model="updater.show" ></UpdaterConfirm>
         
         <OperFirewall v-if="firewall.show" v-model="firewall.show" ></OperFirewall>
@@ -79,8 +79,8 @@ import { provideConnections } from '../../../components/tunnel/connections'
 import Forward from '../../../components/forward/Forward.vue'
 import ForwardEdit from '../../../components/forward/ForwardEdit.vue'
 import { provideForward } from '../../../components/forward/forward'
-import SForwardEdit from '../../../components/forward/SForwardEdit.vue'
-import { provideSforward } from '../../../components/forward/sforward'
+import ReverseEdit from '../../../components/forward/ReverseEdit.vue'
+import { provideReverse } from '../../../components/forward/reverse'
 
 import { provideFlow } from '../../../components/flow/flow'
 import Stopwatch from '../../../components/flow/stopwatch/Index.vue'
@@ -111,7 +111,7 @@ export default {
         Tuntap,TuntapEdit,TunnelUpnp,TuntapLease,
         Socks5, Socks5Edit,
         Forward,ForwardEdit,
-        SForwardEdit ,UpdaterConfirm,
+        ReverseEdit ,UpdaterConfirm,
         Stopwatch,
         Oper,OperFirewall,OperWakeup ,OperTransport,OperAction,OperFlow,OperWlist
     },
@@ -127,7 +127,7 @@ export default {
         const {devices,deviceAddHook,deviceRefreshHook, deviceStartProcess, handlePageChange,
              handlePageSizeChange,deviceClearTimeout,handleSort,handleSearch} = provideDevices();
         const {forward} = provideForward();
-        const {sforward} = provideSforward();
+        const {reverse} = provideReverse();
         const {flow} = provideFlow();
         const {oper} = provideOper();
         const {firewall} = provideFirewall();
@@ -194,7 +194,7 @@ export default {
             socks5,
             tunnel,connections,
             forward,
-            sforward,
+            reverse,
             updater,flow,oper,firewall,wakeup,transport,action,wlist
         }
     }

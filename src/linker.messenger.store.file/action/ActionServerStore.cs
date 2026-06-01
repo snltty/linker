@@ -8,7 +8,7 @@ namespace linker.messenger.store.file.action
         public string SignInActionUrl => config.Data.Action.SignInActionUrl;
         public string RelayActionUrl => config.Data.Action.RelayActionUrl;
         public string RelayNodeUrl => config.Data.Action.RelayNodeUrl;
-        public string SForwardActionUrl => config.Data.Action.SForwardActionUrl;
+        public string ReverseActionUrl => config.Data.Action.ReverseActionUrl;
       
 
         private readonly FileConfig config;
@@ -34,9 +34,9 @@ namespace linker.messenger.store.file.action
             return true;
         }
 
-        public bool SetSForwardActionUrl(string url)
+        public bool SetReverseActionUrl(string url)
         {
-            config.Data.Action.SForwardActionUrl = url;
+            config.Data.Action.ReverseActionUrl = url;
             return true;
         }
 

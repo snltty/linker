@@ -16,7 +16,7 @@
     "flow.relay.src": "المصدر",
     "flow.relay.dst": "الوجهة",
     "flow.port": "منفذ خارجي",
-    "flow.sforward": "اختراق الشبكة الداخلية",
+    "flow.reverse": "اختراق الشبكة الداخلية",
     "flow.search": "بحث بالاسم",
     "flow.search.domain": "نطاق/منفذ",
     "flow.area": "المنطقة",

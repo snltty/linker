@@ -1,0 +1,112 @@
+﻿using linker.libs;
+using linker.libs.timer;
+using linker.messenger.reverse.messenger;
+using linker.messenger.reverse.server;
+using linker.messenger.signin;
+using System.Net;
+using System.Net.NetworkInformation;
+
+namespace linker.messenger.reverse.client
+{
+    /// <summary>
+    /// 穿透测试
+    /// </summary>
+    public sealed class ReverseClientTestTransfer
+    {
+        private readonly SignInClientState signInClientState;
+        private readonly ISignInClientStore signInClientStore;
+        private readonly IMessengerSender messengerSender;
+        private readonly ISerializer serializer;
+
+        public List<ReverseServerNodeStoreInfo> Nodes { get; private set; } = new List<ReverseServerNodeStoreInfo>();
+
+        public ReverseClientTestTransfer(SignInClientState signInClientState, ISignInClientStore signInClientStore, IMessengerSender messengerSender, ISerializer serializer)
+        {
+            this.signInClientState = signInClientState;
+            this.signInClientStore = signInClientStore;
+            this.messengerSender = messengerSender;
+            this.serializer = serializer;
+            TestTask();
+
+        }
+
+        public string DefaultId()
+        {
+            if (Nodes.Count > 0) return Nodes[0].NodeId;
+            return string.Empty;
+        }
+
+
+        private readonly LastTicksManager lastTicksManager = new LastTicksManager();
+        public void Subscribe()
+        {
+            lastTicksManager.Update();
+        }
+        public async Task TaskNodes()
+        {
+            try
+            {
+                var resp = await messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = signInClientState.Connection,
+                    MessengerId = (ushort)ReverseMessengerIds.Nodes
+                });
+                if(resp.Code == MessageResponeCodes.OK)
+                {
+                    Nodes = serializer.Deserialize<List<ReverseServerNodeStoreInfo>>(resp.Data.Span);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
+            }
+        }
+        private async Task PingNodes()
+        {
+            try
+            {
+                var tasks = Nodes.Select(async (c) =>
+                {
+                    try
+                    {
+                        IPEndPoint ep = await NetworkHelper.GetEndPointAsync(c.Host, 1802);
+
+                        ep.Address = ep.Address == null || ep.Address.Equals(IPAddress.Any) ? signInClientState.Connection.Address.Address : ep.Address;
+
+                        using Ping ping = new Ping();
+                        var resp = await ping.SendPingAsync(ep.Address, 1000);
+                        c.Delay = resp.Status == IPStatus.Success ? (int)resp.RoundtripTime : -1;
+                    }
+                    catch (Exception)
+                    {
+                    }
+                });
+                await Task.WhenAll(tasks).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
+            }
+        }
+
+
+        private void TestTask()
+        {
+            TimerHelper.SetIntervalLong(async () =>
+            {
+                if ((lastTicksManager.DiffLessEqual(3000) || Nodes.Count <= 0) && signInClientState.Connected)
+                {
+                    await TaskNodes().ConfigureAwait(false);
+                    await PingNodes().ConfigureAwait(false);
+                }
+            }, 3000);
+        }
+
+    }
+}

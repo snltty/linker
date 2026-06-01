@@ -1,6 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.web;
-using linker.messenger.exroute;
+using linker.messenger.rpolicy;
 using linker.messenger.signin.args;
 using Microsoft.Extensions.DependencyInjection;
 namespace linker.messenger.signin
@@ -21,7 +21,7 @@ namespace linker.messenger.signin
 
             serviceCollection.AddSingleton<SignInApiController>();
 
-            serviceCollection.AddSingleton<SignInExRoute>();
+            serviceCollection.AddSingleton<SignInRouteExclusionPolicy>();
 
             serviceCollection.AddSingleton<SignInClientMessenger>();
 
@@ -46,8 +46,8 @@ namespace linker.messenger.signin
             IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
             messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<SignInClientMessenger>() });
 
-            ExRouteTransfer exRouteTransfer = serviceProvider.GetService<ExRouteTransfer>();
-            exRouteTransfer.AddExRoutes(new List<IExRoute> { serviceProvider.GetService<SignInExRoute>() });
+            RouteExclusionPolicyTransfer routeExclusionPolicyTransfer = serviceProvider.GetService<RouteExclusionPolicyTransfer>();
+            routeExclusionPolicyTransfer.AddRouteExclusionPolicys(new List<IRouteExclusionPolicy> { serviceProvider.GetService<SignInRouteExclusionPolicy>() });
 
             LoggerHelper.Instance.Info($"start signin");
             LoggerHelper.Instance.Info($"start signin transfer");

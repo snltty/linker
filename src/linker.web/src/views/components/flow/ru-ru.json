@@ -16,7 +16,7 @@
     "flow.relay.src": "Источник",
     "flow.relay.dst": "Назначение",
     "flow.port": "Внешний порт",
-    "flow.sforward": "Проброс внутренней сети",
+    "flow.reverse": "Проброс внутренней сети",
     "flow.search": "Поиск по имени",
     "flow.search.domain": "Домен/Порт",
     "flow.area": "Регион",

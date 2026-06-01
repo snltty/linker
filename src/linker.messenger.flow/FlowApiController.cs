@@ -15,14 +15,16 @@ namespace linker.messenger.flow
         private readonly ISignInClientStore signInClientStore;
         private readonly FlowMessenger messengerFlow;
         private readonly FlowTransfer flowTransfer;
-        private readonly FlowSForward sForwardFlow;
+        private readonly FlowReverse reverseFlow;
         private readonly FlowForward forwardFlow;
         private readonly FlowSocks5 socks5Flow;
         private readonly FlowTunnel tunnelFlow;
 
         private DateTime start = DateTime.Now;
 
-        public FlowApiController(IMessengerSender messengerSender, SignInClientState signInClientState, ISerializer serializer, ISignInClientStore signInClientStore, FlowMessenger messengerFlow, FlowTransfer flowTransfer, FlowSForward sForwardFlow, FlowForward forwardFlow, FlowSocks5 socks5Flow, FlowTunnel tunnelFlow)
+        public FlowApiController(IMessengerSender messengerSender, SignInClientState signInClientState, ISerializer serializer,
+            ISignInClientStore signInClientStore, FlowMessenger messengerFlow, FlowTransfer flowTransfer, FlowReverse reverseFlow,
+            FlowForward forwardFlow, FlowSocks5 socks5Flow, FlowTunnel tunnelFlow)
         {
             this.messengerSender = messengerSender;
             this.signInClientState = signInClientState;
@@ -30,7 +32,7 @@ namespace linker.messenger.flow
             this.signInClientStore = signInClientStore;
             this.messengerFlow = messengerFlow;
             this.flowTransfer = flowTransfer;
-            this.sForwardFlow = sForwardFlow;
+            this.reverseFlow = reverseFlow;
             this.forwardFlow = forwardFlow;
             this.socks5Flow = socks5Flow;
             this.tunnelFlow = tunnelFlow;
@@ -117,14 +119,14 @@ namespace linker.messenger.flow
             return [];
         }
 
-        [Access(AccessValue.SForwardFlow)]
-        public async Task<SForwardFlowResponseInfo> GetSForwardFlows(ApiControllerParamsInfo param)
+        [Access(AccessValue.ReverseFlow)]
+        public async Task<ReverseFlowResponseInfo> GetReverseFlows(ApiControllerParamsInfo param)
         {
-            SForwardFlowRequestInfo info = param.Content.DeJson<SForwardFlowRequestInfo>();
-            ushort messengerId = string.IsNullOrWhiteSpace(info.MachineId) ? (ushort)FlowMessengerIds.SForward : (ushort)FlowMessengerIds.SForwardForward;
+            ReverseFlowRequestInfo info = param.Content.DeJson<ReverseFlowRequestInfo>();
+            ushort messengerId = string.IsNullOrWhiteSpace(info.MachineId) ? (ushort)FlowMessengerIds.Reverse : (ushort)FlowMessengerIds.ReverseFlowForward;
             if (info.MachineId == signInClientStore.Id)
             {
-                return sForwardFlow.GetFlows(info);
+                return reverseFlow.GetFlows(info);
             }
 
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -135,9 +137,9 @@ namespace linker.messenger.flow
             }).ConfigureAwait(false);
             if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
             {
-                return serializer.Deserialize<SForwardFlowResponseInfo>(resp.Data.Span);
+                return serializer.Deserialize<ReverseFlowResponseInfo>(resp.Data.Span);
             }
-            return new SForwardFlowResponseInfo();
+            return new ReverseFlowResponseInfo();
         }
 
         [Access(AccessValue.ForwardFlow)]

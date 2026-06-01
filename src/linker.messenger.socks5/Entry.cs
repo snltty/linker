@@ -1,6 +1,6 @@
 ﻿using linker.libs.web;
 using linker.messenger.decenter;
-using linker.messenger.exroute;
+using linker.messenger.rpolicy;
 using Microsoft.Extensions.DependencyInjection;
 namespace linker.messenger.socks5
 {
@@ -16,7 +16,7 @@ namespace linker.messenger.socks5
             serviceCollection.AddSingleton<Socks5Transfer>();
 
             serviceCollection.AddSingleton<Socks5Decenter>();
-            serviceCollection.AddSingleton<Socks5ExRoute>();
+            serviceCollection.AddSingleton<Socks5RouteExclusionPolicy>();
 
             serviceCollection.AddSingleton<Socks5CidrDecenterManager>();
 
@@ -36,8 +36,8 @@ namespace linker.messenger.socks5
             DecenterClientTransfer decenterClientTransfer = serviceProvider.GetService<DecenterClientTransfer>();
             decenterClientTransfer.AddDecenters(new List<IDecenter> { serviceProvider.GetService<Socks5Decenter>() });
 
-            ExRouteTransfer exRouteTransfer = serviceProvider.GetService<ExRouteTransfer>();
-            exRouteTransfer.AddExRoutes(new List<IExRoute> { serviceProvider.GetService<Socks5ExRoute>() });
+            RouteExclusionPolicyTransfer routeExclusionPolicyTransfer = serviceProvider.GetService<RouteExclusionPolicyTransfer>();
+            routeExclusionPolicyTransfer.AddRouteExclusionPolicys(new List<IRouteExclusionPolicy> { serviceProvider.GetService<Socks5RouteExclusionPolicy>() });
 
 
             Socks5CidrDecenterManager socks5CidrDecenterManager = serviceProvider.GetService<Socks5CidrDecenterManager>();

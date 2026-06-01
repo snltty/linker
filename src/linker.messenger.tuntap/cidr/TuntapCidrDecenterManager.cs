@@ -1,5 +1,5 @@
 ﻿using linker.libs;
-using linker.messenger.exroute;
+using linker.messenger.rpolicy;
 using linker.messenger.signin;
 using linker.messenger.tuntap.client;
 using linker.tun.device;
@@ -19,18 +19,20 @@ namespace linker.messenger.tuntap.cidr
         private readonly ISignInClientStore signInClientStore;
         private readonly TuntapConfigTransfer tuntapConfigTransfer;
         private readonly TuntapTransfer tuntapTransfer;
-        private readonly ExRouteTransfer exRouteTransfer;
+        private readonly RouteExclusionPolicyTransfer routeExclusionPolicyTransfer;
         private readonly SignInClientState signInClientState;
         private readonly SignInClientTransfer signInClientTransfer;
         private readonly TuntapDecenter tuntapDecenter;
 
-        public TuntapCidrDecenterManager(TuntapCidrConnectionManager tuntapCidrConnectionManager, ISignInClientStore signInClientStore, SignInClientState signInClientState, TuntapConfigTransfer tuntapConfigTransfer, TuntapTransfer tuntapTransfer, ExRouteTransfer exRouteTransfer, SignInClientTransfer signInClientTransfer, TuntapDecenter tuntapDecenter)
+        public TuntapCidrDecenterManager(TuntapCidrConnectionManager tuntapCidrConnectionManager, ISignInClientStore signInClientStore,
+            SignInClientState signInClientState, TuntapConfigTransfer tuntapConfigTransfer, TuntapTransfer tuntapTransfer,
+            RouteExclusionPolicyTransfer routeExclusionPolicyTransfer, SignInClientTransfer signInClientTransfer, TuntapDecenter tuntapDecenter)
         {
             this.tuntapCidrConnectionManager = tuntapCidrConnectionManager;
             this.signInClientStore = signInClientStore;
             this.tuntapConfigTransfer = tuntapConfigTransfer;
             this.tuntapTransfer = tuntapTransfer;
-            this.exRouteTransfer = exRouteTransfer;
+            this.routeExclusionPolicyTransfer = routeExclusionPolicyTransfer;
             this.signInClientState = signInClientState;
             this.signInClientTransfer = signInClientTransfer;
             this.tuntapDecenter = tuntapDecenter;
@@ -124,7 +126,7 @@ namespace linker.messenger.tuntap.cidr
         private List<TuntapVeaLanIPAddressList> ParseIPs(List<TuntapInfo> infos)
         {
             //排除的IP，
-            IEnumerable<uint> excludeIps = exRouteTransfer.Get().Where(c => c.Equals(IPAddress.Any) == false).Select(NetworkHelper.ToValue).Distinct();
+            IEnumerable<uint> excludeIps = routeExclusionPolicyTransfer.Query().Where(c => c.Equals(IPAddress.Any) == false).Select(NetworkHelper.ToValue).Distinct();
 
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Warning($"tuntap route ex ips : {string.Join(",", excludeIps.Select(c => NetworkHelper.ToIP(c)).ToList())}");

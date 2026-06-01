@@ -413,10 +413,10 @@ namespace linker.messenger.serializer.memorypack
 
 
     [MemoryPackable]
-    public readonly partial struct SerializableSForwardFlowItemInfo
+    public readonly partial struct SerializableReverseFlowItemInfo
     {
         [MemoryPackIgnore]
-        public readonly SForwardFlowItemInfo info;
+        public readonly ReverseFlowItemInfo info;
 
         [MemoryPackInclude]
         long ReceiveBytes => info.ReceiveBytes;
@@ -434,9 +434,9 @@ namespace linker.messenger.serializer.memorypack
         string Key => info.Key;
 
         [MemoryPackConstructor]
-        SerializableSForwardFlowItemInfo(long receiveBytes, long sendtBytes, long diffReceiveBytes, long diffSendtBytes, string key)
+        SerializableReverseFlowItemInfo(long receiveBytes, long sendtBytes, long diffReceiveBytes, long diffSendtBytes, string key)
         {
-            var info = new SForwardFlowItemInfo
+            var info = new ReverseFlowItemInfo
             {
                 ReceiveBytes = receiveBytes,
                 SendtBytes = sendtBytes,
@@ -448,14 +448,14 @@ namespace linker.messenger.serializer.memorypack
             this.info = info;
         }
 
-        public SerializableSForwardFlowItemInfo(SForwardFlowItemInfo info)
+        public SerializableReverseFlowItemInfo(ReverseFlowItemInfo info)
         {
             this.info = info;
         }
     }
-    public class SForwardFlowItemInfoFormatter : MemoryPackFormatter<SForwardFlowItemInfo>
+    public class ReverseFlowItemInfoFormatter : MemoryPackFormatter<ReverseFlowItemInfo>
     {
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref SForwardFlowItemInfo value)
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ReverseFlowItemInfo value)
         {
             if (value == null)
             {
@@ -463,10 +463,10 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableSForwardFlowItemInfo(value));
+            writer.WritePackable(new SerializableReverseFlowItemInfo(value));
         }
 
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref SForwardFlowItemInfo value)
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref ReverseFlowItemInfo value)
         {
             if (reader.PeekIsNull())
             {
@@ -475,7 +475,7 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            value = new SForwardFlowItemInfo();
+            value = new ReverseFlowItemInfo();
             reader.TryReadObjectHeader(out byte count);
             value.ReceiveBytes = reader.ReadValue<long>();
             value.SendtBytes = reader.ReadValue<long>();
@@ -486,10 +486,10 @@ namespace linker.messenger.serializer.memorypack
     }
 
     [MemoryPackable]
-    public readonly partial struct SerializableSForwardFlowRequestInfo
+    public readonly partial struct SerializableReverseFlowRequestInfo
     {
         [MemoryPackIgnore]
-        public readonly SForwardFlowRequestInfo info;
+        public readonly ReverseFlowRequestInfo info;
 
         [MemoryPackInclude]
         string Key => info.Key;
@@ -504,15 +504,15 @@ namespace linker.messenger.serializer.memorypack
         int PageSize => info.PageSize;
 
         [MemoryPackInclude]
-        SForwardFlowOrder Order => info.Order;
+        ReverseFlowOrder Order => info.Order;
 
         [MemoryPackInclude]
-        SForwardFlowOrderType OrderType => info.OrderType;
+        ReverseFlowOrderType OrderType => info.OrderType;
 
         [MemoryPackConstructor]
-        SerializableSForwardFlowRequestInfo(string key, string machineId, int page, int pageSize, SForwardFlowOrder order, SForwardFlowOrderType orderType)
+        SerializableReverseFlowRequestInfo(string key, string machineId, int page, int pageSize, ReverseFlowOrder order, ReverseFlowOrderType orderType)
         {
-            var info = new SForwardFlowRequestInfo
+            var info = new ReverseFlowRequestInfo
             {
                 Key = key,
                 Order = order,
@@ -524,14 +524,14 @@ namespace linker.messenger.serializer.memorypack
             this.info = info;
         }
 
-        public SerializableSForwardFlowRequestInfo(SForwardFlowRequestInfo info)
+        public SerializableReverseFlowRequestInfo(ReverseFlowRequestInfo info)
         {
             this.info = info;
         }
     }
-    public class SForwardFlowRequestInfoFormatter : MemoryPackFormatter<SForwardFlowRequestInfo>
+    public class ReverseFlowRequestInfoFormatter : MemoryPackFormatter<ReverseFlowRequestInfo>
     {
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref SForwardFlowRequestInfo value)
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ReverseFlowRequestInfo value)
         {
             if (value == null)
             {
@@ -539,10 +539,10 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableSForwardFlowRequestInfo(value));
+            writer.WritePackable(new SerializableReverseFlowRequestInfo(value));
         }
 
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref SForwardFlowRequestInfo value)
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref ReverseFlowRequestInfo value)
         {
             if (reader.PeekIsNull())
             {
@@ -551,22 +551,22 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            value = new SForwardFlowRequestInfo();
+            value = new ReverseFlowRequestInfo();
             reader.TryReadObjectHeader(out byte count);
             value.Key = reader.ReadValue<string>();
             value.MachineId = reader.ReadValue<string>();
             value.Page = reader.ReadValue<int>();
             value.PageSize = reader.ReadValue<int>();
-            value.Order = reader.ReadValue<SForwardFlowOrder>();
-            value.OrderType = reader.ReadValue<SForwardFlowOrderType>();
+            value.Order = reader.ReadValue<ReverseFlowOrder>();
+            value.OrderType = reader.ReadValue<ReverseFlowOrderType>();
         }
     }
 
     [MemoryPackable]
-    public readonly partial struct SerializableSForwardFlowResponseInfo
+    public readonly partial struct SerializableReverseFlowResponseInfo
     {
         [MemoryPackIgnore]
-        public readonly SForwardFlowResponseInfo info;
+        public readonly ReverseFlowResponseInfo info;
 
         [MemoryPackInclude]
         int Page => info.Page;
@@ -578,12 +578,12 @@ namespace linker.messenger.serializer.memorypack
         int Count => info.Count;
 
         [MemoryPackInclude]
-        List<SForwardFlowItemInfo> Data => info.Data;
+        List<ReverseFlowItemInfo> Data => info.Data;
 
         [MemoryPackConstructor]
-        SerializableSForwardFlowResponseInfo(int page, int pageSize, int count, List<SForwardFlowItemInfo> data)
+        SerializableReverseFlowResponseInfo(int page, int pageSize, int count, List<ReverseFlowItemInfo> data)
         {
-            var info = new SForwardFlowResponseInfo
+            var info = new ReverseFlowResponseInfo
             {
                 Page = page,
                 PageSize = pageSize,
@@ -593,14 +593,14 @@ namespace linker.messenger.serializer.memorypack
             this.info = info;
         }
 
-        public SerializableSForwardFlowResponseInfo(SForwardFlowResponseInfo info)
+        public SerializableReverseFlowResponseInfo(ReverseFlowResponseInfo info)
         {
             this.info = info;
         }
     }
-    public class SForwardFlowResponseInfoFormatter : MemoryPackFormatter<SForwardFlowResponseInfo>
+    public class ReverseFlowResponseInfoFormatter : MemoryPackFormatter<ReverseFlowResponseInfo>
     {
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref SForwardFlowResponseInfo value)
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ReverseFlowResponseInfo value)
         {
             if (value == null)
             {
@@ -608,10 +608,10 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableSForwardFlowResponseInfo(value));
+            writer.WritePackable(new SerializableReverseFlowResponseInfo(value));
         }
 
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref SForwardFlowResponseInfo value)
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref ReverseFlowResponseInfo value)
         {
             if (reader.PeekIsNull())
             {
@@ -620,12 +620,12 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            value = new SForwardFlowResponseInfo();
+            value = new ReverseFlowResponseInfo();
             reader.TryReadObjectHeader(out byte count);
             value.Page = reader.ReadValue<int>();
             value.PageSize = reader.ReadValue<int>();
             value.Count = reader.ReadValue<int>();
-            value.Data = reader.ReadValue<List<SForwardFlowItemInfo>>();
+            value.Data = reader.ReadValue<List<ReverseFlowItemInfo>>();
         }
     }
 

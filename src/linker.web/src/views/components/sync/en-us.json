@@ -6,7 +6,7 @@
     "server.sync.SignInServer": "Signin server",
     "sync.GroupSecretKey": "Group secretKey",
     "sync.RelaySecretKey": "Relay secretKey",
-    "sync.SForwardSecretKey": "Server forward secretKey",
+    "sync.ReverseSecretKey": "Server forward secretKey",
     "sync.UpdaterSecretKey": "Updater config",
     "sync.TunnelTransports": "Tunnel transports",
     "sync.SignInUserId": "User Id",

@@ -37,7 +37,7 @@ namespace linker.messenger
         /// <summary>
         /// 穿透节点报告
         /// </summary>
-        SForwardReport = 8,
+        ReverseReport = 8,
 
         /// <summary>
         /// 节点联机

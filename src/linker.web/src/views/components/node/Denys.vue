@@ -31,7 +31,7 @@
 
 <script>
 import {  relayDenys, relayDenysDel} from '@/apis/relay';
-import { sforwardDenys, sforwardDenysDel } from '@/apis/sforward';
+import { reverseDenys, reverseDenysDel } from '@/apis/reverse';
 import { onActivated, onMounted, reactive } from 'vue';
 import { Delete,Plus,Search } from '@element-plus/icons-vue';
 import Add from './Add.vue';
@@ -40,8 +40,8 @@ export default {
     components:{Delete,Add,Plus,Search},
     setup (props,{emit}) {
 
-        const getDataFn = props.type == 'relay' ? relayDenys : sforwardDenys;
-        const delFn = props.type == 'relay' ? relayDenysDel : sforwardDenysDel;
+        const getDataFn = props.type == 'relay' ? relayDenys : reverseDenys;
+        const delFn = props.type == 'relay' ? relayDenysDel : reverseDenysDel;
         const state = reactive({
             request:{
                 NodeId:props.data.NodeId,

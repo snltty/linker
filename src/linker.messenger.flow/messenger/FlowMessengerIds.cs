@@ -7,7 +7,7 @@
         List = 2701,
         Messenger = 2702,
         Relay = 2703,
-        SForward = 2704,
+        Reverse = 2704,
 
         Citys = 2705,
 
@@ -18,7 +18,7 @@
         Forward = 2709,
 
         ListForward = 2710,
-        SForwardForward = 2711,
+        ReverseFlowForward = 2711,
         ForwardForward = 2712,
         MessengerForward = 2713,
 

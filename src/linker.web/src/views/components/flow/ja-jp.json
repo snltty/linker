@@ -16,7 +16,7 @@
     "flow.relay.src": "送信元",
     "flow.relay.dst": "宛先",
     "flow.port": "外部ポート",
-    "flow.sforward": "内部ネットワーク透過",
+    "flow.reverse": "内部ネットワーク透過",
     "flow.search": "名前検索",
     "flow.search.domain": "ドメイン/ポート",
     "flow.area": "地域",

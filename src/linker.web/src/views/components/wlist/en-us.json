@@ -16,7 +16,7 @@
     "wlist.order": "Order",
     "wlist.order.use": "Use {0} order",
     "wlist.relay": "Relay",
-    "wlist.sforward": "Server forward",
+    "wlist.reverse": "Server forward",
     "wlist.deny": "Deny {0}",
     "wlist.allow": "Allow {0}",
     "wlist.limit": "Limit {0}",

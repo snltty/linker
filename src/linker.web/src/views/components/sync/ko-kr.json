@@ -6,7 +6,7 @@
     "sync.SignInServer": "비콘 서버",
     "sync.GroupSecretKey": "그룹 키",
     "sync.RelaySecretKey": "릴레이 키",
-    "sync.SForwardSecretKey": "서버 터널 키",
+    "sync.ReverseSecretKey": "서버 터널 키",
     "sync.UpdaterSecretKey": "구성 업데이트",
     "sync.TunnelTransports": "터널 프로토콜",
     "sync.SignInUserId": "사용자 고유 식별자",

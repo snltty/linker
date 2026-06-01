@@ -103,7 +103,7 @@ namespace linker.messenger.api
         Action = 29,
 
         [AccessDisplay("查看内网穿透流量")]
-        SForwardFlow = 30,
+        ReverseFlow = 30,
 
         [AccessDisplay("查看中继流量")]
         RelayFlow = 31,
@@ -181,17 +181,17 @@ namespace linker.messenger.api
 
 
         [AccessDisplay("导入穿透节点")]
-        ImportSForwardNode = 60,
+        ImportReverseNode = 60,
         [AccessDisplay("删除穿透节点")]
-        RemoveSForwardNode = 61,
+        RemoveReverseNode = 61,
         [AccessDisplay("修改穿透节点")]
-        UpdateSForwardNode = 62,
+        UpdateReverseNode = 62,
         [AccessDisplay("分享穿透节点")]
-        ShareSForwardNode = 63,
+        ShareReverseNode = 63,
         [AccessDisplay("重启穿透节点")]
-        RebootSForwardNode = 64,
+        RebootReverseNode = 64,
         [AccessDisplay("更新穿透节点")]
-        UpgradeSForwardNode = 65,
+        UpgradeReverseNode = 65,
     }
 
     public sealed class AccessTextInfo

@@ -17,7 +17,7 @@
         /// <summary>
         /// 内网穿透验证地址
         /// </summary>
-        public string SForwardActionUrl { get; }
+        public string ReverseActionUrl { get; }
 
         /// <summary>
         /// 登录验证地址
@@ -37,7 +37,7 @@
         /// </summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        public bool SetSForwardActionUrl(string url);
+        public bool SetReverseActionUrl(string url);
 
         /// <summary>
         /// 从args里获取验证参数

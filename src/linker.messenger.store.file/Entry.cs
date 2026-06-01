@@ -7,13 +7,12 @@ using linker.messenger.flow.history;
 using linker.messenger.forward;
 using linker.messenger.listen;
 using linker.messenger.logger;
-using linker.messenger.node;
 using linker.messenger.pcp;
 using linker.messenger.plan;
 using linker.messenger.relay.client;
 using linker.messenger.relay.server;
-using linker.messenger.sforward.client;
-using linker.messenger.sforward.server;
+using linker.messenger.reverse.client;
+using linker.messenger.reverse.server;
 using linker.messenger.signin;
 using linker.messenger.socks5;
 using linker.messenger.store.file.action;
@@ -28,7 +27,7 @@ using linker.messenger.store.file.pcp;
 using linker.messenger.store.file.plan;
 using linker.messenger.store.file.relay;
 using linker.messenger.store.file.server;
-using linker.messenger.store.file.sforward;
+using linker.messenger.store.file.reverse;
 using linker.messenger.store.file.signIn;
 using linker.messenger.store.file.socks5;
 using linker.messenger.store.file.tunnel;
@@ -98,11 +97,11 @@ namespace linker.messenger.store.file
 
             serviceCollection.AddSingleton<ISocks5Store, Socks5Store>();
 
-            serviceCollection.AddSingleton<ISForwardClientStore, SForwardClientStore>();
-            serviceCollection.AddSingleton<ISForwardNodeConfigStore, SForwardServerConfigStore>();
-            serviceCollection.AddSingleton<ISForwardNodeStore, SForwardServerNodeStore>();
-            serviceCollection.AddSingleton<ISForwardServerWhiteListStore, SForwardNodeWhiteListStore>();
-            serviceCollection.AddSingleton<ISForwardServerMasterDenyStore, SForwardServerMasterDenyStore>();
+            serviceCollection.AddSingleton<IReverseClientStore, ReverseClientStore>();
+            serviceCollection.AddSingleton<IReverseNodeConfigStore, ReverseServerConfigStore>();
+            serviceCollection.AddSingleton<IReverseNodeStore, ReverseServerNodeStore>();
+            serviceCollection.AddSingleton<IReverseServerWhiteListStore, ReverseNodeWhiteListStore>();
+            serviceCollection.AddSingleton<IReverseServerMasterDenyStore, ReverseServerMasterDenyStore>();
 
             serviceCollection.AddSingleton<ILoggerStore, LoggerStore>();
 

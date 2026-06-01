@@ -12,6 +12,9 @@
                 <el-tab-pane :label="$t('tuntap.forward')">
                     <TuntapForward ref="forwardDom"></TuntapForward>
                 </el-tab-pane>
+                <el-tab-pane :label="$t('tuntap.fec')">
+                    <TuntapFec ref="fecDom"></TuntapFec>
+                </el-tab-pane>
                 <el-tab-pane :label="$t('tuntap.route')">
                     <TuntapRoutes></TuntapRoutes>
                 </el-tab-pane>
@@ -32,11 +35,12 @@ import TuntapForward from './TuntapForward.vue'
 import TuntapLan from './TuntapLan.vue'
 import TuntapIP from './TuntapIP.vue'
 import TuntapRoutes from './TuntapRoutes.vue';
+import TuntapFec from './TuntapFec.vue';
 import { useI18n } from 'vue-i18n';
 export default {
     props: ['modelValue'],
     emits: ['change', 'update:modelValue'],
-    components: { TuntapForward ,TuntapLan,TuntapIP,TuntapRoutes},
+    components: { TuntapForward ,TuntapLan,TuntapIP,TuntapRoutes,TuntapFec},
     setup(props, { emit }) {
 
         const {t} = useI18n();
@@ -58,11 +62,13 @@ export default {
         const ipDom = ref(null);
         const lanDom = ref(null);
         const forwardDom = ref(null);
+        const fecDom = ref(null);
         const handleSave = () => {
             state.loading = true;
             const json = ipDom.value.getData();
             json.Lans = lanDom.value ?  lanDom.value.getData() : tuntap.value.current.Lans;
             json.Forwards = forwardDom.value ?  forwardDom.value.getData() : tuntap.value.current.Forwards;
+            json.FecProfile = fecDom.value ?  fecDom.value.getData() : tuntap.value.current.FecProfile;
             updateTuntap(json).then(() => {
                 state.show = false;
                 state.loading = false;
@@ -78,7 +84,7 @@ export default {
 
         return {
             state, handleSave,
-            ipDom,lanDom,forwardDom
+            ipDom,lanDom,forwardDom,fecDom
         }
     }
 }

@@ -51,7 +51,7 @@
                     </el-form-item>
                     <el-form-item></el-form-item>
                     <RelayServers class="mgt-2"></RelayServers>
-                    <SForwardServers class="mgt-2"></SForwardServers>
+                    <ReverseServers class="mgt-2"></ReverseServers>
                     <Updater></Updater>
                 </el-form>
             </div>
@@ -70,13 +70,13 @@ import { ElMessage } from 'element-plus';
 import { computed, onMounted, reactive } from 'vue'
 import Updater from '../updater/Config.vue';
 import RelayServers from '../relay/Config.vue';
-import SForwardServers from '../forward/Config.vue';
+import ReverseServers from '../forward/Config.vue';
 import { useI18n } from 'vue-i18n';
 import Sync from '../sync/Index.vue'
 import WhiteList from '../wlist/Index.vue';
 import Export from './Export.vue';
 export default {
-    components:{Updater,RelayServers,SForwardServers,Sync,WhiteList,Export},
+    components:{Updater,RelayServers,ReverseServers,Sync,WhiteList,Export},
     setup(props) {
         const {t} = useI18n();
         const globalData = injectGlobalData();

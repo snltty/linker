@@ -58,8 +58,7 @@ namespace linker.tunnel
         /// 获取打洞排除IP
         /// </summary>
         /// <returns></returns>
-        public List<TunnelExIPInfo> GetExcludeIps();
-
+        public List<TunnelExclusionPolicyInfo> GetExclusionPolicy();
 
         public Task<List<string>> GetTunnelTransportMachineIds();
         /// <summary>
@@ -79,5 +78,11 @@ namespace linker.tunnel
         /// <param name="list"></param>
         /// <returns></returns>
         public Task<bool> SetTunnelTransports(string machineid, List<ITunnelTransport> list);
+    }
+
+    public sealed class TunnelExclusionPolicyInfo
+    {
+        public IPAddress IP { get; set; }
+        public byte PrefixLength { get; set; }
     }
 }

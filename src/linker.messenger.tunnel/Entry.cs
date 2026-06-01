@@ -1,12 +1,12 @@
-﻿using linker.messenger.decenter;
-using linker.messenger.exroute;
-using linker.tunnel;
-using Microsoft.Extensions.DependencyInjection;
+﻿using linker.libs.web;
+using linker.messenger.decenter;
+using linker.messenger.rpolicy;
 using linker.messenger.signin.args;
 using linker.messenger.sync;
-using linker.libs.web;
-using linker.messenger.tunnel.server;
 using linker.messenger.tunnel.client;
+using linker.messenger.tunnel.server;
+using linker.tunnel;
+using Microsoft.Extensions.DependencyInjection;
 namespace linker.messenger.tunnel
 {
     public static class Entry
@@ -14,7 +14,7 @@ namespace linker.messenger.tunnel
         public static ServiceCollection AddTunnelClient(this ServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton<TunnelTransfer>();
-            serviceCollection.AddSingleton<TunnelClientExcludeIPTransfer>();
+            serviceCollection.AddSingleton<TunnelExclusionPolicyTransfer>();
             serviceCollection.AddSingleton<ITunnelMessengerAdapter, TunnelMessengerAdapter>();
             serviceCollection.AddSingleton<TunnelClientMessenger>();
 
@@ -24,7 +24,7 @@ namespace linker.messenger.tunnel
 
             serviceCollection.AddSingleton<TunnelApiController>();
 
-            serviceCollection.AddSingleton<TunnelExRoute>();
+            serviceCollection.AddSingleton<TunnelRouteExclusionPolicy>();
 
             serviceCollection.AddSingleton<SignInArgsNet>();
 
@@ -42,7 +42,7 @@ namespace linker.messenger.tunnel
             TunnelNetworkTransfer tunnelNetworkTransfer = serviceProvider.GetService<TunnelNetworkTransfer>();
 
             TunnelTransfer tunnelTransfer = serviceProvider.GetService<TunnelTransfer>();
-            TunnelClientExcludeIPTransfer tunnelClientExcludeIPTransfer = serviceProvider.GetService<TunnelClientExcludeIPTransfer>();
+            TunnelExclusionPolicyTransfer tunnelClientExcludeIPTransfer = serviceProvider.GetService<TunnelExclusionPolicyTransfer>();
 
             IMessengerResolver messengerResolver = serviceProvider.GetService<IMessengerResolver>();
             messengerResolver.AddMessenger(new List<IMessenger> { serviceProvider.GetService<TunnelClientMessenger>() });
@@ -55,8 +55,8 @@ namespace linker.messenger.tunnel
             apiServer.AddPlugins(new List<IApiController> { serviceProvider.GetService<TunnelApiController>() });
 
 
-            ExRouteTransfer exRouteTransfer = serviceProvider.GetService<ExRouteTransfer>();
-            exRouteTransfer.AddExRoutes(new List<IExRoute> { serviceProvider.GetService<TunnelExRoute>() });
+            RouteExclusionPolicyTransfer routeExclusionPolicyTransfer = serviceProvider.GetService<RouteExclusionPolicyTransfer>();
+            routeExclusionPolicyTransfer.AddRouteExclusionPolicys(new List<IRouteExclusionPolicy> { serviceProvider.GetService<TunnelRouteExclusionPolicy>() });
 
 
             SyncTreansfer syncTreansfer = serviceProvider.GetService<SyncTreansfer>();

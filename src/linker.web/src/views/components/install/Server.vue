@@ -51,8 +51,8 @@ export default {
                 anonymous:step.value.form.server.anonymous ||globalData.value.config.Server.SignIn.Anonymous,
                 superKey:step.value.form.server.superKey ||globalData.value.config.Server.SignIn.SuperKey,
                 superPassword:step.value.form.server.superPassword ||globalData.value.config.Server.SignIn.SuperPassword,
-                webPort:step.value.form.server.webPort ||globalData.value.config.Server.SForward.WebPort,
-                TunnelPorts:step.value.form.server.TunnelPorts ||globalData.value.config.Server.SForward.TunnelPorts,
+                webPort:step.value.form.server.webPort ||globalData.value.config.Server.Reverse.WebPort,
+                TunnelPorts:step.value.form.server.TunnelPorts ||globalData.value.config.Server.Reverse.TunnelPorts,
             },
             rules: {
                 superKey: [{ required: true, message: t('install.required'), trigger: "blur" }],
@@ -101,7 +101,7 @@ export default {
                                     SuperKey: state.form.superKey,
                                     SuperPassword: state.form.superPassword,
 
-                                    SForward:{
+                                    Reverse:{
                                         WebPort: +state.form.webPort,
                                         TunnelPorts:state.form.TunnelPorts
                                     }

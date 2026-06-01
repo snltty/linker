@@ -1,7 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.extends;
 using linker.libs.timer;
-using linker.messenger.exroute;
 using linker.messenger.signin;
 using linker.nat;
 using linker.tun.device;
@@ -25,7 +24,8 @@ namespace linker.messenger.tuntap.client
 
         private bool _checked = false;
 
-        public TuntapAdapter(TuntapTransfer tuntapTransfer, TuntapConfigTransfer tuntapConfigTransfer, TuntapDecenter tuntapDecenter, TuntapProxy tuntapProxy, SignInClientState signInClientState, ISignInClientStore signInClientStore, ExRouteTransfer exRouteTransfer)
+        public TuntapAdapter(TuntapTransfer tuntapTransfer, TuntapConfigTransfer tuntapConfigTransfer, TuntapDecenter tuntapDecenter, TuntapProxy tuntapProxy, SignInClientState signInClientState,
+            ISignInClientStore signInClientStore)
         {
             this.tuntapTransfer = tuntapTransfer;
             this.tuntapConfigTransfer = tuntapConfigTransfer;

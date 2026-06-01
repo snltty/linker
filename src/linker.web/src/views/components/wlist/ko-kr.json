@@ -16,7 +16,7 @@
     "wlist.order": "주문 번호",
     "wlist.order.use": "주문 번호 {0} 사용",
     "wlist.relay": "릴레이",
-    "wlist.sforward": "터널",
+    "wlist.reverse": "터널",
     "wlist.deny": "{0} 거부",
     "wlist.allow": "{0} 허용",
     "wlist.limit": "{0} 속도 제한",

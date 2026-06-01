@@ -6,8 +6,8 @@ export const getFlows = (machineId = '') => {
 export const getMessengerFlows = (machineId = '') => {
     return sendWebsocketMsg('flow/GetMessengerFlows',machineId);
 }
-export const getSForwardFlows = (data) => {
-    return sendWebsocketMsg('flow/GetSForwardFlows', data);
+export const getReverseFlows = (data) => {
+    return sendWebsocketMsg('flow/GetReverseFlows', data);
 }
 export const getRelayFlows = (data) => {
     return sendWebsocketMsg('flow/GetRelayFlows', data);

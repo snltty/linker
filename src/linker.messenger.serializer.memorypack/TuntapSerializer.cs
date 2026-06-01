@@ -301,8 +301,11 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         string Remark => info.Remark;
 
+        [MemoryPackInclude]
+        bool Disabled => info.Disabled;
+
         [MemoryPackConstructor]
-        SerializableTuntapForwardInfo(IPAddress listenAddr, int listenPort, IPAddress connectAddr, int connectPort, string remark)
+        SerializableTuntapForwardInfo(IPAddress listenAddr, int listenPort, IPAddress connectAddr, int connectPort, string remark, bool disabled)
         {
             var info = new TuntapForwardInfo
             {
@@ -310,7 +313,8 @@ namespace linker.messenger.serializer.memorypack
                 ConnectPort = connectPort,
                 ListenAddr = listenAddr,
                 ListenPort = listenPort,
-                Remark = remark
+                Remark = remark,
+                Disabled = disabled
             };
             this.info = info;
         }
@@ -342,8 +346,14 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableTuntapForwardInfo>();
-            value = wrapped.info;
+            reader.TryReadObjectHeader(out byte count);
+            value = new TuntapForwardInfo();
+            value.ListenAddr = reader.ReadValue<IPAddress>();
+            value.ListenPort = reader.ReadValue<int>();
+            value.ConnectAddr = reader.ReadValue<IPAddress>();
+            value.ConnectPort = reader.ReadValue<int>();
+            value.Remark = reader.ReadValue<string>();
+            value.Disabled = reader.ReadValue<bool>();
         }
     }
 
@@ -775,7 +785,7 @@ namespace linker.messenger.serializer.memorypack
             reader.TryReadObjectHeader(out byte count);
             value = new TuntapFecProfileInfo();
             value.SourceSymbols = reader.ReadValue<int>();
-            value.SourceSymbols = reader.ReadValue<int>();
+            value.RepairSymbols = reader.ReadValue<int>();
 
         }
     }

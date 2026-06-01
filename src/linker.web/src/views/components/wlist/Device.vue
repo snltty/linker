@@ -16,7 +16,7 @@ export default {
     setup (props) {
         const {t} = useI18n();
         const wlistState = useWlist();
-        const text = {'Relay':t('wlist.relay'),'SForward':t('wlist.sforward')}[props.type];
+        const text = {'Relay':t('wlist.relay'),'Reverse':t('wlist.reverse')}[props.type];
         const choiceOnece = (json)=>{
             const arr = Object.keys(json).reduce((arr,curr)=>{
                 arr.push({ id:curr,value:json[curr] });

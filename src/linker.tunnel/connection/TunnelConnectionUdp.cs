@@ -96,9 +96,9 @@ namespace linker.tunnel.connection
             {
                 InitializeKcp();
             }
-            else if (Configure.TryGetValue("fec", out string fec) && string.IsNullOrWhiteSpace(fec) == false)
+            else
             {
-                InitializeFec(fec);
+                InitializeFec();
             }
 
             if (Receive)
@@ -303,17 +303,30 @@ namespace linker.tunnel.connection
         private byte[] fecDecodeBuffer;
         private StickyPacketCodec stickyEncoder;
         private LinkerFecOptions fecOption;
-        private void InitializeFec(string profile)
+        private void InitializeFec()
         {
+            LinkerFecRepairProfilePoint[] profile = [];
+            if (Configure.TryGetValue("fec", out string fec) && string.IsNullOrWhiteSpace(fec) == false)
+            {
+                try
+                {
+                    profile = fec.DeJson<LinkerFecRepairProfilePoint[]>();
+                }
+                catch (Exception)
+                {
+                }
+            }
+            if (profile.Count(c => c.SourceSymbols != 0 && c.RepairSymbols != 0) == 0)
+            {
+                return;
+            }
+
             fecOption = new LinkerFecOptions
             {
                 SourceSymbolsPerBlock = 10,
                 RepairSymbolsPerBlock = 4,
                 SymbolSize = 1420 + LinkerFecEncodedSymbol.HeaderSize,
-                RepairProfile = [
-                   new LinkerFecRepairProfilePoint(1, 2),
-                    new LinkerFecRepairProfilePoint(10, 4)
-                ],
+                RepairProfile = profile,
             };
             fecEncoder = new LinkerFecCodec(fecOption);
             fecDecoder = new LinkerFecCodec(fecOption);

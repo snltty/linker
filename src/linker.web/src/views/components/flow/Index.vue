@@ -32,7 +32,7 @@
         </div>
     </el-dialog>
     <ServerFlowMessenger :config="config" :machineId="flow.machineId" v-if="state.details.Messenger" v-model="state.details.Messenger"></ServerFlowMessenger>
-    <ServerFlowSForward :config="config" :machineId="flow.machineId" v-if="state.details.SForward" v-model="state.details.SForward"></ServerFlowSForward>
+    <ServerFlowReverse :config="config" :machineId="flow.machineId" v-if="state.details.Reverse" v-model="state.details.Reverse"></ServerFlowReverse>
     <ServerFlowForward :config="config" :machineId="flow.machineId" v-if="state.details.Forward" v-model="state.details.Forward"></ServerFlowForward>
     <ServerFlowSocks5 :config="config" :machineId="flow.machineId" v-if="state.details.Socks5" v-model="state.details.Socks5"></ServerFlowSocks5>
     <ServerFlowTunnel :config="config" :machineId="flow.machineId" v-if="state.details.Tunnel" v-model="state.details.Tunnel"></ServerFlowTunnel>
@@ -45,7 +45,7 @@
 import { getFlows } from '@/apis/flow';
 import { computed,  onMounted, onUnmounted, reactive } from 'vue';
 import ServerFlowMessenger from './ServerFlowMessenger.vue';
-import ServerFlowSForward from './ServerFlowSForward.vue';
+import ServerFlowReverse from './ServerFlowReverse.vue';
 import ServerFlowForward from './ServerFlowForward.vue';
 import ServerFlowSocks5 from './ServerFlowSocks5.vue';
 import ServerFlowTunnel from './ServerFlowTunnel.vue';
@@ -57,17 +57,17 @@ import OnlineAllMap from './OnlineAllMap.vue';
 import { useFlow } from './flow';
 export default {
     props:['config','title'],
-    components:{ServerFlowMessenger,ServerFlowSForward,ServerFlowForward,ServerFlowSocks5,ServerFlowTunnel,ServerFlowRelay,OnlineMap,OnlineAllMap},
+    components:{ServerFlowMessenger,ServerFlowReverse,ServerFlowForward,ServerFlowSocks5,ServerFlowTunnel,ServerFlowRelay,OnlineMap,OnlineAllMap},
     setup (props,{emit}) {
 
         const flow = useFlow();
 
         const {t} = useI18n();
         const globalData = injectGlobalData();
-        const hasSForwardFlow = computed(()=>globalData.value.hasAccess('SForwardFlow')); 
+        const hasReverseFlow = computed(()=>globalData.value.hasAccess('ReverseFlow')); 
         const hasRelayFlow = computed(()=>globalData.value.hasAccess('RelayFlow')); 
         const hasSigninFlow = computed(()=>globalData.value.hasAccess('SigninFlow')); 
-        const hasForwardFlow = computed(()=>globalData.value.hasAccess('ForwardFlow')); 
+        const haReverseFlow = computed(()=>globalData.value.hasAccess('ForwardFlow')); 
         const hasSocks5Flow = computed(()=>globalData.value.hasAccess('Socks5Flow')); 
         const hasTunnelFlow = computed(()=>globalData.value.hasAccess('TunnelFlow')); 
         const state = reactive({
@@ -77,7 +77,7 @@ export default {
             old:null,
             details:{
                 Messenger:false,
-                SForward:false,
+                Reverse:false,
                 Forward:false,
                 Socks5:false,
                 Tunnel:false,
@@ -93,9 +93,9 @@ export default {
             'RelayReport':{text:t('flow.relay.node'),detail:false,format:true,suffix:'/s'},
             'Relay':{text:t('flow.relay'),detail:hasRelayFlow.value,format:true,suffix:'/s'},
             'Messenger':{text:t('flow.messenger'),detail:hasSigninFlow.value,format:true,suffix:'/s'},
-            'SForward':{text:t('flow.sforward'),detail:hasSForwardFlow.value,format:true,suffix:'/s'},
+            'Reverse':{text:t('flow.reverse'),detail:hasReverseFlow.value,format:true,suffix:'/s'},
             'flow':{text:'',detail:false},
-            'Forward':{text:t('flow.forward'),detail:hasForwardFlow.value,format:true,suffix:'/s'},
+            'Forward':{text:t('flow.forward'),detail:haReverseFlow.value,format:true,suffix:'/s'},
             'Socks5':{text:t('flow.socks5'),detail:hasSocks5Flow.value,format:true,suffix:'/s'},
             'Tunnel':{text:t('flow.tunnel'),detail:hasTunnelFlow.value},
         };

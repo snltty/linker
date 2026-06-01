@@ -6,7 +6,7 @@
     "sync.SignInServer": "خادم المنارة",
     "sync.GroupSecretKey": "مفتاح المجموعة",
     "sync.RelaySecretKey": "مفتاح المرحل",
-    "sync.SForwardSecretKey": "مفتاح نفق الخادم",
+    "sync.ReverseSecretKey": "مفتاح نفق الخادم",
     "sync.UpdaterSecretKey": "تحديث التكوين",
     "sync.TunnelTransports": "بروتوكولات النفق",
     "sync.SignInUserId": "معرف المستخدم الفريد",

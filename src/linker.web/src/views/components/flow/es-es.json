@@ -16,7 +16,7 @@
     "flow.relay.src": "Origen",
     "flow.relay.dst": "Destino",
     "flow.port": "Puerto externo",
-    "flow.sforward": "Penetración de red interna",
+    "flow.reverse": "Penetración de red interna",
     "flow.search": "Búsqueda por nombre",
     "flow.search.domain": "Dominio/Puerto",
     "flow.area": "Región",

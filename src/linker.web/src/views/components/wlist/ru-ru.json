@@ -16,7 +16,7 @@
     "wlist.order": "Номер заказа",
     "wlist.order.use": "Использовать номер заказа {0}",
     "wlist.relay": "Реле",
-    "wlist.sforward": "Туннель",
+    "wlist.reverse": "Туннель",
     "wlist.deny": "Запретить {0}",
     "wlist.allow": "Разрешить {0}",
     "wlist.limit": "Ограничить скорость {0}",

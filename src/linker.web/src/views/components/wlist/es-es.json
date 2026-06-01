@@ -16,7 +16,7 @@
     "wlist.order": "Número de pedido",
     "wlist.order.use": "Usar número de pedido {0}",
     "wlist.relay": "Relé",
-    "wlist.sforward": "Túnel",
+    "wlist.reverse": "Túnel",
     "wlist.deny": "Denegar {0}",
     "wlist.allow": "Permitir {0}",
     "wlist.limit": "Limitar velocidad {0}",

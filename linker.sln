@@ -37,7 +37,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.access", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.store.file", "src\linker.messenger.store.file\linker.messenger.store.file.csproj", "{B314CF79-2DFF-4A7F-AE86-326ECFD02BB6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.exroute", "src\linker.messenger.exroute\linker.messenger.exroute.csproj", "{091C723F-47AD-49AB-9373-9E49E1DD46C3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.rpolicy", "src\linker.messenger.rpolicy\linker.messenger.rpolicy.csproj", "{091C723F-47AD-49AB-9373-9E49E1DD46C3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.channel", "src\linker.messenger.channel\linker.messenger.channel.csproj", "{9F0DC900-7B27-4C33-8B58-C09DDAF67802}"
 EndProject
@@ -47,7 +47,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.listen", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.pcp", "src\linker.messenger.pcp\linker.messenger.pcp.csproj", "{A73BB5AD-C3CA-41A2-B5F9-C06DE6F5CD5C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.sforward", "src\linker.messenger.sforward\linker.messenger.sforward.csproj", "{A108DE37-47F2-4BF6-AAA4-ADC014214943}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.reverse", "src\linker.messenger.reverse\linker.messenger.reverse.csproj", "{A108DE37-47F2-4BF6-AAA4-ADC014214943}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.logger", "src\linker.messenger.logger\linker.messenger.logger.csproj", "{765B5313-FFDB-41FF-A6B1-500C4017FD05}"
 EndProject

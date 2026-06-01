@@ -6,7 +6,7 @@
     "sync.SignInServer": "ビーコンサーバー",
     "sync.GroupSecretKey": "グループキー",
     "sync.RelaySecretKey": "リレーキー",
-    "sync.SForwardSecretKey": "サーバートンネルキー",
+    "sync.ReverseSecretKey": "サーバートンネルキー",
     "sync.UpdaterSecretKey": "設定を更新",
     "sync.TunnelTransports": "トンネルプロトコル",
     "sync.SignInUserId": "ユーザー固有ID",

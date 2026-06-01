@@ -16,7 +16,7 @@
     "flow.relay.src": "Source",
     "flow.relay.dst": "Target",
     "flow.port": "Wan Port",
-    "flow.sforward": "Server Forward",
+    "flow.reverse": "Server Forward",
     "flow.search": "Name",
     "flow.search.domain": "Domain/Port",
     "flow.area": "Area",

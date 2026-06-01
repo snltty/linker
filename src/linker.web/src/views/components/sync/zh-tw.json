@@ -6,7 +6,7 @@
     "sync.SignInServer": "信標伺服器",
     "sync.GroupSecretKey": "分組密鑰",
     "sync.RelaySecretKey": "中繼密鑰",
-    "sync.SForwardSecretKey": "伺服器穿透密鑰",
+    "sync.ReverseSecretKey": "伺服器穿透密鑰",
     "sync.UpdaterSecretKey": "更新配置",
     "sync.TunnelTransports": "隧道協議",
     "sync.SignInUserId": "用戶唯一標識",

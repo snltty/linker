@@ -1,38 +1,38 @@
 <template>
-   <el-dialog class="options-center" :title="$t('sforward.node')" destroy-on-close v-model="state.show" width="34rem" top="2vh">
+   <el-dialog class="options-center" :title="$t('reverse.node')" destroy-on-close v-model="state.show" width="34rem" top="2vh">
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="auto">
-                <el-form-item :label="$t('sforward.name')" prop="Name">
+                <el-form-item :label="$t('reverse.name')" prop="Name">
                     <el-input :disabled="data._manager==false" v-trim minlength="1" maxlength="32" show-word-limit v-model="state.ruleForm.Name" />
                 </el-form-item>
-                <el-form-item :label="$t('sforward.host')" prop="Host">
+                <el-form-item :label="$t('reverse.host')" prop="Host">
                     <el-input v-trim v-model="state.ruleForm.Host" />
                 </el-form-item>
-                <el-form-item :label="$t('sforward.domain')" prop="Domain">
+                <el-form-item :label="$t('reverse.domain')" prop="Domain">
                     <el-input :disabled="data._manager==false" v-trim v-model="state.ruleForm.Domain" />
                 </el-form-item>
-                <el-form-item :label="$t('sforward.conn')" prop="Connections">
+                <el-form-item :label="$t('reverse.conn')" prop="Connections">
                     <el-input-number :disabled="data._manager==false" v-model="state.ruleForm.Connections" :min="0" :max="65535"/>
                 </el-form-item>
-                <el-form-item :label="$t('sforward.speed')" prop="BandwidthEach">
+                <el-form-item :label="$t('reverse.speed')" prop="BandwidthEach">
                     <el-input-number v-model="state.ruleForm.BandwidthEach" :min="0"/>Mbps
                 </el-form-item>
-                <el-form-item :label="$t('sforward.speed1')" prop="Bandwidth">
+                <el-form-item :label="$t('reverse.speed1')" prop="Bandwidth">
                     <el-input-number :disabled="data._manager==false" v-model="state.ruleForm.Bandwidth" :min="0"/>Mbps
                 </el-form-item>
-                <el-form-item :label="$t('sforward.flow')" prop="DataEachMonth">
+                <el-form-item :label="$t('reverse.flow')" prop="DataEachMonth">
                     <el-input-number :disabled="data._manager==false" v-model="state.ruleForm.DataEachMonth" :min="0"/>GB <el-button size="small" @click="handleRefresh"><el-icon><Refresh /></el-icon></el-button>
                 </el-form-item>
-                <el-form-item :label="$t('sforward.flowLast')" prop="DataRemain">
+                <el-form-item :label="$t('reverse.flowLast')" prop="DataRemain">
                     <el-input-number :disabled="data._manager==false" v-model="state.ruleForm.DataRemain" :min="0" />byte
                 </el-form-item>
-                <el-form-item :label="$t('sforward.url')" prop="Url">
+                <el-form-item :label="$t('reverse.url')" prop="Url">
                     <el-input :disabled="data._manager==false" v-trim v-model="state.ruleForm.Url" />
                 </el-form-item>
-                <el-form-item :label="$t('sforward.logo')" prop="Logo">
+                <el-form-item :label="$t('reverse.logo')" prop="Logo">
                     <el-input :disabled="data._manager==false" v-trim v-model="state.ruleForm.Logo" />
                 </el-form-item>
-                <el-form-item :label="$t('sforward.public')" prop="Public">
+                <el-form-item :label="$t('reverse.public')" prop="Public">
                     <el-switch v-model="state.ruleForm.Public " size="small" />
                 </el-form-item>
                 <el-form-item></el-form-item>
@@ -52,7 +52,7 @@ import { ElMessage } from 'element-plus';
 import { reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n';
 import { Refresh } from '@element-plus/icons-vue'
-import { sforwardUpdate } from '@/apis/sforward';
+import { reverseUpdate } from '@/apis/reverse';
 export default {
     props: ['data','modelValue'],
     emits: ['update:modelValue','success'],
@@ -84,7 +84,7 @@ export default {
 
                 const json = JSON.parse(JSON.stringify(state.ruleForm));
 
-                sforwardUpdate(json).then((res)=>{
+                reverseUpdate(json).then((res)=>{
                     if(res){
                         ElMessage.success(t('common.opered'));
                         state.show = false;

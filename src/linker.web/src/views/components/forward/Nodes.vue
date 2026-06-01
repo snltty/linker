@@ -1,8 +1,8 @@
 <template>
     <div>
-        <el-dialog v-model="state.show" :title="$t('sforward.node')" width="98%" top="2vh">
+        <el-dialog v-model="state.show" :title="$t('reverse.node')" width="98%" top="2vh">
             <div>
-                <AccessShow value="ImportSForwardNode">
+                <AccessShow value="ImportReverseNode">
                     <div class="head mgb-1" v-if="state.super">
                         <div class="flex">
                             <span class="flex-1"></span>
@@ -14,7 +14,7 @@
                     </div>
                 </AccessShow>
                 <el-table :data="state.nodes" size="small" border height="500" stripe>
-                    <el-table-column property="Name" :label="$t('sforward.name')" width="240">
+                    <el-table-column property="Name" :label="$t('reverse.name')" width="240">
                         <template #default="scope">
                             <div class="flex"> 
                                 <div>
@@ -33,9 +33,9 @@
                                     <p class="flex">
                                         <span>{{ scope.row.Host }}</span>
                                         <span class="flex-1"></span>
-                                        <AccessBoolean value="UpgradeSForwardNode">
+                                        <AccessBoolean value="UpgradeReverseNode">
                                             <template #default="{values}">
-                                                <a v-if="state.super && values.UpgradeSForwardNode" href="javascript:;" class="a-line a-edit" @click="handleUpgrade(scope.row)"><el-icon><Refresh /></el-icon>{{ scope.row.Version }}</a>
+                                                <a v-if="state.super && values.UpgradeReverseNode" href="javascript:;" class="a-line a-edit" @click="handleUpgrade(scope.row)"><el-icon><Refresh /></el-icon>{{ scope.row.Version }}</a>
                                                 <a v-else href="javascript:;" class="a-line a-edit"><el-icon><Refresh /></el-icon>{{ scope.row.Version }}</a>
                                             </template>
                                         </AccessBoolean>
@@ -45,7 +45,7 @@
                         </template>
                     </el-table-column>
                     
-                    <el-table-column property="ConnectionsRatio" :label="$t('sforward.conn')" width="80">
+                    <el-table-column property="ConnectionsRatio" :label="$t('reverse.conn')" width="80">
                         <template #default="scope">
                             <p>
                                 <template v-if="scope.row.Connections == 0">--</template>
@@ -54,7 +54,7 @@
                             <p><strong>{{scope.row.ConnectionsRatio}}</strong></p>
                         </template>
                     </el-table-column>
-                    <el-table-column property="DataEachMonth" :label="$t('sforward.flow')" width="100">
+                    <el-table-column property="DataEachMonth" :label="$t('reverse.flow')" width="100">
                         <template #default="scope">
                             <template v-if="scope.row.DataEachMonth == 0">
                                 <p>--</p>
@@ -66,7 +66,7 @@
                             </template>
                         </template>
                     </el-table-column>
-                    <el-table-column property="BandwidthEach" :label="$t('sforward.speed')" width="80">
+                    <el-table-column property="BandwidthEach" :label="$t('reverse.speed')" width="80">
                         <template #default="scope">
                             <p>
                                 <span v-if="scope.row.BandwidthEach == 0">--</span>
@@ -75,7 +75,7 @@
                             <p>{{ scope.row.Delay }}ms</p>
                         </template>
                     </el-table-column> 
-                    <el-table-column property="Bandwidth" :label="$t('sforward.speed1')" width="100">
+                    <el-table-column property="Bandwidth" :label="$t('reverse.speed1')" width="100">
                         <template #default="scope">
                             <p>
                                 <template v-if="scope.row.Bandwidth == 0">--</template>
@@ -84,24 +84,24 @@
                             <p><strong>{{scope.row.BandwidthRatio}}Mbps</strong></p>
                         </template>
                     </el-table-column>
-                    <el-table-column property="Port" :label="$t('sforward.port')" width="120">
+                    <el-table-column property="Port" :label="$t('reverse.port')" width="120">
                         <template #default="scope">
-                            <p>{{$t('sforward.webport')}} : {{ scope.row.WebPort }}</p>
+                            <p>{{$t('reverse.webport')}} : {{ scope.row.WebPort }}</p>
                             <p>{{ scope.row.TunnelPorts}}</p>
                         </template>
                     </el-table-column>
                     <el-table-column property="Manageable" fixed="right" :label="$t('common.oper')" width="110">
                         <template #default="scope">
                             <p>
-                            <AccessBoolean v-if="state.super" value="RemoveSForwardNode,UpdateSForwardNode,ShareSForwardNode,RebootSForwardNode">
+                            <AccessBoolean v-if="state.super" value="RemoveReverseNode,UpdateReverseNode,ShareReverseNode,RebootReverseNode">
                                 <template #default="{values}">
                                     <p>
-                                        <el-button v-if="scope.row._manager && values.RebootSForwardNode" type="warning" plain size="small" @click="handleExit(scope.row)"><el-icon><Refresh /></el-icon></el-button>
-                                        <el-button v-if="values.UpdateSForwardNode" plain size="small" @click="handleEdit(scope.row)"><el-icon><Edit /></el-icon></el-button>
+                                        <el-button v-if="scope.row._manager && values.RebootReverseNode" type="warning" plain size="small" @click="handleExit(scope.row)"><el-icon><Refresh /></el-icon></el-button>
+                                        <el-button v-if="values.UpdateReverseNode" plain size="small" @click="handleEdit(scope.row)"><el-icon><Edit /></el-icon></el-button>
                                     </p>
                                     <p>
-                                        <el-button v-if="values.RemoveSForwardNode" type="danger" plain size="small" @click="handleRemove(scope.row)"><el-icon><CircleClose /></el-icon></el-button>
-                                        <el-button v-if="scope.row._manager && values.ShareSForwardNode" type="info" plain size="small" @click="handleShare(scope.row)"><el-icon><Share /></el-icon></el-button>
+                                        <el-button v-if="values.RemoveReverseNode" type="danger" plain size="small" @click="handleRemove(scope.row)"><el-icon><CircleClose /></el-icon></el-button>
+                                        <el-button v-if="scope.row._manager && values.ShareReverseNode" type="info" plain size="small" @click="handleShare(scope.row)"><el-icon><Share /></el-icon></el-button>
                                     </p>
                                 </template>
                             </AccessBoolean>
@@ -112,11 +112,11 @@
             </div>
         </el-dialog>
         <EditNode v-if="state.showEdit" v-model="state.showEdit" :data="state.current"></EditNode>
-        <NodeDeny v-model="state.showDeny" v-if="state.showDeny" type="sforward" :data="state.current"></NodeDeny>
+        <NodeDeny v-model="state.showDeny" v-if="state.showDeny" type="reverse" :data="state.current"></NodeDeny>
     </div>
 </template>
 <script>
-import {  sforwardExit, sforwardImport, sforwardRemove, sforwardShare, sforwardUpgrade } from '@/apis/sforward';
+import {  reverseExit, reverseImport, reverseRemove, reverseShare, reverseUpgrade } from '@/apis/reverse';
 import { injectGlobalData } from '@/provide';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { computed,  onUnmounted,  reactive, ref, watch } from 'vue'
@@ -154,12 +154,12 @@ export default {
             state.showEdit = true;
         }
         const handleExit = (row)=>{
-            ElMessageBox.confirm(t('sforward.restart'), t('common.confirm'), {
+            ElMessageBox.confirm(t('reverse.restart'), t('common.confirm'), {
                 confirmButtonText: t('common.confirm'),
                 cancelButtonText: t('common.cancel'),
                 type: 'warning',
             }).then(() => {
-                sforwardExit(row.NodeId).then(res => {
+                reverseExit(row.NodeId).then(res => {
                     ElMessage.success(t('common.opered'));
                 }).catch(()=>{
                     ElMessage.error(t('common.operFail'));
@@ -170,12 +170,12 @@ export default {
         }
         const handleUpgrade = (row)=>{
             if(row._manager == false) return;
-            ElMessageBox.confirm(`${t('sforward.update')} ${globalData.value.signin.Version}`,t('sforward.update'), {
+            ElMessageBox.confirm(`${t('reverse.update')} ${globalData.value.signin.Version}`,t('reverse.update'), {
                 confirmButtonText: t('common.confirm'),
                 cancelButtonText: t('common.cancel'),
                 type: 'warning',
             }).then(() => {
-                sforwardUpgrade({Key:row.NodeId,Value:globalData.value.signin.Version}).then(res => {
+                reverseUpgrade({Key:row.NodeId,Value:globalData.value.signin.Version}).then(res => {
                     ElMessage.success(t('common.opered'));
                 }).catch(()=>{
                     ElMessage.error(t('common.operFail'));
@@ -186,12 +186,12 @@ export default {
         }
 
         const handleRemove = (row)=>{
-            ElMessageBox.confirm(t('sforward.del'), t('common.confirm'), {
+            ElMessageBox.confirm(t('reverse.del'), t('common.confirm'), {
                 confirmButtonText: t('common.confirm'),
                 cancelButtonText: t('common.cancel'),
                 type: 'warning',
             }).then(() => {
-                sforwardRemove(row.NodeId).then(res => {
+                reverseRemove(row.NodeId).then(res => {
                     ElMessage.success(t('common.opered'));
                 }).catch(()=>{
                     ElMessage.error(t('common.operFail'));
@@ -201,12 +201,12 @@ export default {
             });
         }
         const handleImport = ()=>{
-            ElMessageBox.prompt(t('sforward.import'), t('common.confirm'), {
+            ElMessageBox.prompt(t('reverse.import'), t('common.confirm'), {
                 confirmButtonText:  t('common.confirm'),
                 cancelButtonText: t('common.cancel')
             }).then(({ value }) => {
                 if(!value) return;
-                sforwardImport(value).then((res)=>{ 
+                reverseImport(value).then((res)=>{ 
                     if(res){
                         ElMessage.error(res);
                     }else{
@@ -217,8 +217,8 @@ export default {
             })
         }
         const handleShare = (row)=>{
-            sforwardShare(row.NodeId).then((res)=>{
-                ElMessageBox.prompt(t('sforward.share'), t('common.tips'), {
+            reverseShare(row.NodeId).then((res)=>{
+                ElMessageBox.prompt(t('reverse.share'), t('common.tips'), {
                     confirmButtonText:  t('common.confirm'),
                     cancelButtonText: t('common.cancel'),
                     inputValue:res

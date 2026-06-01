@@ -16,7 +16,7 @@
     "wlist.order": "رقم الطلب",
     "wlist.order.use": "استخدام رقم الطلب {0}",
     "wlist.relay": "المرحل",
-    "wlist.sforward": "النفق",
+    "wlist.reverse": "النفق",
     "wlist.deny": "رفض {0}",
     "wlist.allow": "السماح لـ {0}",
     "wlist.limit": "تحديد السرعة {0}",

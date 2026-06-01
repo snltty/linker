@@ -22,7 +22,7 @@
 
 <script>
 import { relayDenysAdd } from '@/apis/relay';
-import { sforwardDenysAdd } from '@/apis/sforward';
+import { reverseDenysAdd } from '@/apis/reverse';
 import { ElMessage } from 'element-plus';
 import { reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n';
@@ -31,7 +31,7 @@ export default {
     emits: ['update:modelValue','success'],
     setup(props,{emit}) {
         const {t} = useI18n();
-        const saveFn = props.type = 'relay' ? relayDenysAdd:sforwardDenysAdd
+        const saveFn = props.type = 'relay' ? relayDenysAdd:reverseDenysAdd
         const state = reactive({
             show:true,
             ruleForm:{

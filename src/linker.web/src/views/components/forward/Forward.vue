@@ -12,8 +12,8 @@
                                 </a>
                             </div>
                             <div class="nowrap">
-                                <a href="javascript:;" :class="{green:scope.row.hook_counter.sforward>0}" @click="handleSEdit(scope.row.MachineId,scope.row.MachineName,values)">
-                                    <span :class="{gateway:scope.row.hook_counter.sforward>0 }">{{$t('forward.server')}}({{scope.row.hook_counter.sforward>99 ? '99+' :scope.row.hook_counter.sforward}})</span>
+                                <a href="javascript:;" :class="{green:scope.row.hook_counter.reverse>0}" @click="handleSEdit(scope.row.MachineId,scope.row.MachineName,values)">
+                                    <span :class="{gateway:scope.row.hook_counter.reverse>0 }">{{$t('forward.server')}}({{scope.row.hook_counter.reverse>99 ? '99+' :scope.row.hook_counter.reverse}})</span>
                                 </a>
                             </div>
                         </div>
@@ -37,7 +37,7 @@
 <script>
 import { injectGlobalData } from '@/provide';
 import { useForward } from './forward';
-import { useSforward } from './sforward';
+import { useReverse } from './reverse';
 import { computed } from 'vue';
 import ConnectionShow from '../tunnel/ConnectionShow.vue';
 import { ElMessage } from 'element-plus';
@@ -49,7 +49,7 @@ export default {
 
         const {t} = useI18n();
         const forward = useForward()
-        const sforward = useSforward()
+        const reverse = useReverse()
         
         const globalData = injectGlobalData();
         const machineId = computed(() => globalData.value.config.Client.Id);
@@ -82,9 +82,9 @@ export default {
                 return;
             }
             }
-            sforward.value.machineid = _machineId;
-            sforward.value.machineName = _machineName;
-            sforward.value.showEdit = true;
+            reverse.value.machineid = _machineId;
+            reverse.value.machineName = _machineName;
+            reverse.value.showEdit = true;
         }
         return {
            handleEdit,handleSEdit

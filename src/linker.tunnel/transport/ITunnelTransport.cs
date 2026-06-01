@@ -230,12 +230,7 @@ namespace linker.tunnel.transport
         public List<IPEndPoint> RemoteEndPoints { get; set; }
     }
 
-    public sealed class TunnelExIPInfo
-    {
-        public IPAddress IP { get; set; }
-        public byte PrefixLength { get; set; }
-    }
-
+   
     public sealed class NetworkInfo
     {
         /// <summary>

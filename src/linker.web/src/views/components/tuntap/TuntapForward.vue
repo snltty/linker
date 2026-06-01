@@ -61,6 +61,11 @@
                         </template>
                     </template>
                 </el-table-column>
+                <el-table-column prop="Disabled" :label="$t('tuntap.forward.disabled')" width="80">
+                    <template #default="scope">
+                        <el-checkbox v-model="scope.row.Disabled" :label="$t('tuntap.forward.disabled')"/>
+                    </template>
+                </el-table-column>
                 <el-table-column prop="Oper" :label="$t('common.oper')" width="110">
                     <template #default="scope">
                         <div>
@@ -113,6 +118,7 @@ export default {
                 c[`ConnectAddrEditing`] = false;
                 c[`ConnectPortEditing`] = false;
                 c[`RemarkEditing`] = false;
+                c[`DisabledEditing`] = false;
             })
             row[`${p}Editing`] = true;
             row[`__editing`] = true;
@@ -125,7 +131,7 @@ export default {
 
         const handleDel = (index)=>{
             if(state.forwards.length == 1){
-                state.forwards[0] = { ListenAddr: '0.0.0.0', ListenPort: 0, ConnectAddr: '0.0.0.0', ConnectPort: 0, Remark: '' };
+                state.forwards[0] = { ListenAddr: '0.0.0.0', ListenPort: 0, ConnectAddr: '0.0.0.0', ConnectPort: 0, Remark: '',Disabled:false };
             }
             else{
                 state.forwards.splice(index,1);
@@ -135,7 +141,7 @@ export default {
             if(state.forwards.filter(c=>c.ConnectAddr == '0.0.0.0' || c.ConnectPort == 0 || c.ListenPort == 0).length > 0){
                 return;
             }
-            state.forwards.splice(index+1,0,{ ListenAddr: '0.0.0.0', ListenPort: 0, ConnectAddr: '0.0.0.0', ConnectPort: 0, Remark: '' });
+            state.forwards.splice(index+1,0,{ ListenAddr: '0.0.0.0', ListenPort: 0, ConnectAddr: '0.0.0.0', ConnectPort: 0, Remark: '',Disabled:false });
         }
         const _subscribeForwardTest = () => {
             clearTimeout(state.timer);

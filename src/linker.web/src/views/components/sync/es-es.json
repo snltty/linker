@@ -6,7 +6,7 @@
     "sync.SignInServer": "Servidor de baliza",
     "sync.GroupSecretKey": "Clave de grupo",
     "sync.RelaySecretKey": "Clave de relé",
-    "sync.SForwardSecretKey": "Clave de túnel del servidor",
+    "sync.ReverseSecretKey": "Clave de túnel del servidor",
     "sync.UpdaterSecretKey": "Configuración de actualización",
     "sync.TunnelTransports": "Protocolos de túnel",
     "sync.SignInUserId": "ID único de usuario",

@@ -389,7 +389,7 @@ namespace linker.tunnel
 
             //要连接哪些IP
             List<IPEndPoint> eps = new List<IPEndPoint>();
-            var excludeips = tunnelMessengerAdapter.GetExcludeIps();
+            var excludeips = tunnelMessengerAdapter.GetExclusionPolicy();
 
             //先尝试内网ipv4
             if (tunnelTransportInfo.Local.Remote.Address.Equals(tunnelTransportInfo.Remote.Remote.Address))

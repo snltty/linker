@@ -1,8 +1,8 @@
 ﻿using linker.libs.extends;
 using linker.messenger.relay.server;
 using linker.messenger.relay.server.validator;
-using linker.messenger.sforward;
-using linker.messenger.sforward.server.validator;
+using linker.messenger.reverse;
+using linker.messenger.reverse.server.validator;
 using linker.messenger.signin;
 using linker.messenger.signin.args;
 using System.Net;
@@ -27,7 +27,7 @@ namespace linker.messenger.action
         /// <summary>
         /// 穿透信息，非穿透验证时为null
         /// </summary>
-        public JsonArgSForwardInfo SForward { get; set; }
+        public JsonArgReverseInfo Reverse { get; set; }
     }
     public sealed class JsonArgSignInInfo
     {
@@ -101,7 +101,7 @@ namespace linker.messenger.action
         public string Name { get; set; }
         public bool Public { get; set; }
     }
-    public sealed class JsonArgSForwardInfo
+    public sealed class JsonArgReverseInfo
     {
         /// <summary>
         /// 域名
@@ -189,7 +189,7 @@ namespace linker.messenger.action
             this.actionServerStore = actionServerStore;
         }
 
-        public async Task<string> Validate(SignCacheInfo from, SignCacheInfo to,string transactionId)
+        public async Task<string> Validate(SignCacheInfo from, SignCacheInfo to, string transactionId)
         {
             if (string.IsNullOrWhiteSpace(actionServerStore.RelayActionUrl) == false)
             {
@@ -206,8 +206,8 @@ namespace linker.messenger.action
                     Relay = new JsonArgRelayInfo
                     {
                         FromMachineId = from.MachineId,
-                        FromMachineName = from.MachineName ,
-                        RemoteMachineId = to.MachineId ,
+                        FromMachineName = from.MachineName,
+                        RemoteMachineId = to.MachineId,
                         RemoteMachineName = to.MachineName,
                         TransactionId = transactionId
                     },
@@ -267,35 +267,35 @@ namespace linker.messenger.action
         }
     }
 
-    public sealed class SForwardValidatorAction : JsonArgReplace, ISForwardValidator
+    public sealed class ReverseValidatorAction : JsonArgReplace, IReverseValidator
     {
         public string Name => "action";
         private readonly ActionTransfer actionTransfer;
         private readonly IActionServerStore actionServerStore;
-        public SForwardValidatorAction(ActionTransfer actionTransfer, IActionServerStore actionServerStore)
+        public ReverseValidatorAction(ActionTransfer actionTransfer, IActionServerStore actionServerStore)
         {
             this.actionTransfer = actionTransfer;
             this.actionServerStore = actionServerStore;
         }
 
-        public async Task<string> Validate(SignCacheInfo cache, SForwardAddInfo sForwardAddInfo)
+        public async Task<string> Validate(SignCacheInfo cache, ReverseAddInfo info)
         {
-            if (string.IsNullOrWhiteSpace(actionServerStore.SForwardActionUrl) == false)
+            if (string.IsNullOrWhiteSpace(actionServerStore.ReverseActionUrl) == false)
             {
                 if (actionServerStore.TryGetActionArg(cache.Args, out string str, out string machineKey) == false)
                 {
-                    return $"sforward action URL exists, but [{cache.MachineName}] action value is not configured";
+                    return $"reverse action URL exists, but [{cache.MachineName}] action value is not configured";
                 }
 
                 JsonArgInfo replace = new JsonArgInfo
                 {
-                    SForward = new JsonArgSForwardInfo
+                    Reverse = new JsonArgReverseInfo
                     {
-                        Domain = sForwardAddInfo.Domain ?? string.Empty,
-                        RemotePort = sForwardAddInfo.RemotePort,
-                        GroupId = sForwardAddInfo.GroupId,
-                        NodeId = sForwardAddInfo.NodeId,
-                        MachineId = sForwardAddInfo.MachineId
+                        Domain = info.Domain ?? string.Empty,
+                        RemotePort = info.RemotePort,
+                        GroupId = info.GroupId,
+                        NodeId = info.NodeId,
+                        MachineId = info.MachineId
 
 
                     },
@@ -310,7 +310,7 @@ namespace linker.messenger.action
                         UserId = cache.UserId
                     }
                 };
-                return await actionTransfer.ExcuteActions(Replace(replace, str), actionServerStore.SForwardActionUrl).ConfigureAwait(false);
+                return await actionTransfer.ExcuteActions(Replace(replace, str), actionServerStore.ReverseActionUrl).ConfigureAwait(false);
             }
             return string.Empty;
         }

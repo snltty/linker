@@ -16,7 +16,7 @@
     "flow.relay.src": "發起端",
     "flow.relay.dst": "目標端",
     "flow.port": "外網端口",
-    "flow.sforward": "內網穿透",
+    "flow.reverse": "內網穿透",
     "flow.search": "名字搜索",
     "flow.search.domain": "域名/端口",
     "flow.area": "地區",

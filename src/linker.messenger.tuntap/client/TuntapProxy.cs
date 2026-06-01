@@ -1,5 +1,4 @@
-﻿using linker.libs;
-using linker.libs.extends;
+﻿using linker.libs.extends;
 using linker.messenger.channel;
 using linker.messenger.pcp;
 using linker.messenger.signin;
@@ -106,12 +105,33 @@ namespace linker.messenger.tuntap.client
 
             if (tuntapCidrDecenterManager.FindValue(ip, out string machineId, out uint dst, out uint prefix))
             {
-                connection = await ConnectTunnel(machineId, new Dictionary<string, string>() { ["fec"] = tuntapConfigTransfer.Info.FecProfile.ToJson() }).ConfigureAwait(false);
+                connection = await ConnectTunnel(machineId, new Dictionary<string, string>()
+                {
+                    ["fec"] = GetFecProfileInfo(machineId).ToJson()
+                }).ConfigureAwait(false);
             }
             if (connection != null)
             {
                 tuntapCidrConnectionManager.Add(ip, connection);
             }
+        }
+
+        private TuntapFecProfileInfo[] GetFecProfileInfo(string machineId)
+        {
+            var profile = tuntapConfigTransfer.Info.FecProfile.Where(c => c.Disabled == false).ToArray();
+            if (profile.Length > 0)
+            {
+                return profile;
+            }
+            if (tuntapDecenter.Infos.TryGetValue(machineId, out var info))
+            {
+                profile = info.FecProfile.Where(c => c.Disabled == false).ToArray();
+                if (profile.Length > 0)
+                {
+                    return profile;
+                }
+            }
+            return [];
         }
     }
 }

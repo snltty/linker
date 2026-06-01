@@ -4,10 +4,10 @@ using linker.messenger.flow.messenger;
 using linker.messenger.flow.webapi;
 using linker.messenger.forward;
 using linker.messenger.relay.server;
+using linker.messenger.reverse.proxy;
 using linker.messenger.socks5;
 using linker.messenger.tunnel.server;
 using linker.messenger.tuntap.client;
-using linker.plugins.sforward.proxy;
 using Microsoft.Extensions.DependencyInjection;
 namespace linker.messenger.flow
 {
@@ -19,8 +19,8 @@ namespace linker.messenger.flow
             serviceCollection.AddSingleton<FlowApiController>();
             serviceCollection.AddSingleton<FlowTransfer>();
 
-            serviceCollection.AddSingleton<FlowSForward>();
-            serviceCollection.AddSingleton<SForwardProxy, FlowSForwardProxy>();
+            serviceCollection.AddSingleton<FlowReverse>();
+            serviceCollection.AddSingleton<ReverseProxy, FlowReverseProxy>();
 
             serviceCollection.AddSingleton<FlowForward>();
             serviceCollection.AddSingleton<ForwardProxy, FlowForwardProxy>();
@@ -49,7 +49,7 @@ namespace linker.messenger.flow
             FlowTransfer flowTransfer = serviceProvider.GetService<FlowTransfer>();
             flowTransfer.AddFlows(new List<IFlow> {
                 serviceProvider.GetService<FlowMessenger>(),
-                serviceProvider.GetService<FlowSForward>(),
+                serviceProvider.GetService<FlowReverse>(),
                 serviceProvider.GetService<FlowForward>(),
                 serviceProvider.GetService<FlowSocks5>(),
                 serviceProvider.GetService<FlowTunnel>(),
@@ -80,8 +80,8 @@ namespace linker.messenger.flow
             serviceCollection.AddSingleton<FlowExternal>();
             serviceCollection.AddSingleton<TunnelServerWanResolver, ExternalResolverFlow>();
 
-            serviceCollection.AddSingleton<FlowSForward>();
-            serviceCollection.AddSingleton<SForwardProxy, FlowSForwardProxy>();
+            serviceCollection.AddSingleton<FlowReverse>();
+            serviceCollection.AddSingleton<ReverseProxy, FlowReverseProxy>();
 
             serviceCollection.AddSingleton<FlowHistoryTransfer>();
 
@@ -102,7 +102,7 @@ namespace linker.messenger.flow
                 serviceProvider.GetService<FlowRelay>(),
                 serviceProvider.GetService<RelayReportFlow>(),
                 serviceProvider.GetService<FlowExternal>(),
-                serviceProvider.GetService<FlowSForward>(),
+                serviceProvider.GetService<FlowReverse>(),
                 serviceProvider.GetService<FlowResolver>(),
             });
 

@@ -25,7 +25,7 @@
 
 <script>
 import {  relayMasters } from '@/apis/relay';
-import { sforwardMasters } from '@/apis/sforward';
+import { reverseMasters } from '@/apis/reverse';
 import {  onMounted, reactive } from 'vue';
 import { Remove,Search } from '@element-plus/icons-vue';
 import Add from './Add.vue';
@@ -34,7 +34,7 @@ export default {
     components:{Remove,Search,Add},
     setup (props,{emit}) {
 
-        const getDataFn = props.type == 'relay' ? relayMasters : sforwardMasters;
+        const getDataFn = props.type == 'relay' ? relayMasters : reverseMasters;
         const state = reactive({
             request:{
                 NodeId:props.data.NodeId,

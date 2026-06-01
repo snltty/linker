@@ -36,10 +36,10 @@ export const provideDecenter = () => {
     const counterProcessFn = (device,json) => {
         if(!decenter.value.list) return;
         const _decenter = decenter.value.list[device.MachineId];
-        const decenter_sort = _decenter || {forward:0,sforward:0,firewall:0,transport:0,wakeup:0}
+        const decenter_sort = _decenter || {forward:0,reverse:0,firewall:0,transport:0,wakeup:0}
         Object.assign(json,{
             hook_counter:_decenter,
-            hook_counter_forward_sort:`${decenter_sort.forward}-${decenter_sort.sforward}`,
+            hook_counter_forward_sort:`${decenter_sort.forward}-${decenter_sort.reverse}`,
             hook_counter_oper_sort:`${decenter_sort.firewall}-${decenter_sort.transport}-${decenter_sort.wakeup}`,
             hook_counter_load:true
         });

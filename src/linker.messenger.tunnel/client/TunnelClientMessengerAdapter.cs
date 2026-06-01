@@ -97,14 +97,14 @@ namespace linker.messenger.tunnel.client
 
 
         private readonly IMessengerSender messengerSender;
-        private readonly TunnelClientExcludeIPTransfer excludeIPTransfer;
+        private readonly TunnelExclusionPolicyTransfer excludeIPTransfer;
         private readonly ISerializer serializer;
         private readonly ITunnelClientStore tunnelClientStore;
         private readonly SignInClientState signInClientState;
         private readonly IMessengerStore messengerStore;
         private readonly CounterDecenter counterDecenter;
 
-        public TunnelMessengerAdapter(IMessengerSender messengerSender, TunnelClientExcludeIPTransfer excludeIPTransfer,
+        public TunnelMessengerAdapter(IMessengerSender messengerSender, TunnelExclusionPolicyTransfer excludeIPTransfer,
             ISerializer serializer, ITunnelClientStore tunnelClientStore, SignInClientState signInClientState,
             IMessengerStore messengerStore, CounterDecenter counterDecenter)
         {
@@ -120,9 +120,9 @@ namespace linker.messenger.tunnel.client
 
         }
 
-        public List<TunnelExIPInfo> GetExcludeIps()
+        public List<TunnelExclusionPolicyInfo> GetExclusionPolicy()
         {
-            return excludeIPTransfer.Get();
+            return excludeIPTransfer.Query();
         }
 
         public async Task<List<string>> GetTunnelTransportMachineIds()

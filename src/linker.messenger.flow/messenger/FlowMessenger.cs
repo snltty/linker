@@ -7,7 +7,7 @@ namespace linker.messenger.flow.messenger
     {
         private readonly FlowTransfer flowTransfer;
         private readonly flow.FlowMessenger messengerFlow;
-        private readonly FlowSForward sForwardFlow;
+        private readonly FlowReverse reverseFlow;
         private readonly FlowRelay relayFlow;
         private readonly SignInServerCaching signCaching;
         private readonly ISerializer serializer;
@@ -16,11 +16,12 @@ namespace linker.messenger.flow.messenger
 
         private readonly DateTime start = DateTime.Now;
 
-        public FlowMessenger(FlowTransfer flowTransfer, flow.FlowMessenger messengerFlow, FlowSForward sForwardFlow, FlowRelay relayFlow, SignInServerCaching signCaching, ISerializer serializer, FlowResolver flowResolver, IMessengerSender messengerSender)
+        public FlowMessenger(FlowTransfer flowTransfer, flow.FlowMessenger messengerFlow, FlowReverse reverseFlow,
+            FlowRelay relayFlow, SignInServerCaching signCaching, ISerializer serializer, FlowResolver flowResolver, IMessengerSender messengerSender)
         {
             this.flowTransfer = flowTransfer;
             this.messengerFlow = messengerFlow;
-            this.sForwardFlow = sForwardFlow;
+            this.reverseFlow = reverseFlow;
             this.relayFlow = relayFlow;
             this.signCaching = signCaching;
             this.serializer = serializer;
@@ -63,14 +64,14 @@ namespace linker.messenger.flow.messenger
             connection.Write(serializer.Serialize(messengerFlow.GetStopwatch()));
         }
 
-        [MessengerId((ushort)FlowMessengerIds.SForward)]
-        public void SForward(IConnection connection)
+        [MessengerId((ushort)FlowMessengerIds.Reverse)]
+        public void Reverse(IConnection connection)
         {
-            sForwardFlow.Update();
-            SForwardFlowRequestInfo info = serializer.Deserialize<SForwardFlowRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            reverseFlow.Update();
+            ReverseFlowRequestInfo info = serializer.Deserialize<ReverseFlowRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, out SignCacheInfo cache) == false)
             {
-                connection.Write(serializer.Serialize(new SForwardFlowResponseInfo { Count = 0, Data = [], PageSize = info.PageSize, Page = info.Page }));
+                connection.Write(serializer.Serialize(new ReverseFlowResponseInfo { Count = 0, Data = [], PageSize = info.PageSize, Page = info.Page }));
                 return;
             }
 
@@ -83,7 +84,7 @@ namespace linker.messenger.flow.messenger
                 info.GroupId = cache.GroupId;
             }
 
-            connection.Write(serializer.Serialize(sForwardFlow.GetFlows(info)));
+            connection.Write(serializer.Serialize(reverseFlow.GetFlows(info)));
         }
 
         [MessengerId((ushort)FlowMessengerIds.Relay)]
@@ -163,17 +164,17 @@ namespace linker.messenger.flow.messenger
             }
         }
 
-        [MessengerId((ushort)FlowMessengerIds.SForwardForward)]
-        public void SForwardForward(IConnection connection)
+        [MessengerId((ushort)FlowMessengerIds.ReverseFlowForward)]
+        public void ReverseFlowForward(IConnection connection)
         {
-            SForwardFlowRequestInfo info = serializer.Deserialize<SForwardFlowRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            ReverseFlowRequestInfo info = serializer.Deserialize<ReverseFlowRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
             if (signCaching.TryGet(connection.Id, info.MachineId, out SignCacheInfo from, out SignCacheInfo to))
             {
                 uint requestid = connection.ReceiveRequestWrap.RequestId;
                 _ = messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = to.Connection,
-                    MessengerId = (ushort)FlowMessengerIds.SForward,
+                    MessengerId = (ushort)FlowMessengerIds.Reverse,
                     Payload = connection.ReceiveRequestWrap.Payload,
                 }).ContinueWith(async (result) =>
                 {
@@ -184,7 +185,7 @@ namespace linker.messenger.flow.messenger
                             Connection = connection,
                             Payload = result.Result.Data,
                             RequestId = requestid,
-                        }, (ushort)FlowMessengerIds.SForwardForward).ConfigureAwait(false);
+                        }, (ushort)FlowMessengerIds.ReverseFlowForward).ConfigureAwait(false);
                     }
                 });
             }
@@ -303,7 +304,7 @@ namespace linker.messenger.flow.messenger
     {
         private readonly flow.FlowMessenger messengerFlow;
         private readonly ISerializer serializer;
-        private readonly FlowSForward sForwardFlow;
+        private readonly FlowReverse reverseFlow;
         private readonly FlowForward forwardFlow;
         private readonly FlowSocks5 socks5Flow;
         private readonly FlowTunnel tunnelFlow;
@@ -311,11 +312,12 @@ namespace linker.messenger.flow.messenger
 
         private DateTime start = DateTime.Now;
 
-        public FlowClientMessenger(flow.FlowMessenger messengerFlow, ISerializer serializer, FlowSForward sForwardFlow, FlowForward forwardFlow, FlowSocks5 socks5Flow, FlowTunnel tunnelFlow, FlowTransfer flowTransfer)
+        public FlowClientMessenger(flow.FlowMessenger messengerFlow, ISerializer serializer, FlowReverse reverseFlow,
+            FlowForward forwardFlow, FlowSocks5 socks5Flow, FlowTunnel tunnelFlow, FlowTransfer flowTransfer)
         {
             this.messengerFlow = messengerFlow;
             this.serializer = serializer;
-            this.sForwardFlow = sForwardFlow;
+            this.reverseFlow = reverseFlow;
             this.forwardFlow = forwardFlow;
             this.socks5Flow = socks5Flow;
             this.tunnelFlow = tunnelFlow;
@@ -341,12 +343,12 @@ namespace linker.messenger.flow.messenger
             connection.Write(serializer.Serialize(serverFlowInfo));
         }
 
-        [MessengerId((ushort)FlowMessengerIds.SForward)]
-        public void SForward(IConnection connection)
+        [MessengerId((ushort)FlowMessengerIds.Reverse)]
+        public void Reverse(IConnection connection)
         {
-            sForwardFlow.Update();
-            SForwardFlowRequestInfo info = serializer.Deserialize<SForwardFlowRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            connection.Write(serializer.Serialize(sForwardFlow.GetFlows(info)));
+            reverseFlow.Update();
+            ReverseFlowRequestInfo info = serializer.Deserialize<ReverseFlowRequestInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            connection.Write(serializer.Serialize(reverseFlow.GetFlows(info)));
         }
 
         [MessengerId((ushort)FlowMessengerIds.Forward)]

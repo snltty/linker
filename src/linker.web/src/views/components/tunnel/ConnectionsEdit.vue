@@ -137,6 +137,7 @@ import { relayConnect, setRelaySubscribe } from '@/apis/relay';
 import { useI18n } from 'vue-i18n';
 import { removeTunnelConnection, tunnelConnect } from '@/apis/tunnel';
 import { pcpConnect } from '@/apis/pcp';
+import { useDevice } from '../device/devices';
 export default {
     props: ['modelValue'],
     emits: ['change', 'update:modelValue'],
@@ -148,6 +149,7 @@ export default {
 
         const connections = useConnections();
         const connection =  computed(() =>connections.value.device.hook_connection? connections.value.device.hook_connection[connections.value.transactionId] || {} :{});
+        const device = useDevice();
 
         const state = reactive({
             show: true,
@@ -192,11 +194,35 @@ export default {
             });
         }
 
+        const filterProfiles = (profiles)=>{
+            return profiles.filter(c=>c.Disabled == false);
+        }
+        const getFec = ()=>{
+            try{
+                const self = filterProfiles(device.page.List[0].hook_tuntap.FecProfile);
+                if(self.length > 0){
+                    return self
+                }
+                const other = filterProfiles(connections.value.device.hook_tuntap.FecProfile);
+                if(other.length > 0){
+                    return other
+                }
+            }catch(e){
+            }
+            return []
+        }
+        const getConfigures = ()=>{
+            return {
+                "fec":getFec()
+            }
+        }
         const handlep2p = ()=>{
+
             tunnelConnect({
                 ToMachineId:state.device.MachineId,
                 TransactionId:state.transactionId,
-                DenyProtocols:state.transactionId == 'tuntap' ? 4 : 2
+                DenyProtocols:state.transactionId == 'tuntap' ? 4 : 2,
+                Configures:getConfigures()
             }).then(()=>{
                 ElMessage.success(t('common.opered'));
             }).catch(()=>{ElMessage.success(t('common.operFail'));})
@@ -204,7 +230,8 @@ export default {
         const handlePcp = ()=>{
             pcpConnect({
                 ToMachineId:state.device.MachineId,
-                TransactionId:state.transactionId
+                TransactionId:state.transactionId,
+                Configures:getConfigures()
             }).then(()=>{
                 ElMessage.success(t('common.opered'));
             }).catch(()=>{ElMessage.success(t('common.operFail'));})
@@ -219,7 +246,8 @@ export default {
                 TransactionId: state.transactionId,
                 ToMachineId: state.device.MachineId,
                 NodeId: row.NodeId,
-                Protocol: protocol
+                Protocol: protocol,
+                Configures:getConfigures()
             };
             relayConnect(json).then(() => {ElMessage.success(t('common.opered')); }).catch(() => {ElMessage.success(t('common.operFail')); });
             state.showNodes = false;

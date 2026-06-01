@@ -46,7 +46,7 @@ namespace linker.messenger.tuntap
         /// </summary>
         public List<TuntapForwardInfo> Forwards { get; set; } = [];
 
-        public List<TuntapFecProfileInfo> FecProfile {  get; set; } = [];
+        public List<TuntapFecProfileInfo> FecProfile { get; set; } = [];
 
         public Dictionary<string, TuntapGroup2IPInfo> Group2IP { get; set; } = [];
 
@@ -401,6 +401,8 @@ namespace linker.messenger.tuntap
         public string Remark { get; set; } = string.Empty;
 
         public string Error { get; set; } = string.Empty;
+
+        public bool Disabled { get; set; }
     }
 
     public sealed partial class TuntapForwardTestWrapInfo
@@ -519,6 +521,7 @@ namespace linker.messenger.tuntap
         public TuntapFecProfileInfo() { }
         public int SourceSymbols { get; set; }
         public int RepairSymbols { get; set; }
+        public bool Disabled { get; set; }
     }
 
 

@@ -13,7 +13,7 @@ namespace linker.messenger.store.file
         public string SignInActionUrl { get; set; } = string.Empty;
         public string RelayActionUrl { get; set; } = string.Empty;
         public string RelayNodeUrl { get; set; } = string.Empty;
-        public string SForwardActionUrl { get; set; } = string.Empty;
+        public string ReverseActionUrl { get; set; } = string.Empty;
         
 
         public object Deserialize(string text)

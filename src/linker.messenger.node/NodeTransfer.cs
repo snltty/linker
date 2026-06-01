@@ -159,7 +159,7 @@ namespace linker.messenger.node
             if (Config.DataMonth != DateTime.Now.Month)
             {
                 nodeConfigStore.SetDataMonth(DateTime.Now.Month);
-                nodeConfigStore.SetDataRemain((long)(Config.DataEachMonth * 1024 * 1024 * 1024));
+                nodeConfigStore.SetDataRemain((long)Config.DataEachMonth * 1024 * 1024 * 1024);
             }
             nodeConfigStore.Confirm();
         }

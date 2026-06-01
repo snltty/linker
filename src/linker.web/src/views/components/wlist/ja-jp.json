@@ -16,7 +16,7 @@
     "wlist.order": "注文番号",
     "wlist.order.use": "注文番号{0}を使用",
     "wlist.relay": "リレー",
-    "wlist.sforward": "トンネル",
+    "wlist.reverse": "トンネル",
     "wlist.deny": "{0}を拒否",
     "wlist.allow": "{0}を許可",
     "wlist.limit": "{0}を制限",

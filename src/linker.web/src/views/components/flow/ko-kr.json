@@ -16,7 +16,7 @@
     "flow.relay.src": "소스",
     "flow.relay.dst": "대상",
     "flow.port": "외부 포트",
-    "flow.sforward": "내부 네트워크 우회",
+    "flow.reverse": "내부 네트워크 우회",
     "flow.search": "이름 검색",
     "flow.search.domain": "도메인/포트",
     "flow.area": "지역",
