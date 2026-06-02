@@ -817,8 +817,6 @@ namespace linker.messenger.serializer.memorypack
     }
 
 
-
-
     [MemoryPackable]
     public readonly partial struct SerializablePortMappingInfo
     {
