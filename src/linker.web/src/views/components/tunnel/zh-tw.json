@@ -24,6 +24,8 @@
     "network.level": "層級",
     "network.plus": "加上",
     "network.inip": "入口IP",
+    "network.relay.bandwidth":"转发带宽",
+    "network.relay.enabled":"允许转发",
     "network.upnp.title": "{0}的UPNP設置",
     "network.upnp.remark": "UPNP、都打勾了就能用",
     "network.upnp.ip": "公網IP",

@@ -75,12 +75,12 @@ namespace linker.messenger.reverse.proxy
                         if (token.Cache != null)
                         {
                             //流量限制
-                            if (ReverseServerNodeTransfer.AddBytes(token.Cache, bytesRead) == false)
+                            if (reverseServerNodeTransfer.AddBytes(token.Cache, bytesRead) == false)
                             {
                                 continue;
                             }
                             //总速度
-                            if (ReverseServerNodeTransfer.NeedLimit(token.Cache) && ReverseServerNodeTransfer.TryLimitPacket(bytesRead) == false)
+                            if (reverseServerNodeTransfer.NeedLimit(token.Cache) && reverseServerNodeTransfer.TryLimitPacket(bytesRead) == false)
                             {
                                 continue;
                             }

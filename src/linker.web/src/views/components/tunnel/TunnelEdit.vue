@@ -17,8 +17,14 @@
                             <el-descriptions-item :label="$t('network.upnp.lport')">
                                 <el-input-number v-model="state.ruleForm.PortMapLan" />
                             </el-descriptions-item>
-                            <el-descriptions-item :label="$t('network.inip')">
+                            <el-descriptions-item :label="$t('network.inip')" span="2">
                                 <el-input v-model="state.ruleForm.InIp" class="w-15"/>
+                            </el-descriptions-item>
+                            <el-descriptions-item :label="$t('network.relay.bandwidth')">
+                                <el-input v-model="state.ruleForm.Relay.Bandwidth" class="w-10"/>Mbps
+                            </el-descriptions-item>
+                            <el-descriptions-item :label="$t('network.relay.enabled')">
+                                <el-checkbox v-model="state.ruleForm.Relay.Enabled">{{ $t('network.relay.enabled') }}</el-checkbox>
                             </el-descriptions-item>
                         </el-descriptions>
                     </div>
@@ -68,7 +74,11 @@ export default {
                 RouteLevelPlus: tunnel.value.current.RouteLevelPlus,
                 PortMapWan: tunnel.value.current.PortMapWan,
                 PortMapLan: tunnel.value.current.PortMapLan,
-                InIp: tunnel.value.current.InIp
+                InIp: tunnel.value.current.InIp,
+                Relay:{
+                    Enabled:tunnel.value.current.Relay.Enabled,
+                    Bandwidth:tunnel.value.current.Relay.Bandwidth,
+                }
             },
             rules: {},
             net:{}
@@ -88,6 +98,8 @@ export default {
             json.PortMapWan = +state.ruleForm.PortMapWan;
             json.PortMapLan = +state.ruleForm.PortMapLan;
             json.InIp = state.ruleForm.InIp;
+            json.Relay.Bandwidth = +state.ruleForm.Relay.Bandwidth;
+            json.Relay.Enabled = state.ruleForm.Relay.Enabled;
             setTunnelRouteLevel(json).then(() => {
                 state.show = false;
                 ElMessage.success(t('common.opered'));

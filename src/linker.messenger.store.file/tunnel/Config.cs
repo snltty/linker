@@ -25,6 +25,8 @@ namespace linker.messenger.store.file
 
         public TunnelPublicNetworkInfo Network { get; set; } = new TunnelPublicNetworkInfo();
         public Dictionary<string, List<TunnelTransportItemInfo>> Transports { get; set; } = new Dictionary<string, List<TunnelTransportItemInfo>>();
+
+        public TunnelRelayInfo Relay { get; set; } = new TunnelRelayInfo();
     }
 
 }

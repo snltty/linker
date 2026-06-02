@@ -40,6 +40,8 @@ namespace linker.messenger.serializer.memorypack
             MemoryPackFormatterProvider.Register(new TunnelRouteLevelInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelNetworkInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelSetRouteLevelInfoFormatter());
+            MemoryPackFormatterProvider.Register(new TunnelRelayInfoFormatter());
+            
             MemoryPackFormatterProvider.Register(new TunnelInterfaceInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelNetInfoFormatter());
             MemoryPackFormatterProvider.Register(new TunnelTransportItemSetInfoFormatter());

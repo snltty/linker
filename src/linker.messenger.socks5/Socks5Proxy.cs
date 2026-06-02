@@ -20,9 +20,9 @@ namespace linker.messenger.socks5
         private readonly Socks5CidrDecenterManager socks5CidrDecenterManager;
 
         public Socks5Proxy(ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer,
-            SignInClientTransfer signInClientTransfer, ChannelConnectionCaching channelConnectionCaching, IPcpStore pcpStore,
+            SignInClientTransfer signInClientTransfer, ChannelConnectionCaching channelConnectionCaching,
             Socks5CidrDecenterManager socks5CidrDecenterManager)
-            : base(signInClientStore, tunnelTransfer, signInClientTransfer, channelConnectionCaching, pcpStore)
+            : base(signInClientStore, tunnelTransfer, signInClientTransfer, channelConnectionCaching)
         {
             this.socks5CidrDecenterManager = socks5CidrDecenterManager;
         }

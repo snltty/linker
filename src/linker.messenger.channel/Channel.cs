@@ -78,16 +78,15 @@ namespace linker.messenger.channel
         private readonly ISignInClientStore signInClientStore;
         private readonly ChannelConnectionCaching channelConnectionCaching;
         private readonly OperatingMultipleManager operatingMultipleManager = new OperatingMultipleManager();
-        private readonly IPcpStore pcpStore;
+        
 
         public Channel(TunnelTransfer tunnelTransfer,
-            SignInClientTransfer signInClientTransfer, ISignInClientStore signInClientStore, ChannelConnectionCaching channelConnectionCaching, IPcpStore pcpStore)
+            SignInClientTransfer signInClientTransfer, ISignInClientStore signInClientStore, ChannelConnectionCaching channelConnectionCaching)
         {
             this.tunnelTransfer = tunnelTransfer;
             this.signInClientTransfer = signInClientTransfer;
             this.signInClientStore = signInClientStore;
             this.channelConnectionCaching = channelConnectionCaching;
-            this.pcpStore = pcpStore;
             tunnelTransfer.SetConnectedCallback(TransactionId, OnConnected);
 
         }
@@ -108,7 +107,6 @@ namespace linker.messenger.channel
             {
                 TimerHelper.SetTimeout(connectionOld.Dispose, 5000);
             }
-            pcpStore.AddHistory(connection);
             connection = channelConnectionCaching.Add(connection);
             Version.Increment();
 

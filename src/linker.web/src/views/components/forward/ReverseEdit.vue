@@ -196,7 +196,7 @@ export default {
         }
         const handleRefresh = () => {
             _getReverse();
-            ElMessage.success(t('connom.refresh'))
+            ElMessage.success(t('common.refresh'))
         }
         const handleAdd = () => {
             state.loading = true;

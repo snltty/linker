@@ -213,11 +213,10 @@ export default {
         }
         const getConfigures = ()=>{
             return {
-                "fec":getFec()
+                "fec":JSON.stringify(getFec())
             }
         }
         const handlep2p = ()=>{
-
             tunnelConnect({
                 ToMachineId:state.device.MachineId,
                 TransactionId:state.transactionId,

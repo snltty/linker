@@ -101,10 +101,11 @@ namespace linker.messenger.tunnel
         [MessengerId((ushort)TunnelMessengerIds.RouteLevel)]
         public async Task RouteLevel(IConnection connection)
         {
-            TunnelSetRouteLevelInfo tunnelTransportFileConfigInfo = serializer.Deserialize<TunnelSetRouteLevelInfo>(connection.ReceiveRequestWrap.Payload.Span);
-            await tunnelClientStore.SetRouteLevelPlus(tunnelTransportFileConfigInfo.RouteLevelPlus).ConfigureAwait(false);
-            await tunnelClientStore.SetPortMap(tunnelTransportFileConfigInfo.PortMapLan, tunnelTransportFileConfigInfo.PortMapWan).ConfigureAwait(false);
-            await tunnelClientStore.SetInIp(tunnelTransportFileConfigInfo.InIp).ConfigureAwait(false);
+            TunnelSetRouteLevelInfo tunnelSetRouteLevelInfo = serializer.Deserialize<TunnelSetRouteLevelInfo>(connection.ReceiveRequestWrap.Payload.Span);
+            await tunnelClientStore.SetRouteLevelPlus(tunnelSetRouteLevelInfo.RouteLevelPlus).ConfigureAwait(false);
+            await tunnelClientStore.SetPortMap(tunnelSetRouteLevelInfo.PortMapLan, tunnelSetRouteLevelInfo.PortMapWan).ConfigureAwait(false);
+            await tunnelClientStore.SetInIp(tunnelSetRouteLevelInfo.InIp).ConfigureAwait(false);
+            await tunnelClientStore.SetRelay(tunnelSetRouteLevelInfo.Relay).ConfigureAwait(false);
             tunnelNetworkTransfer.Refresh();
         }
 

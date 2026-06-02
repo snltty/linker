@@ -16,12 +16,15 @@ namespace linker.messenger.tunnel.client
         private readonly ITunnelClientStore tunnelClientStore;
         private readonly ISerializer serializer;
         private readonly SignInClientState signInClientState;
+        private readonly ISignInClientStore signInClientStore;
 
-        public TunnelDecenter(ITunnelClientStore tunnelClientStore, TunnelNetworkTransfer tunnelNetworkTransfer, ISerializer serializer, SignInClientState signInClientState)
+        public TunnelDecenter(ITunnelClientStore tunnelClientStore, TunnelNetworkTransfer tunnelNetworkTransfer,
+            ISerializer serializer, SignInClientState signInClientState, ISignInClientStore signInClientStore)
         {
             this.tunnelClientStore = tunnelClientStore;
             this.serializer = serializer;
             this.signInClientState = signInClientState;
+            this.signInClientStore = signInClientStore;
 
             tunnelClientStore.OnChanged += Refresh;
             tunnelNetworkTransfer.OnChange += Refresh;
@@ -79,6 +82,12 @@ namespace linker.messenger.tunnel.client
                 RouteLevelPlus = tunnelClientStore.RouteLevelPlus,
                 Net = tunnelClientStore.Network.Net,
                 InIp = tunnelClientStore.InIp,
+                Relay = new TunnelRelayInfo
+                {
+                    Enabled = tunnelClientStore.Relay.Enabled,
+                    Bandwidth = tunnelClientStore.Relay.Bandwidth,
+                    MachineName = signInClientStore.Name
+                }
             };
         }
     }

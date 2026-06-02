@@ -18,8 +18,8 @@ namespace linker.forward
         private IForwardHook[] hooks = [];
         public string Error { get; private set; }
         public ForwardProxy(ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer,
-            SignInClientTransfer signInClientTransfer, ChannelConnectionCaching channelConnectionCaching, IPcpStore pcpStore)
-             : base(tunnelTransfer, signInClientTransfer, signInClientStore, channelConnectionCaching, pcpStore)
+            SignInClientTransfer signInClientTransfer, ChannelConnectionCaching channelConnectionCaching)
+             : base(tunnelTransfer, signInClientTransfer, signInClientStore, channelConnectionCaching)
         {
             TaskUdp();
         }

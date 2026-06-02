@@ -10,10 +10,10 @@ namespace linker.messenger.reverse.proxy
         private readonly NumberSpace ns = new NumberSpace(65537);
         private byte[] flagBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.Reverse");
 
-        private readonly ReverseServerNodeTransfer ReverseServerNodeTransfer;
-        public ReverseProxy(ReverseServerNodeTransfer ReverseServerNodeTransfer)
+        private readonly ReverseServerNodeTransfer reverseServerNodeTransfer;
+        public ReverseProxy(ReverseServerNodeTransfer reverseServerNodeTransfer)
         {
-            this.ReverseServerNodeTransfer = ReverseServerNodeTransfer;
+            this.reverseServerNodeTransfer = reverseServerNodeTransfer;
             UdpTask();
            
         }
@@ -26,7 +26,7 @@ namespace linker.messenger.reverse.proxy
         {
             try
             {
-                TrafficCacheInfo ReverseTrafficCacheInfo = ReverseServerNodeTransfer.AddTrafficCache(super, bandwidth);
+                TrafficCacheInfo ReverseTrafficCacheInfo = reverseServerNodeTransfer.AddTrafficCache(super, bandwidth);
                 StartTcp(port, false, bufferSize, groupid, ReverseTrafficCacheInfo);
                 StartUdp(port, bufferSize, groupid, ReverseTrafficCacheInfo);
                 return string.Empty;

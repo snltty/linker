@@ -33,7 +33,7 @@ namespace linker.messenger.reverse.client
             this.serializer = serializer;
             this.ReverseClientTestTransfer = ReverseClientTestTransfer;
             this.counterDecenter = counterDecenter;
-            counterDecenter.SetValue("Reverse", Count);
+            counterDecenter.SetValue("reverse", Count);
         }
 
         public void Start(long id, string flag = "")

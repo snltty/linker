@@ -31,8 +31,8 @@ namespace linker.messenger.tuntap.client
             TunnelTransfer tunnelTransfer,
             SignInClientTransfer signInClientTransfer, TuntapConfigTransfer tuntapConfigTransfer,
             TuntapCidrConnectionManager tuntapCidrConnectionManager, TuntapCidrDecenterManager tuntapCidrDecenterManager,
-            TuntapDecenter tuntapDecenter, ChannelConnectionCaching channelConnectionCaching, IPcpStore pcpStore)
-            : base(tunnelTransfer, signInClientTransfer, signInClientStore, channelConnectionCaching, pcpStore)
+            TuntapDecenter tuntapDecenter, ChannelConnectionCaching channelConnectionCaching)
+            : base(tunnelTransfer, signInClientTransfer, signInClientStore, channelConnectionCaching)
         {
             this.tuntapConfigTransfer = tuntapConfigTransfer;
             this.tuntapCidrConnectionManager = tuntapCidrConnectionManager;

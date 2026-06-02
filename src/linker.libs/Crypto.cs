@@ -1,9 +1,7 @@
 ﻿using linker.libs.extends;
 using System;
-using System.Buffers;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading;
 
 namespace linker.libs
 {
@@ -161,10 +159,7 @@ namespace linker.libs
 
             nonce.CopyTo(nonceDest);
 
-            //lock (this)
-            {
-                aesGcmEncode.Encrypt(nonce, plaintext, ciphertextDest, tagDest, ReadOnlySpan<byte>.Empty);
-            }
+            aesGcmEncode.Encrypt(nonce, plaintext, ciphertextDest, tagDest, ReadOnlySpan<byte>.Empty);
 
             bytesWritten = requiredSize;
             return true;
@@ -188,10 +183,8 @@ namespace linker.libs
             }
 
             Span<byte> plaintextDest = destination.Slice(0, ciphertext.Length);
-            //lock (this)
-            {
-                aesGcmDecode.Decrypt(nonce, ciphertext, tag, plaintextDest, ReadOnlySpan<byte>.Empty);
-            }
+
+            aesGcmDecode.Decrypt(nonce, ciphertext, tag, plaintextDest, ReadOnlySpan<byte>.Empty);
 
             bytesWritten = ciphertext.Length;
             return true;

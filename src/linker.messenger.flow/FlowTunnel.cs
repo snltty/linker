@@ -19,9 +19,9 @@ namespace linker.messenger.flow
         public FlowTuntapProxy(FlowTunnel flowTunnel, ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer,
             SignInClientTransfer signInClientTransfer, TuntapConfigTransfer tuntapConfigTransfer,
             TuntapCidrConnectionManager tuntapCidrConnectionManager, TuntapCidrDecenterManager tuntapCidrDecenterManager,
-            TuntapDecenter tuntapDecenter, ChannelConnectionCaching channelConnectionCaching,IPcpStore pcpStore) 
+            TuntapDecenter tuntapDecenter, ChannelConnectionCaching channelConnectionCaching) 
             : base(signInClientStore, tunnelTransfer,  signInClientTransfer,
-                  tuntapConfigTransfer, tuntapCidrConnectionManager, tuntapCidrDecenterManager, tuntapDecenter, channelConnectionCaching, pcpStore)
+                  tuntapConfigTransfer, tuntapCidrConnectionManager, tuntapCidrDecenterManager, tuntapDecenter, channelConnectionCaching)
         {
             this.flowTunnel = flowTunnel;
         }

@@ -1,5 +1,4 @@
 ﻿using linker.libs;
-using linker.libs.extends;
 using linker.messenger.tunnel;
 using linker.messenger.tunnel.client;
 using linker.tunnel.transport;
@@ -19,6 +18,8 @@ namespace linker.messenger.store.file.tunnel
         public Action OnChanged { get; set; } = () => { };
 
         public int TransportMachineIdCount => runningConfig.Data.Tunnel.Transports.Count(c => c.Value != null && c.Value.Count > 0);
+
+        public TunnelRelayInfo Relay => runningConfig.Data.Tunnel.Relay;
 
         private readonly RunningConfig runningConfig;
 
@@ -181,7 +182,15 @@ namespace linker.messenger.store.file.tunnel
             runningConfig.Data.Tunnel.InIp = ip;
             runningConfig.Data.Update();
             OnChanged();
-            return  Task.FromResult(true);
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> SetRelay(TunnelRelayInfo relay)
+        {
+            runningConfig.Data.Tunnel.Relay = relay;
+            runningConfig.Data.Update();
+            OnChanged();
+            return Task.FromResult(true);
         }
     }
 }

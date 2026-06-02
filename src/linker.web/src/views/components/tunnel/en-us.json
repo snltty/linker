@@ -24,6 +24,8 @@
     "network.level":"Level",
     "network.plus":"Plus",
     "network.inip":"Entry IP",
+    "network.relay.bandwidth":"Forward Bandwidth",
+    "network.relay.enabled":"Forward Allow",
     "network.upnp.title": "UPNP setting of {0}",
     "network.upnp.remark": "UPNP: Check all boxes to enable",
     "network.upnp.ip": "Public IP",

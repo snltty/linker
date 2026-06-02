@@ -372,10 +372,12 @@ namespace linker.messenger.serializer.memorypack
 
         [MemoryPackInclude, MemoryPackAllowSerialize]
         IPAddress InIp => info.InIp;
+        [MemoryPackInclude, MemoryPackAllowSerialize]
+        TunnelRelayInfo Relay => info.Relay;
 
         [MemoryPackConstructor]
         SerializableTunnelRouteLevelInfo(string machineId, int routeLevel, int routeLevelPlus, bool needReboot, int portMapWan,
-            int portMapLan, TunnelNetInfo net, IPAddress inip)
+            int portMapLan, TunnelNetInfo net, IPAddress inip, TunnelRelayInfo relay)
         {
             var info = new TunnelRouteLevelInfo
             {
@@ -386,7 +388,8 @@ namespace linker.messenger.serializer.memorypack
                 RouteLevel = routeLevel,
                 RouteLevelPlus = routeLevelPlus,
                 Net = net,
-                InIp = inip
+                InIp = inip,
+                Relay = relay
             };
             this.info = info;
         }
@@ -430,6 +433,72 @@ namespace linker.messenger.serializer.memorypack
 
             if (count > 7)
                 value.InIp = reader.ReadValue<IPAddress>();
+
+            if (count > 8)
+                value.Relay = reader.ReadValue<TunnelRelayInfo>();
+        }
+    }
+
+
+    [MemoryPackable]
+    public readonly partial struct SerializableTunnelRelayInfo
+    {
+        [MemoryPackIgnore]
+        public readonly TunnelRelayInfo info;
+
+        [MemoryPackInclude]
+        bool Enabled => info.Enabled;
+
+        [MemoryPackInclude]
+        int Bandwidth => info.Bandwidth;
+
+        [MemoryPackInclude]
+        string MachineName => info.MachineName;
+
+        [MemoryPackConstructor]
+        SerializableTunnelRelayInfo(bool enabled, int bandwidth, string machineName)
+        {
+            var info = new TunnelRelayInfo
+            {
+                Enabled = enabled,
+                Bandwidth = bandwidth,
+                MachineName = machineName
+            };
+            this.info = info;
+        }
+
+        public SerializableTunnelRelayInfo(TunnelRelayInfo info)
+        {
+            this.info = info;
+        }
+    }
+    public class TunnelRelayInfoFormatter : MemoryPackFormatter<TunnelRelayInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TunnelRelayInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WritePackable(new SerializableTunnelRelayInfo(value));
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref TunnelRelayInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            value = new TunnelRelayInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.Enabled = reader.ReadValue<bool>();
+            value.Bandwidth = reader.ReadValue<int>();
+            value.MachineName = reader.ReadValue<string>();
         }
     }
 
@@ -637,9 +706,11 @@ namespace linker.messenger.serializer.memorypack
         int PortMapLan => info.PortMapLan;
         [MemoryPackInclude, MemoryPackAllowSerialize]
         IPAddress InIp => info.InIp;
+        [MemoryPackInclude, MemoryPackAllowSerialize]
+        TunnelRelayInfo Relay => info.Relay;
 
         [MemoryPackConstructor]
-        SerializableTunnelSetRouteLevelInfo(string machineId, int routeLevelPlus, int portMapWan, int portMapLan, IPAddress inIp)
+        SerializableTunnelSetRouteLevelInfo(string machineId, int routeLevelPlus, int portMapWan, int portMapLan, IPAddress inIp, TunnelRelayInfo relay)
         {
             var info = new TunnelSetRouteLevelInfo
             {
@@ -647,7 +718,8 @@ namespace linker.messenger.serializer.memorypack
                 PortMapWan = portMapWan,
                 PortMapLan = portMapLan,
                 RouteLevelPlus = routeLevelPlus,
-                InIp = inIp
+                InIp = inIp,
+                Relay = relay
             };
             this.info = info;
         }
@@ -688,6 +760,9 @@ namespace linker.messenger.serializer.memorypack
 
             if (count > 4)
                 value.InIp = reader.ReadValue<IPAddress>();
+
+            if (count > 5)
+                value.Relay = reader.ReadValue<TunnelRelayInfo>();
         }
     }
     [MemoryPackable]

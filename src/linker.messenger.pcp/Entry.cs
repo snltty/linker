@@ -13,6 +13,8 @@ namespace linker.messenger.pcp
             serviceCollection.AddSingleton<TransportPcp>();
             serviceCollection.AddSingleton<TunnelWanPortProtocolPcp>();
 
+            serviceCollection.AddSingleton<PcpNodeTransfer>();
+
             return serviceCollection;
         }
         public static ServiceProvider UsePcpClient(this ServiceProvider serviceProvider)

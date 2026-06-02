@@ -1,6 +1,7 @@
 ﻿using linker.libs;
 using linker.libs.extends;
 using linker.messenger.signin;
+using linker.messenger.tunnel.client;
 using linker.tunnel;
 using linker.tunnel.connection;
 using linker.tunnel.transport;
@@ -39,30 +40,24 @@ namespace linker.messenger.pcp
         private readonly ConcurrentDictionary<string, ITunnelConnection> swapDic = new();
         private readonly SwapTransfer swapTransfer = new SwapTransfer();
 
-        private readonly IPcpStore pcpStore;
+        private readonly PcpNodeTransfer pcpNodeTransfer;
 
-        private readonly IMessengerSender messengerSender;
-        private readonly ISerializer serializer;
-        private readonly SignInClientState signInClientState;
         private readonly ITunnelMessengerAdapter tunnelMessengerAdapter;
         private readonly TunnelTransfer tunnelTransfer;
-        private readonly SignInClientTransfer signInClientTransfer;
         private readonly ISignInClientStore signInClientStore;
+        private readonly ITunnelClientStore tunnelClientStore;
 
-        public TransportPcp(IPcpStore pcpStore, IMessengerSender messengerSender, ISerializer serializer,
-            SignInClientState signInClientState, ITunnelMessengerAdapter tunnelMessengerAdapter,
-            TunnelTransfer tunnelTransfer, SignInClientTransfer signInClientTransfer, ISignInClientStore signInClientStore)
+        public TransportPcp(PcpNodeTransfer pcpNodeTransfer, ITunnelMessengerAdapter tunnelMessengerAdapter, TunnelTransfer tunnelTransfer,
+            ISignInClientStore signInClientStore, ITunnelClientStore tunnelClientStore)
         {
-            this.pcpStore = pcpStore;
-            this.messengerSender = messengerSender;
-            this.serializer = serializer;
-            this.signInClientState = signInClientState;
+            this.pcpNodeTransfer = pcpNodeTransfer;
             this.tunnelMessengerAdapter = tunnelMessengerAdapter;
             this.tunnelTransfer = tunnelTransfer;
-            this.signInClientTransfer = signInClientTransfer;
             this.signInClientStore = signInClientStore;
+            this.tunnelClientStore = tunnelClientStore;
 
             tunnelTransfer.SetConnectedCallback(_transactionId, _OnConnected);
+
         }
         private void _OnConnected(ITunnelConnection connection)
         {
@@ -73,7 +68,7 @@ namespace linker.messenger.pcp
                 {
                     if (swapDic.TryRemove(tag.Key, out ITunnelConnection _connection) && _connection.Connected)
                     {
-                        swapTransfer.Swap(_connection, connection);
+                        swapTransfer.Swap(_connection, connection, (int)Math.Ceiling(tunnelClientStore.Relay.Bandwidth * 1024 * 1024 / 8.0));
                     }
                     else
                     {
@@ -94,11 +89,8 @@ namespace linker.messenger.pcp
                 PcpInfo info = tunnelTransportInfo.Configure[_transactionId].DeJson<PcpInfo>();
                 info.Key = $"{tunnelTransportInfo.Local.MachineId}@{tunnelTransportInfo.Remote.MachineId}@{tunnelTransportInfo.TransactionId}";
 
-                List<string> offlines = await signInClientTransfer.GetOfflines(pcpStore.PcpHistory.History).ConfigureAwait(false);
-                List<string> remoteNodes = await GetNodes(tunnelTransportInfo.Remote.MachineId).ConfigureAwait(false);
-                List<string> nodes = pcpStore.PcpHistory.History.Intersect(remoteNodes).Except(offlines).ToList();
-
-                foreach (var node in nodes.Where(c => c == info.NodeId).Concat(nodes.Where(c => c != info.NodeId)))
+                var nodes = await pcpNodeTransfer.GetNodeIds(tunnelTransportInfo.Remote.MachineId, info.NodeId).ConfigureAwait(false);
+                foreach (var node in nodes)
                 {
                     ITunnelConnection connection = null;
                     try
@@ -148,6 +140,7 @@ namespace linker.messenger.pcp
             await tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
             return null;
         }
+
         public virtual async Task OnBegin(TunnelTransportInfo tunnelTransportInfo)
         {
             PcpInfo tag = tunnelTransportInfo.Configure[_transactionId].DeJson<PcpInfo>();
@@ -188,21 +181,6 @@ namespace linker.messenger.pcp
             }
         }
 
-        private async Task<List<string>> GetNodes(string machineId)
-        {
-            var resp = await messengerSender.SendReply(new MessageRequestWrap
-            {
-                Connection = signInClientState.Connection,
-                MessengerId = (ushort)PcpMessengerIds.NodesForward,
-                Payload = serializer.Serialize(machineId),
-                Timeout = 5000,
-            }).ConfigureAwait(false);
-            if (resp.Code == MessageResponeCodes.OK)
-            {
-                return serializer.Deserialize<List<string>>(resp.Data.Span);
-            }
-            return [];
-        }
     }
 
     public sealed class PcpInfo

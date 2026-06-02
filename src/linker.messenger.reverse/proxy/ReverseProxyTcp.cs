@@ -220,7 +220,7 @@ namespace linker.messenger.reverse.proxy
             {
                 if (userToken.Cache != null)
                 {
-                    ReverseServerNodeTransfer.RemoveTrafficCache(userToken.Cache.Cache.FlowId);
+                    reverseServerNodeTransfer.RemoveTrafficCache(userToken.Cache.Cache.FlowId);
                 }
                 CloseClientSocket(userToken);
             }
@@ -259,21 +259,21 @@ namespace linker.messenger.reverse.proxy
         {
             if (host.Contains('.') == false)
             {
-                host = $"{host}.{ReverseServerNodeTransfer.Config.Domain}";
+                host = $"{host}.{reverseServerNodeTransfer.Config.Domain}";
             }
 
-            TrafficCacheInfo ReverseTrafficCacheInfo = ReverseServerNodeTransfer.AddTrafficCache(super, bandwidth);
+            TrafficCacheInfo ReverseTrafficCacheInfo = reverseServerNodeTransfer.AddTrafficCache(super, bandwidth);
             httpCaches.AddOrUpdate(host, ReverseTrafficCacheInfo, (a, b) => ReverseTrafficCacheInfo);
         }
         public void RemoveHttp(string host)
         {
             if (host.Contains('.') == false)
             {
-                host = $"{host}.{ReverseServerNodeTransfer.Config.Domain}";
+                host = $"{host}.{reverseServerNodeTransfer.Config.Domain}";
             }
             if (httpCaches.TryRemove(host, out var cache))
             {
-                ReverseServerNodeTransfer.RemoveTrafficCache(cache.Cache.FlowId);
+                reverseServerNodeTransfer.RemoveTrafficCache(cache.Cache.FlowId);
             }
             foreach (var item in httpConnections.Where(c => c.Value.Host == host).Select(c => c.Key).ToList())
             {
@@ -369,20 +369,20 @@ namespace linker.messenger.reverse.proxy
                     if (trafficCacheInfo != null)
                     {
                         //流量限制
-                        if (ReverseServerNodeTransfer.AddBytes(trafficCacheInfo, bytesRead) == false)
+                        if (reverseServerNodeTransfer.AddBytes(trafficCacheInfo, bytesRead) == false)
                         {
                             break;
                         }
 
                         //总速度
-                        if (ReverseServerNodeTransfer.NeedLimit(trafficCacheInfo))
+                        if (reverseServerNodeTransfer.NeedLimit(trafficCacheInfo))
                         {
                             int length = bytesRead;
-                            ReverseServerNodeTransfer.TryLimit(ref length);
+                            reverseServerNodeTransfer.TryLimit(ref length);
                             while (length > 0)
                             {
                                 await Task.Delay(30).ConfigureAwait(false);
-                                ReverseServerNodeTransfer.TryLimit(ref length);
+                                reverseServerNodeTransfer.TryLimit(ref length);
                             }
                         }
                         //单个速度

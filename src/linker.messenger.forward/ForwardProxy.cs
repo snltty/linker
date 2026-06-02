@@ -17,8 +17,8 @@ namespace linker.messenger.forward
         protected override string TransactionId => "forward";
 
         public ForwardProxy(ISignInClientStore signInClientStore, TunnelTransfer tunnelTransfer,
-            SignInClientTransfer signInClientTransfer, ChannelConnectionCaching channelConnectionCaching, IPcpStore pcpStore)
-            : base(signInClientStore, tunnelTransfer, signInClientTransfer, channelConnectionCaching, pcpStore)
+            SignInClientTransfer signInClientTransfer, ChannelConnectionCaching channelConnectionCaching)
+            : base(signInClientStore, tunnelTransfer, signInClientTransfer, channelConnectionCaching)
         {
         }
         protected override async ValueTask<int> Tunneling(AsyncUserToken token, ProtocolType protocol)
