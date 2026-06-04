@@ -1,6 +1,11 @@
 <template>
     <div class="w-100">
         <div class="wrap">
+            <div class="head pdb-6">
+                <el-select :placeholder="$t('tuntap.fec.presets')" class="w-15">
+                    <el-option v-for="item in state.presets" :label="item.label" @click="handlePresets(item.value)"/>
+                </el-select>
+            </div>
             <el-table stripe  :data="state.profiles" border size="small" width="100%" height="400px" @cell-dblclick="handleCellClick">
                 <el-table-column prop="SourceSymbols" :label="$t('tuntap.fec.source')">
                     <template #default="scope">
@@ -57,15 +62,39 @@
 import { reactive } from 'vue';
 import { useTuntap } from './tuntap';
 import { Delete, Plus, Warning, Refresh } from '@element-plus/icons-vue'
+import { useI18n } from 'vue-i18n';
 export default {
     props: ['modelValue'],
     emits: ['update:modelValue'],
     components: { Delete, Plus, Warning, Refresh },
     setup(props) {
 
+        const {t} = useI18n ();
+
         const tuntap = useTuntap();
         const state = reactive({
-            profiles: JSON.parse(JSON.stringify(tuntap.value.current.FecProfile))
+            profiles: JSON.parse(JSON.stringify(tuntap.value.current.FecProfile)),
+            presets:[
+                {label:t('tuntap.fec.loss0'),value:[{SourceSymbols: 0, RepairSymbols:0,Disabled:false}]},
+                {label:t('tuntap.fec.loss10'),value:[
+                        {SourceSymbols: 1, RepairSymbols:1,Disabled:false},
+                        {SourceSymbols: 5, RepairSymbols:2,Disabled:false},
+                        {SourceSymbols: 10, RepairSymbols:4,Disabled:false},
+                    ]
+                },
+                {label:t('tuntap.fec.loss30'),value:[
+                        {SourceSymbols: 1, RepairSymbols:2,Disabled:false},
+                        {SourceSymbols: 5, RepairSymbols:3,Disabled:false},
+                        {SourceSymbols: 10, RepairSymbols:4,Disabled:false},
+                    ]
+                },
+                {label:t('tuntap.fec.loss50'),value:[
+                        {SourceSymbols: 1, RepairSymbols:3,Disabled:false},
+                        {SourceSymbols: 5, RepairSymbols:5,Disabled:false},
+                        {SourceSymbols: 10, RepairSymbols:8,Disabled:false},
+                    ]
+                },
+            ]
         });
         if (state.profiles.length == 0) {
             state.profiles.push({ SourceSymbols: 0, RepairSymbols:0,Disabled:false });
@@ -96,6 +125,10 @@ export default {
             }
         }
 
+        const handlePresets = (value)=>{
+            state.profiles = JSON.parse(JSON.stringify(value));
+        }
+
         const handleAdd = (index) => {
             state.profiles.splice(index + 1, 0, { SourceSymbols: 0, RepairSymbols:0,Disabled:false });
         }
@@ -104,7 +137,7 @@ export default {
         }
 
         return {
-            state,handleDel,handleAdd,getData,handleCellClick,handleEditBlur,handleEdit
+            state,handleDel,handleAdd,getData,handleCellClick,handleEditBlur,handleEdit,handlePresets
         }
     }
 }
