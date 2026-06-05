@@ -54,5 +54,11 @@
     "network.tunnel.auto": "Auto",
     "network.tunnel.back": "Background",
     "network.tunnel.pcp": "Node Relay",
-    "network.tunnel.delay": "Delay"
+    "network.tunnel.delay": "Delay",
+
+    "network.tunnel.pcp.title":"Node relay",
+    "network.tunnel.pcp.name":"Name",
+    "network.tunnel.pcp.bandwidth":"Bandwidth",
+    "network.tunnel.pcp.enabled":"Enabled",
+    "network.tunnel.pcp.use":"Use"
 }

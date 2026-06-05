@@ -30,7 +30,7 @@
                         <a v-if="state.operating.relay" href="javascript:;" class="a-line">
                             <span>{{$t('network.tunnel.manual')}}</span><el-icon size="14" class="loading"><Loading /></el-icon>
                         </a>
-                        <a v-else href="javascript:;" class="a-line" @click="handleNode">{{ state.nodesDic[state.connection.NodeId] || $t('network.tunnel.relay') }}</a>
+                        <a v-else href="javascript:;" class="a-line" @click="handleRelayNode">{{ state.relayNodesDic[state.connection.NodeId] || $t('network.tunnel.relay') }}</a>
                     </div>
                 </el-descriptions-item>
                 <el-descriptions-item :label="$t('network.tunnel.pcp')">
@@ -38,7 +38,7 @@
                         <a v-if="state.operating.pcp" href="javascript:;" class="a-line">
                             <span>{{$t('network.tunnel.manual')}}</span><el-icon size="14" class="loading"><Loading /></el-icon>
                         </a>
-                        <a v-else href="javascript:;" class="a-line" @click="handlePcp">{{$t('network.tunnel.pcp') }}</a>
+                        <a v-else href="javascript:;" class="a-line" @click="handlePcpNode">{{$t('network.tunnel.pcp') }}</a>
                     </div>
                 </el-descriptions-item>
                 <el-descriptions-item :label="$t('network.tunnel.p2p')">
@@ -74,58 +74,8 @@
             </el-descriptions>
         </div>
     </el-dialog>
-    <el-dialog v-model="state.showNodes" :title="$t('relay.title')" width="98%" top="2vh">
-        <div>
-            <el-table :data="state.nodes" size="small" border height="600">
-                <el-table-column property="Name" :label="$t('relay.name')">
-                    <template #default="scope">
-                        <div>
-                            <a :href="scope.row.Url" class="a-line blue" target="_blank">{{ scope.row.Name }}</a>
-                        </div>
-                    </template>
-                </el-table-column>
-                <el-table-column property="ConnectionsRatio" :label="$t('relay.conn')" width="80">
-                    <template #default="scope">
-                        <span><strong>{{ scope.row.ConnectionsRatio }}</strong></span>
-                    </template>
-                </el-table-column>
-                <el-table-column property="BandwidthEach" :label="$t('relay.speed')" width="140">
-                    <template #default="scope">
-                        <p>
-                            <span>{{ scope.row.BandwidthRatio }}Mbps</span>
-                            <span> / </span>
-                            <span v-if="scope.row.BandwidthEach == 0">--</span>
-                            <span v-else>{{ scope.row.BandwidthEach }}Mbps</span>
-                        </p>
-                    </template>
-                </el-table-column>
-                 <el-table-column property="DataEachMonth" :label="$t('relay.flow')" width="100">
-                    <template #default="scope">
-                        <span v-if="scope.row.DataEachMonth == 0">--</span>
-                        <span v-else>
-                            {{ (scope.row.DataRemain / 1024 / 1024 / 1024).toFixed(2) }}GB
-                        </span>
-                    </template>
-                </el-table-column>
-                <el-table-column property="Delay" :label="$t('relay.delay')" width="60">
-                    <template #default="scope">
-                        <span>{{ scope.row.Delay }}ms</span>
-                    </template>
-                </el-table-column>
-                <el-table-column property="Public" :label="$t('relay.public')" width="55">
-                    <template #default="scope">
-                        <el-switch disabled v-model="scope.row.Public" size="small" />
-                    </template>
-                </el-table-column>
-                <el-table-column property="Oper" :label="$t('relay.use')" width="130">
-                    <template #default="scope">
-                        <el-button size="small" v-if="(scope.row.Protocol & 1) == 1" @click="handleConnect(scope.row, 1)">TCP</el-button>
-                        <el-button size="small" v-if="(scope.row.Protocol & 2) == 2" @click="handleConnect(scope.row, 2)">UDP</el-button>
-                    </template>
-                </el-table-column>
-            </el-table>
-        </div>
-    </el-dialog>
+    <RelayNodes v-if="state.showRelayNodes" v-model="state.showRelayNodes" :nodes="state.relayNodes" @onrelay="handleRelayConnect"></RelayNodes>
+    <PcpNodes v-if="state.showPcpNodes" v-model="state.showPcpNodes" :nodes="state.pcpNodes" @onrelay="handlePcpConnect"></PcpNodes>
 </template>
 <script>
 import { reactive, watch, computed, onMounted, onUnmounted } from 'vue';
@@ -136,12 +86,14 @@ import { injectGlobalData } from '@/provide';
 import { relayConnect, setRelaySubscribe } from '@/apis/relay';
 import { useI18n } from 'vue-i18n';
 import { removeTunnelConnection, tunnelConnect } from '@/apis/tunnel';
-import { pcpConnect } from '@/apis/pcp';
+import { pcpConnect, pcpGetNodes } from '@/apis/pcp';
 import { useDevice } from '../device/devices';
+import RelayNodes from './RelayNodes.vue';
+import PcpNodes from './PcpNodes.vue';
 export default {
     props: ['modelValue'],
     emits: ['change', 'update:modelValue'],
-    components: { Delete, Select, ArrowDown,Loading },
+    components: { Delete, Select, ArrowDown,Loading,RelayNodes,PcpNodes },
     setup(props, { emit }) {
 
         const { t } = useI18n();
@@ -161,10 +113,13 @@ export default {
             operating:computed(()=>connections.value.device.hook_operating?connections.value.device.hook_operating[connections.value.transactionId]:{}),
             connection:connection,
 
-            showNodes: false,
-            nodes: [],
-            nodesDic: {},
-            timer: 0
+            showRelayNodes: false,
+            relayNodes:[],
+            relayNodesDic:{},
+            timer:0,
+
+            showPcpNodes:false,
+            pcpNodes:[]
         });
         watch(() => state.show, (val) => {
             if (!val) {
@@ -178,20 +133,6 @@ export default {
             removeTunnelConnection(state.device.MachineId,state.transactionId).then(() => {
                 ElMessage.success(t('common.opered'));
             }).catch(() => { });
-        }
-
-        const _setRelaySubscribe = () => {
-            clearTimeout(state.timer);
-            setRelaySubscribe().then((res) => {
-                state.nodes = res.filter(c=>c.LastTicks < 15000);
-                state.nodesDic = res.reduce((a, b) => {
-                    a[b.NodeId] = b.Name;
-                    return a;
-                }, {});
-                state.timer = setTimeout(_setRelaySubscribe, 1000);
-            }).catch(() => {
-                state.timer = setTimeout(_setRelaySubscribe, 1000);
-            });
         }
 
         const filterProfiles = (profiles)=>{
@@ -226,20 +167,29 @@ export default {
                 ElMessage.success(t('common.opered'));
             }).catch(()=>{ElMessage.success(t('common.operFail'));})
         }
-        const handlePcp = ()=>{
+        const handlePcpNode = ()=>{
+            pcpGetNodes(state.device.MachineId).then((res)=>{
+                state.showPcpNodes = true;
+                state.pcpNodes = res;
+            })
+        }
+        const handlePcpConnect = (nodeId)=>{
             pcpConnect({
                 ToMachineId:state.device.MachineId,
                 TransactionId:state.transactionId,
+                NodeId:nodeId,
                 Configures:getConfigures()
             }).then(()=>{
                 ElMessage.success(t('common.opered'));
-            }).catch(()=>{ElMessage.success(t('common.operFail'));})
+            }).catch(()=>{ElMessage.success(t('common.operFail'));});
+            state.showPcpNodes = false;
         }
 
-        const handleNode = () => {
-            state.showNodes = true;
+
+        const handleRelayNode = () => {
+            state.showRelayNodes = true;
         }
-        const handleConnect = (row, protocol) => {
+        const handleRelayConnect = ([row, protocol]) => {
             const json = {
                 FromMachineId: globalData.value.config.Client.Id,
                 TransactionId: state.transactionId,
@@ -249,20 +199,35 @@ export default {
                 Configures:getConfigures()
             };
             relayConnect(json).then(() => {ElMessage.success(t('common.opered')); }).catch(() => {ElMessage.success(t('common.operFail')); });
-            state.showNodes = false;
+            state.showRelayNodes = false;
+        }
+        const _setRelaySubscribe = () => {
+            clearTimeout(state.timer);
+            setRelaySubscribe().then((res) => {
+                state.relayNodes = res.filter(c=>c.LastTicks < 15000);
+                state.relayNodesDic = res.reduce((a, b) => {
+                    a[b.NodeId] = b.Name;
+                    return a;
+                }, {});
+                state.timer = setTimeout(_setRelaySubscribe, 1000);
+            }).catch(() => {
+                state.timer = setTimeout(_setRelaySubscribe, 1000);
+            });
         }
 
         onMounted(() => {
-            connections.value.updateRealTime(true);
             _setRelaySubscribe();
+            connections.value.updateRealTime(true);
         });
         onUnmounted(() => {
+            clearTimeout(state.timer)
             connections.value.updateRealTime(false);
-            clearTimeout(state.timer);
-        })
+        });
 
         return {
-            state, handleDel,handlep2p, handleNode, handleConnect,handlePcp
+            state, handleDel,handlep2p,
+             handleRelayNode, handleRelayConnect,
+             handlePcpNode,handlePcpConnect
         }
     }
 }

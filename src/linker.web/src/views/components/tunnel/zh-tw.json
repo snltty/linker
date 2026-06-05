@@ -54,5 +54,11 @@
     "network.tunnel.auto": "自動",
     "network.tunnel.back": "後台",
     "network.tunnel.pcp": "節點中繼",
-    "network.tunnel.delay": "延遲"
+    "network.tunnel.delay": "延遲",
+
+    "network.tunnel.pcp.title":"節點中繼",
+    "network.tunnel.pcp.name":"名稱",
+    "network.tunnel.pcp.bandwidth":"頻寬",
+    "network.tunnel.pcp.enabled":"啟用",
+    "network.tunnel.pcp.use":"使用"
 }

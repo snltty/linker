@@ -51,6 +51,7 @@ namespace linker.messenger.pcp
             var tunnelConfigs = tunnelDecenter.Config.Select(c => (c.Value.MachineId, c.Value.Relay)).ToList();
 
             var result = nodes.Join(tunnelConfigs, n => n, tc => tc.MachineId, (n, tc) => new PcpNodeInfo { NodeId = n, Enabled = tc.Relay.Enabled, Bandwidth = tc.Relay.Bandwidth })
+                .OrderByDescending(c => c.Enabled)
                 .OrderByDescending(c => c.Bandwidth == 0 ? int.MaxValue : c.Bandwidth);
 
             return result.Where(c => c.NodeId == nodeId)
