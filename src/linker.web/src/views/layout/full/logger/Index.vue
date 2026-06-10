@@ -54,7 +54,7 @@
             </AccessShow>
         </el-tabs>
     </div>
-    <el-dialog class="options-center" title="" destroy-on-close v-model="state.show" width="98%" top="2vh">
+    <el-dialog append-to=".app-wrap" class="options-center" title="" destroy-on-close v-model="state.show" width="80rem" top="2vh">
         <div>
             <textarea class="logger-content">{{ state.content }}</textarea>
         </div>
@@ -162,7 +162,7 @@ export default {
     padding: 1rem;
     margin-top:1rem;
     background: #f5f5f5;
-    border:1px solid #eee;
+    border:1px solid var(--table-border-color);
     border-radius: 4px;
     font-size: 1.2rem;
     resize: none;

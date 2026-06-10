@@ -159,7 +159,7 @@ namespace linker.messenger.flow
                         }
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                         {
-                            LoggerHelper.Instance.Debug($"online:{value.online},total:{value.total},server:{SendtBytes}");
+                            //LoggerHelper.Instance.Debug($"online:{value.online},total:{value.total},server:{SendtBytes}");
                         }
                     }
                     catch (Exception)

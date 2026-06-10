@@ -47,6 +47,12 @@ const routes = [
                 name: 'FullLogger',
                 meta: { title: 'head.logger',access:'LoggerShow',icon:'logger.svg' },
                 component: () => import('@/views/layout/full/logger/Index.vue')
+            },
+            {
+                path: '/full/about.html',
+                name: 'FullAbout',
+                meta: { title: 'head.about',access:'',icon:'about.svg' },
+                component: () => import('@/views/layout/full/about/Index.vue')
             }
         ]
     },

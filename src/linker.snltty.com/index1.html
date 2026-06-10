@@ -1,0 +1,1070 @@
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Linker - 天涯若比邻</title>
+    <meta name="keywords" content="linker、开源、P2P、异地组网、异地组网工具">
+    <link rel="icon" href="img/logo.png" />
+    <link href="css/font-awesome.min.css" rel="stylesheet">
+    <script src="js/tailwindcss.js"></script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .a-text a{text-decoration: underline;}
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            .card-hover {
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+            .card-hover:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            }
+            .glow-border {
+                box-shadow: 0 0 0 1px rgba(200, 200, 200, 0.7), 0 0 10px rgba(200, 200, 200, 0.2);
+            }
+            .fade-in {
+                animation: fadeIn 0.8s cubic-bezier(0, 1.93, 0.49, 0.83) forwards;
+                opacity: 0;
+            }
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(100%); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .fade-in-left {
+                animation: fadeInLeft 0.8s cubic-bezier(0, 1.93, 0.49, 0.83) forwards;
+                opacity: 0;
+            }
+            @keyframes fadeInLeft {
+                from { opacity: 0; transform: translateX(-100%); }
+                to { opacity: 1; transform: translateX(0); }
+            }
+            .fade-in-top {
+                animation: fadeInTop 0.8s cubic-bezier(0, 1.93, 0.49, 0.83) forwards;
+                opacity: 0;
+            }
+            @keyframes fadeInTop {
+                from { opacity: 0; transform: translateY(-100%); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .pulse-dot {
+                animation: pulse 2s infinite;
+            }
+            @keyframes pulse {
+                0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(61, 169, 53, 0.7); }
+                70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(61, 169, 53, 0); }
+                100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(61, 169, 53, 0); }
+            }
+            .scrollbar-thin {
+                scrollbar-width: auto;
+                overflow-y: auto !important;
+            }
+            .scrollbar-thin::-webkit-scrollbar {
+                width: 4px !important;
+                height: 4px !important;
+                display: block !important;
+            }
+            .scrollbar-thin::-webkit-scrollbar-thumb {
+                background-color: rgba(150, 150, 150, 0.7) !important;
+                border-radius: 2px !important;
+                display: block !important;
+            }
+            .scrollbar-thin::-webkit-scrollbar-track {
+                background-color: rgba(240, 240, 240, 0.5) !important;
+                display: block !important;
+            }
+            .refresh-indicator {
+                animation: spin 1.5s linear infinite;
+                display: none;
+            }
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+            .refresh-visible {
+                display: inline-block;
+            }
+            .dropdown-content {
+                display: none;
+                position: absolute;
+                top: 100%;
+                right: 0;
+                min-width: 200px;
+                z-index: 1000;
+                animation: fadeIn 0.2s ease-out forwards;
+                transform: translateX(0);
+            }
+            .dropdown:hover .dropdown-content {
+                display: block !important;
+            }
+
+            .max-width{max-width: 90%;}
+            .animate-delay-100 { animation-delay: 100ms; }
+            .animate-delay-200 { animation-delay: 200ms; }
+            .animate-delay-300 { animation-delay: 300ms; }
+            .animate-delay-400 { animation-delay: 400ms; }
+            .animate-delay-500 { animation-delay: 500ms; }
+            .btns .logo{display: none;}
+            @media screen and (max-width: 1720px) {
+            }
+            @media screen and (max-width: 1220px) {
+                .attributes{display: none;}
+                .slogan{display: none;}
+                .btns{top:1rem !important}
+            }
+            @media screen and (max-width: 930px) {
+                .nodes{top:8.5rem !important;height: calc(100% - 210px);}
+                .numbers{bottom:5rem;}
+            }
+            @media screen and (max-width: 480px) {
+                .download-windows,.download-linux,.download-openwrt{display: none;}
+                .nodes{display: none;}
+                .numbers{display: none;}
+                .download>div{ padding: 0.5rem !important;}
+                .time-show{display: none;}
+                .btns .logo{display: block;}
+            }
+
+            .my-tooltip{z-index: 99;}
+        }
+    </style>
+</head>
+<body class="bg-light text-primary overflow-hidden h-screen flex flex-col">
+    <!-- 顶部宣传语 - 添加彩色边框动画 -->
+    <div class="absolute top-4 left-0 right-0 z-50 flex justify-center pointer-events-none slogan">
+        <div class="bg-card-bg rounded px-6 py-3 pointer-events-auto fade-in-top text-center glow-border max-width animate-delay-100">
+            <div class="flex items-center justify-center">
+                <img src="./img/logo.png" class="h-5 w-auto mr-1" alt="Linker logo">
+                <p class="text-sm md:text-base">让你那些散落在世界各地的联网设备就像在隔壁房间一样轻松访问。</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 功能按钮浮动面板 -->
+    <div class="absolute top-20 left-0 right-0 z-50 flex justify-center pointer-events-none btns">
+        <div class="bg-card-bg rounded-xl p-2 pointer-events-auto fade-in-top glow-border max-width animate-delay-200">
+            <div class="flex flex-wrap justify-center gap-2 mb-1 logo">
+                <div class="flex items-center hover:bg-light-dark px-4 py-2 rounded-full transition-all text-sm card-hover">
+                    <span class="mr-2"><img src="./img/logo.png" class="h-10 w-auto" alt="Linker logo"></span>
+                    <h1 class="text-primary font-bold text-lg">Linker</h1>
+                </div>
+            </div>
+            <!-- 第一行：原有功能按钮 -->
+            <div class="flex flex-wrap justify-center gap-2 mb-1 attributes">
+                <div class="flex items-center hover:bg-light-dark px-4 py-2 rounded-full transition-all text-sm card-hover">
+                    <span class="mr-2">⚡</span> WEB UI
+                </div>
+                <div class="flex items-center hover:bg-light-dark px-4 py-2 rounded-full transition-all text-sm card-hover">
+                    <span class="mr-2">🔒</span> 安全加密
+                </div>
+                <div class="flex items-center hover:bg-light-dark px-4 py-2 rounded-full transition-all text-sm card-hover">
+                    <span class="mr-2">🌐</span> P2P直连
+                </div>
+                <div class="flex items-center hover:bg-light-dark px-4 py-2 rounded-full transition-all text-sm card-hover">
+                    <span class="mr-2">🌍</span> 点/网对网
+                </div>
+                <div class="flex items-center hover:bg-light-dark px-4 py-2 rounded-full transition-all text-sm card-hover">
+                    <span class="mr-2">🛡️</span> 防火墙
+                </div>
+                <div class="flex items-center hover:bg-light-dark px-4 py-2 rounded-full transition-all text-sm card-hover">
+                    <span class="mr-2">🧬</span> 网段映射
+                </div>
+            </div>
+            
+            <!-- 第二行：新增功能按钮 -->
+            <div class="flex flex-wrap justify-center gap-2 mt-1 download">
+                <div class="flex items-center hover:bg-light-dark px-4 py-2 rounded-full transition-all text-sm card-hover text-logo-green font-medium">
+                    <a href="https://linker-doc.snltty.com" target="_blank"><span class="mr-2">▶️</span> 马上开始</a>
+                </div>
+                <div class="flex items-center hover:bg-light-dark px-4 py-2 rounded-full transition-all text-sm card-hover">
+                    <a href="https://afdian.com/a/snltty" target="_blank"><span class="mr-2">❤️</span> 为爱发电</a>
+                </div>
+                <!-- 下载下拉菜单 - 二级结构 -->
+                <div class="relative dropdown flex items-center hover:bg-light-dark px-4 py-2 rounded-full transition-all text-sm card-hover z-1000">
+                    <span class="mr-2">📥</span> 下载
+                    <i class="fa fa-chevron-down ml-1 text-xs"></i>
+                    <!-- 一级下拉内容（系统类别） -->
+                    <div class="dropdown-content bg-card-bg rounded-lg glow-border shadow-lg p-2 w-48">
+                        <div id="download-loading" class="block px-4 py-2 text-sm text-accent">
+                            <i class="fa fa-spinner fa-spin mr-2"></i> 加载版本信息...
+                        </div>
+                        <div id="download-links" class="hidden space-y-1">
+                            <!-- Windows 一级菜单 -->
+                            <div class="relative group -mr-2 pr-2">
+                                <div class="px-4 py-2 text-sm hover:bg-light-dark rounded transition-colors cursor-pointer flex justify-between items-center">
+                                    <span><i class="fa fa-windows mr-2 text-accent"></i> Windows</span>
+                                    <i class="fa fa-chevron-right ml-1 text-xs transition-transform group-hover:rotate-90"></i>
+                                </div>
+                                <!-- Windows 二级菜单（具体版本） -->
+                                <div class="absolute left-full top-0 bg-card-bg rounded-lg glow-border shadow-lg p-2 w-36 hidden group-hover:block">
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-win-x64.zip">
+                                        x64
+                                    </a>
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-win-arm64.zip">
+                                        ARM64
+                                    </a>
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-win-x86.zip">
+                                        x86
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Linux 一级菜单 -->
+                            <div class="relative group -mr-2 pr-2">
+                                <div class="px-4 py-2 text-sm hover:bg-light-dark rounded transition-colors cursor-pointer flex justify-between items-center">
+                                    <span><i class="fa fa-linux mr-2 text-accent"></i> Linux</span>
+                                    <i class="fa fa-chevron-right ml-1 text-xs transition-transform group-hover:rotate-90"></i>
+                                </div>
+                                <!-- Linux 二级菜单（具体版本） -->
+                                <div class="absolute left-full top-0 bg-card-bg rounded-lg glow-border shadow-lg p-2 w-48 hidden group-hover:block">
+                                    <p class="px-4 text-xs text-accent mb-1">Standard</p>
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-linux-x64.zip">
+                                        x64
+                                    </a>
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-linux-arm64.zip">
+                                        ARM64
+                                    </a>
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-linux-arm.zip">
+                                        ARM
+                                    </a>
+                                    <p class="px-4 text-xs text-accent mt-1 mb-1">Musl</p>
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-linux-musl-x64.zip">
+                                        x64 (Musl)
+                                    </a>
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-linux-musl-arm64.zip">
+                                        ARM64 (Musl)
+                                    </a>
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-linux-musl-arm.zip">
+                                        ARM (Musl)
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- macOS 一级菜单（新增） -->
+                            <div class="relative group -mr-2 pr-2">
+                                <div class="px-4 py-2 text-sm hover:bg-light-dark rounded transition-colors cursor-pointer flex justify-between items-center">
+                                    <span><i class="fa fa-apple mr-2 text-accent"></i> macOS (OSX)</span>
+                                    <i class="fa fa-chevron-right ml-1 text-xs transition-transform group-hover:rotate-90"></i>
+                                </div>
+                                <!-- macOS 二级菜单（具体版本） -->
+                                <div class="absolute left-full top-0 bg-card-bg rounded-lg glow-border shadow-lg p-2 w-36 hidden group-hover:block">
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-osx-x64.zip">
+                                        x64 (Intel)
+                                    </a>
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-osx-arm64.zip">
+                                        ARM64 (Apple Silicon)
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- FNOS 一级菜单 -->
+                            <div class="relative group -mr-2 pr-2">
+                                <div class="px-4 py-2 text-sm hover:bg-light-dark rounded transition-colors cursor-pointer flex justify-between items-center">
+                                    <span><i class="fa fa-linux mr-2 text-accent"></i> FNOS</span>
+                                    <i class="fa fa-chevron-right ml-1 text-xs transition-transform group-hover:rotate-90"></i>
+                                </div>
+                                <!-- FNOS 二级菜单（具体版本） -->
+                                <div class="absolute left-full top-0 bg-card-bg rounded-lg glow-border shadow-lg p-2 w-40 hidden group-hover:block">
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-fnos-docker.fpk">
+                                        any (Docker)
+                                    </a>
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-fnos-bin-x64.fpk">
+                                        x64 (Binary)
+                                    </a>
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-fnos-bin-arm64.fpk">
+                                        ARM64 (Binary)
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- OpenWRT 一级菜单 -->
+                            <div class="relative group -mr-2 pr-2">
+                                <div class="px-4 py-2 text-sm hover:bg-light-dark rounded transition-colors cursor-pointer flex justify-between items-center">
+                                    <span><i class="fa fa-code-fork mr-2 text-accent"></i> OpenWRT ipk</span>
+                                    <i class="fa fa-chevron-right ml-1 text-xs transition-transform group-hover:rotate-90"></i>
+                                </div>
+                                <!-- OpenWRT 二级菜单（具体版本） -->
+                                <div class="absolute left-full top-0 bg-card-bg rounded-lg glow-border shadow-lg p-2 w-36 hidden group-hover:block">
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-openwrt-x64.ipk">
+                                        x64
+                                    </a>
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-openwrt-arm64.ipk">
+                                        ARM64
+                                    </a>
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-openwrt-arm.ipk">
+                                        ARM
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="relative group -mr-2 pr-2">
+                                <div class="px-4 py-2 text-sm hover:bg-light-dark rounded transition-colors cursor-pointer flex justify-between items-center">
+                                    <span><i class="fa fa-code-fork mr-2 text-accent"></i> OpenWRT apk</span>
+                                    <i class="fa fa-chevron-right ml-1 text-xs transition-transform group-hover:rotate-90"></i>
+                                </div>
+                                <!-- OpenWRT 二级菜单（具体版本） -->
+                                <div class="absolute left-full top-0 bg-card-bg rounded-lg glow-border shadow-lg p-2 w-36 hidden group-hover:block">
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-openwrt-x64.apk">
+                                        x64
+                                    </a>
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-openwrt-arm64.a">
+                                        ARM64
+                                    </a>
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-openwrt-arm.apk">
+                                        ARM
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Android 一级菜单 -->
+                            <div class="relative group -mr-2 pr-2">
+                                <div class="px-4 py-2 text-sm hover:bg-light-dark rounded transition-colors cursor-pointer flex justify-between items-center">
+                                    <span><i class="fa fa-android mr-2 text-accent"></i> Android</span>
+                                    <i class="fa fa-chevron-right ml-1 text-xs transition-transform group-hover:rotate-90"></i>
+                                </div>
+                                <!-- Android 二级菜单（具体版本） -->
+                                <div class="absolute left-full top-0 bg-card-bg rounded-lg glow-border shadow-lg p-2 w-36 hidden group-hover:block">
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker.apk">
+                                        APK
+                                    </a>
+                                </div>
+                            </div>
+                            <!-- 其它 一级菜单 -->
+                            <div class="relative group -mr-2 pr-2">
+                                <div class="px-4 py-2 text-sm hover:bg-light-dark rounded transition-colors cursor-pointer flex justify-between items-center">
+                                    <span>Any</span>
+                                    <i class="fa fa-chevron-right ml-1 text-xs transition-transform group-hover:rotate-90"></i>
+                                </div>
+                                <!-- 其它 二级菜单（具体版本） -->
+                                <div class="absolute left-full top-0 bg-card-bg rounded-lg glow-border shadow-lg p-2 w-36 hidden group-hover:block">
+                                    <a href="" class="linker-download block px-4 py-1.5 text-sm hover:bg-light-dark rounded transition-colors" data-file="linker-any.zip">
+                                        Any
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="download-error" class="hidden px-4 py-2 text-sm text-red-500">
+                            <i class="fa fa-exclamation-circle mr-2"></i> 无法加载版本信息
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主地图容器 -->
+    <div id="deviceMap" class="flex-1 w-full h-full absolute top-0 left-0 z-10"></div>
+    
+    <!-- 左侧整合浮动条 - Logo和节点列表 -->
+    <div class="absolute top-4 left-4 z-40 h-[calc(100%-32px)] w-64 bg-card-bg rounded-xl overflow-hidden glow-border fade-in-left nodes animate-delay-300">
+        <!-- Logo区域 -->
+        <div class="p-4 border-b border-light-dark flex items-center">
+            <img src="img/logo.png" 
+                 alt="Linker Logo" 
+                 class="h-10 w-auto mr-3">
+            <div class="flex-1">
+                <h1 class="text-primary font-bold text-lg">Linker</h1>
+                <div class="flex items-center text-xs text-secondary">
+                    <div class="w-2 h-2 bg-logo-green rounded-full pulse-dot mr-1.5"></div>
+                    <span class="a-text">系统在线 - <a href="./earth.html">3D地球</a></span>
+                    <i class="fa fa-refresh refresh-indicator ml-1 text-accent" id="system-refresh"></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 节点列表滚动区域 -->
+        <div class="p-3 flex-1 scrollbar-thin a-text" style="max-height: calc(100% - 80px);">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-semibold text-primary text-sm">在线中继节点</h3>
+            </div>
+            
+            <div class="space-y-2" id="nodes-container">
+                <!-- 节点示例 -->
+                <div class="bg-light rounded-lg p-2.5 hover:bg-light-dark transition-all duration-300 border border-gray-100">
+                    <div class="flex items-center mb-1.5">
+                        <div class="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
+                        <span class="text-sm font-medium text-primary flex-1">北京节点</span>
+                    </div>
+                    <div class="flex justify-between text-xs text-accent mb-1.5">
+                        <span>协议: <span class="text-secondary">TCP+UDP</span></span>
+                        <span class="px-1.5 py-0.5 rounded bg-green-100 text-green-700">v1.2.3</span>
+                    </div>
+                    <div class="mb-1.5">
+                        <div class="flex justify-between text-xs mb-0.5">
+                            <span>带宽使用</span>
+                            <span>12.5/100 Mbps</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1.2">
+                            <div class="h-1.2 rounded-full bg-logo-green" style="width: 12.5%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-0.5">
+                            <span>连接数</span>
+                            <span>45/500</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1.2">
+                            <div class="h-1.2 rounded-full bg-logo-green" style="width: 9%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-light rounded-lg p-2.5 hover:bg-light-dark transition-all duration-300 border border-gray-100">
+                    <div class="flex items-center mb-1.5">
+                        <div class="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
+                        <span class="text-sm font-medium text-primary flex-1">上海节点</span>
+                    </div>
+                    <div class="flex justify-between text-xs text-accent mb-1.5">
+                        <span>协议: <span class="text-secondary">TCP+UDP</span></span>
+                        <span class="px-1.5 py-0.5 rounded bg-green-100 text-green-700">v1.2.3</span>
+                    </div>
+                    <div class="mb-1.5">
+                        <div class="flex justify-between text-xs mb-0.5">
+                            <span>带宽使用</span>
+                            <span>32.8/200 Mbps</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1.2">
+                            <div class="h-1.2 rounded-full bg-logo-green" style="width: 16.4%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-0.5">
+                            <span>连接数</span>
+                            <span>128/1000</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1.2">
+                            <div class="h-1.2 rounded-full bg-logo-green" style="width: 12.8%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-light rounded-lg p-2.5 hover:bg-light-dark transition-all duration-300 border border-gray-100">
+                    <div class="flex items-center mb-1.5">
+                        <div class="w-2 h-2 rounded-full bg-yellow-500 mr-2"></div>
+                        <span class="text-sm font-medium text-primary flex-1">广州节点</span>
+                    </div>
+                    <div class="flex justify-between text-xs text-accent mb-1.5">
+                        <span>协议: <span class="text-secondary">TCP</span></span>
+                        <span class="px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-700">v1.2.2</span>
+                    </div>
+                    <div class="mb-1.5">
+                        <div class="flex justify-between text-xs mb-0.5">
+                            <span>带宽使用</span>
+                            <span>78.5/100 Mbps</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1.2">
+                            <div class="h-1.2 rounded-full bg-yellow-500" style="width: 78.5%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-0.5">
+                            <span>连接数</span>
+                            <span>680/800</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1.2">
+                            <div class="h-1.2 rounded-full bg-yellow-500" style="width: 85%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-light rounded-lg p-2.5 hover:bg-light-dark transition-all duration-300 border border-gray-100">
+                    <div class="flex items-center mb-1.5">
+                        <div class="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
+                        <span class="text-sm font-medium text-primary flex-1">深圳节点</span>
+                    </div>
+                    <div class="flex justify-between text-xs text-accent mb-1.5">
+                        <span>协议: <span class="text-secondary">UDP</span></span>
+                        <span class="px-1.5 py-0.5 rounded bg-green-100 text-green-700">v1.2.3</span>
+                    </div>
+                    <div class="mb-1.5">
+                        <div class="flex justify-between text-xs mb-0.5">
+                            <span>带宽使用</span>
+                            <span>45.2/150 Mbps</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1.2">
+                            <div class="h-1.2 rounded-full bg-logo-green" style="width: 30.1%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-0.5">
+                            <span>连接数</span>
+                            <span>210/1000</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1.2">
+                            <div class="h-1.2 rounded-full bg-logo-green" style="width: 21%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-light rounded-lg p-2.5 hover:bg-light-dark transition-all duration-300 border border-gray-100">
+                    <div class="flex items-center mb-1.5">
+                        <div class="w-2 h-2 rounded-full bg-red-500 mr-2"></div>
+                        <span class="text-sm font-medium text-primary flex-1">香港节点</span>
+                    </div>
+                    <div class="flex justify-between text-xs text-accent mb-1.5">
+                        <span>协议: <span class="text-secondary">TCP+UDP</span></span>
+                        <span class="px-1.5 py-0.5 rounded bg-red-100 text-red-700">v1.2.1</span>
+                    </div>
+                    <div class="mb-1.5">
+                        <div class="flex justify-between text-xs mb-0.5">
+                            <span>带宽使用</span>
+                            <span>95.8/100 Mbps</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1.2">
+                            <div class="h-1.2 rounded-full bg-red-500" style="width: 95.8%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-0.5">
+                            <span>连接数</span>
+                            <span>1980/2000</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1.2">
+                            <div class="h-1.2 rounded-full bg-red-500" style="width: 99%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 右下角整合浮动条 - 完整在线数据统计 -->
+    <div class="absolute bottom-48 right-4 z-40 overflow-hidden w-80 fade-in animate-delay-600">
+        <div id="system-img" class="w-full relative z-99 h-80"></div>
+    </div>
+    <div class="absolute bottom-4 right-4 z-40 bg-card-bg rounded-xl overflow-hidden glow-border w-60 fade-in numbers animate-delay-400">
+        <div class="p-3 border-b border-light-dark">
+            <p class="text-accent text-xs uppercase tracking-wider">主服务器、在线/7天上线</p>
+            <h3 class="text-2xl font-bold mt-1"><span class="text-logo-green" id="current-online">--</span> / <span id="current-online-7d">--</span></h3>
+        </div>
+        <div class="p-3 border-b border-light-dark">
+            <p class="text-accent text-xs uppercase tracking-wider">总服务器数/在线/7天上线</p>
+            <h3 class="text-2xl font-bold mt-1"><span id="server-count">--</span> / <span class="text-logo-green" id="all-online">--</span> / <span id="all-online-7d">--</span></h3>
+        </div>
+    </div>
+    
+    <!-- 右上角时间显示 -->
+    <div class="absolute top-4 right-4 z-40 bg-card-bg rounded-lg px-3 py-2 flex items-center glow-border fade-in time-show">
+        <i class="fa fa-clock-o text-accent mr-2"></i>
+        <span id="current-time" class="text-sm">--:--:--</span>
+    </div>
+
+    <!-- 底部 导航栏 -->
+    <div class="absolute bottom-2 left-0 right-0 z-50 flex justify-center pointer-events-none">
+        <div class="rounded text-sm bg-card-bg p-2 pointer-events-auto fade-in glow-border a-text max-width animate-delay-500">
+            <span>©linker snltty <script>document.write(new Date().getFullYear())</script></span>、
+            <a href="https://jq.qq.com/?_wv=1027&k=ucoIVfz4" target="_blank">加入 QQ 群：1121552990</a>、
+            <span>友链</span>、
+            <a href="https://blog.snltty.com" target="_blank">博客</a>、
+            <a href="https://mi-d.cn" target="_blank">米多贝克</a>、
+            <a href="https://www.wpe64.com" target="_blank">WPE64代理和抓包</a>
+        </div>
+    </div>
+</body>
+<script src="js/echarts.min.js"></script>
+<!-- 配置Tailwind自定义颜色 - 增加绿色标识 -->
+<script>
+tailwind.config = {
+    theme: {
+        extend: {
+            colors: {
+                primary: '#444444',
+                secondary: '#666666',
+                accent: '#888888',
+                light: '#f5f5f5',
+                'light-dark': '#e0e0e0',
+                'card-bg': 'rgba(255, 255, 255, 0.95)',
+                'card-hover': 'rgba(245, 245, 245, 0.95)',
+                'logo-green': '#3da935' // Logo中的绿色
+            },
+        }
+    }
+}
+</script>
+<script>
+    // 全局变量
+    let myChart = null,myChartSystem = null;
+    let refreshInterval = null;
+    let linkerVersion = null;
+    
+    // 页面加载完成后初始化所有组件
+    window.addEventListener('DOMContentLoaded', () => {
+        adjustLayout();
+        window.addEventListener('resize', adjustLayout);
+        
+        // 初始化时间并每秒更新
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+        
+        // 初始化地图
+        initDeviceMap();
+        
+        // 加载下载版本信息
+        loadDownloadVersion();
+
+        // 初始化系统图片
+        initSystemImg();
+    });
+    
+    // 加载下载版本信息
+    async function loadDownloadVersion() {
+        try {
+            const response = await fetch('https://static.snltty.com/downloads/linker/version.txt');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const text = await response.text();
+            // 获取第一行作为版本号
+            linkerVersion = text.trim().split('\n')[0];
+            
+            if (linkerVersion) {
+                // 更新下载链接
+                updateDownloadLinks();
+                // 显示下载链接，隐藏加载状态
+                document.getElementById('download-loading').classList.add('hidden');
+                document.getElementById('download-links').classList.remove('hidden');
+            } else {
+                throw new Error('未找到有效的版本号');
+            }
+        } catch (error) {
+            console.error('加载版本信息失败:', error);
+            // 显示错误状态
+            document.getElementById('download-loading').classList.add('hidden');
+            document.getElementById('download-error').classList.remove('hidden');
+        }
+    }
+    
+    // 更新下载链接
+    function updateDownloadLinks() {
+        if (!linkerVersion) return;
+        
+        const baseUrl = `https://static.snltty.com/downloads/linker/${linkerVersion}/`;
+        const downloadLinks = document.querySelectorAll('.linker-download');
+        
+        downloadLinks.forEach(link => {
+            const fileName = link.getAttribute('data-file');
+            if (fileName) {
+                link.href = baseUrl + fileName;
+            }
+        });
+    }
+    
+    // 更新时间显示
+    function updateDateTime() {
+        const now = new Date();
+        
+        // 更新时间
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        document.getElementById('current-time').textContent = `${hours}:${minutes}:${seconds}`;
+    }
+    
+    // 显示刷新指示器
+    function showRefreshIndicator() {
+        document.getElementById('system-refresh').classList.add('refresh-visible');
+    }
+    
+    // 隐藏刷新指示器
+    function hideRefreshIndicator() {
+        document.getElementById('system-refresh').classList.remove('refresh-visible');
+    }
+    
+    // 从API获取数据
+    async function fetchData(url) {
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                return null;
+            }
+            return await response.json();
+        } catch (error) {
+            return null;
+        }
+    }
+    
+    // 初始化设备分布地图 - 中心点设为中国
+    function initDeviceMap() {
+        const chartDom = document.getElementById('deviceMap');
+        myChart = echarts.init(chartDom);
+        
+        // 配置地图 - 使用logo绿色标识数据点
+        const option = {
+            backgroundColor: 'transparent',
+            tooltip: {
+                trigger: 'item',
+                formatter: function(params) {
+                    return `${params.name}: ${params.value[2]} 台设备`;
+                },
+                backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                borderColor: 'rgba(200, 200, 200, 0.5)',
+                borderWidth: 1,
+                textStyle: {
+                    color: '#444'
+                }
+            },
+            geo: {
+                map: 'world',
+                roam: true,  // 开启缩放和平移
+                zoom: 2.5,   // 放大以聚焦中国区域
+                center: [105, 35], // 中国区域中心点坐标
+                label: {
+                    show: true,
+                    color: '#666',
+                    fontSize: 10
+                },
+                itemStyle: {
+                    areaColor: {
+                        type: 'radial',
+                        x: 0.5,
+                        y: 0.5,
+                        r: 0.8,
+                        colorStops: [{
+                            offset: 0, color: 'rgba(245, 245, 245, 0.9)'
+                        }, {
+                            offset: 1, color: 'rgba(220, 220, 220, 0.7)'
+                        }]
+                    },
+                    borderColor: 'rgba(200, 200, 200, 0.5)',
+                    borderWidth: 1
+                },
+                emphasis: {
+                    itemStyle: {
+                        areaColor: 'rgba(230, 230, 230, 0.8)'
+                    }
+                },
+                // 地图控制器
+                controller: {
+                    show: true,
+                    left: 'right',
+                    top: 'center',
+                    iconStyle: {
+                        normal: {
+                            color: 'rgba(100, 100, 100, 0.6)'
+                        }
+                    }
+                }
+            },
+            series: [
+                {
+                    name: '设备分布',
+                    type: 'scatter',
+                    coordinateSystem: 'geo',
+                    data: [],
+                    symbolSize: function(val) {
+                        return val ? Math.min(20, Math.max(8, val[2] / 5)) : 10;
+                    },
+                    label: {
+                        show: false
+                    },
+                    itemStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: '#56c74d' },  // 亮绿色
+                            { offset: 1, color: '#3da935' }   // Logo绿色
+                        ]),
+                        shadowBlur: 15,
+                        shadowColor: 'rgba(61, 169, 53, 0.3)'  // Logo绿色阴影
+                    },
+                    emphasis: {
+                        symbolSize: function(val) {
+                            return val ? Math.min(28, Math.max(12, val[2] / 5 + 5)) : 15;
+                        }
+                    },
+                    animationDuration: 500,
+                    animationEasingUpdate: 'quinticInOut',
+                    animation:false
+                }
+            ]
+        };
+        
+        // 加载世界地图
+        fetch('world.json')
+            .then(response => response.json())
+            .then(worldJson => {
+                echarts.registerMap('world', worldJson);
+                myChart.setOption(option);
+                
+                // 首次加载数据
+                loadAllData();
+                // 设置定时刷新
+                refreshInterval = setInterval(loadAllData, 5000);
+            });
+        
+        // 响应窗口大小变化
+        window.addEventListener('resize', () => {
+            if (myChart) {
+                myChart.resize();
+            }
+        });
+    }
+    
+    // 更新设备分布地图数据
+    function updateDeviceMap(deviceData) {
+        if (!myChart || !deviceData) return;
+        
+        // 转换设备数据为ECharts需要的格式
+        const geoData = deviceData.map(city => ({
+            name: city.City,
+            value: [city.Lon, city.Lat, city.Count]
+        }));
+        
+        myChart.setOption({
+            series: [
+                {
+                    data: geoData
+                }
+            ]
+        });
+    }
+    
+    // 填充节点卡片
+    function populateNodes(nodesData) {
+        const container = document.getElementById('nodes-container');
+        container.innerHTML = '';
+        
+        if (!nodesData || nodesData.length === 0) {
+            container.innerHTML = `
+                <div class="flex justify-center items-center py-10 text-accent text-sm">
+                    <i class="fa fa-exclamation-circle mr-2"></i> 无法加载节点数据
+                </div>
+            `;
+            return;
+        }
+        
+        nodesData.forEach(node => {
+            // 计算带宽使用率
+            const bandwidthUsage = node.BandwidthMaxMbps > 0 
+                ? ((node.BandwidthCurrentMbps / node.BandwidthMaxMbps) * 100).toFixed(1)
+                : 0;
+            
+            // 计算连接数使用率
+            const connectionUsage = node.ConnectionMaxNum > 0
+                ? ((node.ConnectionCurrentNum / node.ConnectionMaxNum) * 100).toFixed(1)
+                : 0;
+            
+            // 确定状态颜色 - 使用绿色作为正常状态
+            let statusColor = 'bg-green-100 text-green-700';
+            if (bandwidthUsage > 70 || connectionUsage > 70) {
+                statusColor = 'bg-yellow-100 text-yellow-700';
+            }
+            if (bandwidthUsage > 90 || connectionUsage > 90) {
+                statusColor = 'bg-red-100 text-red-700';
+            }
+            
+            // 协议文本
+            let protocolText = '';
+            if (node.AllowProtocol === 1) protocolText = 'TCP';
+            else if (node.AllowProtocol === 2) protocolText = 'UDP';
+            else protocolText = 'TCP+UDP';
+            
+            const card = document.createElement('div');
+            card.className = 'bg-light rounded-lg p-2.5 hover:bg-light-dark transition-all duration-300 border border-gray-100';
+            card.innerHTML = `
+                <div class="flex items-center mb-1.5">
+                    <div class="w-2 h-2 rounded-full ${statusColor.split(' ')[0].replace('bg-', 'bg-').replace('100', '500')} mr-2"></div>
+                    <span class="text-sm font-medium text-primary flex-1"><a href="${node.Url}" target="_blank">${node.Name || '未知节点'}</a></span>
+                </div>
+                
+                <div class="flex justify-between text-xs text-accent mb-1.5">
+                    <span>协议: <span class="text-secondary">${protocolText}</span></span>
+                    <span class="px-1.5 py-0.5 rounded ${statusColor}">${node.Version || '未知版本'}</span>
+                </div>
+                
+                <div class="mb-1.5">
+                    <div class="flex justify-between text-xs mb-0.5">
+                        <span>带宽使用</span>
+                        <span>${node.BandwidthCurrentMbps || 0}/${node.BandwidthMaxMbps || 0} Mbps</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-1.2">
+                        <div class="h-1.2 rounded-full ${getUsageColor(bandwidthUsage)}" style="width: ${bandwidthUsage}%"></div>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="flex justify-between text-xs mb-0.5">
+                        <span>连接数</span>
+                        <span>${node.ConnectionCurrentNum || 0}/${node.ConnectionMaxNum || 0}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-1.2">
+                        <div class="h-1.2 rounded-full ${getUsageColor(connectionUsage)}" style="width: ${connectionUsage}%"></div>
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(card);
+        });
+    }
+    
+    // 根据使用率获取颜色类 - 正常状态使用绿色
+    function getUsageColor(usage) {
+        if (usage > 90) return 'bg-red-500';
+        if (usage > 70) return 'bg-yellow-500';
+        return 'bg-logo-green'; // 使用Logo绿色作为正常状态
+    }
+    
+    // 数字增长动画
+    function animateValue(id, start, end, duration = 1000) {
+        const obj = document.getElementById(id);
+        if (!obj) return;
+        
+        // 如果是首次设置值，直接显示
+        if (obj.textContent === '--' || start === 0) {
+            obj.textContent = end.toLocaleString();
+            return;
+        }
+        
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            const value = Math.floor(progress * (end - start) + start);
+            obj.textContent = value.toLocaleString();
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
+    }
+    
+    // 更新在线数统计
+    function updateOnlineStats(onlineData) {
+        if (!onlineData) return;
+        
+        // 获取所有需要更新的元素
+        const elements = {
+            'current-online': 'CurrentServer.Online',
+            'current-online-7d': 'CurrentServer.Online7day',
+            'all-online': 'AllServer.Online',
+            'all-online-7d': 'AllServer.Online7day',
+            'server-count': 'AllServer.Server'
+        };
+        
+        // 遍历所有元素并更新
+        Object.entries(elements).forEach(([id, path]) => {
+            const value = path.split('.').reduce((obj, key) => obj && obj[key], onlineData) || 0;
+            const element = document.getElementById(id);
+            
+            if (element) {
+                const currentVal = element.textContent !== '--' ? parseInt(element.textContent.replace(/,/g, '')) : 0;
+                animateValue(id, currentVal, value);
+            }
+        });
+    }
+    
+    // 初始化系统图片
+    function initSystemImg(){
+        const chartDom = document.getElementById('system-img');
+        myChartSystem = echarts.init(chartDom);
+        myChartSystem.setOption({
+            aria: {
+                enabled: true,
+                decal: {
+                    show: true,
+                }
+            },
+            tooltip: {
+                trigger: 'item',
+            },
+            series: [
+                {
+                    name: 'System',
+                    type: 'pie',
+                    radius: ['40%', '70%'],
+                    legend: {
+                        top: '5%',
+                        left: 'center'
+                    },
+                    itemStyle: {
+                        borderRadius: 10,
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    },
+                    label: {
+                        show: false,
+                        position: 'center'
+                    },
+                    labelLine: {
+                        show: false
+                    },
+                    emphasis: {
+                        label: {
+                            show: true,
+                            fontSize: 20,
+                            fontWeight: 'bold'
+                        }
+                    },
+                    data: []
+                }
+            ]
+        });
+    }
+    //更新系统图片
+    function updateSystemImg(data){
+        const json = {};
+        for(const key in data){
+            const str = key.split('-').filter((item,index)=>index<2).join('-');
+            if(!json[str]) json[str] = 0;
+            json[str] += data[key];
+        }
+        data = Object.entries(json).map(item=>({name:item[0],value:item[1]}));
+        myChartSystem.setOption({
+            series: [
+                {
+                    data: data
+                }
+            ]
+        });
+        
+    }
+
+    // 加载所有数据
+    async function loadAllData() {
+        showRefreshIndicator();
+        
+        try {
+            // 并行获取所有数据
+            const [systemData,deviceData, onlineData, nodesData] = await Promise.all([
+                fetchData('https://api.linker.snltty.com/flow/systems.json'),
+                fetchData('https://api.linker.snltty.com/flow/citys.json'),
+                fetchData('https://api.linker.snltty.com/flow/online.json'),
+                fetchData('https://api.linker.snltty.com/relay/nodes.json')
+            ]);
+            
+            // 更新UI
+            if (systemData) updateSystemImg(systemData);
+            if (deviceData) updateDeviceMap(deviceData);
+            if (onlineData) updateOnlineStats(onlineData);
+            if (nodesData) populateNodes(nodesData);
+        } catch (error) {
+            console.error('更新数据时出错:', error);
+        } finally {
+            hideRefreshIndicator();
+        }
+    }
+    
+    // 响应式调整
+    function adjustLayout() {
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+    }
+    
+    // 页面卸载时清理
+    window.addEventListener('beforeunload', () => {
+        if (refreshInterval) {
+            clearInterval(refreshInterval);
+        }
+    });
+</script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?17db275762360c458a92d8720d9e41a2";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+</html>

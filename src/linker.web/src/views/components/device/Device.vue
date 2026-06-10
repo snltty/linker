@@ -1,9 +1,10 @@
 <template>
-<el-table-column prop="MachineId" :label="$t('device')" width="196">
+<el-table-column prop="MachineId" :label="$t('device')" width="206">
     <template #header>
         <div class="flex">
             <span>{{$t('device')}}</span>
-            <span class="flex-1"> <el-input v-trim size="small" v-model="devices.page.Request.Name" clearable @input="handleRefresh" class="w-100" ></el-input> </span>
+            <span class="w-1"></span>
+            <span class="flex-1"> <el-input v-trim size="small" v-model="devices.page.Request.Name" clearable @input="handleRefresh" class="w-100 transparent" ></el-input> </span>
         </div>
     </template>
     <template #default="scope">
@@ -39,10 +40,10 @@
                             <el-skeleton animated >
                                 <template #template>
                                     <div class="flex">
-                                        <el-skeleton-item variant="text" class="vam w-20-" />
-                                        <el-skeleton-item variant="text" class="vam w-20-" />
+                                        <el-skeleton-item variant="text" class="middle w-20-" />
+                                        <el-skeleton-item variant="text" class="middle w-20-" />
                                         <span class="flex-1"></span>
-                                        <el-skeleton-item variant="text" class="vam w-20-" />
+                                        <el-skeleton-item variant="text" class="middle w-20-" />
                                     </div>
                                 </template>
                             </el-skeleton>

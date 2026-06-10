@@ -10,7 +10,7 @@ export default {
     setup (props) {
         
         const globalData = injectGlobalData();
-        const show = computed(()=>props.value.split(',').filter(c=>globalData.value.hasAccess(c)).length > 0 );
+        const show = computed(()=>!props.value || props.value.split(',').filter(c=>globalData.value.hasAccess(c)).length > 0 );
 
         return {show}
     }

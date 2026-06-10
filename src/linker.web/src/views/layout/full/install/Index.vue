@@ -1,6 +1,6 @@
 <template>
     <div>
-        <el-dialog v-model="state.show" :title="$t('install.init')" width="95%" top="2vh">
+        <el-dialog append-to=".app-wrap" v-model="state.show" :title="$t('install.init')" width="80rem" top="2vh">
             <div>
                 <el-tabs type="border-card">
                     <el-tab-pane :label="$t('install.input')">

@@ -62,22 +62,23 @@ export default {
     body .app-wrap{
         height:98%;
         width:98%;
+        top:1%;
     }
 }
 
 .app-wrap{
     box-sizing:border-box;
     background-color:#fff;
-    border:1px solid #ccc;
-    width:82rem;
+    border:1px solid #cfd7e3;
+    width:86rem;
     max-width : 98%;
-    height:90%;
+    height:94%;
     position:absolute;
     left:50%;
-    top:50%;
-    transform:translateX(-50%) translateY(-50%);
-    box-shadow: 0 8px 50px rgba(0,0,0, 0.15);
-    border-radius: 0.5rem;
+    top:3%;
+    transform:translateX(-50%);
+    box-shadow: 0 12px 30px rgba(15, 23, 42, .1);
+    border-radius: 0.8rem;
 }
 html.dark .app-wrap{
     background-color:#141414;

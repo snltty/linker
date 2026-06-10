@@ -1,5 +1,5 @@
 <template>
-    <el-dialog v-model="state.show" :title="$t('deny.title',[data.Name])" top="1vh" width="400">
+    <el-dialog append-to=".app-wrap" v-model="state.show" :title="$t('deny.title',[data.Name])" top="1vh" width="400">
         <div>
             <el-tabs type="border-card">
                 <el-tab-pane :label="$t('deny.online')"><Masters :type="type" :data="data"></Masters></el-tab-pane>

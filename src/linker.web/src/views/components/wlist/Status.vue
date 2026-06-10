@@ -1,7 +1,7 @@
 <template>
     <div>
         <a v-if="state.status.Enabled" @click="handleImport" href="javascript:;" class="a-line blue">
-            <img :src="`./${state.status.Type}.png`" height="20" class="vam">
+            <img :src="`./${state.status.Type}.png`" height="20" class="middle">
             <span>{{$t('wlist.order.use',[state.status.Type])}}</span>
         </a>
         <strong v-if="state.status.Info" class="mgl-1">

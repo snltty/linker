@@ -1,5 +1,5 @@
 <template>
-    <el-dialog class="options-center" :title="$t('flow.online')" destroy-on-close v-model="state.show" width="77rem" top="2vh">
+    <el-dialog append-to=".app-wrap" class="options-center" :title="$t('flow.online')" destroy-on-close v-model="state.show" width="77rem" top="2vh">
         <div class="map-wrap" id="map">
         </div>
     </el-dialog>

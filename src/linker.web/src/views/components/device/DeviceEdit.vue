@@ -1,5 +1,5 @@
 <template>
-     <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap" :title="$t('device.title',[state.ruleForm.MachineName])" width="360">
+     <el-dialog append-to=".app-wrap" v-model="state.show" :close-on-click-modal="false" :title="$t('device.title',[state.ruleForm.MachineName])" width="360">
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="auto">
                 <el-form-item label="">

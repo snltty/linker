@@ -22,7 +22,7 @@
                                 <strong class="app-nat" :title="$t('tuntap.show.dnat')">{{ item.hook_tuntap.IP }}/{{ item.hook_tuntap.PrefixLength }}</strong>
                             </template>
                             <template v-else-if="item.hook_tuntap.running">
-                                <strong class="green gateway" :title="$t('tuntap.show.snat')">{{ item.hook_tuntap.IP }}/{{ item.hook_tuntap.PrefixLength }}</strong>
+                                <strong class="green" :title="$t('tuntap.show.snat')">{{ item.hook_tuntap.IP }}/{{ item.hook_tuntap.PrefixLength }}</strong>
                             </template>
                             <template v-else>
                                 <strong>{{ item.hook_tuntap.IP }}/{{ item.hook_tuntap.PrefixLength }}</strong>

@@ -1,30 +1,33 @@
 <template>
-    <div class="status-wrap flex">
-        <div class="copy flex">
-            <Support></Support>
-            <a href="javascript:;">©linker {{ self.Version }}</a>
-            <PcShow>
-                <a href="https://github.com/snltty/linker" target="_blank">Github</a>
-                <a href="https://linker.snltty.com" target="_blank">{{$t('status.website')}}</a>
-                <a href="https://linker-doc.snltty.com" target="_blank">{{$t('status.doc')}}</a>
-            </PcShow>
+    <div class="status-wrap flex flex-center">
+        <PcShow>
+            <div class="api item flex flex-center"><Api :config="config"></Api></div>
+        </PcShow>
+        <div class="group item flex flex-center">
+            <Groups :config="config"></Groups>
+        </div>
+        <div class="version item flex flex-center">
+            <Version :config="config"></Version>
         </div>
         <div class="flex-1"></div>
         <PcShow>
-            <div class="api"><Api :config="config"></Api></div>
+            <AccessShow value="Flow">
+                <div class="flow item flex-1">
+                    <Flow v-if="config" :config="config"></Flow>
+                </div>
+            </AccessShow>
         </PcShow>
-        <div class="server"><Server :config="config"></Server></div>
     </div>
 </template>
 <script>
 import { computed, reactive } from 'vue';
-import Api from './Api.vue'
-import Server from './server/Index.vue'
-import UpdaterBtn from '../updater/UpdaterBtn.vue';
+import Api from '../ws/Index.vue'
 import { injectGlobalData } from '@/provide';
-import Support from './Support.vue';
+import Groups from '../groups/Index.vue'
+import Version from './Version.vue';
+import Flow from '../flow/Index.vue';
 export default {
-    components:{Api,Server,UpdaterBtn,Support},
+    components:{Api,Groups,Version,Flow},
     props:['config'],
     setup(props) {
         const globalData = injectGlobalData();
@@ -39,22 +42,24 @@ export default {
 }
 </script>
 <style lang="stylus" scoped>
-html.dark .status-wrap{background-color:#242526;border-color:#575c61;}
-html.dark .status-wrap .copy a{color:#ccc;}
 .status-wrap{
-    border-top:1px solid #ddd;
-    background-color:#f5f5f5;
-    height:3rem;
-    line-height:3rem;
+    border-top: 1px solid var(--header-border-color);
+    background-color: var(--header-bg-color);
+    height:3.4rem;
+    line-height:3.4rem;
     font-size:1.2rem;
     color:#555;
-    border-radius:0 0 .5rem .5rem;
+    border-radius:0 0 .8rem .8rem;
 
-    .copy{
-        padding-left:.5rem;
-        a{color:#555;margin-right:1rem}
+    .item{
+        border-left:1px solid var(--header-border-color);
+        height 2rem;
+        line-height:2rem;
+
+        &:first-child{
+            border:0;
+        }
     }
-
-    
+    .api,.group,.version{padding:0 1rem;}
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
     <div>
-        <el-dialog v-model="state.show" :title="$t('reverse.node')" width="98%" top="2vh">
+        <el-dialog append-to=".app-wrap" v-model="state.show" :title="$t('reverse.node')" width="80rem" top="2vh">
             <div>
                 <AccessShow value="ImportReverseNode">
                     <div class="head mgb-1" v-if="state.super">

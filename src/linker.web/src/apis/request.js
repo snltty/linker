@@ -1,8 +1,8 @@
 import { ElMessage } from 'element-plus'
 
-let requestId = 0, ws = null, wsUrl = '', index = 1, apiPassword = 'snltty';
+let requestId = 0, ws = null,  apiPassword = 'snltty';
 const requests = {};
-export const websocketState = { connected: false, connecting: false };
+export const websocketState = { connected: false, connecting: false,url:'',index:1 };
 
 // websocket 打开
 const onWebsocketOpen = () => {
@@ -109,9 +109,9 @@ export const sendWebsocketMsg = (path, msg = {}, errHandle = false, timeout = 15
     });
 }
 // 初始化websocket
-export const initWebsocket = (url = wsUrl, password = apiPassword) => {
+export const initWebsocket = (url =  websocketState.url, password = apiPassword) => {
     apiPassword = password;
-    wsUrl = url;
+    websocketState.url = url;
     if (websocketState.connecting || websocketState.connected) {
         return;
     }
@@ -119,8 +119,8 @@ export const initWebsocket = (url = wsUrl, password = apiPassword) => {
         ws.close();
     }
     websocketState.connecting = true;
-    ws = new WebSocket(wsUrl);
-    ws.iddd = ++index;
+    ws = new WebSocket( websocketState.url);
+    ws.iddd = ++websocketState.index;
     ws.onopen = onWebsocketOpen;
     ws.onclose = onWebsocketClose
     ws.onmessage = onWebsocketMsg;

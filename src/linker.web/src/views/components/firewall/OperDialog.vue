@@ -1,6 +1,6 @@
 <template>
-    <el-dialog v-model="state.show" append-to=".app-wrap" :title="$t('firewall.title',[state.machineName])" 
-    top="1vh" width="98%" style="height:80vh" class="firewall-dialog">
+    <el-dialog append-to=".app-wrap" v-model="state.show" :title="$t('firewall.title',[state.machineName])" 
+    top="1vh" width="80rem" style="height:80vh" class="firewall-dialog">
         <div class="h-100">
             <Firewall :machineId="state.machineId"></Firewall>
         </div>

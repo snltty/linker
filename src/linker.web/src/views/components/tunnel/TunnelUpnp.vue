@@ -1,5 +1,5 @@
 <template>
-     <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap" :title="$t('network.upnp.title',[state.machineName])" width="98%" top="2vh">
+     <el-dialog append-to=".app-wrap" v-model="state.show" :close-on-click-modal="false" :title="$t('network.upnp.title',[state.machineName])" width="80rem" top="2vh">
         <div>
             <el-tabs type="border-card">
                 <el-tab-pane :label="$t('network.upnp.myadd')">

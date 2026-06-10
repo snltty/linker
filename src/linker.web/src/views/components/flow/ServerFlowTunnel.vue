@@ -1,5 +1,5 @@
 <template>
-    <el-dialog :title="$t('flow.tunnel')" class="options-center" top="1vh" destroy-on-close v-model="state.show" width="90%">
+    <el-dialog append-to=".app-wrap" :title="$t('flow.tunnel')" class="options-center" top="1vh" destroy-on-close v-model="state.show" width="80rem">
         <div>
             <el-table :data="state.list" stripe border size="small" width="100%" height="60vh" @sort-change="handleSort">
                 <el-table-column prop="Key" :label="$t('flow.src.name')" width="100">

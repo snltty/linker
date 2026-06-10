@@ -22,5 +22,6 @@
     "wlist.limit": "Limit {0}",
     "wlist.none": "None",
     "wlist.title": "{1} white list of {0}",
-    "wlist.target": "Target"
+    "wlist.target": "Target",
+    "wlist.nodesReverse": "Reverse"
 }

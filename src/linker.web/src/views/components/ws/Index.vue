@@ -1,13 +1,12 @@
 <template>
-    <div v-if="config" class="status-api-wrap" :class="{connected:connected}">
+    <div v-if="config" class="status-api-wrap" :class="{connected:state.connected}">
         <el-popconfirm 
         :confirm-button-text="$t('api.clear')" 
         :cancel-button-text="$t('api.alter')" 
         :title="$t('common.confirmSure')" @cancel="handleShow" @confirm="handleResetConnect" >
             <template #reference>
-                <a href="javascript:;">
-                    <el-icon size="16"><Flag /></el-icon>
-                    <span>{{$t('api')}}</span>
+                <a href="javascript:;" class="a-line">
+                    <el-icon size="16"><SuccessFilled  /></el-icon><span>{{state.url}}</span>
                 </a>
             </template>
         </el-popconfirm>
@@ -15,15 +14,19 @@
 </template>
 <script>
 import {injectGlobalData} from '@/provide'
-import { computed} from 'vue';
-import { initWebsocket,closeWebsocket } from '@/apis/request'
-import {Flag} from '@element-plus/icons-vue'
+import { computed, reactive} from 'vue';
+import { initWebsocket,closeWebsocket,websocketState } from '@/apis/request'
+import {SuccessFilled} from '@element-plus/icons-vue'
+
 export default {
-    components:{Flag},
+    components:{SuccessFilled},
     props:['config'],
     setup(props) {
         const globalData = injectGlobalData();
-        const connected = computed(()=>globalData.value.api.connected);
+        const state = reactive({
+            url:websocketState.url,
+            connected:computed(()=>globalData.value.api.connected),
+        })
         const handleResetConnect = () => {
             localStorage.setItem('api-cache', '');
             sessionStorage.setItem('api-cache', '');
@@ -33,21 +36,20 @@ export default {
             closeWebsocket();
             initWebsocket(`ws${window.location.protocol === "https:" ? "s" : ""}://${window.location.hostname}:12345`,'snltty');
         }
-        return {config:props.config,connected,handleShow,handleResetConnect};
+
+        return {state,handleShow,handleResetConnect};
     }
 }
 </script>
 <style lang="stylus" scoped>
 .status-api-wrap{
-    padding-right:1rem;
     &.connected {
-       a{color:green;font-weight:bold;}
+       a{color:green;}
     }  
     a{
         color:#333;
-        .el-icon{
-            vertical-align:sub;
-        }
+        .el-icon{vertical-align: sub;margin-right:.4rem;}
+        span{display: inline-flex;align-items: center;line-height: 1;}
     }
 }
 

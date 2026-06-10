@@ -1,5 +1,5 @@
 <template>
-    <el-dialog class="options-center" :title="$t('wakeup.rule')" destroy-on-close v-model="state.show" width="50rem" top="2vh">
+    <el-dialog append-to=".app-wrap" class="options-center" :title="$t('wakeup.rule')" destroy-on-close v-model="state.show" width="50rem" top="2vh">
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm.Data" :rules="state.rules" label-width="auto">
                 <el-form-item :label="$t('wakeup.name')" prop="Name">

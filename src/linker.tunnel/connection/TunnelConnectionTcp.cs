@@ -19,15 +19,15 @@ namespace linker.tunnel.connection
         {
         }
 
-        public string RemoteMachineId { get; init; }
-        public string RemoteMachineName { get; init; }
-        public string TransactionId { get; init; }
+        public string RemoteMachineId { get; set; }
+        public string RemoteMachineName { get; set; }
+        public string TransactionId { get; set; }
         public Dictionary<string, string> Configure { get; init; }
-        public string TransportName { get; init; }
+        public string TransportName { get; set; }
         public string Label { get; init; }
         public TunnelMode Mode { get; init; }
-        public TunnelProtocolType ProtocolType { get; init; }
-        public TunnelType Type { get; init; }
+        public TunnelProtocolType ProtocolType { get; set; }
+        public TunnelType Type { get; set; }
         public string NodeId { get; init; }
         public TunnelDirection Direction { get; init; }
         public IPEndPoint IPEndPoint { get; init; }
@@ -56,6 +56,7 @@ namespace linker.tunnel.connection
         private ITunnelConnectionReceiveCallback callback;
         private CancellationTokenSource cts;
         private object userToken;
+        private bool keepHeader;
 
         private readonly LastTicksManager pingTicks = new LastTicksManager();
         private readonly byte[] pingBytes = Encoding.UTF8.GetBytes($"{Guid.NewGuid()}.tcp.ping");
@@ -65,12 +66,13 @@ namespace linker.tunnel.connection
         const byte PacketTypePing = 1;
         const byte PacketTypePong = 2;
 
-        public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken)
+        public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken, bool keepHeader = false)
         {
             if (this.callback != null) return;
 
             this.callback = callback;
             this.userToken = userToken;
+            this.keepHeader = keepHeader;
 
             cts = new CancellationTokenSource();
 
@@ -138,7 +140,7 @@ namespace linker.tunnel.connection
                     do
                     {
                         int packetLength = memory.ToUInt16();
-                        await ProcessPacket(memory.Slice(2, packetLength)).ConfigureAwait(false);
+                        await ProcessPacket(memory.Slice(2, packetLength), memory.Slice(0, 2 + packetLength)).ConfigureAwait(false);
                         memory = memory.Slice(2 + packetLength);
 
                     } while (memory.Length > 0);
@@ -153,14 +155,14 @@ namespace linker.tunnel.connection
                 Dispose();
             }
         }
-        private ValueTask ProcessPacket(ReadOnlyMemory<byte> memory)
+        private ValueTask ProcessPacket(ReadOnlyMemory<byte> memory, ReadOnlyMemory<byte> memoryHeader)
         {
             LastTicks.Update();
             try
             {
                 return memory.Span[0] switch
                 {
-                    PacketTypeData => callback.Receive(this, memory.Slice(2), this.userToken),
+                    PacketTypeData => callback.Receive(this, keepHeader ? memoryHeader : memory.Slice(2), this.userToken),
                     PacketTypePing => SendPingPong(pongBytes, PacketTypePong),
                     PacketTypePong => ProcessPong(),
                     _ => ValueTask.CompletedTask

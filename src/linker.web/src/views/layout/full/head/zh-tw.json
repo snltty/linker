@@ -6,5 +6,6 @@
     "head.firewall": "防火牆",
     "head.wakeup": "喚醒",
     "head.logger": "日誌",
-    "head.refresh": "刷新"
+    "head.refresh": "刷新",
+    "head.about": "关于"
 }

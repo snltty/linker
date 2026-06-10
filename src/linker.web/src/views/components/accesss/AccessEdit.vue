@@ -1,5 +1,5 @@
 <template>
-     <el-dialog v-model="state.show" :close-on-click-modal="false" center append-to=".app-wrap" :title="$t('access.edit',[state.machineName])" width="580" top="1vh">
+     <el-dialog append-to=".app-wrap" v-model="state.show" :close-on-click-modal="false" center :title="$t('access.edit',[state.machineName])" width="580" top="1vh">
         <div>
             <Access :accesss="state.accesss" ref="accessDom"></Access>
         </div>

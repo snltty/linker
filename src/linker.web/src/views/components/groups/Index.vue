@@ -1,8 +1,7 @@
 <template>
     <el-dropdown>
         <span class="el-dropdown-link" :class="{connected:state.connected}">
-            <el-icon class="left"><Avatar /></el-icon>
-            <span>{{state.groupName|| $t('common.unknow')}}</span>
+            <span>{{(state.groupName|| $t('common.unknow')).substr(0,6)}}</span>
             <el-icon class="right"><ArrowDown /></el-icon>
         </span>
         <template #dropdown>
@@ -113,16 +112,11 @@ export default {
 }
 </script>
 <style lang="stylus" scoped>
-.el-dropdown{vertical-align: inherit;margin-right:1rem}
-
-    .el-dropdown-link{   
-        &.connected {
-            color:green;font-weight:bold;
-        }
-        .el-icon{
-            vertical-align:top;
-        }
-    }  
-    
-
+.el-dropdown-link{   
+    &.connected {
+        color:green;
+    }
+    .el-icon{vertical-align: middle;}
+    span{display: inline-flex;align-items: center;line-height: 1;}
+}  
 </style>

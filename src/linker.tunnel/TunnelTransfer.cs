@@ -8,7 +8,6 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
-using System.Transactions;
 
 namespace linker.tunnel
 {
@@ -242,6 +241,7 @@ namespace linker.tunnel
                 };
                 OnConnecting(tunnelTransportInfo);
                 ParseRemoteEndPoint(tunnelTransportInfo, transportItem.Addr);
+
                 ITunnelConnection connection = await transport.ConnectAsync(tunnelTransportInfo).ConfigureAwait(false);
                 if (connection != null)
                 {

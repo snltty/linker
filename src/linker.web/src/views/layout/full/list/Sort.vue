@@ -1,12 +1,12 @@
 <template>
    <el-table border height="32px" size="small" @sort-change="handleSortChange" class="table-sort w-100" :default-sort="sort">
-        <el-table-column prop="machineName" :label="$t('device')" width="98" sortable="custom" ></el-table-column>
+        <el-table-column prop="machineName" :label="$t('device')" width="108" sortable="custom" ></el-table-column>
         <el-table-column prop="version" :label="$t('common.version')" width="98" sortable="custom"></el-table-column>
-        <el-table-column prop="tunnel" :label="$t('network')" width="94" sortable="custom"></el-table-column>
-        <el-table-column prop="tuntap" :label="$t('tuntap')" width="160" sortable="custom"></el-table-column>
+        <el-table-column prop="tunnel" :label="$t('network')" width="104" sortable="custom"></el-table-column>
+        <el-table-column prop="tuntap" :label="$t('tuntap')" width="170" sortable="custom"></el-table-column>
         <el-table-column prop="socks5" :label="$t('socks5')" width="140" sortable="custom"></el-table-column>
         <el-table-column prop="forward" :label="$t('forward')" width="96" sortable="custom"></el-table-column>
-        <el-table-column prop="oper" fixed="right" sortable="custom"  min-width="30">
+        <el-table-column prop="oper" fixed="right" sortable="custom" min-width="110">
             <template #header>
             </template>
         </el-table-column>
@@ -58,7 +58,7 @@ export default {
 <style lang="stylus" scoped>
 .table-sort 
 {
-    th{border-bottom:0}
+    margin-bottom:-1px;
 }
 .show-columns{
     vertical-align:middle;

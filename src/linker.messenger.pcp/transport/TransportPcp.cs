@@ -105,6 +105,12 @@ namespace linker.messenger.pcp
                         {
                             continue;
                         }
+                        connection.RemoteMachineId = tunnelTransportInfo.Remote.MachineId;
+                        connection.RemoteMachineName = tunnelTransportInfo.Remote.MachineName;
+                        connection.TransactionId = tunnelTransportInfo.TransactionId;
+                        connection.TransportName = tunnelTransportInfo.TransportName;
+                        connection.Type = TunnelType.PCP;
+
                         if (await tunnelMessengerAdapter.SendConnectBegin(tunnelTransportInfo).ConfigureAwait(false) == false)
                         {
                             throw new Exception("pcp client begin fail");
@@ -149,6 +155,13 @@ namespace linker.messenger.pcp
                 ITunnelConnection connection = await tunnelTransfer.ConnectAsync(tag.NodeId, _transactionId, configures: tunnelTransportInfo.Configure, tunnelTypes: [TunnelType.P2P]).ConfigureAwait(false);
                 if (connection != null)
                 {
+
+                    connection.RemoteMachineId = tunnelTransportInfo.Remote.MachineId;
+                    connection.RemoteMachineName = tunnelTransportInfo.Remote.MachineName;
+                    connection.TransactionId = tunnelTransportInfo.TransactionId;
+                    connection.TransportName = tunnelTransportInfo.TransportName;
+                    connection.Type = TunnelType.PCP;
+
                     OnConnected(connection, tunnelTransportInfo);
                     await tunnelMessengerAdapter.SendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
                     return;

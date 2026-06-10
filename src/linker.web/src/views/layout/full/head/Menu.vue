@@ -5,7 +5,9 @@
             <template v-for="item in routes">
                 <AccessShow :value="item.meta.access">
                     <li>
-                        <router-link :to="{name:item.name}"><img :src="item.meta.icon"/><span>{{$t(item.meta.title)}}</span></router-link>
+                        <router-link :to="{name:item.name}" class="flex flex-items-center">
+                            <img :src="item.meta.icon"/><span>{{$t(item.meta.title)}}</span>
+                        </router-link>
                     </li>
                 </AccessShow>
             </template>
@@ -16,12 +18,16 @@
             <template v-for="item in routes">
                 <AccessShow :value="item.meta.access">
                     <li v-if="route.name == item.name">
-                        <router-link :to="{name:item.name}"><img :src="item.meta.icon"/><span>{{$t(item.meta.title)}}</span></router-link>
+                        <router-link :to="{name:item.name}" class="flex flex-items-center">
+                            <img :src="item.meta.icon"/><span>{{$t(item.meta.title)}}</span>
+                        </router-link>
                     </li>
                 </AccessShow>
             </template>
             <li>
-                <a href="javascript:void(0);" @click="refresh"><img src="refresh.svg"/><span>{{$t('head.refresh')}}</span></a>
+                <a href="javascript:void(0);" @click="refresh" class="flex flex-items-center">
+                    <img src="refresh.svg"/><span>{{$t('head.refresh')}}</span>
+                </a>
             </li>
         </ul>
     </PhoneShow>
@@ -77,27 +83,22 @@ html.dark .head .menu a{
     &:hover,&.router-link-active{ background-color:rgba(0,0,0,0.5); }
 }
 .menu{
-    padding-left:1rem;font-size:1.4rem;
-    li{box-sizing:border-box;padding:.5rem 0;margin-right:.2rem;}
+    font-size:1.4rem;
+    padding-left:1rem;
+    li{box-sizing:border-box;padding:1rem 0;margin-right:.6rem;}
     a{
-        display:block;
         color:#333;
-        padding:0 1rem;
-        line-height:4rem;
-        height:4rem;
+        padding:0 .6rem;
+        line-height:3rem;
+        height:3rem;
         &:hover,&.router-link-active{
             background-color:rgba(0,0,0,0.1);
-            font-weight:bold;
             border-radius:4px;
         }
 
         img{
             height:2rem
             margin-right:.2rem;
-            margin-top:1rem;
-        } 
-        span{
-            vertical-align:top;
         }
     }
 }

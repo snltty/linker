@@ -1,6 +1,6 @@
 <template>
     <div>
-        <el-dialog v-model="state.show" :title="$t('relay.title')" width="98%" top="2vh">
+        <el-dialog append-to=".app-wrap" v-model="state.show" :title="$t('relay.title')" width="80rem" top="2vh">
             <div>
                 <AccessShow value="ImportRelayNode">
                     <div class="head mgb-1" v-if="state.super">
@@ -118,7 +118,7 @@
             </div>
         </el-dialog>
         <EditNode v-if="state.showEdit" v-model="state.showEdit" :data="state.current"></EditNode>
-        <el-dialog class="options-center" :title="$t('relay.default')" destroy-on-close v-model="state.showSync" width="54rem" top="2vh">
+        <el-dialog append-to=".app-wrap" class="options-center" :title="$t('relay.default')" destroy-on-close v-model="state.showSync" width="54rem" top="2vh">
             <div>
                 <div class="t-c">{{ $t('relay.default.alert') }}</div>
                 <Ids ref="domIds"></Ids>

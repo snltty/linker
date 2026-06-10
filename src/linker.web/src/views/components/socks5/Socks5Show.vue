@@ -12,7 +12,7 @@
                         </template>
                         <template v-else>
                             <template v-if="item.Connected &&item.hook_socks5.running">
-                                <strong class="green gateway">//:{{ item.hook_socks5.Port }}</strong>
+                                <strong class="green">//:{{ item.hook_socks5.Port }}</strong>
                             </template>
                             <template v-else>
                                 <span>//:{{ item.hook_socks5.Port }}</span>

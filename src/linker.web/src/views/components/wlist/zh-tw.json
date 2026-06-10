@@ -22,5 +22,6 @@
     "wlist.limit": "限速{0}",
     "wlist.none": "無",
     "wlist.title": "{0}的{1}白名單",
-    "wlist.target": "目標"
+    "wlist.target": "目標",
+    "wlist.nodesReverse": "穿透"
 }

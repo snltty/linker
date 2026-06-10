@@ -1,16 +1,14 @@
 <template>
-    <el-form-item :label="$t('reverse')">
-        <div class="flex">
-            <a href="javascript:;" @click="state.showModes = true" class="mgr-1 delay a-line" :class="{red:state.nodes.length==0,green:state.nodes.length>0}">
-                {{$t('reverse.nodes')}} : {{state.nodes.length}}
-            </a>
-            <AccessShow value="WhiteList">
-                <WhiteList type="Reverse" prefix="sfp->"  v-if="state.super"></WhiteList>
-            </AccessShow>
-            <Nodes v-if="state.showModes" v-model="state.showModes" :data="state.nodes"></Nodes>
-            <!-- <Status type="Reverse"></Status> -->
-        </div>
-    </el-form-item>
+    <div class="flex">
+        <a href="javascript:;" @click="state.showModes = true" class="mgr-1 delay a-line" :class="{red:state.nodes.length==0,green:state.nodes.length>0}">
+            {{$t('reverse.nodes')}} : {{state.nodes.length}}
+        </a>
+        <AccessShow value="WhiteList">
+            <WhiteList type="Reverse" prefix="sfp->"  v-if="state.super"></WhiteList>
+        </AccessShow>
+        <Nodes v-if="state.showModes" v-model="state.showModes" :data="state.nodes"></Nodes>
+        <!-- <Status type="Reverse"></Status> -->
+    </div>
 </template>
 <script>
 import { injectGlobalData } from '@/provide';

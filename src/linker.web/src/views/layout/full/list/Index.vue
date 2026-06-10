@@ -1,7 +1,7 @@
 <template>
     <div class="home-list-wrap absolute flex flex-column flex-nowrap" >
         <Sort @sort="handleSortChange"></Sort>
-        <el-table :data="devices.page.List" stripe border size="small" class="flex-1 w-100">
+        <el-table :data="devices.page.List" border size="small" class="flex-1 w-100">
             <Device  @refresh="handlePageRefresh" @search="handleSearchChange"></Device>
             <Tunnel  @refresh="deviceRefreshHook('tunnel')"></Tunnel>
             <Tuntap @refresh="handlePageRefresh"></Tuntap>
@@ -206,12 +206,13 @@ export default {
     th.el-table__cell.is-leaf{border-bottom:0}
     .el-table__inner-wrapper:before{height:0}
 }
+
 </style>
 <style lang="stylus" scoped>
 .home-list-wrap{
     padding:1rem;
 
-    .page{padding-top:1rem}
+    .page{padding:1rem 0;border:1px solid var(--table-border-color);border-top:0;}
     .page-wrap{
         display:inline-block;
     }

@@ -71,7 +71,7 @@
         </div>
     </div>
     <Add v-if="state.showAdd" v-model="state.showAdd" @success="loadData"></Add>
-    <el-dialog v-model="state.showSwitch" :title="`${$t('wakeup.runSwitchConfirm')}【${state.switchRow.Name}】？`" width="300">
+    <el-dialog append-to=".app-wrap" v-model="state.showSwitch" :title="`${$t('wakeup.runSwitchConfirm')}【${state.switchRow.Name}】？`" width="300">
         <div class="t-c">
             <div class="mgt-2"><el-button size="large" @click="handleSwitchMs(10000)">{{ $t('wakeup.runSwitchLong') }}10000ms</el-button></div>
             <div class="mgt-2"><el-button size="large" type="success" @click="handleSwitchMs(1000)">{{ $t('wakeup.runSwitchTouch') }}1000ms</el-button></div>
@@ -205,10 +205,9 @@ export default {
 }
 </script>
 <style lang="stylus" scoped>
-html.dark .head{border-color:#575c61;}
 .head {
     color:#555;
-    border:1px solid #eee;
+    border:1px solid var(--table-border-color);
     padding:0 1rem 1rem 1rem;
     border-bottom:0;
 }

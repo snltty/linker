@@ -1,5 +1,5 @@
 <template>
-    <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap"
+    <el-dialog append-to=".app-wrap" v-model="state.show" :close-on-click-modal="false"
         :title="$t('tuntap.title',[state.machineName])" top="1vh" width="780">
         <div>
             <el-tabs type="border-card">

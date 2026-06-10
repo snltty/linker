@@ -149,8 +149,6 @@ export default {
 </script>
 
 <style lang="stylus" scoped>
-
-html.dark .dropdown{border-color:#575c61;}
 .dropdown{
     padding:.4rem;
     font-size:1.2rem;

@@ -1,5 +1,5 @@
 <template>
-    <el-dialog v-model="state.show" append-to=".app-wrap" :title="$t('network.tunnel.title',[state.device.MachineName])" top="1vh" width="400">
+    <el-dialog append-to=".app-wrap" v-model="state.show" :title="$t('network.tunnel.title',[state.device.MachineName])" top="1vh" width="400">
         <div>
             <el-descriptions border size="small" :column="1" label-width="8rem" >
                 <el-descriptions-item :label="$t('network.tunnel.target')" >
@@ -75,7 +75,7 @@
         </div>
     </el-dialog>
     <RelayNodes v-if="state.showRelayNodes" v-model="state.showRelayNodes" :nodes="state.relayNodes" @onrelay="handleRelayConnect"></RelayNodes>
-    <PcpNodes v-if="state.showPcpNodes" v-model="state.showPcpNodes" :nodes="state.pcpNodes" @onrelay="handlePcpConnect"></PcpNodes>
+    <PcpNodes v-if="state.showPcpNodes" v-model="state.showPcpNodes" :nodes="state.pcpNodes" @onpcp="handlePcpConnect"></PcpNodes>
 </template>
 <script>
 import { reactive, watch, computed, onMounted, onUnmounted } from 'vue';
@@ -173,7 +173,8 @@ export default {
                 state.pcpNodes = res;
             })
         }
-        const handlePcpConnect = (nodeId)=>{
+        const handlePcpConnect = ([nodeId])=>{
+            console.log(nodeId);
             pcpConnect({
                 ToMachineId:state.device.MachineId,
                 TransactionId:state.transactionId,

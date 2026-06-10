@@ -1,5 +1,5 @@
 <template>
-  <el-dialog class="options-center" :title="$t('group')" destroy-on-close v-model="state.show" width="77rem" top="2vh">
+  <el-dialog append-to=".app-wrap" class="options-center" :title="$t('group')" destroy-on-close v-model="state.show" width="77rem" top="2vh">
     <div class="group-wrap">
     <el-table stripe  :data="state.list" border size="small" width="100%" height="70vh" @cell-dblclick="handleCellClick">
         <el-table-column prop="Name" :label="$t('group.name')" width="100">

@@ -1,5 +1,5 @@
 <template>
-    <el-dialog :title="$t('flow.messenger')" class="options-center" top="1vh" destroy-on-close v-model="state.show" width="680">
+    <el-dialog append-to=".app-wrap" :title="$t('flow.messenger')" class="options-center" top="1vh" destroy-on-close v-model="state.show" width="680">
         <div>
             <el-table :data="state.list" stripe border size="small" width="100%" height="60vh">
                 <el-table-column prop="id" label="id" width="80"></el-table-column>

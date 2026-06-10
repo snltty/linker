@@ -288,11 +288,10 @@ export default {
 <style lang="stylus" scoped>
 .head {
     color:#555;
-    border:1px solid #eee;
+    border:1px solid var(--table-border-color);
     padding:0 1rem 1rem 1rem;
     border-bottom:0;
 }
-html.dark .head{border-color:#575c61;}
 </style>
 <style  lang="stylus">
 .firewall.el-table {

@@ -1,5 +1,5 @@
 <template>
-    <el-dialog v-model="state.show" append-to=".app-wrap" :title="state.title" top="1vh" width="400">
+    <el-dialog append-to=".app-wrap" v-model="state.show" :title="state.title" top="1vh" width="400">
         <div>
             <el-descriptions border size="small" :column="1" label-width="8rem" overlength-control="wrap">
                 <el-descriptions-item :label="$t('wlist.name')">{{ state.status.Info.Name }}</el-descriptions-item>

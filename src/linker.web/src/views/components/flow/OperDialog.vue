@@ -3,7 +3,7 @@
 </template>
 <script>
 import { watch } from 'vue';
-import Flow from '../flow/Index.vue'
+import Flow from './Dialog.vue'
 import { useFlow } from './flow';
 export default {
     props: ['modelValue'],

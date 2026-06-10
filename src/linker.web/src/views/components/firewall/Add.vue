@@ -1,5 +1,5 @@
 <template>
-   <el-dialog class="options-center" :title="$t('firewall.rule')" destroy-on-close v-model="state.show" width="50rem" top="2vh">
+   <el-dialog append-to=".app-wrap" class="options-center" :title="$t('firewall.rule')" destroy-on-close v-model="state.show" width="50rem" top="2vh">
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm.Data" :rules="state.rules" label-width="auto">
                 <el-form-item :label="$t('firewall.srcName')" prop="SrcId">
@@ -69,7 +69,7 @@
             </el-form>
         </div>
     </el-dialog>
-    <el-dialog class="options-center" :title="$t('firewall.srcName')" destroy-on-close v-model="state.showSrcName" width="54rem" top="2vh">
+    <el-dialog append-to=".app-wrap" class="options-center" :title="$t('firewall.srcName')" destroy-on-close v-model="state.showSrcName" width="54rem" top="2vh">
         <div>
             <el-transfer class="src-tranfer"
                 v-model="state.srcIdValues"

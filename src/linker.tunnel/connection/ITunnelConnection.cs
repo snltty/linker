@@ -75,15 +75,15 @@ namespace linker.tunnel.connection
         /// <summary>
         /// 对方id
         /// </summary>
-        public string RemoteMachineId { get; }
+        public string RemoteMachineId { get; set; }
         /// <summary>
         /// 对方名称
         /// </summary>
-        public string RemoteMachineName { get; }
+        public string RemoteMachineName { get; set; }
         /// <summary>
         /// 事务
         /// </summary>
-        public string TransactionId { get; }
+        public string TransactionId { get; set; }
         /// <summary>
         /// 配置
         /// </summary>
@@ -91,7 +91,7 @@ namespace linker.tunnel.connection
         /// <summary>
         /// 协议
         /// </summary>
-        public string TransportName { get; }
+        public string TransportName { get; set; }
         /// <summary>
         /// 描述
         /// </summary>
@@ -103,7 +103,7 @@ namespace linker.tunnel.connection
         /// <summary>
         /// 隧道类型
         /// </summary>
-        public TunnelType Type { get; }
+        public TunnelType Type { get; set; }
 
         /// <summary>
         /// 中继节点ID
@@ -191,7 +191,8 @@ namespace linker.tunnel.connection
         /// </summary>
         /// <param name="callback">收到数据的回调</param>
         /// <param name="userToken">自定义数据，回调带上</param>
-        public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken);
+        /// <param name="keepHeader">是否保持头部</param>
+        public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken,bool keepHeader = false);
 
         public void Dispose();
         public string ToString();

@@ -1,5 +1,5 @@
 <template>
-     <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap" :title="$t('tuntap.lease')" top="1vh" width="510">
+     <el-dialog append-to=".app-wrap" v-model="state.show" :close-on-click-modal="false" :title="$t('tuntap.lease')" top="1vh" width="510">
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="80">
                 <el-form-item :label="$t('tuntap.name')" prop="Name">
@@ -100,7 +100,7 @@
             </el-form>
         </div>
     </el-dialog>
-    <el-dialog v-model="state.showEdit" append-to=".app-wrap" :title="$t('tuntap.subnet')" top="1vh" width="440">
+    <el-dialog append-to=".app-wrap" v-model="state.showEdit" :title="$t('tuntap.subnet')" top="1vh" width="440">
         <div>
             <div class="head t-c mgb-1">
                 <el-select  v-model="state.prefixLength" class="w-20 mgl-1" @change="handleSubChange" :disabled="state.disabled">

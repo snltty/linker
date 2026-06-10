@@ -1,5 +1,5 @@
 <template>
-   <el-dialog class="options-center" :title="$t('wlist')" destroy-on-close v-model="state.show" width="40rem" top="2vh">
+   <el-dialog append-to=".app-wrap" class="options-center" :title="$t('wlist')" destroy-on-close v-model="state.show" width="40rem" top="2vh">
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="auto">
                 <el-form-item label="">
@@ -53,7 +53,7 @@
             </el-form>
         </div>
     </el-dialog>
-    <el-dialog class="options-center" :title="$t('wlist.nodes')" destroy-on-close v-model="state.showNodes" width="54rem" top="2vh">
+    <el-dialog append-to=".app-wrap" class="options-center" :title="$t('wlist.nodes')" destroy-on-close v-model="state.showNodes" width="54rem" top="2vh">
         <div>
             <el-transfer class="src-tranfer"
                 v-model="state.nodeIds"

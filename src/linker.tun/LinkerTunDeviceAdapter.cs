@@ -348,7 +348,7 @@ namespace linker.tun
                     {
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                             LoggerHelper.Instance.Warning($"tuntap read buffer Exception {ex}");
-                        setupError = ex.Message;
+                        //setupError = ex.Message;
                         await Task.Delay(1000);
                     }
                 }

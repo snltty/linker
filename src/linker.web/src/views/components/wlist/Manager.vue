@@ -1,7 +1,7 @@
 <template>
-    <el-dialog class="options-center" :title="$t('wlist')" destroy-on-close v-model="state.show" width="77rem" top="2vh">
+    <el-dialog append-to=".app-wrap" class="options-center" :title="$t('wlist')" destroy-on-close v-model="state.show" width="77rem" top="2vh">
     <div class="group-wrap">
-        <div class="head">
+        <div class="head mgb-1">
             <div class="search flex">
                 <div><span>{{$t('wlist.name')}}</span> <el-input v-trim v-model="state.page.Name" class="w-8" size="small" clearable @change="handleSearch" /></div>
                 <div><span>{{$t('wlist.remark')}}</span> <el-input v-trim v-model="state.page.Remark" class="w-8" size="small" clearable @change="handleSearch" /></div>

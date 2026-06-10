@@ -1,7 +1,7 @@
 <template>
     <AccessBoolean value="TunnelChangeSelf,TunnelChangeOther">
         <template #default="{values}">
-            <el-table-column prop="tunnel" :label="$t('network')" width="94">
+            <el-table-column prop="tunnel" :label="$t('network')" width="104">
                 <template #default="scope">
                     <template v-if="scope.row && scope.row.hook_tunnel">
                         <div class="skeleton-animation" :style="`animation-delay:${scope.row.animationDelay}ms`">
@@ -176,11 +176,10 @@ export default {
 img.system,span.nat{
     height:1.4rem;
     margin-right:.2rem;
-    border: 1px solid #eee;
+    border: 1px solid var(--table-border-color);
     line-height:1.4rem;
     vertical-align:middle;
 }
-html.dark img.system,html.dark span.nat{border-color:#575c61;}
 
 span.nat{display:inline-block;padding:0 .2rem;margin-right:0;font-family: cursive;}
 </style>

@@ -56,13 +56,12 @@ export default {
 
 <style lang="stylus" scoped>
 #file-input{opacity :0;position absolute;z-index :-1}
-html.dark .head{background-color:#242526;border-color:#575c61;}
 .head{
-    background-color:#f6f8fa;
-    border-bottom:1px solid #d0d7de;
+    background-color:var(--header-bg-color);
+    border-bottom:1px solid var(--header-border-color);
     height:5rem;
     line-height:5rem;
-    border-radius:.5rem .5rem 0 0;
+    border-radius:.8rem .8rem 0 0;
     .logo{
         padding:.5rem 0 0 1rem;
         height:4.5rem

@@ -1,5 +1,5 @@
 <template>
-     <el-dialog v-model="state.show" :close-on-click-modal="false" append-to=".app-wrap" :title="$t('socks5.title',[state.machineName])" top="1vh" width="780">
+     <el-dialog append-to=".app-wrap" v-model="state.show" :close-on-click-modal="false"  :title="$t('socks5.title',[state.machineName])" top="1vh" width="780">
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="140">
                 <el-form-item prop="gateway" class="mb-0">

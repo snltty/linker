@@ -1,5 +1,5 @@
 <template>
-    <el-dialog class="options-center" :title="$t('updater')" destroy-on-close v-model="state.show" width="42rem" top="2vh">
+    <el-dialog append-to=".app-wrap" class="options-center" :title="$t('updater')" destroy-on-close v-model="state.show" width="42rem" top="2vh">
         <div class="updater-wrap t-c">
             <AccessBoolean value="UpdateSelf,UpdateOther">
                 <template #default="{values}">

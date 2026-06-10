@@ -9,51 +9,59 @@
                 </div>
             </template>
             <div class="absolute scrollbar">
-                <el-form label-width="auto" :label-position="state.position">
-                    <el-form-item :label="$t('messenger.addr')">
-                        <div class="flex">
-                            <el-input v-trim :class="{success:state.list.Host==state.signinHost}" class="w-20" v-model="state.list.Host" @blur="handleSave" />
-                            <span class="mgl-1"></span>
-                            <Sync name="SignInServer"></Sync>
-                            <PcShow>
-                                <span class="mgl-1">{{$t('messenger.alert')}}</span>
-                            </PcShow>
-                        </div>
-                    </el-form-item>
-                    <el-form-item :label="`${$t('messenger.addr')}1`">
-                        <div class="flex">
-                            <el-input v-trim :class="{success:state.list.Host1==state.signinHost}" class="w-20" v-model="state.list.Host1" @blur="handleSave" />
-                        </div>
-                    </el-form-item>
-                    <el-form-item></el-form-item>
-                    <el-form-item :label="$t('messenger.super.key')">
-                        <div class="flex">
-                            <el-input v-trim :class="{success:state.super,error:state.super==false}" class="w-20" type="password" show-password maxlength="36" v-model="state.list.SuperKey" @blur="handleSave" />
-                            <span class="mgl-1"></span>
-                            <Sync name="SignInSuperKey"></Sync>
-                        </div>
-                    </el-form-item>
-                    <el-form-item :label="$t('messenger.super.password')">
-                        <div class="flex">
-                            <el-input v-trim :class="{success:state.super,error:state.super==false}" class="w-20" type="password" show-password maxlength="36" v-model="state.list.SuperPassword" @blur="handleSave" />
-                        </div>
-                    </el-form-item>
-                    <el-form-item></el-form-item>   
-                    <el-form-item :label="$t('messenger.userid')">
-                        <div class="flex">
-                            <el-input v-trim class="w-20" type="password" show-password maxlength="36" v-model="state.list.UserId" @blur="handleSave" />
-                            <span class="mgl-1"></span>
-                            <Sync name="SignInUserId"></Sync>
-                            <PcShow>
-                                <span class="mgl-1">{{$t('messenger.userid.alert')}}</span>
-                            </PcShow>
-                        </div>
-                    </el-form-item>
-                    <el-form-item></el-form-item>
-                    <RelayServers class="mgt-2"></RelayServers>
-                    <ReverseServers class="mgt-2"></ReverseServers>
-                    <Updater></Updater>
-                </el-form>
+                <el-descriptions size="small" title="" :column="1" border :direction="state.direction">
+                    <el-descriptions-item label-width="15rem">
+                        <template #label>
+                            <div class="flex flex-items-center">{{ $t('messenger.addr') }}<span class="flex-1"></span><Sync name="SignInServer"></Sync></div>
+                        </template>
+                        <el-input class="w-auto" v-trim :class="{success:state.list.Host==state.signinHost}" v-model="state.list.Host" @blur="handleSave" />
+                    </el-descriptions-item>
+                    <el-descriptions-item>
+                        <template #label>
+                            <div class="flex flex-items-center">{{ $t('messenger.addr') }}1</div>
+                        </template>
+                        <el-input class="w-auto" v-trim :class="{success:state.list.Host1==state.signinHost}" v-model="state.list.Host1" @blur="handleSave" />
+                    </el-descriptions-item>
+                    <el-descriptions-item></el-descriptions-item>
+                    <el-descriptions-item>
+                        <template #label>
+                            <div class="flex flex-items-center">{{ $t('messenger.super.key') }}<span class="flex-1"></span><Sync name="SignInSuperKey"></Sync></div>
+                        </template>
+                        <el-input class="w-auto" v-trim :class="{success:state.super,error:state.super==false}" type="password" show-password maxlength="36" v-model="state.list.SuperKey" @blur="handleSave" />
+                    </el-descriptions-item>
+                    <el-descriptions-item>
+                        <template #label>
+                            <div class="flex flex-items-center">{{ $t('messenger.super.password') }}</div>
+                        </template>
+                        <el-input class="w-auto" v-trim :class="{success:state.super,error:state.super==false}" type="password" show-password maxlength="36" v-model="state.list.SuperPassword" @blur="handleSave" />
+                    </el-descriptions-item>
+                    <el-descriptions-item>
+                        <template #label>
+                            <div class="flex flex-items-center">{{ $t('messenger.userid') }}<span class="flex-1"></span><Sync name="SignInUserId"></Sync></div>
+                        </template>
+                        <el-input class="w-auto" v-trim type="password" show-password maxlength="36" v-model="state.list.UserId" @blur="handleSave" />
+                    </el-descriptions-item>
+                    <el-descriptions-item></el-descriptions-item>
+                    <el-descriptions-item>
+                        <template #label>
+                            <div class="flex flex-items-center">{{ $t('relay') }}</div>
+                        </template>
+                        <RelayServers></RelayServers>
+                    </el-descriptions-item>
+                    <el-descriptions-item>
+                        <template #label>
+                            <div class="flex flex-items-center">{{ $t('reverse') }}</div>
+                        </template>
+                        <ReverseServers></ReverseServers>
+                    </el-descriptions-item>
+                    <el-descriptions-item></el-descriptions-item>
+                    <el-descriptions-item>
+                        <template #label>
+                            <div class="flex flex-items-center">{{ $t('updater') }}<span class="flex-1"></span><Sync class="mgl-1" name="UpdaterSecretKey"></Sync></div>
+                        </template>
+                        <Updater></Updater>
+                    </el-descriptions-item>
+                </el-descriptions>
             </div>
             <template #footer>
                 <div class="t-c">
@@ -82,7 +90,7 @@ export default {
         const globalData = injectGlobalData();
         const state = reactive({
             list:globalData.value.config.Client.Server,
-            position: computed(()=>globalData.value.isPhone ? 'top':'right'),
+            direction: computed(()=>globalData.value.isPhone ? 'vertical':'horizontal'),
             super:computed(()=>globalData.value.signin.Super),
             signinHost:computed(()=>globalData.value.signin.SignInHost),
         });

@@ -3,17 +3,17 @@
         <AccessBoolean value="RenameSelf,RenameOther">
             <template #default="{values}">
                 <a href="javascript:;" @click="handleEdit(item,values)" :title="item.IP" class="a-line">
-                    <strong class="gateway" :class="{green:item.Connected}">{{item.MachineName || 'null' }}</strong>
+                    <strong :class="{green:item.Connected}">{{item.MachineName || 'null' }}</strong>
                 </a>
-                <strong class="self gateway" v-if="item.isSelf">(<el-icon size="16"><StarFilled /></el-icon>)</strong>
-                <strong class="hide gateway" v-if="item.isHide">(<el-icon size="16"><Hide /></el-icon>)</strong>
+                <strong class="self" v-if="item.isSelf">(<el-icon size="16"><StarFilled /></el-icon>)</strong>
+                <strong class="hide" v-if="item.isHide">(<el-icon size="16"><Hide /></el-icon>)</strong>
             </template>
         </AccessBoolean>
     </template>
     <template v-else>
         <el-skeleton animated >
             <template #template>
-                <el-skeleton-item variant="text" class="vam w-50-"/>
+                <el-skeleton-item variant="text" class="middle w-50-"/>
             </template>
         </el-skeleton>
     </template>

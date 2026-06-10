@@ -1,7 +1,7 @@
 <template>
     <AccessBoolean value="UpdateServer">
         <template #default="{values}">
-            <a href="javascript:;"  @click="handleUpdate(values)" class="download" :title="updateText()" :class="updateColor()">
+            <a href="javascript:;"  @click="handleUpdate(values)" class="download a-line" :title="updateText()" :class="updateColor()">
                 <span>{{state.version}}</span>
                 <template v-if="updaterServer.Version">
                     <template v-if="updaterServer.Status == 1">
@@ -25,7 +25,7 @@
             </a>
         </template>
     </AccessBoolean>
-    <el-dialog class="options-center" :title="$t('updater')" destroy-on-close v-model="state.show" width="42rem" top="2vh">
+    <el-dialog append-to=".app-wrap" class="options-center" :title="$t('updater')" destroy-on-close v-model="state.show" width="42rem" top="2vh">
         <div class="updater-wrap t-c">
             <div class="t-l">
                 <ul>
@@ -49,10 +49,9 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { computed, onMounted, reactive, ref } from 'vue';
 import {Promotion,Download,Loading,CircleCheck} from '@element-plus/icons-vue'
 import { confirmServer, exitServer,  getUpdaterMsg,  getUpdaterServer } from '@/apis/updater';
-import ServerFlow from '../../flow/Index.vue';
 import { useI18n } from 'vue-i18n';
 export default {
-    components:{Promotion,Download,Loading,CircleCheck,ServerFlow},
+    components:{Promotion,Download,Loading,CircleCheck},
     props:['config'],
     setup(props) {
 
@@ -166,21 +165,16 @@ export default {
 }
 
 a{
-    font-weight:bold;
-    line-height:3rem;
-    display:inline-flex;
-    .el-icon{
-        margin-top:.8rem
-    }
-
     &.download{
         .el-icon{
-            font-weight:bold;
             &.loading{
                 animation:loading 1s linear infinite;
             }
-            margin-left:.3rem
+            margin-left:.3rem;
+            vertical-align: middle;
+            margin-top: -4px;
         }
+        span{display: inline-flex;align-items: center;line-height: 1;}
     }
 }
 

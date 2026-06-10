@@ -6,5 +6,6 @@
     "head.firewall": "Firewall",
     "head.wakeup": "Wakeup",
     "head.logger": "Logs",
-    "head.refresh": "Refresh"
+    "head.refresh": "Refresh",
+    "head.about": "About"
 }

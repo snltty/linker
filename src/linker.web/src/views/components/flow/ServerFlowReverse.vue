@@ -1,5 +1,5 @@
 <template>
-    <el-dialog :title="$t('flow.reverse')" class="options-center" top="1vh" destroy-on-close v-model="state.show" width="680">
+    <el-dialog append-to=".app-wrap" :title="$t('flow.reverse')" class="options-center" top="1vh" destroy-on-close v-model="state.show" width="680">
         <div>
             <div class="head">
                 <el-input v-trim v-model="state.page.Key" :placeholder="$t('flow.search.domain')"></el-input>

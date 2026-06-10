@@ -8,12 +8,12 @@
                             <div class="nowrap">
                                 <ConnectionShow :row="scope.row" transactionId="forward"></ConnectionShow>
                                 <a href="javascript:;" :class="{green:scope.row.hook_counter.forward>0}" @click="handleEdit(scope.row.MachineId,scope.row.MachineName,values)">
-                                    <span :class="{gateway:scope.row.hook_counter.forward>0}">{{$t('forward.port')}}({{scope.row.hook_counter.forward>99 ? '99+' : scope.row.hook_counter.forward}})</span>
+                                    <span >{{$t('forward.port')}}({{scope.row.hook_counter.forward>99 ? '99+' : scope.row.hook_counter.forward}})</span>
                                 </a>
                             </div>
                             <div class="nowrap">
                                 <a href="javascript:;" :class="{green:scope.row.hook_counter.reverse>0}" @click="handleSEdit(scope.row.MachineId,scope.row.MachineName,values)">
-                                    <span :class="{gateway:scope.row.hook_counter.reverse>0 }">{{$t('forward.server')}}({{scope.row.hook_counter.reverse>99 ? '99+' :scope.row.hook_counter.reverse}})</span>
+                                    <span >{{$t('forward.server')}}({{scope.row.hook_counter.reverse>99 ? '99+' :scope.row.hook_counter.reverse}})</span>
                                 </a>
                             </div>
                         </div>

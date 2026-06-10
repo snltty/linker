@@ -2,20 +2,20 @@
     <AccessShow value="Export">
         <div class="status-export-wrap">
             <a href="javascript:;" class="a-line blue" :title="$t('export')" @click="state.show = true">
-                <el-icon size="16"><Share /></el-icon>
+                <el-icon size="16" style="vertical-align: middle;"><Share /></el-icon>
                 <PcShow>
                     <span>{{$t('export')}}</span>
                 </PcShow>
             </a>
-            <el-dialog class="options-center" :title="$t('export')" destroy-on-close v-model="state.show" center  width="580" top="1vh">
-                <div class="port-wrap">
+            <el-dialog  append-to=".app-wrap" class="options-center" :title="$t('export')" destroy-on-close v-model="state.show" center  width="70rem" top="1vh">
+                <div class="port-wrap export-dialog">
                     <div class="text">
                         {{$t('export.alert')}}
                     </div>
                     <div class="body">
                         <el-card shadow="never">
                             <template #header>
-                                <div class="card-header">
+                                <div class="fs-14">
                                     <div>
                                         <el-row>
                                             <el-col :span="12"><el-checkbox :disabled="onlyNode" v-model="state.single" :label="$t('export.signle')" /></el-col>
@@ -63,7 +63,7 @@
                     <el-button type="success" plain @click="handleSave" :loading="state.loading">{{$t('export.save') }}</el-button>
                 </template>
             </el-dialog>
-            <el-dialog class="options-center" :title="$t('export')" destroy-on-close v-model="state.showCopy" center  width="580" top="1vh">
+            <el-dialog append-to=".app-wrap" class="options-center" :title="$t('export')" destroy-on-close v-model="state.showCopy" center  width="580" top="1vh">
                 <div class="port-wrap">
                     <el-input v-trim v-model="state.copyContent" type="textarea" :rows="10" resize="none" readonly></el-input>
                 </div>
@@ -71,7 +71,7 @@
                     <el-button plain @click="copyToClipboard">{{$t('export.copy') }}</el-button>
                 </template>
             </el-dialog>
-            <el-dialog class="options-center" :title="$t('export')" destroy-on-close v-model="state.showSave" center  width="300" top="1vh">
+            <el-dialog append-to=".app-wrap" class="options-center" :title="$t('export')" destroy-on-close v-model="state.showSave" center  width="300" top="1vh">
                 <div class="port-wrap">
                     <div>
                         <el-input v-trim v-model="state.saveServer" readonly></el-input>
@@ -265,6 +265,9 @@ export default {
 html.dark .status-wrap .status-export-wrap  a{color:#ccc;}
 .status-export-wrap{
     padding-right:1rem;
+    
+}
+.export-dialog{
     a{
         .el-icon{
             vertical-align: sub;

@@ -20,15 +20,15 @@ namespace linker.tunnel.connection
         {
         }
 
-        public string RemoteMachineId { get; init; }
-        public string RemoteMachineName { get; init; }
-        public string TransactionId { get; init; }
+        public string RemoteMachineId { get; set; }
+        public string RemoteMachineName { get; set; }
+        public string TransactionId { get; set; }
         public Dictionary<string, string> Configure { get; init; }
-        public string TransportName { get; init; }
+        public string TransportName { get; set; }
         public string Label { get; init; }
         public TunnelMode Mode { get; init; }
-        public TunnelProtocolType ProtocolType { get; init; }
-        public TunnelType Type { get; init; }
+        public TunnelProtocolType ProtocolType { get; set; }
+        public TunnelType Type { get; set; }
         public string NodeId { get; init; }
         public TunnelDirection Direction { get; init; }
         public IPEndPoint IPEndPoint { get; init; }
@@ -63,6 +63,7 @@ namespace linker.tunnel.connection
         private ITunnelConnectionReceiveCallback callback;
         private CancellationTokenSource cts;
         private object userToken;
+        private bool keepHeader;
 
         private readonly LastTicksManager pingTicks = new LastTicksManager();
         private readonly byte[] pingBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.udp.ping");
@@ -79,7 +80,7 @@ namespace linker.tunnel.connection
         const byte PacketTypePong = 2;
         const byte PacketTypeFin = 4;
 
-        public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken)
+        public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken, bool keepHeader = false)
         {
             if (this.callback != null)
             {
@@ -88,6 +89,8 @@ namespace linker.tunnel.connection
 
             this.callback = callback;
             this.userToken = userToken;
+            this.keepHeader = keepHeader;
+
             this.cts = new CancellationTokenSource();
             this.sendFunc = SendAsyncDefault;
             this.recvFunc = RecvAsyncDefault;
@@ -200,6 +203,8 @@ namespace linker.tunnel.connection
         private readonly SemaphoreSlim slm = new SemaphoreSlim(1);
         public async ValueTask<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
+            if (cts.IsCancellationRequested) return false;
+
             await slm.WaitAsync(cts.Token).ConfigureAwait(false);
             try
             {

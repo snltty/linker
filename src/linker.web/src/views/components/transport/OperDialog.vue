@@ -1,5 +1,5 @@
 <template>
-    <el-dialog v-model="state.show" append-to=".app-wrap" :title="state.title" top="1vh" width="98%">
+    <el-dialog append-to=".app-wrap" v-model="state.show" :title="state.title" top="1vh" width="80rem">
         <div>
             <Transport :machineId="state.machineId" :machineName="state.machineName"></Transport>
         </div>

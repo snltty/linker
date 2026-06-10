@@ -1,5 +1,5 @@
 <template>
-      <el-dialog v-model="state.show" :title="$t('network.tunnel.pcp.title')" width="98%" top="2vh">
+      <el-dialog append-to=".app-wrap" v-model="state.show" :title="$t('network.tunnel.pcp.title')" width="80rem" top="2vh">
         <div>
             <el-table :data="state.nodes" size="small" border height="600">
                 <el-table-column property="NodeName" :label="$t('network.tunnel.pcp.name')"></el-table-column>

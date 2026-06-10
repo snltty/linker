@@ -6,8 +6,10 @@
                 <Sync name="ActionStatic" v-if="state.isSelf"></Sync>
             </div>
         </template>
-        <div class="absolute scrollbar">
-            <el-input v-trim v-model="state.data" type="textarea" resize="none" @change="handleSave" class="h-100" />
+        <div class="h-100 relative">
+            <div class="absolute scrollbar">
+                <el-input v-trim v-model="state.data" type="textarea" resize="none" @change="handleSave" class="h-100" />
+            </div>
         </div>
         <template #footer>
             <div class="t-c">
@@ -70,7 +72,4 @@ export default {
 }
 </script>
 <style lang="stylus" scoped>
-.scrollbar{
-    padding:var(--el-card-padding);
-}
 </style>

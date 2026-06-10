@@ -1,6 +1,6 @@
 <template>
     <PlanList ref="planDom" :machineid="machineId" category="reverse" :handles="state.handles">
-        <el-dialog v-model="state.show" @open="handleOnShowList" append-to=".app-wrap" :title="$t('reverse.title',[machineName])" top="2vh" width="98%">
+        <el-dialog append-to=".app-wrap" v-model="state.show" @open="handleOnShowList" :title="$t('reverse.title',[machineName])" top="2vh" width="80rem">
             <div>
                 <div class="t-c head">
                     <el-button type="success" size="small" @click="handleAdd" :loading="state.loading">{{$t('common.add')}}</el-button>

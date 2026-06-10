@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="state.show" @open="handleOnShowList" append-to=".app-wrap" :title="$t('forward.title',[state.machineName])" top="1vh" width="780">
+  <el-dialog append-to=".app-wrap" v-model="state.show" @open="handleOnShowList" :title="$t('forward.title',[state.machineName])" top="1vh" width="780">
         <div>
             <div class="t-c head">
                 <el-button type="success" size="small" @click="handleAdd" :loading="state.loading">{{$t('common.add')}}</el-button>

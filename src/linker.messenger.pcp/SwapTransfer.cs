@@ -31,8 +31,8 @@ namespace linker.messenger.pcp
                 SpeedLimit speedLimit = new SpeedLimit();
                 speedLimit.SetLimit((uint)limit);
 
-                conn1.BeginReceive(new TunnelCallback(conn2, speedLimit), null);
-                conn2.BeginReceive(new TunnelCallback(conn1, speedLimit), null);
+                conn1.BeginReceive(new TunnelCallback(conn2, speedLimit), null, true);
+                conn2.BeginReceive(new TunnelCallback(conn1, speedLimit), null, true);
             }
 
             return true;
