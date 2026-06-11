@@ -43,6 +43,11 @@ internal sealed class SegmentHeap
         return result;
     }
 
+    public KcpSegment? Peek()
+    {
+        return _items.Count == 0 ? null : _items[0];
+    }
+
     public void Clear(Action<KcpSegment> onItem)
     {
         foreach (var item in _items)

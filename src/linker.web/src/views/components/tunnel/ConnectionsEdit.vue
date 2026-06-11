@@ -174,7 +174,6 @@ export default {
             })
         }
         const handlePcpConnect = ([nodeId])=>{
-            console.log(nodeId);
             pcpConnect({
                 ToMachineId:state.device.MachineId,
                 TransactionId:state.transactionId,

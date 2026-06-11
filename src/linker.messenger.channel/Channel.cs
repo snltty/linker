@@ -5,6 +5,7 @@ using linker.messenger.pcp;
 using linker.messenger.signin;
 using linker.tunnel;
 using linker.tunnel.connection;
+using linker.tunnel.transport;
 using System.Collections.Concurrent;
 
 namespace linker.messenger.channel
@@ -96,7 +97,7 @@ namespace linker.messenger.channel
         protected virtual void Connected(ITunnelConnection connection)
         {
         }
-        private void OnConnected(ITunnelConnection connection)
+        private void OnConnected(ITunnelConnection connection,TunnelTransportInfo info)
         {
             if (connection == null) return;
 

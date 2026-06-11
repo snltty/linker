@@ -15,6 +15,7 @@ internal sealed class KcpSegment
     public uint Transmit;
     public uint ResendTimestamp;
     public uint FastAck;
+    public bool FastResendPending;
     public bool Acked;
     public byte[]? Buffer;
     public int Length;
@@ -32,6 +33,7 @@ internal sealed class KcpSegment
         Transmit = 0;
         ResendTimestamp = 0;
         FastAck = 0;
+        FastResendPending = false;
         Acked = false;
         Buffer = null;
         Length = 0;

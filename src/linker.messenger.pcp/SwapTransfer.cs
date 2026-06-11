@@ -31,8 +31,8 @@ namespace linker.messenger.pcp
                 SpeedLimit speedLimit = new SpeedLimit();
                 speedLimit.SetLimit((uint)limit);
 
-                conn1.BeginReceive(new TunnelCallback(conn2, speedLimit), null, true);
-                conn2.BeginReceive(new TunnelCallback(conn1, speedLimit), null, true);
+                conn1.BeginReceive(new TunnelCallback(conn2, speedLimit), null);
+                conn2.BeginReceive(new TunnelCallback(conn1, speedLimit), null);
             }
 
             return true;
@@ -64,6 +64,8 @@ namespace linker.messenger.pcp
     {
         private readonly ITunnelConnection dst;
         private readonly SpeedLimit speedLimit;
+        private readonly byte[] buffer = new byte[65535];
+
         public TunnelCallback(ITunnelConnection dst, SpeedLimit speedLimit)
         {
             this.dst = dst;
@@ -72,7 +74,7 @@ namespace linker.messenger.pcp
 
         public ValueTask Closed(ITunnelConnection connection, object state)
         {
-            dst.Dispose();
+            //dst.Dispose();
             return ValueTask.CompletedTask;
         }
 
@@ -88,8 +90,11 @@ namespace linker.messenger.pcp
                     speedLimit.TryLimit(ref length);
                 }
             }
-
-            await dst.SendAsync(data).ConfigureAwait(false);
+            data.CopyTo(buffer.AsMemory(4));
+            ((ushort)(data.Length)).ToBytes(buffer.AsSpan());
+            buffer[2] = 0;
+            buffer[3] = 0;
+            await dst.SendAsync(buffer.AsMemory(0, data.Length + 4)).ConfigureAwait(false);
         }
     }
 

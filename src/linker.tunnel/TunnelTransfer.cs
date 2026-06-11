@@ -23,7 +23,7 @@ namespace linker.tunnel
         public ConcurrentDictionary<string, bool> Operating => operating.StringKeyValue;
         private readonly OperatingMultipleManager operating = new OperatingMultipleManager();
         private uint flowid = 1;
-        private Dictionary<string, List<Action<ITunnelConnection>>> OnConnectedDic { get; } = new Dictionary<string, List<Action<ITunnelConnection>>>();
+        private Dictionary<string, List<Action<ITunnelConnection, TunnelTransportInfo>>> OnConnectedDic { get; } = new();
 
 
         private readonly ITunnelMessengerAdapter tunnelMessengerAdapter;
@@ -123,18 +123,18 @@ namespace linker.tunnel
             });
         }
 
-        public void SetConnectedCallback(string transactionId, Action<ITunnelConnection> callback)
+        public void SetConnectedCallback(string transactionId, Action<ITunnelConnection, TunnelTransportInfo> callback)
         {
-            if (OnConnectedDic.TryGetValue(transactionId, out List<Action<ITunnelConnection>> callbacks) == false)
+            if (OnConnectedDic.TryGetValue(transactionId, out List<Action<ITunnelConnection,TunnelTransportInfo>> callbacks) == false)
             {
-                callbacks = new List<Action<ITunnelConnection>>();
+                callbacks = new List<Action<ITunnelConnection,TunnelTransportInfo>>();
                 OnConnectedDic[transactionId] = callbacks;
             }
             callbacks.Add(callback);
         }
-        public void RemoveConnectedCallback(string transactionId, Action<ITunnelConnection> callback)
+        public void RemoveConnectedCallback(string transactionId, Action<ITunnelConnection, TunnelTransportInfo> callback)
         {
-            if (OnConnectedDic.TryGetValue(transactionId, out List<Action<ITunnelConnection>> callbacks))
+            if (OnConnectedDic.TryGetValue(transactionId, out List<Action<ITunnelConnection,TunnelTransportInfo>> callbacks))
             {
                 callbacks.Remove(callback);
             }
@@ -362,18 +362,18 @@ namespace linker.tunnel
         private void OnConnected(ITunnelConnection connection, TunnelTransportInfo info)
         {
             //调用以下别人注册的回调
-            if (OnConnectedDic.TryGetValue(Helper.GlobalString, out List<Action<ITunnelConnection>> callbacks))
+            if (OnConnectedDic.TryGetValue(Helper.GlobalString, out List<Action<ITunnelConnection, TunnelTransportInfo>> callbacks))
             {
                 foreach (var item in callbacks)
                 {
-                    item(connection);
+                    item(connection, info);
                 }
             }
             if (OnConnectedDic.TryGetValue(connection.TransactionId, out callbacks))
             {
                 foreach (var item in callbacks)
                 {
-                    item(connection);
+                    item(connection, info);
                 }
             }
         }

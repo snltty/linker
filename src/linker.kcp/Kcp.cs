@@ -58,6 +58,7 @@ public sealed class Kcp : IDisposable
     public const byte CommandAck = 82;
     public const byte CommandWindowAsk = 83;
     public const byte CommandWindowSize = 84;
+    public const byte CommandAckRange = 85;
 
     public const int DefaultSendWindow = 32;
     public const int DefaultReceiveWindow = 32;
@@ -76,6 +77,7 @@ public sealed class Kcp : IDisposable
     private const uint FlushAckOnly = 1;
     private const uint FlushFull = 2;
     private const uint FlushPendingType = 3;
+    private const int AckRangePayloadSize = 12;
 
     private static readonly long RefTimestamp = Stopwatch.GetTimestamp();
     private static readonly double TimestampToMilliseconds = 1000d / Stopwatch.Frequency;
@@ -337,7 +339,7 @@ public sealed class Kcp : IDisposable
                 return -2;
             }
 
-            if (cmd is not (CommandPush or CommandAck or CommandWindowAsk or CommandWindowSize))
+            if (cmd is not (CommandPush or CommandAck or CommandWindowAsk or CommandWindowSize or CommandAckRange))
             {
                 return -3;
             }
@@ -359,6 +361,21 @@ public sealed class Kcp : IDisposable
                     flushSegments |= ParseFastAck(sn, timestamp);
                     updateRtt = true;
                     latest = timestamp;
+                    break;
+                case CommandAckRange:
+                    _inputAckSegments++;
+                    var ackRangeResult = ParseAckRanges(data[..(int)length], out var rangeTimestamp);
+                    if (ackRangeResult < 0)
+                    {
+                        return ackRangeResult;
+                    }
+
+                    flushSegments |= ackRangeResult;
+                    if (rangeTimestamp != 0)
+                    {
+                        updateRtt = true;
+                        latest = rangeTimestamp;
+                    }
                     break;
                 case CommandPush:
                     _inputPushSegments++;
@@ -771,68 +788,178 @@ public sealed class Kcp : IDisposable
 
     private void ParseAck(uint sn)
     {
-        if (Timediff(sn, _sndUna) < 0 || Timediff(sn, _sndNext) >= 0)
+        if (!TryGetSendBufferIndex(sn, out var index))
         {
             return;
         }
 
-        var sendBufferCount = _sendBuffer.Count;
-        for (var i = 0; i < sendBufferCount; i++)
+        var segment = _sendBuffer[index];
+        if (!segment.Acked)
         {
-            var segment = _sendBuffer[i];
-            if (sn == segment.Sn)
-            {
-                if (!segment.Acked)
-                {
-                    _selectiveAckedSegments++;
-                }
-
-                segment.Acked = true;
-                RecycleSegmentData(segment);
-                break;
-            }
-
-            if (Timediff(sn, segment.Sn) < 0)
-            {
-                break;
-            }
+            _selectiveAckedSegments++;
         }
+
+        segment.Acked = true;
+        segment.FastResendPending = false;
+        RecycleSegmentData(segment);
     }
 
     private int ParseFastAck(uint sn, uint timestamp)
     {
-        if (Timediff(sn, _sndUna) < 0 || Timediff(sn, _sndNext) >= 0)
+        if (_fastResend <= 0 || !TryGetSendBufferIndex(sn, out var ackIndex))
         {
             return 0;
         }
 
         var shouldFastAck = 0;
-        var sendBufferCount = _sendBuffer.Count;
-        for (var i = 0; i < sendBufferCount; i++)
+        var resent = (uint)_fastResend;
+        for (var i = 0; i < ackIndex; i++)
         {
             var segment = _sendBuffer[i];
-            if (segment.Acked)
+            if (segment.Acked || segment.FastAck == uint.MaxValue)
             {
                 continue;
             }
 
-            if (Timediff(sn, segment.Sn) < 0)
-            {
-                break;
-            }
-
-            if (sn != segment.Sn && Timediff(segment.Timestamp, timestamp) <= 0 && segment.FastAck != uint.MaxValue)
+            if (Timediff(segment.Timestamp, timestamp) <= 0)
             {
                 segment.FastAck++;
                 _fastAckMarks++;
-                if (_fastResend > 0 && segment.FastAck >= _fastResend)
+                if (segment.FastAck >= resent)
                 {
+                    segment.FastAck = uint.MaxValue;
+                    segment.FastResendPending = true;
                     shouldFastAck = 1;
                 }
             }
         }
 
         return shouldFastAck;
+    }
+
+    private int ParseAckRanges(ReadOnlySpan<byte> payload, out uint latestTimestamp)
+    {
+        latestTimestamp = 0;
+        if (payload.Length < sizeof(ushort))
+        {
+            return -2;
+        }
+
+        var rangeCount = BinaryPrimitives.ReadUInt16LittleEndian(payload);
+        payload = payload[sizeof(ushort)..];
+        if (payload.Length != rangeCount * AckRangePayloadSize)
+        {
+            return -2;
+        }
+
+        var shouldFastAck = 0;
+        for (var i = 0; i < rangeCount; i++)
+        {
+            var start = BinaryPrimitives.ReadUInt32LittleEndian(payload);
+            var end = BinaryPrimitives.ReadUInt32LittleEndian(payload[4..]);
+            var timestamp = BinaryPrimitives.ReadUInt32LittleEndian(payload[8..]);
+            payload = payload[AckRangePayloadSize..];
+
+            if (Timediff(end, start) < 0)
+            {
+                return -2;
+            }
+
+            shouldFastAck |= ParseFastAckRange(start, end, timestamp);
+
+            var sn = start;
+            while (true)
+            {
+                ParseAck(sn);
+                if (sn == end)
+                {
+                    break;
+                }
+
+                sn++;
+            }
+
+            latestTimestamp = timestamp;
+        }
+
+        return shouldFastAck;
+    }
+
+    private int ParseFastAckRange(uint start, uint end, uint timestamp)
+    {
+        if (_fastResend <= 0)
+        {
+            return 0;
+        }
+
+        var sendBufferCount = _sendBuffer.Count;
+        var first = _sendBuffer.Peek();
+        if (sendBufferCount == 0 || first is null || Timediff(start, first.Sn) <= 0)
+        {
+            return 0;
+        }
+
+        var bound = unchecked(start - first.Sn);
+        var scanCount = bound >= (uint)sendBufferCount ? sendBufferCount : (int)bound;
+        var rangeLength = unchecked(end - start) + 1;
+        var incrementLimit = Math.Min((uint)_fastResend, rangeLength);
+        var resent = (uint)_fastResend;
+        var shouldFastAck = 0;
+
+        for (var i = 0; i < scanCount; i++)
+        {
+            var segment = _sendBuffer[i];
+            if (segment.Acked || segment.FastAck == uint.MaxValue)
+            {
+                continue;
+            }
+
+            if (Timediff(segment.Timestamp, timestamp) <= 0)
+            {
+                var need = resent > segment.FastAck ? resent - segment.FastAck : 0;
+                var increment = Math.Min(need, incrementLimit);
+                if (increment == 0)
+                {
+                    continue;
+                }
+
+                segment.FastAck += increment;
+                _fastAckMarks += increment;
+                if (segment.FastAck >= resent)
+                {
+                    segment.FastAck = uint.MaxValue;
+                    segment.FastResendPending = true;
+                    shouldFastAck = 1;
+                }
+            }
+        }
+
+        return shouldFastAck;
+    }
+
+    private bool TryGetSendBufferIndex(uint sn, out int index)
+    {
+        index = 0;
+        var count = _sendBuffer.Count;
+        if (count == 0 || Timediff(sn, _sndUna) < 0 || Timediff(sn, _sndNext) >= 0)
+        {
+            return false;
+        }
+
+        var first = _sendBuffer.Peek();
+        if (first is null)
+        {
+            return false;
+        }
+
+        var offset = unchecked(sn - first.Sn);
+        if (offset >= (uint)count)
+        {
+            return false;
+        }
+
+        index = (int)offset;
+        return _sendBuffer[index].Sn == sn;
     }
 
     private int ParseUna(uint una)
@@ -919,17 +1046,14 @@ public sealed class Kcp : IDisposable
     {
         while (_receiveBuffer.Count > 0)
         {
-            var segment = _receiveBuffer.Pop();
-            if (segment.Sn == _rcvNext && _receiveQueue.Count < (int)_receiveWindow)
+            var segment = _receiveBuffer.Peek();
+            if (segment is null || segment.Sn != _rcvNext || _receiveQueue.Count >= (int)_receiveWindow)
             {
-                _receiveQueue.Push(segment);
-                _rcvNext++;
-            }
-            else
-            {
-                _receiveBuffer.Push(segment);
                 break;
             }
+
+            _receiveQueue.Push(_receiveBuffer.Pop());
+            _rcvNext++;
         }
     }
 
@@ -1006,17 +1130,24 @@ public sealed class Kcp : IDisposable
         {
             if (flushType is FlushAckOnly or FlushFull or FlushPendingType)
             {
-                for (var i = 0; i < _ackList.Count; i++)
+                var ackRangeSent = TrySendAckRanges();
+                if (!ackRangeSent)
                 {
-                    var ack = _ackList[i];
-                    MakeSpace(Overhead);
-                    if (Timediff(ack.Sn, _rcvNext) >= 0 || i == _ackList.Count - 1)
+                    var lastAckIndex = _ackList.Count - 1;
+                    for (var i = 0; i < _ackList.Count; i++)
                     {
-                        header.Sn = ack.Sn;
-                        header.Timestamp = ack.Timestamp;
-                        EncodeSegment(header, _buffer.AsSpan(offset, Overhead));
-                        offset += Overhead;
-                        _outputAckSegments++;
+                        var ack = _ackList[i];
+                        MakeSpace(Overhead);
+                        if (Timediff(ack.Sn, _rcvNext) >= 0 || i == lastAckIndex)
+                        {
+                            header.Command = CommandAck;
+                            header.Sn = ack.Sn;
+                            header.Timestamp = ack.Timestamp;
+                            header.Length = 0;
+                            EncodeSegment(header, _buffer.AsSpan(offset, Overhead));
+                            offset += Overhead;
+                            _outputAckSegments++;
+                        }
                     }
                 }
 
@@ -1114,10 +1245,11 @@ public sealed class Kcp : IDisposable
                         segment.Rto = _rxRto;
                         segment.ResendTimestamp = current + segment.Rto;
                     }
-                    else if (segment.FastAck >= resent && segment.FastAck != uint.MaxValue)
+                    else if (segment.FastResendPending || (segment.FastAck >= resent && segment.FastAck != uint.MaxValue))
                     {
                         needSend = true;
                         sendReason = KcpSendReason.FastResend;
+                        segment.FastResendPending = false;
                         segment.FastAck = uint.MaxValue;
                         segment.Rto = _rxRto;
                         segment.ResendTimestamp = current + segment.Rto;
@@ -1137,6 +1269,7 @@ public sealed class Kcp : IDisposable
                         needSend = true;
                         sendReason = KcpSendReason.RtoResend;
                         segment.Rto += _noDelay == 0 ? _rxRto : _rxRto / 2;
+                        segment.FastResendPending = false;
                         segment.FastAck = 0;
                         segment.ResendTimestamp = current + segment.Rto;
                         lostSegments++;
@@ -1189,6 +1322,158 @@ public sealed class Kcp : IDisposable
         finally
         {
             FlushBuffer();
+        }
+
+        bool TrySendAckRanges()
+        {
+            if (_ackList.Count <= 1)
+            {
+                return false;
+            }
+
+            var lastAck = _ackList[^1];
+            if (!IsAckListSorted())
+            {
+                _ackList.Sort(static (left, right) => Timediff(left.Sn, right.Sn));
+            }
+
+            CountAckStats(lastAck.Sn, out var oldAckCount, out var rangeCount);
+            if (oldAckCount <= 1 || rangeCount <= 0)
+            {
+                return false;
+            }
+
+            var payloadLength = sizeof(ushort) + (rangeCount * AckRangePayloadSize);
+            if (Overhead + payloadLength >= oldAckCount * Overhead)
+            {
+                return false;
+            }
+
+            MakeSpace(Overhead + payloadLength);
+            header.Command = CommandAckRange;
+            header.Sn = lastAck.Sn;
+            header.Timestamp = lastAck.Timestamp;
+            header.Length = payloadLength;
+            EncodeSegment(header, _buffer.AsSpan(offset, Overhead));
+            offset += Overhead;
+
+            BinaryPrimitives.WriteUInt16LittleEndian(_buffer.AsSpan(offset, sizeof(ushort)), (ushort)rangeCount);
+            offset += sizeof(ushort);
+            WriteAckRanges(lastAck.Sn);
+            _outputAckSegments++;
+
+            header.Command = CommandAck;
+            header.Length = 0;
+            return true;
+        }
+
+        bool IsAckListSorted()
+        {
+            for (var i = 1; i < _ackList.Count; i++)
+            {
+                if (Timediff(_ackList[i].Sn, _ackList[i - 1].Sn) < 0)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        void CountAckStats(uint lastSn, out int wireAckCount, out int rangeCount)
+        {
+            wireAckCount = 0;
+            rangeCount = 0;
+            var haveRange = false;
+            uint end = 0;
+            for (var i = 0; i < _ackList.Count; i++)
+            {
+                var ack = _ackList[i];
+                if (Timediff(ack.Sn, _rcvNext) < 0 && ack.Sn != lastSn)
+                {
+                    continue;
+                }
+
+                wireAckCount++;
+                if (!haveRange)
+                {
+                    rangeCount++;
+                    end = ack.Sn;
+                    haveRange = true;
+                    continue;
+                }
+
+                if (ack.Sn == end)
+                {
+                    continue;
+                }
+
+                if (ack.Sn == unchecked(end + 1))
+                {
+                    end = ack.Sn;
+                    continue;
+                }
+
+                rangeCount++;
+                end = ack.Sn;
+            }
+        }
+
+        void WriteAckRanges(uint lastSn)
+        {
+            var haveRange = false;
+            uint start = 0;
+            uint end = 0;
+            uint endTimestamp = 0;
+
+            for (var i = 0; i < _ackList.Count; i++)
+            {
+                var ack = _ackList[i];
+                if (Timediff(ack.Sn, _rcvNext) < 0 && ack.Sn != lastSn)
+                {
+                    continue;
+                }
+
+                if (!haveRange)
+                {
+                    start = ack.Sn;
+                    end = ack.Sn;
+                    endTimestamp = ack.Timestamp;
+                    haveRange = true;
+                    continue;
+                }
+
+                if (ack.Sn == end)
+                {
+                    endTimestamp = ack.Timestamp;
+                    continue;
+                }
+
+                if (ack.Sn == unchecked(end + 1))
+                {
+                    end = ack.Sn;
+                    endTimestamp = ack.Timestamp;
+                    continue;
+                }
+
+                WriteAckRange(start, end, endTimestamp);
+                start = ack.Sn;
+                end = ack.Sn;
+                endTimestamp = ack.Timestamp;
+            }
+
+            if (haveRange)
+            {
+                WriteAckRange(start, end, endTimestamp);
+            }
+        }
+
+        void WriteAckRange(uint start, uint end, uint timestamp)
+        {
+            BinaryPrimitives.WriteUInt32LittleEndian(_buffer.AsSpan(offset, sizeof(uint)), start);
+            BinaryPrimitives.WriteUInt32LittleEndian(_buffer.AsSpan(offset + 4, sizeof(uint)), end);
+            BinaryPrimitives.WriteUInt32LittleEndian(_buffer.AsSpan(offset + 8, sizeof(uint)), timestamp);
+            offset += AckRangePayloadSize;
         }
     }
 

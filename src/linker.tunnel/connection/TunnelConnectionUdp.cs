@@ -63,7 +63,6 @@ namespace linker.tunnel.connection
         private ITunnelConnectionReceiveCallback callback;
         private CancellationTokenSource cts;
         private object userToken;
-        private bool keepHeader;
 
         private readonly LastTicksManager pingTicks = new LastTicksManager();
         private readonly byte[] pingBytes = Encoding.UTF8.GetBytes($"{Helper.GlobalString}.udp.ping");
@@ -80,16 +79,14 @@ namespace linker.tunnel.connection
         const byte PacketTypePong = 2;
         const byte PacketTypeFin = 4;
 
-        public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken, bool keepHeader = false)
+        public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken)
         {
             if (this.callback != null)
             {
                 return;
             }
-
             this.callback = callback;
             this.userToken = userToken;
-            this.keepHeader = keepHeader;
 
             this.cts = new CancellationTokenSource();
             this.sendFunc = SendAsyncDefault;
@@ -166,7 +163,6 @@ namespace linker.tunnel.connection
                 {
                     if (Connected == false)
                     {
-                        LoggerHelper.Instance.Error($"tunnel connection dispose 4");
                         Dispose();
                         break;
                     }
@@ -282,7 +278,6 @@ namespace linker.tunnel.connection
         }
         private ValueTask ProcessFin()
         {
-            LoggerHelper.Instance.Error($"tunnel connection dispose 5");
             Dispose();
             return ValueTask.CompletedTask;
         }
@@ -298,6 +293,7 @@ namespace linker.tunnel.connection
                 Crypto.TryDecode(data.Span, cryptoDecodeBuffer, out int bytesWritten);
                 data = cryptoDecodeBuffer.AsMemory(0, bytesWritten);
             }
+
             return ProcessPacket(data);
         }
 
@@ -310,39 +306,46 @@ namespace linker.tunnel.connection
         private LinkerFecOptions fecOption;
         private void InitializeFec()
         {
-            LinkerFecRepairProfilePoint[] profile = [];
-            if (Configure.TryGetValue("fec", out string fec) && string.IsNullOrWhiteSpace(fec) == false)
+            try
             {
-                try
+                LinkerFecRepairProfilePoint[] profile = [];
+                if (Configure.TryGetValue("fec", out string fec) && string.IsNullOrWhiteSpace(fec) == false)
                 {
-                    profile = fec.DeJson<LinkerFecRepairProfilePoint[]>();
+                    try
+                    {
+                        profile = fec.DeJson<LinkerFecRepairProfilePoint[]>();
+                    }
+                    catch (Exception)
+                    {
+                    }
                 }
-                catch (Exception)
+                if (profile.Count(c => c.SourceSymbols != 0 && c.RepairSymbols != 0) == 0)
                 {
+                    return;
                 }
+
+                fecOption = new LinkerFecOptions
+                {
+                    SourceSymbolsPerBlock = 10,
+                    RepairSymbolsPerBlock = 4,
+                    SymbolSize = 1420 + LinkerFecEncodedSymbol.HeaderSize,
+                    RepairProfile = profile,
+                };
+                fecEncoder = new LinkerFecCodec(fecOption);
+                fecDecoder = new LinkerFecCodec(fecOption);
+                fecEncodeBuffer = new byte[fecOption.MaxEncodeBufferSize];
+                fecDecodeBuffer = new byte[fecOption.MaxDecodeBufferSize];
+
+                stickyEncoder = new StickyPacketCodec(maxRemaining, fecOption.MaxEncodeBufferSize, fecOption.MaxSourceSymbolsPerEncodedBlock);
+
+                sendFunc = SendAsyncFec;
+                recvFunc = RecvAsyncFec;
+                _ = FlushTaskFec();
             }
-            if (profile.Count(c => c.SourceSymbols != 0 && c.RepairSymbols != 0) == 0)
+            catch (Exception ex)
             {
-                return;
+                LoggerHelper.Instance.Error(ex);
             }
-
-            fecOption = new LinkerFecOptions
-            {
-                SourceSymbolsPerBlock = 10,
-                RepairSymbolsPerBlock = 4,
-                SymbolSize = 1420 + LinkerFecEncodedSymbol.HeaderSize,
-                RepairProfile = profile,
-            };
-            fecEncoder = new LinkerFecCodec(fecOption);
-            fecDecoder = new LinkerFecCodec(fecOption);
-            fecEncodeBuffer = new byte[fecOption.MaxEncodeBufferSize];
-            fecDecodeBuffer = new byte[fecOption.MaxDecodeBufferSize];
-
-            stickyEncoder = new StickyPacketCodec(maxRemaining, fecOption.MaxEncodeBufferSize, fecOption.MaxSourceSymbolsPerEncodedBlock);
-
-            sendFunc = SendAsyncFec;
-            recvFunc = RecvAsyncFec;
-            _ = FlushTaskFec();
         }
         private async ValueTask<int> SendAsyncFec(ReadOnlyMemory<byte> data)
         {
@@ -471,6 +474,9 @@ namespace linker.tunnel.connection
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Error($"tunnel connection {this.GetHashCode()} writer offline {ToString()}");
 
+            var _callback = callback;
+            callback = null;
+
             SendPingPong(finBytes, PacketTypeFin).AsTask().ContinueWith((result) =>
             {
 
@@ -479,12 +485,7 @@ namespace linker.tunnel.connection
                     UdpClient?.SafeClose();
 
                 cts?.Cancel();
-                callback?.Closed(this, userToken);
-                callback = null;
-                userToken = null;
-
                 Crypto?.Dispose();
-
                 fecEncoder?.Dispose();
                 fecDecoder?.Dispose();
                 stickyEncoder?.Dispose();
@@ -492,6 +493,9 @@ namespace linker.tunnel.connection
                 kcpConnection?.DisposeAsync();
 
                 GC.Collect();
+
+                _callback?.Closed(this, userToken);
+                userToken = null;
             });
         }
         public override string ToString()

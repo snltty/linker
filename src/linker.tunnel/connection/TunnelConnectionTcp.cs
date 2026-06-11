@@ -56,7 +56,6 @@ namespace linker.tunnel.connection
         private ITunnelConnectionReceiveCallback callback;
         private CancellationTokenSource cts;
         private object userToken;
-        private bool keepHeader;
 
         private readonly LastTicksManager pingTicks = new LastTicksManager();
         private readonly byte[] pingBytes = Encoding.UTF8.GetBytes($"{Guid.NewGuid()}.tcp.ping");
@@ -66,13 +65,12 @@ namespace linker.tunnel.connection
         const byte PacketTypePing = 1;
         const byte PacketTypePong = 2;
 
-        public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken, bool keepHeader = false)
+        public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken)
         {
             if (this.callback != null) return;
 
             this.callback = callback;
             this.userToken = userToken;
-            this.keepHeader = keepHeader;
 
             cts = new CancellationTokenSource();
 
@@ -137,11 +135,21 @@ namespace linker.tunnel.connection
                         }
                         continue;
                     }
+                    int length = memory.Length;
                     do
                     {
-                        int packetLength = memory.ToUInt16();
-                        await ProcessPacket(memory.Slice(2, packetLength), memory.Slice(0, 2 + packetLength)).ConfigureAwait(false);
-                        memory = memory.Slice(2 + packetLength);
+                        try
+                        {
+
+                            int packetLength = memory.ToUInt16();
+                            await ProcessPacket(memory.Slice(2, packetLength)).ConfigureAwait(false);
+                            memory = memory.Slice(2 + packetLength);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex);
+                            break;
+                        }
 
                     } while (memory.Length > 0);
                 }
@@ -155,26 +163,16 @@ namespace linker.tunnel.connection
                 Dispose();
             }
         }
-        private ValueTask ProcessPacket(ReadOnlyMemory<byte> memory, ReadOnlyMemory<byte> memoryHeader)
+        private ValueTask ProcessPacket(ReadOnlyMemory<byte> memory)
         {
             LastTicks.Update();
-            try
+            return memory.Span[0] switch
             {
-                return memory.Span[0] switch
-                {
-                    PacketTypeData => callback.Receive(this, keepHeader ? memoryHeader : memory.Slice(2), this.userToken),
-                    PacketTypePing => SendPingPong(pongBytes, PacketTypePong),
-                    PacketTypePong => ProcessPong(),
-                    _ => ValueTask.CompletedTask
-                };
-            }
-            catch (Exception ex)
-            {
-                LoggerHelper.Instance.Error(ex);
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Error(string.Join(",", memory.ToArray()));
-            }
-            return ValueTask.CompletedTask;
+                PacketTypeData => callback.Receive(this, memory.Slice(2), this.userToken),
+                PacketTypePing => SendPingPong(pongBytes, PacketTypePong),
+                PacketTypePong => ProcessPong(),
+                _ => ValueTask.CompletedTask
+            };
         }
         private ValueTask ProcessPong()
         {
@@ -214,7 +212,7 @@ namespace linker.tunnel.connection
         private async ValueTask SendPingPong(byte[] data, byte value)
         {
             byte[] heartData = ArrayPool<byte>.Shared.Rent(4 + data.Length);
-            ((ushort)data.Length).ToBytes(heartData.AsSpan());
+            ((ushort)(data.Length)).ToBytes(heartData.AsSpan());
             data.AsMemory().CopyTo(heartData.AsMemory(4));
             heartData[2] = value;
 
@@ -227,7 +225,6 @@ namespace linker.tunnel.connection
         {
             try
             {
-                byte[] bytes = new byte[16 * 1024];
                 while (cts.IsCancellationRequested == false)
                 {
 
@@ -280,6 +277,12 @@ namespace linker.tunnel.connection
             try
             {
                 ((ushort)(data.ToUInt16() + 2)).ToBytes(data);
+
+                if(data.ToUInt16()+2 != data.Length)
+                {
+                    Console.WriteLine($"data length mismatch {data.ToUInt16()+2} != {data.Length}");
+                }
+
                 await packetEncoder.WriteAsync(data, cts.Token).ConfigureAwait(false);
                 return true;
             }
@@ -305,13 +308,15 @@ namespace linker.tunnel.connection
 
         public void Dispose()
         {
+            if (callback == null) return;
+
+            var _callback = callback;
+            callback = null;
+
             LastTicks.Clear();
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Error($"tunnel connection {this.GetHashCode()} writer offline {ToString()}");
 
-            callback?.Closed(this, userToken);
-            callback = null;
-            userToken = null;
             cts?.Cancel();
 
             Stream?.Close();
@@ -327,6 +332,9 @@ namespace linker.tunnel.connection
             catch (Exception)
             { }
             GC.Collect();
+
+            _callback?.Closed(this, userToken);
+            userToken = null;
 
         }
         public override string ToString()

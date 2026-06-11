@@ -3,6 +3,7 @@ using linker.messenger.signin;
 using linker.messenger.tunnel.client;
 using linker.tunnel;
 using linker.tunnel.connection;
+using linker.tunnel.transport;
 
 namespace linker.messenger.pcp
 {
@@ -29,7 +30,7 @@ namespace linker.messenger.pcp
 
             tunnelTransfer.SetConnectedCallback(Helper.GlobalString, OnConnected);
         }
-        private void OnConnected(ITunnelConnection connection)
+        private void OnConnected(ITunnelConnection connection, TunnelTransportInfo info)
         {
             pcpStore.AddHistory(connection);
         }

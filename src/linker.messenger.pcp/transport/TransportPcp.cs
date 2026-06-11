@@ -59,7 +59,7 @@ namespace linker.messenger.pcp
             tunnelTransfer.SetConnectedCallback(_transactionId, _OnConnected);
 
         }
-        private void _OnConnected(ITunnelConnection connection)
+        private void _OnConnected(ITunnelConnection connection, TunnelTransportInfo info)
         {
             if (connection.Configure.TryGetValue(_transactionId, out string config))
             {
@@ -68,6 +68,9 @@ namespace linker.messenger.pcp
                 {
                     if (swapDic.TryRemove(tag.Key, out ITunnelConnection _connection) && _connection.Connected)
                     {
+                        connection.TransactionId = tag.TId;
+                        connection.Type = TunnelType.PCP;
+
                         swapTransfer.Swap(_connection, connection, (int)Math.Ceiling(tunnelClientStore.Relay.Bandwidth * 1024 * 1024 / 8.0));
                     }
                     else
@@ -87,6 +90,7 @@ namespace linker.messenger.pcp
             try
             {
                 PcpInfo info = tunnelTransportInfo.Configure[_transactionId].DeJson<PcpInfo>();
+                info.TId = tunnelTransportInfo.TransactionId;
                 info.Key = $"{tunnelTransportInfo.Local.MachineId}@{tunnelTransportInfo.Remote.MachineId}@{tunnelTransportInfo.TransactionId}";
 
                 var nodes = await pcpNodeTransfer.GetNodeIds(tunnelTransportInfo.Remote.MachineId, info.NodeId).ConfigureAwait(false);
@@ -200,5 +204,6 @@ namespace linker.messenger.pcp
     {
         public string NodeId { get; set; }
         public string Key { get; set; }
+        public string TId { get; set; }
     }
 }

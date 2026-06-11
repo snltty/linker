@@ -25,7 +25,7 @@ namespace linker.tunnel.connection
             packetDst = MemoryPool<byte>.Shared.Rent(maxDecodeBufferSize);
             this.maxDecodePacketCount = maxDecodePacketCount;
 
-            pipe = new Pipe(new PipeOptions(pauseWriterThreshold: maxRemaining, resumeWriterThreshold: (maxRemaining / 2), useSynchronizationContext: false, minimumSegmentSize: 8 * 1024));
+            pipe = new Pipe(new PipeOptions(pauseWriterThreshold: maxRemaining, resumeWriterThreshold: (maxRemaining / 2), useSynchronizationContext: false, minimumSegmentSize:8 * 1024));
         }
 
         public Memory<byte> GetMemory(int sizeHint = 8 * 1024)

@@ -14,6 +14,10 @@ namespace linker.messenger.store.file.pcp
         }
         public void AddHistory(ITunnelConnection connection)
         {
+            if (connection.Type != TunnelType.P2P || connection.TransactionId == "pcp")
+            {
+                return;
+            }
             runningConfig.Data.PcpHistory.History.Add(connection.RemoteMachineId);
             runningConfig.Data.PcpHistory.History = runningConfig.Data.PcpHistory.History.Distinct().ToList();
             runningConfig.Data.Update();

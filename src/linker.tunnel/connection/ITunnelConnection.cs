@@ -191,8 +191,7 @@ namespace linker.tunnel.connection
         /// </summary>
         /// <param name="callback">收到数据的回调</param>
         /// <param name="userToken">自定义数据，回调带上</param>
-        /// <param name="keepHeader">是否保持头部</param>
-        public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken,bool keepHeader = false);
+        public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken);
 
         public void Dispose();
         public string ToString();

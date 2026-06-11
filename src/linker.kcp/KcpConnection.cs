@@ -44,7 +44,7 @@ public sealed class KcpConnection : IAsyncDisposable
         Socket udpSocket,
         EndPoint remoteEndpoint,
         bool recv = true,
-        int flushBatchSegments = 512,
+        int flushBatchSegments = 128,
         int ackFlushBatchPackets = 1024)
     {
         if (mtu <= Kcp.Overhead)
@@ -77,7 +77,7 @@ public sealed class KcpConnection : IAsyncDisposable
         _receiveBuffer = new SpscReceiveBuffer(Math.Max((mtu + sizeof(ushort)) * 64, 64 * 1024));
 
         _updateTask = Task.Run(UpdateLoopAsync);
-        _receiveTask = recv ? Task.Run(ReceiveLoop) : null;
+        _receiveTask = recv ? StartLongRunning(ReceiveLoop) : null;
     }
 
     public int WaitSnd
@@ -494,5 +494,14 @@ public sealed class KcpConnection : IAsyncDisposable
         catch (OperationCanceledException)
         {
         }
+    }
+
+    private static Task StartLongRunning(Action action)
+    {
+        return Task.Factory.StartNew(
+            action,
+            CancellationToken.None,
+            TaskCreationOptions.LongRunning,
+            TaskScheduler.Default);
     }
 }
