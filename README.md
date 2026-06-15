@@ -45,7 +45,7 @@
 - **IPV6直连:** 双方都有IPV6时可用
 - **UPNP直连:** 有公网IPV4时可用，UPNP、NAT-PMP、配置直连端口
 - **TCP/UDP打洞:** 支持TCP/UDP打洞，多种打洞方式，成功率较高
-- **客户端转发:** 网络比较好的客户端可以为其它客户端提供转发连接（即将，敬请期待）
+- **节点中继:** 网络比较好的客户端可以为其它客户端提供中继转发连接
 - **服务器中继:** 支持多中继节点，承载海量设备
 
 ### 3、通信方式
@@ -67,28 +67,8 @@
 - **远程唤醒:** 可以通过`WOL魔术包、USB COM继电器、USB HID继电器`远程唤醒局域网内的设备
 - **内网穿透:** 类似于FRP，使用端口或域名通过服务器访问内网服务(支持`计划任务`，定时定长自动开启关闭，例如每天在上9点自动开启穿透，1小时后自动关闭穿透)。
 - **子网划分:** 对虚拟网络划分下级子网，类似vlsm，但可选的主网与子网选项，通信隔离、单向通信，双向通信。
-- **向前纠错:** 内置极致优化FEC，支持策略性冗余或多倍发包，带宽换稳定，优化丢包链路
-- **KCP+UDP:** 虚拟网卡使用纯UDP隧道，以外通信功能使用UDP+KCP
-
-### 5、向前纠错
-
-以下是UDP隧道/UDP隧道+FEC的效果对比，其中一端对UDP打洞端口模拟双向丢包10%
-
-```
-//iptables
-iptables -A INPUT -p udp --dport 18183 -m statistic --mode random --probability 0.1 -j DROP
-iptables -A OUTPUT -p udp --sport 18183 -m statistic --mode random --probability 0.1 -j DROP
-//nftables
-nft flush table inet linkerdrop
-nft delete table inet linkerdrop
-nft add table inet linkerdrop
-nft add chain inet linkerdrop input { type filter hook input priority -10 \; }
-nft add chain inet linkerdrop output { type filter hook output priority -10 \; }
-nft add rule inet linkerdrop input udp dport 18183 numgen random mod 100 lt 10 drop
-nft add rule inet linkerdrop output udp sport 18183 numgen random mod 100 lt 10 drop
-```
-
-<p><img src="./readme/fec.jpg"></p> 
+- **FEC向前纠错:** 内置极致优化FEC，支持策略性冗余或多倍发包，带宽换稳定，优化丢包链路
+- **强优化KCP:** 内置强优化KCP，让端口转发，socks代理等功能也能使用UDP隧道
 
 
 ## [🖼️]管理页面
