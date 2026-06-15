@@ -428,7 +428,7 @@ pass inet proto icmp all
             }
 
             length = fsRead.Read(buffer.AsSpan(4));
-            length.ToBytes(buffer.AsSpan());
+            ((ushort)(length + 2)).ToBytes(buffer.AsSpan());
             buffer[2] = 0;
             buffer[3] = 0;
 

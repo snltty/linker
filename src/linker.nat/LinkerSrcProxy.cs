@@ -708,7 +708,6 @@ namespace linker.nat
         public byte[] Buffer { get; private set; }
         public int Offset => 0;
         public int Length { get; set; }
-        public Memory<byte> RawPacket => Buffer.AsMemory(Offset + 4, Length - 4);
 
         public byte Version
         {

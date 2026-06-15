@@ -93,7 +93,10 @@ namespace linker.messenger.tuntap.client
         {
             if (tuntapCidrConnectionManager.TryGet(ip, out ITunnelConnection connection) && connection.Connected)
             {
-                return connection.ProtocolType == TunnelProtocolType.Tcp && tuntapConfigTransfer.Info.SrcProxy && tuntapDecenter.HasSwitchFlag(connection.RemoteMachineId, TuntapSwitch.SrcProxy);
+                return connection.ProtocolType == TunnelProtocolType.Tcp
+                    && connection.Type != TunnelType.PCP
+                    && tuntapConfigTransfer.Info.SrcProxy
+                    && tuntapDecenter.HasSwitchFlag(connection.RemoteMachineId, TuntapSwitch.SrcProxy);
             }
             _ = ConnectTunnel(ip).ConfigureAwait(false);
             return false;

@@ -57,13 +57,7 @@ namespace linker.tunnel.connection
         private CancellationTokenSource cts;
         private object userToken;
 
-        private readonly LastTicksManager pingTicks = new LastTicksManager();
-        private readonly byte[] pingBytes = Encoding.UTF8.GetBytes($"{Guid.NewGuid()}.tcp.ping");
-        private readonly byte[] pongBytes = Encoding.UTF8.GetBytes($"{Guid.NewGuid()}.tcp.pong");
-
-        const byte PacketTypeData = 0;
-        const byte PacketTypePing = 1;
-        const byte PacketTypePong = 2;
+        private readonly LastTicksManager pingPongTicks = new LastTicksManager();
 
         public void BeginReceive(ITunnelConnectionReceiveCallback callback, object userToken)
         {
@@ -141,9 +135,9 @@ namespace linker.tunnel.connection
                         try
                         {
 
-                            int packetLength = memory.ToUInt16();
-                            await ProcessPacket(memory.Slice(2, packetLength)).ConfigureAwait(false);
-                            memory = memory.Slice(2 + packetLength);
+                            int packetLength = packetDecoder.ReadLength(memory);
+                            await ProcessPacket(memory.Slice(StickyPacketCodec.PacketLengthSize, packetLength)).ConfigureAwait(false);
+                            memory = memory.Slice(StickyPacketCodec.PacketLengthSize + packetLength);
                         }
                         catch (Exception ex)
                         {
@@ -166,17 +160,18 @@ namespace linker.tunnel.connection
         private ValueTask ProcessPacket(ReadOnlyMemory<byte> memory)
         {
             LastTicks.Update();
-            return memory.Span[0] switch
+            TunnelPacket packet = new TunnelPacket(memory, false);
+            return packet.Flag switch
             {
-                PacketTypeData => callback.Receive(this, memory.Slice(2), this.userToken),
-                PacketTypePing => SendPingPong(pongBytes, PacketTypePong),
-                PacketTypePong => ProcessPong(),
+                TunnelPacket.PacketFlagData => callback.Receive(this, packet.PayloadData, this.userToken),
+                TunnelPacket.PacketFlagPing => SendPingPong(Encoding.UTF8.GetBytes($"{Guid.NewGuid()}"), TunnelPacket.PacketFlagPong),
+                TunnelPacket.PacketFlagPong => ProcessPong(),
                 _ => ValueTask.CompletedTask
             };
         }
         private ValueTask ProcessPong()
         {
-            Delay = (int)pingTicks.Diff();
+            Delay = (int)pingPongTicks.Diff();
             return ValueTask.CompletedTask;
         }
 
@@ -194,8 +189,8 @@ namespace linker.tunnel.connection
 
                     if (LastTicks.DiffGreater(3000))
                     {
-                        pingTicks.Update();
-                        await SendPingPong(pingBytes, PacketTypePing).ConfigureAwait(false);
+                        pingPongTicks.Update();
+                        await SendPingPong(Encoding.UTF8.GetBytes($"{Guid.NewGuid()}"), TunnelPacket.PacketFlagPing).ConfigureAwait(false);
 
                     }
                     await Task.Delay(3000).ConfigureAwait(false);
@@ -211,12 +206,10 @@ namespace linker.tunnel.connection
         }
         private async ValueTask SendPingPong(byte[] data, byte value)
         {
-            byte[] heartData = ArrayPool<byte>.Shared.Rent(4 + data.Length);
-            ((ushort)(data.Length)).ToBytes(heartData.AsSpan());
-            data.AsMemory().CopyTo(heartData.AsMemory(4));
-            heartData[2] = value;
+            byte[] heartData = ArrayPool<byte>.Shared.Rent(TunnelPacket.PacketHeaderSize + data.Length);
 
-            await SendAsync(heartData.AsMemory(0, 4 + data.Length));
+            TunnelPacket packet = new TunnelPacket(heartData, data, value, 0);
+            await SendAsync(packet.RawData).ConfigureAwait(false);
 
             ArrayPool<byte>.Shared.Return(heartData);
         }
@@ -276,14 +269,13 @@ namespace linker.tunnel.connection
             await slm.WaitAsync(cts.Token).ConfigureAwait(false);
             try
             {
-                ((ushort)(data.ToUInt16() + 2)).ToBytes(data);
-
-                if(data.ToUInt16()+2 != data.Length)
+                TunnelPacket packet = new TunnelPacket(data);
+                if (packet.Length != packet.Payload.Length)
                 {
-                    Console.WriteLine($"data length mismatch {data.ToUInt16()+2} != {data.Length}");
+                    LoggerHelper.Instance.Error($"tcp tunnel data length mismatch {packet.Length} != {packet.Payload.Length}");
+                    return false;
                 }
-
-                await packetEncoder.WriteAsync(data, cts.Token).ConfigureAwait(false);
+                await packetEncoder.WriteAsync(packet.RawData, cts.Token).ConfigureAwait(false);
                 return true;
             }
             catch (Exception ex)

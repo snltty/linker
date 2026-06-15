@@ -1,4 +1,5 @@
 ﻿using linker.libs;
+using linker.libs.extends;
 using linker.libs.timer;
 using linker.nat;
 using linker.tun.device;
@@ -330,6 +331,7 @@ namespace linker.tun
                             await Task.Delay(1000);
                             continue;
                         }
+
 
                         packet.Unpacket(buffer, 0, length);
                         if (packet.DstIp.Length == 0 || packet.Version != 4) continue;

@@ -19,6 +19,9 @@ namespace linker.tunnel.connection
         private readonly IMemoryOwner<byte> packetDst;
         private readonly int maxDecodePacketCount;
 
+        public const int PacketLengthSize = TunnelPacket.PacketLengthSize;
+        public int ReadLength(ReadOnlyMemory<byte> memory) => TunnelPacket.ReadLength(memory);
+
         public StickyPacketCodec(long maxRemaining, int maxDecodeBufferSize = 8 * 1024, int maxDecodePacketCount = int.MaxValue)
         {
             this.maxRemaining = maxRemaining;
@@ -69,7 +72,7 @@ namespace linker.tunnel.connection
                 IsCompleted = true;
                 return Memory<byte>.Empty;
             }
-            if (result.Buffer.Length < 2)
+            if (result.Buffer.Length < PacketLengthSize)
             {
                 pipe.Reader.AdvanceTo(result.Buffer.Start, result.Buffer.End);
                 return Memory<byte>.Empty;
@@ -80,32 +83,34 @@ namespace linker.tunnel.connection
             SequencePosition consumed = result.Buffer.Start, examined = result.Buffer.End;
             do
             {
-                buffer.Slice(0, 2).CopyTo(decodeBuffer.Span);
-                int packetLength = decodeBuffer.Span.ToUInt16();
-                if (packetLength + 2 > buffer.Length)
+                buffer.Slice(0, PacketLengthSize).CopyTo(decodeBuffer.Span);
+                int packetLength =  ReadLength(decodeBuffer);
+                if (packetLength + PacketLengthSize > buffer.Length)
                 {
                     break;
                 }
-                offset += 2 + packetLength;
+                offset += PacketLengthSize + packetLength;
                 packetCount++;
 
                 if (offset > decodeBuffer.Length || packetCount > maxDecodePacketCount)
                 {
-                    offset -= 2 + packetLength;
+                    offset -= PacketLengthSize + packetLength;
                     examined = result.Buffer.GetPosition(offset);
                     break;
                 }
 
-                buffer = buffer.Slice(2 + packetLength);
+                buffer = buffer.Slice(PacketLengthSize + packetLength);
                 consumed = result.Buffer.GetPosition(offset);
 
-            } while (buffer.Length > 2);
+            } while (buffer.Length > PacketLengthSize);
 
             result.Buffer.Slice(0, offset).CopyTo(decodeBuffer.Span);
             Advance(offset);
             pipe.Reader.AdvanceTo(consumed, examined);
             return decodeBuffer.Slice(0, offset);
         }
+
+      
 
         public void Dispose()
         {

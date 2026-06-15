@@ -1,4 +1,4 @@
-﻿using linker.libs.extends;
+﻿using linker.tunnel.connection;
 using System;
 using System.Buffers;
 using System.Net.Sockets;
@@ -8,125 +8,78 @@ namespace linker.forward
     public unsafe sealed class ForwardReadPacket : IDisposable
     {
         private byte* ptr;
-        public byte[] Buffer { get; set; }
-        public int Offset { get; set; }
+        public byte[] Buffer { get; private set; }
+
+        public byte HeaderLength => 17 + 4;
+
+        /// <summary>
+        /// 2 length + 1 flag + 1 rsv + 17 header + data
+        /// </summary>
         public int Length
         {
             get
             {
-                return Buffer.ToInt32() + 4;
+                //data length + header length (17) + flag(1) + rsv(1) + length(2)
+                return TunnelPacket.ReadLength(Buffer.AsMemory()) + 2;
             }
             set
             {
-                (value - 4).ToBytes(Buffer.AsMemory());
+                //data length + header length (17) + flag(1) + rsv(1)
+                TunnelPacket.WriteLength(value + 17 + 2, Buffer);
                 Buffer[2] = 0;
                 Buffer[3] = 0;
             }
         }
+
         public ForwardFlags Flag
         {
-            get
-            {
-                return (ForwardFlags)(*(ptr + 4));
-            }
-            set
-            {
-                *(ptr + 4) = (byte)value;
-            }
+            get => (ForwardFlags)(*(ptr + TunnelPacket.PacketHeaderSize));
+            set { *(ptr + TunnelPacket.PacketHeaderSize) = (byte)value; }
         }
         public ProtocolType ProtocolType
         {
-            get
-            {
-                return (ProtocolType)(*(ptr + 5));
-            }
-            set
-            {
-                *(ptr + 5) = (byte)value;
-            }
+            get => (ProtocolType)(*(ptr + TunnelPacket.PacketHeaderSize + 1));
+            set { *(ptr + TunnelPacket.PacketHeaderSize + 1) = (byte)value; }
         }
         public byte BufferSize
         {
-            get
-            {
-                return *(ptr + 6);
-            }
-            set
-            {
-                *(ptr + 6) = value;
-            }
+            get => *(ptr + TunnelPacket.PacketHeaderSize + 2);
+            set { *(ptr + TunnelPacket.PacketHeaderSize + 2) = value; }
         }
+
         public ushort Port
         {
-            get
-            {
-                return *(ushort*)(ptr + 7);
-            }
-            set
-            {
-                *(ushort*)(ptr + 7) = value;
-            }
+            get => *(ushort*)(ptr + TunnelPacket.PacketHeaderSize + 3);
+            set { *(ushort*)(ptr + TunnelPacket.PacketHeaderSize + 3) = value; }
         }
+
         public uint SrcAddr
         {
-            get
-            {
-                return *(uint*)(ptr + 9);
-            }
-            set
-            {
-                *(uint*)(ptr + 9) = value;
-            }
+            get => *(uint*)(ptr + TunnelPacket.PacketHeaderSize + 5);
+            set { *(uint*)(ptr + TunnelPacket.PacketHeaderSize + 5) = value; }
         }
         public ushort SrcPort
         {
-            get
-            {
-                return *(ushort*)(ptr + 13);
-            }
-            set
-            {
-                *(ushort*)(ptr + 13) = value;
-            }
+            get => *(ushort*)(ptr + TunnelPacket.PacketHeaderSize + 9);
+            set { *(ushort*)(ptr + TunnelPacket.PacketHeaderSize + 9) = value; }
         }
         public uint DstAddr
         {
-            get
-            {
-                return *(uint*)(ptr + 15);
-            }
-            set
-            {
-                *(uint*)(ptr + 15) = value;
-            }
+            get => *(uint*)(ptr + TunnelPacket.PacketHeaderSize + 11);
+            set { *(uint*)(ptr + TunnelPacket.PacketHeaderSize + 11) = value; }
         }
         public ushort DstPort
         {
-            get
-            {
-                return *(ushort*)(ptr + 19);
-            }
-            set
-            {
-                *(ushort*)(ptr + 19) = value;
-            }
+            get => *(ushort*)(ptr + TunnelPacket.PacketHeaderSize + 15);
+            set { *(ushort*)(ptr + TunnelPacket.PacketHeaderSize + 15) = value; }
         }
-        public byte HeaderLength
-        {
-            get => *(ptr + 21);
-            private set
-            {
-                *(ptr + 21) = value;
-            }
-        }
+
         public ForwardReadPacket(byte[] buffer)
         {
             Buffer = buffer;
 
             handle = buffer.AsMemory().Pin();
             ptr = (byte*)handle.Pointer;
-
-            HeaderLength = 22;
         }
 
         MemoryHandle handle;

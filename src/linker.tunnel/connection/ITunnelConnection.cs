@@ -1,5 +1,7 @@
 ﻿using linker.libs;
+using linker.libs.extends;
 using System.Net;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace linker.tunnel.connection
 {
@@ -185,7 +187,7 @@ namespace linker.tunnel.connection
         /// <param name="offset"></param>
         /// <param name="length"></param>
         /// <returns></returns>
-        public ValueTask<bool> SendAsync(byte[] buffer,int offset,int length);
+        public ValueTask<bool> SendAsync(byte[] buffer, int offset, int length);
         /// <summary>
         /// 开始接收数据
         /// </summary>
@@ -198,5 +200,83 @@ namespace linker.tunnel.connection
         public bool Equals(ITunnelConnection connection);
     }
 
+    public struct TunnelPacket
+    {
+        /// <summary>
+        /// 头里的长度值，是Payload的长度
+        /// </summary>
+        public ushort Length { get; private set; }
+        /// <summary>
+        /// 数据类型
+        /// </summary>
+        public byte Flag { get; private set; }
+        /// <summary>
+        /// 保留
+        /// </summary>
+        public byte Rsv { get; private set; }
 
+        /// <summary>
+        /// 长度(2字节) + 标志(1字节) + 保留(1字节) + 数据
+        /// </summary>
+        public ReadOnlyMemory<byte> RawData { get; private set; }
+        /// <summary>
+        /// 标志(1字节) + 保留(1字节) + 数据
+        /// </summary>
+        public ReadOnlyMemory<byte> Payload { get; private set; }
+        /// <summary>
+        /// 数据
+        /// </summary>
+        public ReadOnlyMemory<byte> PayloadData { get; private set; }
+
+       
+        public const int PacketHeaderSize = 4;
+        public const int PacketLengthSize = 2;
+        public const int PacketFlagSize = 2;
+
+        public const byte PacketFlagData = 0;
+        public const byte PacketFlagPing = 1;
+        public const byte PacketFlagPong = 2;
+        public const byte PacketFlagFin = 4;
+
+        public static int ReadLength(ReadOnlyMemory<byte> buffer) => buffer.ToUInt16();
+        public static void WriteLength(int length, ReadOnlyMemory<byte> buffer)
+        {
+            ((ushort)length).ToBytes(buffer);
+        }   
+
+        public TunnelPacket(Memory<byte> dst, ReadOnlyMemory<byte> payloadData, byte flag, byte rsv = 0)
+        {
+            ((ushort)(payloadData.Length + PacketFlagSize)).ToBytes(dst);
+            dst.Span[2] = flag;
+            dst.Span[3] = rsv;
+            payloadData.CopyTo(dst.Slice(PacketHeaderSize));
+            
+            RawData = dst.Slice(0, PacketHeaderSize + payloadData.Length);
+            Payload = dst.Slice(PacketLengthSize, payloadData.Length + PacketFlagSize);
+            PayloadData = payloadData;
+        }
+
+        public TunnelPacket(ReadOnlyMemory<byte> buffer, bool withLengthPrefix = true)
+        {
+            if (withLengthPrefix)
+            {
+                Length = buffer.ToUInt16();
+                Flag = buffer.Span[2];
+                Rsv = buffer.Span[3];
+                RawData = buffer;
+                Payload = buffer.Slice(PacketLengthSize);
+                PayloadData = buffer.Slice(PacketHeaderSize);
+            }
+            else
+            {
+                Flag = buffer.Span[0];
+                Rsv = buffer.Span[1];
+                RawData = buffer;
+                Payload = buffer;
+                PayloadData = buffer.Slice(PacketLengthSize);
+            }
+        }
+
+
+    }
 }

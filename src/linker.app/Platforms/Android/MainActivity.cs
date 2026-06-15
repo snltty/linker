@@ -372,7 +372,7 @@ namespace linker.app
                     length = vpnInput.Read(buffer, 4, buffer.Length - 4);
                     if (length > 0)
                     {
-                        length.ToBytes(buffer.AsSpan());
+                        ((ushort)(length + 2)).ToBytes(buffer.AsSpan());
                         length += 4;
 
                         return buffer;

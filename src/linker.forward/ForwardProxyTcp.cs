@@ -96,7 +96,7 @@ namespace linker.forward
                     tcpConnections.AddOrUpdate(key, token, (a, b) => token);
 
                     token.ReadPacket.Flag = ForwardFlags.Syn;
-                    token.ReadPacket.Length = token.ReadPacket.HeaderLength + length;
+                    token.ReadPacket.Length = length;
                     await SendToConnection(token).ConfigureAwait(false);
 
                     await token.Tcs.WithTimeout(TimeSpan.FromMilliseconds(15000)).ConfigureAwait(false);
@@ -116,7 +116,7 @@ namespace linker.forward
                 if (tcpConnections.TryRemove(key, out AsyncUserToken token))
                 {
                     token.ReadPacket.Flag = ForwardFlags.Rst;
-                    token.ReadPacket.Length = token.ReadPacket.HeaderLength;
+                    token.ReadPacket.Length = 0;
                     await SendToConnection(token).ConfigureAwait(false);
 
                     token.Dispose();
@@ -171,7 +171,7 @@ namespace linker.forward
                 tcpConnections.AddOrUpdate(key, token, (a, b) => token);
 
                 token.ReadPacket.Flag = ForwardFlags.SynAck;
-                token.ReadPacket.Length = token.ReadPacket.HeaderLength;
+                token.ReadPacket.Length = 0;
                 await SendToConnection(token).ConfigureAwait(false);
 
                 token.ReadPacket.Flag = ForwardFlags.PshAck;
@@ -189,7 +189,7 @@ namespace linker.forward
                 if (tcpConnections.TryRemove(key, out AsyncUserToken token))
                 {
                     token.ReadPacket.Flag = ForwardFlags.RstAck;
-                    token.ReadPacket.Length = token.ReadPacket.HeaderLength;
+                    token.ReadPacket.Length = 0;
                     await SendToConnection(token).ConfigureAwait(false);
                     token.Dispose();
                 }
@@ -237,7 +237,6 @@ namespace linker.forward
                 {
                     token.Connection = connection;
                     token.Sending = packet.BufferSize > 0;
-
                     memory = memory.Slice(packet.HeaderLength);
                     if (memory.Length > 0)
                     {
@@ -264,7 +263,7 @@ namespace linker.forward
                 token.ReadPacket.Buffer.AsMemory(0, token.ReadPacket.HeaderLength).CopyTo(buffer);
 
                 using ForwardReadPacket packet = new ForwardReadPacket(buffer);
-                token.ReadPacket.Length = token.ReadPacket.HeaderLength;
+                token.ReadPacket.Length = 0;
                 await SendToConnection(token.Connection, packet, token.IPEndPoint).ConfigureAwait(false);
                 packet.Dispose();
             }
@@ -307,7 +306,7 @@ namespace linker.forward
                 }
 
                 token.ReadPacket.Flag = flag;
-                token.ReadPacket.Length = bytesRead + token.ReadPacket.HeaderLength;
+                token.ReadPacket.Length = bytesRead;
                 await SendToConnection(token).ConfigureAwait(false);
 
                 if (token.Sending == false)

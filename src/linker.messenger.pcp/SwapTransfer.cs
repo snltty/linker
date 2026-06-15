@@ -2,6 +2,7 @@
 using linker.tunnel.connection;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 
 namespace linker.messenger.pcp
 {
@@ -74,7 +75,7 @@ namespace linker.messenger.pcp
 
         public ValueTask Closed(ITunnelConnection connection, object state)
         {
-            //dst.Dispose();
+            dst.Dispose();
             return ValueTask.CompletedTask;
         }
 
@@ -90,11 +91,9 @@ namespace linker.messenger.pcp
                     speedLimit.TryLimit(ref length);
                 }
             }
-            data.CopyTo(buffer.AsMemory(4));
-            ((ushort)(data.Length)).ToBytes(buffer.AsSpan());
-            buffer[2] = 0;
-            buffer[3] = 0;
-            await dst.SendAsync(buffer.AsMemory(0, data.Length + 4)).ConfigureAwait(false);
+
+            TunnelPacket packet = new TunnelPacket(buffer, data, TunnelPacket.PacketFlagData, 0);
+            await dst.SendAsync(packet.RawData).ConfigureAwait(false);
         }
     }
 

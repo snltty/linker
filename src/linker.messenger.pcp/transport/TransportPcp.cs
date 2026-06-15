@@ -70,6 +70,8 @@ namespace linker.messenger.pcp
                     {
                         connection.TransactionId = tag.TId;
                         connection.Type = TunnelType.PCP;
+                        _connection.TransactionId = tag.TId;
+                        _connection.Type = TunnelType.PCP;
 
                         swapTransfer.Swap(_connection, connection, (int)Math.Ceiling(tunnelClientStore.Relay.Bandwidth * 1024 * 1024 / 8.0));
                     }

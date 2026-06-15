@@ -1,5 +1,4 @@
 ﻿using linker.messenger.channel;
-using linker.messenger.pcp;
 using linker.messenger.signin;
 using linker.tunnel;
 using linker.tunnel.connection;
@@ -58,7 +57,7 @@ namespace linker.forward
             {
                 return false;
             }
-            await token.Connection.SendAsync(token.ReadPacket.Buffer.AsMemory(token.ReadPacket.Offset, token.ReadPacket.Length)).ConfigureAwait(false);
+            await token.Connection.SendAsync(token.ReadPacket.Buffer.AsMemory(0, token.ReadPacket.Length)).ConfigureAwait(false);
             Add(token.Connection.RemoteMachineId, token.IPEndPoint, token.ReadPacket.Length, 0);
             return true;
         }
@@ -68,7 +67,7 @@ namespace linker.forward
             {
                 return false;
             }
-            await connection.SendAsync(packet.Buffer.AsMemory(packet.Offset, packet.Length)).ConfigureAwait(false);
+            await connection.SendAsync(packet.Buffer.AsMemory(0, packet.Length)).ConfigureAwait(false);
             Add(connection.RemoteMachineId, ep, packet.Length, 0);
             return true;
         }

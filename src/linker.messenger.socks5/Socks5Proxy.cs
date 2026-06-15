@@ -44,7 +44,7 @@ namespace linker.messenger.socks5
                 }
                 token.ReadPacket.DstAddr = 0;
                 token.ReadPacket.DstPort = 0;
-                token.ReadPacket.Length = token.ReadPacket.HeaderLength + length;
+                token.ReadPacket.Length = length;
 
                 if (memory.Span.IndexOf(hostBytes) >= 0)
                 {
@@ -64,7 +64,7 @@ namespace linker.messenger.socks5
 
                 var data = Socks5Parser.GetUdpData(memory);
                 data.CopyTo(memory);
-                token.ReadPacket.Length = token.ReadPacket.HeaderLength + data.Length;
+                token.ReadPacket.Length = data.Length;
 
                 token.Connection = await ConnectTunnel(token.ReadPacket.DstAddr).ConfigureAwait(false);
 

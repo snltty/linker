@@ -67,13 +67,13 @@ namespace linker.forward
                         continue;
                     }
                     token.ReadPacket.Flag = ForwardFlags.Psh;
-                    token.ReadPacket.Length = token.ReadPacket.HeaderLength + result.ReceivedBytes;
+                    token.ReadPacket.Length =  result.ReceivedBytes;
                     token.ReadPacket.SrcAddr = NetworkHelper.ToValue((result.RemoteEndPoint as IPEndPoint).Address);
                     token.ReadPacket.SrcPort = (ushort)(result.RemoteEndPoint as IPEndPoint).Port;
                     int length = await Tunneling(token, ProtocolType.Udp).ConfigureAwait(false);
                     if (token.ReadPacket.DstAddr > 0 && token.Connection != null)
                     {
-                        token.ReadPacket.Length = token.ReadPacket.HeaderLength + length;
+                        token.ReadPacket.Length =  length;
                         await SendToConnection(token).ConfigureAwait(false);
                     }
                 }
@@ -149,7 +149,8 @@ namespace linker.forward
                 return;
             }
             var connectId = (connection.RemoteMachineId.GetHashCode(), packet.SrcAddr, packet.SrcPort, packet.DstAddr, packet.DstPort);
-            (byte bufferSize, ushort port, uint srcAddr, ushort srcPort, uint dstAddr, ushort dstPort, byte hlen) = (packet.BufferSize, packet.Port, packet.SrcAddr, packet.SrcPort, packet.DstAddr, packet.DstPort, packet.HeaderLength);
+            (byte bufferSize, ushort port, uint srcAddr, ushort srcPort, uint dstAddr, ushort dstPort, byte hlen) =
+                (packet.BufferSize, packet.Port, packet.SrcAddr, packet.SrcPort, packet.DstAddr, packet.DstPort, packet.HeaderLength);
 
             byte[] buffer = ArrayPool<byte>.Shared.Rent(65535);
             try
@@ -192,7 +193,7 @@ namespace linker.forward
 
                     token.LastTicks.Update();
                     token.ReadPacket.Flag = ForwardFlags.PshAck;
-                    token.ReadPacket.Length = token.ReadPacket.HeaderLength + result.ReceivedBytes;
+                    token.ReadPacket.Length =  result.ReceivedBytes;
                     Add(connection.RemoteMachineId, target, result.ReceivedBytes, 0);
 
                     await SendToConnection(token).ConfigureAwait(false);

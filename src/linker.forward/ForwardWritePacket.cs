@@ -8,6 +8,8 @@ namespace linker.forward
     {
         private readonly byte* ptr;
 
+        public readonly byte HeaderLength = 17;
+
         public readonly ForwardFlags Flag => (ForwardFlags)(*(ptr));
         public readonly ProtocolType ProtocolType => (ProtocolType)(*(ptr + 1));
         public readonly byte BufferSize => *(ptr + 2);
@@ -18,8 +20,6 @@ namespace linker.forward
         public readonly ushort SrcPort => *(ushort*)(ptr + 9);
         public readonly uint DstAddr => *(uint*)(ptr + 11);
         public readonly ushort DstPort => *(ushort*)(ptr + 15);
-
-        public readonly byte HeaderLength => (byte)(*(ptr + 17) - 4);
 
         public ForwardWritePacket(ReadOnlyMemory<byte> memory)
         {

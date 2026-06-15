@@ -362,7 +362,7 @@ namespace linker.tun.device
                 if (packetPtr != 0)
                 {
                     new Span<byte>((byte*)packetPtr, length).CopyTo(buffer.AsSpan(4, length));
-                    length.ToBytes(buffer.AsSpan());
+                    ((ushort)(length + 2)).ToBytes(buffer.AsSpan());
                     buffer[2] = 0;
                     buffer[3] = 0;
                     WinTun.WintunReleaseReceivePacket(session, packetPtr);
