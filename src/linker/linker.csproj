@@ -16,12 +16,12 @@
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
 		<Description>1. 一些累计更新，一些BUG修复
-2. 隧道4字节长度头改为2长度+1消息类型+1保留
+2. 隧道4字节长度头改为2长度+1消息类型(data/ping/pong/fin)+1保留
 3. UDP隧道支持策略冗余FEC和KCP
 4. 重写RFC5780NAT类型检测
 5. 端口转发和socks5底层逻辑合并
 6. 更多的Task向ValueTask优化
-7. 支持节点中继</Description>
+7. 支持Mesh网络</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>

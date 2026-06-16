@@ -7,12 +7,12 @@ namespace linker.messenger.logger
 {
     public sealed class LoggerApiController : IApiController
     {
-        private readonly List<LoggerModel> loggers = new List<LoggerModel>();
+        private readonly List<LoggerInfo> loggers = new List<LoggerInfo>();
         private readonly ILoggerStore loggerStore;
         public LoggerApiController(ILoggerStore loggerStore)
         {
             this.loggerStore = loggerStore;
-            LoggerHelper.Instance.OnLogger += (LoggerModel logger) =>
+            LoggerHelper.Instance.OnLogger += (LoggerInfo logger) =>
             {
                 loggers.Add(logger);
                 if (loggers.Count > loggerStore.LoggerSize)
@@ -27,7 +27,7 @@ namespace linker.messenger.logger
         {
             LoggerPageParamInfo info = param.Content.DeJson<LoggerPageParamInfo>();
 
-            IEnumerable<LoggerModel> result = loggers;
+            IEnumerable<LoggerInfo> result = loggers;
             if (info.Type >= 0)
             {
                 result = result.Where(c => c.Type == (LoggerTypes)info.Type);
@@ -76,7 +76,7 @@ namespace linker.messenger.logger
         public int Size { get; set; }
         public int Type { get; set; }
         public int Count { get; set; }
-        public List<LoggerModel> List { get; set; }
+        public List<LoggerInfo> List { get; set; }
     }
 
     public sealed class LoggerPageParamInfo

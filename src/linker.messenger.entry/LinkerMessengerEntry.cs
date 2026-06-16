@@ -5,7 +5,6 @@ using linker.messenger.forward;
 using linker.messenger.listen;
 using linker.messenger.logger;
 using Microsoft.Extensions.DependencyInjection;
-using linker.messenger.pcp;
 using linker.messenger.relay;
 using linker.messenger.signin;
 using linker.messenger.socks5;
@@ -24,6 +23,7 @@ using linker.messenger.wlist;
 using linker.messenger.channel;
 using linker.messenger.rpolicy;
 using linker.messenger.reverse;
+using linker.messenger.mesh;
 
 namespace linker.messenger.entry
 {
@@ -65,8 +65,8 @@ namespace linker.messenger.entry
                 .AddDecenterClient().AddDecenterServer()
                 //端口转发
                 .AddForwardClient().AddForwardServer()
-                //pcp
-                .AddPcpClient().AddPcpServer()
+                //mesh
+                .AddMeshClient().AddMeshServer()
                 //中继
                 .AddRelayClient().AddRelayServer()
 
@@ -189,7 +189,7 @@ namespace linker.messenger.entry
                 if ((modules & ExcludeModule.Wakeup) != ExcludeModule.Wakeup)
                     serviceProvider.UseWakeupServer();
 
-                serviceProvider.UseAccessServer().UseDecenterServer().UsePcpServer()
+                serviceProvider.UseAccessServer().UseDecenterServer().UseMeshServer()
                     .UseRelayServer().UseWhiteListServer()
                  .UseSignInServer().UseSyncServer().UseTunnelServer().UseFlowServer();
 
@@ -222,7 +222,7 @@ namespace linker.messenger.entry
                     serviceProvider.UseWakeupClient();
 
 
-                serviceProvider.UseRouteExclusionPolicy().UseAccessClient().UseDecenterClient().UsePcpClient()
+                serviceProvider.UseRouteExclusionPolicy().UseAccessClient().UseDecenterClient().UseMeshClient()
                     .UseRelayClient().UseWhiteListClient()
                     .UseSyncClient().UseTunnelClient().UseFlowClient();
 

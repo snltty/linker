@@ -5,24 +5,24 @@ using linker.tunnel;
 using linker.tunnel.connection;
 using linker.tunnel.transport;
 
-namespace linker.messenger.pcp
+namespace linker.messenger.mesh
 {
-    public sealed class PcpNodeTransfer
+    public sealed class MeshNodeTransfer
     {
         private readonly SignInClientTransfer signInClientTransfer;
-        private readonly IPcpStore pcpStore;
+        private readonly IMeshStore meshStore;
         private readonly TunnelDecenter tunnelDecenter;
         private readonly IMessengerSender messengerSender;
         private readonly ISerializer serializer;
         private readonly SignInClientState signInClientState;
 
 
-        public PcpNodeTransfer(SignInClientTransfer signInClientTransfer, IPcpStore pcpStore,
+        public MeshNodeTransfer(SignInClientTransfer signInClientTransfer, IMeshStore meshStore,
             TunnelDecenter tunnelDecenter, IMessengerSender messengerSender, ISerializer serializer,
             SignInClientState signInClientState, TunnelTransfer tunnelTransfer)
         {
             this.signInClientTransfer = signInClientTransfer;
-            this.pcpStore = pcpStore;
+            this.meshStore = meshStore;
             this.tunnelDecenter = tunnelDecenter;
             this.messengerSender = messengerSender;
             this.serializer = serializer;
@@ -32,26 +32,26 @@ namespace linker.messenger.pcp
         }
         private void OnConnected(ITunnelConnection connection, TunnelTransportInfo info)
         {
-            pcpStore.AddHistory(connection);
+            meshStore.AddHistory(connection);
         }
 
         public void RemoveNodes(List<string> nodeIds)
         {
-            pcpStore.RemoveHistorys(nodeIds);
+            meshStore.RemoveHistorys(nodeIds);
         }
         public async Task<List<string>> GetNodeIds(string machineId, string nodeId)
         {
             return (await GetNodes(machineId, nodeId).ConfigureAwait(false)).Where(c => c.Enabled).Select(n => n.NodeId).ToList();
         }
-        public async Task<List<PcpNodeInfo>> GetNodes(string machineId, string nodeId)
+        public async Task<List<MeshNodeInfo>> GetNodes(string machineId, string nodeId)
         {
-            List<string> offlines = await signInClientTransfer.GetOfflines(pcpStore.PcpHistory.History).ConfigureAwait(false);
+            List<string> offlines = await signInClientTransfer.GetOfflines(meshStore.MeshHistory.History).ConfigureAwait(false);
             List<string> remoteNodes = await GetRemoteNodes(machineId).ConfigureAwait(false);
-            List<string> nodes = pcpStore.PcpHistory.History.Intersect(remoteNodes).Except(offlines).ToList();
+            List<string> nodes = meshStore.MeshHistory.History.Intersect(remoteNodes).Except(offlines).ToList();
 
-            var tunnelConfigs = tunnelDecenter.Config.Select(c => (c.Value.MachineId, c.Value.Relay)).ToList();
+            var tunnelConfigs = tunnelDecenter.Config.Select(c => (c.Value.MachineId, c.Value.Mesh)).ToList();
 
-            var result = nodes.Join(tunnelConfigs, n => n, tc => tc.MachineId, (n, tc) => new PcpNodeInfo { NodeName=tc.Relay.MachineName, NodeId = n, Enabled = tc.Relay.Enabled, Bandwidth = tc.Relay.Bandwidth })
+            var result = nodes.Join(tunnelConfigs, n => n, tc => tc.MachineId, (n, tc) => new MeshNodeInfo { NodeName=tc.Mesh.MachineName, NodeId = n, Enabled = tc.Mesh.Enabled, Bandwidth = tc.Mesh.Bandwidth })
                 .OrderByDescending(c => c.Enabled)
                 .OrderByDescending(c => c.Bandwidth == 0 ? int.MaxValue : c.Bandwidth);
 
@@ -63,7 +63,7 @@ namespace linker.messenger.pcp
             var resp = await messengerSender.SendReply(new MessageRequestWrap
             {
                 Connection = signInClientState.Connection,
-                MessengerId = (ushort)PcpMessengerIds.NodesForward,
+                MessengerId = (ushort)MeshMessengerIds.NodesForward,
                 Payload = serializer.Serialize(machineId),
                 Timeout = 5000,
             }).ConfigureAwait(false);
@@ -76,7 +76,7 @@ namespace linker.messenger.pcp
 
 
     }
-    public sealed class PcpNodeInfo
+    public sealed class MeshNodeInfo
     {
         public string NodeId { get; set; }
         public string NodeName { get; set; }

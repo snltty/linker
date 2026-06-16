@@ -24,8 +24,8 @@
     "network.level":"层级",
     "network.plus":"加上",
     "network.inip":"入口IP",
-    "network.relay.bandwidth":"转发带宽",
-    "network.relay.enabled":"允许转发",
+    "network.mesh.bandwidth":"转发带宽",
+    "network.mesh.enabled":"允许转发",
     "network.upnp.title":"{0}的UPNP设置",
     "network.upnp.remark":"UPNP、都打勾了就能用",
     "network.upnp.ip":"公网IP",
@@ -53,12 +53,12 @@
     "network.tunnel.manual":"手动",
     "network.tunnel.auto":"自动",
     "network.tunnel.back":"后台",
-    "network.tunnel.pcp":"节点中继",
+    "network.tunnel.mesh":"节点中继",
     "network.tunnel.delay":"延迟",
 
-    "network.tunnel.pcp.title":"节点中继",
-    "network.tunnel.pcp.name":"名称",
-    "network.tunnel.pcp.bandwidth":"带宽",
-    "network.tunnel.pcp.enabled":"启用",
-    "network.tunnel.pcp.use":"使用"
+    "network.tunnel.mesh.title":"节点中继",
+    "network.tunnel.mesh.name":"名称",
+    "network.tunnel.mesh.bandwidth":"带宽",
+    "network.tunnel.mesh.enabled":"启用",
+    "network.tunnel.mesh.use":"使用"
 }

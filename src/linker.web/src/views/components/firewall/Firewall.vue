@@ -1,40 +1,28 @@
 <template>
     <div class="h-100 flex flex-column flex-nowrap">
         <div class="head">
-            <div class="flex">
-                <div class="flex mgt-1">
-                    <div>
-                        <el-select v-model="state.search.Data.Action" @change="loadData" size="small" class="mgr-1 w-9">
-                            <el-option :value="item.value" :label="item.label" v-for="(item,index) in state.actions"></el-option>
-                        </el-select>
-                    </div>
-                    <div>
-                        <el-select v-model="state.search.Data.Protocol" @change="loadData" size="small" class="mgr-1 w-9">
-                            <el-option :value="item.value" :label="item.label" v-for="(item,index) in state.protocols"></el-option>
-                        </el-select>
-                    </div>
-                    <div>
-                        <el-select v-model="state.search.Data.Disabled" @change="loadData" size="small" class="mgr-1 w-9">
-                            <el-option :value="item.value" :label="item.label" v-for="(item,index) in state.states"></el-option>
-                        </el-select>
-                    </div>
+            <div class="flex flex-center">
+                <el-select v-model="state.search.Data.Action" @change="loadData" size="small" class="mgr-1 w-9">
+                    <el-option :value="item.value" :label="item.label" v-for="(item,index) in state.actions"></el-option>
+                </el-select>
+                <el-select v-model="state.search.Data.Protocol" @change="loadData" size="small" class="mgr-1 w-9">
+                    <el-option :value="item.value" :label="item.label" v-for="(item,index) in state.protocols"></el-option>
+                </el-select>
+                <el-select v-model="state.search.Data.Disabled" @change="loadData" size="small" class="mgr-1 w-9">
+                    <el-option :value="item.value" :label="item.label" v-for="(item,index) in state.states"></el-option>
+                </el-select>
+                <div>
+                    <span>{{$t('firewall.srcName')}}/{{$t('firewall.dstCidr')}}/{{$t('firewall.dstPort')}}/{{$t('firewall.remark')}}</span>
+                    <el-input v-trim v-model="state.search.Data.Str" @change="loadData" size="small" class="w-7"></el-input>
                 </div>
-                <div class="flex mgt-1">
-                    <div>
-                        <span>{{$t('firewall.srcName')}}/{{$t('firewall.dstCidr')}}/{{$t('firewall.dstPort')}}/{{$t('firewall.remark')}}</span>
-                        <el-input v-trim v-model="state.search.Data.Str" @change="loadData" size="small" class="w-7"></el-input>
-                    </div>
-                    <div class="mgl-1">
-                        <el-button size="small" :loading="state.loading" @click="loadData">{{$t('common.refresh')}}</el-button>
-                    </div>
-                    <div class="mgl-1">
-                        <el-button type="success" size="small" :loading="state.loading" @click="handleAdd()">+</el-button>
-                    </div>
+                <div class="mgl-1">
+                    <el-button size="small" :loading="state.loading" @click="loadData">{{$t('common.refresh')}}</el-button>
+                </div>
+                <div class="mgl-1">
+                    <el-button type="success" size="small" :loading="state.loading" @click="handleAdd()">+</el-button>
                 </div>
                 <div class="flex-1"></div>
-                <div class="mgt-1" v-if="state.isSelf">
-                    <Sync name="Firewall"></Sync>
-                </div>
+                <Sync v-if="state.isSelf" name="Firewall"></Sync>
             </div>
         </div>
         <div class="body flex-1 relative">
@@ -289,7 +277,7 @@ export default {
 .head {
     color:#555;
     border:1px solid var(--table-border-color);
-    padding:0 1rem 1rem 1rem;
+    padding:1rem;
     border-bottom:0;
 }
 </style>
@@ -298,7 +286,6 @@ export default {
     .action-1 {
         color: green;
     }
-
     .action-2 {
         color: #c83f08;
     }

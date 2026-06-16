@@ -31,7 +31,7 @@ namespace linker.messenger.tunnel.client
 
 
         public IPAddress InIp { get; }
-        public TunnelRelayInfo Relay { get; }
+        public TunnelMeshInfo Relay { get; }
 
         /// <summary>
         /// 设置映射端口
@@ -75,6 +75,6 @@ namespace linker.messenger.tunnel.client
         public Task<bool> SetNetwork(TunnelPublicNetworkInfo network);
 
         public Task<bool> SetInIp(IPAddress ip);
-        public Task<bool> SetRelay(TunnelRelayInfo relay);
+        public Task<bool> SetRelay(TunnelMeshInfo relay);
     }
 }

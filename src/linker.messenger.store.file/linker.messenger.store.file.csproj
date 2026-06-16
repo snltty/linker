@@ -56,7 +56,7 @@
 	  <ProjectReference Include="..\linker.messenger.forward\linker.messenger.forward.csproj" />
 	  <ProjectReference Include="..\linker.messenger.listen\linker.messenger.listen.csproj" />
 	  <ProjectReference Include="..\linker.messenger.logger\linker.messenger.logger.csproj" />
-	  <ProjectReference Include="..\linker.messenger.pcp\linker.messenger.pcp.csproj" />
+	  <ProjectReference Include="..\linker.messenger.mesh\linker.messenger.mesh.csproj" />
 	  <ProjectReference Include="..\linker.messenger.relay\linker.messenger.relay.csproj" />
 	  <ProjectReference Include="..\linker.messenger.reverse\linker.messenger.reverse.csproj" />
 	  <ProjectReference Include="..\linker.messenger.signin\linker.messenger.signin.csproj" />

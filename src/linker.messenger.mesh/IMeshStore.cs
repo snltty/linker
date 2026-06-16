@@ -1,17 +1,17 @@
 ﻿using linker.tunnel.connection;
 
-namespace linker.messenger.pcp
+namespace linker.messenger.mesh
 {
-    public sealed class PcpHistoryInfo
+    public sealed class MeshHistoryInfo
     {
-        public PcpHistoryInfo() { }
+        public MeshHistoryInfo() { }
 
         public List<string> History { get; set; } = new List<string>();
     }
 
-    public interface IPcpStore
+    public interface IMeshStore
     {
-        public PcpHistoryInfo PcpHistory { get; }
+        public MeshHistoryInfo MeshHistory { get; }
         public void AddHistory(ITunnelConnection connection);
         public void RemoveHistorys(List<string> historys);
     }

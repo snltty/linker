@@ -264,7 +264,10 @@ namespace linker.tunnel.connection
         private readonly SemaphoreSlim slm = new SemaphoreSlim(1);
         public async ValueTask<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
-            if (callback == null) return false;
+            if (cts.IsCancellationRequested || data.Length > 10 * 1024)
+            {
+                return false;
+            }
 
             await slm.WaitAsync(cts.Token).ConfigureAwait(false);
             try

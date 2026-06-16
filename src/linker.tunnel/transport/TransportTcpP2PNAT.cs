@@ -36,6 +36,8 @@ namespace linker.tunnel.transport
 
         public byte Order => 4;
 
+        public bool EnableAddr => true;
+
         /// <summary>
         /// 连接成功
         /// </summary>

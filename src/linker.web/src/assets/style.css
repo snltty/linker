@@ -27,7 +27,7 @@ a.a-line {text-decoration: underline;}
 html {
     font-size: 10px;
     background: linear-gradient(90deg, rgba(148, 163, 184, .12) 1px, transparent 1px), linear-gradient(0deg, rgba(148, 163, 184, .12) 1px, transparent 1px);
-    background-size: 24px 24px;
+    background-size: 20px 20px;
 }
 html.dark{
     background-color: #000;

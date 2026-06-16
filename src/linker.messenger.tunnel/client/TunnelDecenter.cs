@@ -82,7 +82,7 @@ namespace linker.messenger.tunnel.client
                 RouteLevelPlus = tunnelClientStore.RouteLevelPlus,
                 Net = tunnelClientStore.Network.Net,
                 InIp = tunnelClientStore.InIp,
-                Relay = new TunnelRelayInfo
+                Mesh = new TunnelMeshInfo
                 {
                     Enabled = tunnelClientStore.Relay.Enabled,
                     Bandwidth = tunnelClientStore.Relay.Bandwidth,

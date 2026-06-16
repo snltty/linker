@@ -24,8 +24,8 @@
     "network.level":"Level",
     "network.plus":"Plus",
     "network.inip":"Entry IP",
-    "network.relay.bandwidth":"Forward Bandwidth",
-    "network.relay.enabled":"Forward Allow",
+    "network.mesh.bandwidth":"Forward Bandwidth",
+    "network.mesh.enabled":"Forward Allow",
     "network.upnp.title": "UPNP setting of {0}",
     "network.upnp.remark": "UPNP: Check all boxes to enable",
     "network.upnp.ip": "Public IP",
@@ -53,12 +53,12 @@
     "network.tunnel.manual": "Manual",
     "network.tunnel.auto": "Auto",
     "network.tunnel.back": "Background",
-    "network.tunnel.pcp": "Node Relay",
+    "network.tunnel.mesh": "Node Relay",
     "network.tunnel.delay": "Delay",
 
-    "network.tunnel.pcp.title":"Node relay",
-    "network.tunnel.pcp.name":"Name",
-    "network.tunnel.pcp.bandwidth":"Bandwidth",
-    "network.tunnel.pcp.enabled":"Enabled",
-    "network.tunnel.pcp.use":"Use"
+    "network.tunnel.mesh.title":"Node relay",
+    "network.tunnel.mesh.name":"Name",
+    "network.tunnel.mesh.bandwidth":"Bandwidth",
+    "network.tunnel.mesh.enabled":"Enabled",
+    "network.tunnel.mesh.use":"Use"
 }

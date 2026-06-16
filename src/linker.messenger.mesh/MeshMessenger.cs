@@ -1,39 +1,39 @@
 ﻿using linker.libs;
 using linker.messenger.signin;
 
-namespace linker.messenger.pcp
+namespace linker.messenger.mesh
 {
-    public sealed class PcpClientMessenger : IMessenger
+    public sealed class MeshClientMessenger : IMessenger
     {
         private readonly ISerializer serializer;
-        private readonly IPcpStore pcpStore;
+        private readonly IMeshStore meshStore;
 
-        public PcpClientMessenger(ISerializer serializer, IPcpStore pcpStore)
+        public MeshClientMessenger(ISerializer serializer, IMeshStore meshStore)
         {
             this.serializer = serializer;
-            this.pcpStore = pcpStore;
+            this.meshStore = meshStore;
         }
 
-        [MessengerId((ushort)PcpMessengerIds.Nodes)]
+        [MessengerId((ushort)MeshMessengerIds.Nodes)]
         public void Nodes(IConnection connection)
         {
-            connection.Write(serializer.Serialize(pcpStore.PcpHistory.History));
+            connection.Write(serializer.Serialize(meshStore.MeshHistory.History));
         }
     }
 
-    public sealed class PcpServerMessenger : IMessenger
+    public sealed class MeshServerMessenger : IMessenger
     {
         private readonly IMessengerSender messengerSender;
         private readonly SignInServerCaching signCaching;
         private readonly ISerializer serializer;
-        public PcpServerMessenger(IMessengerSender messengerSender, SignInServerCaching signCaching, ISerializer serializer)
+        public MeshServerMessenger(IMessengerSender messengerSender, SignInServerCaching signCaching, ISerializer serializer)
         {
             this.messengerSender = messengerSender;
             this.signCaching = signCaching;
             this.serializer = serializer;
         }
 
-        [MessengerId((ushort)PcpMessengerIds.NodesForward)]
+        [MessengerId((ushort)MeshMessengerIds.NodesForward)]
         public void NodesForward(IConnection connection)
         {
             string machineid = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
@@ -44,7 +44,7 @@ namespace linker.messenger.pcp
                 _ = messengerSender.SendReply(new MessageRequestWrap
                 {
                     Connection = to.Connection,
-                    MessengerId = (ushort)PcpMessengerIds.Nodes,
+                    MessengerId = (ushort)MeshMessengerIds.Nodes,
                 }).ContinueWith(async (result) =>
                 {
                     if (result.Result.Code == MessageResponeCodes.OK && result.Result.Data.Length > 0)
@@ -54,7 +54,7 @@ namespace linker.messenger.pcp
                             Connection = connection,
                             Payload = result.Result.Data,
                             RequestId = requestid,
-                        }, (ushort)PcpMessengerIds.NodesForward).ConfigureAwait(false);
+                        }, (ushort)MeshMessengerIds.NodesForward).ConfigureAwait(false);
                     }
                 });
             }

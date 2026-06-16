@@ -19,7 +19,7 @@ namespace linker.messenger.store.file.tunnel
 
         public int TransportMachineIdCount => runningConfig.Data.Tunnel.Transports.Count(c => c.Value != null && c.Value.Count > 0);
 
-        public TunnelRelayInfo Relay => runningConfig.Data.Tunnel.Relay;
+        public TunnelMeshInfo Relay => runningConfig.Data.Tunnel.Mesh;
 
         private readonly RunningConfig runningConfig;
 
@@ -94,7 +94,8 @@ namespace linker.messenger.store.file.tunnel
                 SSL = c.SSL,
                 DisableSSL = c.DisableSSL,
                 Order = c.Order,
-                TunnelType = c.TunnelType
+                TunnelType = c.TunnelType,
+                EnableAddr = c.EnableAddr,
             }).ToList());
         }
         private bool Rebuild(List<TunnelTransportItemInfo> currents, List<TunnelTransportItemInfo> news)
@@ -109,6 +110,7 @@ namespace linker.messenger.store.file.tunnel
                     item.Name = transport.Name;
                     item.Label = transport.Label;
                     item.TunnelType = transport.TunnelType;
+                    item.EnableAddr = transport.EnableAddr;
                     if (transport.DisableReverse)
                     {
                         item.Reverse = transport.Reverse;
@@ -185,9 +187,9 @@ namespace linker.messenger.store.file.tunnel
             return Task.FromResult(true);
         }
 
-        public Task<bool> SetRelay(TunnelRelayInfo relay)
+        public Task<bool> SetRelay(TunnelMeshInfo relay)
         {
-            runningConfig.Data.Tunnel.Relay = relay;
+            runningConfig.Data.Tunnel.Mesh = relay;
             runningConfig.Data.Update();
             OnChanged();
             return Task.FromResult(true);

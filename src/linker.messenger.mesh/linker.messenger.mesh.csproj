@@ -8,14 +8,14 @@
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<PublishAot>false</PublishAot>
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
-		<Title>linker messenger pcp</Title>
+		<Title>linker messenger mesh</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>linker messenger pcp</Description>
+		<Description>linker messenger mesh</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
-		<PackageReleaseNotes>linker messenger pcp</PackageReleaseNotes>
+		<PackageReleaseNotes>linker messenger mesh</PackageReleaseNotes>
 		<Version>1.9.99</Version>
 		<AssemblyVersion>1.9.99</AssemblyVersion>
 		<FileVersion>1.9.99</FileVersion>

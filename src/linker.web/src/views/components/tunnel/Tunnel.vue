@@ -50,7 +50,7 @@
                                 
                                 <span class="flex-1"></span>
                                 <a href="javascript:;" class="a-line" 
-                                    :class="{yellow:scope.row.hook_tunnel.NeedReboot,green:scope.row.hook_tunnel.Relay.Enabled}"
+                                    :class="{yellow:scope.row.hook_tunnel.NeedReboot,green:scope.row.hook_tunnel.Mesh.Enabled}"
                                     @click="handleTunnel(scope.row.hook_tunnel,scope.row,values)">
                                     {{scope.row.hook_tunnel.RouteLevel}}+{{scope.row.hook_tunnel.RouteLevelPlus}}
                                 </a>

@@ -22,8 +22,8 @@ export default {
                 }
                 return false;
             }),
-            className:computed(()=>connection.value.Connected?['p2p','relay','pcp'][connection.value.Type]:'default'),
-            title:computed(()=>connection.value.Connected?[t('network.tunnel.p2p'),t('network.tunnel.relay'),t('network.tunnel.pcp')][connection.value.Type]:t('common.unknow')),
+            className:computed(()=>connection.value.Connected?['p2p','relay','mesh'][connection.value.Type]:'default'),
+            title:computed(()=>connection.value.Connected?[t('network.tunnel.p2p'),t('network.tunnel.relay'),t('network.tunnel.mesh')][connection.value.Type]:t('common.unknow')),
         });
         const handleShow = () => {
             connections.value.device = props.row;
@@ -76,7 +76,7 @@ span.connect-point.relay {
     border: 1px solid #b3c410;
 }
 
-span.connect-point.pcp {
+span.connect-point.mesh {
     background-color: #09dda9;
     border: 1px solid #0cac90;
 }

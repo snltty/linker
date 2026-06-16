@@ -1,15 +1,15 @@
 ﻿using linker.tunnel.wanport;
 using System.Net;
 
-namespace linker.messenger.pcp
+namespace linker.messenger.mesh
 {
-    public sealed class TunnelWanPortProtocolPcp : ITunnelWanPortProtocol
+    public sealed class TunnelWanPortProtocolMesh : ITunnelWanPortProtocol
     {
-        public string Name => "pcp";
+        public string Name => "mesh";
 
         public TunnelWanPortProtocolType ProtocolType => TunnelWanPortProtocolType.Other;
 
-        public TunnelWanPortProtocolPcp() { }
+        public TunnelWanPortProtocolMesh() { }
 
         public async Task<TunnelWanPortEndPoint> GetAsync(IPEndPoint server)
         {

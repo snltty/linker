@@ -42,6 +42,8 @@ namespace linker.tunnel.transport
 
         public byte Order => 5;
 
+        public bool EnableAddr => true;
+
 
         public Action<ITunnelConnection, TunnelTransportInfo> OnConnected { get; set; } = (state, info) => { };
 

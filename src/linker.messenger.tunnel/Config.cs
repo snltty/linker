@@ -22,10 +22,10 @@ namespace linker.messenger.tunnel
         public int PortMapLan { get; set; }
         public TunnelNetInfo Net { get; set; } = new TunnelNetInfo();
         public IPAddress InIp { get; set; } = IPAddress.Any;
-        public TunnelRelayInfo Relay { get; set; } = new TunnelRelayInfo();
+        public TunnelMeshInfo Mesh { get; set; } = new TunnelMeshInfo();
     }
 
-    public sealed partial class TunnelRelayInfo
+    public sealed partial class TunnelMeshInfo
     {
         public bool Enabled { get; set; }
         public int Bandwidth { get; set; }
@@ -67,7 +67,7 @@ namespace linker.messenger.tunnel
         public int PortMapWan { get; set; }
         public int PortMapLan { get; set; }
         public IPAddress InIp { get; set; } = IPAddress.Any;
-        public TunnelRelayInfo Relay { get; set; } = new TunnelRelayInfo();
+        public TunnelMeshInfo Relay { get; set; } = new TunnelMeshInfo();
     }
 
     public sealed class TunnelPublicNetworkInfo

@@ -1,6 +1,5 @@
-﻿using linker.messenger.pcp;
-using LiteDB;
-using System.Text.Json.Serialization;
+﻿
+using linker.messenger.mesh;
 
 namespace linker.messenger.store.file
 {
@@ -9,6 +8,6 @@ namespace linker.messenger.store.file
         /// <summary>
         /// 打洞历史记录
         /// </summary>
-        public PcpHistoryInfo PcpHistory { get; set; } = new PcpHistoryInfo();
+        public MeshHistoryInfo MeshHistory { get; set; } = new MeshHistoryInfo();
     }
 }

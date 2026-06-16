@@ -49,6 +49,11 @@ namespace linker.tunnel.transport
         public byte Order { get; }
 
         /// <summary>
+        /// 允许地址类型
+        /// </summary>
+        public bool EnableAddr { get; }
+
+        /// <summary>
         /// 收到连接
         /// </summary>
         public Action<ITunnelConnection, TunnelTransportInfo> OnConnected { get; set; }
@@ -168,6 +173,10 @@ namespace linker.tunnel.transport
         public Addrs Addr { get; set; } = Addrs.Ipv6 | Addrs.Ipv4 | Addrs.Lan;
 
         public TunnelType TunnelType { get; set; }
+        public bool EnableAddr { get; set; }
+
+
+
     }
 
     public enum Addrs : byte
@@ -230,7 +239,7 @@ namespace linker.tunnel.transport
         public List<IPEndPoint> RemoteEndPoints { get; set; }
     }
 
-   
+
     public sealed class NetworkInfo
     {
         /// <summary>

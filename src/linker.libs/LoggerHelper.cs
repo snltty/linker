@@ -11,8 +11,8 @@ namespace linker.libs
         private static readonly Lazy<LoggerHelper> lazy = new Lazy<LoggerHelper>(() => new LoggerHelper());
         public static LoggerHelper Instance => lazy.Value;
 
-        private readonly Channel<LoggerModel> queue = Channel.CreateUnbounded<LoggerModel>();
-        public Action<LoggerModel> OnLogger { get; set; } = (param) => { };
+        private readonly Channel<LoggerInfo> queue = Channel.CreateUnbounded<LoggerInfo>();
+        public Action<LoggerInfo> OnLogger { get; set; } = (param) => { };
 
         public int PaddingWidth { get; set; } = 50;
 #if DEBUG
@@ -27,7 +27,7 @@ namespace linker.libs
             {
                 while (true)
                 {
-                    LoggerModel model = await queue.Reader.ReadAsync().ConfigureAwait(false);
+                    LoggerInfo model = await queue.Reader.ReadAsync().ConfigureAwait(false);
                     if (model != null)
                     {
                         OnLogger?.Invoke(model);
@@ -53,7 +53,7 @@ namespace linker.libs
             {
                 content = string.Format(content, args);
             }
-            Enqueue(new LoggerModel { Type = LoggerTypes.DEBUG, Content = content });
+            Enqueue(new LoggerInfo { Type = LoggerTypes.DEBUG, Content = content });
         }
         public void Info(string content, params object[] args)
         {
@@ -63,7 +63,7 @@ namespace linker.libs
                 {
                     content = string.Format(content, args);
                 }
-                Enqueue(new LoggerModel { Type = LoggerTypes.INFO, Content = content });
+                Enqueue(new LoggerInfo { Type = LoggerTypes.INFO, Content = content });
             }
         }
         public void Warning(string content, params object[] args)
@@ -72,11 +72,11 @@ namespace linker.libs
             {
                 content = string.Format(content, args);
             }
-            Enqueue(new LoggerModel { Type = LoggerTypes.WARNING, Content = content });
+            Enqueue(new LoggerInfo { Type = LoggerTypes.WARNING, Content = content });
         }
         public void Warning(Exception ex)
         {
-            Enqueue(new LoggerModel { Type = LoggerTypes.WARNING, Content = ex + "" });
+            Enqueue(new LoggerInfo { Type = LoggerTypes.WARNING, Content = ex + "" });
         }
         public void Error(string content, params object[] args)
         {
@@ -84,11 +84,11 @@ namespace linker.libs
             {
                 content = string.Format(content, args);
             }
-            Enqueue(new LoggerModel { Type = LoggerTypes.ERROR, Content = content });
+            Enqueue(new LoggerInfo { Type = LoggerTypes.ERROR, Content = content });
         }
         public void Error(Exception ex)
         {
-            Enqueue(new LoggerModel { Type = LoggerTypes.ERROR, Content = ex + "" });
+            Enqueue(new LoggerInfo { Type = LoggerTypes.ERROR, Content = ex + "" });
         }
 
         public void FATAL(string content, params object[] args)
@@ -97,21 +97,21 @@ namespace linker.libs
             {
                 content = string.Format(content, args);
             }
-            Enqueue(new LoggerModel { Type = LoggerTypes.FATAL, Content = content });
+            Enqueue(new LoggerInfo { Type = LoggerTypes.FATAL, Content = content });
         }
         public void FATAL(Exception ex)
         {
-            Enqueue(new LoggerModel { Type = LoggerTypes.FATAL, Content = ex + "" });
+            Enqueue(new LoggerInfo { Type = LoggerTypes.FATAL, Content = ex + "" });
         }
 
-        public void Enqueue(LoggerModel model)
+        public void Enqueue(LoggerInfo model)
         {
             if (string.IsNullOrWhiteSpace(model.Content)) return;
             queue.Writer.TryWrite(model);
         }
     }
 
-    public sealed class LoggerModel
+    public sealed class LoggerInfo
     {
         public LoggerTypes Type { get; set; } = LoggerTypes.INFO;
         public DateTime Time { get; set; } = DateTime.Now;

@@ -2,7 +2,6 @@
 using linker.libs.extends;
 using linker.libs.timer;
 using linker.messenger.channel;
-using linker.messenger.pcp;
 using linker.messenger.signin;
 using linker.messenger.socks5;
 using linker.tunnel;

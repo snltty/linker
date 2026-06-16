@@ -33,12 +33,12 @@
                         <a v-else href="javascript:;" class="a-line" @click="handleRelayNode">{{ state.relayNodesDic[state.connection.NodeId] || $t('network.tunnel.relay') }}</a>
                     </div>
                 </el-descriptions-item>
-                <el-descriptions-item :label="$t('network.tunnel.pcp')">
+                <el-descriptions-item :label="$t('network.tunnel.mesh')">
                     <div>
-                        <a v-if="state.operating.pcp" href="javascript:;" class="a-line">
+                        <a v-if="state.operating.mesh" href="javascript:;" class="a-line">
                             <span>{{$t('network.tunnel.manual')}}</span><el-icon size="14" class="loading"><Loading /></el-icon>
                         </a>
-                        <a v-else href="javascript:;" class="a-line" @click="handlePcpNode">{{$t('network.tunnel.pcp') }}</a>
+                        <a v-else href="javascript:;" class="a-line" @click="handleMeshNode">{{$t('network.tunnel.mesh') }}</a>
                     </div>
                 </el-descriptions-item>
                 <el-descriptions-item :label="$t('network.tunnel.p2p')">
@@ -50,7 +50,7 @@
                             <a href="javascript:;" class="a-line" @click="handlep2p">{{$t('network.tunnel.p2p')}}</a>
                             <span class="mgl-1">{{$t('network.tunnel.auto')}}<el-icon v-if="state.operating.default" size="14" class="loading"><Loading /></el-icon></span>
                             <span class="mgl-1">{{$t('network.tunnel.back')}}<el-icon v-if="state.operating.back" size="14" class="loading"><Loading /></el-icon></span>
-                            <span class="mgl-1">{{$t('network.tunnel.pcp')}}<el-icon v-if="state.operating.pcp" size="14" class="loading"><Loading /></el-icon></span>
+                            <span class="mgl-1">{{$t('network.tunnel.mesh')}}<el-icon v-if="state.operating.mesh" size="14" class="loading"><Loading /></el-icon></span>
                         </template>
                     </div>
                 </el-descriptions-item>
@@ -75,7 +75,7 @@
         </div>
     </el-dialog>
     <RelayNodes v-if="state.showRelayNodes" v-model="state.showRelayNodes" :nodes="state.relayNodes" @onrelay="handleRelayConnect"></RelayNodes>
-    <PcpNodes v-if="state.showPcpNodes" v-model="state.showPcpNodes" :nodes="state.pcpNodes" @onpcp="handlePcpConnect"></PcpNodes>
+    <MeshNodes v-if="state.showMeshNodes" v-model="state.showMeshNodes" :nodes="state.meshNodes" @onmesh="handleMeshConnect"></MeshNodes>
 </template>
 <script>
 import { reactive, watch, computed, onMounted, onUnmounted } from 'vue';
@@ -86,14 +86,14 @@ import { injectGlobalData } from '@/provide';
 import { relayConnect, setRelaySubscribe } from '@/apis/relay';
 import { useI18n } from 'vue-i18n';
 import { removeTunnelConnection, tunnelConnect } from '@/apis/tunnel';
-import { pcpConnect, pcpGetNodes } from '@/apis/pcp';
+import { meshConnect, meshGetNodes } from '@/apis/mesh';
 import { useDevice } from '../device/devices';
 import RelayNodes from './RelayNodes.vue';
-import PcpNodes from './PcpNodes.vue';
+import MeshNodes from './MeshNodes.vue';
 export default {
     props: ['modelValue'],
     emits: ['change', 'update:modelValue'],
-    components: { Delete, Select, ArrowDown,Loading,RelayNodes,PcpNodes },
+    components: { Delete, Select, ArrowDown,Loading,RelayNodes,MeshNodes },
     setup(props, { emit }) {
 
         const { t } = useI18n();
@@ -106,7 +106,7 @@ export default {
         const state = reactive({
             show: true,
             protocolTypes: { 1: 'tcp', 2: 'udp' },
-            types: { 0: t('network.tunnel.p2p'), 1: t('network.tunnel.relay'), 2: t('network.tunnel.pcp') },
+            types: { 0: t('network.tunnel.p2p'), 1: t('network.tunnel.relay'), 2: t('network.tunnel.mesh') },
             transactions: { 'forward': t('forward'), 'tuntap': t('tuntap'), 'socks5': t('socks5') },
             device: connections.value.device,
             transactionId: connections.value.transactionId,
@@ -118,8 +118,8 @@ export default {
             relayNodesDic:{},
             timer:0,
 
-            showPcpNodes:false,
-            pcpNodes:[]
+            showMeshNodes:false,
+            meshNodes:[]
         });
         watch(() => state.show, (val) => {
             if (!val) {
@@ -167,14 +167,14 @@ export default {
                 ElMessage.success(t('common.opered'));
             }).catch(()=>{ElMessage.success(t('common.operFail'));})
         }
-        const handlePcpNode = ()=>{
-            pcpGetNodes(state.device.MachineId).then((res)=>{
-                state.showPcpNodes = true;
-                state.pcpNodes = res;
+        const handleMeshNode = ()=>{
+            meshGetNodes(state.device.MachineId).then((res)=>{
+                state.showMeshNodes = true;
+                state.meshNodes = res;
             })
         }
-        const handlePcpConnect = ([nodeId])=>{
-            pcpConnect({
+        const handleMeshConnect = ([nodeId])=>{
+            meshConnect({
                 ToMachineId:state.device.MachineId,
                 TransactionId:state.transactionId,
                 NodeId:nodeId,
@@ -182,7 +182,7 @@ export default {
             }).then(()=>{
                 ElMessage.success(t('common.opered'));
             }).catch(()=>{ElMessage.success(t('common.operFail'));});
-            state.showPcpNodes = false;
+            state.showMeshNodes = false;
         }
 
 
@@ -227,7 +227,7 @@ export default {
         return {
             state, handleDel,handlep2p,
              handleRelayNode, handleRelayConnect,
-             handlePcpNode,handlePcpConnect
+             handleMeshNode,handleMeshConnect
         }
     }
 }

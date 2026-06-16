@@ -9,18 +9,18 @@ using linker.tunnel.wanport;
 using System.Collections.Concurrent;
 using System.Security.Cryptography.X509Certificates;
 
-namespace linker.messenger.pcp
+namespace linker.messenger.mesh
 {
-    public class TransportPcp : ITunnelTransport
+    public class TransportMesh : ITunnelTransport
     {
-        public string Name => "PCP";
+        public string Name => "Mesh";
 
-        public string Label => "PCP、节点中继";
+        public string Label => "Mesh、节点中继";
 
         public TunnelProtocolType ProtocolType => TunnelProtocolType.All;
 
         public TunnelWanPortProtocolType AllowWanPortProtocolType => TunnelWanPortProtocolType.Other;
-        public TunnelType TunnelType => TunnelType.PCP;
+        public TunnelType TunnelType => TunnelType.Mesh;
 
         public bool Reverse => false;
 
@@ -32,25 +32,27 @@ namespace linker.messenger.pcp
 
         public byte Order => 255;
 
+        public bool EnableAddr => false;
+
         public Action<ITunnelConnection, TunnelTransportInfo> OnConnected { get; set; } = (state, info) => { };
 
 
-        private readonly string _transactionId = "pcp";
+        private readonly string _transactionId = "mesh";
         private readonly ConcurrentDictionary<string, TaskCompletionSource<bool>> watingDic = new();
         private readonly ConcurrentDictionary<string, ITunnelConnection> swapDic = new();
-        private readonly SwapTransfer swapTransfer = new SwapTransfer();
+        private readonly MeshSwapTransfer swapTransfer = new MeshSwapTransfer();
 
-        private readonly PcpNodeTransfer pcpNodeTransfer;
+        private readonly MeshNodeTransfer meshNodeTransfer;
 
         private readonly ITunnelMessengerAdapter tunnelMessengerAdapter;
         private readonly TunnelTransfer tunnelTransfer;
         private readonly ISignInClientStore signInClientStore;
         private readonly ITunnelClientStore tunnelClientStore;
 
-        public TransportPcp(PcpNodeTransfer pcpNodeTransfer, ITunnelMessengerAdapter tunnelMessengerAdapter, TunnelTransfer tunnelTransfer,
+        public TransportMesh(MeshNodeTransfer meshNodeTransfer, ITunnelMessengerAdapter tunnelMessengerAdapter, TunnelTransfer tunnelTransfer,
             ISignInClientStore signInClientStore, ITunnelClientStore tunnelClientStore)
         {
-            this.pcpNodeTransfer = pcpNodeTransfer;
+            this.meshNodeTransfer = meshNodeTransfer;
             this.tunnelMessengerAdapter = tunnelMessengerAdapter;
             this.tunnelTransfer = tunnelTransfer;
             this.signInClientStore = signInClientStore;
@@ -63,15 +65,15 @@ namespace linker.messenger.pcp
         {
             if (connection.Configure.TryGetValue(_transactionId, out string config))
             {
-                PcpInfo tag = config.DeJson<PcpInfo>();
+                MeshInfo tag = config.DeJson<MeshInfo>();
                 if (tag.NodeId == signInClientStore.Id)
                 {
                     if (swapDic.TryRemove(tag.Key, out ITunnelConnection _connection) && _connection.Connected)
                     {
                         connection.TransactionId = tag.TId;
-                        connection.Type = TunnelType.PCP;
+                        connection.Type = TunnelType.Mesh;
                         _connection.TransactionId = tag.TId;
-                        _connection.Type = TunnelType.PCP;
+                        _connection.Type = TunnelType.Mesh;
 
                         swapTransfer.Swap(_connection, connection, (int)Math.Ceiling(tunnelClientStore.Relay.Bandwidth * 1024 * 1024 / 8.0));
                     }
@@ -91,11 +93,11 @@ namespace linker.messenger.pcp
         {
             try
             {
-                PcpInfo info = tunnelTransportInfo.Configure[_transactionId].DeJson<PcpInfo>();
+                MeshInfo info = tunnelTransportInfo.Configure[_transactionId].DeJson<MeshInfo>();
                 info.TId = tunnelTransportInfo.TransactionId;
                 info.Key = $"{tunnelTransportInfo.Local.MachineId}@{tunnelTransportInfo.Remote.MachineId}@{tunnelTransportInfo.TransactionId}";
 
-                var nodes = await pcpNodeTransfer.GetNodeIds(tunnelTransportInfo.Remote.MachineId, info.NodeId).ConfigureAwait(false);
+                var nodes = await meshNodeTransfer.GetNodeIds(tunnelTransportInfo.Remote.MachineId, info.NodeId).ConfigureAwait(false);
                 foreach (var node in nodes)
                 {
                     ITunnelConnection connection = null;
@@ -115,11 +117,11 @@ namespace linker.messenger.pcp
                         connection.RemoteMachineName = tunnelTransportInfo.Remote.MachineName;
                         connection.TransactionId = tunnelTransportInfo.TransactionId;
                         connection.TransportName = tunnelTransportInfo.TransportName;
-                        connection.Type = TunnelType.PCP;
+                        connection.Type = TunnelType.Mesh;
 
                         if (await tunnelMessengerAdapter.SendConnectBegin(tunnelTransportInfo).ConfigureAwait(false) == false)
                         {
-                            throw new Exception("pcp client begin fail");
+                            throw new Exception("mesh client begin fail");
                         }
 
                         TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
@@ -155,7 +157,7 @@ namespace linker.messenger.pcp
 
         public virtual async Task OnBegin(TunnelTransportInfo tunnelTransportInfo)
         {
-            PcpInfo tag = tunnelTransportInfo.Configure[_transactionId].DeJson<PcpInfo>();
+            MeshInfo tag = tunnelTransportInfo.Configure[_transactionId].DeJson<MeshInfo>();
             try
             {
                 ITunnelConnection connection = await tunnelTransfer.ConnectAsync(tag.NodeId, _transactionId, configures: tunnelTransportInfo.Configure, tunnelTypes: [TunnelType.P2P]).ConfigureAwait(false);
@@ -166,7 +168,7 @@ namespace linker.messenger.pcp
                     connection.RemoteMachineName = tunnelTransportInfo.Remote.MachineName;
                     connection.TransactionId = tunnelTransportInfo.TransactionId;
                     connection.TransportName = tunnelTransportInfo.TransportName;
-                    connection.Type = TunnelType.PCP;
+                    connection.Type = TunnelType.Mesh;
 
                     OnConnected(connection, tunnelTransportInfo);
                     await tunnelMessengerAdapter.SendConnectSuccess(tunnelTransportInfo).ConfigureAwait(false);
@@ -185,7 +187,7 @@ namespace linker.messenger.pcp
         }
         public virtual void OnFail(TunnelTransportInfo tunnelTransportInfo)
         {
-            PcpInfo info = tunnelTransportInfo.Configure[_transactionId].DeJson<PcpInfo>();
+            MeshInfo info = tunnelTransportInfo.Configure[_transactionId].DeJson<MeshInfo>();
             if (watingDic.TryRemove(info.Key, out TaskCompletionSource<bool> tcs))
             {
                 tcs.SetResult(false);
@@ -193,7 +195,7 @@ namespace linker.messenger.pcp
         }
         public virtual void OnSuccess(TunnelTransportInfo tunnelTransportInfo)
         {
-            PcpInfo info = tunnelTransportInfo.Configure[_transactionId].DeJson<PcpInfo>();
+            MeshInfo info = tunnelTransportInfo.Configure[_transactionId].DeJson<MeshInfo>();
             if (watingDic.TryRemove(info.Key, out TaskCompletionSource<bool> tcs))
             {
                 tcs.SetResult(true);
@@ -202,7 +204,7 @@ namespace linker.messenger.pcp
 
     }
 
-    public sealed class PcpInfo
+    public sealed class MeshInfo
     {
         public string NodeId { get; set; }
         public string Key { get; set; }

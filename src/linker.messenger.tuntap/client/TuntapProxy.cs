@@ -1,6 +1,5 @@
 ﻿using linker.libs.extends;
 using linker.messenger.channel;
-using linker.messenger.pcp;
 using linker.messenger.signin;
 using linker.messenger.tuntap.cidr;
 using linker.nat;
@@ -94,7 +93,7 @@ namespace linker.messenger.tuntap.client
             if (tuntapCidrConnectionManager.TryGet(ip, out ITunnelConnection connection) && connection.Connected)
             {
                 return connection.ProtocolType == TunnelProtocolType.Tcp
-                    && connection.Type != TunnelType.PCP
+                    && connection.Type != TunnelType.Mesh
                     && tuntapConfigTransfer.Info.SrcProxy
                     && tuntapDecenter.HasSwitchFlag(connection.RemoteMachineId, TuntapSwitch.SrcProxy);
             }

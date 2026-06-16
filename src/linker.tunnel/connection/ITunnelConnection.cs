@@ -1,7 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.extends;
 using System.Net;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace linker.tunnel.connection
 {
@@ -31,7 +30,7 @@ namespace linker.tunnel.connection
     {
         P2P = 0,
         Relay = 1,
-        PCP = 2,
+        Mesh = 2,
     }
     /// <summary>
     /// 隧道方向

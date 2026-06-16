@@ -2,13 +2,12 @@
 using linker.tunnel.connection;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 
-namespace linker.messenger.pcp
+namespace linker.messenger.mesh
 {
-    public sealed class SwapTransfer
+    public sealed class MeshSwapTransfer
     {
-        public SwapTransfer() { }
+        public MeshSwapTransfer() { }
 
         public bool Swap(ITunnelConnection conn1, ITunnelConnection conn2, int limit = 0)
         {

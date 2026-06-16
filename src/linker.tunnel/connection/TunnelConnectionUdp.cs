@@ -215,18 +215,15 @@ namespace linker.tunnel.connection
         private readonly SemaphoreSlim slm = new SemaphoreSlim(1);
         public async ValueTask<bool> SendAsync(ReadOnlyMemory<byte> data)
         {
-            if (cts.IsCancellationRequested) return false;
+            if (cts.IsCancellationRequested || data.Length > 10 * 1024)
+            {
+                return false;
+            }
 
             await slm.WaitAsync(cts.Token).ConfigureAwait(false);
             try
             {
                 TunnelPacket packet = new TunnelPacket(data);
-                if (packet.Length != packet.Payload.Length)
-                {
-                    LoggerHelper.Instance.Error($"udp tunnel data length mismatch {packet.Length} != {packet.Payload.Length}");
-                    return false;
-                }
-              
                 await SendHook(packet).ConfigureAwait(false);
                 return true;
             }
@@ -273,7 +270,7 @@ namespace linker.tunnel.connection
             return recvFunc(data);
 
         }
-      
+
         private ValueTask ProcessPong()
         {
             Delay = (int)pingPongTicks.Diff();

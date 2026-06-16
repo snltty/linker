@@ -36,6 +36,8 @@ namespace linker.tunnel.transport
 
         public byte Order => 0;
 
+        public bool EnableAddr => false;
+
         public Action<ITunnelConnection,TunnelTransportInfo> OnConnected { get; set; } = (state,info) => { };
 
         private readonly ICrypto crypto = CryptoFactory.CreateSymmetric(Helper.GlobalString);

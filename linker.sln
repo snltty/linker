@@ -45,7 +45,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.action", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.listen", "src\linker.messenger.listen\linker.messenger.listen.csproj", "{4BD30072-9DFC-4D65-B6FB-DB9DDE3EFB30}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.pcp", "src\linker.messenger.pcp\linker.messenger.pcp.csproj", "{A73BB5AD-C3CA-41A2-B5F9-C06DE6F5CD5C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.mesh", "src\linker.messenger.mesh\linker.messenger.mesh.csproj", "{A73BB5AD-C3CA-41A2-B5F9-C06DE6F5CD5C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "linker.messenger.reverse", "src\linker.messenger.reverse\linker.messenger.reverse.csproj", "{A108DE37-47F2-4BF6-AAA4-ADC014214943}"
 EndProject

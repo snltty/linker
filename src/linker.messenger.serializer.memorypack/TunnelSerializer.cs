@@ -144,42 +144,46 @@ namespace linker.messenger.serializer.memorypack
     public readonly partial struct SerializableTunnelTransportItemInfo
     {
         [MemoryPackIgnore]
-        public readonly TunnelTransportItemInfo tunnelTransportItemInfo;
+        public readonly TunnelTransportItemInfo Info;
 
 
         [MemoryPackInclude]
-        string Name => tunnelTransportItemInfo.Name;
+        string Name => Info.Name;
 
         [MemoryPackInclude]
-        string Label => tunnelTransportItemInfo.Label;
+        string Label => Info.Label;
 
         [MemoryPackInclude]
-        string ProtocolType => tunnelTransportItemInfo.ProtocolType;
+        string ProtocolType => Info.ProtocolType;
 
         [MemoryPackInclude]
-        bool Disabled => tunnelTransportItemInfo.Disabled;
+        bool Disabled => Info.Disabled;
 
         [MemoryPackInclude]
-        bool Reverse => tunnelTransportItemInfo.Reverse;
+        bool Reverse => Info.Reverse;
 
         [MemoryPackInclude]
-        bool SSL => tunnelTransportItemInfo.SSL;
+        bool SSL => Info.SSL;
 
         [MemoryPackInclude]
-        byte BufferSize => tunnelTransportItemInfo.BufferSize;
+        byte BufferSize => Info.BufferSize;
 
         [MemoryPackInclude]
-        byte Order => tunnelTransportItemInfo.Order;
+        byte Order => Info.Order;
 
         [MemoryPackInclude]
-        Addrs Addr => tunnelTransportItemInfo.Addr;
+        Addrs Addr => Info.Addr;
 
         [MemoryPackInclude]
-        TunnelType TunnelType => tunnelTransportItemInfo.TunnelType;
+        TunnelType TunnelType => Info.TunnelType;
+
+        [MemoryPackInclude]
+        bool EnableAddr => Info.EnableAddr;
 
 
         [MemoryPackConstructor]
-        SerializableTunnelTransportItemInfo(string name, string label, string protocolType, bool disabled, bool reverse, bool ssl, byte buffersize, byte order, Addrs addr, TunnelType tunnelType)
+        SerializableTunnelTransportItemInfo(string name, string label, string protocolType, bool disabled, bool reverse, bool ssl, byte buffersize, byte order,
+            Addrs addr, TunnelType tunnelType, bool enableAddr)
         {
             var tunnelTransportItemInfo = new TunnelTransportItemInfo
             {
@@ -192,13 +196,14 @@ namespace linker.messenger.serializer.memorypack
                 BufferSize = buffersize,
                 Order = order,
                 Addr = addr,
-                TunnelType = tunnelType
+                TunnelType = tunnelType,
+                EnableAddr = enableAddr
             };
-            this.tunnelTransportItemInfo = tunnelTransportItemInfo;
+            this.Info = tunnelTransportItemInfo;
         }
         public SerializableTunnelTransportItemInfo(TunnelTransportItemInfo tunnelTransportItemInfo)
         {
-            this.tunnelTransportItemInfo = tunnelTransportItemInfo;
+            this.Info = tunnelTransportItemInfo;
         }
     }
     public class TunnelTransportItemInfoFormatter : MemoryPackFormatter<TunnelTransportItemInfo>
@@ -238,6 +243,9 @@ namespace linker.messenger.serializer.memorypack
 
             if (count > 9)
                 value.TunnelType = reader.ReadValue<TunnelType>();
+
+            if (count > 10)
+                value.EnableAddr = reader.ReadValue<bool>();
         }
     }
 
@@ -373,11 +381,11 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude, MemoryPackAllowSerialize]
         IPAddress InIp => info.InIp;
         [MemoryPackInclude, MemoryPackAllowSerialize]
-        TunnelRelayInfo Relay => info.Relay;
+        TunnelMeshInfo Relay => info.Mesh;
 
         [MemoryPackConstructor]
         SerializableTunnelRouteLevelInfo(string machineId, int routeLevel, int routeLevelPlus, bool needReboot, int portMapWan,
-            int portMapLan, TunnelNetInfo net, IPAddress inip, TunnelRelayInfo relay)
+            int portMapLan, TunnelNetInfo net, IPAddress inip, TunnelMeshInfo relay)
         {
             var info = new TunnelRouteLevelInfo
             {
@@ -389,7 +397,7 @@ namespace linker.messenger.serializer.memorypack
                 RouteLevelPlus = routeLevelPlus,
                 Net = net,
                 InIp = inip,
-                Relay = relay
+                Mesh = relay
             };
             this.info = info;
         }
@@ -435,7 +443,7 @@ namespace linker.messenger.serializer.memorypack
                 value.InIp = reader.ReadValue<IPAddress>();
 
             if (count > 8)
-                value.Relay = reader.ReadValue<TunnelRelayInfo>();
+                value.Mesh = reader.ReadValue<TunnelMeshInfo>();
         }
     }
 
@@ -444,7 +452,7 @@ namespace linker.messenger.serializer.memorypack
     public readonly partial struct SerializableTunnelRelayInfo
     {
         [MemoryPackIgnore]
-        public readonly TunnelRelayInfo info;
+        public readonly TunnelMeshInfo info;
 
         [MemoryPackInclude]
         bool Enabled => info.Enabled;
@@ -458,7 +466,7 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackConstructor]
         SerializableTunnelRelayInfo(bool enabled, int bandwidth, string machineName)
         {
-            var info = new TunnelRelayInfo
+            var info = new TunnelMeshInfo
             {
                 Enabled = enabled,
                 Bandwidth = bandwidth,
@@ -467,14 +475,14 @@ namespace linker.messenger.serializer.memorypack
             this.info = info;
         }
 
-        public SerializableTunnelRelayInfo(TunnelRelayInfo info)
+        public SerializableTunnelRelayInfo(TunnelMeshInfo info)
         {
             this.info = info;
         }
     }
-    public class TunnelRelayInfoFormatter : MemoryPackFormatter<TunnelRelayInfo>
+    public class TunnelRelayInfoFormatter : MemoryPackFormatter<TunnelMeshInfo>
     {
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TunnelRelayInfo value)
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TunnelMeshInfo value)
         {
             if (value == null)
             {
@@ -485,7 +493,7 @@ namespace linker.messenger.serializer.memorypack
             writer.WritePackable(new SerializableTunnelRelayInfo(value));
         }
 
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref TunnelRelayInfo value)
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref TunnelMeshInfo value)
         {
             if (reader.PeekIsNull())
             {
@@ -494,7 +502,7 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            value = new TunnelRelayInfo();
+            value = new TunnelMeshInfo();
             reader.TryReadObjectHeader(out byte count);
             value.Enabled = reader.ReadValue<bool>();
             value.Bandwidth = reader.ReadValue<int>();
@@ -707,10 +715,10 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude, MemoryPackAllowSerialize]
         IPAddress InIp => info.InIp;
         [MemoryPackInclude, MemoryPackAllowSerialize]
-        TunnelRelayInfo Relay => info.Relay;
+        TunnelMeshInfo Relay => info.Relay;
 
         [MemoryPackConstructor]
-        SerializableTunnelSetRouteLevelInfo(string machineId, int routeLevelPlus, int portMapWan, int portMapLan, IPAddress inIp, TunnelRelayInfo relay)
+        SerializableTunnelSetRouteLevelInfo(string machineId, int routeLevelPlus, int portMapWan, int portMapLan, IPAddress inIp, TunnelMeshInfo relay)
         {
             var info = new TunnelSetRouteLevelInfo
             {
@@ -762,7 +770,7 @@ namespace linker.messenger.serializer.memorypack
                 value.InIp = reader.ReadValue<IPAddress>();
 
             if (count > 5)
-                value.Relay = reader.ReadValue<TunnelRelayInfo>();
+                value.Relay = reader.ReadValue<TunnelMeshInfo>();
         }
     }
     [MemoryPackable]

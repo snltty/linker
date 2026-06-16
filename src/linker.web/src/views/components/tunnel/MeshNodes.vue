@@ -1,21 +1,21 @@
 <template>
-      <el-dialog append-to=".app-wrap" v-model="state.show" :title="$t('network.tunnel.pcp.title')" width="80rem" top="2vh">
+      <el-dialog append-to=".app-wrap" v-model="state.show" :title="$t('network.tunnel.mesh.title')" width="80rem" top="2vh">
         <div>
             <el-table :data="state.nodes" size="small" border height="600">
-                <el-table-column property="NodeName" :label="$t('network.tunnel.pcp.name')"></el-table-column>
-                <el-table-column property="Bandwidth" :label="$t('network.tunnel.pcp.bandwidth')" width="120">
+                <el-table-column property="NodeName" :label="$t('network.tunnel.mesh.name')"></el-table-column>
+                <el-table-column property="Bandwidth" :label="$t('network.tunnel.mesh.bandwidth')" width="120">
                     <template #default="scope">
                         <span>{{ scope.row.Bandwidth }}Mbps</span>
                     </template>
                 </el-table-column>
-                <el-table-column property="Enabled" :label="$t('network.tunnel.pcp.enabled')" width="120">
+                <el-table-column property="Enabled" :label="$t('network.tunnel.mesh.enabled')" width="120">
                     <template #default="scope">
                         <el-switch disabled v-model="scope.row.Enabled" size="small" />
                     </template>
                 </el-table-column>
-                <el-table-column property="Oper" :label="$t('network.tunnel.pcp.use')" width="80">
+                <el-table-column property="Oper" :label="$t('network.tunnel.mesh.use')" width="80">
                     <template #default="scope">
-                        <el-button v-if="scope.row.Enabled" size="small" @click="handleConnect(scope.row.NodeId)">PCP</el-button>
+                        <el-button v-if="scope.row.Enabled" size="small" @click="handleConnect(scope.row.NodeId)">Mesh</el-button>
                     </template>
                 </el-table-column>
             </el-table>

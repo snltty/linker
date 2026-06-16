@@ -1,6 +1,6 @@
-﻿namespace linker.messenger.pcp
+﻿namespace linker.messenger.mesh
 {
-    public enum PcpMessengerIds : ushort
+    public enum MeshMessengerIds : ushort
     {
         _ = 3100,
 
