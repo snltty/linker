@@ -110,7 +110,6 @@ namespace linker
                     break;
             }
         }
-
         private static JsonDocument ParseArgs(string[] args)
         {
 

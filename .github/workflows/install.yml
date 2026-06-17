@@ -89,7 +89,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-ipk/x64/linker-openwrt-x64.ipk
-          target-path: /downloads/linker/v1.9.99/linker-openwrt-x64.ipk
+          target-path: /downloads/linker/v2.0.00/linker-openwrt-x64.ipk
       - name: upload-x64-ipk
         id: upload-x64-ipk
         uses: actions/upload-release-asset@master
@@ -109,7 +109,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-apk/x64/linker-openwrt-x64.apk
-          target-path: /downloads/linker/v1.9.99/linker-openwrt-x64.apk
+          target-path: /downloads/linker/v2.0.00/linker-openwrt-x64.apk
       - name: upload-x64-apk
         id: upload-x64-apk
         uses: actions/upload-release-asset@master
@@ -129,7 +129,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-ipk/arm/linker-openwrt-arm.ipk
-          target-path: /downloads/linker/v1.9.99/linker-openwrt-arm.ipk
+          target-path: /downloads/linker/v2.0.00/linker-openwrt-arm.ipk
       - name: upload-arm-ipk
         id: upload-arm-ipk
         uses: actions/upload-release-asset@master
@@ -149,7 +149,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-apk/arm/linker-openwrt-arm.apk
-          target-path: /downloads/linker/v1.9.99/linker-openwrt-arm.apk
+          target-path: /downloads/linker/v2.0.00/linker-openwrt-arm.apk
       - name: upload-arm-apk
         id: upload-arm-apk
         uses: actions/upload-release-asset@master
@@ -169,7 +169,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-ipk/arm64/linker-openwrt-arm64.ipk
-          target-path: /downloads/linker/v1.9.99/linker-openwrt-arm64.ipk
+          target-path: /downloads/linker/v2.0.00/linker-openwrt-arm64.ipk
       - name: upload-arm64-ipk
         id: upload-arm64-ipk
         uses: actions/upload-release-asset@master
@@ -189,7 +189,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-apk/arm64/linker-openwrt-arm64.apk
-          target-path: /downloads/linker/v1.9.99/linker-openwrt-arm64.apk
+          target-path: /downloads/linker/v2.0.00/linker-openwrt-arm64.apk
       - name: upload-arm64-apk
         id: upload-arm64-apk
         uses: actions/upload-release-asset@master
@@ -209,7 +209,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-fpk/docker/linker-fnos-docker.fpk
-          target-path: /downloads/linker/v1.9.99/linker-fnos-docker.fpk
+          target-path: /downloads/linker/v2.0.00/linker-fnos-docker.fpk
       - name: upload-docker-fpk
         id: upload-docker-fpk
         uses: actions/upload-release-asset@master
@@ -229,7 +229,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-fpk/bin/x64/linker-fnos-bin-x64.fpk
-          target-path: /downloads/linker/v1.9.99/linker-fnos-bin-x64.fpk
+          target-path: /downloads/linker/v2.0.00/linker-fnos-bin-x64.fpk
       - name: upload-bin-fpk-x64
         id: upload-bin-fpk-x64
         uses: actions/upload-release-asset@master
@@ -249,7 +249,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           asset-path: ./public/publish-fpk/bin/arm64/linker-fnos-bin-arm64.fpk
-          target-path: /downloads/linker/v1.9.99/linker-fnos-bin-arm64.fpk
+          target-path: /downloads/linker/v2.0.00/linker-fnos-bin-arm64.fpk
       - name: upload-bin-fpk-arm64
         id: upload-bin-fpk-arm64
         uses: actions/upload-release-asset@master
