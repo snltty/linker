@@ -24,9 +24,9 @@ jobs:
           prerelease: false
           body: ""
       - name: setup node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
-          node-version: '16'
+          node-version: 'lts/*'
       - name: setup dotnet
         uses: actions/setup-dotnet@v2
         env:

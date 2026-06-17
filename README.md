@@ -83,7 +83,6 @@
 
 若此项目对您有用，可以考虑稍加支持，让作者更有动力，在项目上投入更多时间和精力
 
-
 [![Contributors](https://github.com/snltty/linker/raw/refs/heads/sponsor/ifdian-sponsor.svg)](https://ifdian.net/a/snltty)
 
 使用 **[🔋为爱发电](https://ifdian.net/a/snltty)**、或
