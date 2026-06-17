@@ -108,13 +108,13 @@ namespace linker.app
             tuntapTransfer.Shutdown();
         }
 
-        public async Task Callback(LinkerTunDevicPacket packet)
+        public ValueTask<bool> Callback(LinkerTunDevicPacket packet)
         {
-            await tuntapProxy.InputPacket(packet).ConfigureAwait(false);
+            return  tuntapProxy.InputPacket(packet);
         }
-        public async Task<bool> Callback(LinkerSrcProxyReadPacket packet)
+        public ValueTask<bool> Callback(LinkerSrcProxyReadPacket packet)
         {
-            return await tuntapProxy.InputPacket(packet).ConfigureAwait(false);
+            return  tuntapProxy.InputPacket(packet);
         }
         public bool Callback(uint ip)
         {
