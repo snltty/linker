@@ -24,7 +24,7 @@ do
     mkdir -p public/publish-ipk/${r}/data/usr/bin/linker
     cp -rf public/publish/${r}/* public/publish-ipk/${r}/data/usr/bin/linker/
 
-    sed -i "s|{version}|2.0.00|g" public/publish-ipk/${r}/control/control
+    sed -i "s|{version}|2.0.0|g" public/publish-ipk/${r}/control/control
     sed -i 's/\r$//' public/publish-ipk/${r}/data/etc/init.d/linker
     sed -i 's/\r$//' public/publish-ipk/${r}/control/control
     sed -i 's/\r$//' public/publish-ipk/${r}/control/postinst
@@ -65,7 +65,7 @@ do
         ' public/publish-apk/${r}/control/.PKGINFO > "${apk_info_file}"
     fi
 
-    sed -i "s|{version}|2.0.00|g" "${apk_info_file}"
+    sed -i "s|{version}|2.0.0|g" "${apk_info_file}"
     sed -i "s|{apk_arch}|noarch|g" "${apk_info_file}"
     sed -i 's/\r$//' public/publish-apk/${r}/data/etc/init.d/linker
     sed -i 's/\r$//' "${apk_info_file}"
