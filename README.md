@@ -22,14 +22,10 @@
 [![License](https://img.shields.io/github/license/snltty/linker)](https://mit-license.org/)
 [![Language](https://img.shields.io/github/languages/top/snltty/linker)](https://github.com/snltty/linker)
 
-
-</div>
-
-<img src="./readme/like.svg">
-
 <img src="./readme/home.jpg">
 
 
+</div>
 
 ## [🎖️]主要功能
 
