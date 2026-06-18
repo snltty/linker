@@ -34,7 +34,9 @@ jobs:
           AFDIAN_PADDINGY_SCALE: 10
 
       - name: Add border to SVG
-        run: chmod +x ./shells/sponsor.sh & ./shells/sponsor.sh
+        run: |
+          chmod +x ./shells/sponsor.sh
+          ./shells/sponsor.sh
 
       - name: Push afdian-sponsor-svg to the sponsor branch
         uses: crazy-max/ghaction-github-pages@v4
