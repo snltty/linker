@@ -10,7 +10,9 @@
 -->
 <div align="center">
 
-# <img src="./readme/logo.png" height="20"> Linker
+<img src="./readme/logo.png" height="100">
+
+# Linker
 
 [![Stars](https://img.shields.io/github/stars/snltty/linker)](https://github.com/snltty/linker)
 [![Forks](https://img.shields.io/github/forks/snltty/linker)](https://github.com/snltty/linker)
