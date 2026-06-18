@@ -33,8 +33,8 @@ jobs:
           AFDIAN_PADDINGX_SCALE: 10
           AFDIAN_PADDINGY_SCALE: 10
 
-      - name: Add border
-        run: sed -i 's/<svg/<svg style="border:1px solid \#ddd;box-sizing:border-box;padding:10px;"/' ./dist/ifdian-sponsor.svg
+      #- name: Add border
+      #  run: sed -i 's/<svg/<svg style="border:1px solid \#ddd;box-sizing:border-box;padding:10px;"/' ./dist/ifdian-sponsor.svg
 
       - name: Push afdian-sponsor-svg to the sponsor branch
         uses: crazy-max/ghaction-github-pages@v4
