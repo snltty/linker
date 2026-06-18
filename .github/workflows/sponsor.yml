@@ -33,8 +33,27 @@ jobs:
           AFDIAN_PADDINGX_SCALE: 10
           AFDIAN_PADDINGY_SCALE: 10
 
-      #- name: Add border
-      #  run: sed -i 's/<svg/<svg style="border:1px solid \#ddd;box-sizing:border-box;padding:10px;"/' ./dist/ifdian-sponsor.svg
+      - name: Add border to SVG
+        run: |
+          f=./dist/ifdian-sponsor.svg
+          
+          W=$(grep -o 'viewBox="[^"]*"' "$f" | grep -oE '[0-9]+ [0-9]+$' | awk '{print $1}')
+          H=$(grep -o 'viewBox="[^"]*"' "$f" | grep -oE '[0-9]+ [0-9]+$' | awk '{print $2}')
+          [ -z "$W" ] && W=$(grep -o 'width="[0-9]\+"' "$f" | grep -o '[0-9]\+')
+          [ -z "$H" ] && H=$(grep -o 'height="[0-9]\+"' "$f" | grep -o '[0-9]\+')
+          
+          RW=$((W-2)); RH=$((H-2))
+          RECT="<rect x=\"1\" y=\"1\" width=\"$RW\" height=\"$RH\" fill=\"none\" stroke=\"#ddd\" stroke-width=\"1\"/>"
+          
+          awk -v rect="$RECT" '
+            /<\/svg>/ && !inserted {
+              print "  " rect
+              print
+              inserted = 1
+              next
+            }
+            {print}
+          ' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
 
       - name: Push afdian-sponsor-svg to the sponsor branch
         uses: crazy-max/ghaction-github-pages@v4
