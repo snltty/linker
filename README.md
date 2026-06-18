@@ -23,59 +23,12 @@
 [![Language](https://img.shields.io/github/languages/top/snltty/linker)](https://github.com/snltty/linker)
 
 
-```mermaid
-flowchart LR
-    subgraph 整体架构[" "]
-        direction LR
+</div>
 
-        subgraph 用户入口
-            Browser[🌐 浏览器]
-        end
-
-        subgraph A端接入层
-            A_TUN[💻 虚拟网卡]
-            A_Port[🔀 端口转发]
-            A_Proxy[🔑 SOCKS/HTTP代理]
-        end
-
-        subgraph A端节点
-            A[🖥️ A端]
-        end
-
-        subgraph 传输层
-            Relay[🗼 服务器中继]
-            P2P[🔗 P2P直连]
-            Mesh[📡 Mesh网络]
-        end
-
-        subgraph B端节点
-            B[🖥️ B端]
-        end
-
-        subgraph B端接入层
-            B_TUN[💻 虚拟网卡]
-            B_Port[🔀 端口转发]
-            B_Proxy[🔑 SOCKS/HTTP代理]
-        end
-
-        subgraph 目标服务
-            Service[🎯 实际服务]
-        end
-
-        Browser --> A_TUN & A_Port & A_Proxy
-        A_TUN & A_Port & A_Proxy --> A
-        A --> Relay & P2P & Mesh
-        Relay & P2P & Mesh --> B
-        B --> B_TUN & B_Port & B_Proxy
-        B_TUN & B_Port & B_Proxy --> Service
-    end
-
-    style 整体架构 fill:none,stroke:#ddd,stroke-width:2px
-```
+<img src="./readme/like.svg">
 
 <img src="./readme/home.jpg">
 
-</div>
 
 
 ## [🎖️]主要功能
