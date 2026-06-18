@@ -30,8 +30,8 @@ jobs:
           AFDIAN_ACTIVE_SPONSOR_OPACITY: 1
           AFDIAN_EXPIRED_SPONSOR_OPACITY: 0.7
           AFDIAN_FONTSIZE_SCALE: 8
-          AFDIAN_PADDINGX_SCALE: 0
-          AFDIAN_PADDINGY_SCALE: 0
+          AFDIAN_PADDINGX_SCALE: 10
+          AFDIAN_PADDINGY_SCALE: 10
 
       - name: Add border
         run: sed -i 's/<svg/<svg style="border:1px solid \#ddd;box-sizing:border-box;padding:10px;"/' ./dist/ifdian-sponsor.svg
