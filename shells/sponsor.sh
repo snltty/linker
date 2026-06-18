@@ -1,4 +1,4 @@
-f=../dist/ifdian-sponsor.svg
+f=./dist/ifdian-sponsor.svg
 W=$(awk -F'"' '/viewBox=/ {split($2, a, " "); print a[3]}' "$f")
 H=$(awk -F'"' '/viewBox=/ {split($2, a, " "); print a[4]}' "$f")
 RW=$((W-2)); RH=$((H-2))
