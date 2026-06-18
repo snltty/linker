@@ -27,7 +27,51 @@
 
 <a href="https://linker.snltty.com">官方网站</a>、<a href="https://linker-doc.snltty.com">使用说明文档</a>、<a href="https://jq.qq.com/?_wv=1027&k=ucoIVfz4" target="_blank">加入组织：1121552990</a>
 
-<p><img src="./readme/like.png"></p> 
+```mermaid
+flowchart LR
+    subgraph 用户入口
+        Browser[🌐 浏览器]
+    end
+
+    subgraph A端接入层
+        A_TUN[💻 虚拟网卡]
+        A_Port[🔀 端口转发]
+        A_Proxy[🔑 SOCKS/HTTP代理]
+    end
+
+    subgraph A端节点
+        A[🖥️ A端]
+    end
+
+    subgraph 传输层
+        Relay[🗼 服务器中继]
+        P2P[🔗 P2P直连]
+        Mesh[📡 Mesh网络]
+    end
+
+    subgraph B端节点
+        B[🖥️ B端]
+    end
+
+    subgraph B端接入层
+        B_TUN[💻 虚拟网卡]
+        B_Port[🔀 端口转发]
+        B_Proxy[🔑 SOCKS/HTTP代理]
+    end
+
+    subgraph 目标服务
+        Service[🎯 实际服务]
+    end
+
+    Browser --> A_TUN & A_Port & A_Proxy
+    A_TUN & A_Port & A_Proxy --> A
+    A --> Relay & P2P & Mesh
+    Relay & P2P & Mesh --> B
+    B --> B_TUN & B_Port & B_Proxy
+    B_TUN & B_Port & B_Proxy --> Service
+```
+
+<img src="./readme/home.png">
 
 </div>
 
@@ -70,13 +114,6 @@
 - **子网划分:** 对虚拟网络划分下级子网，类似vlsm，但可选的主网与子网选项，通信隔离、单向通信，双向通信。
 - **FEC向前纠错:** 内置强优化FEC（增强了 批量编码、源包直接输出、批量解码输出），支持策略性冗余或多倍发包，带宽换稳定，优化丢包链路
 - **强优化KCP:** 内置强优化KCP(增强了 ACK Range、选择性确认、快速重传、批量 flush)，让端口转发，socks代理等功能也能使用UDP隧道，
-
-
-## [🖼️]管理页面
-
-客户端监听1804，HTTP+Websocket，对客户端进行日常管理。
-
-<p><img src="./readme/home.jpg"></p> 
 
 
 ## [🎁]为爱发电
