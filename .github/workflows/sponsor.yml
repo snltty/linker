@@ -37,10 +37,8 @@ jobs:
         run: |
           f=./dist/ifdian-sponsor.svg
           
-          W=$(grep -o 'viewBox="[^"]*"' "$f" | grep -oE '[0-9]+ [0-9]+$' | awk '{print $1}')
-          H=$(grep -o 'viewBox="[^"]*"' "$f" | grep -oE '[0-9]+ [0-9]+$' | awk '{print $2}')
-          [ -z "$W" ] && W=$(grep -o 'width="[0-9]\+"' "$f" | grep -o '[0-9]\+')
-          [ -z "$H" ] && H=$(grep -o 'height="[0-9]\+"' "$f" | grep -o '[0-9]\+')
+          W=$(awk -F'"' '/viewBox=/ {split($2, a, " "); print a[3]}' $f)
+          H=$(awk -F'"' '/viewBox=/ {split($2, a, " "); print a[4]}' $f)
           
           RW=$((W-2)); RH=$((H-2))
           RECT="<rect x=\"1\" y=\"1\" width=\"$RW\" height=\"$RH\" fill=\"none\" stroke=\"#ddd\" stroke-width=\"1\"/>"
