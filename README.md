@@ -11,21 +11,19 @@
 <div align="center">
 <p><img src="./readme/logo.png" height="240"></p> 
 
-# Linker
-
-让你那些散落在世界各地的联网设备就像在隔壁房间一样轻松访问。
-
-[![Stars](https://img.shields.io/github/stars/snltty/linker?style=for-the-badge)](https://github.com/snltty/linker)
-[![Forks](https://img.shields.io/github/forks/snltty/linker?style=for-the-badge)](https://github.com/snltty/linker)
-[![Docker Pulls](https://img.shields.io/docker/pulls/snltty/linker-musl?style=for-the-badge)](https://hub.docker.com/r/snltty/linker-musl)
-
-[![Release](https://img.shields.io/github/v/release/snltty/linker?sort=semver&style=for-the-badge)](https://github.com/snltty/linker/releases)
-[![License](https://img.shields.io/github/license/snltty/linker?style=for-the-badge)](https://mit-license.org/)
-[![Language](https://img.shields.io/github/languages/top/snltty/linker?style=for-the-badge)](https://github.com/snltty/linker)
-[![GitHub Downloads](https://img.shields.io/github/downloads/snltty/linker/total?style=for-the-badge)](https://github.com/snltty/linker)
+<a href="https://linker.snltty.com">官方网站</a>、<a href="https://linker-doc.snltty.com">使用文档</a>、<a href="https://jq.qq.com/?_wv=1027&k=ucoIVfz4" target="_blank">加入群聊: 1121552990</a>
 
 
-<a href="https://linker.snltty.com">官方网站</a>、<a href="https://linker-doc.snltty.com">使用说明文档</a>、<a href="https://jq.qq.com/?_wv=1027&k=ucoIVfz4" target="_blank">加入组织：1121552990</a>
+[![Stars](https://img.shields.io/github/stars/snltty/linker)](https://github.com/snltty/linker)
+[![Forks](https://img.shields.io/github/forks/snltty/linker)](https://github.com/snltty/linker)
+[![Docker Pulls](https://img.shields.io/docker/pulls/snltty/linker-musl)](https://hub.docker.com/r/snltty/linker-musl)
+
+[![Release](https://img.shields.io/github/v/release/snltty/linker)](https://github.com/snltty/linker/releases)
+[![License](https://img.shields.io/github/license/snltty/linker)](https://mit-license.org/)
+[![Language](https://img.shields.io/github/languages/top/snltty/linker)](https://github.com/snltty/linker)
+[![GitHub Downloads](https://img.shields.io/github/downloads/snltty/linker/total)](https://github.com/snltty/linker)
+
+
 
 ```mermaid
 flowchart LR
@@ -71,7 +69,7 @@ flowchart LR
     B_TUN & B_Port & B_Proxy --> Service
 ```
 
-<img src="./readme/home.png">
+<img src="./readme/home.jpg">
 
 </div>
 
