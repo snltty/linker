@@ -18,7 +18,7 @@ jobs:
         run: mkdir dist
 
       - name: Run afdian-sponsor action
-        uses: Sn0wo2/afdian-sponsor@v1
+        uses: snltty/afdian-sponsor@main
         env:
           AFDIAN_USER_ID: ${{ secrets.AFDIAN_USER_ID }}
           AFDIAN_API_TOKEN: ${{ secrets.AFDIAN_API_TOKEN }}
@@ -32,11 +32,6 @@ jobs:
           AFDIAN_FONTSIZE_SCALE: 8
           AFDIAN_PADDINGX_SCALE: 10
           AFDIAN_PADDINGY_SCALE: 10
-
-      - name: Add border to SVG
-        run: |
-          chmod +x ./shells/sponsor.sh
-          ./shells/sponsor.sh
 
       - name: Push afdian-sponsor-svg to the sponsor branch
         uses: crazy-max/ghaction-github-pages@v4
