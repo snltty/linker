@@ -16,13 +16,12 @@
 
 [![Stars](https://img.shields.io/github/stars/snltty/linker)](https://github.com/snltty/linker)
 [![Forks](https://img.shields.io/github/forks/snltty/linker)](https://github.com/snltty/linker)
+
 [![Docker Pulls](https://img.shields.io/docker/pulls/snltty/linker-musl)](https://hub.docker.com/r/snltty/linker-musl)
 
 [![Release](https://img.shields.io/github/v/release/snltty/linker)](https://github.com/snltty/linker/releases)
 [![License](https://img.shields.io/github/license/snltty/linker)](https://mit-license.org/)
 [![Language](https://img.shields.io/github/languages/top/snltty/linker)](https://github.com/snltty/linker)
-[![GitHub Downloads](https://img.shields.io/github/downloads/snltty/linker/total)](https://github.com/snltty/linker)
-
 
 
 ```mermaid
