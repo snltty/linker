@@ -1,5 +1,5 @@
 <template>
-    <el-dialog append-to=".app-wrap" class="options-center" :title="$t('api.title')" destroy-on-close v-model="showPort" center :show-close="false" :close-on-click-modal="false" align-center width="300">
+    <el-dialog class="options-center" :title="$t('api.title')" destroy-on-close v-model="showPort" center :show-close="false" :close-on-click-modal="false" align-center width="300">
         <div class="port-wrap t-c">
             <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="auto">
                 <el-form-item :label="$t('api.api')" prop="ws">

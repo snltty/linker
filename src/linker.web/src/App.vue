@@ -2,10 +2,10 @@
     <div class="app-inner absolute" :class="{phone:globalData.isPhone}">
         <el-config-provider :locale="locale">
             <router-view />
-            <Api></Api>
         </el-config-provider>
     </div>
     <Refresh></Refresh>
+    <Api></Api>
 </template>
 <script>
 import { computed} from 'vue';

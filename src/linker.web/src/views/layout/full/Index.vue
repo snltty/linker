@@ -28,8 +28,8 @@
             <el-skeleton animated class="h-100">
                 <template #template>
                     <div class="h-100 flex flex-column flex-nowrap">
-                        <div style="padding:0 0 1rem 0rem;"><el-skeleton-item style="height:5rem;"/></div>
-                        <div id="main-body" style="padding:0 1rem 0rem 1rem;" class="flex-1"><el-skeleton-item style="height: 100%;" /></div>
+                        <div style="padding:0 0 1rem 0rem;"><el-skeleton-item style="height:5rem;border-radius: 8px 8px 4px 4px;"/></div>
+                        <div id="main-body" style="padding:0 1rem 0rem 1rem;" class="flex-1"><el-skeleton-item style="height: 100%;border-radius: 4px 4px 8px 8px;" /></div>
                         <div style="padding: 1rem 0 0 0;font-size:0"><el-skeleton-item style="height: 3rem;"/></div>
                     </div>
                 </template>
