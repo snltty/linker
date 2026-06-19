@@ -1,6 +1,5 @@
 ﻿using linker.libs;
 using linker.libs.extends;
-using linker.libs.timer;
 using linker.messenger.decenter;
 using linker.messenger.reverse.messenger;
 using linker.messenger.signin;
@@ -138,7 +137,7 @@ namespace linker.messenger.reverse.client
         {
             ReverseClientStore.Add(forwardInfo);
             OnChanged();
-            counterDecenter.SetValue("Reverse", Count);
+            counterDecenter.SetValue("reverse", Count);
             return true;
         }
         public bool Remove(int id)
@@ -146,7 +145,7 @@ namespace linker.messenger.reverse.client
             Stop(id);
             ReverseClientStore.Remove(id);
             OnChanged();
-            counterDecenter.SetValue("Reverse", Count);
+            counterDecenter.SetValue("reverse", Count);
             return true;
         }
 
