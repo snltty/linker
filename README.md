@@ -72,11 +72,13 @@
 
 ## [🎁]为爱发电
 
-若此项目对您有用，可以考虑稍加支持，让作者更有动力，在项目上投入更多时间和精力，使用 **[🔋为爱发电](https://ifdian.net/a/snltty)**、或直接施舍
+若此项目对您有用，可以考虑稍加支持，直接施舍，或使用 **[🔋为爱发电](https://ifdian.net/a/snltty)**
+
+![pay](readme/pay.jpg)
 
 [![Contributors](https://github.com/snltty/linker/raw/refs/heads/sponsor/ifdian-sponsor.svg?t=f)](https://ifdian.net/a/snltty)
 
-![pay](readme/pay.jpg)
+
 
 ## [👏]特别说明
 
