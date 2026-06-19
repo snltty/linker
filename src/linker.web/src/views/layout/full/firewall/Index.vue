@@ -25,7 +25,6 @@ export default {
 </script>
 <style lang="stylus" scoped>
 .firewall-setting-wrap {
-    padding: 1rem;
     box-sizing: border-box;
     font-size:1.3rem
 

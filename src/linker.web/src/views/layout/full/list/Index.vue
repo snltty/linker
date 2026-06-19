@@ -1,5 +1,5 @@
 <template>
-    <div class="home-list-wrap absolute flex flex-column flex-nowrap" >
+    <div class="home-list-wrap h-100 flex flex-column flex-nowrap" >
         <Sort @sort="handleSortChange"></Sort>
         <el-table :data="devices.page.List" border size="small" class="flex-1 w-100">
             <Device  @refresh="handlePageRefresh" @search="handleSearchChange"></Device>
@@ -210,7 +210,6 @@ export default {
 </style>
 <style lang="stylus" scoped>
 .home-list-wrap{
-    padding:1rem;
 
     .page{padding:1rem 0;border:1px solid var(--table-border-color);border-top:0;}
     .page-wrap{

@@ -72,20 +72,15 @@
 
 ## [🎁]为爱发电
 
-若此项目对您有用，可以考虑稍加支持，让作者更有动力，在项目上投入更多时间和精力
+若此项目对您有用，可以考虑稍加支持，让作者更有动力，在项目上投入更多时间和精力，使用 **[🔋为爱发电](https://ifdian.net/a/snltty)**、或直接施舍
 
 [![Contributors](https://github.com/snltty/linker/raw/refs/heads/sponsor/ifdian-sponsor.svg?t=f)](https://ifdian.net/a/snltty)
 
-使用 **[🔋为爱发电](https://ifdian.net/a/snltty)**、或
-
-![pay](readme/pay.png)
+![pay](readme/pay.jpg)
 
 ## [👏]特别说明
 
 [![Contributors](https://contrib.rocks/image?repo=snltty/linker&columns=8)](https://github.com/snltty/linker/graphs/contributors)
-
-已加入[DotNetGuide](https://github.com/YSGStudyHards/DotNetGuide)列表、已加入[dotNET China](https://gitee.com/dotnetchina) 组织、
-<img src="https://images.gitee.com/uploads/images/2021/0324/120117_2da9922c_416720.png" height="20">
 
 [![Star History Chart](https://api.star-history.com/svg?repos=snltty/linker&type=Date)](https://www.star-history.com/#snltty/linker&Date)
 

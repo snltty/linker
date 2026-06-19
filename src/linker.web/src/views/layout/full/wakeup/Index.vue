@@ -24,7 +24,6 @@ export default {
 </script>
 <style lang="stylus" scoped>
 .wakeup-setting-wrap {
-    padding: 1rem;
     box-sizing: border-box;
     font-size:1.3rem
 

@@ -143,11 +143,9 @@ export default {
     }
 
 .logger-setting-wrap {
-    padding: 1rem;
     box-sizing: border-box;
 
     .inner {
-        padding: 1rem;
         box-sizing: border-box;
     }
 

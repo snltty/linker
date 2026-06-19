@@ -20,7 +20,6 @@ export default {
 <style lang="stylus" scoped>
 .action-wrap{
     font-size:1.3rem;
-    padding:1rem;
     box-sizing: border-box;
 }
 </style>

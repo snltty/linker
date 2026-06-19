@@ -48,7 +48,6 @@ export default {
 <style lang="stylus" scoped>
 .about-wrap{
     font-size:1.3rem;
-    padding:1rem;
     box-sizing: border-box;
 
     .inner{

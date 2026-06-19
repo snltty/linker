@@ -11,7 +11,8 @@ a.a-line {text-decoration: underline;}
 
 :root {
     --foot-menu-dropdown-color: #f5f5f5;
-    --table-border-color:#ececec;
+    --table-border-color:#f0f0f0;
+    --el-border-color:var(--table-border-color) !important;
     --table-header-bg-color:#f7f9fc;
     --header-bg-color:#f6f8fa;
     --header-border-color:#dbe3ee;
@@ -155,13 +156,16 @@ span.split-pad10 {padding: 0 1rem;}
 
 .scrollbar{overflow: auto;scrollbar-width: thin;}
 
-.el-card{ --el-card-padding: 15px !important;}
+.el-card{ --el-card-padding: 15px !important;--el-card-border-color: var(--table-border-color) !important;}
 .el-card__body{
     -webkit-box-flex: 1;
     -ms-flex-positive: 1;
     flex: 1 1 0%;
     box-sizing: border-box;
     position: relative;
+}
+.el-tabs--border-card>.el-tabs__header{
+    border-color: var(--table-border-color) !important;
 }
 
 .el-input-number--small { width: 100% !important;}

@@ -79,6 +79,11 @@ export default {
     transform:translateX(-50%);
     box-shadow: 0 12px 30px rgba(15, 23, 42, .1);
     border-radius: 0.8rem;
+
+    .home{
+        box-sizing:border-box;
+        padding:1.5rem;
+    }
 }
 html.dark .app-wrap{
     background-color:#141414;

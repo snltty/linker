@@ -25,7 +25,6 @@ export default {
 </script>
 <style lang="stylus" scoped>
 .transport-wrap{
-    padding:1rem;
     box-sizing: border-box;
 
 }
