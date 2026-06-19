@@ -75,6 +75,6 @@ namespace linker.messenger.tunnel.client
         public Task<bool> SetNetwork(TunnelPublicNetworkInfo network);
 
         public Task<bool> SetInIp(IPAddress ip);
-        public Task<bool> SetRelay(TunnelMeshInfo relay);
+        public Task<bool> SetMesh(TunnelMeshInfo mesh);
     }
 }

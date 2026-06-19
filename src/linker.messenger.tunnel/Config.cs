@@ -67,7 +67,7 @@ namespace linker.messenger.tunnel
         public int PortMapWan { get; set; }
         public int PortMapLan { get; set; }
         public IPAddress InIp { get; set; } = IPAddress.Any;
-        public TunnelMeshInfo Relay { get; set; } = new TunnelMeshInfo();
+        public TunnelMeshInfo Mesh { get; set; } = new TunnelMeshInfo();
     }
 
     public sealed class TunnelPublicNetworkInfo

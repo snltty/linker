@@ -187,9 +187,9 @@ namespace linker.messenger.store.file.tunnel
             return Task.FromResult(true);
         }
 
-        public Task<bool> SetRelay(TunnelMeshInfo relay)
+        public Task<bool> SetMesh(TunnelMeshInfo mesh)
         {
-            runningConfig.Data.Tunnel.Mesh = relay;
+            runningConfig.Data.Tunnel.Mesh = mesh;
             runningConfig.Data.Update();
             OnChanged();
             return Task.FromResult(true);

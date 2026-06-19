@@ -715,10 +715,10 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude, MemoryPackAllowSerialize]
         IPAddress InIp => info.InIp;
         [MemoryPackInclude, MemoryPackAllowSerialize]
-        TunnelMeshInfo Relay => info.Relay;
+        TunnelMeshInfo Mesh => info.Mesh;
 
         [MemoryPackConstructor]
-        SerializableTunnelSetRouteLevelInfo(string machineId, int routeLevelPlus, int portMapWan, int portMapLan, IPAddress inIp, TunnelMeshInfo relay)
+        SerializableTunnelSetRouteLevelInfo(string machineId, int routeLevelPlus, int portMapWan, int portMapLan, IPAddress inIp, TunnelMeshInfo mesh)
         {
             var info = new TunnelSetRouteLevelInfo
             {
@@ -727,7 +727,7 @@ namespace linker.messenger.serializer.memorypack
                 PortMapLan = portMapLan,
                 RouteLevelPlus = routeLevelPlus,
                 InIp = inIp,
-                Relay = relay
+                Mesh = mesh
             };
             this.info = info;
         }
@@ -770,7 +770,7 @@ namespace linker.messenger.serializer.memorypack
                 value.InIp = reader.ReadValue<IPAddress>();
 
             if (count > 5)
-                value.Relay = reader.ReadValue<TunnelMeshInfo>();
+                value.Mesh = reader.ReadValue<TunnelMeshInfo>();
         }
     }
     [MemoryPackable]
