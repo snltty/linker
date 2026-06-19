@@ -2,7 +2,7 @@
     <AccessBoolean value="Socks5ChangeSelf,Socks5ChangeOther,Socks5StatusSelf,Socks5StatusOther">
         <template #default="{values}">
             <div class="flex">
-                <div class="flex-1">
+                <div class="nowrap flex-1">
                     <ConnectionShow :row="item" transactionId="socks5"></ConnectionShow>
                     <a href="javascript:;" class="a-line" @click="handleSocks5Port(item.hook_socks5,values)" :title="$t('socks5')">
                         <template v-if="item.hook_socks5.SetupError">
@@ -30,29 +30,27 @@
                     </el-switch>
                 </template>
             </div>
-            <div>
-                <div>
-                    <template v-for="(item1,index) in  item.hook_socks5.Lans" :key="index">
-                        <template v-if="item1.Disabled">
-                            <div class="flex disable" :title="$t('socks5.show.disabled')">
-                                <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
-                                <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
-                            </div>
-                        </template>
-                        <template v-else-if="item1.Exists">
-                            <div class="flex yellow" :title="$t('socks5.show.clash')">
-                                <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
-                                <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
-                            </div>
-                        </template>
-                        <template v-else>
-                            <div class="flex green" :title="$t('socks5.show.normal')" :class="{green:item.Connected && item.hook_socks5.running}">
-                                <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
-                                <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
-                            </div>
-                        </template>
+            <div class="nowrap">
+                <template v-for="(item1,index) in  item.hook_socks5.Lans" :key="index">
+                    <template v-if="item1.Disabled">
+                        <div class="flex disable" :title="$t('socks5.show.disabled')">
+                            <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
+                            <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
+                        </div>
                     </template>
-                </div>
+                    <template v-else-if="item1.Exists">
+                        <div class="flex yellow" :title="$t('socks5.show.clash')">
+                            <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
+                            <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
+                        </div>
+                    </template>
+                    <template v-else>
+                        <div class="flex green" :title="$t('socks5.show.normal')" :class="{green:item.Connected && item.hook_socks5.running}">
+                            <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
+                            <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
+                        </div>
+                    </template>
+                </template>
             </div>
         </template>
     </AccessBoolean>
@@ -138,10 +136,10 @@ export default {
     vertical-align:middle;font-weight:bold;
     animation:loading 1s linear infinite;
 }
-
-.el-switch.is-disabled{opacity :1;}
-.el-input{
-    width:8rem;
+.el-switch{
+    height:1.8rem;
+    line-height:1.8rem;
+    &.is-disabled{opacity :1;}
 }
 
 .remark{
@@ -153,9 +151,8 @@ export default {
     max-width: 100%;
     color:#666;
 }
-
-.switch-btn{
-    font-size:1.5rem;
+.nowrap{
+    line-height:1.8rem;
 }
 
 </style>

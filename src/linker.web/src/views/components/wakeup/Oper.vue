@@ -48,8 +48,5 @@ a{
         vertical-align:bottom;
         height:1.4rem;
     }
-    &.green{
-        font-weight:bold;
-    }
 }
 </style>

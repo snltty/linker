@@ -5,7 +5,7 @@
                 <template #default="scope">
                     <template v-if="scope.row && scope.row.hook_tunnel">
                         <div class="skeleton-animation" :style="`animation-delay:${scope.row.animationDelay}ms`">
-                            <div>
+                            <div class="nowrap">
                                 <template v-if="scope.row.hook_tunnel.Net.CountryCode">
                                     <img class="system" :title="`${scope.row.hook_tunnel.Net.CountryCode}、${scope.row.hook_tunnel.Net.City}`" :src="`https://unpkg.com/flag-icons@7.2.3/flags/4x3/${scope.row.hook_tunnel.Net.CountryCode.toLowerCase()}.svg`" />
                                 </template>
@@ -29,7 +29,7 @@
                                     <img title="?" class="system" src="/system.svg" />
                                 </template>
                             </div> 
-                            <div class="flex">
+                            <div class="nowrap flex">
                                 <template v-if="scope.row.hook_counter">
                                     <a href="javascript:;" class="a-line" :title="`${$t('network.upnp.remark')}
 1、${$t('network.upnp.ip')} : ${scope.row.hook_counter['upnp-w']}  ${scope.row.hook_counter['upnp-w']>0?'✅':'❌'}
@@ -61,12 +61,12 @@
                         <div class="skeleton-animation">
                             <el-skeleton animated >
                                 <template #template>
-                                    <div>
+                                    <div class="nowrap">
                                         <el-skeleton-item variant="text" class="w-20- mgr-1-" />
                                         <el-skeleton-item variant="text" class="w-20- mgr-1-" />
                                         <el-skeleton-item variant="text" class="w-20-" />
                                     </div>
-                                    <div>
+                                    <div class="nowrap">
                                         <el-skeleton-item variant="text" class="w-50-" />
                                         <el-skeleton-item variant="text" class="w-50-" />
                                     </div>
@@ -166,8 +166,6 @@ export default {
 
 .el-switch.is-disabled{opacity :1;}
 
-.green{font-weight:bold;}
-
 .el-skeleton-item{width: 30%;margin-right:3%}
 .el-skeleton-item-last{width: 30%;}
 .el-skeleton-item2{width: 70%}
@@ -182,4 +180,5 @@ img.system,span.nat{
 }
 
 span.nat{display:inline-block;padding:0 .2rem;margin-right:0;font-family: cursive;}
+.nowrap{line-height:1.8rem;}
 </style>

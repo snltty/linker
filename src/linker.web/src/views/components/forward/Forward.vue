@@ -24,8 +24,8 @@
                 <div class="skeleton-animation">
                     <el-skeleton animated >
                         <template #template>
-                            <p><el-skeleton-item variant="text" class="w-50-" /></p>
-                            <p><el-skeleton-item variant="text" class="w-50-" /></p>
+                            <p class="nowrap"><el-skeleton-item variant="text" class="w-50-" /></p>
+                            <p class="nowrap"><el-skeleton-item variant="text" class="w-50-" /></p>
                         </template>
                     </el-skeleton>
                 </div>
@@ -96,8 +96,7 @@ export default {
 a{
     text-decoration: underline;
     &+a{margin-left:1rem}
-    &.green{
-        font-weight:bold;
-    }
+    
 }
+.nowrap{line-height:1.8rem;}
 </style>

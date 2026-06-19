@@ -125,7 +125,6 @@ export default {
 a{
     color:#666;
     text-decoration: underline;
-    &.green{color:green;font-weight:bold;}
 }
 a.download{
     margin-left:.6rem

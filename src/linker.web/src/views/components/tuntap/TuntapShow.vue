@@ -1,7 +1,7 @@
 <template>
     <AccessBoolean value="TuntapChangeSelf,TuntapChangeOther,TuntapStatusSelf,TuntapStatusOther">
         <template #default="{values}">
-            <div class="flex">
+            <div class="nowrap flex">
                 <div class="flex-1">
                     <ConnectionShow :row="item" transactionId="tuntap"></ConnectionShow>         
                     <a href="javascript:;" class="a-line" @click="handleTuntapIP(item.hook_tuntap,values)" :title="$t('tuntap.show.title')">
@@ -43,28 +43,28 @@
                     </el-switch>
                 </template>
             </div>
-            <div>
+            <div class="nowrap">
                 <template v-for="(item1,index) in  item.hook_tuntap.Lans" :key="index">
                     <template v-if="item.hook_tuntap.Available == false">
-                        <div class="lan flex disable" :title="$t('tuntap.show.offline')">
+                        <div class="flex disable" :title="$t('tuntap.show.offline')">
                             <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
                             <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
                         </div>
                     </template>
                     <template v-else-if="item1.Disabled">
-                        <div class="lan flex disable" :title="$t('tuntap.show.disabled')">
+                        <div class="flex disable" :title="$t('tuntap.show.disabled')">
                             <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
                             <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
                         </div>
                     </template>
                     <template v-else-if="item1.Exists">
-                        <div class="lan flex yellow" :title="$t('tuntap.show.clash')">
+                        <div class="flex yellow" :title="$t('tuntap.show.clash')">
                             <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
                             <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
                         </div>
                     </template>
                     <template v-else>
-                        <div class="lan flex green" :title="$t('tuntap.show.normal')">
+                        <div class="flex green" :title="$t('tuntap.show.normal')">
                             <span>{{ item1.IP }}/{{ item1.PrefixLength }}</span>
                             <span class="flex-1 remark" :title="item1.Remark">{{ item1.Remark }}</span>
                         </div>
@@ -170,12 +170,11 @@ export default {
     vertical-align:middle;font-weight:bold;
     animation:loading 1s linear infinite;
 }
-
-.el-switch.is-disabled{opacity :1;}
-.el-input{width:8rem;}
-.switch-btn{ font-size:1.5rem;}
-
-.lan{line-height:2rem}
+.el-switch{
+    height:1.8rem;
+    line-height:1.8rem;
+    &.is-disabled{opacity :1;}
+}
 .remark{
     padding-left:.4rem;
     text-align:right;
@@ -187,5 +186,5 @@ export default {
 }
 
 .delay{position: absolute;right:-8px;bottom:-8px;line-height:normal}
-
+.nowrap{line-height:1.8rem;}
 </style>

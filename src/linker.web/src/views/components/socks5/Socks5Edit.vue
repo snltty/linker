@@ -2,9 +2,9 @@
      <el-dialog append-to=".app-wrap" v-model="state.show" :close-on-click-modal="false"  :title="$t('socks5.title',[state.machineName])" top="1vh" width="780">
         <div>
             <el-form ref="ruleFormRef" :model="state.ruleForm" :rules="state.rules" label-width="140">
-                <el-form-item prop="gateway" class="mb-0">
+                <!-- <el-form-item prop="gateway" class="mb-0">
                     {{$t('socks5.alert')}}
-                </el-form-item>
+                </el-form-item> -->
                 <el-form-item :label="$t('socks5.port')" prop="Port">
                     <el-input v-trim v-model="state.ruleForm.Port"  class="w-14" />
                 </el-form-item>
@@ -84,7 +84,7 @@ export default {
 <style lang="stylus" scoped>
 .el-switch.is-disabled{opacity :1;}
 .upgrade-wrap{
-    border:1px solid #ddd;
+    border:1px solid var(--table-border-color);
     margin-bottom:2rem
     padding:1rem;
 }

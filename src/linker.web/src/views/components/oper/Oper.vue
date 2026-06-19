@@ -157,4 +157,7 @@ export default {
         vertical-align:middle;
     }
 }
+.el-row{
+    line-height:1.8rem;
+}
 </style>

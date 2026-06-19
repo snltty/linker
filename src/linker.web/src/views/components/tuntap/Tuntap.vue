@@ -20,9 +20,9 @@
                 </template>
                 <template v-else-if="!scope.row.hook_tuntap_load">
                     <div class="skeleton-animation">
-                        <el-skeleton animated>
+                        <el-skeleton animated style="line-height: 1.8rem;">
                             <template #template>
-                                <el-skeleton-item variant="text" class="w-60-"/>
+                                <el-skeleton-item variant="text" class="w-60-" />
                                 <el-skeleton-item variant="text" class="w-20- mgl-20-"/>
                                 <el-skeleton-item variant="text" class="w-70-"/>
                             </template>

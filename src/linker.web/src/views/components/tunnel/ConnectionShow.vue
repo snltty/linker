@@ -57,8 +57,8 @@ span.connect-point {
     border-radius: 50%;
     display: inline-block;
     vertical-align: middle;
-    background-color: #eee;
-    border: 1px solid #ddd;
+    background-color: #f5f5f5;
+    border: 1px solid var(--table-border-color);
     cursor :pointer;
     transition:.3s;
     &:hover {

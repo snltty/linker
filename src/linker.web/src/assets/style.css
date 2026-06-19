@@ -29,6 +29,7 @@ html {
     font-size: 10px;
     background: linear-gradient(90deg, rgba(148, 163, 184, .12) 1px, transparent 1px), linear-gradient(0deg, rgba(148, 163, 184, .12) 1px, transparent 1px);
     background-size: 20px 20px;
+    font-family:"PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
 }
 html.dark{
     background-color: #000;
@@ -184,7 +185,7 @@ span.split-pad10 {padding: 0 1rem;}
 
 .el-table {--el-table-header-text-color: var(--el-text-color-regular) !important;}
 .el-table .cell {overflow: visible !important;}
-
+/* .el-table--small .el-table__cell{padding:8px 0 !important;} */
 .el-table .active-row {background: rgba(0, 0, 0, 0.15);}
 .el-table .table-green-row {background: rgba(0, 255, 0, 0.15);}
 .el-table .table-red-row {background: rgba(255, 0, 0, 0.15);}

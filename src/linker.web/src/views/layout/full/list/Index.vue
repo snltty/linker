@@ -206,7 +206,7 @@ export default {
     th.el-table__cell.is-leaf{border-bottom:0}
     .el-table__inner-wrapper:before{height:0}
 }
-
+.home-list-wrap .el-table__body .el-table__cell{padding:8px 0;}
 </style>
 <style lang="stylus" scoped>
 .home-list-wrap{

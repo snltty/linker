@@ -13,14 +13,14 @@
                 <div class="avatar">
                     <template v-if="scope.row.avatar">
                         <template v-if="scope.row.avatar_url">
-                            <el-avatar shape="square" :size="30" :src="scope.row.avatar_url" />
+                            <el-avatar shape="square" :size="35" :src="scope.row.avatar_url" />
                         </template>
                         <template v-else>
-                            <el-avatar shape="square" :size="30" :style="scope.row.avatar_style" >{{scope.row.avatar_text}}</el-avatar>
+                            <el-avatar shape="square" :size="35" :style="scope.row.avatar_style" >{{scope.row.avatar_text}}</el-avatar>
                         </template>
                     </template>
                     <template v-else>
-                        <el-avatar shape="square" :size="30" src="user.png"></el-avatar>
+                        <el-avatar shape="square" :size="35" src="user.png"></el-avatar>
                     </template>
                 </div>
                 <div class="flex-1 name">
@@ -90,12 +90,11 @@ export default {
     margin-right:.6rem
 }
 .avatar{
-    
     padding-right:.5rem;
     display: flex;
     align-items: center;
     img{
-        width:3rem;
+        width:3.5rem;
     }
 }
 .name p{
