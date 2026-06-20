@@ -15,9 +15,9 @@
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker upnp</PackageReleaseNotes>
-		<Version>2.0.11</Version>
-		<AssemblyVersion>2.0.11</AssemblyVersion>
-		<FileVersion>2.0.11</FileVersion>
+		<Version>2.0.12</Version>
+		<AssemblyVersion>2.0.12</AssemblyVersion>
+		<FileVersion>2.0.12</FileVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

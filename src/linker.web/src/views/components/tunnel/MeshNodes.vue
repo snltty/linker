@@ -28,7 +28,7 @@ import { computed, reactive, watch } from 'vue';
 
 export default {
     props: ['modelValue','nodes'],
-    emits: ['update:modelValue','onpcp'],
+    emits: ['update:modelValue','onmesh'],
     setup (props,{emit}) {
         const state = reactive({
             show: true,
@@ -43,7 +43,7 @@ export default {
         });
 
         const handleConnect = (id)=>{
-            emit('onpcp',[id])
+            emit('onmesh',[id])
         }
         return {state,handleConnect}
     }

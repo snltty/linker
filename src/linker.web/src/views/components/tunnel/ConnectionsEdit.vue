@@ -110,7 +110,7 @@ export default {
             transactions: { 'forward': t('forward'), 'tuntap': t('tuntap'), 'socks5': t('socks5') },
             device: connections.value.device,
             transactionId: connections.value.transactionId,
-            operating:computed(()=>connections.value.device.hook_operating?connections.value.device.hook_operating[connections.value.transactionId]:{}),
+            operating:computed(()=> connections.value.device.hook_operating?connections.value.device.hook_operating[connections.value.transactionId]:{}),
             connection:connection,
 
             showRelayNodes: false,

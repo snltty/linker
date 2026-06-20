@@ -85,7 +85,7 @@ namespace linker.libs
             }
             return defaultReturnValue;
         }
-        public async Task<T> StartOperationAsync<T>(string key, bool autoStop, Func<string,Task<T>> hasIn, Func<string, Task<T>> hasOut)
+        public async Task<T> StartOperationAsync<T>(string key, bool autoStop, Func<string, Task<T>> hasIn, Func<string, Task<T>> hasOut)
         {
             DataVersion.Increment();
 

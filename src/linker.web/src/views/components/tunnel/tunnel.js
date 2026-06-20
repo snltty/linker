@@ -80,7 +80,6 @@ export const provideTunnel = () => {
     
     const tunnelProcessFn = (device,json) => { 
         if(!tunnel.value.list || !tunnel.value.operatings) return;
-        
         const value = tunnel.value.list[device.MachineId];
         Object.assign(json,{
             hook_tunnel: value,

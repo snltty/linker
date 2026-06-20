@@ -93,7 +93,11 @@ namespace linker.messenger.mesh
         {
             try
             {
-                MeshInfo info = tunnelTransportInfo.Configure[_transactionId].DeJson<MeshInfo>();
+                MeshInfo info = new MeshInfo();
+                if (tunnelTransportInfo.Configure.TryGetValue(_transactionId, out string tagStr))
+                {
+                    info = tagStr.DeJson<MeshInfo>();
+                }
                 info.TId = tunnelTransportInfo.TransactionId;
                 info.Key = $"{tunnelTransportInfo.Local.MachineId}@{tunnelTransportInfo.Remote.MachineId}@{tunnelTransportInfo.TransactionId}";
 
@@ -206,8 +210,8 @@ namespace linker.messenger.mesh
 
     public sealed class MeshInfo
     {
-        public string NodeId { get; set; }
-        public string Key { get; set; }
-        public string TId { get; set; }
+        public string NodeId { get; set; } = string.Empty;
+        public string Key { get; set; } = string.Empty;
+        public string TId { get; set; } = string.Empty;
     }
 }
