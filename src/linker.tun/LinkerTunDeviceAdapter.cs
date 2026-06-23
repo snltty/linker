@@ -1,12 +1,11 @@
 ﻿using linker.libs;
-using linker.libs.extends;
 using linker.libs.timer;
 using linker.nat;
 using linker.tun.device;
 using linker.tun.hook;
 using System.Buffers.Binary;
 using System.Net;
-using static linker.nat.LinkerDstMapping;
+using System.Runtime.CompilerServices;
 
 namespace linker.tun
 {
@@ -334,7 +333,10 @@ namespace linker.tun
 
 
                         packet.Unpacket(buffer, 0, length);
-                        if (packet.DstIp.Length == 0 || packet.Version != 4) continue;
+                        if (packet.DstIp.Length == 0 || packet.Version != 4)
+                        {
+                            continue;
+                        }
 
                         LinkerTunPacketHookFlags flags = ExecReadHook(packet.RawPacket);
                         if ((flags & LinkerTunPacketHookFlags.WriteBack) == LinkerTunPacketHookFlags.WriteBack)
@@ -359,6 +361,8 @@ namespace linker.tun
         }
         private LinkerTunPacketHookFlags ExecReadHook(Memory<byte> rawPacket)
         {
+            ChecksumHelper.ChecksumState state = ChecksumHelper.CaptureChecksumState(rawPacket);
+
             LinkerTunPacketHookFlags flags = LinkerTunPacketHookFlags.Next | LinkerTunPacketHookFlags.Send;
             for (int i = 0; i < readHooks.Length; i++)
             {
@@ -370,7 +374,7 @@ namespace linker.tun
                     break;
                 }
             }
-            ChecksumHelper.ChecksumWithZero(rawPacket);
+            ChecksumHelper.UpdateChecksum(state);
             return flags;
         }
 
@@ -381,25 +385,26 @@ namespace linker.tun
         /// <returns></returns>
         public async ValueTask<bool> Write(string srcId, ReadOnlyMemory<byte> buffer)
         {
-            uint dstIp = VerifyPacket(buffer);
-            if (Status != LinkerTunDeviceStatus.Running || dstIp == 0) return false;
-
-            LinkerTunPacketHookFlags flags = await ExecWriteHook(buffer, dstIp, srcId).ConfigureAwait(false);
-            return (flags & LinkerTunPacketHookFlags.Write) != LinkerTunPacketHookFlags.Write || linkerTunDevice.Write(buffer);
+            if (Status == LinkerTunDeviceStatus.Running)
+            {
+                uint dstIp = BinaryPrimitives.ReadUInt32BigEndian(buffer.Span.Slice(16, 4));
+                LinkerTunPacketHookFlags flags = await ExecWriteHook(buffer, dstIp, srcId).ConfigureAwait(false);
+                return (flags & LinkerTunPacketHookFlags.Write) != LinkerTunPacketHookFlags.Write || linkerTunDevice.Write(buffer);
+            }
+            return false;
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe uint VerifyPacket(ReadOnlyMemory<byte> buffer)
         {
             fixed (byte* ptr = buffer.Span)
             {
-                if (BinaryPrimitives.ReverseEndianness(*(ushort*)(ptr + 2)) == buffer.Length)
-                {
-                    return BinaryPrimitives.ReverseEndianness(*(uint*)(ptr + 16));
-                }
+                return BinaryPrimitives.ReverseEndianness(*(uint*)(ptr + 16));
             }
-            return 0;
         }
         private async ValueTask<LinkerTunPacketHookFlags> ExecWriteHook(ReadOnlyMemory<byte> rawPacket, uint dstIp, string srcId)
         {
+            ChecksumHelper.ChecksumState state = ChecksumHelper.CaptureChecksumState(rawPacket);
+
             LinkerTunPacketHookFlags flags = LinkerTunPacketHookFlags.Next | LinkerTunPacketHookFlags.Write;
             for (int i = 0; i < writeHooks.Length; i++)
             {
@@ -411,7 +416,7 @@ namespace linker.tun
                     break;
                 }
             }
-            ChecksumHelper.ChecksumWithZero(rawPacket);
+            ChecksumHelper.UpdateChecksum(state);
             return flags;
         }
 
@@ -419,7 +424,7 @@ namespace linker.tun
         /// 设置IP映射列表
         /// </summary>
         /// <param name="maps"></param>
-        public void SetMap(DstMapInfo[] maps)
+        public void SetMap(LinkerDstMapping.DstMapInfo[] maps)
         {
             lanMap.SetMap(maps);
         }

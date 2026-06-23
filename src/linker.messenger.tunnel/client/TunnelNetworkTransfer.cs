@@ -53,7 +53,7 @@ namespace linker.messenger.tunnel.client
 
         public List<PortMappingInfo> GetMapping()
         {
-            return PortMappingUtility.Get();
+            return PortMappingUtility.GetRemote();
         }
         public List<PortMappingInfo> GetMappingLocal()
         {

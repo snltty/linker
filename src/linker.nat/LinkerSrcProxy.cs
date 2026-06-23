@@ -390,8 +390,6 @@ namespace linker.nat
                         srcProxyPacket.DstPort = cache.SrcPort;
                         srcProxyPacket.SrcAddr = cache.DstAddr;
                         srcProxyPacket.SrcPort = cache.DstPort;
-                        srcProxyPacket.IPChecksum = 0; //需要重新计算IP头校验和
-                        srcProxyPacket.PayloadChecksum = 0; //需要重新计算TCP校验和
                     }
                 }
                 else //从访问端来的
@@ -422,8 +420,6 @@ namespace linker.nat
                     srcProxyPacket.DstPort = proxyPort;
                     srcProxyPacket.SrcAddr = proxySrc;
                     srcProxyPacket.SrcPort = cache.NewPort;
-                    srcProxyPacket.IPChecksum = 0; //需要重新计算IP头校验和
-                    srcProxyPacket.PayloadChecksum = 0;//需要重新计算TCP校验和
                 }
                 return false;
             }
@@ -561,6 +557,7 @@ namespace linker.nat
             private readonly byte* ptr;
 
             public readonly byte Version => (byte)((*ptr >> 4) & 0b1111);
+            public readonly bool CanModifyTransportHeader => ((*(ptr + 6) & 0x1F) | *(ptr + 7)) == 0;
             public readonly ProtocolType Protocol => (ProtocolType)(*(ptr + 9));
             public readonly int IPHeadLength => (*ptr & 0b1111) * 4;
             public readonly byte* PayloadPtr => ptr + IPHeadLength;
@@ -594,7 +591,8 @@ namespace linker.nat
                 }
                 set
                 {
-                    *(ushort*)(PayloadPtr) = BinaryPrimitives.ReverseEndianness(value);
+                    if (CanModifyTransportHeader)
+                        *(ushort*)(PayloadPtr) = BinaryPrimitives.ReverseEndianness(value);
                 }
             }
             public readonly ushort DstPort
@@ -605,7 +603,8 @@ namespace linker.nat
                 }
                 set
                 {
-                    *(ushort*)(PayloadPtr + 2) = BinaryPrimitives.ReverseEndianness(value);
+                    if (CanModifyTransportHeader)
+                        *(ushort*)(PayloadPtr + 2) = BinaryPrimitives.ReverseEndianness(value);
                 }
             }
 
@@ -652,46 +651,6 @@ namespace linker.nat
             public readonly bool TcpSynAck => TcpFlag == (syn | ack);
             public readonly bool TcpFinOrRst => (TcpFlag & (fin | rst)) != 0;
 
-
-            public readonly ushort IPChecksum
-            {
-                get
-                {
-                    return BinaryPrimitives.ReverseEndianness(*(ushort*)(ptr + 10));
-                }
-                set
-                {
-                    *(ushort*)(ptr + 10) = BinaryPrimitives.ReverseEndianness(value);
-                }
-            }
-            public readonly ushort PayloadChecksum
-            {
-                get
-                {
-                    return Protocol switch
-                    {
-                        ProtocolType.Icmp => BinaryPrimitives.ReverseEndianness(*(ushort*)(PayloadPtr + 2)),
-                        ProtocolType.Tcp => BinaryPrimitives.ReverseEndianness(*(ushort*)(PayloadPtr + 16)),
-                        ProtocolType.Udp => BinaryPrimitives.ReverseEndianness(*(ushort*)(PayloadPtr + 6)),
-                        _ => (ushort)0,
-                    };
-                }
-                set
-                {
-                    switch (Protocol)
-                    {
-                        case ProtocolType.Icmp:
-                            *(ushort*)(PayloadPtr + 2) = BinaryPrimitives.ReverseEndianness(value);
-                            break;
-                        case ProtocolType.Tcp:
-                            *(ushort*)(PayloadPtr + 16) = BinaryPrimitives.ReverseEndianness(value);
-                            break;
-                        case ProtocolType.Udp:
-                            *(ushort*)(PayloadPtr + 6) = BinaryPrimitives.ReverseEndianness(value);
-                            break;
-                    }
-                }
-            }
 
             public SrcProxyPacket(byte* ptr)
             {

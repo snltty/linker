@@ -251,8 +251,6 @@ namespace linker.nat
                         cache.LastTime = Environment.TickCount64;
                         p.SrcAddr = cache.IP;
                         p.SrcPort = cache.Port;
-                        p.IPChecksum = 0;
-                        p.PayloadChecksum = 0;
 
                         if (p.Protocol == ProtocolType.Tcp && (p.TcpFlagFin || p.TcpFlagRst))
                         {
@@ -266,7 +264,6 @@ namespace linker.nat
                     {
                         cache.LastTime = Environment.TickCount64;
                         p.SrcAddr = cache.IP;
-                        p.IPChecksum = 0;
                     }
                 }
             }
@@ -325,9 +322,6 @@ namespace linker.nat
             //改为代理地址
             p.DstPort = proxyPort;
             p.DstAddr = tunIp;
-            //重新计算校验和
-            p.IPChecksum = 0;
-            p.PayloadChecksum = 0;
 
             return true;
         }
@@ -344,9 +338,6 @@ namespace linker.nat
             //改为代理地址
             p.DstPort = proxyPort;
             p.DstAddr = tunIp;
-            //重新计算校验和
-            p.IPChecksum = 0;
-            p.PayloadChecksum = 0;
 
             return true;
         }
@@ -381,7 +372,6 @@ namespace linker.nat
             cache.LastTime = Environment.TickCount64;
 
             p.DstAddr = tunIp;
-            p.IPChecksum = 0;
 
             return true;
         }
@@ -470,6 +460,9 @@ namespace linker.nat
             /// 协议版本
             /// </summary>
             public readonly byte Version => (byte)((*ptr >> 4) & 0b1111);
+
+            public readonly bool CanModifyTransportHeader => ((*(ptr + 6) & 0x1F) | *(ptr + 7)) == 0;
+
             public readonly ProtocolType Protocol => (ProtocolType)(*(ptr + 9));
 
             public readonly byte IcmpType
@@ -519,7 +512,8 @@ namespace linker.nat
                 }
                 set
                 {
-                    *(ushort*)(PayloadPtr) = BinaryPrimitives.ReverseEndianness(value);
+                    if (CanModifyTransportHeader)
+                        *(ushort*)(PayloadPtr) = BinaryPrimitives.ReverseEndianness(value);
                 }
             }
             /// <summary>
@@ -563,47 +557,8 @@ namespace linker.nat
                 }
                 set
                 {
-                    *(ushort*)(PayloadPtr + 2) = BinaryPrimitives.ReverseEndianness(value);
-                }
-            }
-
-            public readonly ushort IPChecksum
-            {
-                get
-                {
-                    return BinaryPrimitives.ReverseEndianness(*(ushort*)(ptr + 10));
-                }
-                set
-                {
-                    *(ushort*)(ptr + 10) = BinaryPrimitives.ReverseEndianness(value);
-                }
-            }
-            public readonly ushort PayloadChecksum
-            {
-                get
-                {
-                    return Protocol switch
-                    {
-                        ProtocolType.Icmp => BinaryPrimitives.ReverseEndianness(*(ushort*)(PayloadPtr + 2)),
-                        ProtocolType.Tcp => BinaryPrimitives.ReverseEndianness(*(ushort*)(PayloadPtr + 16)),
-                        ProtocolType.Udp => BinaryPrimitives.ReverseEndianness(*(ushort*)(PayloadPtr + 6)),
-                        _ => (ushort)0,
-                    };
-                }
-                set
-                {
-                    switch (Protocol)
-                    {
-                        case ProtocolType.Icmp:
-                            *(ushort*)(PayloadPtr + 2) = BinaryPrimitives.ReverseEndianness(value);
-                            break;
-                        case ProtocolType.Tcp:
-                            *(ushort*)(PayloadPtr + 16) = BinaryPrimitives.ReverseEndianness(value);
-                            break;
-                        case ProtocolType.Udp:
-                            *(ushort*)(PayloadPtr + 6) = BinaryPrimitives.ReverseEndianness(value);
-                            break;
-                    }
+                    if (CanModifyTransportHeader)
+                        *(ushort*)(PayloadPtr + 2) = BinaryPrimitives.ReverseEndianness(value);
                 }
             }
 
@@ -663,7 +618,7 @@ namespace linker.nat
 
             public int GetHashCode(NatKey obj)
             {
-                return HashCode.Combine (obj.SrcIp ,obj.SrcPort, obj.DstIp, obj.DstPort);
+                return HashCode.Combine(obj.SrcIp, obj.SrcPort, obj.DstIp, obj.DstPort);
             }
         }
     }

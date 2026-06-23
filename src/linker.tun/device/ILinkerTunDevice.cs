@@ -227,6 +227,8 @@ namespace linker.tun.device
             ReadOnlyMemory<byte> ipPacket = Buffer.AsMemory(Offset + pad, Length - pad);
             Version = (byte)(ipPacket.Span[0] >> 4 & 0b1111);
 
+            bool canModifyTransportHeader = ((ipPacket.Span[6] & 0x1F) | ipPacket.Span[7]) == 0;
+
             SrcIp = Helper.EmptyArray;
             DstIp = Helper.EmptyArray;
 
@@ -237,30 +239,14 @@ namespace linker.tun.device
 
                 ProtocolType = (ProtocolType)ipPacket.Span[9];
 
-                if (ProtocolType == ProtocolType.Tcp || ProtocolType == ProtocolType.Udp)
+                if (canModifyTransportHeader && (ProtocolType == ProtocolType.Tcp || ProtocolType == ProtocolType.Udp))
                 {
                     SrcPort = BinaryPrimitives.ReverseEndianness(ipPacket.Slice(20, 2).ToUInt16());
                     DstPort = BinaryPrimitives.ReverseEndianness(ipPacket.Slice(22, 2).ToUInt16());
                 }
             }
-            else if (Version == 6)
-            {
-                SrcIp = ipPacket.Slice(8, 16);
-                DstIp = ipPacket.Slice(24, 16);
-
-                ProtocolType = (ProtocolType)ipPacket.Span[6];
-
-                if (ProtocolType == ProtocolType.Tcp || ProtocolType == ProtocolType.Udp)
-                {
-                    SrcPort = BinaryPrimitives.ReverseEndianness(ipPacket.Slice(42, 2).ToUInt16());
-                    DstPort = BinaryPrimitives.ReverseEndianness(ipPacket.Slice(44, 2).ToUInt16());
-                }
-            }
         }
-
     }
-
-
 
     /// <summary>
     /// 添加路由项

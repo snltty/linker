@@ -79,8 +79,6 @@ namespace linker.nat
                 if (natDic.TryGetValue(packet.SrcAddr, out uint fakeDist))
                 {
                     packet.SrcAddr = fakeDist;
-                    packet.IPChecksum = 0;
-                    packet.PayloadChecksum = 0;
                 }
             }
 
@@ -110,8 +108,6 @@ namespace linker.nat
                         if (packet.DstAddr != realDist)
                         {
                             packet.DstAddr = realDist;
-                            packet.IPChecksum = 0;
-                            packet.PayloadChecksum = 0;
                             if (natDic.TryGetValue(realDist, out uint value) == false || value != fakeDist)
                             {
                                 natDic.AddOrUpdate(realDist, fakeDist, (a, b) => fakeDist);
@@ -150,6 +146,9 @@ namespace linker.nat
             /// 协议版本
             /// </summary>
             public readonly byte Version => (byte)((*ptr >> 4) & 0b1111);
+
+            public readonly bool CanModifyTransportHeader => ((*(ptr + 6) & 0x1F) | *(ptr + 7)) == 0;
+
             public readonly ProtocolType Protocol => (ProtocolType)(*(ptr + 9));
 
             /// <summary>
@@ -190,46 +189,6 @@ namespace linker.nat
                 }
             }
             public ReadOnlySpan<byte> DstAddrSpan => new Span<byte>((ptr + 16), 4);
-
-            public readonly ushort IPChecksum
-            {
-                get
-                {
-                    return BinaryPrimitives.ReverseEndianness(*(ushort*)(ptr + 10));
-                }
-                set
-                {
-                    *(ushort*)(ptr + 10) = BinaryPrimitives.ReverseEndianness(value);
-                }
-            }
-            public readonly ushort PayloadChecksum
-            {
-                get
-                {
-                    return Protocol switch
-                    {
-                        ProtocolType.Icmp => BinaryPrimitives.ReverseEndianness(*(ushort*)(PayloadPtr + 2)),
-                        ProtocolType.Tcp => BinaryPrimitives.ReverseEndianness(*(ushort*)(PayloadPtr + 16)),
-                        ProtocolType.Udp => BinaryPrimitives.ReverseEndianness(*(ushort*)(PayloadPtr + 6)),
-                        _ => (ushort)0,
-                    };
-                }
-                set
-                {
-                    switch (Protocol)
-                    {
-                        case ProtocolType.Icmp:
-                            *(ushort*)(PayloadPtr + 2) = BinaryPrimitives.ReverseEndianness(value);
-                            break;
-                        case ProtocolType.Tcp:
-                            *(ushort*)(PayloadPtr + 16) = BinaryPrimitives.ReverseEndianness(value);
-                            break;
-                        case ProtocolType.Udp:
-                            *(ushort*)(PayloadPtr + 6) = BinaryPrimitives.ReverseEndianness(value);
-                            break;
-                    }
-                }
-            }
 
             /// <summary>
             /// 加载TCP/IP包，必须是一个完整的TCP/IP包

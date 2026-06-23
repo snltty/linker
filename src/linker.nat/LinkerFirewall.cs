@@ -280,6 +280,9 @@ namespace linker.nat
             /// 协议版本
             /// </summary>
             public readonly byte Version => (byte)((*ptr >> 4) & 0b1111);
+
+            public readonly bool CanModifyTransportHeader => ((*(ptr + 6) & 0x1F) | *(ptr + 7)) == 0;
+
             public readonly ProtocolType Protocol => (ProtocolType)(*(ptr + 9));
 
             /// <summary>

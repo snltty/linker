@@ -157,7 +157,7 @@ namespace linker.upnp
         /// 获取所有已发现设备的所有映射信息
         /// </summary>
         /// <returns></returns>
-        public static List<PortMappingInfo> Get()
+        public static List<PortMappingInfo> GetRemote()
         {
             RefreshDelay();
             return mappings
