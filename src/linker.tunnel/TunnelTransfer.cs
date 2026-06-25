@@ -125,16 +125,16 @@ namespace linker.tunnel
 
         public void SetConnectedCallback(string transactionId, Action<ITunnelConnection, TunnelTransportInfo> callback)
         {
-            if (OnConnectedDic.TryGetValue(transactionId, out List<Action<ITunnelConnection,TunnelTransportInfo>> callbacks) == false)
+            if (OnConnectedDic.TryGetValue(transactionId, out List<Action<ITunnelConnection, TunnelTransportInfo>> callbacks) == false)
             {
-                callbacks = new List<Action<ITunnelConnection,TunnelTransportInfo>>();
+                callbacks = new List<Action<ITunnelConnection, TunnelTransportInfo>>();
                 OnConnectedDic[transactionId] = callbacks;
             }
             callbacks.Add(callback);
         }
         public void RemoveConnectedCallback(string transactionId, Action<ITunnelConnection, TunnelTransportInfo> callback)
         {
-            if (OnConnectedDic.TryGetValue(transactionId, out List<Action<ITunnelConnection,TunnelTransportInfo>> callbacks))
+            if (OnConnectedDic.TryGetValue(transactionId, out List<Action<ITunnelConnection, TunnelTransportInfo>> callbacks))
             {
                 callbacks.Remove(callback);
             }
@@ -400,6 +400,7 @@ namespace linker.tunnel
                 }));
             }
             //再尝试外网ip，UDP的话就多试几个端口
+            /*
             if (tunnelTransportInfo.TransportType == TunnelProtocolType.Udp)
             {
                 for (int i = tunnelTransportInfo.Remote.Remote.Port - 200; i < tunnelTransportInfo.Remote.Remote.Port + 200; i++)
@@ -408,10 +409,12 @@ namespace linker.tunnel
                 }
             }
             else
+            */
             {
                 eps.AddRange(new List<IPEndPoint>{
                     new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Remote.Port),
-                    new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Remote.Port+1)
+                    new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Remote.Port+1),
+                    new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Remote.Port+2),
                 });
             }
 

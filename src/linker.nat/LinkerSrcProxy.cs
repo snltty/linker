@@ -557,7 +557,6 @@ namespace linker.nat
             private readonly byte* ptr;
 
             public readonly byte Version => (byte)((*ptr >> 4) & 0b1111);
-            public readonly bool CanModifyTransportHeader => ((*(ptr + 6) & 0x1F) | *(ptr + 7)) == 0;
             public readonly ProtocolType Protocol => (ProtocolType)(*(ptr + 9));
             public readonly int IPHeadLength => (*ptr & 0b1111) * 4;
             public readonly byte* PayloadPtr => ptr + IPHeadLength;
@@ -591,8 +590,7 @@ namespace linker.nat
                 }
                 set
                 {
-                    if (CanModifyTransportHeader)
-                        *(ushort*)(PayloadPtr) = BinaryPrimitives.ReverseEndianness(value);
+                    *(ushort*)(PayloadPtr) = BinaryPrimitives.ReverseEndianness(value);
                 }
             }
             public readonly ushort DstPort
@@ -603,8 +601,7 @@ namespace linker.nat
                 }
                 set
                 {
-                    if (CanModifyTransportHeader)
-                        *(ushort*)(PayloadPtr + 2) = BinaryPrimitives.ReverseEndianness(value);
+                    *(ushort*)(PayloadPtr + 2) = BinaryPrimitives.ReverseEndianness(value);
                 }
             }
 

@@ -168,9 +168,7 @@ namespace linker.tunnel.connection
             }
             catch (Exception ex)
             {
-                LoggerHelper.Instance.Error($"{memory.Length}->{Encoding.UTF8.GetString(memory.Span)}");
-                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    LoggerHelper.Instance.Error(ex);
+                LoggerHelper.Instance.Error($"UDP process packet error:{ex}");
             }
             return ValueTask.CompletedTask;
         }

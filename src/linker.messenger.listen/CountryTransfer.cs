@@ -53,7 +53,7 @@ namespace linker.messenger.listen
         {
             if (
                 records.Count == 0
-                || store.GeoRegistry.Messengers.Contains(type) == false
+                || store.GeoRegistry.BlackMessengers.Contains((ushort)type) == false
                 || (store.GeoRegistry.WhiteCountry.Length == 0 && store.GeoRegistry.BlackCountry.Length == 0)
             )
             {

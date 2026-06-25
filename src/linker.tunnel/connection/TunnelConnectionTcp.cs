@@ -134,14 +134,13 @@ namespace linker.tunnel.connection
                     {
                         try
                         {
-
                             int packetLength = packetDecoder.ReadLength(memory);
                             await ProcessPacket(memory.Slice(StickyPacketCodec.PacketLengthSize, packetLength)).ConfigureAwait(false);
                             memory = memory.Slice(StickyPacketCodec.PacketLengthSize + packetLength);
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine(ex);
+                            LoggerHelper.Instance.Error($"TCP process packet error:{ex}");
                             break;
                         }
 

@@ -21,14 +21,15 @@
 4. 重写RFC5780NAT类型检测
 5. 端口转发和socks5底层逻辑合并
 6. 更多的Task向ValueTask优化
-7. 支持Mesh网络</Description>
+7. 支持Mesh网络
+8. TCP/IP校验和全量扫描200ns改为增量更新10ns</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>2.0.12</Version>
-		<AssemblyVersion>2.0.12</AssemblyVersion>
-		<FileVersion>2.0.12</FileVersion>
+		<Version>2.0.13</Version>
+		<AssemblyVersion>2.0.13</AssemblyVersion>
+		<FileVersion>2.0.13</FileVersion>
 		<DelaySign>False</DelaySign>
 
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>

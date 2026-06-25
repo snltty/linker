@@ -21,6 +21,6 @@ namespace linker.messenger.listen
         public string Url { get; set; } = "http://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest";
         public string[] WhiteCountry { get; set; } = [];
         public string[] BlackCountry { get; set; } = [];
-        public byte[] Messengers { get; set; } = [];
+        public ushort[] BlackMessengers { get; set; } = [];
     }
 }

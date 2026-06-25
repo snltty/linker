@@ -456,40 +456,15 @@ namespace linker.nat
         {
             private readonly byte* ptr;
 
-            /// <summary>
-            /// 协议版本
-            /// </summary>
             public readonly byte Version => (byte)((*ptr >> 4) & 0b1111);
-
-            public readonly bool CanModifyTransportHeader => ((*(ptr + 6) & 0x1F) | *(ptr + 7)) == 0;
-
             public readonly ProtocolType Protocol => (ProtocolType)(*(ptr + 9));
 
-            public readonly byte IcmpType
-            {
-                get
-                {
-                    return *PayloadPtr;
-                }
-                set
-                {
-                    *PayloadPtr = value;
-                }
-            }
+            public readonly byte IcmpType => *PayloadPtr;
             public readonly uint IcmpId => BinaryPrimitives.ReverseEndianness(*(uint*)(ptr + 4));
 
-            /// <summary>
-            /// IP头长度
-            /// </summary>
             public readonly int IPHeadLength => (*ptr & 0b1111) * 4;
-            /// <summary>
-            /// IP包荷载数据指针，也就是TCP/UDP头指针
-            /// </summary>
             public readonly byte* PayloadPtr => ptr + IPHeadLength;
 
-            /// <summary>
-            /// 源地址
-            /// </summary>
             public readonly uint SrcAddr
             {
                 get
@@ -501,9 +476,6 @@ namespace linker.nat
                     *(uint*)(ptr + 12) = BinaryPrimitives.ReverseEndianness(value);
                 }
             }
-            /// <summary>
-            /// 源端口
-            /// </summary>
             public readonly ushort SrcPort
             {
                 get
@@ -512,13 +484,9 @@ namespace linker.nat
                 }
                 set
                 {
-                    if (CanModifyTransportHeader)
-                        *(ushort*)(PayloadPtr) = BinaryPrimitives.ReverseEndianness(value);
+                    *(ushort*)(PayloadPtr) = BinaryPrimitives.ReverseEndianness(value);
                 }
             }
-            /// <summary>
-            /// 目的地址
-            /// </summary>
             public readonly uint DstAddr
             {
                 get
@@ -546,9 +514,6 @@ namespace linker.nat
             public readonly bool IsOnlySyn => TcpFlag == 0b00000010;
             public readonly bool IsSynAck => TcpFlag == 0b00010010;
 
-            /// <summary>
-            /// 目标端口
-            /// </summary>
             public readonly ushort DstPort
             {
                 get
@@ -557,15 +522,10 @@ namespace linker.nat
                 }
                 set
                 {
-                    if (CanModifyTransportHeader)
-                        *(ushort*)(PayloadPtr + 2) = BinaryPrimitives.ReverseEndianness(value);
+                    *(ushort*)(PayloadPtr + 2) = BinaryPrimitives.ReverseEndianness(value);
                 }
             }
 
-            /// <summary>
-            /// 加载TCP/IP包，必须是一个完整的TCP/IP包
-            /// </summary>
-            /// <param name="ptr">一个完整的TCP/IP包</param>
             public DstProxyPacket(byte* ptr)
             {
                 this.ptr = ptr;
