@@ -198,19 +198,9 @@ namespace linker.tun.device
         /// </summary>
         public ReadOnlyMemory<byte> SrcIp { get; private set; }
         /// <summary>
-        /// 源端口
-        /// </summary>
-        public ushort SrcPort { get; private set; }
-
-        /// <summary>
         /// 目标IP
         /// </summary>
         public ReadOnlyMemory<byte> DstIp { get; private set; }
-
-        /// <summary>
-        /// 目标端口
-        /// </summary>
-        public ushort DstPort { get; private set; }
 
         public bool IPV4Broadcast => Version == 4 && DstIp.IsCast();
         public bool IPV6Multicast => Version == 6 && (DstIp.Span[0] & 0xFF) == 0xFF;
@@ -225,26 +215,11 @@ namespace linker.tun.device
             Length = length;
 
             ReadOnlyMemory<byte> ipPacket = Buffer.AsMemory(Offset + pad, Length - pad);
-            Version = (byte)(ipPacket.Span[0] >> 4 & 0b1111);
+            ReadOnlySpan<byte> span = ipPacket.Span;
 
-            bool canModifyTransportHeader = ((ipPacket.Span[6] & 0x1F) | ipPacket.Span[7]) == 0;
-
-            SrcIp = Helper.EmptyArray;
-            DstIp = Helper.EmptyArray;
-
-            if (Version == 4)
-            {
-                SrcIp = ipPacket.Slice(12, 4);
-                DstIp = ipPacket.Slice(16, 4);
-
-                ProtocolType = (ProtocolType)ipPacket.Span[9];
-
-                if (canModifyTransportHeader && (ProtocolType == ProtocolType.Tcp || ProtocolType == ProtocolType.Udp))
-                {
-                    SrcPort = BinaryPrimitives.ReverseEndianness(ipPacket.Slice(20, 2).ToUInt16());
-                    DstPort = BinaryPrimitives.ReverseEndianness(ipPacket.Slice(22, 2).ToUInt16());
-                }
-            }
+            Version = (byte)(span[0] >> 4 & 0b1111);
+            SrcIp = ipPacket.Slice(12, 4);
+            DstIp = ipPacket.Slice(16, 4);
         }
     }
 

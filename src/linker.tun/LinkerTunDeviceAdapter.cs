@@ -5,7 +5,6 @@ using linker.tun.device;
 using linker.tun.hook;
 using System.Buffers.Binary;
 using System.Net;
-using System.Runtime.CompilerServices;
 
 namespace linker.tun
 {
@@ -361,7 +360,8 @@ namespace linker.tun
         }
         private LinkerTunPacketHookFlags ExecReadHook(Memory<byte> rawPacket)
         {
-            ChecksumHelper.ChecksumState state = ChecksumHelper.CaptureChecksumState(rawPacket);
+            ReadOnlySpan<byte> span = rawPacket.Span;
+            ChecksumHelper.ChecksumState state = ChecksumHelper.CaptureChecksumState(span);
 
             LinkerTunPacketHookFlags flags = LinkerTunPacketHookFlags.Next | LinkerTunPacketHookFlags.Send;
             for (int i = 0; i < readHooks.Length; i++)
@@ -374,36 +374,29 @@ namespace linker.tun
                     break;
                 }
             }
-            ChecksumHelper.UpdateChecksum(state);
+            ChecksumHelper.UpdateChecksum(state, span);
             return flags;
         }
 
         /// <summary>
         /// 写入一个TCP/IP数据包
         /// </summary>
+        /// <param name="srcId"></param>
         /// <param name="buffer"></param>
         /// <returns></returns>
         public async ValueTask<bool> Write(string srcId, ReadOnlyMemory<byte> buffer)
         {
             if (Status == LinkerTunDeviceStatus.Running)
             {
-                uint dstIp = BinaryPrimitives.ReadUInt32BigEndian(buffer.Span.Slice(16, 4));
-                LinkerTunPacketHookFlags flags = await ExecWriteHook(buffer, dstIp, srcId).ConfigureAwait(false);
+                LinkerTunPacketHookFlags flags = await ExecWriteHook(buffer, srcId).ConfigureAwait(false);
                 return (flags & LinkerTunPacketHookFlags.Write) != LinkerTunPacketHookFlags.Write || linkerTunDevice.Write(buffer);
             }
             return false;
         }
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe uint VerifyPacket(ReadOnlyMemory<byte> buffer)
-        {
-            fixed (byte* ptr = buffer.Span)
-            {
-                return BinaryPrimitives.ReverseEndianness(*(uint*)(ptr + 16));
-            }
-        }
-        private async ValueTask<LinkerTunPacketHookFlags> ExecWriteHook(ReadOnlyMemory<byte> rawPacket, uint dstIp, string srcId)
+        private async ValueTask<LinkerTunPacketHookFlags> ExecWriteHook(ReadOnlyMemory<byte> rawPacket, string srcId)
         {
             ChecksumHelper.ChecksumState state = ChecksumHelper.CaptureChecksumState(rawPacket);
+            uint dstIp = BinaryPrimitives.ReverseEndianness((uint)(state.Addr >> 32));
 
             LinkerTunPacketHookFlags flags = LinkerTunPacketHookFlags.Next | LinkerTunPacketHookFlags.Write;
             for (int i = 0; i < writeHooks.Length; i++)
@@ -416,7 +409,7 @@ namespace linker.tun
                     break;
                 }
             }
-            ChecksumHelper.UpdateChecksum(state);
+            ChecksumHelper.UpdateChecksum(state, rawPacket);
             return flags;
         }
 
