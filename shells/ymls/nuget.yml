@@ -6,7 +6,10 @@ name: Nuget
 on:
   workflow_dispatch:
 
-
+permissions:
+  id-token: write
+  contents: read
+  
 jobs:
   build:
 
