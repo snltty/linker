@@ -61,15 +61,14 @@ function writeUpload(data, tagName) {
             data.jobs.build.steps.push({
                 name: `upload-${plat}-${arch}-oss`,
                 id: `upload-${plat}-${arch}-oss`,
-                uses: 'tvrcgo/oss-action@v1.0.0',
+                uses: 'lslzl3000/oss-action@v1.0.1',
                 with: {
                     'region': 'oss-cn-shenzhen',
                     'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
                     'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
                     'bucket': 'ide-qbcode',
-                    'asset-path': `./public/publish-zip/linker-${plat}-${arch}.zip`,
-                    'target-path': `/downloads/linker/${tagName}/linker-${plat}-${arch}.zip`,
-                    'timeout': 720000
+                    'assets': `./public/publish-zip/linker-${plat}-${arch}.zip:/downloads/linker/${tagName}/linker-${plat}-${arch}.zip`,
+                    'timeout': '720000'
                 }
             });
             data.jobs.build.steps.push({
@@ -91,15 +90,14 @@ function writeUpload(data, tagName) {
     data.jobs.build.steps.push({
         name: `upload-anywhere-oss`,
         id: `upload-anywhere-oss`,
-        uses: 'tvrcgo/oss-action@v1.0.0',
+        uses: 'lslzl3000/oss-action@v1.0.1',
         with: {
             'region': 'oss-cn-shenzhen',
             'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
             'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
             'bucket': 'ide-qbcode',
-            'asset-path': `./public/publish-zip/linker-anywhere.zip`,
-            'target-path': `/downloads/linker/${tagName}/linker-anywhere.zip`,
-            'timeout': 720000
+            'assets': `./public/publish-zip/linker-anywhere.zip:/downloads/linker/${tagName}/linker-anywhere.zip`,
+            'timeout': '720000'
         }
     });
     data.jobs.build.steps.push({
@@ -120,15 +118,14 @@ function writeUpload(data, tagName) {
     data.jobs.build.steps.push({
         name: `upload-version-oss`,
         id: `upload-version-oss`,
-        uses: 'tvrcgo/oss-action@v1.0.0',
+        uses: 'lslzl3000/oss-action@v1.0.1',
         with: {
             'region': 'oss-cn-shenzhen',
             'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
             'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
             'bucket': 'ide-qbcode',
-            'asset-path': `./version.txt`,
-            'target-path': `/downloads/linker/version.txt`,
-            'timeout': 720000
+            'assets': `./version.txt:/downloads/linker/version.txt`,
+            'timeout': '720000'
         }
     });
     
@@ -136,29 +133,27 @@ function writeUpload(data, tagName) {
     data.jobs.build.steps.push({
         name: `upload-install-service-oss`,
         id: `upload-install-service-oss`,
-        uses: 'tvrcgo/oss-action@v1.0.0',
+        uses: 'lslzl3000/oss-action@v1.0.1',
         with: {
             'region': 'oss-cn-shenzhen',
             'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
             'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
             'bucket': 'ide-qbcode',
-            'asset-path': `./src/linker/linker.service`,
-            'target-path': `/downloads/linker/linker.service`,
-            'timeout': 720000
+            'assets': `./src/linker/linker.service:/downloads/linker/linker.service`,
+            'timeout': '720000'
         }
     });
     data.jobs.build.steps.push({
         name: `upload-install-oss`,
         id: `upload-install-oss`,
-        uses: 'tvrcgo/oss-action@v1.0.0',
+        uses: 'lslzl3000/oss-action@v1.0.1',
         with: {
             'region': 'oss-cn-shenzhen',
             'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
             'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
             'bucket': 'ide-qbcode',
-            'asset-path': `./src/linker/linker-install.sh`,
-            'target-path': `/downloads/linker/linker-install.sh`,
-            'timeout': 720000
+            'assets': `./src/linker/linker-install.sh:/downloads/linker/linker-install.sh`,
+            'timeout': '720000'
         }
     });
 
@@ -166,15 +161,14 @@ function writeUpload(data, tagName) {
     data.jobs.build.steps.push({
         name: `upload-apk-oss`,
         id: `upload-apk-oss`,
-        uses: 'tvrcgo/oss-action@v1.0.0',
+        uses: 'lslzl3000/oss-action@v1.0.1',
         with: {
             'region': 'oss-cn-shenzhen',
             'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
             'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
             'bucket': 'ide-qbcode',
-            'asset-path': `./public/publish-zip/linker.apk`,
-            'target-path': `/downloads/linker/${tagName}/linker.apk`,
-            'timeout': 720000
+            'assets': `./public/publish-zip/linker.apk:/downloads/linker/${tagName}/linker.apk`,
+            'timeout': '720000'
         }
     });
     data.jobs.build.steps.push({
@@ -201,15 +195,14 @@ function writeUploadIpk(data, tagName) {
         data.jobs.build.steps.push({
             name: `upload-${arch}-ipk-oss`,
             id: `upload-${arch}-ipk-oss`,
-            uses: 'tvrcgo/oss-action@v1.0.0',
+            uses: 'lslzl3000/oss-action@v1.0.1',
             with: {
                 'region': 'oss-cn-shenzhen',
                 'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
                 'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
                 'bucket': 'ide-qbcode',
-                'asset-path': `./public/publish-ipk/${arch}/linker-openwrt-${arch}.ipk`,
-                'target-path': `/downloads/linker/${tagName}/linker-openwrt-${arch}.ipk`,
-                'timeout': 720000
+                'assets': `./public/publish-ipk/${arch}/linker-openwrt-${arch}.ipk:/downloads/linker/${tagName}/linker-openwrt-${arch}.ipk`,
+                'timeout': '720000'
             }
         });
         data.jobs.build.steps.push({
@@ -229,15 +222,14 @@ function writeUploadIpk(data, tagName) {
         data.jobs.build.steps.push({
             name: `upload-${arch}-apk-oss`,
             id: `upload-${arch}-apk-oss`,
-            uses: 'tvrcgo/oss-action@v1.0.0',
+            uses: 'lslzl3000/oss-action@v1.0.1',
             with: {
                 'region': 'oss-cn-shenzhen',
                 'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
                 'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
                 'bucket': 'ide-qbcode',
-                'asset-path': `./public/publish-apk/${arch}/linker-openwrt-${arch}.apk`,
-                'target-path': `/downloads/linker/${tagName}/linker-openwrt-${arch}.apk`,
-                'timeout': 720000
+                'assets': `./public/publish-apk/${arch}/linker-openwrt-${arch}.apk:/downloads/linker/${tagName}/linker-openwrt-${arch}.apk`,
+                'timeout': '720000'
             }
         });
         data.jobs.build.steps.push({
@@ -259,15 +251,14 @@ function writeUploadIpk(data, tagName) {
     data.jobs.build.steps.push({
         name: `upload-docker-fpk-oss`,
         id: `upload-docker-fpk-oss`,
-        uses: 'tvrcgo/oss-action@v1.0.0',
+        uses: 'lslzl3000/oss-action@v1.0.1',
         with: {
             'region': 'oss-cn-shenzhen',
             'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
             'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
             'bucket': 'ide-qbcode',
-            'asset-path': `./public/publish-fpk/docker/linker-fnos-docker.fpk`,
-            'target-path': `/downloads/linker/${tagName}/linker-fnos-docker.fpk`,
-            'timeout': 720000
+            'assets': `./public/publish-fpk/docker/linker-fnos-docker.fpk:/downloads/linker/${tagName}/linker-fnos-docker.fpk`,
+            'timeout': '720000'
         }
     });
     data.jobs.build.steps.push({
@@ -294,15 +285,14 @@ function writeUploadIpk(data, tagName) {
             data.jobs.build.steps.push({
                 name: `upload-${type}-fpk-${arch}-oss`,
                 id: `upload-${type}-fpk-${arch}-oss`,
-                uses: 'tvrcgo/oss-action@v1.0.0',
+                uses: 'lslzl3000/oss-action@v1.0.1',
                 with: {
                     'region': 'oss-cn-shenzhen',
                     'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
                     'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
                     'bucket': 'ide-qbcode',
-                    'asset-path': `./public/publish-fpk/${type}/${arch}/linker-fnos-${type}-${arch}.fpk`,
-                    'target-path': `/downloads/linker/${tagName}/linker-fnos-${type}-${arch}.fpk`,
-                    'timeout': 720000
+                    'assets': `./public/publish-fpk/${type}/${arch}/linker-fnos-${type}-${arch}.fpk:/downloads/linker/${tagName}/linker-fnos-${type}-${arch}.fpk`,
+                    'timeout': '720000'
                 }
             });
             data.jobs.build.steps.push({
@@ -327,7 +317,7 @@ function writeUploadIpk(data, tagName) {
 readVersionDesc().then((desc) => {
 
     const data = readYaml('../ymls/dotnet.yml');
-    data.jobs.build.steps = data.jobs.build.steps.filter(c => c.uses != 'actions/upload-release-asset@master' && c.uses != 'tvrcgo/oss-action@v1.0.0');
+    data.jobs.build.steps = data.jobs.build.steps.filter(c => c.uses != 'actions/upload-release-asset@master' && c.uses != 'lslzl3000/oss-action@v1.0.1');
 
     data.jobs.build.steps.filter(c => c.id == 'create_release')[0].with.body = desc.desc;
     data.jobs.build.steps.filter(c => c.id == 'create_release')[0].with.tag_name = `v${desc.version}`;
