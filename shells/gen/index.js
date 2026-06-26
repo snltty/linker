@@ -68,7 +68,8 @@ function writeUpload(data, tagName) {
                     'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
                     'bucket': 'ide-qbcode',
                     'asset-path': `./public/publish-zip/linker-${plat}-${arch}.zip`,
-                    'target-path': `/downloads/linker/${tagName}/linker-${plat}-${arch}.zip`
+                    'target-path': `/downloads/linker/${tagName}/linker-${plat}-${arch}.zip`,
+                    'timeout': 720000
                 }
             });
             data.jobs.build.steps.push({
@@ -97,7 +98,8 @@ function writeUpload(data, tagName) {
             'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
             'bucket': 'ide-qbcode',
             'asset-path': `./public/publish-zip/linker-anywhere.zip`,
-            'target-path': `/downloads/linker/${tagName}/linker-anywhere.zip`
+            'target-path': `/downloads/linker/${tagName}/linker-anywhere.zip`,
+            'timeout': 720000
         }
     });
     data.jobs.build.steps.push({
@@ -125,7 +127,8 @@ function writeUpload(data, tagName) {
             'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
             'bucket': 'ide-qbcode',
             'asset-path': `./version.txt`,
-            'target-path': `/downloads/linker/version.txt`
+            'target-path': `/downloads/linker/version.txt`,
+            'timeout': 720000
         }
     });
     
@@ -140,7 +143,8 @@ function writeUpload(data, tagName) {
             'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
             'bucket': 'ide-qbcode',
             'asset-path': `./src/linker/linker.service`,
-            'target-path': `/downloads/linker/linker.service`
+            'target-path': `/downloads/linker/linker.service`,
+            'timeout': 720000
         }
     });
     data.jobs.build.steps.push({
@@ -153,7 +157,8 @@ function writeUpload(data, tagName) {
             'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
             'bucket': 'ide-qbcode',
             'asset-path': `./src/linker/linker-install.sh`,
-            'target-path': `/downloads/linker/linker-install.sh`
+            'target-path': `/downloads/linker/linker-install.sh`,
+            'timeout': 720000
         }
     });
 
@@ -168,7 +173,8 @@ function writeUpload(data, tagName) {
             'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
             'bucket': 'ide-qbcode',
             'asset-path': `./public/publish-zip/linker.apk`,
-            'target-path': `/downloads/linker/${tagName}/linker.apk`
+            'target-path': `/downloads/linker/${tagName}/linker.apk`,
+            'timeout': 720000
         }
     });
     data.jobs.build.steps.push({
@@ -202,7 +208,8 @@ function writeUploadIpk(data, tagName) {
                 'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
                 'bucket': 'ide-qbcode',
                 'asset-path': `./public/publish-ipk/${arch}/linker-openwrt-${arch}.ipk`,
-                'target-path': `/downloads/linker/${tagName}/linker-openwrt-${arch}.ipk`
+                'target-path': `/downloads/linker/${tagName}/linker-openwrt-${arch}.ipk`,
+                'timeout': 720000
             }
         });
         data.jobs.build.steps.push({
@@ -229,7 +236,8 @@ function writeUploadIpk(data, tagName) {
                 'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
                 'bucket': 'ide-qbcode',
                 'asset-path': `./public/publish-apk/${arch}/linker-openwrt-${arch}.apk`,
-                'target-path': `/downloads/linker/${tagName}/linker-openwrt-${arch}.apk`
+                'target-path': `/downloads/linker/${tagName}/linker-openwrt-${arch}.apk`,
+                'timeout': 720000
             }
         });
         data.jobs.build.steps.push({
@@ -258,7 +266,8 @@ function writeUploadIpk(data, tagName) {
             'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
             'bucket': 'ide-qbcode',
             'asset-path': `./public/publish-fpk/docker/linker-fnos-docker.fpk`,
-            'target-path': `/downloads/linker/${tagName}/linker-fnos-docker.fpk`
+            'target-path': `/downloads/linker/${tagName}/linker-fnos-docker.fpk`,
+            'timeout': 720000
         }
     });
     data.jobs.build.steps.push({
@@ -292,7 +301,8 @@ function writeUploadIpk(data, tagName) {
                     'key-secret': '${{ secrets.ALIYUN_OSS_SECRET }}',
                     'bucket': 'ide-qbcode',
                     'asset-path': `./public/publish-fpk/${type}/${arch}/linker-fnos-${type}-${arch}.fpk`,
-                    'target-path': `/downloads/linker/${tagName}/linker-fnos-${type}-${arch}.fpk`
+                    'target-path': `/downloads/linker/${tagName}/linker-fnos-${type}-${arch}.fpk`,
+                    'timeout': 720000
                 }
             });
             data.jobs.build.steps.push({

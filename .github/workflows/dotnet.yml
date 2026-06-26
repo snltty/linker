@@ -44,6 +44,7 @@ jobs:
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-win-x86.zip
           target-path: /downloads/linker/v2.0.14/linker-win-x86.zip
+          timeout: 720000
       - name: upload-win-x86
         id: upload-win-x86
         uses: actions/upload-release-asset@master
@@ -64,6 +65,7 @@ jobs:
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-win-x64.zip
           target-path: /downloads/linker/v2.0.14/linker-win-x64.zip
+          timeout: 720000
       - name: upload-win-x64
         id: upload-win-x64
         uses: actions/upload-release-asset@master
@@ -84,6 +86,7 @@ jobs:
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-win-arm64.zip
           target-path: /downloads/linker/v2.0.14/linker-win-arm64.zip
+          timeout: 720000
       - name: upload-win-arm64
         id: upload-win-arm64
         uses: actions/upload-release-asset@master
@@ -104,6 +107,7 @@ jobs:
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-linux-x64.zip
           target-path: /downloads/linker/v2.0.14/linker-linux-x64.zip
+          timeout: 720000
       - name: upload-linux-x64
         id: upload-linux-x64
         uses: actions/upload-release-asset@master
@@ -124,6 +128,7 @@ jobs:
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-linux-arm.zip
           target-path: /downloads/linker/v2.0.14/linker-linux-arm.zip
+          timeout: 720000
       - name: upload-linux-arm
         id: upload-linux-arm
         uses: actions/upload-release-asset@master
@@ -144,6 +149,7 @@ jobs:
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-linux-arm64.zip
           target-path: /downloads/linker/v2.0.14/linker-linux-arm64.zip
+          timeout: 720000
       - name: upload-linux-arm64
         id: upload-linux-arm64
         uses: actions/upload-release-asset@master
@@ -164,6 +170,7 @@ jobs:
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-linux-musl-x64.zip
           target-path: /downloads/linker/v2.0.14/linker-linux-musl-x64.zip
+          timeout: 720000
       - name: upload-linux-musl-x64
         id: upload-linux-musl-x64
         uses: actions/upload-release-asset@master
@@ -184,6 +191,7 @@ jobs:
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-linux-musl-arm.zip
           target-path: /downloads/linker/v2.0.14/linker-linux-musl-arm.zip
+          timeout: 720000
       - name: upload-linux-musl-arm
         id: upload-linux-musl-arm
         uses: actions/upload-release-asset@master
@@ -204,6 +212,7 @@ jobs:
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-linux-musl-arm64.zip
           target-path: /downloads/linker/v2.0.14/linker-linux-musl-arm64.zip
+          timeout: 720000
       - name: upload-linux-musl-arm64
         id: upload-linux-musl-arm64
         uses: actions/upload-release-asset@master
@@ -224,6 +233,7 @@ jobs:
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-osx-x64.zip
           target-path: /downloads/linker/v2.0.14/linker-osx-x64.zip
+          timeout: 720000
       - name: upload-osx-x64
         id: upload-osx-x64
         uses: actions/upload-release-asset@master
@@ -244,6 +254,7 @@ jobs:
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-osx-arm64.zip
           target-path: /downloads/linker/v2.0.14/linker-osx-arm64.zip
+          timeout: 720000
       - name: upload-osx-arm64
         id: upload-osx-arm64
         uses: actions/upload-release-asset@master
@@ -264,6 +275,7 @@ jobs:
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker-anywhere.zip
           target-path: /downloads/linker/v2.0.14/linker-anywhere.zip
+          timeout: 720000
       - name: upload-anywhere
         id: upload-anywhere
         uses: actions/upload-release-asset@master
@@ -284,6 +296,7 @@ jobs:
           bucket: ide-qbcode
           asset-path: ./version.txt
           target-path: /downloads/linker/version.txt
+          timeout: 720000
       - name: upload-install-service-oss
         id: upload-install-service-oss
         uses: tvrcgo/oss-action@v0.1.1
@@ -294,6 +307,7 @@ jobs:
           bucket: ide-qbcode
           asset-path: ./src/linker/linker.service
           target-path: /downloads/linker/linker.service
+          timeout: 720000
       - name: upload-install-oss
         id: upload-install-oss
         uses: tvrcgo/oss-action@v0.1.1
@@ -304,6 +318,7 @@ jobs:
           bucket: ide-qbcode
           asset-path: ./src/linker/linker-install.sh
           target-path: /downloads/linker/linker-install.sh
+          timeout: 720000
       - name: upload-apk-oss
         id: upload-apk-oss
         uses: tvrcgo/oss-action@v0.1.1
@@ -314,6 +329,7 @@ jobs:
           bucket: ide-qbcode
           asset-path: ./public/publish-zip/linker.apk
           target-path: /downloads/linker/v2.0.14/linker.apk
+          timeout: 720000
       - name: upload-apk
         id: upload-apk
         uses: actions/upload-release-asset@master
