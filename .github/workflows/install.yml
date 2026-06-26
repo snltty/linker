@@ -82,7 +82,7 @@ jobs:
           echo "upload_url=$upload_url" >> $GITHUB_OUTPUT
       - name: upload-x64-ipk-oss
         id: upload-x64-ipk-oss
-        uses: tvrcgo/oss-action@v0.1.1
+        uses: tvrcgo/oss-action@v1.0.0
         with:
           region: oss-cn-shenzhen
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
@@ -103,7 +103,7 @@ jobs:
           asset_content_type: application/ipk
       - name: upload-x64-apk-oss
         id: upload-x64-apk-oss
-        uses: tvrcgo/oss-action@v0.1.1
+        uses: tvrcgo/oss-action@v1.0.0
         with:
           region: oss-cn-shenzhen
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
@@ -124,7 +124,7 @@ jobs:
           asset_content_type: application/apk
       - name: upload-arm-ipk-oss
         id: upload-arm-ipk-oss
-        uses: tvrcgo/oss-action@v0.1.1
+        uses: tvrcgo/oss-action@v1.0.0
         with:
           region: oss-cn-shenzhen
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
@@ -145,7 +145,7 @@ jobs:
           asset_content_type: application/ipk
       - name: upload-arm-apk-oss
         id: upload-arm-apk-oss
-        uses: tvrcgo/oss-action@v0.1.1
+        uses: tvrcgo/oss-action@v1.0.0
         with:
           region: oss-cn-shenzhen
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
@@ -166,7 +166,7 @@ jobs:
           asset_content_type: application/apk
       - name: upload-arm64-ipk-oss
         id: upload-arm64-ipk-oss
-        uses: tvrcgo/oss-action@v0.1.1
+        uses: tvrcgo/oss-action@v1.0.0
         with:
           region: oss-cn-shenzhen
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
@@ -187,7 +187,7 @@ jobs:
           asset_content_type: application/ipk
       - name: upload-arm64-apk-oss
         id: upload-arm64-apk-oss
-        uses: tvrcgo/oss-action@v0.1.1
+        uses: tvrcgo/oss-action@v1.0.0
         with:
           region: oss-cn-shenzhen
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
@@ -208,7 +208,7 @@ jobs:
           asset_content_type: application/apk
       - name: upload-docker-fpk-oss
         id: upload-docker-fpk-oss
-        uses: tvrcgo/oss-action@v0.1.1
+        uses: tvrcgo/oss-action@v1.0.0
         with:
           region: oss-cn-shenzhen
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
@@ -229,7 +229,7 @@ jobs:
           asset_content_type: application/fpk
       - name: upload-bin-fpk-x64-oss
         id: upload-bin-fpk-x64-oss
-        uses: tvrcgo/oss-action@v0.1.1
+        uses: tvrcgo/oss-action@v1.0.0
         with:
           region: oss-cn-shenzhen
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
@@ -250,7 +250,7 @@ jobs:
           asset_content_type: application/fpk
       - name: upload-bin-fpk-arm64-oss
         id: upload-bin-fpk-arm64-oss
-        uses: tvrcgo/oss-action@v0.1.1
+        uses: tvrcgo/oss-action@v1.0.0
         with:
           region: oss-cn-shenzhen
           key-id: ${{ secrets.ALIYUN_OSS_ID }}

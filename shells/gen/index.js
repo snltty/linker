@@ -61,7 +61,7 @@ function writeUpload(data, tagName) {
             data.jobs.build.steps.push({
                 name: `upload-${plat}-${arch}-oss`,
                 id: `upload-${plat}-${arch}-oss`,
-                uses: 'tvrcgo/oss-action@v0.1.1',
+                uses: 'tvrcgo/oss-action@v1.0.0',
                 with: {
                     'region': 'oss-cn-shenzhen',
                     'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
@@ -91,7 +91,7 @@ function writeUpload(data, tagName) {
     data.jobs.build.steps.push({
         name: `upload-anywhere-oss`,
         id: `upload-anywhere-oss`,
-        uses: 'tvrcgo/oss-action@v0.1.1',
+        uses: 'tvrcgo/oss-action@v1.0.0',
         with: {
             'region': 'oss-cn-shenzhen',
             'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
@@ -120,7 +120,7 @@ function writeUpload(data, tagName) {
     data.jobs.build.steps.push({
         name: `upload-version-oss`,
         id: `upload-version-oss`,
-        uses: 'tvrcgo/oss-action@v0.1.1',
+        uses: 'tvrcgo/oss-action@v1.0.0',
         with: {
             'region': 'oss-cn-shenzhen',
             'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
@@ -136,7 +136,7 @@ function writeUpload(data, tagName) {
     data.jobs.build.steps.push({
         name: `upload-install-service-oss`,
         id: `upload-install-service-oss`,
-        uses: 'tvrcgo/oss-action@v0.1.1',
+        uses: 'tvrcgo/oss-action@v1.0.0',
         with: {
             'region': 'oss-cn-shenzhen',
             'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
@@ -150,7 +150,7 @@ function writeUpload(data, tagName) {
     data.jobs.build.steps.push({
         name: `upload-install-oss`,
         id: `upload-install-oss`,
-        uses: 'tvrcgo/oss-action@v0.1.1',
+        uses: 'tvrcgo/oss-action@v1.0.0',
         with: {
             'region': 'oss-cn-shenzhen',
             'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
@@ -166,7 +166,7 @@ function writeUpload(data, tagName) {
     data.jobs.build.steps.push({
         name: `upload-apk-oss`,
         id: `upload-apk-oss`,
-        uses: 'tvrcgo/oss-action@v0.1.1',
+        uses: 'tvrcgo/oss-action@v1.0.0',
         with: {
             'region': 'oss-cn-shenzhen',
             'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
@@ -201,7 +201,7 @@ function writeUploadIpk(data, tagName) {
         data.jobs.build.steps.push({
             name: `upload-${arch}-ipk-oss`,
             id: `upload-${arch}-ipk-oss`,
-            uses: 'tvrcgo/oss-action@v0.1.1',
+            uses: 'tvrcgo/oss-action@v1.0.0',
             with: {
                 'region': 'oss-cn-shenzhen',
                 'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
@@ -229,7 +229,7 @@ function writeUploadIpk(data, tagName) {
         data.jobs.build.steps.push({
             name: `upload-${arch}-apk-oss`,
             id: `upload-${arch}-apk-oss`,
-            uses: 'tvrcgo/oss-action@v0.1.1',
+            uses: 'tvrcgo/oss-action@v1.0.0',
             with: {
                 'region': 'oss-cn-shenzhen',
                 'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
@@ -259,7 +259,7 @@ function writeUploadIpk(data, tagName) {
     data.jobs.build.steps.push({
         name: `upload-docker-fpk-oss`,
         id: `upload-docker-fpk-oss`,
-        uses: 'tvrcgo/oss-action@v0.1.1',
+        uses: 'tvrcgo/oss-action@v1.0.0',
         with: {
             'region': 'oss-cn-shenzhen',
             'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
@@ -294,7 +294,7 @@ function writeUploadIpk(data, tagName) {
             data.jobs.build.steps.push({
                 name: `upload-${type}-fpk-${arch}-oss`,
                 id: `upload-${type}-fpk-${arch}-oss`,
-                uses: 'tvrcgo/oss-action@v0.1.1',
+                uses: 'tvrcgo/oss-action@v1.0.0',
                 with: {
                     'region': 'oss-cn-shenzhen',
                     'key-id': '${{ secrets.ALIYUN_OSS_ID }}',
@@ -327,7 +327,7 @@ function writeUploadIpk(data, tagName) {
 readVersionDesc().then((desc) => {
 
     const data = readYaml('../ymls/dotnet.yml');
-    data.jobs.build.steps = data.jobs.build.steps.filter(c => c.uses != 'actions/upload-release-asset@master' && c.uses != 'tvrcgo/oss-action@v0.1.1');
+    data.jobs.build.steps = data.jobs.build.steps.filter(c => c.uses != 'actions/upload-release-asset@master' && c.uses != 'tvrcgo/oss-action@v1.0.0');
 
     data.jobs.build.steps.filter(c => c.id == 'create_release')[0].with.body = desc.desc;
     data.jobs.build.steps.filter(c => c.id == 'create_release')[0].with.tag_name = `v${desc.version}`;

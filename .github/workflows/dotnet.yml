@@ -36,7 +36,7 @@ jobs:
         run: ./shells/publish.bat "C:\\Android\\android-sdk"
       - name: upload-win-x86-oss
         id: upload-win-x86-oss
-        uses: tvrcgo/oss-action@v0.1.1
+        uses: tvrcgo/oss-action@v1.0.0
         with:
           region: oss-cn-shenzhen
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
@@ -57,7 +57,7 @@ jobs:
           asset_content_type: application/zip
       - name: upload-win-x64-oss
         id: upload-win-x64-oss
-        uses: tvrcgo/oss-action@v0.1.1
+        uses: tvrcgo/oss-action@v1.0.0
         with:
           region: oss-cn-shenzhen
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
@@ -78,7 +78,7 @@ jobs:
           asset_content_type: application/zip
       - name: upload-win-arm64-oss
         id: upload-win-arm64-oss
-        uses: tvrcgo/oss-action@v0.1.1
+        uses: tvrcgo/oss-action@v1.0.0
         with:
           region: oss-cn-shenzhen
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
@@ -99,7 +99,7 @@ jobs:
           asset_content_type: application/zip
       - name: upload-linux-x64-oss
         id: upload-linux-x64-oss
-        uses: tvrcgo/oss-action@v0.1.1
+        uses: tvrcgo/oss-action@v1.0.0
         with:
           region: oss-cn-shenzhen
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
@@ -120,7 +120,7 @@ jobs:
           asset_content_type: application/zip
       - name: upload-linux-arm-oss
         id: upload-linux-arm-oss
-        uses: tvrcgo/oss-action@v0.1.1
+        uses: tvrcgo/oss-action@v1.0.0
         with:
           region: oss-cn-shenzhen
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
@@ -141,7 +141,7 @@ jobs:
           asset_content_type: application/zip
       - name: upload-linux-arm64-oss
         id: upload-linux-arm64-oss
-        uses: tvrcgo/oss-action@v0.1.1
+        uses: tvrcgo/oss-action@v1.0.0
         with:
           region: oss-cn-shenzhen
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
@@ -162,7 +162,7 @@ jobs:
           asset_content_type: application/zip
       - name: upload-linux-musl-x64-oss
         id: upload-linux-musl-x64-oss
-        uses: tvrcgo/oss-action@v0.1.1
+        uses: tvrcgo/oss-action@v1.0.0
         with:
           region: oss-cn-shenzhen
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
@@ -183,7 +183,7 @@ jobs:
           asset_content_type: application/zip
       - name: upload-linux-musl-arm-oss
         id: upload-linux-musl-arm-oss
-        uses: tvrcgo/oss-action@v0.1.1
+        uses: tvrcgo/oss-action@v1.0.0
         with:
           region: oss-cn-shenzhen
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
@@ -204,7 +204,7 @@ jobs:
           asset_content_type: application/zip
       - name: upload-linux-musl-arm64-oss
         id: upload-linux-musl-arm64-oss
-        uses: tvrcgo/oss-action@v0.1.1
+        uses: tvrcgo/oss-action@v1.0.0
         with:
           region: oss-cn-shenzhen
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
@@ -225,7 +225,7 @@ jobs:
           asset_content_type: application/zip
       - name: upload-osx-x64-oss
         id: upload-osx-x64-oss
-        uses: tvrcgo/oss-action@v0.1.1
+        uses: tvrcgo/oss-action@v1.0.0
         with:
           region: oss-cn-shenzhen
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
@@ -246,7 +246,7 @@ jobs:
           asset_content_type: application/zip
       - name: upload-osx-arm64-oss
         id: upload-osx-arm64-oss
-        uses: tvrcgo/oss-action@v0.1.1
+        uses: tvrcgo/oss-action@v1.0.0
         with:
           region: oss-cn-shenzhen
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
@@ -267,7 +267,7 @@ jobs:
           asset_content_type: application/zip
       - name: upload-anywhere-oss
         id: upload-anywhere-oss
-        uses: tvrcgo/oss-action@v0.1.1
+        uses: tvrcgo/oss-action@v1.0.0
         with:
           region: oss-cn-shenzhen
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
@@ -288,7 +288,7 @@ jobs:
           asset_content_type: application/zip
       - name: upload-version-oss
         id: upload-version-oss
-        uses: tvrcgo/oss-action@v0.1.1
+        uses: tvrcgo/oss-action@v1.0.0
         with:
           region: oss-cn-shenzhen
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
@@ -299,7 +299,7 @@ jobs:
           timeout: 720000
       - name: upload-install-service-oss
         id: upload-install-service-oss
-        uses: tvrcgo/oss-action@v0.1.1
+        uses: tvrcgo/oss-action@v1.0.0
         with:
           region: oss-cn-shenzhen
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
@@ -310,7 +310,7 @@ jobs:
           timeout: 720000
       - name: upload-install-oss
         id: upload-install-oss
-        uses: tvrcgo/oss-action@v0.1.1
+        uses: tvrcgo/oss-action@v1.0.0
         with:
           region: oss-cn-shenzhen
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
@@ -321,7 +321,7 @@ jobs:
           timeout: 720000
       - name: upload-apk-oss
         id: upload-apk-oss
-        uses: tvrcgo/oss-action@v0.1.1
+        uses: tvrcgo/oss-action@v1.0.0
         with:
           region: oss-cn-shenzhen
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
