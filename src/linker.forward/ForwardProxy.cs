@@ -1,4 +1,5 @@
-﻿using linker.messenger.channel;
+﻿using linker.libs;
+using linker.messenger.channel;
 using linker.messenger.signin;
 using linker.tunnel;
 using linker.tunnel.connection;
@@ -57,8 +58,9 @@ namespace linker.forward
             {
                 return false;
             }
-            await token.Connection.SendAsync(token.ReadPacket.Buffer.AsMemory(0, token.ReadPacket.Length)).ConfigureAwait(false);
-            Add(token.Connection.RemoteMachineId, token.IPEndPoint, token.ReadPacket.Length, 0);
+            
+            await token.Connection.SendAsync(token.ReadPacket.Memory).ConfigureAwait(false);
+            Add(token.Connection.RemoteMachineId, token.IPEndPoint, token.ReadPacket.Memory.Length, 0);
             return true;
         }
         private async ValueTask<bool> SendToConnection(ITunnelConnection connection, ForwardReadPacket packet, IPEndPoint ep)
@@ -67,14 +69,14 @@ namespace linker.forward
             {
                 return false;
             }
-            await connection.SendAsync(packet.Buffer.AsMemory(0, packet.Length)).ConfigureAwait(false);
-            Add(connection.RemoteMachineId, ep, packet.Length, 0);
+            await connection.SendAsync(packet.Memory).ConfigureAwait(false);
+            Add(connection.RemoteMachineId, ep, packet.Memory.Length, 0);
             return true;
         }
 
         private async ValueTask InputPacket(ITunnelConnection connection, ReadOnlyMemory<byte> memory)
         {
-            using ForwardWritePacket packet = new ForwardWritePacket(memory);
+            ForwardWritePacket packet = new ForwardWritePacket(memory);
 
             if (packet.ProtocolType == ProtocolType.Tcp)
             {

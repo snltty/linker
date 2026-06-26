@@ -1,4 +1,5 @@
-﻿using linker.libs.extends;
+﻿using linker.libs;
+using linker.libs.extends;
 using linker.messenger.channel;
 using linker.messenger.signin;
 using linker.messenger.tuntap.cidr;
@@ -79,12 +80,12 @@ namespace linker.messenger.tuntap.client
         {
             if (tuntapCidrConnectionManager.TryGet(packet.DstAddr, out ITunnelConnection connection) && connection.Connected)
             {
-                return await connection.SendAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);
+                return await connection.SendAsync(packet.Memory).ConfigureAwait(false);
             }
             await ConnectTunnel(packet.DstAddr).ConfigureAwait(false);
             if (tuntapCidrConnectionManager.TryGet(packet.DstAddr, out connection) && connection.Connected)
             {
-                return await connection.SendAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);
+                return await connection.SendAsync(packet.Memory).ConfigureAwait(false);
             }
             return false;
         }

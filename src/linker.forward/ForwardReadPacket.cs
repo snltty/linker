@@ -1,4 +1,4 @@
-﻿using linker.tunnel.connection;
+﻿using linker.libs.extends;
 using System;
 using System.Buffers;
 using System.Net.Sockets;
@@ -7,79 +7,77 @@ namespace linker.forward
 {
     public unsafe sealed class ForwardReadPacket : IDisposable
     {
-        private byte* ptr;
-        public byte[] Buffer { get; private set; }
+        private readonly byte* ptr;
 
-        public byte HeaderLength => 17 + 4;
+        public const byte HeaderLength = 17 + 4;
+        private readonly byte[] buffer = new byte[HeaderLength];
+
+        private int length = HeaderLength;
+        public Memory<byte> Memory => buffer.AsMemory(0, length);
 
         /// <summary>
         /// 2 length + 1 flag + 1 rsv + 17 header + data
         /// </summary>
         public int Length
         {
-            get
-            {
-                //data length + header length (17) + flag(1) + rsv(1) + length(2)
-                return TunnelPacket.ReadLength(Buffer.AsMemory()) + 2;
-            }
             set
             {
-                //data length + header length (17) + flag(1) + rsv(1)
-                TunnelPacket.WriteLength(value + 17 + 2, Buffer);
-                Buffer[2] = 0;
-                Buffer[3] = 0;
+                length = value + HeaderLength;
+                ((ushort)(length - 2)).ToBytes(buffer.AsMemory());
+                buffer[2] = 0;
+                buffer[3] = 0;
             }
         }
 
         public ForwardFlags Flag
         {
-            get => (ForwardFlags)(*(ptr + TunnelPacket.PacketHeaderSize));
-            set { *(ptr + TunnelPacket.PacketHeaderSize) = (byte)value; }
+            get => (ForwardFlags)(*(ptr));
+            set { *(ptr) = (byte)value; }
         }
         public ProtocolType ProtocolType
         {
-            get => (ProtocolType)(*(ptr + TunnelPacket.PacketHeaderSize + 1));
-            set { *(ptr + TunnelPacket.PacketHeaderSize + 1) = (byte)value; }
+            get => (ProtocolType)(*(ptr + 1));
+            set { *(ptr + 1) = (byte)value; }
         }
         public byte BufferSize
         {
-            get => *(ptr + TunnelPacket.PacketHeaderSize + 2);
-            set { *(ptr + TunnelPacket.PacketHeaderSize + 2) = value; }
+            get => *(ptr + 2);
+            set { *(ptr + 2) = value; }
         }
 
         public ushort Port
         {
-            get => *(ushort*)(ptr + TunnelPacket.PacketHeaderSize + 3);
-            set { *(ushort*)(ptr + TunnelPacket.PacketHeaderSize + 3) = value; }
+            get => *(ushort*)(ptr + 3);
+            set { *(ushort*)(ptr + 3) = value; }
         }
 
         public uint SrcAddr
         {
-            get => *(uint*)(ptr + TunnelPacket.PacketHeaderSize + 5);
-            set { *(uint*)(ptr + TunnelPacket.PacketHeaderSize + 5) = value; }
+            get => *(uint*)(ptr + 5);
+            set { *(uint*)(ptr + 5) = value; }
         }
         public ushort SrcPort
         {
-            get => *(ushort*)(ptr + TunnelPacket.PacketHeaderSize + 9);
-            set { *(ushort*)(ptr + TunnelPacket.PacketHeaderSize + 9) = value; }
+            get => *(ushort*)(ptr + 9);
+            set { *(ushort*)(ptr + 9) = value; }
         }
         public uint DstAddr
         {
-            get => *(uint*)(ptr + TunnelPacket.PacketHeaderSize + 11);
-            set { *(uint*)(ptr + TunnelPacket.PacketHeaderSize + 11) = value; }
+            get => *(uint*)(ptr + 11);
+            set { *(uint*)(ptr + 11) = value; }
         }
         public ushort DstPort
         {
-            get => *(ushort*)(ptr + TunnelPacket.PacketHeaderSize + 15);
-            set { *(ushort*)(ptr + TunnelPacket.PacketHeaderSize + 15) = value; }
+            get => *(ushort*)(ptr + 15);
+            set { *(ushort*)(ptr + 15) = value; }
         }
 
         public ForwardReadPacket(byte[] buffer)
         {
-            Buffer = buffer;
+            this.buffer = buffer;
 
             handle = buffer.AsMemory().Pin();
-            ptr = (byte*)handle.Pointer;
+            ptr = (byte*)handle.Pointer + 4;
         }
 
         MemoryHandle handle;

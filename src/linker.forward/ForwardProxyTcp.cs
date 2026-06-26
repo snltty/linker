@@ -132,8 +132,11 @@ namespace linker.forward
         {
             IPEndPoint target = new IPEndPoint(NetworkHelper.ToIP(packet.DstAddr), packet.DstPort);
             target.Address = MapIp(target.Address);
-
-            if (HookConnect(connection.RemoteMachineId, target, ProtocolType.Tcp) == false) return;
+           
+            if (HookConnect(connection.RemoteMachineId, target, ProtocolType.Tcp) == false)
+            {
+                return;
+            }
 
             byte[] buffer = ArrayPool<byte>.Shared.Rent((1 << packet.BufferSize) * 1024);
             (uint srcAddr, ushort srcPort, uint dstAddr, ushort dstPort) key = (0, 0, 0, 0);
@@ -255,25 +258,10 @@ namespace linker.forward
 
         private async ValueTask SendWindow(AsyncUserToken token, byte window)
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(token.ReadPacket.HeaderLength);
-            try
-            {
-                token.ReadPacket.BufferSize = window;
-                token.Receiving = window > 0;
-                token.ReadPacket.Buffer.AsMemory(0, token.ReadPacket.HeaderLength).CopyTo(buffer);
-
-                using ForwardReadPacket packet = new ForwardReadPacket(buffer);
-                token.ReadPacket.Length = 0;
-                await SendToConnection(token.Connection, packet, token.IPEndPoint).ConfigureAwait(false);
-                packet.Dispose();
-            }
-            catch (Exception)
-            {
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
+            token.ReadPacket.BufferSize = window;
+            token.Receiving = window > 0;
+            token.ReadPacket.Length = 0;
+            await SendToConnection(token.Connection, token.ReadPacket, token.IPEndPoint).ConfigureAwait(false);
         }
         private async Task Sender(AsyncUserToken token)
         {
@@ -298,7 +286,7 @@ namespace linker.forward
         private async Task Recver(AsyncUserToken token, byte[] buffer, ForwardFlags flag)
         {
             int bytesRead;
-            while ((bytesRead = await token.Socket.ReceiveAsync(buffer.AsMemory(token.ReadPacket.HeaderLength), SocketFlags.None).ConfigureAwait(false)) != 0)
+            while ((bytesRead = await token.Socket.ReceiveAsync(buffer.AsMemory(ForwardReadPacket.HeaderLength), SocketFlags.None).ConfigureAwait(false)) != 0)
             {
                 if (HookForward(token) == false)
                 {

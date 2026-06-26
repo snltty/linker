@@ -29,6 +29,7 @@ namespace linker.messenger.forward
                     token.ReadPacket.DstAddr = cache.DstAddr;
                     token.ReadPacket.DstPort = cache.DstPort;
                     token.IPEndPoint = new IPEndPoint(NetworkHelper.ToIP(token.ReadPacket.DstAddr), token.ReadPacket.DstPort);
+
                     cache.Connection = await ConnectTunnel(cache.MachineId, []).ConfigureAwait(false);
                     token.Connection = cache.Connection;
                 }

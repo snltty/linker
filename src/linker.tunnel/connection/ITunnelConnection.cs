@@ -227,7 +227,7 @@ namespace linker.tunnel.connection
         /// </summary>
         public ReadOnlyMemory<byte> PayloadData { get; private set; }
 
-       
+
         public const int PacketHeaderSize = 4;
         public const int PacketLengthSize = 2;
         public const int PacketFlagSize = 2;
@@ -241,7 +241,7 @@ namespace linker.tunnel.connection
         public static void WriteLength(int length, ReadOnlyMemory<byte> buffer)
         {
             ((ushort)length).ToBytes(buffer);
-        }   
+        }
 
         public TunnelPacket(Memory<byte> dst, ReadOnlyMemory<byte> payloadData, byte flag, byte rsv = 0)
         {
@@ -249,9 +249,9 @@ namespace linker.tunnel.connection
             dst.Span[2] = flag;
             dst.Span[3] = rsv;
             payloadData.CopyTo(dst.Slice(PacketHeaderSize));
-            
+
             RawData = dst.Slice(0, PacketHeaderSize + payloadData.Length);
-            Payload = dst.Slice(PacketLengthSize, payloadData.Length + PacketFlagSize);
+            Payload = dst.Slice(PacketLengthSize, payloadData.Length + PacketLengthSize);
             PayloadData = payloadData;
         }
 

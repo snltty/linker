@@ -101,20 +101,21 @@ namespace linker.libs
 
                 uint oldAddressComplementSum = AddressPairRawComplementSum(state.Addr);
                 uint newAddressSum = AddressPairRawSum(newState.Addr);
-
-                sum += oldAddressComplementSum;
-                sum += newAddressSum;
+                sum += oldAddressComplementSum + newAddressSum;
                 sumIp = oldAddressComplementSum + newAddressSum;
-                WriteRawWord(ref packetRef, 10, FinishWord(sum));
+
+                WriteRawWord(ref packetRef, 10, Fold(sum));
             }
 
             if (hasTransport)
             {
-                uint sum = (uint)(~ReadRawWord(ref packetRef, state.ChecksumOffset) & 0xFFFF) + sumIp;
+                uint sum = (uint)(~ReadRawWord(ref packetRef, state.ChecksumOffset) & 0xFFFF);
 
-                sum += PortPairRawComplementSum(state.Port);
-                sum += PortPairRawSum(newState.Port);
-                WriteRawWord(ref packetRef, state.ChecksumOffset, FinishWord(sum));
+                uint oldPortComplementSum = PortPairRawComplementSum(state.Port);
+                uint newPortSum = PortPairRawSum(newState.Port);
+                sum += sumIp + oldPortComplementSum + newPortSum;
+
+                WriteRawWord(ref packetRef, state.ChecksumOffset, Fold(sum));
             }
             return true;
         }
@@ -122,7 +123,7 @@ namespace linker.libs
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static ushort FinishWord(uint sum)
+        private static ushort Fold(uint sum)
         {
             sum = (sum & 0xFFFF) + (sum >> 16);
             sum = (sum & 0xFFFF) + (sum >> 16);

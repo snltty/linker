@@ -4,6 +4,7 @@ using linker.nat;
 using linker.tun.device;
 using linker.tun.hook;
 using System.Buffers.Binary;
+using System.Diagnostics;
 using System.Net;
 
 namespace linker.tun
@@ -410,8 +411,10 @@ namespace linker.tun
                 }
             }
             ChecksumHelper.UpdateChecksum(state, rawPacket);
+
             return flags;
         }
+
 
         /// <summary>
         /// 设置IP映射列表

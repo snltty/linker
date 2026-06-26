@@ -32,7 +32,7 @@ namespace linker.messenger.socks5
         }
         protected override async ValueTask<int> Tunneling(AsyncUserToken token, ProtocolType protocolType)
         {
-            Memory<byte> memory = token.ReadPacket.Buffer.AsMemory(token.ReadPacket.HeaderLength);
+            Memory<byte> memory = token.ReadPacket.Memory;
 
             if (protocolType == ProtocolType.Tcp)
             {
@@ -112,7 +112,7 @@ namespace linker.messenger.socks5
             buffer.Memory.Span[1] = 0x00;
 
             //步骤，request
-            if (await ReceiveCommandData(token, memory, Socks5EnumStep.Request, token.ReadPacket.Length - token.ReadPacket.HeaderLength) == false) return;
+            if (await ReceiveCommandData(token, memory, Socks5EnumStep.Request, token.ReadPacket.Memory.Length - ForwardReadPacket.HeaderLength) == false) return;
             await token.Socket.SendAsync(buffer.Memory.Slice(0, 2)).ConfigureAwait(false);
 
             //步骤，command

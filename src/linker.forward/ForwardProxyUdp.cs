@@ -61,7 +61,7 @@ namespace linker.forward
                 IPEndPoint ep = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
                 while (true)
                 {
-                    SocketReceiveFromResult result = await socket.ReceiveFromAsync(buffer.AsMemory(token.ReadPacket.HeaderLength), ep).ConfigureAwait(false);
+                    SocketReceiveFromResult result = await socket.ReceiveFromAsync(buffer.AsMemory(ForwardReadPacket.HeaderLength), ep).ConfigureAwait(false);
                     if (result.ReceivedBytes == 0)
                     {
                         continue;
@@ -180,7 +180,7 @@ namespace linker.forward
 
                 while (true)
                 {
-                    SocketReceiveFromResult result = await socket.ReceiveFromAsync(buffer.AsMemory(token.ReadPacket.HeaderLength), SocketFlags.None, target).ConfigureAwait(false);
+                    SocketReceiveFromResult result = await socket.ReceiveFromAsync(buffer.AsMemory(ForwardReadPacket.HeaderLength), SocketFlags.None, target).ConfigureAwait(false);
 
                     if (result.ReceivedBytes == 0)
                     {
