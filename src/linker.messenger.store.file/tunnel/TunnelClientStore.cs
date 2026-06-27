@@ -66,9 +66,9 @@ namespace linker.messenger.store.file.tunnel
         }
 
 
-        public Task<List<string>> GetTunnelTransportMachineIds()
+        public async Task<List<string>> GetTunnelTransportMachineIds()
         {
-            return Task.FromResult(runningConfig.Data.Tunnel.Transports.Keys.ToList());
+            return await Task.FromResult(runningConfig.Data.Tunnel.Transports.Keys.ToList()).ConfigureAwait(false);
         }
         public async Task<List<TunnelTransportItemInfo>> GetTunnelTransports(string machineId)
         {
@@ -157,12 +157,12 @@ namespace linker.messenger.store.file.tunnel
             return newTransportNames.Any() || oldTransportNames.Any();
         }
 
-        public Task<bool> SetRouteLevelPlus(int level)
+        public async Task<bool> SetRouteLevelPlus(int level)
         {
             runningConfig.Data.Tunnel.RouteLevelPlus = level;
             runningConfig.Data.Update();
             OnChanged();
-            return Task.FromResult(true);
+            return await Task.FromResult(true).ConfigureAwait(false);
         }
         public async Task<bool> SetPortMap(int privatePort, int publicPort)
         {
@@ -172,27 +172,27 @@ namespace linker.messenger.store.file.tunnel
             OnChanged();
             return await Task.FromResult(true).ConfigureAwait(false);
         }
-        public Task<bool> SetNetwork(TunnelPublicNetworkInfo network)
+        public async Task<bool> SetNetwork(TunnelPublicNetworkInfo network)
         {
             runningConfig.Data.Update();
             OnChanged();
-            return Task.FromResult(false);
+            return await Task.FromResult(false).ConfigureAwait(false);
         }
 
-        public Task<bool> SetInIp(IPAddress ip)
+        public async Task<bool> SetInIp(IPAddress ip)
         {
             runningConfig.Data.Tunnel.InIp = ip;
             runningConfig.Data.Update();
             OnChanged();
-            return Task.FromResult(true);
+            return await Task.FromResult(true).ConfigureAwait(false);
         }
 
-        public Task<bool> SetMesh(TunnelMeshInfo mesh)
+        public async Task<bool> SetMesh(TunnelMeshInfo mesh)
         {
             runningConfig.Data.Tunnel.Mesh = mesh;
             runningConfig.Data.Update();
             OnChanged();
-            return Task.FromResult(true);
+            return await Task.FromResult(true).ConfigureAwait(false);
         }
     }
 }

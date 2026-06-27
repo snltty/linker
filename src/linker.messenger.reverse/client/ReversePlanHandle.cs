@@ -19,9 +19,9 @@ namespace linker.messenger.reverse.client
             ReverseClientTransfer.OnClose += (id, _flag) => { if (_flag != flag) planTransfer.Trigger(CategoryName, id.ToString(), "stop"); };
         }
 
-        public Task HandleAsync(string handle, string key, string value)
+        public async Task HandleAsync(string handle, string key, string value)
         {
-            if (int.TryParse(key, out int id) == false) return Task.CompletedTask;
+            if (int.TryParse(key, out int id) == false) await Task.CompletedTask.ConfigureAwait(false);
 
             switch (handle)
             {
@@ -35,7 +35,7 @@ namespace linker.messenger.reverse.client
                     break;
             }
 
-            return Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
         }
     }
 }

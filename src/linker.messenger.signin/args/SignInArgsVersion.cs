@@ -10,10 +10,10 @@ namespace linker.messenger.signin.args
         public string Name => "version";
         public SignInArgsLevel Level => SignInArgsLevel.Default;
 
-        public Task<string> Invoke(string host, Dictionary<string, string> args)
+        public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
             args.TryAdd("version", VersionHelper.Version);
-            return Task.FromResult(string.Empty);
+            return await Task.FromResult(string.Empty).ConfigureAwait(false);
         }
     }
 

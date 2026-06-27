@@ -46,9 +46,9 @@ namespace linker.messenger.tuntap.client
             linkerTunDeviceAdapter.Initialize(linkerTunDevice, linkerTunDeviceCallback);
         }
 
-        public ValueTask<bool> Write(string srcId, ReadOnlyMemory<byte> buffer)
+        public async ValueTask<bool> Write(string srcId, ReadOnlyMemory<byte> buffer)
         {
-            return linkerTunDeviceAdapter.Write(srcId, buffer);
+            return await linkerTunDeviceAdapter.Write(srcId, buffer).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -246,9 +246,9 @@ namespace linker.messenger.tuntap.client
         /// </summary>
         /// <param name="order"></param>
         /// <returns></returns>
-        public Task<bool> CheckAvailable(bool order = false)
+        public async Task<bool> CheckAvailable(bool order = false)
         {
-            return linkerTunDeviceAdapter.CheckAvailable(order);
+            return await linkerTunDeviceAdapter.CheckAvailable(order).ConfigureAwait(false);
         }
     }
 }

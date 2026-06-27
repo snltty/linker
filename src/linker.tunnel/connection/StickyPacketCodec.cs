@@ -35,20 +35,20 @@ namespace linker.tunnel.connection
         {
             return pipe.Writer.GetMemory(sizeHint);
         }
-        public ValueTask<FlushResult> FlushAsync(int length, CancellationToken token = default)
+        public async ValueTask<FlushResult> FlushAsync(int length, CancellationToken token = default)
         {
             Interlocked.Add(ref sendRemaining, length);
             pipe.Writer.Advance(length);
-            return pipe.Writer.FlushAsync(token);
+            return await pipe.Writer.FlushAsync(token).ConfigureAwait(false);
         }
-        public ValueTask<FlushResult> WriteAsync(ReadOnlyMemory<byte> data, CancellationToken token = default)
+        public async ValueTask<FlushResult> WriteAsync(ReadOnlyMemory<byte> data, CancellationToken token = default)
         {
             Interlocked.Add(ref sendRemaining, data.Length);
-            return pipe.Writer.WriteAsync(data, token);
+            return await pipe.Writer.WriteAsync(data, token).ConfigureAwait(false);
         }
-        public ValueTask<ReadResult> ReadAsync(CancellationToken token = default)
+        public async ValueTask<ReadResult> ReadAsync(CancellationToken token = default)
         {
-            return pipe.Reader.ReadAsync(token);
+            return await pipe.Reader.ReadAsync(token).ConfigureAwait(false);
         }
         public void Advance(int length)
         {
@@ -60,9 +60,9 @@ namespace linker.tunnel.connection
             pipe.Reader.AdvanceTo(consumed);
         }
 
-        public ValueTask<ReadOnlyMemory<byte>> ReadPacketsAsync(CancellationToken token = default)
+        public async ValueTask<ReadOnlyMemory<byte>> ReadPacketsAsync(CancellationToken token = default)
         {
-            return ReadPacketsAsync(packetDst.Memory, maxDecodePacketCount, token);
+            return await ReadPacketsAsync(packetDst.Memory, maxDecodePacketCount, token).ConfigureAwait(false);
         }
         public async ValueTask<ReadOnlyMemory<byte>> ReadPacketsAsync(Memory<byte> decodeBuffer, int maxDecodePacketCount, CancellationToken token = default)
         {

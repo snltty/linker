@@ -166,14 +166,14 @@ public sealed class KcpConnection : IAsyncDisposable
         }
     }
 
-    public ValueTask SendAsync(ReadOnlyMemory<byte> data, CancellationToken cancellationToken = default)
+    public async ValueTask SendAsync(ReadOnlyMemory<byte> data, CancellationToken cancellationToken = default)
     {
         if (data.IsEmpty)
         {
-            return ValueTask.CompletedTask;
+            await ValueTask.CompletedTask.ConfigureAwait(false);
         }
 
-        return SendAsyncCore(data, cancellationToken);
+        await SendAsyncCore(data, cancellationToken).ConfigureAwait(false);
     }
 
     public async ValueTask<int> ReceiveAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)

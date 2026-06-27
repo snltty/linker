@@ -177,10 +177,10 @@ namespace linker.forward
         {
             await InputPacket(connection, memory).ConfigureAwait(false);
         }
-        public ValueTask Closed(ITunnelConnection connection, object userToken)
+        public async ValueTask Closed(ITunnelConnection connection, object userToken)
         {
             Version.Increment();
-            return ValueTask.CompletedTask;
+            await ValueTask.CompletedTask.ConfigureAwait(false);
         }
     }
 }

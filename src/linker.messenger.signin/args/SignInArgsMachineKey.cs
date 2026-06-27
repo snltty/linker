@@ -9,20 +9,20 @@ namespace linker.messenger.signin.args
     {
         public string Name => "machineId";
         public SignInArgsLevel Level => SignInArgsLevel.Default;
-        public Task<string> Invoke(string host, Dictionary<string, string> args)
+        public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
             string machineKey = SystemIdHelper.GetSystemId();
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                 LoggerHelper.Instance.Debug($"machine key :{machineKey}");
             if (string.IsNullOrWhiteSpace(machineKey))
             {
-                return Task.FromResult($"get machine key fail");
+                return await Task.FromResult($"get machine key fail").ConfigureAwait(false);
             }
 
             args.TryAdd("machineKey", machineKey);
             args.TryAdd("machineStr", SystemIdHelper.GetSystemStr());
 
-            return Task.FromResult(string.Empty);
+            return await Task.FromResult(string.Empty).ConfigureAwait(false);
         }
     }
 

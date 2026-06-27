@@ -11,9 +11,9 @@ namespace linker.messenger.flow.webapi
         {
             this.flowResolver = flowResolver;
         }
-        public Task<Memory<byte>> Handle(string query)
+        public async Task<Memory<byte>> Handle(string query)
         {
-            return Task.FromResult(flowResolver.GetSystems().ToJson().ToBytes().AsMemory());
+            return await Task.FromResult(flowResolver.GetSystems().ToJson().ToBytes().AsMemory()).ConfigureAwait(false);
         }
 
         public void Free()

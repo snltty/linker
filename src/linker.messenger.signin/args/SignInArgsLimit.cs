@@ -4,9 +4,9 @@
     {
         public string Name => "limit";
         public SignInArgsLevel Level => SignInArgsLevel.Low;
-        public Task<string> Validate(SignInfo signInfo, SignCacheInfo cache)
+        public async Task<string> Validate(SignInfo signInfo, SignCacheInfo cache)
         {
-            return Task.FromResult(string.Empty);
+            return await Task.FromResult(string.Empty).ConfigureAwait(false);
         }
     }
 }

@@ -13,13 +13,13 @@ namespace linker.messenger.reverse.server
     {
         public string TypeName => "Reverse";
 
-        public Task<List<NodeWhiteListInfo>> GetNodes(string userid, string machineid)
+        public async Task<List<NodeWhiteListInfo>> GetNodes(string userid, string machineid)
         {
-            return Task.FromResult(new List<NodeWhiteListInfo>());
+            return await Task.FromResult(new List<NodeWhiteListInfo>()).ConfigureAwait(false);
         }
-        public Task<List<double>> GetBandwidth(string userid, string fromMachineId, string toMachineId, string nodeid)
+        public async Task<List<double>> GetBandwidth(string userid, string fromMachineId, string toMachineId, string nodeid)
         {
-            return Task.FromResult(new List<double>());
+            return await Task.FromResult(new List<double>()).ConfigureAwait(false);
         }
     }
 }

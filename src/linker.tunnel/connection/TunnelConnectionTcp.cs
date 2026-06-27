@@ -156,22 +156,22 @@ namespace linker.tunnel.connection
                 Dispose();
             }
         }
-        private ValueTask ProcessPacket(ReadOnlyMemory<byte> memory)
+        private async ValueTask ProcessPacket(ReadOnlyMemory<byte> memory)
         {
             LastTicks.Update();
             TunnelPacket packet = new TunnelPacket(memory, false);
-            return packet.Flag switch
+            await (packet.Flag switch
             {
                 TunnelPacket.PacketFlagData => callback.Receive(this, packet.PayloadData, this.userToken),
                 TunnelPacket.PacketFlagPing => SendPingPong(Encoding.UTF8.GetBytes($"{Guid.NewGuid()}"), TunnelPacket.PacketFlagPong),
                 TunnelPacket.PacketFlagPong => ProcessPong(),
                 _ => ValueTask.CompletedTask
-            };
+            }).ConfigureAwait(false);
         }
-        private ValueTask ProcessPong()
+        private async ValueTask ProcessPong()
         {
             Delay = (int)pingPongTicks.Diff();
-            return ValueTask.CompletedTask;
+            await ValueTask.CompletedTask.ConfigureAwait(false);
         }
 
         private async Task ProcessHeart()
@@ -295,9 +295,9 @@ namespace linker.tunnel.connection
 
             return false;
         }
-        public ValueTask<bool> SendAsync(byte[] buffer, int offset, int length)
+        public async ValueTask<bool> SendAsync(byte[] buffer, int offset, int length)
         {
-            return SendAsync(buffer.AsMemory(offset, length));
+            return await SendAsync(buffer.AsMemory(offset, length)).ConfigureAwait(false);
         }
 
         public void Dispose()

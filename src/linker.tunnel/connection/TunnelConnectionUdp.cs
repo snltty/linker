@@ -147,7 +147,7 @@ namespace linker.tunnel.connection
 
             return true;
         }
-        private ValueTask ProcessPacket(ReadOnlyMemory<byte> memory)
+        private async ValueTask ProcessPacket(ReadOnlyMemory<byte> memory)
         {
             try
             {
@@ -157,20 +157,20 @@ namespace linker.tunnel.connection
                     memory = cryptoDecodeBuffer.AsMemory(0, _bytesWritten);
                 }
                 TunnelPacket packet = new TunnelPacket(memory, false);
-                return packet.Flag switch
+                await (packet.Flag switch
                 {
                     TunnelPacket.PacketFlagData => callback.Receive(this, packet.PayloadData, this.userToken),
                     TunnelPacket.PacketFlagPing => SendPingPong(Encoding.UTF8.GetBytes($"{Guid.NewGuid()}"), TunnelPacket.PacketFlagPong),
                     TunnelPacket.PacketFlagPong => ProcessPong(),
                     TunnelPacket.PacketFlagFin => ProcessFin(),
                     _ => ValueTask.CompletedTask
-                };
+                }).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
                 LoggerHelper.Instance.Error($"UDP process packet error:{ex}");
             }
-            return ValueTask.CompletedTask;
+            await ValueTask.CompletedTask.ConfigureAwait(false);
         }
         private async Task ProcessHeart()
         {
@@ -238,12 +238,12 @@ namespace linker.tunnel.connection
             }
             return false;
         }
-        public ValueTask<bool> SendAsync(byte[] buffer, int offset, int length)
+        public async ValueTask<bool> SendAsync(byte[] buffer, int offset, int length)
         {
-            return SendAsync(buffer.AsMemory(offset, length));
+            return await SendAsync(buffer.AsMemory(offset, length)).ConfigureAwait(false);
         }
 
-        private ValueTask<int> SendHook(TunnelPacket packet)
+        private async ValueTask<int> SendHook(TunnelPacket packet)
         {
             if (SSL)
             {
@@ -252,41 +252,41 @@ namespace linker.tunnel.connection
                 SendBytes += bytesWritten;
 
                 packet = new TunnelPacket(cryptoEncodeBuffer.AsMemory(0, bytesWritten + TunnelPacket.PacketLengthSize));
-                return sendFunc(packet);
+                return await sendFunc(packet).ConfigureAwait(false);
             }
             else
             {
                 SendBytes += packet.RawData.Length;
-                return sendFunc(packet);
+                return await sendFunc(packet).ConfigureAwait(false);
             }
         }
-        private ValueTask RecvHook(ReadOnlyMemory<byte> data)
+        private async ValueTask RecvHook(ReadOnlyMemory<byte> data)
         {
             ReceiveBytes += data.Length;
             LastTicks.Update();
 
-            return recvFunc(data);
+            await recvFunc(data).ConfigureAwait(false);
 
         }
 
-        private ValueTask ProcessPong()
+        private async ValueTask ProcessPong()
         {
             Delay = (int)pingPongTicks.Diff();
-            return ValueTask.CompletedTask;
+            await ValueTask.CompletedTask.ConfigureAwait(false);
         }
-        private ValueTask ProcessFin()
+        private async ValueTask ProcessFin()
         {
             Dispose();
-            return ValueTask.CompletedTask;
+            await ValueTask.CompletedTask.ConfigureAwait(false);
         }
 
-        private ValueTask<int> SendAsyncDefault(TunnelPacket packet)
+        private async ValueTask<int> SendAsyncDefault(TunnelPacket packet)
         {
-            return UdpClient.SendToAsync(packet.Payload, IPEndPoint, cts.Token);
+            return await UdpClient.SendToAsync(packet.Payload, IPEndPoint, cts.Token).ConfigureAwait(false);
         }
-        private ValueTask RecvAsyncDefault(ReadOnlyMemory<byte> data)
+        private async ValueTask RecvAsyncDefault(ReadOnlyMemory<byte> data)
         {
-            return ProcessPacket(data);
+            await ProcessPacket(data).ConfigureAwait(false);
         }
 
 
@@ -418,10 +418,10 @@ namespace linker.tunnel.connection
             await kcpConnection.SendAsync(packet.Payload, cts.Token).ConfigureAwait(false);
             return packet.RawData.Length;
         }
-        private ValueTask RecvAsyncKcp(ReadOnlyMemory<byte> data)
+        private async ValueTask RecvAsyncKcp(ReadOnlyMemory<byte> data)
         {
             kcpConnection.Input(data);
-            return ValueTask.CompletedTask;
+            await ValueTask.CompletedTask.ConfigureAwait(false);
         }
         private async Task FlushTaskKcp()
         {

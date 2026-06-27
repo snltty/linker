@@ -101,13 +101,13 @@ namespace linker.messenger.tuntap.client
         }
 
 
-        public ValueTask<bool> Callback(LinkerTunDevicPacket packet)
+        public async ValueTask<bool> Callback(LinkerTunDevicPacket packet)
         {
-            return tuntapProxy.InputPacket(packet);
+            return await tuntapProxy.InputPacket(packet).ConfigureAwait(false);
         }
-        public ValueTask<bool> Callback(LinkerSrcProxyReadPacket packet)
+        public async ValueTask<bool> Callback(LinkerSrcProxyReadPacket packet)
         {
-            return tuntapProxy.InputPacket(packet);
+            return await tuntapProxy.InputPacket(packet).ConfigureAwait(false);
         }
         public bool Callback(uint ip)
         {
@@ -119,9 +119,9 @@ namespace linker.messenger.tuntap.client
             //tuntapDecenter.Refresh();
             await ValueTask.CompletedTask.ConfigureAwait(false);
         }
-        public  ValueTask<bool> Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer)
+        public  async ValueTask<bool> Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer)
         {
-            return tuntapTransfer.Write(connection.RemoteMachineId, buffer);
+            return await tuntapTransfer.Write(connection.RemoteMachineId, buffer).ConfigureAwait(false);
         }
 
 

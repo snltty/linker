@@ -15,10 +15,10 @@ namespace linker.messenger.flow.webapi
             this.signCaching = signCaching;
             this.flowResolver = flowResolver;
         }
-        public Task<Memory<byte>> Handle(string query)
+        public async Task<Memory<byte>> Handle(string query)
         {
             signCaching.GetOnline(out int all, out int online);
-            return Task.FromResult(new
+            return await Task.FromResult(new
             {
                 CurrentServer = new
                 {
@@ -31,7 +31,7 @@ namespace linker.messenger.flow.webapi
                     Online = flowResolver.ReceiveBytes >> 32,
                     Server = flowResolver.SendtBytes,
                 }
-            }.ToJson().ToBytes().AsMemory());
+            }.ToJson().ToBytes().AsMemory()).ConfigureAwait(false);
         }
 
         public void Free()

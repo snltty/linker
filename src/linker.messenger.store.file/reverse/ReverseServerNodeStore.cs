@@ -37,11 +37,11 @@ namespace linker.messenger.store.file.reverse
             return await Task.FromResult(list).ConfigureAwait(false);
         }
 
-        public Task<ReverseServerNodeStoreInfo> GetByNodeId(string nodeId)
+        public async Task<ReverseServerNodeStoreInfo> GetByNodeId(string nodeId)
         {
-            return Task.FromResult(list.FirstOrDefault(c => c.NodeId == nodeId));
+            return await Task.FromResult(list.FirstOrDefault(c => c.NodeId == nodeId)).ConfigureAwait(false);
         }
-        public Task<bool> Report(ReverseServerNodeReportInfo info)
+        public async Task<bool> Report(ReverseServerNodeReportInfo info)
         {
             int length = liteCollection.UpdateMany(p => new ReverseServerNodeStoreInfo
             {
@@ -62,10 +62,10 @@ namespace linker.messenger.store.file.reverse
                 TunnelPorts = info.TunnelPorts,
             }, c => c.NodeId == info.NodeId);
             LoadList();
-            return Task.FromResult(length > 0);
+            return await Task.FromResult(length > 0).ConfigureAwait(false);
         }
 
-        public Task<bool> Update(ReverseServerNodeStoreInfo info)
+        public async Task<bool> Update(ReverseServerNodeStoreInfo info)
         {
             int length = liteCollection.UpdateMany(p => new ReverseServerNodeStoreInfo
             {
@@ -74,7 +74,7 @@ namespace linker.messenger.store.file.reverse
                 Host = info.Host,
             }, c => c.NodeId == info.NodeId);
             LoadList();
-            return Task.FromResult(length > 0);
+            return await Task.FromResult(length > 0).ConfigureAwait(false);
         }
 
         private void LoadList()

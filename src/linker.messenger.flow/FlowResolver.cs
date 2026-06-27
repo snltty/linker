@@ -42,11 +42,11 @@ namespace linker.messenger.flow
             return (ReceiveBytes, SendtBytes);
         }
 
-        public Task Resolve(Socket socket, Memory<byte> memory)
+        public async Task Resolve(Socket socket, Memory<byte> memory)
         {
-            return Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
         }
-        public Task Resolve(Socket socket, IPEndPoint ep, Memory<byte> memory)
+        public async Task Resolve(Socket socket, IPEndPoint ep, Memory<byte> memory)
         {
             try
             {
@@ -67,7 +67,7 @@ namespace linker.messenger.flow
                 }
             }
 
-            return Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
         }
 
 

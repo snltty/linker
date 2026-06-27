@@ -72,10 +72,10 @@ namespace linker.messenger.mesh
             this.speedLimit = speedLimit;
         }
 
-        public ValueTask Closed(ITunnelConnection connection, object state)
+        public async ValueTask Closed(ITunnelConnection connection, object state)
         {
             dst.Dispose();
-            return ValueTask.CompletedTask;
+            await ValueTask.CompletedTask.ConfigureAwait(false);
         }
 
         public async ValueTask Receive(ITunnelConnection connection, ReadOnlyMemory<byte> data, object state)

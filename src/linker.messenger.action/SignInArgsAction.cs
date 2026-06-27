@@ -143,10 +143,10 @@ namespace linker.messenger.action
             this.actionServerStore = actionServerStore;
         }
 
-        public Task<string> Invoke(string host, Dictionary<string, string> args)
+        public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
             actionStore.TryAddActionArg(host, args);
-            return Task.FromResult(string.Empty);
+            return await Task.FromResult(string.Empty).ConfigureAwait(false);
         }
 
         public async Task<string> Validate(SignInfo signInfo, SignCacheInfo cache)

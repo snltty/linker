@@ -93,38 +93,38 @@ namespace linker.messenger.tuntap.cidr
             return (LinkerTunPacketHookFlags.None, LinkerTunPacketHookFlags.None);
         }
 
-        public ValueTask<(LinkerTunPacketHookFlags add, LinkerTunPacketHookFlags del)> WriteAsync(ReadOnlyMemory<byte> packet, uint originDstIp, string srcId)
+        public async ValueTask<(LinkerTunPacketHookFlags add, LinkerTunPacketHookFlags del)> WriteAsync(ReadOnlyMemory<byte> packet, uint originDstIp, string srcId)
         {
             if (enableSub == false)
             {
-                return ValueTask.FromResult((LinkerTunPacketHookFlags.None, LinkerTunPacketHookFlags.None));
+                return await ValueTask.FromResult((LinkerTunPacketHookFlags.None, LinkerTunPacketHookFlags.None)).ConfigureAwait(false);
             }
 
             CheckResult checkResult = Check(packet, originDstIp, srcId);
             //相同网络号
             if (checkResult.Eq)
             {
-                return ValueTask.FromResult((LinkerTunPacketHookFlags.None, LinkerTunPacketHookFlags.None));
+                return await ValueTask.FromResult((LinkerTunPacketHookFlags.None, LinkerTunPacketHookFlags.None)).ConfigureAwait(false);
             }
             if (status == TuntapVlsmStatus.TwoWay && (checkResult.SrcRange || checkResult.DstRange))
             {
-                return ValueTask.FromResult((LinkerTunPacketHookFlags.None, LinkerTunPacketHookFlags.None));
+                return await ValueTask.FromResult((LinkerTunPacketHookFlags.None, LinkerTunPacketHookFlags.None)).ConfigureAwait(false);
             }
             if (status == TuntapVlsmStatus.OneWay)
             {
                 //来方范围大
                 if (checkResult.SrcRange)
                 {
-                    return ValueTask.FromResult((LinkerTunPacketHookFlags.None, LinkerTunPacketHookFlags.None));
+                    return await ValueTask.FromResult((LinkerTunPacketHookFlags.None, LinkerTunPacketHookFlags.None)).ConfigureAwait(false);
                 }
                 //我方范围大，需要给它发过
                 else if (checkResult.DstRange && natDic.TryGetValue(new NatKey(checkResult.DstIp, checkResult.DstPort, checkResult.SrcIp, checkResult.SrcPort), out NatCacheInfo cache))
                 {
                     cache.LastTime = Environment.TickCount64;
-                    return ValueTask.FromResult((LinkerTunPacketHookFlags.None, LinkerTunPacketHookFlags.None));
+                    return await ValueTask.FromResult((LinkerTunPacketHookFlags.None, LinkerTunPacketHookFlags.None)).ConfigureAwait(false);
                 }
             }
-            return ValueTask.FromResult((LinkerTunPacketHookFlags.None, LinkerTunPacketHookFlags.Next | LinkerTunPacketHookFlags.Write));
+            return await ValueTask.FromResult((LinkerTunPacketHookFlags.None, LinkerTunPacketHookFlags.Next | LinkerTunPacketHookFlags.Write)).ConfigureAwait(false);
         }
 
         unsafe CheckResult Check(ReadOnlyMemory<byte> packet, uint originDstIp, string srcId)

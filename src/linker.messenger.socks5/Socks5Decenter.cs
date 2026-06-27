@@ -40,11 +40,11 @@ namespace linker.messenger.socks5
         /// <summary>
         /// 刷新信息，把自己的配置发给别人，顺便把别人的信息带回来
         /// </summary>
-        public Task Refresh()
+        public async Task Refresh()
         {
             PushVersion.Increment();
             OnRefresh();
-            return Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
         }
         public Memory<byte> GetData()
         {

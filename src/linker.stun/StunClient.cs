@@ -604,10 +604,10 @@ public sealed class StunClient
             }
         }
 
-        public ValueTask DisposeAsync()
+        public async ValueTask DisposeAsync()
         {
             _socket.Dispose();
-            return ValueTask.CompletedTask;
+            await ValueTask.CompletedTask.ConfigureAwait(false);
         }
 
         private static IPAddress? TryGetLocalRouteAddress(IPEndPoint remoteEndPoint)

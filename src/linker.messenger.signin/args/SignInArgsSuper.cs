@@ -11,11 +11,11 @@
         {
             this.signInClientStore = signInClientStore;
         }
-        public Task<string> Invoke(string host, Dictionary<string, string> args)
+        public async Task<string> Invoke(string host, Dictionary<string, string> args)
         {
             args.TryAdd("signin-key", signInClientStore.Server.SuperKey);
             args.TryAdd("signin-password", signInClientStore.Server.SuperPassword);
-            return Task.FromResult(string.Empty);
+            return await Task.FromResult(string.Empty).ConfigureAwait(false);
         }
     }
 

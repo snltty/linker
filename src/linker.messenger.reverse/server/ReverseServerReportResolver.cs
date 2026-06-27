@@ -55,9 +55,9 @@ namespace linker.messenger.reverse.server
             }
         }
 
-        public Task Resolve(Socket socket, IPEndPoint ep, Memory<byte> memory)
+        public async Task Resolve(Socket socket, IPEndPoint ep, Memory<byte> memory)
         {
-            return Task.CompletedTask;
+            await Task.CompletedTask.ConfigureAwait(false);
         }
     }
 }
