@@ -363,14 +363,14 @@ namespace linker.app
 
        private readonly byte[] buffer = new byte[128 * 1024];
         private readonly byte[] bufferWrite = new byte[128 * 1024];
-        public byte[] Read(out int length)
+        public byte[] Read(out uint length)
         {
             length = 0;
             try
             {
                 while (fd > 0 && vpnInput != null)
                 {
-                    length = vpnInput.Read(buffer, 4, buffer.Length - 4);
+                    length = (uint)vpnInput.Read(buffer, 4, buffer.Length - 4);
                     if (length > 0)
                     {
                         ((ushort)(length + 2)).ToBytes(buffer.AsSpan());
