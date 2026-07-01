@@ -37,7 +37,7 @@ for %%r in (linux-musl-x64,win-x86,win-x64,win-arm64,linux-x64,linux-arm,linux-a
 
 	7z a -tzip ./public/publish-zip/linker-%%r.zip ./public/publish/%%r/*
 )
-dotnet publish src/linker -c release -f net8.0 -o public/publish/anywhere/linker-anywhere  -p:PublishSingleFile=false  --self-contained false  -p:TrimMode=partial -p:TieredPGO=true  -p:DebugType=full -p:EventSourceSupport=false -p:DebugSymbols=true -p:EnableCompressionInSingleFile=true -p:DebuggerSupport=false -p:EnableUnsafeBinaryFormatterSerialization=false -p:EnableUnsafeUTF7Encoding=false -p:HttpActivityPropagationSupport=false -p:InvariantGlobalization=true  -p:MetadataUpdaterSupport=false  -p:UseSystemResourceKeys=true -p:MetricsSupport=false -p:StackTraceSupport=false -p:XmlResolverIsNetworkingEnabledByDefault=false
+dotnet publish src/linker -c release -f net8.0 -o public/publish/anywhere/linker-anywhere -p:PublishTrimmed=false  -p:PublishSingleFile=false  --self-contained false  -p:TrimMode=partial -p:TieredPGO=true  -p:DebugType=full -p:EventSourceSupport=false -p:DebugSymbols=true -p:EnableCompressionInSingleFile=true -p:DebuggerSupport=false -p:EnableUnsafeBinaryFormatterSerialization=false -p:EnableUnsafeUTF7Encoding=false -p:HttpActivityPropagationSupport=false -p:InvariantGlobalization=true  -p:MetadataUpdaterSupport=false  -p:UseSystemResourceKeys=true -p:MetricsSupport=false -p:StackTraceSupport=false -p:XmlResolverIsNetworkingEnabledByDefault=false
 echo F|xcopy "public\\extends\\anywhere\\linker-anywhere\\*" "public\\publish\\anywhere\\linker-anywhere\\*"  /s /f /h /y
 echo F|xcopy "public\\extends\\any\\*" "public\\publish\\anywhere\\linker-anywhere\\*"  /s /f /h /y
 7z a -tzip ./public/publish-zip/linker-anywhere.zip ./public/publish/anywhere/*
