@@ -15,18 +15,6 @@ namespace linker.messenger.mesh
             {
                 return false;
             }
-            /*
-            if(conn1.ProtocolType == conn2.ProtocolType)
-            {
-                IRevSender revsender1 = GetRevSender(conn1);
-                IRevSender revsender2 = GetRevSender(conn2);
-                Task.WhenAny(
-                    SwapAsync(revsender1, revsender2),
-                    SwapAsync(revsender2, revsender1)
-                ).ConfigureAwait(false);
-            }
-            else
-            */
             {
                 SpeedLimit speedLimit = new SpeedLimit();
                 speedLimit.SetLimit((uint)limit);
@@ -36,27 +24,6 @@ namespace linker.messenger.mesh
             }
 
             return true;
-        }
-        private async Task SwapAsync(IRevSender src, IRevSender dst)
-        {
-            Memory<byte> memory;
-            while ((memory = await src.ReceiveAsync().ConfigureAwait(false)).Length > 0)
-            {
-                await dst.SendAsync(memory).ConfigureAwait(false);
-            }
-        }
-        private IRevSender GetRevSender(ITunnelConnection connection)
-        {
-            if (connection is TunnelConnectionUdp udp)
-            {
-                return new RevSenderUdp(udp.UdpClient, connection.IPEndPoint);
-            }
-            if (connection is TunnelConnectionTcp tcp)
-            {
-                tcp.Stream.Dispose();
-                return new RevSenderTcp(tcp.Socket);
-            }
-            return null;
         }
     }
 
@@ -72,78 +39,36 @@ namespace linker.messenger.mesh
             this.speedLimit = speedLimit;
         }
 
-        public async ValueTask Closed(ITunnelConnection connection, object state)
+        public  ValueTask Closed(ITunnelConnection connection, object state)
         {
             dst.Dispose();
-            await ValueTask.CompletedTask.ConfigureAwait(false);
+            return ValueTask.CompletedTask;
         }
 
-        public async ValueTask Receive(ITunnelConnection connection, ReadOnlyMemory<byte> data, object state)
+        public ValueTask<bool> Receive(ITunnelConnection connection, ReadOnlyMemory<byte> data, object state)
         {
-            if (speedLimit.NeedLimit())
+            if (speedLimit.NeedLimit() == false)
             {
-                int length = data.Length;
+                TunnelPacket packet = new TunnelPacket(buffer, data, TunnelPacket.PacketFlagData, 0);
+                return dst.SendAsync(packet.RawData);
+            }
+
+            return ReceiveWithLimit(data);
+        }
+
+        private async ValueTask<bool> ReceiveWithLimit(ReadOnlyMemory<byte> data)
+        {
+            int length = data.Length;
+            speedLimit.TryLimit(ref length);
+
+            while (length > 0)
+            {
+                await Task.Delay(10).ConfigureAwait(false);
                 speedLimit.TryLimit(ref length);
-                while (length > 0)
-                {
-                    await Task.Delay(10).ConfigureAwait(false);
-                    speedLimit.TryLimit(ref length);
-                }
             }
 
             TunnelPacket packet = new TunnelPacket(buffer, data, TunnelPacket.PacketFlagData, 0);
-            await dst.SendAsync(packet.RawData).ConfigureAwait(false);
-        }
-    }
-
-    public interface IRevSender
-    {
-        public ValueTask<Memory<byte>> ReceiveAsync();
-        public ValueTask<int> SendAsync(Memory<byte> memory);
-    }
-    public sealed class RevSenderUdp : IRevSender
-    {
-        private readonly Socket socket;
-        private readonly byte[] buffer = new byte[65535];
-        private readonly IPEndPoint ep = new IPEndPoint(IPAddress.Any, 0);
-        private readonly IPEndPoint target = new IPEndPoint(IPAddress.Any, 0);
-
-        public RevSenderUdp(Socket socket, IPEndPoint target)
-        {
-            this.socket = socket;
-            this.target = target;
-        }
-
-        public async ValueTask<Memory<byte>> ReceiveAsync()
-        {
-            var res = await socket.ReceiveFromAsync(buffer, SocketFlags.None, ep).ConfigureAwait(false);
-            return buffer.AsMemory(0, res.ReceivedBytes);
-        }
-
-        public async ValueTask<int> SendAsync(Memory<byte> memory)
-        {
-            return await socket.SendToAsync(memory, SocketFlags.None, target).ConfigureAwait(false);
-        }
-    }
-    public sealed class RevSenderTcp : IRevSender
-    {
-        private readonly Socket socket;
-        private readonly byte[] buffer = new byte[8 * 1024];
-
-        public RevSenderTcp(Socket socket)
-        {
-            this.socket = socket;
-        }
-
-        public async ValueTask<Memory<byte>> ReceiveAsync()
-        {
-            var res = await socket.ReceiveAsync(buffer, SocketFlags.None).ConfigureAwait(false);
-            return buffer.AsMemory(0, res);
-        }
-
-        public async ValueTask<int> SendAsync(Memory<byte> memory)
-        {
-            return await socket.SendAllAsync(memory).ConfigureAwait(false);
+            return await dst.SendAsync(packet.RawData).ConfigureAwait(false);
         }
     }
 

@@ -1,8 +1,11 @@
 ﻿using linker.libs;
 using linker.libs.extends;
 using System.Buffers.Binary;
+using System.Diagnostics;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text.RegularExpressions;
@@ -24,6 +27,8 @@ namespace linker.tun.device
         private CancellationTokenSource tokenSource;
 
 
+        private const long ERROR_NO_MORE_ITEMS = 259L;
+        private long SPIN_TICKS = (long)(Stopwatch.Frequency * 50.0 / 1_000_000.0);
 
         public LinkerWinTunDevice()
         {
@@ -350,57 +355,46 @@ namespace linker.tun.device
 
 
         private readonly byte[] buffer = new byte[128 * 1024];
-        public unsafe byte[] Read(out int length)
+        public unsafe byte[] Read(out uint length)
         {
             length = 0;
-            if (session == 0) return Helper.EmptyArray;
-            for (; tokenSource.IsCancellationRequested == false;)
+            if (session > 0)
             {
-                nint packetPtr = WinTun.WintunReceivePacket(session, out uint size);
-                length = (int)size;
-
-                if (packetPtr != 0)
+                for (; tokenSource.IsCancellationRequested == false;)
                 {
-                    new Span<byte>((byte*)packetPtr, length).CopyTo(buffer.AsSpan(4, length));
-                    ((ushort)(length + 2)).ToBytes(buffer.AsSpan());
-                    buffer[2] = 0;
-                    buffer[3] = 0;
-                    WinTun.WintunReleaseReceivePacket(session, packetPtr);
-                    length += 4;
-                    return buffer;
-                }
-                else
-                {
-                    int error = Marshal.GetLastWin32Error();
-
-                    if (error == 0 || error == 259L)
+                    nint packetPtr = WinTun.WintunReceivePacket(session, out length);
+                    if (packetPtr != 0)
                     {
-                        WinTun.WaitForSingleObject(waitHandle, 0xFFFFFFFF);
+                        new Span<byte>((byte*)packetPtr, (int)length).CopyTo(buffer.AsSpan(4, (int)length));
+                        ((ushort)(length + 2)).ToBytes(buffer.AsSpan());
+                        buffer[2] = 0;
+                        buffer[3] = 0;
+                        length += 4;
+                        WinTun.WintunReleaseReceivePacket(session, packetPtr);
+                        return buffer;
                     }
-                    else
+                    int error = Marshal.GetLastWin32Error();
+                    if (error != 0 && error != ERROR_NO_MORE_ITEMS)
                     {
                         return Helper.EmptyArray;
                     }
+                    WinTun.WaitForSingleObject(waitHandle, 0xFFFFFFFF);
                 }
             }
+           
             return Helper.EmptyArray;
         }
+
         public unsafe bool Write(ReadOnlyMemory<byte> packet)
         {
-            if (session == 0 || tokenSource.IsCancellationRequested) return false;
-
-            nint packetPtr = WinTun.WintunAllocateSendPacket(session, (uint)packet.Length);
-            if (packetPtr != 0)
+            if (session > 0 && tokenSource.IsCancellationRequested == false)
             {
-                packet.Span.CopyTo(new Span<byte>((byte*)packetPtr, packet.Length));
-                WinTun.WintunSendPacket(session, packetPtr);
-                return true;
-            }
-            else
-            {
-                if (Marshal.GetLastWin32Error() == 111L)
+                nint packetPtr = WinTun.WintunAllocateSendPacket(session, (uint)packet.Length);
+                if (packetPtr != 0)
                 {
-                    return false;
+                    packet.Span.CopyTo(new Span<byte>((byte*)packetPtr, packet.Length));
+                    WinTun.WintunSendPacket(session, packetPtr);
+                    return true;
                 }
             }
             return false;

@@ -22,10 +22,10 @@ namespace linker.tun.hook
             return (LinkerTunPacketHookFlags.None, LinkerTunPacketHookFlags.None);
         }
 
-        public async ValueTask<(LinkerTunPacketHookFlags add, LinkerTunPacketHookFlags del)> WriteAsync(ReadOnlyMemory<byte> packet, uint originDstIp, string srcId)
+        public ValueTask<(LinkerTunPacketHookFlags add, LinkerTunPacketHookFlags del)> WriteAsync(ReadOnlyMemory<byte> packet, uint originDstIp, string srcId)
         {
             linkerDstMapping.ToRealDst(packet);
-            return await ValueTask.FromResult((LinkerTunPacketHookFlags.None, LinkerTunPacketHookFlags.None)).ConfigureAwait(false);
+            return ValueTask.FromResult((LinkerTunPacketHookFlags.None, LinkerTunPacketHookFlags.None));
         }
     }
 }

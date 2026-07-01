@@ -1,6 +1,7 @@
 ﻿using linker.libs;
 using linker.libs.extends;
 using System.Buffers;
+using System.Diagnostics;
 using System.IO.Pipelines;
 using System.Net;
 using System.Net.Security;
@@ -17,6 +18,7 @@ namespace linker.tunnel.connection
     {
         public TunnelConnectionTcp()
         {
+            HashCode = GetHashCode();
         }
 
         public string RemoteMachineId { get; set; }
@@ -37,6 +39,8 @@ namespace linker.tunnel.connection
         public int Delay { get; private set; }
 
         public LastTicksManager LastTicks { get; private set; } = new LastTicksManager();
+
+        public int HashCode { get; private set; }
 
         private const long maxRemaining = 128 * 1024;
         private readonly StickyPacketCodec packetEncoder = new StickyPacketCodec(maxRemaining);
@@ -156,22 +160,22 @@ namespace linker.tunnel.connection
                 Dispose();
             }
         }
-        private async ValueTask ProcessPacket(ReadOnlyMemory<byte> memory)
+        private ValueTask<bool> ProcessPacket(ReadOnlyMemory<byte> memory)
         {
             LastTicks.Update();
             TunnelPacket packet = new TunnelPacket(memory, false);
-            await (packet.Flag switch
+            return packet.Flag switch
             {
                 TunnelPacket.PacketFlagData => callback.Receive(this, packet.PayloadData, this.userToken),
                 TunnelPacket.PacketFlagPing => SendPingPong(Encoding.UTF8.GetBytes($"{Guid.NewGuid()}"), TunnelPacket.PacketFlagPong),
                 TunnelPacket.PacketFlagPong => ProcessPong(),
-                _ => ValueTask.CompletedTask
-            }).ConfigureAwait(false);
+                _ => ValueTask.FromResult(true)
+            };
         }
-        private async ValueTask ProcessPong()
+        private ValueTask<bool> ProcessPong()
         {
             Delay = (int)pingPongTicks.Diff();
-            await ValueTask.CompletedTask.ConfigureAwait(false);
+            return ValueTask.FromResult(true);
         }
 
         private async Task ProcessHeart()
@@ -203,7 +207,7 @@ namespace linker.tunnel.connection
                 }
             }
         }
-        private async ValueTask SendPingPong(byte[] data, byte value)
+        private async ValueTask<bool> SendPingPong(byte[] data, byte value)
         {
             byte[] heartData = ArrayPool<byte>.Shared.Rent(TunnelPacket.PacketHeaderSize + data.Length);
 
@@ -211,6 +215,8 @@ namespace linker.tunnel.connection
             await SendAsync(packet.RawData).ConfigureAwait(false);
 
             ArrayPool<byte>.Shared.Return(heartData);
+
+            return true;
         }
 
         private async Task Sender()
@@ -295,9 +301,9 @@ namespace linker.tunnel.connection
 
             return false;
         }
-        public async ValueTask<bool> SendAsync(byte[] buffer, int offset, int length)
+        public ValueTask<bool> SendAsync(byte[] buffer, int offset, int length)
         {
-            return await SendAsync(buffer.AsMemory(offset, length)).ConfigureAwait(false);
+            return SendAsync(buffer.AsMemory(offset, length));
         }
 
         public void Dispose()

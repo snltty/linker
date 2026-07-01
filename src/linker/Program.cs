@@ -3,7 +3,6 @@ using linker.messenger.entry;
 using linker.messenger.store.file;
 using System.Diagnostics;
 using System.Net;
-using System.Reflection;
 using System.ServiceProcess;
 using System.Text;
 using System.Text.Json;
@@ -14,6 +13,7 @@ namespace linker
     {
         static async Task Main(string[] args)
         {
+            Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.High;
 #if DEBUG
 #else
             linker.libs.FireWallHelper.Write(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName);

@@ -46,14 +46,16 @@ namespace linker.messenger.forward
         {
             StopForward(ep.Port);
             Start(ep, bufferSize);
-            caches.TryAdd(ep.Port, new ForwardProxyCacheInfo
+
+            ForwardProxyCacheInfo cache = new ForwardProxyCacheInfo
             {
-                Port = ep.Port,
+                Port = LocalEndpoint.Port,
                 DstAddr = NetworkHelper.ToValue(target.Address),
                 DstPort = (ushort)target.Port,
                 MachineId = machineId,
 
-            });
+            };
+            caches.AddOrUpdate(LocalEndpoint.Port, cache, (a, b) => cache);
             Version.Increment();
         }
 

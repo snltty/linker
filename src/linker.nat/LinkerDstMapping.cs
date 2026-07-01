@@ -5,7 +5,6 @@ using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Net;
-using System.Net.Sockets;
 
 namespace linker.nat
 {
@@ -19,6 +18,8 @@ namespace linker.nat
         private uint[] masks = [];
         private readonly ConcurrentDictionary<uint, uint> natDic = new ConcurrentDictionary<uint, uint>();
 
+        private long natCount = 0;
+
         /// <summary>
         /// 设置映射目标
         /// </summary>
@@ -30,6 +31,7 @@ namespace linker.nat
                 mapDic = new Dictionary<uint, uint>().ToFrozenDictionary();
                 masks = [];
                 natDic.Clear();
+                Interlocked.Exchange(ref natCount, 0);
                 return;
             }
 
@@ -68,7 +70,7 @@ namespace linker.nat
         public unsafe void ToFakeDst(ReadOnlyMemory<byte> buffer)
         {
             //映射表不为空
-            if (natDic.IsEmpty) return;
+            if (natCount == 0) return;
 
             fixed (byte* ptr = buffer.Span)
             {
@@ -111,6 +113,7 @@ namespace linker.nat
                             if (natDic.TryGetValue(realDist, out uint value) == false || value != fakeDist)
                             {
                                 natDic.AddOrUpdate(realDist, fakeDist, (a, b) => fakeDist);
+                                Interlocked.Add(ref natCount, 1);
                             }
                         }
                         break;

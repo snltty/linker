@@ -28,27 +28,27 @@ namespace linker.tunnel.connection
             packetDst = MemoryPool<byte>.Shared.Rent(maxDecodeBufferSize);
             this.maxDecodePacketCount = maxDecodePacketCount;
 
-            pipe = new Pipe(new PipeOptions(pauseWriterThreshold: maxRemaining, resumeWriterThreshold: (maxRemaining / 2), useSynchronizationContext: false, minimumSegmentSize:8 * 1024));
+            pipe = new Pipe(new PipeOptions(pauseWriterThreshold: maxRemaining, resumeWriterThreshold: (maxRemaining / 2), useSynchronizationContext: false, minimumSegmentSize: 8 * 1024));
         }
 
         public Memory<byte> GetMemory(int sizeHint = 8 * 1024)
         {
             return pipe.Writer.GetMemory(sizeHint);
         }
-        public async ValueTask<FlushResult> FlushAsync(int length, CancellationToken token = default)
+        public ValueTask<FlushResult> FlushAsync(int length, CancellationToken token = default)
         {
             Interlocked.Add(ref sendRemaining, length);
             pipe.Writer.Advance(length);
-            return await pipe.Writer.FlushAsync(token).ConfigureAwait(false);
+            return pipe.Writer.FlushAsync(token);
         }
-        public async ValueTask<FlushResult> WriteAsync(ReadOnlyMemory<byte> data, CancellationToken token = default)
+        public ValueTask<FlushResult> WriteAsync(ReadOnlyMemory<byte> data, CancellationToken token = default)
         {
             Interlocked.Add(ref sendRemaining, data.Length);
-            return await pipe.Writer.WriteAsync(data, token).ConfigureAwait(false);
+            return pipe.Writer.WriteAsync(data, token);
         }
-        public async ValueTask<ReadResult> ReadAsync(CancellationToken token = default)
+        public ValueTask<ReadResult> ReadAsync(CancellationToken token = default)
         {
-            return await pipe.Reader.ReadAsync(token).ConfigureAwait(false);
+            return pipe.Reader.ReadAsync(token);
         }
         public void Advance(int length)
         {
@@ -84,7 +84,7 @@ namespace linker.tunnel.connection
             do
             {
                 buffer.Slice(0, PacketLengthSize).CopyTo(decodeBuffer.Span);
-                int packetLength =  ReadLength(decodeBuffer);
+                int packetLength = ReadLength(decodeBuffer);
                 if (packetLength + PacketLengthSize > buffer.Length)
                 {
                     break;
@@ -110,7 +110,7 @@ namespace linker.tunnel.connection
             return decodeBuffer.Slice(0, offset);
         }
 
-      
+
 
         public void Dispose()
         {

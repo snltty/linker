@@ -74,14 +74,6 @@ namespace linker.messenger.tuntap.client
         {
             TimerHelper.Async(async () =>
             {
-                string oldStr = string.Join(",", [
-                    $"{Info.IP}",
-                    $"{Info.PrefixLength}",
-                    $"{Info.Name}",
-                    $"{Info.NetworkName}",
-                    $"{Info.Mtu}",
-                    $"{Info.MssFix}"
-                ]);
 
                 Info.IP = info.IP ?? IPAddress.Any;
                 Info.Lans = info.Lans;
@@ -94,25 +86,12 @@ namespace linker.messenger.tuntap.client
                 Info.MssFix = info.MssFix;
                 Info.VlsmStatus = info.VlsmStatus;
                 Info.FecProfile = info.FecProfile;
-
-                string newStr = string.Join(",", [
-                    $"{Info.IP}",
-                    $"{Info.PrefixLength}",
-                    $"{Info.Name}",
-                    $"{Info.NetworkName}",
-                    $"{Info.Mtu}",
-                    $"{Info.MssFix}"
-                ]);
-
                 tuntapStore.Confirm();
 
                 await LeaseIP().ConfigureAwait(false);
                 SetGroupIP();
 
-                if (newStr != oldStr)
-                {
-                    Version.Increment();
-                }
+                Version.Increment();
 
                 OnUpdate();
             });

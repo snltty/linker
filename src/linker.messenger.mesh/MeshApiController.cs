@@ -24,9 +24,9 @@ namespace linker.messenger.mesh
             _ = tunnelTransfer.ConnectAsync(info.ToMachineId, info.TransactionId, info.Configures, tunnelTypes: [TunnelType.Mesh]);
             return true;
         }
-        public async Task<List<MeshNodeInfo>> GetNodes(ApiControllerParamsInfo param)
+        public Task<List<MeshNodeInfo>> GetNodes(ApiControllerParamsInfo param)
         {
-            return await meshHistoryTransfer.GetNodes(param.Content, string.Empty).ConfigureAwait(false);
+            return meshHistoryTransfer.GetNodes(param.Content, string.Empty);
         }
         public bool DelNodes(ApiControllerParamsInfo param)
         {

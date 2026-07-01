@@ -22,12 +22,12 @@ namespace linker.messenger.firewall
             this.counterDecenter = counterDecenter;
             signInClientState.OnSignInSuccess += Reset;
         }
-        private async Task Reset(int times)
+        private Task Reset(int times)
         {
-            await Task.Run(() =>
+            return Task.Run(() =>
             {
                 BuildRules();
-            }).ConfigureAwait(false);
+            });
         }
         private void BuildRules()
         {

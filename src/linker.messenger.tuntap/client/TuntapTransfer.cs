@@ -46,9 +46,9 @@ namespace linker.messenger.tuntap.client
             linkerTunDeviceAdapter.Initialize(linkerTunDevice, linkerTunDeviceCallback);
         }
 
-        public async ValueTask<bool> Write(string srcId, ReadOnlyMemory<byte> buffer)
+        public ValueTask<bool> Write(string srcId, ReadOnlyMemory<byte> buffer)
         {
-            return await linkerTunDeviceAdapter.Write(srcId, buffer).ConfigureAwait(false);
+            return linkerTunDeviceAdapter.Write(srcId, buffer);
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace linker.messenger.tuntap.client
             {
                 try
                 {
-                    
+
                     if (info.Address.Equals(IPAddress.Any))
                     {
                         return;

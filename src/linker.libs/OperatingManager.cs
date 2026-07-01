@@ -27,6 +27,10 @@ namespace linker.libs
         public VersionManager DataVersion { get; } = new VersionManager();
 
         private readonly ConcurrentDictionary<string, bool> dicOperating = new ConcurrentDictionary<string, bool>();
+        public bool TryGetValue(string key, out bool result)
+        {
+            return dicOperating.TryGetValue(key, out result);
+        }
 
         public bool StartOperation(string key)
         {

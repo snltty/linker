@@ -4,7 +4,6 @@ using linker.nat;
 using linker.tun.device;
 using linker.tun.hook;
 using System.Buffers.Binary;
-using System.Diagnostics;
 using System.Net;
 
 namespace linker.tun
@@ -16,7 +15,6 @@ namespace linker.tun
     {
         private ILinkerTunDevice linkerTunDevice;
         private ILinkerTunDeviceCallback linkerTunDeviceCallback;
-        private CancellationTokenSource cancellationTokenSource;
 
         private string setupError = string.Empty;
         public string SetupError => setupError;
@@ -59,6 +57,8 @@ namespace linker.tun
             };
             readHooks = [.. hooks.OrderBy(c => c.ReadLevel)];
             writeHooks = [.. hooks.OrderBy(c => c.WriteLevel)];
+
+            Reader();
         }
 
         /// <summary>
@@ -103,11 +103,11 @@ namespace linker.tun
             return true;
         }
 
-        public async ValueTask<bool> Callback(LinkerSrcProxyReadPacket packet)
+        public ValueTask<bool> Callback(LinkerSrcProxyReadPacket packet)
         {
-            return await linkerTunDeviceCallback.Callback(packet).ConfigureAwait(false);
+            return linkerTunDeviceCallback.Callback(packet);
         }
-        public bool Callback(uint ip)
+        public int Callback(uint ip)
         {
             return linkerTunDeviceCallback.Callback(ip);
         }
@@ -139,7 +139,6 @@ namespace linker.tun
                 }
                 linkerTunDevice.SetMtu(info.Mtu);
                 lanSrcProxy.Setup(address, prefixLength, this, ref natError);
-                Read();
 
                 return true;
             }
@@ -171,7 +170,6 @@ namespace linker.tun
             }
             try
             {
-                cancellationTokenSource?.Cancel();
                 linkerTunDevice.Shutdown();
                 lanSrcProxy.Shutdown();
             }
@@ -310,53 +308,59 @@ namespace linker.tun
             writeHooks = [.. hooks.OrderBy(c => c.WriteLevel)];
         }
 
-
-        private readonly SemaphoreSlim slm = new SemaphoreSlim(1);
-        private void Read()
+        private void Reader()
         {
             TimerHelper.Async(async () =>
             {
-                cancellationTokenSource?.Cancel();
-                await slm.WaitAsync().ConfigureAwait(false);
-                cancellationTokenSource = new CancellationTokenSource();
                 LinkerTunDevicPacket packet = new LinkerTunDevicPacket();
-                while (cancellationTokenSource.IsCancellationRequested == false)
+                while (true)
                 {
+                    if (linkerTunDevice == null || linkerTunDevice.Running == false)
+                    {
+                        await Task.Delay(1000);
+                        continue;
+                    }
+
                     try
                     {
-                        byte[] buffer = linkerTunDevice.Read(out int length);
-                        if (length == 0 || length <= 4)
+                        byte[] buffer = linkerTunDevice.Read(out uint length);
+                        if (length <= 4)
                         {
-                            await Task.Delay(1000);
                             continue;
                         }
+                        StopWatchHelper.EndTimestamp(StopWatchHelper.StopWatchType.Tun_Write_Read);
+                        StopWatchHelper.StartTimestamp(StopWatchHelper.StopWatchType.Tun_Read_Write);
 
-
-                        packet.Unpacket(buffer, 0, length);
+                        StopWatchHelper.StartTimestamp(StopWatchHelper.StopWatchType.Tun_Read_Unpacket);
+                        packet.Unpacket(buffer, 0, (int)length);
+                        StopWatchHelper.EndTimestamp(StopWatchHelper.StopWatchType.Tun_Read_Unpacket);
                         if (packet.DstIp.Length == 0 || packet.Version != 4)
                         {
                             continue;
                         }
 
+                        StopWatchHelper.StartTimestamp(StopWatchHelper.StopWatchType.Tun_Read_Hook);
                         LinkerTunPacketHookFlags flags = ExecReadHook(packet.RawPacket);
+                        StopWatchHelper.EndTimestamp(StopWatchHelper.StopWatchType.Tun_Read_Hook);
                         if ((flags & LinkerTunPacketHookFlags.WriteBack) == LinkerTunPacketHookFlags.WriteBack)
                         {
                             linkerTunDevice.Write(packet.RawPacket);
                         }
+
                         if ((flags & LinkerTunPacketHookFlags.Send) == LinkerTunPacketHookFlags.Send)
                         {
+                            StopWatchHelper.StartTimestamp(StopWatchHelper.StopWatchType.Tun_Read_Callback);
                             await linkerTunDeviceCallback.Callback(packet).ConfigureAwait(false);
+                            StopWatchHelper.EndTimestamp(StopWatchHelper.StopWatchType.Tun_Read_Callback);
                         }
                     }
                     catch (Exception ex)
                     {
                         if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
                             LoggerHelper.Instance.Warning($"tuntap read buffer Exception {ex}");
-                        //setupError = ex.Message;
                         await Task.Delay(1000);
                     }
                 }
-                slm.Release();
             });
         }
         private LinkerTunPacketHookFlags ExecReadHook(Memory<byte> rawPacket)
@@ -387,12 +391,22 @@ namespace linker.tun
         /// <returns></returns>
         public async ValueTask<bool> Write(string srcId, ReadOnlyMemory<byte> buffer)
         {
+            bool result = false;
             if (Status == LinkerTunDeviceStatus.Running)
             {
+                StopWatchHelper.StartTimestamp(StopWatchHelper.StopWatchType.Tun_Write_Hook);
                 LinkerTunPacketHookFlags flags = await ExecWriteHook(buffer, srcId).ConfigureAwait(false);
-                return (flags & LinkerTunPacketHookFlags.Write) != LinkerTunPacketHookFlags.Write || linkerTunDevice.Write(buffer);
+                StopWatchHelper.EndTimestamp(StopWatchHelper.StopWatchType.Tun_Write_Hook);
+                if ((flags & LinkerTunPacketHookFlags.Write) == LinkerTunPacketHookFlags.Write)
+                {
+                    StopWatchHelper.StartTimestamp(StopWatchHelper.StopWatchType.Tun_Write);
+                    result = linkerTunDevice.Write(buffer);
+                    StopWatchHelper.EndTimestamp(StopWatchHelper.StopWatchType.Tun_Write);
+                    StopWatchHelper.EndTimestamp(StopWatchHelper.StopWatchType.Tun_Read_Write);
+                    StopWatchHelper.StartTimestamp(StopWatchHelper.StopWatchType.Tun_Write_Read);
+                }
             }
-            return false;
+            return result;
         }
         private async ValueTask<LinkerTunPacketHookFlags> ExecWriteHook(ReadOnlyMemory<byte> rawPacket, string srcId)
         {

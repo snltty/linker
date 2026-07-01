@@ -54,7 +54,7 @@ namespace linker.messenger.tuntap.client
         private Task SignInSuccess(int times)
         {
             _ = CheckDevice();
-            if(_checked == false)
+            if (_checked == false)
             {
                 _checked = true;
                 TimerHelper.SetIntervalLong(CheckDevice, 30000);
@@ -101,27 +101,26 @@ namespace linker.messenger.tuntap.client
         }
 
 
-        public async ValueTask<bool> Callback(LinkerTunDevicPacket packet)
+        public ValueTask<bool> Callback(LinkerTunDevicPacket packet)
         {
-            return await tuntapProxy.InputPacket(packet).ConfigureAwait(false);
+            return tuntapProxy.InputPacket(packet);
         }
-        public async ValueTask<bool> Callback(LinkerSrcProxyReadPacket packet)
+        public ValueTask<bool> Callback(LinkerSrcProxyReadPacket packet)
         {
-            return await tuntapProxy.InputPacket(packet).ConfigureAwait(false);
+            return tuntapProxy.InputPacket(packet);
         }
-        public bool Callback(uint ip)
+        public int Callback(uint ip)
         {
             return tuntapProxy.TestIp(ip);
         }
 
-        public async ValueTask Close(ITunnelConnection connection)
+        public ValueTask Close(ITunnelConnection connection)
         {
-            //tuntapDecenter.Refresh();
-            await ValueTask.CompletedTask.ConfigureAwait(false);
+            return ValueTask.CompletedTask;
         }
-        public  async ValueTask<bool> Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer)
+        public ValueTask<bool> Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer)
         {
-            return await tuntapTransfer.Write(connection.RemoteMachineId, buffer).ConfigureAwait(false);
+            return tuntapTransfer.Write(connection.RemoteMachineId, buffer);
         }
 
 

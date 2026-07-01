@@ -13,11 +13,11 @@
         {
             this.signInClientStore = signInClientStore;
         }
-        public async Task<string> Invoke(string host, Dictionary<string, string> args)
+        public Task<string> Invoke(string host, Dictionary<string, string> args)
         {
             args.TryAdd("userid", signInClientStore.Server.UserId);
             args.TryAdd("avatar", signInClientStore.Avatar);
-            return await Task.FromResult(string.Empty).ConfigureAwait(false);
+            return Task.FromResult(string.Empty);
         }
     }
     public sealed class SignInArgsUserIdServer : ISignInArgsServer

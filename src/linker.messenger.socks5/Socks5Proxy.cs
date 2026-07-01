@@ -71,13 +71,13 @@ namespace linker.messenger.socks5
             }
             return 0;
         }
-        private async ValueTask<ITunnelConnection> ConnectTunnel(uint ip)
+        private ValueTask<ITunnelConnection> ConnectTunnel(uint ip)
         {
             if (socks5CidrDecenterManager.FindValue(ip, out string machineId))
             {
-                return await ConnectTunnel(machineId, []).ConfigureAwait(false);
+                return ConnectTunnel(machineId, []);
             }
-            return null;
+            return ValueTask.FromResult<ITunnelConnection>(null);
         }
 
 

@@ -96,6 +96,7 @@ namespace linker.nat
                     ReadPacket = new LinkerSrcProxyReadPacket(buffer),
                     Tcs = new TaskCompletionSource()
                 };
+                state.ReadPacket.HashCode = cache.HashCode;
 
                 state.ReadPacket.SrcAddr = tunIp;
                 state.ReadPacket.DstAddr = cache.DstAddr;
@@ -106,7 +107,7 @@ namespace linker.nat
 
                 state.ReadPacket.Flags = LinkerSrcProxyFlags.Syn;
                 state.ReadPacket.TotalLength = 0;
-                await callback.Callback(state.ReadPacket).ConfigureAwait(false);
+                await CallbackPacket(state.ReadPacket).ConfigureAwait(false);
 
                 await state.Tcs.WithTimeout(TimeSpan.FromMilliseconds(15000)).ConfigureAwait(false);
 
@@ -124,7 +125,7 @@ namespace linker.nat
                 {
                     state.ReadPacket.Flags = LinkerSrcProxyFlags.Rst;
                     state.ReadPacket.TotalLength = 0;
-                    await callback.Callback(state.ReadPacket).ConfigureAwait(false);
+                    await CallbackPacket(state.ReadPacket).ConfigureAwait(false);
                     state.Disponse();
                 }
 
@@ -144,6 +145,23 @@ namespace linker.nat
             connections.Clear();
         }
 
+
+        private async ValueTask<bool> CallbackPacket(LinkerSrcProxyReadPacket packet)
+        {
+            bool result = await callback.Callback(packet).ConfigureAwait(false);
+            if (result)
+            {
+                return result;
+            }
+            int hashcode = callback.Callback(packet.DstAddr);
+            if (hashcode > 0)
+            {
+                packet.HashCode = hashcode;
+                await callback.Callback(packet).ConfigureAwait(false);
+                return true;
+            }
+            return false;
+        }
 
         public async ValueTask<bool> WriteAsync(ReadOnlyMemory<byte> packet, uint originDstIp)
         {
@@ -181,6 +199,12 @@ namespace linker.nat
 
         private async Task HandleSyn(NatKey key, uint originDstIp)
         {
+            int hashcode = callback.Callback(key.SrcIp);
+            if (hashcode == 0)
+            {
+                return;
+            }
+
             using CancellationTokenSource cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(5000));
             byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024 + 40 + 4);
             try
@@ -193,6 +217,7 @@ namespace linker.nat
                     Socket = source,
                     ReadPacket = new LinkerSrcProxyReadPacket(buffer)
                 };
+                state.ReadPacket.HashCode = hashcode;
 
                 state.ReadPacket.SrcAddr = originDstIp;
                 state.ReadPacket.DstAddr = key.SrcIp;
@@ -202,7 +227,7 @@ namespace linker.nat
 
                 state.ReadPacket.TotalLength = 0;
                 state.ReadPacket.Flags = LinkerSrcProxyFlags.SynAck;
-                await callback.Callback(state.ReadPacket).ConfigureAwait(false);
+                await CallbackPacket(state.ReadPacket).ConfigureAwait(false);
 
                 state.ReadPacket.Flags = LinkerSrcProxyFlags.Psh;
                 await Task.WhenAny(Rcver(state, buffer), Sender(state)).ConfigureAwait(false);
@@ -218,7 +243,7 @@ namespace linker.nat
                 {
                     connection.ReadPacket.Flags = LinkerSrcProxyFlags.Rst;
                     connection.ReadPacket.TotalLength = 0;
-                    await callback.Callback(connection.ReadPacket).ConfigureAwait(false);
+                    await CallbackPacket(connection.ReadPacket).ConfigureAwait(false);
                     connection.Disponse();
                 }
                 ArrayPool<byte>.Shared.Return(buffer);
@@ -248,7 +273,7 @@ namespace linker.nat
                 {
                     state.ReadPacket.Flags = LinkerSrcProxyFlags.Rst;
                     state.ReadPacket.TotalLength = 0;
-                    await callback.Callback(state.ReadPacket).ConfigureAwait(false);
+                    await CallbackPacket(state.ReadPacket).ConfigureAwait(false);
 
                     connections.TryRemove(key, out _);
                     state.Disponse();
@@ -264,7 +289,7 @@ namespace linker.nat
             state.ReadPacket.WindowSize = window;
             state.Receiving = window > 0;
             state.ReadPacket.TotalLength = 0;
-            await callback.Callback(state.ReadPacket).ConfigureAwait(false);
+            await CallbackPacket(state.ReadPacket).ConfigureAwait(false);
         }
         private async Task Sender(ConnectionState state)
         {
@@ -292,7 +317,7 @@ namespace linker.nat
             {
                 state.ReadPacket.Flags = LinkerSrcProxyFlags.Psh;
                 state.ReadPacket.TotalLength = bytesRead;
-                if (await callback.Callback(state.ReadPacket).ConfigureAwait(false) == false)
+                if (await CallbackPacket(state.ReadPacket).ConfigureAwait(false) == false)
                 {
                     break;
                 }
@@ -347,8 +372,8 @@ namespace linker.nat
                     if (srcMap.TryGetValue(key, out SrcCacheInfo cache) == false)
                     {
                         if (srcProxyPacket.TcpOnlySyn == false) return true; //往下走
-                        bool isSupport = callback.Callback(srcProxyPacket.DstAddr);
-                        if (isSupport == false) return true;//不支持代理
+                        int hashcode = callback.Callback(srcProxyPacket.DstAddr);
+                        if (hashcode == 0) return true;//不支持代理
 
                         //1、10.18.18.2:11111->10.18.18.3:5201 [SYN] 新连接
                         cache = new SrcCacheInfo
@@ -356,7 +381,8 @@ namespace linker.nat
                             DstAddr = srcProxyPacket.DstAddr,
                             DstPort = srcProxyPacket.DstPort,
                             SrcPort = srcProxyPacket.SrcPort,
-                            NewPort = NetworkHelper.ApplyNewPort() //随机新端口,比如 22222，windows某些版本不需要新端口，可以直接使用11111
+                            NewPort = NetworkHelper.ApplyNewPort(), //随机新端口,比如 22222，windows某些版本不需要新端口，可以直接使用11111
+                            HashCode = hashcode
                         };
                         //添加 (10.18.18.2,11111)、(10.18.18.2,22222) 作为key的缓存
                         srcMap.AddOrUpdate(new SrcKey(srcProxyPacket.SrcAddr, cache.SrcPort), cache, (a, b) => cache);
@@ -445,6 +471,8 @@ namespace linker.nat
             public bool Sending { get; set; } = true;
             public bool Receiving { get; set; } = true;
 
+
+
             public void AddReceived(long value)
             {
                 Interlocked.Add(ref received, value);
@@ -498,6 +526,7 @@ namespace linker.nat
             public ushort SrcPort { get; set; }
             public ushort NewPort { get; set; }
             public bool Fin { get; set; }
+            public int HashCode { get; set; }
         }
         readonly unsafe struct SrcProxyPacket
         {
@@ -652,11 +681,11 @@ namespace linker.nat
             set
             {
                 length = value + HeaderSize;
-                ((ushort)(length-2)).ToBytes(buffer.AsMemory());
+                ((ushort)(length - 2)).ToBytes(buffer.AsMemory());
                 buffer[2] = 0;
                 buffer[3] = 0;
 
-                *(ushort*)(ptr + 2) = BinaryPrimitives.ReverseEndianness((ushort)((length-4)));
+                *(ushort*)(ptr + 2) = BinaryPrimitives.ReverseEndianness((ushort)((length - 4)));
             }
         }
         public ushort Identification
@@ -876,6 +905,9 @@ namespace linker.nat
             }
         }
 
+
+        public int HashCode { get; set; }
+
         public LinkerSrcProxyReadPacket(byte[] buffer)
         {
             this.buffer = buffer;
@@ -924,6 +956,6 @@ namespace linker.nat
     public interface ILinkerSrcProxyCallback
     {
         public ValueTask<bool> Callback(LinkerSrcProxyReadPacket packet);
-        public bool Callback(uint ip);
+        public int Callback(uint ip);
     }
 }

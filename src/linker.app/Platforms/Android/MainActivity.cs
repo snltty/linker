@@ -108,26 +108,26 @@ namespace linker.app
             tuntapTransfer.Shutdown();
         }
 
-        public async ValueTask<bool> Callback(LinkerTunDevicPacket packet)
+        public  ValueTask<bool> Callback(LinkerTunDevicPacket packet)
         {
-            return  await tuntapProxy.InputPacket(packet).ConfigureAwait(false);
+            return   tuntapProxy.InputPacket(packet);
         }
-        public async ValueTask<bool> Callback(LinkerSrcProxyReadPacket packet)
+        public  ValueTask<bool> Callback(LinkerSrcProxyReadPacket packet)
         {
-            return  await tuntapProxy.InputPacket(packet).ConfigureAwait(false  );
+            return   tuntapProxy.InputPacket(packet);
         }
-        public bool Callback(uint ip)
+        public int Callback(uint ip)
         {
             return tuntapProxy.TestIp(ip);
         }
-        public async ValueTask Close(ITunnelConnection connection)
+        public  ValueTask Close(ITunnelConnection connection)
         {
             //tuntapDecenter.Refresh();
-            await ValueTask.CompletedTask.ConfigureAwait(false);
+            return ValueTask.CompletedTask;
         }
-        public async ValueTask<bool> Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer)
+        public  ValueTask<bool> Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer)
         {
-           return await tuntapTransfer.Write(connection.RemoteMachineId, buffer).ConfigureAwait(false);
+           return  tuntapTransfer.Write(connection.RemoteMachineId, buffer);
         }
 
        
@@ -477,9 +477,9 @@ namespace linker.app
         public void RemoveRoute(LinkerTunDeviceRouteItem[] ips)
         {
         }
-        public async Task<bool> CheckAvailable(bool order = false)
+        public  Task<bool> CheckAvailable(bool order = false)
         {
-            return await Task.FromResult(fd > 0).ConfigureAwait(false);
+            return  Task.FromResult(fd > 0);
         }
 
 

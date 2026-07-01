@@ -90,7 +90,7 @@ namespace linker.forward
             }
         }
 
-        private async ValueTask HndlePshUdp(ITunnelConnection connection, ForwardWritePacket packet, ReadOnlyMemory<byte> memory)
+        private async ValueTask<bool> HndlePshUdp(ITunnelConnection connection, ForwardWritePacket packet, ReadOnlyMemory<byte> memory)
         {
             var connectId = (connection.RemoteMachineId.GetHashCode(), packet.SrcAddr, packet.SrcPort, packet.DstAddr, packet.DstPort);
             try
@@ -101,7 +101,7 @@ namespace linker.forward
                     Add(connection.RemoteMachineId, token.IPEndPoint, 0, memory.Length);
                     await token.Socket.SendToAsync(memory.Slice(packet.HeaderLength), token.IPEndPoint).ConfigureAwait(false);
                     token.LastTicks.Update();
-                    return;
+                    return true;
                 }
                 _ = ConnectUdp(connection, packet, memory).ConfigureAwait(false);
 
@@ -115,6 +115,7 @@ namespace linker.forward
                     token.Dispose();
                 }
             }
+            return true;
         }
 
         private async ValueTask HndlePshAckUdp(ITunnelConnection connection, ForwardWritePacket packet, ReadOnlyMemory<byte> memory)

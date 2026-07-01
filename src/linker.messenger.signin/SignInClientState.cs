@@ -46,9 +46,9 @@ namespace linker.messenger.signin
         /// </summary>
         [JsonIgnore]
         public Func<Task> OnSignInBrfore { get; set; } = async () => { await Task.CompletedTask; };
-        public async Task PushSignInBefore()
+        public Task PushSignInBefore()
         {
-            await OnSignInBrfore?.Invoke();
+            return OnSignInBrfore?.Invoke();
         }
 
 
@@ -59,7 +59,7 @@ namespace linker.messenger.signin
         /// 上线事件
         /// </summary>
         [JsonIgnore]
-        public Func<int, Task> OnSignInSuccess { get; set; } =  (i) => { return Task.CompletedTask; };
+        public Func<int, Task> OnSignInSuccess { get; set; } = (i) => { return Task.CompletedTask; };
         /// <summary>
         /// 第一次上线
         /// </summary>
@@ -69,9 +69,9 @@ namespace linker.messenger.signin
         /// <summary>
         /// 发布上线事件
         /// </summary>
-        public async Task PushSignInSuccessBefore()
+        public Task PushSignInSuccessBefore()
         {
-            await (OnSignInSuccessBefore?.Invoke()).ConfigureAwait(false);
+            return OnSignInSuccessBefore?.Invoke();
         }
         /// <summary>
         /// 发布上线事件

@@ -81,14 +81,8 @@
                             </template>
                         </template>
                     </el-table-column>
-                    <el-table-column property="Started" :label="$t('reverse.status')" width="60">
-                        <template #default="scope">
-                            <el-switch disabled v-model="scope.row.Started" inline-prompt
-                                :active-text="$t('reverse.yes')" :inactive-text="$t('reverse.no')" @click="handleStartChange(scope.row)" />
-                        </template>
-                    </el-table-column>
-                    
-                    <el-table-column prop="Plan" :label="$t('reverse.plan')" width="200">
+                   
+                    <el-table-column prop="Plan" :label="$t('reverse.plan')" >
                         <template #default="scope">
                             <div class="plan">
                                 <p><el-icon><Select /></el-icon><PlanShow handle="start"  :keyid="scope.row.Id"></PlanShow></p>
@@ -96,6 +90,13 @@
                             </div>
                         </template>
                     </el-table-column>
+                     <el-table-column property="Started" :label="$t('reverse.status')" width="60">
+                        <template #default="scope">
+                            <el-switch disabled v-model="scope.row.Started" inline-prompt
+                                :active-text="$t('reverse.yes')" :inactive-text="$t('reverse.no')" @click="handleStartChange(scope.row)" />
+                        </template>
+                    </el-table-column>
+                    
                     <el-table-column :label="$t('common.oper')" width="54" fixed="right">
                         <template #default="scope">
                             <el-popconfirm 

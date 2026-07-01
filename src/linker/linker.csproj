@@ -15,7 +15,7 @@
 		<Title>linker</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>1. 一些累计更新，一些BUG修复
+		<Description>1. 请勿第一时间更新，建议延后2-3个小版本
 2. 隧道4字节长度头改为2长度+1消息类型(data/ping/pong/fin)+1保留
 3. UDP隧道支持策略冗余FEC和KCP
 4. 重写RFC5780NAT类型检测

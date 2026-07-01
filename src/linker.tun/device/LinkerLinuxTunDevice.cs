@@ -322,7 +322,7 @@ namespace linker.tun.device
 
         private readonly byte[] buffer = new byte[128 * 1024];
         private readonly object writeLockObj = new object();
-        public byte[] Read(out int length)
+        public byte[] Read(out uint length)
         {
             length = 0;
             if (safeFileHandle == null)
@@ -330,7 +330,7 @@ namespace linker.tun.device
                 return Helper.EmptyArray;
             }
 
-            length = fsRead.Read(buffer.AsSpan(4));
+            length = (uint)fsRead.Read(buffer.AsSpan(4));
             ((ushort)(length + 2)).ToBytes(buffer.AsSpan());
             buffer[2] = 0;
             buffer[3] = 0;
@@ -345,19 +345,8 @@ namespace linker.tun.device
 
             lock (writeLockObj)
             {
-                try
-                {
-                    fsWrite.Write(buffer.Span);
-                    fsWrite.Flush();
-                }
-                catch (Exception ex)
-                {
-                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                    {
-                        LoggerHelper.Instance.Error(ex.Message);
-                        LoggerHelper.Instance.Error(string.Join(",", buffer.ToArray()));
-                    }
-                }
+                fsWrite.Write(buffer.Span);
+                fsWrite.Flush();
                 return true;
             }
         }

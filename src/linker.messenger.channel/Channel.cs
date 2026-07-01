@@ -6,6 +6,7 @@ using linker.tunnel;
 using linker.tunnel.connection;
 using linker.tunnel.transport;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace linker.messenger.channel
 {
@@ -78,7 +79,7 @@ namespace linker.messenger.channel
         private readonly ISignInClientStore signInClientStore;
         private readonly ChannelConnectionCaching channelConnectionCaching;
         private readonly OperatingMultipleManager operatingMultipleManager = new OperatingMultipleManager();
-        
+
 
         public Channel(TunnelTransfer tunnelTransfer,
             SignInClientTransfer signInClientTransfer, ISignInClientStore signInClientStore, ChannelConnectionCaching channelConnectionCaching)
@@ -96,7 +97,7 @@ namespace linker.messenger.channel
         protected virtual void Connected(ITunnelConnection connection)
         {
         }
-        private void OnConnected(ITunnelConnection connection,TunnelTransportInfo info)
+        private void OnConnected(ITunnelConnection connection, TunnelTransportInfo info)
         {
             if (connection == null) return;
 
@@ -121,28 +122,31 @@ namespace linker.messenger.channel
                 return connection;
             }
 
-            return await operatingMultipleManager.StartOperationAsync($"{machineId}@{TransactionId}", false,
-            async (key) =>
+            if (operatingMultipleManager.StartOperation($"{machineId}@{TransactionId}"))
             {
-                _ = RelayAndP2P(machineId, configures).ContinueWith((res) =>
+                _ = RelayAndP2P(machineId, configures).ContinueWith((result) =>
                 {
-                    operatingMultipleManager.StopOperation(key);
-                });
-                return null;
-            },
-            async (key) =>
-            {
-                var connection = await tunnelTransfer.ConnectAsync(machineId, TransactionId, configures, tunnelTypes: [TunnelType.Relay]).ConfigureAwait(false);
-                operatingMultipleManager.StopOperation(key);
-                return connection;
-            });
+                    operatingMultipleManager.StopOperation($"{machineId}@{TransactionId}");
+                    if (result.Result != null)
+                    {
+                        channelConnectionCaching.Add(result.Result);
+                    }
+                }).ConfigureAwait(false);
+            }
+
+            return null;
         }
         private async Task<ITunnelConnection> RelayAndP2P(string machineId, Dictionary<string, string> configures)
         {
-            if (signInClientStore.Id == machineId || await signInClientTransfer.GetOnline(machineId).ConfigureAwait(false) == false)
+            if (signInClientStore.Id == machineId)
             {
                 return null;
             }
+            if (await signInClientTransfer.GetOnline(machineId).ConfigureAwait(false) == false)
+            {
+                return null;
+            }
+           
             ITunnelConnection connection = await tunnelTransfer.ConnectAsync(machineId, TransactionId, configures).ConfigureAwait(false);
             if (connection != null && connection.Type != TunnelType.P2P)
             {

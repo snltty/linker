@@ -419,7 +419,7 @@ pass inet proto icmp all
         private readonly byte[] buffer = new byte[65 * 1024];
         private readonly object writeLockObj = new object();
 
-        public byte[] Read(out int length)
+        public byte[] Read(out uint length)
         {
             length = 0;
             if (safeFileHandle == null || fsRead == null)
@@ -427,7 +427,7 @@ pass inet proto icmp all
                 return Helper.EmptyArray;
             }
 
-            length = fsRead.Read(buffer.AsSpan(4));
+            length = (uint)fsRead.Read(buffer.AsSpan(4));
             ((ushort)(length + 2)).ToBytes(buffer.AsSpan());
             buffer[2] = 0;
             buffer[3] = 0;

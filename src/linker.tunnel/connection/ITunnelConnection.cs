@@ -56,7 +56,7 @@ namespace linker.tunnel.connection
         /// <param name="data"></param>
         /// <param name="state"></param>
         /// <returns></returns>
-        public ValueTask Receive(ITunnelConnection connection, ReadOnlyMemory<byte> data, object state);
+        public ValueTask<bool> Receive(ITunnelConnection connection, ReadOnlyMemory<byte> data, object state);
         /// <summary>
         /// 收到隧道关闭
         /// </summary>
@@ -173,6 +173,8 @@ namespace linker.tunnel.connection
         /// </summary>
         public LastTicksManager LastTicks { get; }
 
+        public int HashCode { get; }
+
         /// <summary>
         /// 发送数据
         /// </summary>
@@ -228,7 +230,7 @@ namespace linker.tunnel.connection
         public ReadOnlyMemory<byte> PayloadData { get; private set; }
 
 
-        public const int PacketHeaderSize = 4;
+        public const int PacketHeaderSize = PacketLengthSize + PacketFlagSize;
         public const int PacketLengthSize = 2;
         public const int PacketFlagSize = 2;
 
@@ -250,9 +252,9 @@ namespace linker.tunnel.connection
             dst.Span[3] = rsv;
             payloadData.CopyTo(dst.Slice(PacketHeaderSize));
 
-            RawData = dst.Slice(0, PacketHeaderSize + payloadData.Length);
-            Payload = dst.Slice(PacketLengthSize, payloadData.Length + PacketLengthSize);
-            PayloadData = payloadData;
+            RawData = dst.Slice(0, payloadData.Length + PacketHeaderSize);
+            Payload = dst.Slice(PacketLengthSize, payloadData.Length + PacketFlagSize);
+            PayloadData = dst.Slice(PacketHeaderSize, payloadData.Length);
         }
 
         public TunnelPacket(ReadOnlyMemory<byte> buffer, bool withLengthPrefix = true)
@@ -272,7 +274,7 @@ namespace linker.tunnel.connection
                 Rsv = buffer.Span[1];
                 RawData = buffer;
                 Payload = buffer;
-                PayloadData = buffer.Slice(PacketLengthSize);
+                PayloadData = buffer.Slice(PacketFlagSize);
             }
         }
 

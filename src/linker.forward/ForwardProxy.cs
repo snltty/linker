@@ -52,29 +52,21 @@ namespace linker.forward
         {
             return 0;
         }
-        private async ValueTask<bool> SendToConnection(AsyncUserToken token)
+        private ValueTask<bool> SendToConnection(AsyncUserToken token)
         {
-            if (token.Connection == null)
-            {
-                return false;
-            }
-            
-            await token.Connection.SendAsync(token.ReadPacket.Memory).ConfigureAwait(false);
-            Add(token.Connection.RemoteMachineId, token.IPEndPoint, token.ReadPacket.Memory.Length, 0);
-            return true;
+            return SendToConnection(token.Connection, token.ReadPacket, token.IPEndPoint);
         }
-        private async ValueTask<bool> SendToConnection(ITunnelConnection connection, ForwardReadPacket packet, IPEndPoint ep)
+        private ValueTask<bool> SendToConnection(ITunnelConnection connection, ForwardReadPacket packet, IPEndPoint ep)
         {
             if (connection == null)
             {
-                return false;
+                return ValueTask.FromResult(false);
             }
-            await connection.SendAsync(packet.Memory).ConfigureAwait(false);
             Add(connection.RemoteMachineId, ep, packet.Memory.Length, 0);
-            return true;
+            return connection.SendAsync(packet.Memory);
         }
 
-        private async ValueTask InputPacket(ITunnelConnection connection, ReadOnlyMemory<byte> memory)
+        private async ValueTask<bool> InputPacket(ITunnelConnection connection, ReadOnlyMemory<byte> memory)
         {
             ForwardWritePacket packet = new ForwardWritePacket(memory);
 
@@ -118,6 +110,7 @@ namespace linker.forward
                         break;
                 }
             }
+            return true;
         }
 
         public void AddHooks(List<IForwardHook> hooks)
@@ -173,14 +166,14 @@ namespace linker.forward
         {
             connection.BeginReceive(this, null);
         }
-        public async ValueTask Receive(ITunnelConnection connection, ReadOnlyMemory<byte> memory, object userToken)
+        public ValueTask<bool> Receive(ITunnelConnection connection, ReadOnlyMemory<byte> memory, object userToken)
         {
-            await InputPacket(connection, memory).ConfigureAwait(false);
+            return InputPacket(connection, memory);
         }
-        public async ValueTask Closed(ITunnelConnection connection, object userToken)
+        public ValueTask Closed(ITunnelConnection connection, object userToken)
         {
             Version.Increment();
-            await ValueTask.CompletedTask.ConfigureAwait(false);
+            return ValueTask.CompletedTask;
         }
     }
 }

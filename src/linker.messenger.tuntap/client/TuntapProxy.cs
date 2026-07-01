@@ -47,62 +47,69 @@ namespace linker.messenger.tuntap.client
             tuntapCidrConnectionManager.Update(connection);
         }
 
-        public async ValueTask Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer, object state)
+        public ValueTask<bool> Receive(ITunnelConnection connection, ReadOnlyMemory<byte> buffer, object state)
         {
-            await Callback.Receive(connection, buffer).ConfigureAwait(false);
+            return Callback.Receive(connection, buffer);
         }
 
-        public async ValueTask Closed(ITunnelConnection connection, object state)
+        public ValueTask Closed(ITunnelConnection connection, object state)
         {
-            await Callback.Close(connection).ConfigureAwait(false);
             Version.Increment();
+            return Callback.Close(connection);
+
         }
-        public async ValueTask<bool> InputPacket(LinkerTunDevicPacket packet)
+        public ValueTask<bool> InputPacket(LinkerTunDevicPacket packet)
         {
-            if ((packet.IPV4Broadcast || packet.IPV6Multicast) && tuntapConfigTransfer.Info.Multicast == false && Connections.IsEmpty == false)
+            StopWatchHelper.StartTimestamp(StopWatchHelper.StopWatchType.Tun_Read_Connecttion);
+
+            if ((packet.IPV4Broadcast || packet.IPV6Multicast) && tuntapConfigTransfer.Info.Multicast == false)
             {
-                foreach (var item in Connections.Values)
+                return SendAll(packet);
+            }
+            else
+            {
+                uint ip = BinaryPrimitives.ReadUInt32BigEndian(packet.DstIp.Span[^4..]);
+                if (tuntapCidrConnectionManager.TryGet(ip, out ITunnelConnection connection) && connection.Connected)
                 {
-                    await item.SendAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);
+                    StopWatchHelper.EndTimestamp(StopWatchHelper.StopWatchType.Tun_Read_Connecttion);
+                    return connection.SendAsync(packet.Buffer, packet.Offset, packet.Length);
                 }
-                return true;
+                return ConnectTunnel(ip);
             }
-            uint ip = BinaryPrimitives.ReadUInt32BigEndian(packet.DstIp.Span[^4..]);
-            if (tuntapCidrConnectionManager.TryGet(ip, out ITunnelConnection connection) && connection.Connected)
-            {
-                await connection.SendAsync(packet.Buffer, packet.Offset, packet.Length);
-                return true;
-            }
-            await ConnectTunnel(ip).ConfigureAwait(false);
-            return false;
+
         }
-        public async ValueTask<bool> InputPacket(LinkerSrcProxyReadPacket packet)
+        private async ValueTask<bool> SendAll(LinkerTunDevicPacket packet)
         {
-            if (tuntapCidrConnectionManager.TryGet(packet.DstAddr, out ITunnelConnection connection) && connection.Connected)
+            foreach (var item in Connections.Values)
             {
-                return await connection.SendAsync(packet.Memory).ConfigureAwait(false);
+                await item.SendAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);
             }
-            await ConnectTunnel(packet.DstAddr).ConfigureAwait(false);
-            if (tuntapCidrConnectionManager.TryGet(packet.DstAddr, out connection) && connection.Connected)
-            {
-                return await connection.SendAsync(packet.Memory).ConfigureAwait(false);
-            }
-            return false;
+            return true;
         }
-        public bool TestIp(uint ip)
+
+        public ValueTask<bool> InputPacket(LinkerSrcProxyReadPacket packet)
+        {
+            if (tuntapCidrConnectionManager.TryGet(packet.DstAddr, out ITunnelConnection connection) && connection.Connected && connection.HashCode == packet.HashCode)
+            {
+                return connection.SendAsync(packet.Memory);
+            }
+            return ValueTask.FromResult(false);
+        }
+        public int TestIp(uint ip)
         {
             if (tuntapCidrConnectionManager.TryGet(ip, out ITunnelConnection connection) && connection.Connected)
             {
-                return connection.ProtocolType == TunnelProtocolType.Tcp
-                    && connection.Type != TunnelType.Mesh
-                    && tuntapConfigTransfer.Info.SrcProxy
-                    && tuntapDecenter.HasSwitchFlag(connection.RemoteMachineId, TuntapSwitch.SrcProxy);
+                bool result = connection.ProtocolType == TunnelProtocolType.Tcp
+                     && connection.Type != TunnelType.Mesh
+                     && tuntapConfigTransfer.Info.SrcProxy
+                     && tuntapDecenter.HasSwitchFlag(connection.RemoteMachineId, TuntapSwitch.SrcProxy);
+                return result ? connection.HashCode : 0;
             }
             _ = ConnectTunnel(ip).ConfigureAwait(false);
-            return false;
+            return 0;
         }
 
-        private async ValueTask ConnectTunnel(uint ip)
+        private async ValueTask<bool> ConnectTunnel(uint ip)
         {
             ITunnelConnection connection = null;
 
@@ -116,7 +123,9 @@ namespace linker.messenger.tuntap.client
             if (connection != null)
             {
                 tuntapCidrConnectionManager.Add(ip, connection);
+                return true;
             }
+            return false;
         }
 
         private TuntapFecProfileInfo[] GetFecProfileInfo(string machineId)

@@ -85,7 +85,7 @@ namespace linker.tun.device
         /// 读取数据包
         /// </summary>
         /// <returns></returns>
-        public byte[] Read(out int length);
+        public byte[] Read(out uint length);
         /// <summary>
         /// 写入数据包
         /// </summary>
@@ -141,7 +141,7 @@ namespace linker.tun.device
         /// <returns></returns>
         public ValueTask<bool> Callback(LinkerTunDevicPacket packet);
         public ValueTask<bool> Callback(LinkerSrcProxyReadPacket proxy);
-        public bool Callback(uint ip);
+        public int Callback(uint ip);
     }
 
 
