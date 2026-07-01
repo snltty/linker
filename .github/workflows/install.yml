@@ -89,7 +89,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-ipk/x64/linker-openwrt-x64.ipk:/downloads/linker/v2.0.14/linker-openwrt-x64.ipk
+            ./public/publish-ipk/x64/linker-openwrt-x64.ipk:/downloads/linker/v2.0.15/linker-openwrt-x64.ipk
           timeout: '720000'
       - name: upload-x64-ipk
         id: upload-x64-ipk
@@ -110,7 +110,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-apk/x64/linker-openwrt-x64.apk:/downloads/linker/v2.0.14/linker-openwrt-x64.apk
+            ./public/publish-apk/x64/linker-openwrt-x64.apk:/downloads/linker/v2.0.15/linker-openwrt-x64.apk
           timeout: '720000'
       - name: upload-x64-apk
         id: upload-x64-apk
@@ -131,7 +131,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-ipk/arm/linker-openwrt-arm.ipk:/downloads/linker/v2.0.14/linker-openwrt-arm.ipk
+            ./public/publish-ipk/arm/linker-openwrt-arm.ipk:/downloads/linker/v2.0.15/linker-openwrt-arm.ipk
           timeout: '720000'
       - name: upload-arm-ipk
         id: upload-arm-ipk
@@ -152,7 +152,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-apk/arm/linker-openwrt-arm.apk:/downloads/linker/v2.0.14/linker-openwrt-arm.apk
+            ./public/publish-apk/arm/linker-openwrt-arm.apk:/downloads/linker/v2.0.15/linker-openwrt-arm.apk
           timeout: '720000'
       - name: upload-arm-apk
         id: upload-arm-apk
@@ -173,7 +173,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-ipk/arm64/linker-openwrt-arm64.ipk:/downloads/linker/v2.0.14/linker-openwrt-arm64.ipk
+            ./public/publish-ipk/arm64/linker-openwrt-arm64.ipk:/downloads/linker/v2.0.15/linker-openwrt-arm64.ipk
           timeout: '720000'
       - name: upload-arm64-ipk
         id: upload-arm64-ipk
@@ -194,7 +194,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-apk/arm64/linker-openwrt-arm64.apk:/downloads/linker/v2.0.14/linker-openwrt-arm64.apk
+            ./public/publish-apk/arm64/linker-openwrt-arm64.apk:/downloads/linker/v2.0.15/linker-openwrt-arm64.apk
           timeout: '720000'
       - name: upload-arm64-apk
         id: upload-arm64-apk
@@ -215,7 +215,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-fpk/docker/linker-fnos-docker.fpk:/downloads/linker/v2.0.14/linker-fnos-docker.fpk
+            ./public/publish-fpk/docker/linker-fnos-docker.fpk:/downloads/linker/v2.0.15/linker-fnos-docker.fpk
           timeout: '720000'
       - name: upload-docker-fpk
         id: upload-docker-fpk
@@ -236,7 +236,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-fpk/bin/x64/linker-fnos-bin-x64.fpk:/downloads/linker/v2.0.14/linker-fnos-bin-x64.fpk
+            ./public/publish-fpk/bin/x64/linker-fnos-bin-x64.fpk:/downloads/linker/v2.0.15/linker-fnos-bin-x64.fpk
           timeout: '720000'
       - name: upload-bin-fpk-x64
         id: upload-bin-fpk-x64
@@ -257,7 +257,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-fpk/bin/arm64/linker-fnos-bin-arm64.fpk:/downloads/linker/v2.0.14/linker-fnos-bin-arm64.fpk
+            ./public/publish-fpk/bin/arm64/linker-fnos-bin-arm64.fpk:/downloads/linker/v2.0.15/linker-fnos-bin-arm64.fpk
           timeout: '720000'
       - name: upload-bin-fpk-arm64
         id: upload-bin-fpk-arm64
