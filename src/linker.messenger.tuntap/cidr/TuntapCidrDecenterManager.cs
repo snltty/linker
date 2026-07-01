@@ -9,7 +9,7 @@ namespace linker.messenger.tuntap.cidr
 {
     public sealed class TuntapCidrDecenterManager
     {
-        private LinkerTunDeviceRouteItem[] routeItems = new LinkerTunDeviceRouteItem[0];
+        private LinkerTunDeviceRouteItem[] routeItems = [];
         public LinkerTunDeviceRouteItem[] Routes => routeItems;
         public Dictionary<string, string> CidrRoutes => cidrManager.Routes;
 
@@ -17,24 +17,20 @@ namespace linker.messenger.tuntap.cidr
         private readonly TuntapCidrConnectionManager tuntapCidrConnectionManager;
 
         private readonly ISignInClientStore signInClientStore;
-        private readonly TuntapConfigTransfer tuntapConfigTransfer;
         private readonly TuntapTransfer tuntapTransfer;
         private readonly RouteExclusionPolicyTransfer routeExclusionPolicyTransfer;
         private readonly SignInClientState signInClientState;
-        private readonly SignInClientTransfer signInClientTransfer;
         private readonly TuntapDecenter tuntapDecenter;
 
         public TuntapCidrDecenterManager(TuntapCidrConnectionManager tuntapCidrConnectionManager, ISignInClientStore signInClientStore,
-            SignInClientState signInClientState, TuntapConfigTransfer tuntapConfigTransfer, TuntapTransfer tuntapTransfer,
-            RouteExclusionPolicyTransfer routeExclusionPolicyTransfer, SignInClientTransfer signInClientTransfer, TuntapDecenter tuntapDecenter)
+            SignInClientState signInClientState, TuntapTransfer tuntapTransfer,
+            RouteExclusionPolicyTransfer routeExclusionPolicyTransfer, TuntapDecenter tuntapDecenter)
         {
             this.tuntapCidrConnectionManager = tuntapCidrConnectionManager;
             this.signInClientStore = signInClientStore;
-            this.tuntapConfigTransfer = tuntapConfigTransfer;
             this.tuntapTransfer = tuntapTransfer;
             this.routeExclusionPolicyTransfer = routeExclusionPolicyTransfer;
             this.signInClientState = signInClientState;
-            this.signInClientTransfer = signInClientTransfer;
             this.tuntapDecenter = tuntapDecenter;
 
             tuntapDecenter.OnClear += Clear;
@@ -125,21 +121,20 @@ namespace linker.messenger.tuntap.cidr
         }
         private List<TuntapVeaLanIPAddressList> ParseIPs(List<TuntapInfo> infos)
         {
+            IPAddress wan = signInClientState.WanAddress.Address;
             //排除的IP，
             IEnumerable<uint> excludeIps = routeExclusionPolicyTransfer.Query().Where(c => c.Equals(IPAddress.Any) == false).Select(NetworkHelper.ToValue).Distinct();
 
-            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                LoggerHelper.Instance.Warning($"tuntap route ex ips : {string.Join(",", excludeIps.Select(c => NetworkHelper.ToIP(c)).ToList())}");
-
-            HashSet<uint> hashSet = new HashSet<uint>();
-            IPAddress wan = signInClientState.WanAddress.Address;
-            hashSet.Add(NetworkHelper.ToValue(wan));
-
+            HashSet<uint> hashSet =
+            [
+                //外网IP
+                NetworkHelper.ToValue(wan),
+            ];
             //虚拟ip
-            foreach (var item in infos.Where(c => c.Available).OrderBy(c => c.IP, new IPAddressComparer()).OrderByDescending(c => c.Status))
+            foreach (var item in infos)
             {
-                item.Exists = item.IP.Equals(IPAddress.Any) == false && hashSet.Contains(NetworkHelper.ToValue(item.IP));
                 hashSet.Add(NetworkHelper.ToValue(item.IP));
+                hashSet.Add(NetworkHelper.ToNetworkValue(item.IP, item.PrefixLength));
             }
 
             //局域网ip
@@ -156,21 +151,32 @@ namespace linker.messenger.tuntap.cidr
                     .Where(d =>
                     {
                         uint network = NetworkHelper.ToNetworkValue(d.IP, d.PrefixLength);
+                        uint ip = NetworkHelper.ToValue(d.IP);
 
-                        if (d.IP.Equals(d.MapIP))
+                        //同个外网，且没有设置映射
+                        bool sameWan = wan.Equals(c.Wan) && IPAddress.Any.Equals(d.MapIP) && d.IP.Equals(d.MapIP) == false;
+                        if (sameWan)
                         {
-                            d.Exists = hashSet.Contains(network);
+                            LoggerHelper.Instance.Warning($"tuntap lan {d.IP} exists with {c.Wan}={wan}");
                         }
-                        else
+
+                        //在排除列表中
+                        bool exclude = excludeIps.Any(e => NetworkHelper.ToNetworkValue(e, d.PrefixLength) == network);
+                        if (exclude)
                         {
-                            //同个外网，且没有设置映射
-                            d.Exists = (wan.Equals(c.Wan) && IPAddress.Any.Equals(d.MapIP))
-                            //在排除列表中
-                            || excludeIps.Any(e => NetworkHelper.ToNetworkValue(e, d.PrefixLength) == network)
-                            //已经存在过
-                            || hashSet.Contains(network);
+                            LoggerHelper.Instance.Warning($"tuntap lan {d.IP} exists with {string.Join(",", excludeIps.Select(c => c.ToString()))}");
                         }
+
+                        //已经存在过
+                        bool exists = hashSet.Contains(network) || hashSet.Contains(ip);
+                        if (exists)
+                        {
+                            LoggerHelper.Instance.Warning($"tuntap lan {d.IP} exists with {d.IP}");
+                        }
+                        d.Exists = sameWan || exclude || exists;
+
                         hashSet.Add(network);
+                        hashSet.Add(ip);
 
                         return d.Exists == false;
                     }).ToList();

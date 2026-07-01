@@ -1,14 +1,15 @@
-﻿using linker.tunnel.connection;
-using linker.tunnel.wanport;
-using System.Net.Sockets;
-using System.Net;
-using System.Text;
+﻿using linker.libs;
 using linker.libs.extends;
-using System.Collections.Concurrent;
-using linker.libs;
-using System.Security.Cryptography.X509Certificates;
 using linker.libs.timer;
+using linker.tunnel.connection;
+using linker.tunnel.wanport;
+using System;
 using System.Buffers;
+using System.Collections.Concurrent;
+using System.Net;
+using System.Net.Sockets;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
 
 namespace linker.tunnel.transport
 {
@@ -73,15 +74,17 @@ namespace linker.tunnel.transport
                 }
                 return;
             }
+            if (localPort == 0)
+            {
+                return;
+            }
+            socket?.SafeClose();
+
 
             byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024);
             try
             {
-                socket?.SafeClose();
-                if (localPort == 0) return;
-
                 IPAddress localIP = IPAddress.IPv6Any;
-
                 socket = new Socket(localIP.AddressFamily, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
                 socket.WindowsUdpBug();
                 socket.IPv6Only(localIP.AddressFamily, false);
@@ -92,60 +95,7 @@ namespace linker.tunnel.transport
                     LoggerHelper.Instance.Debug($"{Name} listen {localPort}");
                 }
 
-                IPEndPoint ep = new IPEndPoint(IPAddress.Any, 0);
-                while (true)
-                {
-                    try
-                    {
-                        SocketReceiveFromResult result = await socket.ReceiveFromAsync(buffer.AsMemory(), ep).ConfigureAwait(false);
-                        if (result.ReceivedBytes == 0)
-                        {
-                            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                                LoggerHelper.Instance.Debug($"{Name} recv from {result.RemoteEndPoint} <0>");
-                            await Task.Delay(1000);
-                            continue;
-                        }
-
-                        IPEndPoint remoteEP = result.RemoteEndPoint as IPEndPoint;
-                        Memory<byte> memory = buffer.AsMemory(0, result.ReceivedBytes);
-
-
-                        if (memory.Length > startBytes.Length && memory.Span.Slice(0, startBytes.Length).SequenceEqual(startBytes))
-                        {
-                            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                                LoggerHelper.Instance.Debug($"{Name} recv from {result.RemoteEndPoint} <{memory.GetString()}>");
-
-                            if (connectionsDic.TryGetValue(remoteEP, out ConnectionCacheInfo cache))
-                            {
-                                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                                    LoggerHelper.Instance.Warning($"{Name} recv from {result.RemoteEndPoint} <{memory.GetString()}> connected");
-                            }
-                            else
-                            {
-                                string key = GetKey(memory);
-                                if (distDic.TryRemove(key, out TaskCompletionSource<State> tcs))
-                                {
-                                    connectionsDic.TryAdd(remoteEP, new ConnectionCacheInfo { });
-                                    await socket.SendToAsync(Encoding.UTF8.GetBytes(string.Format(endStr,key)), result.RemoteEndPoint).ConfigureAwait(false);
-                                    tcs.TrySetResult(new State { Socket = socket, RemoteEndPoint = remoteEP });
-                                }
-                            }
-                        }
-                        else if (connectionsDic.TryGetValue(remoteEP, out ConnectionCacheInfo cache))
-                        {
-                            bool success = await cache.Connection.ProcessWrite(buffer, 0, result.ReceivedBytes).ConfigureAwait(false);
-                            if (success == false)
-                            {
-                                connectionsDic.TryRemove(remoteEP, out _);
-                            }
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        socket.SafeClose();
-                        break;
-                    }
-                }
+                await ReceiveAsync(socket, buffer).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -158,6 +108,64 @@ namespace linker.tunnel.transport
             finally
             {
                 ArrayPool<byte>.Shared.Return(buffer);
+            }
+        }
+        private async Task ReceiveAsync(Socket socket, byte[] buffer)
+        {
+            IPEndPoint ep = new IPEndPoint(IPAddress.Any, 0);
+            Memory<byte> memory = buffer.AsMemory();
+            while (true)
+            {
+                try
+                {
+                    SocketReceiveFromResult result = await socket.ReceiveFromAsync(memory, ep).ConfigureAwait(false);
+                    if (result.ReceivedBytes == 0)
+                    {
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                            LoggerHelper.Instance.Debug($"{Name} recv from {result.RemoteEndPoint} <0>");
+                        await Task.Delay(1000);
+                        continue;
+                    }
+
+                    IPEndPoint remoteEP = result.RemoteEndPoint as IPEndPoint;
+                    Memory<byte> packet = memory.Slice(0, result.ReceivedBytes);
+
+
+                    if (packet.Length > startBytes.Length && packet.Span.Slice(0, startBytes.Length).SequenceEqual(startBytes))
+                    {
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                            LoggerHelper.Instance.Debug($"{Name} recv from {result.RemoteEndPoint} <{packet.GetString()}>");
+
+                        if (connectionsDic.TryGetValue(remoteEP, out ConnectionCacheInfo cache))
+                        {
+                            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                                LoggerHelper.Instance.Warning($"{Name} recv from {result.RemoteEndPoint} <{packet.GetString()}> connected");
+                        }
+                        else
+                        {
+                            string key = GetKey(packet);
+                            if (distDic.TryRemove(key, out TaskCompletionSource<State> tcs))
+                            {
+                                connectionsDic.TryAdd(remoteEP, new ConnectionCacheInfo { });
+                                await socket.SendToAsync(Encoding.UTF8.GetBytes(string.Format(endStr, key)), result.RemoteEndPoint).ConfigureAwait(false);
+                                tcs.TrySetResult(new State { Socket = socket, RemoteEndPoint = remoteEP });
+                            }
+                        }
+                    }
+                    else if (connectionsDic.TryGetValue(remoteEP, out ConnectionCacheInfo cache))
+                    {
+                        bool success = await cache.Connection.ProcessWrite(buffer, 0, result.ReceivedBytes).ConfigureAwait(false);
+                        if (success == false)
+                        {
+                            connectionsDic.TryRemove(remoteEP, out _);
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    socket.SafeClose();
+                    break;
+                }
             }
         }
 

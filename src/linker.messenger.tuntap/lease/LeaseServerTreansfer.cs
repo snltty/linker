@@ -243,17 +243,17 @@ namespace linker.messenger.tuntap.lease
         private uint DynamicIp(string userId, LeaseCacheInfo cache)
         {
             //第一个可用IP
-            uint firstIPValue = cache.Network;
+            uint firstIPValue = cache.Network + 2;
             //最后一个可用IP
-            uint lastIPValue = cache.Broadcast;
+            uint lastIPValue = cache.Broadcast - 1;
             //IP数
-            uint length = lastIPValue - cache.Network;
+            uint length = lastIPValue - firstIPValue + 1;
 
             //子网，排除子网
             IEnumerable<uint> subs = cache.CacheSubs.SelectMany(c => UIntRange(c.Network, c.Broadcast - c.Network + 1));
 
             //空闲的IP
-            IEnumerable<uint> idleIPs = UIntRange(firstIPValue, length + 1).Except(cache.Users.Select(c => c.IP)).Except(subs);
+            IEnumerable<uint> idleIPs = UIntRange(firstIPValue, length).Except(cache.Users.Select(c => c.IP)).Except(subs);
             //过期的IP
             IEnumerable<uint> expireIPs = cache.Users
                 .Where(c => (DateTime.Now - c.LastTime).TotalDays > leaseServerStore.Info.IPDays)
@@ -425,7 +425,7 @@ namespace linker.messenger.tuntap.lease
             uint _network = NetworkHelper.ToNetworkValue(_ip, _prefix);
             uint _broadcast = NetworkHelper.ToBroadcastValue(_ip, _prefix);
 
-            return Math.Max(_network, Network) <= Math.Min(_broadcast, Broadcast);
+            return Math.Max(_network, Network + 2) <= Math.Min(_broadcast, Broadcast - 1);
         }
         /// <summary>
         /// 在范围内
@@ -434,7 +434,7 @@ namespace linker.messenger.tuntap.lease
         /// <returns></returns>
         public bool InRange(uint ip)
         {
-            return ip >= Network && ip <= Broadcast;
+            return ip >= Network + 2 && ip <= Broadcast - 1;
         }
         /// <summary>
         /// 在子网
@@ -443,7 +443,7 @@ namespace linker.messenger.tuntap.lease
         /// <returns></returns>
         public bool InSub(uint ip)
         {
-            return CacheSubs.Any(c => ip >= c.Network && ip <= c.Broadcast);
+            return CacheSubs.Any(c => ip >= c.Network + 2 && ip <= c.Broadcast - 1);
         }
         /// <summary>
         /// 已分配
