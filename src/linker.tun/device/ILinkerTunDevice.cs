@@ -218,6 +218,8 @@ namespace linker.tun.device
             ReadOnlySpan<byte> span = ipPacket.Span;
 
             Version = (byte)(span[0] >> 4 & 0b1111);
+            ProtocolType = (ProtocolType)(span[9]);
+
             SrcIp = ipPacket.Slice(12, 4);
             DstIp = ipPacket.Slice(16, 4);
         }

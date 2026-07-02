@@ -39,7 +39,7 @@ namespace linker.tunnel
         /// 获取远端的外网信息，比如你是A，你要获取B的信息，可以在B调用  TunnelTransfer.GetWanPort() 发送回来
         /// </summary>
         public Task<TunnelTransportWanPortInfo> GetRemoteWanPort(TunnelWanPortProtocolInfo info);
-       
+
 
         /// <summary>
         /// 发送开始打洞
@@ -78,6 +78,9 @@ namespace linker.tunnel
         /// <param name="list"></param>
         /// <returns></returns>
         public Task<bool> SetTunnelTransports(string machineid, List<ITunnelTransport> list);
+
+        public Task<List<PublicEndpointSample>> LoadRadarSamples();
+        public Task<bool> SaveRadarSamples(List<PublicEndpointSample> samples);
     }
 
     public sealed class TunnelExclusionPolicyInfo

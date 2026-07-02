@@ -18,6 +18,7 @@ namespace linker.tunnel
         private readonly List<ITunnelTransport> transports;
         private readonly TunnelWanPortTransfer tunnelWanPortTransfer;
         private readonly TunnelUpnpTransfer tunnelUpnpTransfer;
+        private readonly RadarTransfer radarTransfer = new RadarTransfer();
 
         public VersionManager OperatingVersion => operating.DataVersion;
         public ConcurrentDictionary<string, bool> Operating => operating.StringKeyValue;
@@ -48,6 +49,15 @@ namespace linker.tunnel
             {
                 item.OnConnected = OnConnected;
             }
+
+            _ = RefreshRadar();
+        }
+        private async Task RefreshRadar()
+        {
+            var samples = await tunnelMessengerAdapter.LoadRadarSamples().ConfigureAwait(false);
+            radarTransfer.ImportSamples(samples);
+            radarTransfer.SamplesReceived += async (s, e) => { await tunnelMessengerAdapter.SaveRadarSamples(e.ToList()).ConfigureAwait(false); };
+            radarTransfer.StartProbe();
         }
 
         public void RebuildTransports()
@@ -346,6 +356,7 @@ namespace linker.tunnel
                 MachineId = tunnelMessengerAdapter.MachineId,
                 PortMapLan = portMapInfo.PrivatePort,
                 PortMapWan = portMapInfo.PublicPort,
+                PredictPorts = radarTransfer.Predict(ip.Remote.Port).ToArray()
             };
         }
 
@@ -400,16 +411,25 @@ namespace linker.tunnel
                 }));
             }
             //再尝试外网ip，UDP的话就多试几个端口
-            /*
             if (tunnelTransportInfo.TransportType == TunnelProtocolType.Udp)
             {
-                for (int i = tunnelTransportInfo.Remote.Remote.Port - 200; i < tunnelTransportInfo.Remote.Remote.Port + 200; i++)
+                if(tunnelTransportInfo.Remote.PredictPorts.Length > 0)
                 {
-                    eps.Add(new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address, i));
+                    eps.Add(new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address, tunnelTransportInfo.Remote.Remote.Port));
+                    foreach (var item in tunnelTransportInfo.Remote.PredictPorts)
+                    {
+                        eps.Add(new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address, item));
+                    }
+                }
+                else
+                {
+                    for (int i = tunnelTransportInfo.Remote.Remote.Port - 200; i < tunnelTransportInfo.Remote.Remote.Port + 200; i++)
+                    {
+                        eps.Add(new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address, i));
+                    }
                 }
             }
             else
-            */
             {
                 eps.AddRange(new List<IPEndPoint>{
                     new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address,tunnelTransportInfo.Remote.Remote.Port),
@@ -418,12 +438,11 @@ namespace linker.tunnel
                 });
             }
 
-
             //再尝试IPV6
             eps.AddRange(tunnelTransportInfo.Remote.LocalIps.Where(c => c.AddressFamily == AddressFamily.InterNetworkV6).SelectMany(c => new List<IPEndPoint>
             {
                 new IPEndPoint(c, tunnelTransportInfo.Remote.Local.Port),
-             }));
+            }));
             //本机有V6
             bool hasV6 = tunnelTransportInfo.Local.LocalIps.Any(c => c.AddressFamily == AddressFamily.InterNetworkV6);
             //本机的局域网ip和外网ip
@@ -496,7 +515,7 @@ namespace linker.tunnel
                         {
                             break;
                         }
-                        await Task.Delay(i * 3000).ConfigureAwait(false);
+                        await Task.Delay(3000).ConfigureAwait(false);
                     }
 
                     await resultCallback(connection).ConfigureAwait(false);

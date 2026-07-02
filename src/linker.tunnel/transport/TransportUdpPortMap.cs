@@ -3,7 +3,6 @@ using linker.libs.extends;
 using linker.libs.timer;
 using linker.tunnel.connection;
 using linker.tunnel.wanport;
-using System;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net;

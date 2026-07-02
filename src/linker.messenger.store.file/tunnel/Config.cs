@@ -1,4 +1,5 @@
 ﻿using linker.messenger.tunnel;
+using linker.tunnel;
 using linker.tunnel.transport;
 using System.Net;
 namespace linker.messenger.store.file
@@ -27,6 +28,8 @@ namespace linker.messenger.store.file
         public Dictionary<string, List<TunnelTransportItemInfo>> Transports { get; set; } = new Dictionary<string, List<TunnelTransportItemInfo>>();
 
         public TunnelMeshInfo Mesh { get; set; } = new TunnelMeshInfo();
+
+        public List<PublicEndpointSample> Samples { get; set; } = new List<PublicEndpointSample>();
     }
 
 }

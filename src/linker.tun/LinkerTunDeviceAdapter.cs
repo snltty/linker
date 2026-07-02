@@ -5,6 +5,7 @@ using linker.tun.device;
 using linker.tun.hook;
 using System.Buffers.Binary;
 using System.Net;
+using System.Net.Sockets;
 
 namespace linker.tun
 {
@@ -350,7 +351,11 @@ namespace linker.tun
                         if ((flags & LinkerTunPacketHookFlags.Send) == LinkerTunPacketHookFlags.Send)
                         {
                             StopWatchHelper.StartTimestamp(StopWatchHelper.StopWatchType.Tun_Read_Callback);
-                            await linkerTunDeviceCallback.Callback(packet).ConfigureAwait(false);
+                            bool result = await linkerTunDeviceCallback.Callback(packet).ConfigureAwait(false);
+                            if (result == false && packet.ProtocolType == ProtocolType.Icmp && ChecksumHelper.CreateIcmpHostUnreachablePacket(packet.RawPacket.Span))
+                            {
+                                linkerTunDevice.Write(packet.RawPacket);
+                            }
                             StopWatchHelper.EndTimestamp(StopWatchHelper.StopWatchType.Tun_Read_Callback);
                         }
                     }

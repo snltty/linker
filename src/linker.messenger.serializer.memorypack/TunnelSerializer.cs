@@ -90,8 +90,12 @@ namespace linker.messenger.serializer.memorypack
         [MemoryPackInclude]
         int PortMapLan => tunnelTransportWanPortInfo.PortMapLan;
 
+        [MemoryPackInclude]
+        int[] PredictPorts => tunnelTransportWanPortInfo.PredictPorts;
+
+
         [MemoryPackConstructor]
-        SerializableTunnelTransportWanPortInfo(IPEndPoint local, IPEndPoint remote, IPAddress[] localIps, int routeLevel, string machineId, string machineName, int portMapWan, int portMapLan)
+        SerializableTunnelTransportWanPortInfo(IPEndPoint local, IPEndPoint remote, IPAddress[] localIps, int routeLevel, string machineId, string machineName, int portMapWan, int portMapLan, int[] predictPorts)
         {
             var tunnelTransportWanPortInfo = new TunnelTransportWanPortInfo
             {
@@ -102,7 +106,8 @@ namespace linker.messenger.serializer.memorypack
                 MachineId = machineId,
                 MachineName = machineName,
                 PortMapWan = portMapWan,
-                PortMapLan = portMapLan
+                PortMapLan = portMapLan,
+                PredictPorts = predictPorts
             };
             this.tunnelTransportWanPortInfo = tunnelTransportWanPortInfo;
         }
@@ -134,8 +139,19 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableTunnelTransportWanPortInfo>();
-            value = wrapped.tunnelTransportWanPortInfo;
+            value = new TunnelTransportWanPortInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.Local = reader.ReadValue<IPEndPoint>();
+            value.Remote = reader.ReadValue<IPEndPoint>();
+            value.LocalIps = reader.ReadValue<IPAddress[]>();
+            value.RouteLevel = reader.ReadValue<int>();
+            value.MachineId = reader.ReadValue<string>();
+            value.MachineName = reader.ReadValue<string>();
+            value.PortMapWan = reader.ReadValue<int>();
+            value.PortMapLan = reader.ReadValue<int>();
+
+            if (count > 8)
+                value.PredictPorts = reader.ReadValue<int[]>();
         }
     }
 

@@ -1,6 +1,7 @@
 ﻿using linker.libs;
 using linker.messenger.tunnel;
 using linker.messenger.tunnel.client;
+using linker.tunnel;
 using linker.tunnel.transport;
 using System.Net;
 
@@ -190,6 +191,18 @@ namespace linker.messenger.store.file.tunnel
         public async Task<bool> SetMesh(TunnelMeshInfo mesh)
         {
             runningConfig.Data.Tunnel.Mesh = mesh;
+            runningConfig.Data.Update();
+            OnChanged();
+            return await Task.FromResult(true).ConfigureAwait(false);
+        }
+
+        public async Task<List<PublicEndpointSample>> LoadRadarSamples()
+        {
+            return await Task.FromResult(runningConfig.Data.Tunnel.Samples).ConfigureAwait(false);
+        }
+        public async Task<bool> SaveRadarSamples(List<PublicEndpointSample> samples)
+        {
+            runningConfig.Data.Tunnel.Samples = samples;
             runningConfig.Data.Update();
             OnChanged();
             return await Task.FromResult(true).ConfigureAwait(false);

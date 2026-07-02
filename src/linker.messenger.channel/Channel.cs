@@ -6,7 +6,6 @@ using linker.tunnel;
 using linker.tunnel.connection;
 using linker.tunnel.transport;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 
 namespace linker.messenger.channel
 {
@@ -146,7 +145,7 @@ namespace linker.messenger.channel
             {
                 return null;
             }
-           
+
             ITunnelConnection connection = await tunnelTransfer.ConnectAsync(machineId, TransactionId, configures).ConfigureAwait(false);
             if (connection != null && connection.Type != TunnelType.P2P)
             {
@@ -156,7 +155,7 @@ namespace linker.messenger.channel
                     && _connection.Connected
                     && _connection.Type == TunnelType.P2P;
 
-                }, (_connection) => Task.CompletedTask, 3, 10000);
+                }, (_connection) => Task.CompletedTask, 65535, 10000);
             }
 
             return connection;

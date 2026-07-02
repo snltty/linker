@@ -1,4 +1,5 @@
-﻿using linker.tunnel.transport;
+﻿using linker.tunnel;
+using linker.tunnel.transport;
 using System.Net;
 
 namespace linker.messenger.tunnel.client
@@ -76,5 +77,8 @@ namespace linker.messenger.tunnel.client
 
         public Task<bool> SetInIp(IPAddress ip);
         public Task<bool> SetMesh(TunnelMeshInfo mesh);
+
+        public Task<List<PublicEndpointSample>> LoadRadarSamples();
+        public Task<bool> SaveRadarSamples(List<PublicEndpointSample> samples);
     }
 }

@@ -124,6 +124,11 @@ namespace linker.tunnel.transport
         /// 固定端口，内网
         /// </summary>
         public int PortMapLan { get; set; }
+
+        /// <summary>
+        /// 预测的端口列表
+        /// </summary>
+        public int[] PredictPorts { get; set; } = [];
     }
 
     public sealed partial class TunnelTransportItemInfo

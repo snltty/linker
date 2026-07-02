@@ -257,6 +257,9 @@ namespace linker.libs
         }
 
 
+
+
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static unsafe void WriteTransportChecksum(byte* ptr, int length, int offset, ulong pseudoHeaderSum)
         {
@@ -283,6 +286,70 @@ namespace linker.libs
         private static void WriteRawWord(ref byte packetRef, int offset, ushort value) => Unsafe.WriteUnaligned(ref Unsafe.Add(ref packetRef, offset), value);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool IsZero(ref byte packetRef, int offset) => Unsafe.ReadUnaligned<ushort>(ref Unsafe.Add(ref packetRef, offset)) == 0;
+
+
+        public static unsafe bool CreateIcmpHostUnreachablePacket(Span<byte> packet)
+        {
+            if (packet.Length < 20)
+            {
+                return false;
+            }
+
+            int ipHeaderLength = (packet[0] & 0x0F) << 2;
+            if (ipHeaderLength < 20 || ipHeaderLength > packet.Length)
+            {
+                return false;
+            }
+
+            if (packet[9] != 1 || packet[ipHeaderLength] != 8)
+            {
+                return false;
+            }
+
+            int quotedLength = ipHeaderLength + 8;
+            int icmpOffset = 20;
+            int icmpLength = 8 + quotedLength;
+            int totalLength = icmpOffset + icmpLength;
+            if (totalLength > packet.Length)
+            {
+                return false;
+            }
+
+            byte tos = packet[1];
+            uint sourceAddress = BinaryPrimitives.ReadUInt32BigEndian(packet.Slice(12, 4));
+            uint destinationAddress = BinaryPrimitives.ReadUInt32BigEndian(packet.Slice(16, 4));
+
+            packet.Slice(0, quotedLength).CopyTo(packet.Slice(icmpOffset + 8, quotedLength));
+
+            packet[0] = 0x45;
+            packet[1] = tos;
+            BinaryPrimitives.WriteUInt16BigEndian(packet.Slice(2, 2), (ushort)totalLength);
+            BinaryPrimitives.WriteUInt16BigEndian(packet.Slice(4, 2), 0);
+            BinaryPrimitives.WriteUInt16BigEndian(packet.Slice(6, 2), 0);
+            packet[8] = 64;
+            packet[9] = 1;
+
+            BinaryPrimitives.WriteUInt32BigEndian(packet.Slice(12, 4), destinationAddress);
+            BinaryPrimitives.WriteUInt32BigEndian(packet.Slice(16, 4), sourceAddress);
+
+            packet[icmpOffset] = 3;
+            packet[icmpOffset + 1] = 1;
+            BinaryPrimitives.WriteUInt16BigEndian(packet.Slice(icmpOffset + 2, 2), 0);
+            packet[icmpOffset + 4] = 0;
+            packet[icmpOffset + 5] = 0;
+            packet[icmpOffset + 6] = 0;
+            packet[icmpOffset + 7] = 0;
+
+            BinaryPrimitives.WriteUInt16BigEndian(packet.Slice(10, 2), 0);
+
+            fixed (byte* ptr = packet)
+            {
+                WriteWord((ushort*)(ptr + 10), ComputeChecksum(ptr, 20));
+                WriteWord((ushort*)(ptr + icmpOffset + 2), ComputeChecksum(ptr + icmpOffset, (uint)icmpLength));
+            }
+
+            return true;
+        }
     }
 
 }

@@ -125,5 +125,14 @@ namespace linker.messenger.tunnel.client
             return true;
         }
 
+        public async Task<List<PublicEndpointSample>> LoadRadarSamples()
+        {
+            return await tunnelClientStore.LoadRadarSamples().ConfigureAwait(false);
+        }
+
+        public async Task<bool> SaveRadarSamples(List<PublicEndpointSample> samples)
+        {
+            return await tunnelClientStore.SaveRadarSamples(samples).ConfigureAwait(false);
+        }
     }
 }
