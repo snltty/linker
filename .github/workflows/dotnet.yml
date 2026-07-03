@@ -19,7 +19,7 @@ jobs:
           release_name: v2.0.15.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 请勿第一时间更新，建议延后2-3个小版本\r\n2. 隧道4字节长度头改为2长度+1消息类型(data/ping/pong/fin)+1保留\r\n3. UDP隧道支持策略冗余FEC和KCP\r\n4. 重写RFC5780NAT类型检测\r\n5. 端口转发和socks5底层逻辑合并\r\n6. 更多的Task向ValueTask优化\r\n7. 支持Mesh网络\r\n8. TCP/IP校验和全量扫描200ns改为增量更新10ns"
+          body: "1. 请勿第一时间更新，建议延后2-3个小版本\r\n2. 隧道4字节长度头改为2长度+1消息类型(data/ping/pong/fin)+1保留\r\n3. UDP隧道支持策略冗余FEC和KCP\r\n4. 重写RFC5780NAT类型检测\r\n5. 端口转发和socks5底层逻辑合并\r\n6. 更多的Task向ValueTask优化\r\n7. 支持Mesh网络\r\n8. TCP/IP校验和全量扫描200ns改为增量更新10ns\r\n9. 可能的STUN端口预测"
       - name: setup node.js
         uses: actions/setup-node@v4
         with:

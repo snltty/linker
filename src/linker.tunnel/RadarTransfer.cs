@@ -94,7 +94,7 @@ public sealed class RadarTransfer : IDisposable
         cancellation?.Dispose();
     }
 
-    public IReadOnlyList<int> Predict(int currentPublicPort, int maxCount = 512)
+    public IReadOnlyList<int> Predict(int currentPublicPort, int maxCount = 400)
     {
         ThrowIfDisposed();
         ValidatePort(currentPublicPort, nameof(currentPublicPort));

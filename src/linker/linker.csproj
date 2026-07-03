@@ -22,7 +22,8 @@
 5. 端口转发和socks5底层逻辑合并
 6. 更多的Task向ValueTask优化
 7. 支持Mesh网络
-8. TCP/IP校验和全量扫描200ns改为增量更新10ns</Description>
+8. TCP/IP校验和全量扫描200ns改为增量更新10ns
+9. 可能的STUN端口预测</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
