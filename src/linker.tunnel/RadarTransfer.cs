@@ -103,6 +103,7 @@ public sealed class RadarTransfer : IDisposable
         {
             return Array.Empty<int>();
         }
+        
 
         maxCount = Math.Min(maxCount, _options.MaxPredictionCount);
 

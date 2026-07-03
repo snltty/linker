@@ -1,50 +1,10 @@
-﻿using linker.messenger.tuntap;
+using linker.messenger.tuntap;
 using linker.messenger.tuntap.lease;
 using MemoryPack;
 using System.Net;
 
 namespace linker.messenger.serializer.memorypack
 {
-    [MemoryPackable]
-    public readonly partial struct SerializableTuntapVeaLanIPAddress
-    {
-        [MemoryPackIgnore]
-        public readonly TuntapVeaLanIPAddress info;
-
-        [MemoryPackInclude]
-        uint IPAddress => info.IPAddress;
-
-        [MemoryPackInclude]
-        byte PrefixLength => info.PrefixLength;
-
-        [MemoryPackInclude]
-        uint MaskValue => info.MaskValue;
-
-        [MemoryPackInclude]
-        uint NetWork => info.NetWork;
-
-        [MemoryPackInclude]
-        uint Broadcast => info.Broadcast;
-
-        [MemoryPackConstructor]
-        SerializableTuntapVeaLanIPAddress(uint ipAddress, byte prefixLength, uint maskValue, uint netWork, uint broadcast)
-        {
-            var info = new TuntapVeaLanIPAddress
-            {
-                Broadcast = broadcast,
-                IPAddress = ipAddress,
-                PrefixLength = prefixLength,
-                MaskValue = maskValue,
-                NetWork = netWork,
-            };
-            this.info = info;
-        }
-
-        public SerializableTuntapVeaLanIPAddress(TuntapVeaLanIPAddress info)
-        {
-            this.info = info;
-        }
-    }
     public class TuntapVeaLanIPAddressFormatter : MemoryPackFormatter<TuntapVeaLanIPAddress>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TuntapVeaLanIPAddress value)
@@ -55,7 +15,12 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableTuntapVeaLanIPAddress(value));
+            writer.WriteObjectHeader(5);
+            writer.WriteValue(value.IPAddress);
+            writer.WriteValue(value.PrefixLength);
+            writer.WriteValue(value.MaskValue);
+            writer.WriteValue(value.NetWork);
+            writer.WriteValue(value.Broadcast);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref TuntapVeaLanIPAddress value)
@@ -67,48 +32,16 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableTuntapVeaLanIPAddress>();
-            value = wrapped.info;
+            value = new TuntapVeaLanIPAddress();
+            reader.TryReadObjectHeader(out byte count);
+            value.IPAddress = reader.ReadValue<uint>();
+            value.PrefixLength = reader.ReadValue<byte>();
+            value.MaskValue = reader.ReadValue<uint>();
+            value.NetWork = reader.ReadValue<uint>();
+            value.Broadcast = reader.ReadValue<uint>();
         }
     }
 
-
-
-    [MemoryPackable]
-    public readonly partial struct SerializableTuntapVeaLanIPAddressList
-    {
-        [MemoryPackIgnore]
-        public readonly TuntapVeaLanIPAddressList info;
-
-        [MemoryPackInclude]
-        string MachineId => info.MachineId;
-
-        [MemoryPackInclude]
-        List<TuntapVeaLanIPAddress> IPS => info.IPS;
-
-        [MemoryPackInclude]
-        uint DstIp => info.DstIp;
-        [MemoryPackInclude]
-        uint DstPrefixValue => info.DstPrefixValue;
-
-        [MemoryPackConstructor]
-        SerializableTuntapVeaLanIPAddressList(string machineId, List<TuntapVeaLanIPAddress> ips, uint dstIp, uint dstPrefixValue)
-        {
-            var info = new TuntapVeaLanIPAddressList
-            {
-                IPS = ips,
-                MachineId = machineId,
-                DstIp = dstIp,
-                DstPrefixValue = dstPrefixValue
-            };
-            this.info = info;
-        }
-
-        public SerializableTuntapVeaLanIPAddressList(TuntapVeaLanIPAddressList info)
-        {
-            this.info = info;
-        }
-    }
     public class TuntapVeaLanIPAddressListFormatter : MemoryPackFormatter<TuntapVeaLanIPAddressList>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TuntapVeaLanIPAddressList value)
@@ -119,7 +52,11 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableTuntapVeaLanIPAddressList(value));
+            writer.WriteObjectHeader(4);
+            writer.WriteValue(value.MachineId);
+            writer.WriteValue(value.IPS);
+            writer.WriteValue(value.DstIp);
+            writer.WriteValue(value.DstPrefixValue);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref TuntapVeaLanIPAddressList value)
@@ -131,100 +68,15 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableTuntapVeaLanIPAddressList>();
-            value = wrapped.info;
+            value = new TuntapVeaLanIPAddressList();
+            reader.TryReadObjectHeader(out byte count);
+            value.MachineId = reader.ReadValue<string>();
+            value.IPS = reader.ReadValue<List<TuntapVeaLanIPAddress>>();
+            value.DstIp = reader.ReadValue<uint>();
+            value.DstPrefixValue = reader.ReadValue<uint>();
         }
     }
 
-
-
-    [MemoryPackable]
-    public readonly partial struct SerializableTuntapInfo
-    {
-        [MemoryPackIgnore]
-        public readonly TuntapInfo info;
-
-        [MemoryPackInclude]
-        string MachineId => info.MachineId;
-
-        [MemoryPackInclude]
-        TuntapStatus Status => info.Status;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        IPAddress IP => info.IP;
-
-        [MemoryPackInclude]
-        byte PrefixLength => info.PrefixLength;
-        [MemoryPackInclude]
-        string Name => info.Name;
-
-        [MemoryPackInclude]
-        List<TuntapLanInfo> Lans => info.Lans;
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        IPAddress Wan => info.Wan;
-
-        [MemoryPackInclude]
-        string SetupError => info.SetupError;
-
-        [MemoryPackInclude]
-        string NatError => info.NatError;
-
-        [MemoryPackInclude]
-        string SystemInfo => info.SystemInfo;
-
-        [MemoryPackInclude]
-        List<TuntapForwardInfo> Forwards => info.Forwards;
-
-        [MemoryPackInclude]
-        TuntapSwitch Switch => info.Switch;
-
-        [MemoryPackInclude]
-        string NetworkName => info.NetworkName;
-
-        [MemoryPackInclude]
-        int Mtu => info.Mtu;
-        [MemoryPackInclude]
-        int MssFix => info.MssFix;
-
-        [MemoryPackInclude]
-        TuntapVlsmStatus VlsmStatus => info.VlsmStatus;
-
-        [MemoryPackInclude]
-        List<TuntapFecProfileInfo> FecProfile => info.FecProfile;
-
-        [MemoryPackConstructor]
-        SerializableTuntapInfo(string machineId, TuntapStatus status, IPAddress ip, byte prefixLength, string name,
-            List<TuntapLanInfo> lans, IPAddress wan, string setupError, string natError, string systemInfo, List<TuntapForwardInfo> forwards,
-            TuntapSwitch Switch, string networkName, int mtu, int mssfix, TuntapVlsmStatus vlsmStatus, List<TuntapFecProfileInfo> fecProfile)
-        {
-            var info = new TuntapInfo
-            {
-                MachineId = machineId,
-                Lans = lans,
-                Wan = wan,
-                Forwards = forwards,
-                IP = ip,
-                NatError = natError,
-                SystemInfo = systemInfo,
-                SetupError = setupError,
-                PrefixLength = prefixLength,
-                Name = name,
-                Status = status,
-                Switch = Switch,
-                NetworkName = networkName,
-                Mtu = mtu,
-                MssFix = mssfix,
-                VlsmStatus = vlsmStatus,
-                FecProfile = fecProfile
-            };
-            this.info = info;
-        }
-
-        public SerializableTuntapInfo(TuntapInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class TuntapInfoFormatter : MemoryPackFormatter<TuntapInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TuntapInfo value)
@@ -235,7 +87,24 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableTuntapInfo(value));
+            writer.WriteObjectHeader(17);
+            writer.WriteValue(value.MachineId);
+            writer.WriteValue(value.Status);
+            writer.WriteValue(value.IP);
+            writer.WriteValue(value.PrefixLength);
+            writer.WriteValue(value.Name);
+            writer.WriteValue(value.Lans);
+            writer.WriteValue(value.Wan);
+            writer.WriteValue(value.SetupError);
+            writer.WriteValue(value.NatError);
+            writer.WriteValue(value.SystemInfo);
+            writer.WriteValue(value.Forwards);
+            writer.WriteValue(value.Switch);
+            writer.WriteValue(value.NetworkName);
+            writer.WriteValue(value.Mtu);
+            writer.WriteValue(value.MssFix);
+            writer.WriteValue(value.VlsmStatus);
+            writer.WriteValue(value.FecProfile);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref TuntapInfo value)
@@ -279,51 +148,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-    [MemoryPackable]
-    public readonly partial struct SerializableTuntapForwardInfo
-    {
-        [MemoryPackIgnore]
-        public readonly TuntapForwardInfo info;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        IPAddress ListenAddr => info.ListenAddr;
-
-        [MemoryPackInclude]
-        int ListenPort => info.ListenPort;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        IPAddress ConnectAddr => info.ConnectAddr;
-
-        [MemoryPackInclude]
-        int ConnectPort => info.ConnectPort;
-
-        [MemoryPackInclude]
-        string Remark => info.Remark;
-
-        [MemoryPackInclude]
-        bool Disabled => info.Disabled;
-
-        [MemoryPackConstructor]
-        SerializableTuntapForwardInfo(IPAddress listenAddr, int listenPort, IPAddress connectAddr, int connectPort, string remark, bool disabled)
-        {
-            var info = new TuntapForwardInfo
-            {
-                ConnectAddr = connectAddr,
-                ConnectPort = connectPort,
-                ListenAddr = listenAddr,
-                ListenPort = listenPort,
-                Remark = remark,
-                Disabled = disabled
-            };
-            this.info = info;
-        }
-
-        public SerializableTuntapForwardInfo(TuntapForwardInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class TuntapForwardInfoFormatter : MemoryPackFormatter<TuntapForwardInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TuntapForwardInfo value)
@@ -334,7 +158,13 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableTuntapForwardInfo(value));
+            writer.WriteObjectHeader(6);
+            writer.WriteValue(value.ListenAddr);
+            writer.WriteValue(value.ListenPort);
+            writer.WriteValue(value.ConnectAddr);
+            writer.WriteValue(value.ConnectPort);
+            writer.WriteValue(value.Remark);
+            writer.WriteValue(value.Disabled);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref TuntapForwardInfo value)
@@ -357,35 +187,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-    [MemoryPackable]
-    public readonly partial struct SerializableTuntapForwardTestWrapInfo
-    {
-        [MemoryPackIgnore]
-        public readonly TuntapForwardTestWrapInfo info;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        string MachineId => info.MachineId;
-
-        [MemoryPackInclude]
-        List<TuntapForwardTestInfo> List => info.List;
-
-        [MemoryPackConstructor]
-        SerializableTuntapForwardTestWrapInfo(string machineId, List<TuntapForwardTestInfo> list)
-        {
-            var info = new TuntapForwardTestWrapInfo
-            {
-                MachineId = machineId,
-                List = list
-            };
-            this.info = info;
-        }
-
-        public SerializableTuntapForwardTestWrapInfo(TuntapForwardTestWrapInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class TuntapForwardTestWrapInfoFormatter : MemoryPackFormatter<TuntapForwardTestWrapInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TuntapForwardTestWrapInfo value)
@@ -396,7 +197,9 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableTuntapForwardTestWrapInfo(value));
+            writer.WriteObjectHeader(2);
+            writer.WriteValue(value.MachineId);
+            writer.WriteValue(value.List);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref TuntapForwardTestWrapInfo value)
@@ -408,49 +211,13 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableTuntapForwardTestWrapInfo>();
-            value = wrapped.info;
+            value = new TuntapForwardTestWrapInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.MachineId = reader.ReadValue<string>();
+            value.List = reader.ReadValue<List<TuntapForwardTestInfo>>();
         }
     }
 
-
-
-    [MemoryPackable]
-    public readonly partial struct SerializableTuntapForwardTestInfo
-    {
-        [MemoryPackIgnore]
-        public readonly TuntapForwardTestInfo info;
-
-        [MemoryPackInclude]
-        int ListenPort => info.ListenPort;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        IPAddress ConnectAddr => info.ConnectAddr;
-
-        [MemoryPackInclude]
-        int ConnectPort => info.ConnectPort;
-
-        [MemoryPackInclude]
-        string Error => info.Error;
-
-        [MemoryPackConstructor]
-        SerializableTuntapForwardTestInfo(int listenPort, IPAddress connectAddr, int connectPort, string error)
-        {
-            var info = new TuntapForwardTestInfo
-            {
-                ConnectAddr = connectAddr,
-                ConnectPort = connectPort,
-                ListenPort = listenPort,
-                Error = error
-            };
-            this.info = info;
-        }
-
-        public SerializableTuntapForwardTestInfo(TuntapForwardTestInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class TuntapForwardTestInfoFormatter : MemoryPackFormatter<TuntapForwardTestInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TuntapForwardTestInfo value)
@@ -461,7 +228,11 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableTuntapForwardTestInfo(value));
+            writer.WriteObjectHeader(4);
+            writer.WriteValue(value.ListenPort);
+            writer.WriteValue(value.ConnectAddr);
+            writer.WriteValue(value.ConnectPort);
+            writer.WriteValue(value.Error);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref TuntapForwardTestInfo value)
@@ -473,64 +244,15 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableTuntapForwardTestInfo>();
-            value = wrapped.info;
+            value = new TuntapForwardTestInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.ListenPort = reader.ReadValue<int>();
+            value.ConnectAddr = reader.ReadValue<IPAddress>();
+            value.ConnectPort = reader.ReadValue<int>();
+            value.Error = reader.ReadValue<string>();
         }
     }
 
-
-    [MemoryPackable]
-    public readonly partial struct SerializableTuntapLanInfo
-    {
-        [MemoryPackIgnore]
-        public readonly TuntapLanInfo info;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        IPAddress IP => info.IP;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        byte PrefixLength => info.PrefixLength;
-
-        [MemoryPackInclude]
-        bool Disabled => info.Disabled;
-
-        [MemoryPackInclude]
-        bool Exists => info.Exists;
-
-        [MemoryPackInclude]
-        string Error => info.Error;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        IPAddress MapIP => info.MapIP;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        byte MapPrefixLength => info.MapPrefixLength;
-
-        [MemoryPackInclude]
-        string Remark => info.Remark;
-
-        [MemoryPackConstructor]
-        SerializableTuntapLanInfo(IPAddress ip, byte prefixLength, bool disabled, bool exists, string error, IPAddress mapip, byte mapprefixLength, string remark)
-        {
-            var info = new TuntapLanInfo
-            {
-                Disabled = disabled,
-                Exists = exists,
-                IP = ip,
-                PrefixLength = prefixLength,
-                Error = error,
-                MapIP = mapip,
-                MapPrefixLength = mapprefixLength,
-                Remark = remark
-            };
-            this.info = info;
-        }
-
-        public SerializableTuntapLanInfo(TuntapLanInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class TuntapLanInfoFormatter : MemoryPackFormatter<TuntapLanInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TuntapLanInfo value)
@@ -541,7 +263,15 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableTuntapLanInfo(value));
+            writer.WriteObjectHeader(8);
+            writer.WriteValue(value.IP);
+            writer.WriteValue(value.PrefixLength);
+            writer.WriteValue(value.Disabled);
+            writer.WriteValue(value.Exists);
+            writer.WriteValue(value.Error);
+            writer.WriteValue(value.MapIP);
+            writer.WriteValue(value.MapPrefixLength);
+            writer.WriteValue(value.Remark);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref TuntapLanInfo value)
@@ -569,58 +299,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-    [MemoryPackable]
-    public readonly partial struct SerializableLeaseInfo
-    {
-        [MemoryPackIgnore]
-        public readonly LeaseInfo info;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        IPAddress IP => info.IP;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        byte PrefixLength => info.PrefixLength;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        string Name => info.Name;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        string SubName => info.SubName;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        List<LeaseSubInfo> Subs => info.Subs;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        int Mtu => info.Mtu;
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        int MssFix => info.MssFix;
-
-        [MemoryPackInclude]
-        TuntapVlsmStatus VlsmStatus => info.VlsmStatus;
-
-        [MemoryPackConstructor]
-        SerializableLeaseInfo(IPAddress ip, byte prefixLength, string name, string subname, List<LeaseSubInfo> subs, int mtu, int mssfix, TuntapVlsmStatus vlsmStatus)
-        {
-            var info = new LeaseInfo
-            {
-                IP = ip,
-                PrefixLength = prefixLength,
-                Name = name,
-                SubName = subname,
-                Subs = subs,
-                Mtu = mtu,
-                MssFix = mssfix,
-                VlsmStatus = vlsmStatus
-            };
-            this.info = info;
-        }
-
-        public SerializableLeaseInfo(LeaseInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class LeaseInfoFormatter : MemoryPackFormatter<LeaseInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref LeaseInfo value)
@@ -631,7 +309,15 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableLeaseInfo(value));
+            writer.WriteObjectHeader(8);
+            writer.WriteValue(value.IP);
+            writer.WriteValue(value.PrefixLength);
+            writer.WriteValue(value.Name);
+            writer.WriteValue(value.SubName);
+            writer.WriteValue(value.Subs);
+            writer.WriteValue(value.Mtu);
+            writer.WriteValue(value.MssFix);
+            writer.WriteValue(value.VlsmStatus);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref LeaseInfo value)
@@ -666,40 +352,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-    [MemoryPackable]
-    public readonly partial struct SerializableLeaseSubInfo
-    {
-        [MemoryPackIgnore]
-        public readonly LeaseSubInfo info;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        IPAddress IP => info.IP;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        byte PrefixLength => info.PrefixLength;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        string Name => info.Name;
-
-
-        [MemoryPackConstructor]
-        SerializableLeaseSubInfo(IPAddress ip, byte prefixLength, string name)
-        {
-            var info = new LeaseSubInfo
-            {
-                IP = ip,
-                PrefixLength = prefixLength,
-                Name = name
-            };
-            this.info = info;
-        }
-
-        public SerializableLeaseSubInfo(LeaseSubInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class LeaseSubInfoFormatter : MemoryPackFormatter<LeaseSubInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref LeaseSubInfo value)
@@ -710,7 +362,10 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableLeaseSubInfo(value));
+            writer.WriteObjectHeader(3);
+            writer.WriteValue(value.IP);
+            writer.WriteValue(value.PrefixLength);
+            writer.WriteValue(value.Name);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref LeaseSubInfo value)
@@ -731,35 +386,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-    [MemoryPackable]
-    public readonly partial struct SerializableTuntapFecProfileInfo
-    {
-        [MemoryPackIgnore]
-        public readonly TuntapFecProfileInfo info;
-
-        [MemoryPackInclude]
-        int SourceSymbols => info.SourceSymbols;
-        [MemoryPackInclude]
-        int RepairSymbols => info.RepairSymbols;
-
-
-        [MemoryPackConstructor]
-        SerializableTuntapFecProfileInfo(int sourceSymbols, int repairSymbols)
-        {
-            var info = new TuntapFecProfileInfo
-            {
-                SourceSymbols = sourceSymbols,
-                RepairSymbols = repairSymbols
-            };
-            this.info = info;
-        }
-
-        public SerializableTuntapFecProfileInfo(TuntapFecProfileInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class TuntapFecProfileInfoFormatter : MemoryPackFormatter<TuntapFecProfileInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TuntapFecProfileInfo value)
@@ -770,7 +396,9 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableTuntapFecProfileInfo(value));
+            writer.WriteObjectHeader(2);
+            writer.WriteValue(value.SourceSymbols);
+            writer.WriteValue(value.RepairSymbols);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref TuntapFecProfileInfo value)

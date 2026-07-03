@@ -1,5 +1,6 @@
 ﻿using linker.tunnel.transport;
 using linker.upnp;
+using System.Net;
 using System.Net.Sockets;
 
 namespace linker.tunnel
@@ -13,6 +14,8 @@ namespace linker.tunnel
         public MapInfo MapInfo1 { get; private set; }
 
         public MapInfo PortMap => MapInfo1 ?? MapInfo;
+
+        public IPAddress WanIp => PortMappingUtility.GetDevices().FirstOrDefault(c => c.Type == DeviceType.Pmp)?.WanIp ?? IPAddress.Any;
 
         private readonly TransportUdpPortMap transportUdpPortMap;
         private readonly TransportTcpPortMap transportTcpPortMap;

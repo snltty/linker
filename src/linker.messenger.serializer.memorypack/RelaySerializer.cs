@@ -1,4 +1,4 @@
-﻿using linker.messenger.relay.server;
+using linker.messenger.relay.server;
 using linker.tunnel.connection;
 using linker.tunnel.transport;
 using MemoryPack;
@@ -6,30 +6,6 @@ using System.Net;
 
 namespace linker.messenger.serializer.memorypack
 {
-
-    [MemoryPackable]
-    public readonly partial struct SerializableRelayAskResultInfo
-    {
-        [MemoryPackIgnore]
-        public readonly RelayAskResultInfo info;
-
-        [MemoryPackInclude]
-        string MasterId => info.MasterId;
-        [MemoryPackInclude]
-        List<RelayServerNodeStoreInfo> Nodes => info.Nodes;
-
-        [MemoryPackConstructor]
-        SerializableRelayAskResultInfo(string masterId, List<RelayServerNodeStoreInfo> nodes)
-        {
-            var info = new RelayAskResultInfo { MasterId = masterId, Nodes = nodes };
-            this.info = info;
-        }
-
-        public SerializableRelayAskResultInfo(RelayAskResultInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class RelayAskResultInfoFormatter : MemoryPackFormatter<RelayAskResultInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref RelayAskResultInfo value)
@@ -40,7 +16,9 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableRelayAskResultInfo(value));
+            writer.WriteObjectHeader(2);
+            writer.WriteValue(value.MasterId);
+            writer.WriteValue(value.Nodes);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref RelayAskResultInfo value)
@@ -59,57 +37,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-    [MemoryPackable]
-    public readonly partial struct SerializableRelayCacheInfo
-    {
-        [MemoryPackIgnore]
-        public readonly RelayCacheInfo info;
-
-        [MemoryPackInclude]
-        ulong FlowId => info.FlowId;
-        [MemoryPackInclude]
-        string FromId => info.FromId;
-        [MemoryPackInclude]
-        string FromName => info.FromName;
-        [MemoryPackInclude]
-        string ToId => info.ToId;
-        [MemoryPackInclude]
-        string ToName => info.ToName;
-        [MemoryPackInclude]
-        string GroupId => info.GroupId;
-
-        [MemoryPackInclude]
-        bool Super => info.Super;
-
-        [MemoryPackInclude]
-        double Bandwidth => info.Bandwidth;
-
-        [MemoryPackInclude]
-        string UserId => info.UserId;
-
-        [MemoryPackConstructor]
-        SerializableRelayCacheInfo(ulong flowId, string fromId, string fromName, string toId, string toName, string groupId, bool super, double bandwidth, string userid)
-        {
-            var info = new RelayCacheInfo
-            {
-                FlowId = flowId,
-                FromId = fromId,
-                FromName = fromName,
-                GroupId = groupId,
-                ToId = toId,
-                ToName = toName,
-                Super = super,
-                Bandwidth = bandwidth,
-                UserId = userid
-            };
-            this.info = info;
-        }
-
-        public SerializableRelayCacheInfo(RelayCacheInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class RelayCacheInfoFormatter : MemoryPackFormatter<RelayCacheInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref RelayCacheInfo value)
@@ -120,7 +47,16 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableRelayCacheInfo(value));
+            writer.WriteObjectHeader(9);
+            writer.WriteValue(value.FlowId);
+            writer.WriteValue(value.FromId);
+            writer.WriteValue(value.FromName);
+            writer.WriteValue(value.ToId);
+            writer.WriteValue(value.ToName);
+            writer.WriteValue(value.GroupId);
+            writer.WriteValue(value.Super);
+            writer.WriteValue(value.Bandwidth);
+            writer.WriteValue(value.UserId);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref RelayCacheInfo value)
@@ -147,42 +83,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-    [MemoryPackable]
-    public readonly partial struct SerializableRelayMessageInfo
-    {
-        [MemoryPackIgnore]
-        public readonly RelayMessageInfo info;
-
-        [MemoryPackInclude]
-        RelayMessengerType Type => info.Type;
-        [MemoryPackInclude]
-        ulong FlowId => info.FlowId;
-        [MemoryPackInclude]
-        string FromId => info.FromId;
-        [MemoryPackInclude]
-        string ToId => info.ToId;
-        [MemoryPackInclude]
-        string MasterId => info.MasterId;
-
-        [MemoryPackConstructor]
-        SerializableRelayMessageInfo(RelayMessengerType type, ulong flowId, string fromId, string toId, string masterid)
-        {
-            var info = new RelayMessageInfo
-            {
-                Type = type,
-                FlowId = flowId,
-                FromId = fromId,
-                ToId = toId,
-                MasterId = masterid
-            };
-            this.info = info;
-        }
-
-        public SerializableRelayMessageInfo(RelayMessageInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class RelayMessageInfoFormatter : MemoryPackFormatter<RelayMessageInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref RelayMessageInfo value)
@@ -193,7 +93,12 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableRelayMessageInfo(value));
+            writer.WriteObjectHeader(5);
+            writer.WriteValue(value.Type);
+            writer.WriteValue(value.FlowId);
+            writer.WriteValue(value.FromId);
+            writer.WriteValue(value.ToId);
+            writer.WriteValue(value.MasterId);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref RelayMessageInfo value)
@@ -216,75 +121,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-    [MemoryPackable]
-    public readonly partial struct SerializableRelayServerNodeReportInfo
-    {
-        [MemoryPackIgnore]
-        public readonly RelayServerNodeReportInfo info;
-
-        [MemoryPackInclude]
-        string NodeId => info.NodeId;
-        [MemoryPackInclude]
-        string Name => info.Name;
-        [MemoryPackInclude]
-        string Host => info.Host;
-        [MemoryPackInclude]
-        TunnelProtocolType Protocol => info.Protocol;
-        [MemoryPackInclude]
-        int Connections => info.Connections;
-        [MemoryPackInclude]
-        int Bandwidth => info.Bandwidth;
-        [MemoryPackInclude]
-        int DataEachMonth => info.DataEachMonth;
-        [MemoryPackInclude]
-        long DataRemain => info.DataRemain;
-        [MemoryPackInclude]
-        string Url => info.Url;
-        [MemoryPackInclude]
-        string Logo => info.Logo;
-        [MemoryPackInclude]
-        string MasterKey => info.MasterKey;
-        [MemoryPackInclude]
-        string Version => info.Version;
-        [MemoryPackInclude]
-        int ConnectionsRatio => info.ConnectionsRatio;
-        [MemoryPackInclude]
-        double BandwidthRatio => info.BandwidthRatio;
-        [MemoryPackInclude]
-        int MasterCount => info.MasterCount;
-
-
-        [MemoryPackConstructor]
-        SerializableRelayServerNodeReportInfo(string nodeId, string name, string host, TunnelProtocolType protocol, int connections, int bandwidth, int dataEachMonth,
-            long dataRemain, string url, string logo, string masterKey, string version, int connectionsRatio, double bandwidthRatio, int masterCount)
-        {
-            var info = new RelayServerNodeReportInfo
-            {
-                NodeId = nodeId,
-                Name = name,
-                Protocol = protocol,
-                Connections = connections,
-                Bandwidth = bandwidth,
-                DataEachMonth = dataEachMonth,
-                DataRemain = dataRemain,
-                Url = url,
-                Logo = logo,
-                MasterKey = masterKey,
-                Version = version,
-                ConnectionsRatio = connectionsRatio,
-                BandwidthRatio = bandwidthRatio,
-                MasterCount = masterCount,
-                Host = host
-            };
-            this.info = info;
-        }
-
-        public SerializableRelayServerNodeReportInfo(RelayServerNodeReportInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class RelayServerNodeReportInfoFormatter : MemoryPackFormatter<RelayServerNodeReportInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref RelayServerNodeReportInfo value)
@@ -295,7 +131,22 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableRelayServerNodeReportInfo(value));
+            writer.WriteObjectHeader(15);
+            writer.WriteValue(value.NodeId);
+            writer.WriteValue(value.Name);
+            writer.WriteValue(value.Host);
+            writer.WriteValue(value.Protocol);
+            writer.WriteValue(value.Connections);
+            writer.WriteValue(value.Bandwidth);
+            writer.WriteValue(value.DataEachMonth);
+            writer.WriteValue(value.DataRemain);
+            writer.WriteValue(value.Url);
+            writer.WriteValue(value.Logo);
+            writer.WriteValue(value.MasterKey);
+            writer.WriteValue(value.Version);
+            writer.WriteValue(value.ConnectionsRatio);
+            writer.WriteValue(value.BandwidthRatio);
+            writer.WriteValue(value.MasterCount);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref RelayServerNodeReportInfo value)
@@ -328,94 +179,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-    [MemoryPackable]
-    public readonly partial struct SerializableRelayServerNodeStoreInfo
-    {
-        [MemoryPackIgnore]
-        public readonly RelayServerNodeStoreInfo info;
-
-        [MemoryPackInclude]
-        string NodeId => info.NodeId;
-        [MemoryPackInclude]
-        string Name => info.Name;
-        [MemoryPackInclude]
-        string Host => info.Host;
-        [MemoryPackInclude]
-        TunnelProtocolType Protocol => info.Protocol;
-        [MemoryPackInclude]
-        int Connections => info.Connections;
-        [MemoryPackInclude]
-        int Bandwidth => info.Bandwidth;
-        [MemoryPackInclude]
-        int DataEachMonth => info.DataEachMonth;
-        [MemoryPackInclude]
-        long DataRemain => info.DataRemain;
-        [MemoryPackInclude]
-        string Url => info.Url;
-        [MemoryPackInclude]
-        string Logo => info.Logo;
-        [MemoryPackInclude]
-        string MasterKey => info.MasterKey;
-        [MemoryPackInclude]
-        string Version => info.Version;
-
-        [MemoryPackInclude]
-        int ConnectionsRatio => info.ConnectionsRatio;
-        [MemoryPackInclude]
-        double BandwidthRatio => info.BandwidthRatio;
-        [MemoryPackInclude]
-        int MasterCount => info.MasterCount;
-
-
-        [MemoryPackInclude]
-        int Id => info.Id;
-        [MemoryPackInclude]
-        int BandwidthEachConnection => info.BandwidthEach;
-        [MemoryPackInclude]
-        bool Public => info.Public;
-        [MemoryPackInclude]
-        long LastTicks => info.LastTicks;
-
-        [MemoryPackInclude]
-        bool Manageable => info.Manageable;
-
-        [MemoryPackConstructor]
-        SerializableRelayServerNodeStoreInfo(string nodeId, string name, string host, TunnelProtocolType protocol, int connections, int bandwidth, int dataEachMonth,
-            long dataRemain, string url, string logo, string masterKey, string version, int connectionsRatio, double bandwidthRatio, int masterCount,
-           int id, int bandwidthEachConnection, bool Public, long lastTicks, bool manageable)
-        {
-            var info = new RelayServerNodeStoreInfo
-            {
-                NodeId = nodeId,
-                Name = name,
-                Protocol = protocol,
-                Connections = connections,
-                Bandwidth = bandwidth,
-                DataEachMonth = dataEachMonth,
-                DataRemain = dataRemain,
-                Url = url,
-                Logo = logo,
-                MasterKey = masterKey,
-                Version = version,
-                ConnectionsRatio = connectionsRatio,
-                BandwidthRatio = bandwidthRatio,
-                MasterCount = masterCount,
-                Id = id,
-                Host = host,
-                BandwidthEach = bandwidthEachConnection,
-                Public = Public,
-                LastTicks = lastTicks,
-                Manageable = manageable
-            };
-            this.info = info;
-        }
-
-        public SerializableRelayServerNodeStoreInfo(RelayServerNodeStoreInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class RelayServerNodeStoreInfoFormatter : MemoryPackFormatter<RelayServerNodeStoreInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref RelayServerNodeStoreInfo value)
@@ -426,7 +189,27 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableRelayServerNodeStoreInfo(value));
+            writer.WriteObjectHeader(20);
+            writer.WriteValue(value.NodeId);
+            writer.WriteValue(value.Name);
+            writer.WriteValue(value.Host);
+            writer.WriteValue(value.Protocol);
+            writer.WriteValue(value.Connections);
+            writer.WriteValue(value.Bandwidth);
+            writer.WriteValue(value.DataEachMonth);
+            writer.WriteValue(value.DataRemain);
+            writer.WriteValue(value.Url);
+            writer.WriteValue(value.Logo);
+            writer.WriteValue(value.MasterKey);
+            writer.WriteValue(value.Version);
+            writer.WriteValue(value.ConnectionsRatio);
+            writer.WriteValue(value.BandwidthRatio);
+            writer.WriteValue(value.MasterCount);
+            writer.WriteValue(value.Id);
+            writer.WriteValue(value.BandwidthEach);
+            writer.WriteValue(value.Public);
+            writer.WriteValue(value.LastTicks);
+            writer.WriteValue(value.Manageable);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref RelayServerNodeStoreInfo value)
@@ -464,88 +247,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-    [MemoryPackable]
-    public readonly partial struct SerializableRelayServerNodeReportInfoOld
-    {
-        [MemoryPackIgnore]
-        public readonly RelayServerNodeReportInfoOld info;
-
-        [MemoryPackInclude]
-        string Id => info.Id;
-        [MemoryPackInclude]
-        string Name => info.Name;
-        [MemoryPackInclude]
-        int MaxConnection => info.MaxConnection;
-        [MemoryPackInclude]
-        double MaxBandwidth => info.MaxBandwidth;
-        [MemoryPackInclude]
-        double MaxBandwidthTotal => info.MaxBandwidthTotal;
-        [MemoryPackInclude]
-        double MaxGbTotal => info.MaxGbTotal;
-        [MemoryPackInclude]
-        long MaxGbTotalLastBytes => info.MaxGbTotalLastBytes;
-        [MemoryPackInclude]
-        double ConnectionRatio => info.ConnectionRatio;
-        [MemoryPackInclude]
-        double BandwidthRatio => info.BandwidthRatio;
-        [MemoryPackInclude]
-        bool Public => info.Public;
-        [MemoryPackInclude]
-        int Delay => info.Delay;
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        IPEndPoint EndPoint => info.EndPoint;
-        [MemoryPackInclude]
-        long LastTicks => info.LastTicks;
-        [MemoryPackInclude]
-        string Url => info.Url;
-
-        [MemoryPackInclude]
-        TunnelProtocolType AllowProtocol => info.AllowProtocol;
-
-        [MemoryPackInclude]
-        bool Sync2Server => info.Sync2Server;
-        [MemoryPackInclude]
-        string Version => info.Version;
-
-
-        [MemoryPackConstructor]
-        SerializableRelayServerNodeReportInfoOld(
-            string id, string name,
-            int maxConnection, double maxBandwidth, double maxBandwidthTotal,
-            double maxGbTotal, long maxGbTotalLastBytes,
-            double connectionRatio, double bandwidthRatio,
-            bool Public, int delay,
-            IPEndPoint endPoint, long lastTicks, string url, TunnelProtocolType allowProtocol, bool sync2Server, string version)
-        {
-            var info = new RelayServerNodeReportInfoOld
-            {
-                BandwidthRatio = bandwidthRatio,
-                ConnectionRatio = connectionRatio,
-                Delay = delay,
-                EndPoint = endPoint,
-                Id = id,
-                LastTicks = lastTicks,
-                MaxBandwidth = maxBandwidth,
-                MaxBandwidthTotal = maxBandwidthTotal,
-                MaxConnection = maxConnection,
-                MaxGbTotal = maxGbTotal,
-                MaxGbTotalLastBytes = maxGbTotalLastBytes,
-                Name = name,
-                Public = Public,
-                Url = url,
-                AllowProtocol = allowProtocol,
-                Sync2Server = sync2Server,
-                Version = version
-            };
-            this.info = info;
-        }
-
-        public SerializableRelayServerNodeReportInfoOld(RelayServerNodeReportInfoOld info)
-        {
-            this.info = info;
-        }
-    }
     public class RelayServerNodeReportInfoFormatterOld : MemoryPackFormatter<RelayServerNodeReportInfoOld>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref RelayServerNodeReportInfoOld value)
@@ -556,7 +257,24 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableRelayServerNodeReportInfoOld(value));
+            writer.WriteObjectHeader(17);
+            writer.WriteValue(value.Id);
+            writer.WriteValue(value.Name);
+            writer.WriteValue(value.MaxConnection);
+            writer.WriteValue(value.MaxBandwidth);
+            writer.WriteValue(value.MaxBandwidthTotal);
+            writer.WriteValue(value.MaxGbTotal);
+            writer.WriteValue(value.MaxGbTotalLastBytes);
+            writer.WriteValue(value.ConnectionRatio);
+            writer.WriteValue(value.BandwidthRatio);
+            writer.WriteValue(value.Public);
+            writer.WriteValue(value.Delay);
+            writer.WriteValue(value.EndPoint);
+            writer.WriteValue(value.LastTicks);
+            writer.WriteValue(value.Url);
+            writer.WriteValue(value.AllowProtocol);
+            writer.WriteValue(value.Sync2Server);
+            writer.WriteValue(value.Version);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref RelayServerNodeReportInfoOld value)

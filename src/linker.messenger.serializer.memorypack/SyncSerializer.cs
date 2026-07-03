@@ -1,39 +1,8 @@
-﻿using linker.messenger.sync;
+using linker.messenger.sync;
 using MemoryPack;
 
 namespace linker.messenger.serializer.memorypack
 {
-
-
-
-    [MemoryPackable]
-    public readonly partial struct SerializableSyncInfo
-    {
-        [MemoryPackIgnore]
-        public readonly SyncInfo info;
-
-        [MemoryPackInclude]
-        string Name => info.Name;
-
-        [MemoryPackInclude]
-        Memory<byte> Data => info.Data;
-
-        [MemoryPackInclude]
-        string[] Ids => info.Ids;
-
-
-        [MemoryPackConstructor]
-        SerializableSyncInfo(string name, Memory<byte> data, string[] ids)
-        {
-            var info = new SyncInfo { Name = name, Data = data, Ids = ids };
-            this.info = info;
-        }
-
-        public SerializableSyncInfo(SyncInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class SyncInfoFormatter : MemoryPackFormatter<SyncInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref SyncInfo value)
@@ -44,7 +13,10 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableSyncInfo(value));
+            writer.WriteObjectHeader(3);
+            writer.WriteValue(value.Name);
+            writer.WriteValue(value.Data);
+            writer.WriteValue(value.Ids);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref SyncInfo value)

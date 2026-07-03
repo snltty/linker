@@ -1,62 +1,9 @@
-﻿using MemoryPack;
+using MemoryPack;
 using linker.messenger.socks5;
 using System.Net;
 
 namespace linker.messenger.serializer.memorypack
 {
-    [MemoryPackable]
-    public readonly partial struct SerializableSocks5LanInfo
-    {
-        [MemoryPackIgnore]
-        public readonly Socks5LanInfo info;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        IPAddress IP => info.IP;
-
-        [MemoryPackInclude]
-        byte PrefixLength => info.PrefixLength;
-
-        [MemoryPackInclude]
-        bool Disabled => info.Disabled;
-
-        [MemoryPackInclude]
-        bool Exists => info.Exists;
-
-        [MemoryPackInclude]
-        string Error => info.Error;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        IPAddress MapIP => info.MapIP;
-
-        [MemoryPackInclude]
-        byte MapPrefixLength => info.MapPrefixLength;
-
-        [MemoryPackInclude]
-        string Remark => info.Remark;
-
-
-        [MemoryPackConstructor]
-        SerializableSocks5LanInfo(IPAddress ip, byte prefixLength, bool disabled, bool exists, string error, IPAddress mapip, byte mapprefixLength, string remark)
-        {
-            var info = new Socks5LanInfo
-            {
-                Disabled = disabled,
-                Error = error,
-                Exists = exists,
-                IP = ip,
-                PrefixLength = prefixLength,
-                MapIP = mapip,
-                MapPrefixLength = mapprefixLength,
-                Remark = remark
-            };
-            this.info = info;
-        }
-
-        public SerializableSocks5LanInfo(Socks5LanInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class Socks5LanInfoFormatter : MemoryPackFormatter<Socks5LanInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Socks5LanInfo value)
@@ -67,7 +14,15 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableSocks5LanInfo(value));
+            writer.WriteObjectHeader(8);
+            writer.WriteValue(value.IP);
+            writer.WriteValue(value.PrefixLength);
+            writer.WriteValue(value.Disabled);
+            writer.WriteValue(value.Exists);
+            writer.WriteValue(value.Error);
+            writer.WriteValue(value.MapIP);
+            writer.WriteValue(value.MapPrefixLength);
+            writer.WriteValue(value.Remark);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref Socks5LanInfo value)
@@ -92,44 +47,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-    [MemoryPackable]
-    public readonly partial struct SerializableSocks5Info
-    {
-        [MemoryPackIgnore]
-        public readonly Socks5Info info;
-
-        [MemoryPackInclude]
-        string MachineId => info.MachineId;
-
-        [MemoryPackInclude]
-        Socks5Status Status => info.Status;
-
-        [MemoryPackInclude]
-        int Port => info.Port;
-
-        [MemoryPackInclude]
-        List<Socks5LanInfo> Lans => info.Lans;
-
-        [MemoryPackInclude]
-        string SetupError => info.SetupError;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        IPAddress Wan => info.Wan;
-
-
-        [MemoryPackConstructor]
-        SerializableSocks5Info(string machineId, Socks5Status status, int port, List<Socks5LanInfo> lans, string setupError, IPAddress wan)
-        {
-            var info = new Socks5Info { MachineId = machineId, Lans = lans, Port = port, SetupError = setupError, Status = status, Wan = wan };
-            this.info = info;
-        }
-
-        public SerializableSocks5Info(Socks5Info info)
-        {
-            this.info = info;
-        }
-    }
     public class Socks5InfoFormatter : MemoryPackFormatter<Socks5Info>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Socks5Info value)
@@ -140,7 +57,13 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableSocks5Info(value));
+            writer.WriteObjectHeader(6);
+            writer.WriteValue(value.MachineId);
+            writer.WriteValue(value.Status);
+            writer.WriteValue(value.Port);
+            writer.WriteValue(value.Lans);
+            writer.WriteValue(value.SetupError);
+            writer.WriteValue(value.Wan);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref Socks5Info value)
@@ -152,8 +75,14 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableSocks5Info>();
-            value = wrapped.info;
+            value = new Socks5Info();
+            reader.TryReadObjectHeader(out byte count);
+            value.MachineId = reader.ReadValue<string>();
+            value.Status = reader.ReadValue<Socks5Status>();
+            value.Port = reader.ReadValue<int>();
+            value.Lans = reader.ReadValue<List<Socks5LanInfo>>();
+            value.SetupError = reader.ReadValue<string>();
+            value.Wan = reader.ReadValue<IPAddress>();
         }
     }
 }

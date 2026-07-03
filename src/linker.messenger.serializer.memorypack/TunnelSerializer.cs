@@ -1,4 +1,4 @@
-﻿using linker.messenger.tunnel;
+using linker.messenger.tunnel;
 using linker.tunnel.connection;
 using linker.tunnel.transport;
 using linker.tunnel.wanport;
@@ -9,30 +9,6 @@ using System.Net.Sockets;
 
 namespace linker.messenger.serializer.memorypack
 {
-    [MemoryPackable]
-    public readonly partial struct SerializableTunnelWanPortProtocolInfo
-    {
-        [MemoryPackIgnore]
-        public readonly TunnelWanPortProtocolInfo info;
-
-        [MemoryPackInclude]
-        string MachineId => info.MachineId;
-
-        [MemoryPackInclude]
-        TunnelWanPortProtocolType ProtocolType => info.ProtocolType;
-
-        [MemoryPackConstructor]
-        SerializableTunnelWanPortProtocolInfo(string machineId, TunnelWanPortProtocolType protocolType)
-        {
-            var info = new TunnelWanPortProtocolInfo { MachineId = machineId, ProtocolType = protocolType };
-            this.info = info;
-        }
-
-        public SerializableTunnelWanPortProtocolInfo(TunnelWanPortProtocolInfo tunnelCompactInfo)
-        {
-            this.info = tunnelCompactInfo;
-        }
-    }
     public class TunnelWanPortProtocolInfoFormatter : MemoryPackFormatter<TunnelWanPortProtocolInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TunnelWanPortProtocolInfo value)
@@ -43,7 +19,9 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableTunnelWanPortProtocolInfo(value));
+            writer.WriteObjectHeader(2);
+            writer.WriteValue(value.MachineId);
+            writer.WriteValue(value.ProtocolType);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref TunnelWanPortProtocolInfo value)
@@ -55,68 +33,13 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableTunnelWanPortProtocolInfo>();
-            value = wrapped.info;
+            value = new TunnelWanPortProtocolInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.MachineId = reader.ReadValue<string>();
+            value.ProtocolType = reader.ReadValue<TunnelWanPortProtocolType>();
         }
     }
 
-    [MemoryPackable]
-    public readonly partial struct SerializableTunnelTransportWanPortInfo
-    {
-        [MemoryPackIgnore]
-        public readonly TunnelTransportWanPortInfo tunnelTransportWanPortInfo;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        IPEndPoint Local => tunnelTransportWanPortInfo.Local;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        IPEndPoint Remote => tunnelTransportWanPortInfo.Remote;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        IPAddress[] LocalIps => tunnelTransportWanPortInfo.LocalIps;
-
-        [MemoryPackInclude]
-        int RouteLevel => tunnelTransportWanPortInfo.RouteLevel;
-
-        [MemoryPackInclude]
-        string MachineId => tunnelTransportWanPortInfo.MachineId;
-
-        [MemoryPackInclude]
-        string MachineName => tunnelTransportWanPortInfo.MachineName;
-
-        [MemoryPackInclude]
-        int PortMapWan => tunnelTransportWanPortInfo.PortMapWan;
-
-        [MemoryPackInclude]
-        int PortMapLan => tunnelTransportWanPortInfo.PortMapLan;
-
-        [MemoryPackInclude]
-        int[] PredictPorts => tunnelTransportWanPortInfo.PredictPorts;
-
-
-        [MemoryPackConstructor]
-        SerializableTunnelTransportWanPortInfo(IPEndPoint local, IPEndPoint remote, IPAddress[] localIps, int routeLevel, string machineId, string machineName, int portMapWan, int portMapLan, int[] predictPorts)
-        {
-            var tunnelTransportWanPortInfo = new TunnelTransportWanPortInfo
-            {
-                Local = local,
-                Remote = remote,
-                LocalIps = localIps,
-                RouteLevel = routeLevel,
-                MachineId = machineId,
-                MachineName = machineName,
-                PortMapWan = portMapWan,
-                PortMapLan = portMapLan,
-                PredictPorts = predictPorts
-            };
-            this.tunnelTransportWanPortInfo = tunnelTransportWanPortInfo;
-        }
-
-        public SerializableTunnelTransportWanPortInfo(TunnelTransportWanPortInfo tunnelTransportWanPortInfo)
-        {
-            this.tunnelTransportWanPortInfo = tunnelTransportWanPortInfo;
-        }
-    }
     public class TunnelTransportWanPortInfoFormatter : MemoryPackFormatter<TunnelTransportWanPortInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TunnelTransportWanPortInfo value)
@@ -127,7 +50,16 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableTunnelTransportWanPortInfo(value));
+            writer.WriteObjectHeader(9);
+            writer.WriteValue(value.Local);
+            writer.WriteValue(value.Remote);
+            writer.WriteValue(value.LocalIps);
+            writer.WriteValue(value.RouteLevel);
+            writer.WriteValue(value.MachineId);
+            writer.WriteValue(value.MachineName);
+            writer.WriteValue(value.PortMapWan);
+            writer.WriteValue(value.PortMapLan);
+            writer.WriteValue(value.PredictPorts);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref TunnelTransportWanPortInfo value)
@@ -155,73 +87,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-    [MemoryPackable]
-    public readonly partial struct SerializableTunnelTransportItemInfo
-    {
-        [MemoryPackIgnore]
-        public readonly TunnelTransportItemInfo Info;
-
-
-        [MemoryPackInclude]
-        string Name => Info.Name;
-
-        [MemoryPackInclude]
-        string Label => Info.Label;
-
-        [MemoryPackInclude]
-        string ProtocolType => Info.ProtocolType;
-
-        [MemoryPackInclude]
-        bool Disabled => Info.Disabled;
-
-        [MemoryPackInclude]
-        bool Reverse => Info.Reverse;
-
-        [MemoryPackInclude]
-        bool SSL => Info.SSL;
-
-        [MemoryPackInclude]
-        byte BufferSize => Info.BufferSize;
-
-        [MemoryPackInclude]
-        byte Order => Info.Order;
-
-        [MemoryPackInclude]
-        Addrs Addr => Info.Addr;
-
-        [MemoryPackInclude]
-        TunnelType TunnelType => Info.TunnelType;
-
-        [MemoryPackInclude]
-        bool EnableAddr => Info.EnableAddr;
-
-
-        [MemoryPackConstructor]
-        SerializableTunnelTransportItemInfo(string name, string label, string protocolType, bool disabled, bool reverse, bool ssl, byte buffersize, byte order,
-            Addrs addr, TunnelType tunnelType, bool enableAddr)
-        {
-            var tunnelTransportItemInfo = new TunnelTransportItemInfo
-            {
-                Name = name,
-                Label = label,
-                ProtocolType = protocolType,
-                Disabled = disabled,
-                Reverse = reverse,
-                SSL = ssl,
-                BufferSize = buffersize,
-                Order = order,
-                Addr = addr,
-                TunnelType = tunnelType,
-                EnableAddr = enableAddr
-            };
-            this.Info = tunnelTransportItemInfo;
-        }
-        public SerializableTunnelTransportItemInfo(TunnelTransportItemInfo tunnelTransportItemInfo)
-        {
-            this.Info = tunnelTransportItemInfo;
-        }
-    }
     public class TunnelTransportItemInfoFormatter : MemoryPackFormatter<TunnelTransportItemInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TunnelTransportItemInfo value)
@@ -232,7 +97,18 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableTunnelTransportItemInfo(value));
+            writer.WriteObjectHeader(11);
+            writer.WriteValue(value.Name);
+            writer.WriteValue(value.Label);
+            writer.WriteValue(value.ProtocolType);
+            writer.WriteValue(value.Disabled);
+            writer.WriteValue(value.Reverse);
+            writer.WriteValue(value.SSL);
+            writer.WriteValue(value.BufferSize);
+            writer.WriteValue(value.Order);
+            writer.WriteValue(value.Addr);
+            writer.WriteValue(value.TunnelType);
+            writer.WriteValue(value.EnableAddr);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref TunnelTransportItemInfo value)
@@ -265,69 +141,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-    [MemoryPackable]
-    public readonly partial struct SerializableTunnelTransportInfo
-    {
-        [MemoryPackIgnore]
-        public readonly TunnelTransportInfo tunnelTransportInfo;
-
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        TunnelTransportWanPortInfo Local => tunnelTransportInfo.Local;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        TunnelTransportWanPortInfo Remote => tunnelTransportInfo.Remote;
-
-        [MemoryPackInclude]
-        string TransactionId => tunnelTransportInfo.TransactionId;
-
-        [MemoryPackInclude]
-        TunnelProtocolType TransportType => tunnelTransportInfo.TransportType;
-
-        [MemoryPackInclude]
-        string TransportName => tunnelTransportInfo.TransportName;
-
-        [MemoryPackInclude]
-        TunnelDirection Direction => tunnelTransportInfo.Direction;
-
-        [MemoryPackInclude]
-        bool SSL => tunnelTransportInfo.SSL;
-
-        [MemoryPackInclude]
-        byte BufferSize => tunnelTransportInfo.BufferSize;
-
-        [MemoryPackInclude]
-        uint FlowId => tunnelTransportInfo.FlowId;
-
-        [MemoryPackInclude]
-        Dictionary<string, string> Configure => tunnelTransportInfo.Configure;
-
-        [MemoryPackConstructor]
-        SerializableTunnelTransportInfo(TunnelTransportWanPortInfo local, TunnelTransportWanPortInfo remote, string transactionId,
-            TunnelProtocolType transportType, string transportName, TunnelDirection direction, bool ssl, byte bufferSize, uint flowid, Dictionary<string, string> configure)
-        {
-            var tunnelTransportInfo = new TunnelTransportInfo
-            {
-                Local = local,
-                Remote = remote,
-                TransactionId = transactionId,
-                TransportName = transportName,
-                TransportType = transportType,
-                Direction = direction,
-                SSL = ssl,
-                BufferSize = bufferSize,
-                FlowId = flowid,
-                Configure = Configure,
-            };
-            this.tunnelTransportInfo = tunnelTransportInfo;
-        }
-
-        public SerializableTunnelTransportInfo(TunnelTransportInfo tunnelTransportInfo)
-        {
-            this.tunnelTransportInfo = tunnelTransportInfo;
-        }
-    }
     public class TunnelTransportInfoFormatter : MemoryPackFormatter<TunnelTransportInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TunnelTransportInfo value)
@@ -338,7 +151,17 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableTunnelTransportInfo(value));
+            writer.WriteObjectHeader(10);
+            writer.WriteValue(value.Local);
+            writer.WriteValue(value.Remote);
+            writer.WriteValue(value.TransactionId);
+            writer.WriteValue(value.TransportType);
+            writer.WriteValue(value.TransportName);
+            writer.WriteValue(value.Direction);
+            writer.WriteValue(value.SSL);
+            writer.WriteValue(value.BufferSize);
+            writer.WriteValue(value.FlowId);
+            writer.WriteValue(value.Configure);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref TunnelTransportInfo value)
@@ -367,62 +190,6 @@ namespace linker.messenger.serializer.memorypack
     }
 
 
-
-    [MemoryPackable]
-    public readonly partial struct SerializableTunnelRouteLevelInfo
-    {
-        [MemoryPackIgnore]
-        public readonly TunnelRouteLevelInfo info;
-
-        [MemoryPackInclude]
-        string MachineId => info.MachineId;
-
-        [MemoryPackInclude]
-        int RouteLevel => info.RouteLevel;
-        [MemoryPackInclude]
-        int RouteLevelPlus => info.RouteLevelPlus;
-
-        [MemoryPackInclude]
-        bool NeedReboot => info.NeedReboot;
-
-        [MemoryPackInclude]
-        int PortMapWan => info.PortMapWan;
-        [MemoryPackInclude]
-        int PortMapLan => info.PortMapLan;
-
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        TunnelNetInfo Net => info.Net;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        IPAddress InIp => info.InIp;
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        TunnelMeshInfo Relay => info.Mesh;
-
-        [MemoryPackConstructor]
-        SerializableTunnelRouteLevelInfo(string machineId, int routeLevel, int routeLevelPlus, bool needReboot, int portMapWan,
-            int portMapLan, TunnelNetInfo net, IPAddress inip, TunnelMeshInfo relay)
-        {
-            var info = new TunnelRouteLevelInfo
-            {
-                MachineId = machineId,
-                NeedReboot = needReboot,
-                PortMapWan = portMapWan,
-                PortMapLan = portMapLan,
-                RouteLevel = routeLevel,
-                RouteLevelPlus = routeLevelPlus,
-                Net = net,
-                InIp = inip,
-                Mesh = relay
-            };
-            this.info = info;
-        }
-
-        public SerializableTunnelRouteLevelInfo(TunnelRouteLevelInfo tunnelCompactInfo)
-        {
-            this.info = tunnelCompactInfo;
-        }
-    }
     public class TunnelRouteLevelInfoFormatter : MemoryPackFormatter<TunnelRouteLevelInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TunnelRouteLevelInfo value)
@@ -433,7 +200,16 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableTunnelRouteLevelInfo(value));
+            writer.WriteObjectHeader(9);
+            writer.WriteValue(value.MachineId);
+            writer.WriteValue(value.RouteLevel);
+            writer.WriteValue(value.RouteLevelPlus);
+            writer.WriteValue(value.NeedReboot);
+            writer.WriteValue(value.PortMapWan);
+            writer.WriteValue(value.PortMapLan);
+            writer.WriteValue(value.Net);
+            writer.WriteValue(value.InIp);
+            writer.WriteValue(value.Mesh);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref TunnelRouteLevelInfo value)
@@ -463,39 +239,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-    [MemoryPackable]
-    public readonly partial struct SerializableTunnelRelayInfo
-    {
-        [MemoryPackIgnore]
-        public readonly TunnelMeshInfo info;
-
-        [MemoryPackInclude]
-        bool Enabled => info.Enabled;
-
-        [MemoryPackInclude]
-        int Bandwidth => info.Bandwidth;
-
-        [MemoryPackInclude]
-        string MachineName => info.MachineName;
-
-        [MemoryPackConstructor]
-        SerializableTunnelRelayInfo(bool enabled, int bandwidth, string machineName)
-        {
-            var info = new TunnelMeshInfo
-            {
-                Enabled = enabled,
-                Bandwidth = bandwidth,
-                MachineName = machineName
-            };
-            this.info = info;
-        }
-
-        public SerializableTunnelRelayInfo(TunnelMeshInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class TunnelRelayInfoFormatter : MemoryPackFormatter<TunnelMeshInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TunnelMeshInfo value)
@@ -506,7 +249,10 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableTunnelRelayInfo(value));
+            writer.WriteObjectHeader(3);
+            writer.WriteValue(value.Enabled);
+            writer.WriteValue(value.Bandwidth);
+            writer.WriteValue(value.MachineName);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref TunnelMeshInfo value)
@@ -526,41 +272,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-    [MemoryPackable]
-    public readonly partial struct SerializableTunnelNetworkInfo
-    {
-        [MemoryPackIgnore]
-        public readonly TunnelLocalNetworkInfo info;
-
-        [MemoryPackInclude]
-        string MachineId => info.MachineId;
-
-        [MemoryPackInclude]
-        string HostName => info.HostName;
-        [MemoryPackInclude]
-        TunnelInterfaceInfo[] Lans => info.Lans;
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        IPAddress[] Routes => info.Routes;
-
-        [MemoryPackConstructor]
-        SerializableTunnelNetworkInfo(string machineId, string hostname, TunnelInterfaceInfo[] lans, IPAddress[] routes)
-        {
-            var info = new TunnelLocalNetworkInfo
-            {
-                MachineId = machineId,
-                HostName = hostname,
-                Lans = lans,
-                Routes = routes,
-            };
-            this.info = info;
-        }
-
-        public SerializableTunnelNetworkInfo(TunnelLocalNetworkInfo tunnelCompactInfo)
-        {
-            this.info = tunnelCompactInfo;
-        }
-    }
     public class TunnelNetworkInfoFormatter : MemoryPackFormatter<TunnelLocalNetworkInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TunnelLocalNetworkInfo value)
@@ -571,7 +282,11 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableTunnelNetworkInfo(value));
+            writer.WriteObjectHeader(4);
+            writer.WriteValue(value.MachineId);
+            writer.WriteValue(value.HostName);
+            writer.WriteValue(value.Lans);
+            writer.WriteValue(value.Routes);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref TunnelLocalNetworkInfo value)
@@ -583,41 +298,15 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableTunnelNetworkInfo>();
-            value = wrapped.info;
+            value = new TunnelLocalNetworkInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.MachineId = reader.ReadValue<string>();
+            value.HostName = reader.ReadValue<string>();
+            value.Lans = reader.ReadValue<TunnelInterfaceInfo[]>();
+            value.Routes = reader.ReadValue<IPAddress[]>();
         }
     }
 
-
-    [MemoryPackable]
-    public readonly partial struct SerializableTunnelInterfaceInfo
-    {
-        [MemoryPackIgnore]
-        public readonly TunnelInterfaceInfo info;
-
-        [MemoryPackInclude]
-        string Name => info.Name;
-
-        [MemoryPackInclude]
-        string Desc => info.Desc;
-        [MemoryPackInclude]
-        string Mac => info.Mac;
-
-        [MemoryPackInclude]
-        IPAddress[] Ips => info.Ips;
-
-        [MemoryPackConstructor]
-        SerializableTunnelInterfaceInfo(string name, string desc, string mac, IPAddress[] ips)
-        {
-            var info = new TunnelInterfaceInfo { Name = name, Desc = desc, Mac = mac, Ips = ips };
-            this.info = info;
-        }
-
-        public SerializableTunnelInterfaceInfo(TunnelInterfaceInfo tunnelCompactInfo)
-        {
-            this.info = tunnelCompactInfo;
-        }
-    }
     public class TunnelInterfaceInfoFormatter : MemoryPackFormatter<TunnelInterfaceInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TunnelInterfaceInfo value)
@@ -628,7 +317,11 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableTunnelInterfaceInfo(value));
+            writer.WriteObjectHeader(4);
+            writer.WriteValue(value.Name);
+            writer.WriteValue(value.Desc);
+            writer.WriteValue(value.Mac);
+            writer.WriteValue(value.Ips);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref TunnelInterfaceInfo value)
@@ -640,50 +333,15 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableTunnelInterfaceInfo>();
-            value = wrapped.info;
+            value = new TunnelInterfaceInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.Name = reader.ReadValue<string>();
+            value.Desc = reader.ReadValue<string>();
+            value.Mac = reader.ReadValue<string>();
+            value.Ips = reader.ReadValue<IPAddress[]>();
         }
     }
 
-
-    [MemoryPackable]
-    public readonly partial struct SerializableTunnelNetInfo
-    {
-        [MemoryPackIgnore]
-        public readonly TunnelNetInfo info;
-        [MemoryPackInclude]
-        string CountryCode => info.CountryCode;
-        [MemoryPackInclude]
-        string City => info.City;
-        [MemoryPackInclude]
-        double Lat => info.Lat;
-        [MemoryPackInclude]
-        double Lon => info.Lon;
-        [MemoryPackInclude]
-        string Isp => info.Isp;
-        [MemoryPackInclude]
-        string Nat => info.Nat;
-
-        [MemoryPackConstructor]
-        SerializableTunnelNetInfo(string countryCode, string city, double lat, double lon, string isp, string nat)
-        {
-            var info = new TunnelNetInfo
-            {
-                City = city,
-                CountryCode = countryCode,
-                Isp = isp,
-                Lat = lat,
-                Lon = lon,
-                Nat = nat
-            };
-            this.info = info;
-        }
-
-        public SerializableTunnelNetInfo(TunnelNetInfo tunnelCompactInfo)
-        {
-            this.info = tunnelCompactInfo;
-        }
-    }
     public class TunnelNetInfoFormatter : MemoryPackFormatter<TunnelNetInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TunnelNetInfo value)
@@ -694,7 +352,13 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableTunnelNetInfo(value));
+            writer.WriteObjectHeader(6);
+            writer.WriteValue(value.CountryCode);
+            writer.WriteValue(value.City);
+            writer.WriteValue(value.Lat);
+            writer.WriteValue(value.Lon);
+            writer.WriteValue(value.Isp);
+            writer.WriteValue(value.Nat);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref TunnelNetInfo value)
@@ -706,53 +370,17 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableTunnelNetInfo>();
-            value = wrapped.info;
+            value = new TunnelNetInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.CountryCode = reader.ReadValue<string>();
+            value.City = reader.ReadValue<string>();
+            value.Lat = reader.ReadValue<double>();
+            value.Lon = reader.ReadValue<double>();
+            value.Isp = reader.ReadValue<string>();
+            value.Nat = reader.ReadValue<string>();
         }
     }
 
-
-    [MemoryPackable]
-    public readonly partial struct SerializableTunnelSetRouteLevelInfo
-    {
-        [MemoryPackIgnore]
-        public readonly TunnelSetRouteLevelInfo info;
-
-        [MemoryPackInclude]
-        string MachineId => info.MachineId;
-
-        [MemoryPackInclude]
-        int RouteLevelPlus => info.RouteLevelPlus;
-
-        [MemoryPackInclude]
-        int PortMapWan => info.PortMapWan;
-        [MemoryPackInclude]
-        int PortMapLan => info.PortMapLan;
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        IPAddress InIp => info.InIp;
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        TunnelMeshInfo Mesh => info.Mesh;
-
-        [MemoryPackConstructor]
-        SerializableTunnelSetRouteLevelInfo(string machineId, int routeLevelPlus, int portMapWan, int portMapLan, IPAddress inIp, TunnelMeshInfo mesh)
-        {
-            var info = new TunnelSetRouteLevelInfo
-            {
-                MachineId = machineId,
-                PortMapWan = portMapWan,
-                PortMapLan = portMapLan,
-                RouteLevelPlus = routeLevelPlus,
-                InIp = inIp,
-                Mesh = mesh
-            };
-            this.info = info;
-        }
-
-        public SerializableTunnelSetRouteLevelInfo(TunnelSetRouteLevelInfo tunnelCompactInfo)
-        {
-            this.info = tunnelCompactInfo;
-        }
-    }
     public class TunnelSetRouteLevelInfoFormatter : MemoryPackFormatter<TunnelSetRouteLevelInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TunnelSetRouteLevelInfo value)
@@ -763,7 +391,13 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableTunnelSetRouteLevelInfo(value));
+            writer.WriteObjectHeader(6);
+            writer.WriteValue(value.MachineId);
+            writer.WriteValue(value.RouteLevelPlus);
+            writer.WriteValue(value.PortMapWan);
+            writer.WriteValue(value.PortMapLan);
+            writer.WriteValue(value.InIp);
+            writer.WriteValue(value.Mesh);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref TunnelSetRouteLevelInfo value)
@@ -789,30 +423,7 @@ namespace linker.messenger.serializer.memorypack
                 value.Mesh = reader.ReadValue<TunnelMeshInfo>();
         }
     }
-    [MemoryPackable]
-    public readonly partial struct SerializableTunnelTransportItemSetInfo
-    {
-        [MemoryPackIgnore]
-        public readonly TunnelTransportItemSetInfo info;
-
-        [MemoryPackInclude]
-        string MachineId => info.MachineId;
-
-        [MemoryPackInclude]
-        List<TunnelTransportItemInfo> Data => info.Data;
-
-        [MemoryPackConstructor]
-        SerializableTunnelTransportItemSetInfo(string machineId, List<TunnelTransportItemInfo> data)
-        {
-            var info = new TunnelTransportItemSetInfo { MachineId = machineId, Data = data };
-            this.info = info;
-        }
-
-        public SerializableTunnelTransportItemSetInfo(TunnelTransportItemSetInfo info)
-        {
-            this.info = info;
-        }
-    }
+   
     public class TunnelTransportItemSetInfoFormatter : MemoryPackFormatter<TunnelTransportItemSetInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TunnelTransportItemSetInfo value)
@@ -823,7 +434,9 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableTunnelTransportItemSetInfo(value));
+            writer.WriteObjectHeader(2);
+            writer.WriteValue(value.MachineId);
+            writer.WriteValue(value.Data);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref TunnelTransportItemSetInfo value)
@@ -835,61 +448,13 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            var wrapped = reader.ReadPackable<SerializableTunnelTransportItemSetInfo>();
-            value = wrapped.info;
+            value = new TunnelTransportItemSetInfo();
+            reader.TryReadObjectHeader(out byte count);
+            value.MachineId = reader.ReadValue<string>();
+            value.Data = reader.ReadValue<List<TunnelTransportItemInfo>>();
         }
     }
 
-
-    [MemoryPackable]
-    public readonly partial struct SerializablePortMappingInfo
-    {
-        [MemoryPackIgnore]
-        public readonly PortMappingInfo info;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        IPAddress ClientIp => info.ClientIp;
-        [MemoryPackInclude]
-        int PublicPort => info.PublicPort;
-        [MemoryPackInclude]
-        int PrivatePort => info.PrivatePort;
-        [MemoryPackInclude]
-        ProtocolType ProtocolType => info.ProtocolType;
-        [MemoryPackInclude]
-        bool Enabled => info.Enabled;
-        [MemoryPackInclude]
-        string Description => info.Description;
-        [MemoryPackInclude]
-        int LeaseDuration => info.LeaseDuration;
-        [MemoryPackInclude]
-        DeviceType DeviceType => info.DeviceType;
-
-        [MemoryPackInclude]
-        bool Deletable => info.Deletable;
-
-        [MemoryPackConstructor]
-        SerializablePortMappingInfo(IPAddress clientIp, int publicPort, int privatePort, ProtocolType protocolType, bool enabled, string description, int leaseDuration, DeviceType deviceType, bool deletable)
-        {
-            var info = new PortMappingInfo
-            {
-                ClientIp = clientIp,
-                PublicPort = publicPort,
-                PrivatePort = privatePort,
-                ProtocolType = protocolType,
-                Enabled = enabled,
-                Description = description,
-                LeaseDuration = leaseDuration,
-                DeviceType = deviceType,
-                Deletable = deletable
-            };
-            this.info = info;
-        }
-
-        public SerializablePortMappingInfo(PortMappingInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class PortMappingInfoFormatter : MemoryPackFormatter<PortMappingInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref PortMappingInfo value)
@@ -900,7 +465,16 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializablePortMappingInfo(value));
+            writer.WriteObjectHeader(9);
+            writer.WriteValue(value.ClientIp);
+            writer.WriteValue(value.PublicPort);
+            writer.WriteValue(value.PrivatePort);
+            writer.WriteValue(value.ProtocolType);
+            writer.WriteValue(value.Enabled);
+            writer.WriteValue(value.Description);
+            writer.WriteValue(value.LeaseDuration);
+            writer.WriteValue(value.DeviceType);
+            writer.WriteValue(value.Deletable);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref PortMappingInfo value)

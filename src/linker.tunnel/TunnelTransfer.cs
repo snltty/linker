@@ -347,11 +347,13 @@ namespace linker.tunnel
             }
 
             MapInfo portMapInfo = tunnelUpnpTransfer.PortMap ?? new MapInfo { PrivatePort = 0, PublicPort = 0 };
+            IPAddress[] lans = (networkInfo.LocalIps ?? new IPAddress[0]).Concat(new[] { tunnelUpnpTransfer.WanIp }).Where(c => IPAddress.Any.Equals(c) == false).ToArray();
+
             return new TunnelTransportWanPortInfo
             {
                 Local = ip.Local,
                 Remote = ip.Remote,
-                LocalIps = networkInfo.LocalIps,
+                LocalIps = lans,
                 RouteLevel = networkInfo.RouteLevel + tunnelMessengerAdapter.RouteLevelPlus,
                 MachineId = tunnelMessengerAdapter.MachineId,
                 PortMapLan = portMapInfo.PrivatePort,
@@ -413,7 +415,7 @@ namespace linker.tunnel
             //再尝试外网ip，UDP的话就多试几个端口
             if (tunnelTransportInfo.TransportType == TunnelProtocolType.Udp)
             {
-                if(tunnelTransportInfo.Remote.PredictPorts.Length > 0)
+                if (tunnelTransportInfo.Remote.PredictPorts.Length > 0)
                 {
                     eps.Add(new IPEndPoint(tunnelTransportInfo.Remote.Remote.Address, tunnelTransportInfo.Remote.Remote.Port));
                     foreach (var item in tunnelTransportInfo.Remote.PredictPorts)

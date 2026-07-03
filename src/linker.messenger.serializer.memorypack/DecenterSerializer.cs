@@ -1,32 +1,8 @@
-﻿using MemoryPack;
+using MemoryPack;
 using linker.messenger.decenter;
 
 namespace linker.messenger.serializer.memorypack
 {
-    [MemoryPackable]
-    public readonly partial struct SerializableDecenterSyncInfo
-    {
-        [MemoryPackIgnore]
-        public readonly DecenterSyncInfo info;
-
-        [MemoryPackInclude]
-        string Name => info.Name;
-
-        [MemoryPackInclude]
-        Memory<byte> Data => info.Data;
-
-        [MemoryPackConstructor]
-        SerializableDecenterSyncInfo(string name, Memory<byte> data)
-        {
-            var info = new DecenterSyncInfo { Name = name, Data = data };
-            this.info = info;
-        }
-
-        public SerializableDecenterSyncInfo(DecenterSyncInfo tunnelCompactInfo)
-        {
-            this.info = tunnelCompactInfo;
-        }
-    }
     public class DecenterSyncInfoFormatter : MemoryPackFormatter<DecenterSyncInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref DecenterSyncInfo value)
@@ -37,7 +13,9 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableDecenterSyncInfo(value));
+            writer.WriteObjectHeader(2);
+            writer.WriteValue(value.Name);
+            writer.WriteValue(value.Data);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref DecenterSyncInfo value)
@@ -58,34 +36,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-    [MemoryPackable]
-    public readonly partial struct SerializableDecenterPullPageInfo
-    {
-        [MemoryPackIgnore]
-        public readonly DecenterPullPageInfo info;
-
-        [MemoryPackInclude]
-        string Name => info.Name;
-
-        [MemoryPackInclude]
-        int Page => info.Page;
-
-        [MemoryPackInclude]
-        int Size => info.Size;
-
-        [MemoryPackConstructor]
-        SerializableDecenterPullPageInfo(string name, int page, int size)
-        {
-            var info = new DecenterPullPageInfo { Name = name, Page = page, Size = size };
-            this.info = info;
-        }
-
-        public SerializableDecenterPullPageInfo(DecenterPullPageInfo tunnelCompactInfo)
-        {
-            this.info = tunnelCompactInfo;
-        }
-    }
     public class DecenterPullPageInfoFormatter : MemoryPackFormatter<DecenterPullPageInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref DecenterPullPageInfo value)
@@ -96,7 +46,10 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableDecenterPullPageInfo(value));
+            writer.WriteObjectHeader(3);
+            writer.WriteValue(value.Name);
+            writer.WriteValue(value.Page);
+            writer.WriteValue(value.Size);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref DecenterPullPageInfo value)
@@ -116,36 +69,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-    [MemoryPackable]
-    public readonly partial struct SerializableDecenterPullPageResultInfo
-    {
-        [MemoryPackIgnore]
-        public readonly DecenterPullPageResultInfo info;
-
-        [MemoryPackInclude]
-        int Page => info.Page;
-
-        [MemoryPackInclude]
-        int Size => info.Size;
-
-        [MemoryPackInclude]
-        int Count => info.Count;
-        [MemoryPackInclude]
-        List<Memory<byte>> List => info.List;
-
-        [MemoryPackConstructor]
-        SerializableDecenterPullPageResultInfo(int page, int size, int count, List<Memory<byte>> list)
-        {
-            var info = new DecenterPullPageResultInfo { Page = page, Size = size, Count = count, List = list };
-            this.info = info;
-        }
-
-        public SerializableDecenterPullPageResultInfo(DecenterPullPageResultInfo tunnelCompactInfo)
-        {
-            this.info = tunnelCompactInfo;
-        }
-    }
     public class DecenterPullPageResultInfoFormatter : MemoryPackFormatter<DecenterPullPageResultInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref DecenterPullPageResultInfo value)
@@ -156,7 +79,11 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableDecenterPullPageResultInfo(value));
+            writer.WriteObjectHeader(4);
+            writer.WriteValue(value.Page);
+            writer.WriteValue(value.Size);
+            writer.WriteValue(value.Count);
+            writer.WriteValue(value.List);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref DecenterPullPageResultInfo value)

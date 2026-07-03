@@ -1,78 +1,9 @@
-﻿using MemoryPack;
+using MemoryPack;
 using System.Net;
 using linker.messenger.forward;
 
 namespace linker.messenger.serializer.memorypack
 {
-    [MemoryPackable]
-    public readonly partial struct SerializableForwardInfo
-    {
-        [MemoryPackIgnore]
-        public readonly ForwardInfo info;
-
-        [MemoryPackInclude]
-        long Id => info.Id;
-
-        [MemoryPackInclude]
-        string Name => info.Name;
-
-        [MemoryPackInclude]
-        string MachineId => info.MachineId;
-
-        [MemoryPackInclude]
-        string GroupId => info.GroupId;
-
-        [MemoryPackInclude]
-        string MachineName => info.MachineName;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        IPAddress BindIPAddress => info.BindIPAddress;
-
-        [MemoryPackInclude]
-        int Port => info.Port;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        IPEndPoint TargetEP => info.TargetEP;
-
-        [MemoryPackInclude]
-        bool Started => info.Started;
-
-        [MemoryPackInclude]
-        byte BufferSize => info.BufferSize;
-
-        [MemoryPackInclude]
-        string Msg => info.Msg;
-
-        [MemoryPackInclude]
-        string TargetMsg => info.TargetMsg;
-
-        [MemoryPackConstructor]
-        SerializableForwardInfo(long id, string name, string machineId, string groupId, string machineName, IPAddress bindIPAddress, int port, IPEndPoint targetEP,
-            bool started, byte bufferSize, string msg, string targetMsg)
-        {
-            this.info = new ForwardInfo
-            {
-                Name = name,
-                BufferSize = bufferSize,
-                Id = id,
-                Started = started,
-                BindIPAddress = bindIPAddress,
-                GroupId = groupId,
-                MachineId = machineId,
-                MachineName = machineName,
-                Msg = msg,
-                Port = port,
-                TargetEP = targetEP,
-                TargetMsg = targetMsg
-
-            };
-        }
-
-        public SerializableForwardInfo(ForwardInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class ForwardInfoFormatter : MemoryPackFormatter<ForwardInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ForwardInfo value)
@@ -83,7 +14,19 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableForwardInfo(value));
+            writer.WriteObjectHeader(12);
+            writer.WriteValue(value.Id);
+            writer.WriteValue(value.Name);
+            writer.WriteValue(value.MachineId);
+            writer.WriteValue(value.GroupId);
+            writer.WriteValue(value.MachineName);
+            writer.WriteValue(value.BindIPAddress);
+            writer.WriteValue(value.Port);
+            writer.WriteValue(value.TargetEP);
+            writer.WriteValue(value.Started);
+            writer.WriteValue(value.BufferSize);
+            writer.WriteValue(value.Msg);
+            writer.WriteValue(value.TargetMsg);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ForwardInfo value)
@@ -112,35 +55,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-
-    [MemoryPackable]
-    public readonly partial struct SerializableForwardAddForwardInfo
-    {
-        [MemoryPackIgnore]
-        public readonly ForwardAddForwardInfo info;
-
-        [MemoryPackInclude]
-        string MachineId => info.MachineId;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        ForwardInfo Data => info.Data;
-
-        [MemoryPackConstructor]
-        SerializableForwardAddForwardInfo(string machineId, ForwardInfo data)
-        {
-            this.info = new ForwardAddForwardInfo
-            {
-                MachineId = machineId,
-                Data = data
-            };
-        }
-
-        public SerializableForwardAddForwardInfo(ForwardAddForwardInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class ForwardAddForwardInfoFormatter : MemoryPackFormatter<ForwardAddForwardInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ForwardAddForwardInfo value)
@@ -151,7 +65,9 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableForwardAddForwardInfo(value));
+            writer.WriteObjectHeader(2);
+            writer.WriteValue(value.MachineId);
+            writer.WriteValue(value.Data);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ForwardAddForwardInfo value)
@@ -170,35 +86,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-
-    [MemoryPackable]
-    public readonly partial struct SerializableForwardRemoveForwardInfo
-    {
-        [MemoryPackIgnore]
-        public readonly ForwardRemoveForwardInfo info;
-
-        [MemoryPackInclude]
-        string MachineId => info.MachineId;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        int Id => info.Id;
-
-        [MemoryPackConstructor]
-        SerializableForwardRemoveForwardInfo(string machineId, int id)
-        {
-            this.info = new ForwardRemoveForwardInfo
-            {
-                MachineId = machineId,
-                Id = id
-            };
-        }
-
-        public SerializableForwardRemoveForwardInfo(ForwardRemoveForwardInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class ForwardRemoveForwardInfoFormatter : MemoryPackFormatter<ForwardRemoveForwardInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ForwardRemoveForwardInfo value)
@@ -209,7 +96,9 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableForwardRemoveForwardInfo(value));
+            writer.WriteObjectHeader(2);
+            writer.WriteValue(value.MachineId);
+            writer.WriteValue(value.Id);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ForwardRemoveForwardInfo value)
@@ -228,35 +117,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-
-    [MemoryPackable]
-    public readonly partial struct SerializableForwardCountInfo
-    {
-        [MemoryPackIgnore]
-        public readonly ForwardCountInfo info;
-
-        [MemoryPackInclude]
-        string MachineId => info.MachineId;
-
-        [MemoryPackInclude]
-        int Count => info.Count;
-
-        [MemoryPackConstructor]
-        SerializableForwardCountInfo(string machineId, int count)
-        {
-            this.info = new ForwardCountInfo
-            {
-                MachineId = machineId,
-                Count = count
-            };
-        }
-
-        public SerializableForwardCountInfo(ForwardCountInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class ForwardCountInfoFormatter : MemoryPackFormatter<ForwardCountInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ForwardCountInfo value)
@@ -267,7 +127,9 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableForwardCountInfo(value));
+            writer.WriteObjectHeader(2);
+            writer.WriteValue(value.MachineId);
+            writer.WriteValue(value.Count);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ForwardCountInfo value)
@@ -286,35 +148,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-
-    [MemoryPackable]
-    public readonly partial struct SerializableForwardTestInfo
-    {
-        [MemoryPackIgnore]
-        public readonly ForwardTestInfo info;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        IPEndPoint Target => info.Target;
-
-        [MemoryPackInclude]
-        string Msg => info.Msg;
-
-        [MemoryPackConstructor]
-        SerializableForwardTestInfo(IPEndPoint target, string msg)
-        {
-            this.info = new ForwardTestInfo
-            {
-                Target = target,
-                Msg = msg
-            };
-        }
-
-        public SerializableForwardTestInfo(ForwardTestInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class ForwardTestInfoFormatter : MemoryPackFormatter<ForwardTestInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ForwardTestInfo value)
@@ -325,7 +158,9 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableForwardTestInfo(value));
+            writer.WriteObjectHeader(2);
+            writer.WriteValue(value.Target);
+            writer.WriteValue(value.Msg);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ForwardTestInfo value)
@@ -343,6 +178,5 @@ namespace linker.messenger.serializer.memorypack
             value.Msg = reader.ReadValue<string>();
         }
     }
-
 
 }

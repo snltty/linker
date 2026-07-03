@@ -1,34 +1,10 @@
-﻿using MemoryPack;
+using MemoryPack;
 using linker.messenger.flow;
 using System.Net;
 using linker.tunnel.connection;
 
 namespace linker.messenger.serializer.memorypack
 {
-    [MemoryPackable]
-    public readonly partial struct SerializableFlowItemInfo
-    {
-        [MemoryPackIgnore]
-        public readonly FlowItemInfo info;
-
-        [MemoryPackInclude]
-        long ReceiveBytes => info.ReceiveBytes;
-
-        [MemoryPackInclude]
-        long SendtBytes => info.SendtBytes;
-
-        [MemoryPackConstructor]
-        SerializableFlowItemInfo(long receiveBytes, long sendtBytes)
-        {
-            var info = new FlowItemInfo { ReceiveBytes = receiveBytes, SendtBytes = sendtBytes };
-            this.info = info;
-        }
-
-        public SerializableFlowItemInfo(FlowItemInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class FlowItemInfoFormatter : MemoryPackFormatter<FlowItemInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref FlowItemInfo value)
@@ -39,7 +15,9 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableFlowItemInfo(value));
+            writer.WriteObjectHeader(2);
+            writer.WriteValue(value.ReceiveBytes);
+            writer.WriteValue(value.SendtBytes);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref FlowItemInfo value)
@@ -58,41 +36,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-    [MemoryPackable]
-    public readonly partial struct SerializableFlowReportNetInfo
-    {
-        [MemoryPackIgnore]
-        public readonly FlowReportNetInfo info;
-
-        [MemoryPackInclude]
-        string City => info.City;
-        [MemoryPackInclude]
-        double Lat => info.Lat;
-        [MemoryPackInclude]
-        double Lon => info.Lon;
-
-        [MemoryPackInclude]
-        int Count => info.Count;
-
-        [MemoryPackConstructor]
-        SerializableFlowReportNetInfo(string city, double lat, double lon, int count)
-        {
-            var info = new FlowReportNetInfo
-            {
-                City = city,
-                Lat = lat,
-                Lon = lon,
-                Count = count
-            };
-            this.info = info;
-        }
-
-        public SerializableFlowReportNetInfo(FlowReportNetInfo tunnelCompactInfo)
-        {
-            this.info = tunnelCompactInfo;
-        }
-    }
     public class FlowReportNetInfoFormatter : MemoryPackFormatter<FlowReportNetInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref FlowReportNetInfo value)
@@ -103,7 +46,11 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableFlowReportNetInfo(value));
+            writer.WriteObjectHeader(4);
+            writer.WriteValue(value.City);
+            writer.WriteValue(value.Lat);
+            writer.WriteValue(value.Lon);
+            writer.WriteValue(value.Count);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref FlowReportNetInfo value)
@@ -124,34 +71,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-    [MemoryPackable]
-    public readonly partial struct SerializableFlowInfo
-    {
-        [MemoryPackIgnore]
-        public readonly FlowInfo info;
-
-        [MemoryPackInclude]
-        Dictionary<string, FlowItemInfo> Items => info.Items;
-
-        [MemoryPackInclude]
-        DateTime Start => info.Start;
-
-        [MemoryPackInclude]
-        DateTime Now => info.Now;
-
-        [MemoryPackConstructor]
-        SerializableFlowInfo(Dictionary<string, FlowItemInfo> items, DateTime start, DateTime now)
-        {
-            var info = new FlowInfo { Items = items, Now = now, Start = start };
-            this.info = info;
-        }
-
-        public SerializableFlowInfo(FlowInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class FlowInfoFormatter : MemoryPackFormatter<FlowInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref FlowInfo value)
@@ -162,7 +81,10 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableFlowInfo(value));
+            writer.WriteObjectHeader(3);
+            writer.WriteValue(value.Items);
+            writer.WriteValue(value.Start);
+            writer.WriteValue(value.Now);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref FlowInfo value)
@@ -182,52 +104,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-
-    [MemoryPackable]
-    public readonly partial struct SerializableRelayFlowItemInfo
-    {
-        [MemoryPackIgnore]
-        public readonly RelayFlowItemInfo info;
-
-        [MemoryPackInclude]
-        long ReceiveBytes => info.ReceiveBytes;
-
-        [MemoryPackInclude]
-        long SendtBytes => info.SendtBytes;
-
-        [MemoryPackInclude]
-        long DiffReceiveBytes => info.DiffReceiveBytes;
-
-        [MemoryPackInclude]
-        long DiffSendtBytes => info.DiffSendtBytes;
-
-        [MemoryPackInclude]
-        string FromName => info.FromName;
-
-        [MemoryPackInclude]
-        string ToName => info.ToName;
-
-        [MemoryPackConstructor]
-        SerializableRelayFlowItemInfo(long receiveBytes, long sendtBytes, long diffReceiveBytes, long diffSendtBytes, string fromName, string toName)
-        {
-            var info = new RelayFlowItemInfo
-            {
-                ReceiveBytes = receiveBytes,
-                SendtBytes = sendtBytes,
-                DiffReceiveBytes = diffReceiveBytes,
-                DiffSendtBytes = diffSendtBytes,
-                FromName = fromName,
-                ToName = toName
-            };
-            this.info = info;
-        }
-
-        public SerializableRelayFlowItemInfo(RelayFlowItemInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class RelayFlowItemInfoFormatter : MemoryPackFormatter<RelayFlowItemInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref RelayFlowItemInfo value)
@@ -238,7 +114,13 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableRelayFlowItemInfo(value));
+            writer.WriteObjectHeader(6);
+            writer.WriteValue(value.ReceiveBytes);
+            writer.WriteValue(value.SendtBytes);
+            writer.WriteValue(value.DiffReceiveBytes);
+            writer.WriteValue(value.DiffSendtBytes);
+            writer.WriteValue(value.FromName);
+            writer.WriteValue(value.ToName);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref RelayFlowItemInfo value)
@@ -261,52 +143,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-
-    [MemoryPackable]
-    public readonly partial struct SerializableRelayFlowRequestInfo
-    {
-        [MemoryPackIgnore]
-        public readonly RelayFlowRequestInfo info;
-
-        [MemoryPackInclude]
-        string Key => info.Key;
-
-        [MemoryPackInclude]
-        string SecretKey => info.SecretKey;
-
-        [MemoryPackInclude]
-        int Page => info.Page;
-
-        [MemoryPackInclude]
-        int PageSize => info.PageSize;
-
-        [MemoryPackInclude]
-        RelayFlowOrder Order => info.Order;
-
-        [MemoryPackInclude]
-        RelayFlowOrderType OrderType => info.OrderType;
-
-        [MemoryPackConstructor]
-        SerializableRelayFlowRequestInfo(string key, string secretKey, int page, int pageSize, RelayFlowOrder order, RelayFlowOrderType orderType)
-        {
-            var info = new RelayFlowRequestInfo
-            {
-                Key = key,
-                Order = order,
-                OrderType = orderType,
-                Page = page,
-                PageSize = pageSize,
-                SecretKey = secretKey
-            };
-            this.info = info;
-        }
-
-        public SerializableRelayFlowRequestInfo(RelayFlowRequestInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class RelayFlowRequestInfoFormatter : MemoryPackFormatter<RelayFlowRequestInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref RelayFlowRequestInfo value)
@@ -317,7 +153,13 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableRelayFlowRequestInfo(value));
+            writer.WriteObjectHeader(6);
+            writer.WriteValue(value.Key);
+            writer.WriteValue(value.SecretKey);
+            writer.WriteValue(value.Page);
+            writer.WriteValue(value.PageSize);
+            writer.WriteValue(value.Order);
+            writer.WriteValue(value.OrderType);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref RelayFlowRequestInfo value)
@@ -340,44 +182,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-
-    [MemoryPackable]
-    public readonly partial struct SerializableRelayFlowResponseInfo
-    {
-        [MemoryPackIgnore]
-        public readonly RelayFlowResponseInfo info;
-
-        [MemoryPackInclude]
-        int Page => info.Page;
-
-        [MemoryPackInclude]
-        int PageSize => info.PageSize;
-
-        [MemoryPackInclude]
-        int Count => info.Count;
-
-        [MemoryPackInclude]
-        List<RelayFlowItemInfo> Data => info.Data;
-
-        [MemoryPackConstructor]
-        SerializableRelayFlowResponseInfo(int page, int pageSize, int count, List<RelayFlowItemInfo> data)
-        {
-            var info = new RelayFlowResponseInfo
-            {
-                Page = page,
-                PageSize = pageSize,
-                Count = count,
-                Data = data
-            };
-            this.info = info;
-        }
-
-        public SerializableRelayFlowResponseInfo(RelayFlowResponseInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class RelayFlowResponseInfoFormatter : MemoryPackFormatter<RelayFlowResponseInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref RelayFlowResponseInfo value)
@@ -388,7 +192,11 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableRelayFlowResponseInfo(value));
+            writer.WriteObjectHeader(4);
+            writer.WriteValue(value.Page);
+            writer.WriteValue(value.PageSize);
+            writer.WriteValue(value.Count);
+            writer.WriteValue(value.Data);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref RelayFlowResponseInfo value)
@@ -409,50 +217,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-
-
-    [MemoryPackable]
-    public readonly partial struct SerializableReverseFlowItemInfo
-    {
-        [MemoryPackIgnore]
-        public readonly ReverseFlowItemInfo info;
-
-        [MemoryPackInclude]
-        long ReceiveBytes => info.ReceiveBytes;
-
-        [MemoryPackInclude]
-        long SendtBytes => info.SendtBytes;
-
-        [MemoryPackInclude]
-        long DiffReceiveBytes => info.DiffReceiveBytes;
-
-        [MemoryPackInclude]
-        long DiffSendtBytes => info.DiffSendtBytes;
-
-        [MemoryPackInclude]
-        string Key => info.Key;
-
-        [MemoryPackConstructor]
-        SerializableReverseFlowItemInfo(long receiveBytes, long sendtBytes, long diffReceiveBytes, long diffSendtBytes, string key)
-        {
-            var info = new ReverseFlowItemInfo
-            {
-                ReceiveBytes = receiveBytes,
-                SendtBytes = sendtBytes,
-
-                DiffReceiveBytes = diffReceiveBytes,
-                DiffSendtBytes = diffSendtBytes,
-                Key = key
-            };
-            this.info = info;
-        }
-
-        public SerializableReverseFlowItemInfo(ReverseFlowItemInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class ReverseFlowItemInfoFormatter : MemoryPackFormatter<ReverseFlowItemInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ReverseFlowItemInfo value)
@@ -463,7 +227,12 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableReverseFlowItemInfo(value));
+            writer.WriteObjectHeader(5);
+            writer.WriteValue(value.ReceiveBytes);
+            writer.WriteValue(value.SendtBytes);
+            writer.WriteValue(value.DiffReceiveBytes);
+            writer.WriteValue(value.DiffSendtBytes);
+            writer.WriteValue(value.Key);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ReverseFlowItemInfo value)
@@ -485,50 +254,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-    [MemoryPackable]
-    public readonly partial struct SerializableReverseFlowRequestInfo
-    {
-        [MemoryPackIgnore]
-        public readonly ReverseFlowRequestInfo info;
-
-        [MemoryPackInclude]
-        string Key => info.Key;
-
-        [MemoryPackInclude]
-        string MachineId => info.MachineId;
-
-        [MemoryPackInclude]
-        int Page => info.Page;
-
-        [MemoryPackInclude]
-        int PageSize => info.PageSize;
-
-        [MemoryPackInclude]
-        ReverseFlowOrder Order => info.Order;
-
-        [MemoryPackInclude]
-        ReverseFlowOrderType OrderType => info.OrderType;
-
-        [MemoryPackConstructor]
-        SerializableReverseFlowRequestInfo(string key, string machineId, int page, int pageSize, ReverseFlowOrder order, ReverseFlowOrderType orderType)
-        {
-            var info = new ReverseFlowRequestInfo
-            {
-                Key = key,
-                Order = order,
-                OrderType = orderType,
-                Page = page,
-                PageSize = pageSize,
-                MachineId = machineId
-            };
-            this.info = info;
-        }
-
-        public SerializableReverseFlowRequestInfo(ReverseFlowRequestInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class ReverseFlowRequestInfoFormatter : MemoryPackFormatter<ReverseFlowRequestInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ReverseFlowRequestInfo value)
@@ -539,7 +264,13 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableReverseFlowRequestInfo(value));
+            writer.WriteObjectHeader(6);
+            writer.WriteValue(value.Key);
+            writer.WriteValue(value.MachineId);
+            writer.WriteValue(value.Page);
+            writer.WriteValue(value.PageSize);
+            writer.WriteValue(value.Order);
+            writer.WriteValue(value.OrderType);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ReverseFlowRequestInfo value)
@@ -562,42 +293,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-    [MemoryPackable]
-    public readonly partial struct SerializableReverseFlowResponseInfo
-    {
-        [MemoryPackIgnore]
-        public readonly ReverseFlowResponseInfo info;
-
-        [MemoryPackInclude]
-        int Page => info.Page;
-
-        [MemoryPackInclude]
-        int PageSize => info.PageSize;
-
-        [MemoryPackInclude]
-        int Count => info.Count;
-
-        [MemoryPackInclude]
-        List<ReverseFlowItemInfo> Data => info.Data;
-
-        [MemoryPackConstructor]
-        SerializableReverseFlowResponseInfo(int page, int pageSize, int count, List<ReverseFlowItemInfo> data)
-        {
-            var info = new ReverseFlowResponseInfo
-            {
-                Page = page,
-                PageSize = pageSize,
-                Count = count,
-                Data = data
-            };
-            this.info = info;
-        }
-
-        public SerializableReverseFlowResponseInfo(ReverseFlowResponseInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class ReverseFlowResponseInfoFormatter : MemoryPackFormatter<ReverseFlowResponseInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ReverseFlowResponseInfo value)
@@ -608,7 +303,11 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableReverseFlowResponseInfo(value));
+            writer.WriteObjectHeader(4);
+            writer.WriteValue(value.Page);
+            writer.WriteValue(value.PageSize);
+            writer.WriteValue(value.Count);
+            writer.WriteValue(value.Data);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ReverseFlowResponseInfo value)
@@ -629,53 +328,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-
-    [MemoryPackable]
-    public readonly partial struct SerializableForwardFlowItemInfo
-    {
-        [MemoryPackIgnore]
-        public readonly ForwardFlowItemInfo info;
-
-        [MemoryPackInclude]
-        long ReceiveBytes => info.ReceiveBytes;
-
-        [MemoryPackInclude]
-        long SendtBytes => info.SendtBytes;
-
-        [MemoryPackInclude]
-        long DiffReceiveBytes => info.DiffReceiveBytes;
-
-        [MemoryPackInclude]
-        long DiffSendtBytes => info.DiffSendtBytes;
-
-
-        [MemoryPackInclude]
-        string Key => info.Key;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        IPEndPoint Target => info.Target;
-
-        [MemoryPackConstructor]
-        SerializableForwardFlowItemInfo(long receiveBytes, long sendtBytes, long diffReceiveBytes, long diffSendtBytes, string key, IPEndPoint target)
-        {
-            var info = new ForwardFlowItemInfo
-            {
-                ReceiveBytes = receiveBytes,
-                SendtBytes = sendtBytes,
-                DiffReceiveBytes = diffReceiveBytes,
-                DiffSendtBytes = diffSendtBytes,
-                Key = key,
-                Target = target
-            };
-            this.info = info;
-        }
-
-        public SerializableForwardFlowItemInfo(ForwardFlowItemInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class ForwardFlowItemInfoFormatter : MemoryPackFormatter<ForwardFlowItemInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ForwardFlowItemInfo value)
@@ -686,7 +338,13 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableForwardFlowItemInfo(value));
+            writer.WriteObjectHeader(6);
+            writer.WriteValue(value.ReceiveBytes);
+            writer.WriteValue(value.SendtBytes);
+            writer.WriteValue(value.DiffReceiveBytes);
+            writer.WriteValue(value.DiffSendtBytes);
+            writer.WriteValue(value.Key);
+            writer.WriteValue(value.Target);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ForwardFlowItemInfo value)
@@ -710,46 +368,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-    [MemoryPackable]
-    public readonly partial struct SerializableForwardFlowRequestInfo
-    {
-        [MemoryPackIgnore]
-        public readonly ForwardFlowRequestInfo info;
-
-        [MemoryPackInclude]
-        string MachineId => info.MachineId;
-
-        [MemoryPackInclude]
-        int Page => info.Page;
-
-        [MemoryPackInclude]
-        int PageSize => info.PageSize;
-
-        [MemoryPackInclude]
-        ForwardFlowOrder Order => info.Order;
-
-        [MemoryPackInclude]
-        ForwardFlowOrderType OrderType => info.OrderType;
-
-        [MemoryPackConstructor]
-        SerializableForwardFlowRequestInfo(string machineId, int page, int pageSize, ForwardFlowOrder order, ForwardFlowOrderType orderType)
-        {
-            var info = new ForwardFlowRequestInfo
-            {
-                MachineId = machineId,
-                Order = order,
-                OrderType = orderType,
-                Page = page,
-                PageSize = pageSize
-            };
-            this.info = info;
-        }
-
-        public SerializableForwardFlowRequestInfo(ForwardFlowRequestInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class ForwardFlowRequestInfoFormatter : MemoryPackFormatter<ForwardFlowRequestInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ForwardFlowRequestInfo value)
@@ -760,7 +378,12 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableForwardFlowRequestInfo(value));
+            writer.WriteObjectHeader(5);
+            writer.WriteValue(value.MachineId);
+            writer.WriteValue(value.Page);
+            writer.WriteValue(value.PageSize);
+            writer.WriteValue(value.Order);
+            writer.WriteValue(value.OrderType);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ForwardFlowRequestInfo value)
@@ -782,42 +405,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-    [MemoryPackable]
-    public readonly partial struct SerializableForwardFlowResponseInfo
-    {
-        [MemoryPackIgnore]
-        public readonly ForwardFlowResponseInfo info;
-
-        [MemoryPackInclude]
-        int Page => info.Page;
-
-        [MemoryPackInclude]
-        int PageSize => info.PageSize;
-
-        [MemoryPackInclude]
-        int Count => info.Count;
-
-        [MemoryPackInclude]
-        List<ForwardFlowItemInfo> Data => info.Data;
-
-        [MemoryPackConstructor]
-        SerializableForwardFlowResponseInfo(int page, int pageSize, int count, List<ForwardFlowItemInfo> data)
-        {
-            var info = new ForwardFlowResponseInfo
-            {
-                Page = page,
-                PageSize = pageSize,
-                Count = count,
-                Data = data
-            };
-            this.info = info;
-        }
-
-        public SerializableForwardFlowResponseInfo(ForwardFlowResponseInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class ForwardFlowResponseInfoFormatter : MemoryPackFormatter<ForwardFlowResponseInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ForwardFlowResponseInfo value)
@@ -828,7 +415,11 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableForwardFlowResponseInfo(value));
+            writer.WriteObjectHeader(4);
+            writer.WriteValue(value.Page);
+            writer.WriteValue(value.PageSize);
+            writer.WriteValue(value.Count);
+            writer.WriteValue(value.Data);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ForwardFlowResponseInfo value)
@@ -849,54 +440,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-
-
-    [MemoryPackable]
-    public readonly partial struct SerializableSocks5FlowItemInfo
-    {
-        [MemoryPackIgnore]
-        public readonly Socks5FlowItemInfo info;
-
-        [MemoryPackInclude]
-        long ReceiveBytes => info.ReceiveBytes;
-
-        [MemoryPackInclude]
-        long SendtBytes => info.SendtBytes;
-
-        [MemoryPackInclude]
-        long DiffReceiveBytes => info.DiffReceiveBytes;
-
-        [MemoryPackInclude]
-        long DiffSendtBytes => info.DiffSendtBytes;
-
-
-        [MemoryPackInclude]
-        string Key => info.Key;
-
-        [MemoryPackInclude, MemoryPackAllowSerialize]
-        IPEndPoint Target => info.Target;
-
-        [MemoryPackConstructor]
-        SerializableSocks5FlowItemInfo(long receiveBytes, long sendtBytes, long diffReceiveBytes, long diffSendtBytes, string key, IPEndPoint target)
-        {
-            var info = new Socks5FlowItemInfo
-            {
-                ReceiveBytes = receiveBytes,
-                SendtBytes = sendtBytes,
-                DiffReceiveBytes = diffReceiveBytes,
-                DiffSendtBytes = diffSendtBytes,
-                Key = key,
-                Target = target
-            };
-            this.info = info;
-        }
-
-        public SerializableSocks5FlowItemInfo(Socks5FlowItemInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class Socks5FlowItemInfoFormatter : MemoryPackFormatter<Socks5FlowItemInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Socks5FlowItemInfo value)
@@ -907,7 +450,13 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableSocks5FlowItemInfo(value));
+            writer.WriteObjectHeader(6);
+            writer.WriteValue(value.ReceiveBytes);
+            writer.WriteValue(value.SendtBytes);
+            writer.WriteValue(value.DiffReceiveBytes);
+            writer.WriteValue(value.DiffSendtBytes);
+            writer.WriteValue(value.Key);
+            writer.WriteValue(value.Target);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref Socks5FlowItemInfo value)
@@ -931,46 +480,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-    [MemoryPackable]
-    public readonly partial struct SerializableSocks5FlowRequestInfo
-    {
-        [MemoryPackIgnore]
-        public readonly Socks5FlowRequestInfo info;
-
-        [MemoryPackInclude]
-        string MachineId => info.MachineId;
-
-        [MemoryPackInclude]
-        int Page => info.Page;
-
-        [MemoryPackInclude]
-        int PageSize => info.PageSize;
-
-        [MemoryPackInclude]
-        Socks5FlowOrder Order => info.Order;
-
-        [MemoryPackInclude]
-        Socks5FlowOrderType OrderType => info.OrderType;
-
-        [MemoryPackConstructor]
-        SerializableSocks5FlowRequestInfo(string machineId, int page, int pageSize, Socks5FlowOrder order, Socks5FlowOrderType orderType)
-        {
-            var info = new Socks5FlowRequestInfo
-            {
-                MachineId = machineId,
-                Order = order,
-                OrderType = orderType,
-                Page = page,
-                PageSize = pageSize
-            };
-            this.info = info;
-        }
-
-        public SerializableSocks5FlowRequestInfo(Socks5FlowRequestInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class Socks5FlowRequestInfoFormatter : MemoryPackFormatter<Socks5FlowRequestInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Socks5FlowRequestInfo value)
@@ -981,7 +490,12 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableSocks5FlowRequestInfo(value));
+            writer.WriteObjectHeader(5);
+            writer.WriteValue(value.MachineId);
+            writer.WriteValue(value.Page);
+            writer.WriteValue(value.PageSize);
+            writer.WriteValue(value.Order);
+            writer.WriteValue(value.OrderType);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref Socks5FlowRequestInfo value)
@@ -1003,42 +517,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-    [MemoryPackable]
-    public readonly partial struct SerializableSocks5FlowResponseInfo
-    {
-        [MemoryPackIgnore]
-        public readonly Socks5FlowResponseInfo info;
-
-        [MemoryPackInclude]
-        int Page => info.Page;
-
-        [MemoryPackInclude]
-        int PageSize => info.PageSize;
-
-        [MemoryPackInclude]
-        int Count => info.Count;
-
-        [MemoryPackInclude]
-        List<Socks5FlowItemInfo> Data => info.Data;
-
-        [MemoryPackConstructor]
-        SerializableSocks5FlowResponseInfo(int page, int pageSize, int count, List<Socks5FlowItemInfo> data)
-        {
-            var info = new Socks5FlowResponseInfo
-            {
-                Page = page,
-                PageSize = pageSize,
-                Count = count,
-                Data = data
-            };
-            this.info = info;
-        }
-
-        public SerializableSocks5FlowResponseInfo(Socks5FlowResponseInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class Socks5FlowResponseInfoFormatter : MemoryPackFormatter<Socks5FlowResponseInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref Socks5FlowResponseInfo value)
@@ -1049,7 +527,11 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableSocks5FlowResponseInfo(value));
+            writer.WriteObjectHeader(4);
+            writer.WriteValue(value.Page);
+            writer.WriteValue(value.PageSize);
+            writer.WriteValue(value.Count);
+            writer.WriteValue(value.Data);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref Socks5FlowResponseInfo value)
@@ -1070,55 +552,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-
-
-    [MemoryPackable]
-    public readonly partial struct SerializableTunnelFlowItemInfo
-    {
-        [MemoryPackIgnore]
-        public readonly TunnelFlowItemInfo info;
-
-        [MemoryPackInclude]
-        long ReceiveBytes => info.ReceiveBytes;
-
-        [MemoryPackInclude]
-        long SendtBytes => info.SendtBytes;
-
-
-        [MemoryPackInclude]
-        string Key => info.Key;
-
-        [MemoryPackInclude]
-        string TransitionId => info.TransitionId;
-
-        [MemoryPackInclude]
-        TunnelDirection Direction => info.Direction;
-        [MemoryPackInclude]
-        TunnelType Type => info.Type;
-        [MemoryPackInclude]
-        TunnelMode Mode => info.Mode;
-
-        [MemoryPackConstructor]
-        SerializableTunnelFlowItemInfo(long receiveBytes, long sendtBytes, string key, string transitionId, TunnelDirection direction, TunnelType type, TunnelMode mode)
-        {
-            var info = new TunnelFlowItemInfo
-            {
-                ReceiveBytes = receiveBytes,
-                SendtBytes = sendtBytes,
-                Key = key,
-                TransitionId = transitionId,
-                Direction = direction,
-                Type = type,
-                Mode = mode
-            };
-            this.info = info;
-        }
-
-        public SerializableTunnelFlowItemInfo(TunnelFlowItemInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class TunnelFlowItemInfoFormatter : MemoryPackFormatter<TunnelFlowItemInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TunnelFlowItemInfo value)
@@ -1129,7 +562,14 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableTunnelFlowItemInfo(value));
+            writer.WriteObjectHeader(7);
+            writer.WriteValue(value.ReceiveBytes);
+            writer.WriteValue(value.SendtBytes);
+            writer.WriteValue(value.Key);
+            writer.WriteValue(value.TransitionId);
+            writer.WriteValue(value.Direction);
+            writer.WriteValue(value.Type);
+            writer.WriteValue(value.Mode);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref TunnelFlowItemInfo value)
@@ -1153,46 +593,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-    [MemoryPackable]
-    public readonly partial struct SerializableTunnelFlowRequestInfo
-    {
-        [MemoryPackIgnore]
-        public readonly TunnelFlowRequestInfo info;
-
-        [MemoryPackInclude]
-        string MachineId => info.MachineId;
-
-        [MemoryPackInclude]
-        int Page => info.Page;
-
-        [MemoryPackInclude]
-        int PageSize => info.PageSize;
-
-        [MemoryPackInclude]
-        TunnelFlowOrder Order => info.Order;
-
-        [MemoryPackInclude]
-        TunnelFlowOrderType OrderType => info.OrderType;
-
-        [MemoryPackConstructor]
-        SerializableTunnelFlowRequestInfo(string machineId, int page, int pageSize, TunnelFlowOrder order, TunnelFlowOrderType orderType)
-        {
-            var info = new TunnelFlowRequestInfo
-            {
-                MachineId = machineId,
-                Order = order,
-                OrderType = orderType,
-                Page = page,
-                PageSize = pageSize
-            };
-            this.info = info;
-        }
-
-        public SerializableTunnelFlowRequestInfo(TunnelFlowRequestInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class TunnelFlowRequestInfoFormatter : MemoryPackFormatter<TunnelFlowRequestInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TunnelFlowRequestInfo value)
@@ -1203,7 +603,12 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableTunnelFlowRequestInfo(value));
+            writer.WriteObjectHeader(5);
+            writer.WriteValue(value.MachineId);
+            writer.WriteValue(value.Page);
+            writer.WriteValue(value.PageSize);
+            writer.WriteValue(value.Order);
+            writer.WriteValue(value.OrderType);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref TunnelFlowRequestInfo value)
@@ -1225,42 +630,6 @@ namespace linker.messenger.serializer.memorypack
         }
     }
 
-    [MemoryPackable]
-    public readonly partial struct SerializableTunnelFlowResponseInfo
-    {
-        [MemoryPackIgnore]
-        public readonly TunnelFlowResponseInfo info;
-
-        [MemoryPackInclude]
-        int Page => info.Page;
-
-        [MemoryPackInclude]
-        int PageSize => info.PageSize;
-
-        [MemoryPackInclude]
-        int Count => info.Count;
-
-        [MemoryPackInclude]
-        List<TunnelFlowItemInfo> Data => info.Data;
-
-        [MemoryPackConstructor]
-        SerializableTunnelFlowResponseInfo(int page, int pageSize, int count, List<TunnelFlowItemInfo> data)
-        {
-            var info = new TunnelFlowResponseInfo
-            {
-                Page = page,
-                PageSize = pageSize,
-                Count = count,
-                Data = data
-            };
-            this.info = info;
-        }
-
-        public SerializableTunnelFlowResponseInfo(TunnelFlowResponseInfo info)
-        {
-            this.info = info;
-        }
-    }
     public class TunnelFlowResponseInfoFormatter : MemoryPackFormatter<TunnelFlowResponseInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref TunnelFlowResponseInfo value)
@@ -1271,7 +640,11 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WritePackable(new SerializableTunnelFlowResponseInfo(value));
+            writer.WriteObjectHeader(4);
+            writer.WriteValue(value.Page);
+            writer.WriteValue(value.PageSize);
+            writer.WriteValue(value.Count);
+            writer.WriteValue(value.Data);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref TunnelFlowResponseInfo value)

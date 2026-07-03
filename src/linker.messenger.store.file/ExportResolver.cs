@@ -91,7 +91,6 @@ namespace linker.messenger.store.file
             return string.Empty;
         }
 
-
         public async Task Resolve(Socket socket, Memory<byte> memory)
         {
             using CancellationTokenSource cts = new CancellationTokenSource(3000);
