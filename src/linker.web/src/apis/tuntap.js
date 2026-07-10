@@ -48,3 +48,6 @@ export const getid = (machineid) => {
 export const setid = (data) => {
     return sendWebsocketMsg('tuntap/setid', data);
 }
+export const getDiscoverys = () => {
+    return sendWebsocketMsg('tuntap/Discoverys');
+}

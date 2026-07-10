@@ -8,6 +8,7 @@ using linker.tunnel.connection;
 using linker.tunnel.transport;
 using linker.upnp;
 using System.Collections.Concurrent;
+using System.Net;
 using System.Net.Sockets;
 
 namespace linker.messenger.tunnel.client
@@ -294,6 +295,27 @@ namespace linker.messenger.tunnel.client
                 }
             }
             return new TunnelLocalNetworkInfo();
+        }
+
+        public async Task<IPAddress[]> BindIPs(ApiControllerParamsInfo param)
+        {
+            if (param.Content == signInClientStore.Id || string.IsNullOrWhiteSpace(param.Content))
+            {
+                return NetworkHelper.GetIPV4();
+            }
+
+            MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
+            {
+                Connection = signInClientState.Connection,
+                MessengerId = (ushort)TunnelMessengerIds.BindIpsForward,
+                Payload = serializer.Serialize(param.Content)
+            }).ConfigureAwait(false);
+            if (resp.Code == MessageResponeCodes.OK && resp.Data.Length > 0)
+            {
+                return serializer.Deserialize<IPAddress[]>(resp.Data.Span);
+            }
+
+            return [];
         }
 
         public sealed class TunnelOperatingInfo

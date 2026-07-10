@@ -37,6 +37,9 @@
         UpnpDel = 2025,
         UpnpDelForward = 2026,
 
+        BindIpsForward = 2027,
+        BindIps = 2028,
+
         None = 2099
     }
 }

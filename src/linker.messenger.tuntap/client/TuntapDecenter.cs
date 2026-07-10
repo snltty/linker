@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using linker.messenger.signin;
 using System.Net;
 using linker.libs.timer;
+using linker.libs.extends;
 
 namespace linker.messenger.tuntap.client
 {
@@ -59,7 +60,6 @@ namespace linker.messenger.tuntap.client
             {
                 tuntapConfigTransfer.Info.Switch &= ~TuntapSwitch.AppNat;
             }
-
             return serializer.Serialize(new TuntapInfo
             {
                 IP = tuntapConfigTransfer.Info.IP,
@@ -80,6 +80,7 @@ namespace linker.messenger.tuntap.client
                 MssFix = tuntapConfigTransfer.Info.MssFix,
                 VlsmStatus = tuntapConfigTransfer.Info.VlsmStatus,
                 FecProfile = tuntapConfigTransfer.Info.FecProfile,
+                Discoverys = tuntapConfigTransfer.Info.Discoverys
             });
         }
         public void AddData(Memory<byte> data)

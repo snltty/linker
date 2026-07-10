@@ -55,5 +55,12 @@
     "tuntap.show.snat":"系统NAT",
     "tuntap.show.disabled":"已禁用",
     "tuntap.show.normal":"正常",
-    "tuntap.lease":"配置网络"
+    "tuntap.lease":"配置网络",
+
+    "tuntap.discovery":"发现服务代理",
+    "tuntap.discovery.name":"协议名",
+    "tuntap.discovery.addr":"服务地址",
+    "tuntap.discovery.disabled":"禁用",
+    "tuntap.discovery.lanips":"物理网卡",
+    "tuntap.discovery.remark":"备注"
 }

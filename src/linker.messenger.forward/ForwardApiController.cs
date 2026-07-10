@@ -26,17 +26,6 @@ namespace linker.messenger.forward
             this.serializer = serializer;
         }
 
-
-        /// <summary>
-        /// 获取绑定IP列表
-        /// </summary>
-        /// <param name="param"></param>
-        /// <returns></returns>
-        public IPAddress[] BindIPs(ApiControllerParamsInfo param)
-        {
-            return NetworkHelper.GetIPV4();
-        }
-
         /// <summary>
         /// 获取列表
         /// </summary>

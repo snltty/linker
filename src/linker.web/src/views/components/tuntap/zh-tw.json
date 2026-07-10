@@ -55,5 +55,12 @@
     "tuntap.show.snat": "系統NAT",
     "tuntap.show.disabled": "已禁用",
     "tuntap.show.normal": "正常",
-    "tuntap.lease": "配置網路"
+    "tuntap.lease": "配置網路",
+
+    "tuntap.discovery":"發現服務代理",
+    "tuntap.discovery.name":"協議名",
+    "tuntap.discovery.addr":"服務地址",
+    "tuntap.discovery.disabled":"停用",
+    "tuntap.discovery.lanips":"實體網路卡",
+    "tuntap.discovery.remark":"備註"
 }

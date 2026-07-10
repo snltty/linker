@@ -43,7 +43,7 @@ namespace linker.messenger.tunnel
             _ = tunnel.OnBegin(tunnelTransportInfo);
             connection.Write(Helper.TrueArray);
         }
-        
+
         [MessengerId((ushort)TunnelMessengerIds.Info)]
         public void Info(IConnection connection)
         {
@@ -153,6 +153,13 @@ namespace linker.messenger.tunnel
         {
             KeyValuePair<string, KeyValuePair<int, ProtocolType>> info = serializer.Deserialize<KeyValuePair<string, KeyValuePair<int, ProtocolType>>>(connection.ReceiveRequestWrap.Payload.Span);
             _ = tunnelNetworkTransfer.DelMapping(info.Value.Key, info.Value.Value).ConfigureAwait(false);
+        }
+
+
+        [MessengerId((ushort)TunnelMessengerIds.BindIps)]
+        public void BindIps(IConnection connection)
+        {
+            connection.Write(serializer.Serialize(NetworkHelper.GetIPV4()));
         }
     }
 
@@ -453,6 +460,34 @@ namespace linker.messenger.tunnel
                         Payload = Helper.TrueArray,
                         RequestId = requestid,
                     }, (ushort)TunnelMessengerIds.UpnpDelForward).ConfigureAwait(false);
+                });
+            }
+        }
+
+
+
+        [MessengerId((ushort)TunnelMessengerIds.BindIpsForward)]
+        public void BindIpsForward(IConnection connection)
+        {
+            string machineid = serializer.Deserialize<string>(connection.ReceiveRequestWrap.Payload.Span);
+            if (signCaching.TryGet(connection.Id, machineid, out SignCacheInfo from, out SignCacheInfo to))
+            {
+                uint requestid = connection.ReceiveRequestWrap.RequestId;
+                _ = messengerSender.SendReply(new MessageRequestWrap
+                {
+                    Connection = to.Connection,
+                    MessengerId = (ushort)TunnelMessengerIds.BindIps,
+                }).ContinueWith(async (result) =>
+                {
+                    if (result.Result.Code == MessageResponeCodes.OK && result.Result.Data.Length > 0)
+                    {
+                        await messengerSender.ReplyOnly(new MessageResponseWrap
+                        {
+                            Connection = connection,
+                            Payload = result.Result.Data,
+                            RequestId = requestid,
+                        }, (ushort)TunnelMessengerIds.BindIpsForward).ConfigureAwait(false);
+                    }
                 });
             }
         }

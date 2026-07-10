@@ -138,13 +138,14 @@
 </template>
 <script>
 import {  onMounted,onUnmounted,reactive, watch } from 'vue';
-import { getForwardInfo, removeForwardInfo, addForwardInfo ,getForwardIpv4,testTargetForwardInfo } from '@/apis/forward'
+import { getForwardInfo, removeForwardInfo, addForwardInfo,testTargetForwardInfo } from '@/apis/forward'
 import { ElMessage } from 'element-plus';
 import {Delete} from '@element-plus/icons-vue'
 import { injectGlobalData } from '@/provide';
 import { useForward } from './forward';
 import { getSignInIds,getSignInNames } from '@/apis/signin';
 import { useI18n } from 'vue-i18n';
+import { getBindIpv4 } from '@/apis/tunnel';
 export default {
     props: ['data','modelValue'],
     emits: ['update:modelValue'],
@@ -192,7 +193,7 @@ export default {
         }
 
         const _getForwardIpv4 = ()=>{
-            getForwardIpv4().then((res)=>{
+            getBindIpv4(forward.value.machineId).then((res)=>{
                 res.splice(0,0,'127.0.0.1');
                 res.splice(0,0,'0.0.0.0');
                 state.ips = res;

@@ -55,5 +55,12 @@
     "tuntap.show.snat": "System NAT",
     "tuntap.show.disabled": "Disabled",
     "tuntap.show.normal": "Normal",
-    "tuntap.lease": "Lease configure"
+    "tuntap.lease": "Lease configure",
+
+    "tuntap.discovery":"Discovery proxy",
+    "tuntap.discovery.name":"Name",
+    "tuntap.discovery.addr":"Addr",
+    "tuntap.discovery.disabled":"Disabled",
+    "tuntap.discovery.lanips":"Lan",
+    "tuntap.discovery.remark":"Remark"
 }

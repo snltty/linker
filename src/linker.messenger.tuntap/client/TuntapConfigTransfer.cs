@@ -86,6 +86,7 @@ namespace linker.messenger.tuntap.client
                 Info.MssFix = info.MssFix;
                 Info.VlsmStatus = info.VlsmStatus;
                 Info.FecProfile = info.FecProfile;
+                Info.Discoverys = info.Discoverys;
                 tuntapStore.Confirm();
 
                 await LeaseIP().ConfigureAwait(false);

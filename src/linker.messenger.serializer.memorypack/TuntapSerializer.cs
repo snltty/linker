@@ -87,7 +87,7 @@ namespace linker.messenger.serializer.memorypack
                 return;
             }
 
-            writer.WriteObjectHeader(17);
+            writer.WriteObjectHeader(18);
             writer.WriteValue(value.MachineId);
             writer.WriteValue(value.Status);
             writer.WriteValue(value.IP);
@@ -105,6 +105,7 @@ namespace linker.messenger.serializer.memorypack
             writer.WriteValue(value.MssFix);
             writer.WriteValue(value.VlsmStatus);
             writer.WriteValue(value.FecProfile);
+            writer.WriteValue(value.Discoverys);
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref TuntapInfo value)
@@ -145,6 +146,9 @@ namespace linker.messenger.serializer.memorypack
 
             if (count > 16)
                 value.FecProfile = reader.ReadValue<List<TuntapFecProfileInfo>>();
+
+            if (count > 17)
+                value.Discoverys = reader.ReadValue<List<DiscoveryProtocolSaveInfo>>();
         }
     }
 
@@ -414,6 +418,40 @@ namespace linker.messenger.serializer.memorypack
             value = new TuntapFecProfileInfo();
             value.SourceSymbols = reader.ReadValue<int>();
             value.RepairSymbols = reader.ReadValue<int>();
+
+        }
+    }
+
+    public class DiscoveryProtocolSaveInfoFormatter : MemoryPackFormatter<DiscoveryProtocolSaveInfo>
+    {
+        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref DiscoveryProtocolSaveInfo value)
+        {
+            if (value == null)
+            {
+                writer.WriteNullObjectHeader();
+                return;
+            }
+
+            writer.WriteObjectHeader(3);
+            writer.WriteValue(value.Name);
+            writer.WriteValue(value.Disabled);
+            writer.WriteValue(value.LanIps);
+        }
+
+        public override void Deserialize(ref MemoryPackReader reader, scoped ref DiscoveryProtocolSaveInfo value)
+        {
+            if (reader.PeekIsNull())
+            {
+                reader.Advance(1); // skip null block
+                value = null;
+                return;
+            }
+
+            reader.TryReadObjectHeader(out byte count);
+            value = new DiscoveryProtocolSaveInfo();
+            value.Name = reader.ReadValue<string>();
+            value.Disabled = reader.ReadValue<bool>();
+            value.LanIps = reader.ReadValue<List<IPAddress>>();
 
         }
     }

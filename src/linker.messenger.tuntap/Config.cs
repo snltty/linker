@@ -1,4 +1,5 @@
-﻿using linker.libs.extends;
+﻿using linker.discovery;
+using linker.libs.extends;
 using System.Net;
 
 namespace linker.messenger.tuntap
@@ -6,49 +7,24 @@ namespace linker.messenger.tuntap
     public sealed partial class TuntapConfigInfo
     {
         public TuntapConfigInfo() { }
-        /// <summary>
-        /// 网卡IP
-        /// </summary>
         public IPAddress IP { get; set; } = IPAddress.Any;
-        /// <summary>
-        /// 前缀长度
-        /// </summary>
         public byte PrefixLength { get; set; } = 24;
 
         public int Mtu { get; set; }
 
         public int MssFix { get; set; }
-
-        /// <summary>
-        /// 局域网配置列表
-        /// </summary>
         public List<TuntapLanInfo> Lans { get; set; } = [];
 
         public string Name { get; set; } = "linker";
         public string NetworkName { get; set; } = string.Empty;
         public TuntapVlsmStatus VlsmStatus { get; set; } = TuntapVlsmStatus.None;
-
-
         public Guid Guid { get; set; } = Guid.Parse("771EF382-8718-5BC5-EBF0-A28B86142278");
-
-        /// <summary>
-        /// 是否在运行中
-        /// </summary>
         public bool Running { get; set; }
-
-        /// <summary>
-        /// 开关，多个bool集合
-        /// </summary>
         public TuntapSwitch Switch { get; set; }
-
-        /// <summary>
-        /// 端口转发列表
-        /// </summary>
         public List<TuntapForwardInfo> Forwards { get; set; } = [];
-
         public List<TuntapFecProfileInfo> FecProfile { get; set; } = [];
-
         public Dictionary<string, TuntapGroup2IPInfo> Group2IP { get; set; } = [];
+        public List<DiscoveryProtocolSaveInfo> Discoverys { get; set; } = [];
 
         public bool DisableNat => (Switch & TuntapSwitch.DisableNat) == TuntapSwitch.DisableNat;
         public bool TcpMerge => (Switch & TuntapSwitch.TcpMerge) == TuntapSwitch.TcpMerge;
@@ -103,7 +79,6 @@ namespace linker.messenger.tuntap
         /// 设备id
         /// </summary>
         public string MachineId { get; set; }
-
         /// <summary>
         /// 虚拟网卡状态
         /// </summary>
@@ -123,7 +98,6 @@ namespace linker.messenger.tuntap
         /// 网卡名
         /// </summary>
         public string Name { get; set; }
-
         /// <summary>
         /// 网卡安装错误
         /// </summary>
@@ -337,7 +311,6 @@ namespace linker.messenger.tuntap
         /// 是否开启了应用层NAT
         /// </summary>
         public bool AppNat => (Switch & TuntapSwitch.AppNat) == TuntapSwitch.AppNat;
-
         /// <summary>
         /// 使用伪ACK，测试用
         /// </summary>
@@ -359,7 +332,6 @@ namespace linker.messenger.tuntap
                 }
             }
         }
-
         /// <summary>
         /// 源代理
         /// </summary>
@@ -387,6 +359,7 @@ namespace linker.messenger.tuntap
         public TuntapVlsmStatus VlsmStatus { get; set; } = TuntapVlsmStatus.None;
 
         public List<TuntapFecProfileInfo> FecProfile { get; set; } = [];
+        public List<DiscoveryProtocolSaveInfo> Discoverys { get; set; } = [];
     }
 
 
@@ -404,7 +377,6 @@ namespace linker.messenger.tuntap
 
         public bool Disabled { get; set; }
     }
-
     public sealed partial class TuntapForwardTestWrapInfo
     {
         public string MachineId { get; set; }
@@ -417,8 +389,6 @@ namespace linker.messenger.tuntap
         public int ConnectPort { get; set; }
         public string Error { get; set; } = string.Empty;
     }
-
-
     public sealed partial class TuntapLanInfo
     {
         public TuntapLanInfo() { }
@@ -522,6 +492,12 @@ namespace linker.messenger.tuntap
         public int SourceSymbols { get; set; }
         public int RepairSymbols { get; set; }
         public bool Disabled { get; set; }
+    }
+    public sealed class DiscoveryProtocolSaveInfo
+    {
+        public string Name { get; set; } = string.Empty;
+        public bool Disabled { get; set; } = true;
+        public List<IPAddress> LanIps { get; set; } = [];
     }
 
 

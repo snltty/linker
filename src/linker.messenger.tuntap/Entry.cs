@@ -47,6 +47,10 @@ namespace linker.messenger.tuntap
 
             serviceCollection.AddSingleton<LinkerTunPacketHookVlsm>();
 
+            serviceCollection.AddSingleton<TuntapDiscoveryTransfer>();
+
+
+
             return serviceCollection;
         }
         public static ServiceProvider UseTuntapClient(this ServiceProvider serviceProvider, JsonDocument json = default)
@@ -81,6 +85,8 @@ namespace linker.messenger.tuntap
 
             LinkerTunDeviceAdapter linkerTunDeviceAdapter = serviceProvider.GetService<LinkerTunDeviceAdapter>();
             linkerTunDeviceAdapter.AddHooks(new List<ILinkerTunPacketHook> { serviceProvider.GetService<LinkerTunPacketHookVlsm>() });
+
+            TuntapDiscoveryTransfer tuntapDiscoveryTransfer = serviceProvider.GetService<TuntapDiscoveryTransfer>();
 
             return serviceProvider;
         }

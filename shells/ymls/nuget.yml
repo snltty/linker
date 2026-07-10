@@ -66,6 +66,7 @@ jobs:
         dotnet build ./src/linker.kcp -c release
         dotnet build ./src/linker.forward -c release
         dotnet build ./src/linker.stun -c release
+        dotnet build ./src/linker.discovery -c release
 
     - name: Pack
       run: |
@@ -106,6 +107,7 @@ jobs:
         dotnet pack ./src/linker.kcp -c release
         dotnet pack ./src/linker.forward -c release
         dotnet pack ./src/linker.stun -c release
+        dotnet pack ./src/linker.discovery -c release
         
     - name: Push
       run: |
@@ -146,3 +148,4 @@ jobs:
         dotnet nuget push ./src/linker.kcp/bin/release/linker.kcp.{{version}}.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{steps.login.outputs.NUGET_API_KEY}} --no-symbols
         dotnet nuget push ./src/linker.forward/bin/release/linker.forward.{{version}}.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{steps.login.outputs.NUGET_API_KEY}} --no-symbols
         dotnet nuget push ./src/linker.stun/bin/release/linker.stun.{{version}}.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{steps.login.outputs.NUGET_API_KEY}} --no-symbols
+        dotnet nuget push ./src/linker.discovery/bin/release/linker.discovery.{{version}}.nupkg --source https://api.nuget.org/v3/index.json --skip-duplicate --api-key ${{steps.login.outputs.NUGET_API_KEY}} --no-symbols

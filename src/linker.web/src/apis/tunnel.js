@@ -49,3 +49,6 @@ export const getTunnelConnections = (hashcode) => {
 export const removeTunnelConnection = (machineid,transactionId) => {
     return sendWebsocketMsg('channel/remove',{machineid,transactionId});
 }
+export const getBindIpv4 = (id) => {
+    return sendWebsocketMsg('tunnel/bindips',id);
+}

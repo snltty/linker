@@ -1,13 +1,14 @@
-﻿using linker.libs.extends;
+﻿using linker.discovery;
+using linker.libs;
+using linker.libs.extends;
+using linker.libs.web;
+using linker.messenger.api;
+using linker.messenger.signin;
+using linker.messenger.tuntap.cidr;
+using linker.messenger.tuntap.lease;
+using linker.messenger.tuntap.messenger;
 using System.Collections.Concurrent;
 using System.Net;
-using linker.libs;
-using linker.messenger.signin;
-using linker.messenger.tuntap.lease;
-using linker.messenger.api;
-using linker.messenger.tuntap.messenger;
-using linker.libs.web;
-using linker.messenger.tuntap.cidr;
 
 namespace linker.messenger.tuntap.client
 {
@@ -26,9 +27,10 @@ namespace linker.messenger.tuntap.client
         private readonly TuntapAdapter tuntapAdapter;
         private readonly ISerializer serializer;
         private readonly TuntapProxy tuntapProxy;
+        private readonly TuntapDiscoveryTransfer discoveryTransfer;
         public TuntapApiController(IMessengerSender messengerSender, TuntapTransfer tuntapTransfer, SignInClientState signInClientState,
            TuntapCidrDecenterManager tuntapCidrDecenterManager, TuntapConfigTransfer tuntapConfigTransfer, LeaseClientTreansfer leaseClientTreansfer,
-            TuntapPingTransfer pingTransfer, IAccessStore accessStore, ISignInClientStore signInClientStore, TuntapDecenter tuntapDecenter, TuntapAdapter tuntapAdapter, ISerializer serializer, TuntapProxy tuntapProxy)
+            TuntapPingTransfer pingTransfer, IAccessStore accessStore, ISignInClientStore signInClientStore, TuntapDecenter tuntapDecenter, TuntapAdapter tuntapAdapter, ISerializer serializer, TuntapProxy tuntapProxy, TuntapDiscoveryTransfer discoveryTransfer)
         {
             this.messengerSender = messengerSender;
             this.tuntapTransfer = tuntapTransfer;
@@ -43,6 +45,7 @@ namespace linker.messenger.tuntap.client
             this.tuntapAdapter = tuntapAdapter;
             this.serializer = serializer;
             this.tuntapProxy = tuntapProxy;
+            this.discoveryTransfer = discoveryTransfer;
         }
 
         /// <summary>
@@ -370,6 +373,11 @@ namespace linker.messenger.tuntap.client
             return tuntapForwardTestWrapInfo;
         }
 
+
+        public List<DiscoveryProtocolInfo> Discoverys(ApiControllerParamsInfo param)
+        {
+            return discoveryTransfer.GetDiscoverys();
+        }
     }
 
     public sealed class TuntabListInfo

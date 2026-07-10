@@ -339,7 +339,7 @@ namespace linker.tun
                         {
                             continue;
                         }
-
+                        
                         StopWatchHelper.StartTimestamp(StopWatchHelper.StopWatchType.Tun_Read_Hook);
                         LinkerTunPacketHookFlags flags = ExecReadHook(packet.RawPacket);
                         StopWatchHelper.EndTimestamp(StopWatchHelper.StopWatchType.Tun_Read_Hook);
