@@ -23,14 +23,15 @@
 6. 更多的Task向ValueTask优化
 7. 支持Mesh网络
 8. TCP/IP校验和全量扫描200ns改为增量更新10ns
-9. 可能的STUN端口预测</Description>
+9. 可能的STUN端口预测
+10. 网络设备发现协议代理</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>2.0.15</Version>
-		<AssemblyVersion>2.0.15</AssemblyVersion>
-		<FileVersion>2.0.15</FileVersion>
+		<Version>2.0.16</Version>
+		<AssemblyVersion>2.0.16</AssemblyVersion>
+		<FileVersion>2.0.16</FileVersion>
 		<DelaySign>False</DelaySign>
 
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>

@@ -145,7 +145,7 @@ namespace linker.discovery
                     try
                     {
                         result = await _socket
-                            .ReceiveMessageFromAsync(rented.AsMemory(0, 65535), SocketFlags.None, AnyEndpoint, cancellationToken)
+                            .ReceiveMessageFromAsync(rented.AsMemory(), SocketFlags.None, AnyEndpoint, cancellationToken)
                             .ConfigureAwait(false);
                     }
                     catch (Exception ex) when (IsExpectedStop(ex, cancellationToken))

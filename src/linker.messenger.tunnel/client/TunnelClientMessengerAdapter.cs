@@ -5,6 +5,7 @@ using linker.tunnel;
 using System.Security.Cryptography.X509Certificates;
 using linker.messenger.signin;
 using linker.messenger.decenter;
+using linker.libs.extends;
 
 namespace linker.messenger.tunnel.client
 {
@@ -132,6 +133,7 @@ namespace linker.messenger.tunnel.client
 
         public async Task<bool> SaveRadarSamples(List<PublicEndpointSample> samples)
         {
+            LoggerHelper.Instance.Info($"tunnel saving radar samples : {samples.ToJson()}");
             return await tunnelClientStore.SaveRadarSamples(samples).ConfigureAwait(false);
         }
     }
