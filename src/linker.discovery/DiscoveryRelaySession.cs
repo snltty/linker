@@ -22,6 +22,7 @@ namespace linker.discovery
         private readonly IDiscoveryProtocolMatcher _matcher;
         private readonly DiscoveryRelayQueryTracker _tracker;
         private readonly Socket _socket;
+        private readonly Socket _tunSendSocket;
         private readonly int _tunInterfaceIndex;
         private readonly IPv4Network _tunNetwork;
         private readonly Action<DiscoveryRelayError> _raiseError;
@@ -43,7 +44,7 @@ namespace linker.discovery
             _tracker = new DiscoveryRelayQueryTracker(QueryTtl, RecentFallbackTtl);
             _matcher = protocol.Matcher ?? DiscoveryProtocolMatcherSelector.Select(protocol);
             _allowRecentFallback = protocol.Matcher is not null || _matcher is DiscoveryProtocolMatcherPayloadHash;
-            _receiveLanResponsesOnForwardSockets = _matcher is DiscoveryProtocolMatcherSsdp;
+            _receiveLanResponsesOnForwardSockets = ShouldReceiveLanResponsesOnForwardSockets(protocol, _matcher);
             _tunInterfaceIndex = GetInterfaceIndex(tunIp);
             if (_tunInterfaceIndex == 0)
             {
@@ -53,6 +54,9 @@ namespace linker.discovery
             _tunNetwork = GetNetworkRange(tunIp);
             _lanInterfaces = new List<LanInterface>(lanIps.Count);
             _lanIps = new HashSet<IPAddress>();
+
+            Socket? socket = null;
+            Socket? tunSendSocket = null;
 
             try
             {
@@ -81,10 +85,15 @@ namespace linker.discovery
                         responseSocket));
                 }
 
-                _socket = CreateSocket(protocol, tunIp, _lanInterfaces);
+                socket = CreateSocket(protocol, tunIp, _lanInterfaces);
+                tunSendSocket = CreateTunSendSocket(protocol, tunIp);
+                _socket = socket;
+                _tunSendSocket = tunSendSocket;
             }
             catch
             {
+                socket?.Dispose();
+                tunSendSocket?.Dispose();
                 foreach (LanInterface lan in _lanInterfaces)
                 {
                     lan.Dispose();
@@ -125,6 +134,7 @@ namespace linker.discovery
         public void Dispose()
         {
             _socket.Dispose();
+            _tunSendSocket.Dispose();
             foreach (LanInterface lan in _lanInterfaces)
             {
                 lan.Dispose();
@@ -145,7 +155,7 @@ namespace linker.discovery
                     try
                     {
                         result = await _socket
-                            .ReceiveMessageFromAsync(rented.AsMemory(), SocketFlags.None, AnyEndpoint, cancellationToken)
+                            .ReceiveMessageFromAsync(rented.AsMemory(0, 65535), SocketFlags.None, AnyEndpoint, cancellationToken)
                             .ConfigureAwait(false);
                     }
                     catch (Exception ex) when (IsExpectedStop(ex, cancellationToken))
@@ -313,7 +323,7 @@ namespace linker.discovery
             {
                 try
                 {
-                    await _socket.SendToAsync(packet, SocketFlags.None, destination, cancellationToken).ConfigureAwait(false);
+                    await _tunSendSocket.SendToAsync(packet, SocketFlags.None, destination, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception ex) when (IsRecoverableSocketError(ex, cancellationToken))
                 {
@@ -358,6 +368,40 @@ namespace linker.discovery
             return socket;
         }
 
+        private static Socket CreateTunSendSocket(DiscoveryProtocolInfo protocol, IPAddress tunIp)
+        {
+            try
+            {
+                return CreateBoundTunSendSocket(tunIp, protocol.Port);
+            }
+            catch (SocketException)
+            {
+                return CreateBoundTunSendSocket(tunIp, 0);
+            }
+        }
+
+        private static Socket CreateBoundTunSendSocket(IPAddress tunIp, int port)
+        {
+            var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp)
+            {
+                ExclusiveAddressUse = false
+            };
+
+            try
+            {
+                socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveBuffer, 1024 * 1024);
+                socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendBuffer, 1024 * 1024);
+                socket.Bind(new IPEndPoint(tunIp, port));
+                return socket;
+            }
+            catch
+            {
+                socket.Dispose();
+                throw;
+            }
+        }
+
         private static Socket CreateLanResponseSocket(
             DiscoveryProtocolInfo protocol,
             IPAddress lanIp,
@@ -386,6 +430,17 @@ namespace linker.discovery
             }
 
             return socket;
+        }
+
+        private static bool ShouldReceiveLanResponsesOnForwardSockets(
+            DiscoveryProtocolInfo protocol,
+            IDiscoveryProtocolMatcher matcher)
+        {
+            return protocol.Port is 137 or 1900 or 3702 or 5355 ||
+                matcher is DiscoveryProtocolMatcherSsdp or
+                    DiscoveryProtocolMatcherWs or
+                    DiscoveryProtocolMatcherLlmnr or
+                    DiscoveryProtocolMatcherNbns;
         }
 
         private static void JoinMulticast(Socket socket, IPAddress multicastAddress, IPAddress interfaceAddress)

@@ -16,7 +16,7 @@ public static class DiscoveryProtocolPresets
                 Port = 5353,
                 Type = DiscoveryProtocolType.Multicast,
                 Ttl = 255,
-                Remark = "苹果生态(Bonjour)、打印、智能家居"
+                Remark = "Bonjour、DNS-SD、打印机及本地服务"
             },
             new DiscoveryProtocolInfo
             {
@@ -25,7 +25,25 @@ public static class DiscoveryProtocolPresets
                 Port = 1900,
                 Type = DiscoveryProtocolType.Multicast,
                 Ttl = 4,
-                Remark = "UPnP设备、媒体共享、智能家居"
+                Remark = "UPnP、DLNA、路由器、NAS 及媒体设备"
+            },
+            new DiscoveryProtocolInfo
+            {
+                Name = "LLMNR",
+                Address = IPAddress.Parse("224.0.0.252"),
+                Port = 5355,
+                Type = DiscoveryProtocolType.Multicast,
+                Ttl = 255,
+                Remark = "Windows 链路本地多播名称解析"
+            },
+            new DiscoveryProtocolInfo
+            {
+                Name = "NBNS",
+                Address = IPAddress.Broadcast,
+                Port = 137,
+                Type = DiscoveryProtocolType.Broadcast,
+                Ttl = 255,
+                Remark = "NetBIOS 名称服务及旧版 Windows 发现"
             },
             new DiscoveryProtocolInfo
             {
@@ -34,7 +52,7 @@ public static class DiscoveryProtocolPresets
                 Port = 3702,
                 Type = DiscoveryProtocolType.Multicast,
                 Ttl = 4,
-                Remark = "企业级设备、专业安防(ONVIF)、打印机、Windows 设备发现"
+                Remark = "ONVIF、打印机及 Windows 网络发现"
             }
         ];
     }

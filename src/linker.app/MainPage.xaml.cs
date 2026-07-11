@@ -29,8 +29,17 @@ namespace linker.app
         {
             MainThread.BeginInvokeOnMainThread(async () =>
             {
-                while (string.IsNullOrWhiteSpace(await webview.EvaluateJavaScriptAsync("document.getElementById('app').innerText")))
+                string htmlText = string.Empty;
+
+                while (string.IsNullOrWhiteSpace(htmlText))
                 {
+                    try
+                    {
+                        htmlText = await webview.EvaluateJavaScriptAsync("document.getElementById('app').innerText");
+                    }
+                    catch (Exception)
+                    {
+                    }
                     await Task.Delay(500);
                 }
                 await Task.WhenAll(webview.FadeTo(1, 500), LoadingOverlay.FadeTo(0, 500));
