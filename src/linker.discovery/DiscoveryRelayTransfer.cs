@@ -20,12 +20,23 @@ public sealed class DiscoveryRelayTransfer : IDisposable
 
     public event Action<DiscoveryRelayError>? Error;
 
+    public event Action<DiscoveryRelayAddressRewrite>? AddressRewrite;
+
+    public event Action<DiscoveryRelayPayloadRewrite>? PayloadRewrite;
+
+    public event Action<DiscoveryRelayPacketTrace>? PacketTrace;
+
     public static List<IPAddress> GetLanIps()
     {
         return ResolveLanIps(null, null);
     }
 
     public void StartRelay(IPAddress tunIp, List<DiscoveryProtocolInfo> protocols)
+    {
+        StartRelay(tunIp, protocols, null);
+    }
+
+    public void StartRelay(IPAddress tunIp, List<DiscoveryProtocolInfo> protocols, List<DiscoveryAddressMap>? maps)
     {
         ArgumentNullException.ThrowIfNull(tunIp);
         ArgumentNullException.ThrowIfNull(protocols);
@@ -41,6 +52,7 @@ public sealed class DiscoveryRelayTransfer : IDisposable
             }
 
             IPAddress resolvedTunIp = ResolveTunIp(tunIp);
+            List<DiscoveryAddressMapEntry> addressMaps = PrepareAddressMaps(maps);
             ValidateUniqueEnabledPorts(enabledProtocols);
 
             var cts = new CancellationTokenSource();
@@ -56,7 +68,15 @@ public sealed class DiscoveryRelayTransfer : IDisposable
                         throw new InvalidOperationException($"No usable LAN IPv4 address was found for discovery protocol '{protocol.Name}'.");
                     }
 
-                    sessions.Add(new DiscoveryRelaySession(protocol, resolvedTunIp, resolvedLanIps, RaiseError));
+                    sessions.Add(new DiscoveryRelaySession(
+                        protocol,
+                        resolvedTunIp,
+                        resolvedLanIps,
+                        addressMaps,
+                        RaiseError,
+                        RaiseAddressRewrite,
+                        RaisePayloadRewrite,
+                        RaisePacketTrace));
                 }
             }
             catch
@@ -212,6 +232,36 @@ public sealed class DiscoveryRelayTransfer : IDisposable
         }
     }
 
+    internal static List<DiscoveryAddressMapEntry> PrepareAddressMaps(List<DiscoveryAddressMap>? maps)
+    {
+        var result = new List<DiscoveryAddressMapEntry>(maps?.Count ?? 0);
+        if (maps is null)
+        {
+            return result;
+        }
+
+        foreach (DiscoveryAddressMap map in maps)
+        {
+            DiscoveryAddressMapEntry entry = DiscoveryAddressMapEntry.Create(map);
+            bool overlapsAcceptedMap = false;
+            foreach (DiscoveryAddressMapEntry accepted in result)
+            {
+                if (entry.RealNetworkOverlaps(accepted) || entry.MappedNetworkOverlaps(accepted))
+                {
+                    overlapsAcceptedMap = true;
+                    break;
+                }
+            }
+
+            if (!overlapsAcceptedMap)
+            {
+                result.Add(entry);
+            }
+        }
+
+        return result;
+    }
+
     private static IPAddress ResolveTunIp(IPAddress tunIp)
     {
         EnsureIPv4(tunIp, nameof(tunIp));
@@ -319,6 +369,39 @@ public sealed class DiscoveryRelayTransfer : IDisposable
         try
         {
             Error?.Invoke(error);
+        }
+        catch
+        {
+        }
+    }
+
+    private void RaiseAddressRewrite(DiscoveryRelayAddressRewrite rewrite)
+    {
+        try
+        {
+            AddressRewrite?.Invoke(rewrite);
+        }
+        catch
+        {
+        }
+    }
+
+    private void RaisePayloadRewrite(DiscoveryRelayPayloadRewrite rewrite)
+    {
+        try
+        {
+            PayloadRewrite?.Invoke(rewrite);
+        }
+        catch
+        {
+        }
+    }
+
+    private void RaisePacketTrace(DiscoveryRelayPacketTrace trace)
+    {
+        try
+        {
+            PacketTrace?.Invoke(trace);
         }
         catch
         {

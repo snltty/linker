@@ -111,7 +111,6 @@ namespace linker.libs
             aesGcmDecode = new AesGcm(GenerateKey(password), KeySize);
         }
 
-
         public byte[] Encode(byte[] buffer)
         {
             return Encode(buffer, 0, buffer.Length);
@@ -138,7 +137,6 @@ namespace linker.libs
             }
             return decryptedData;
         }
-
 
         public bool TryEncode(ReadOnlySpan<byte> plaintext, Span<byte> destination, out int bytesWritten)
         {
@@ -197,7 +195,6 @@ namespace linker.libs
             hash.AsSpan(0, KeySize).CopyTo(key);
             return key;
         }
-
         public void Dispose()
         {
             aesGcmEncode.Dispose();

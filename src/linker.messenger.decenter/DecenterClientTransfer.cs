@@ -26,10 +26,6 @@ namespace linker.messenger.decenter
             SyncTask();
         }
 
-        /// <summary>
-        /// 添加
-        /// </summary>
-        /// <param name="list"></param>
         public void AddDecenters(List<IDecenter> list)
         {
             if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
@@ -37,11 +33,6 @@ namespace linker.messenger.decenter
             decenters = decenters.Concat(list).Distinct().ToList();
         }
 
-        /// <summary>
-        /// 同步
-        /// </summary>
-        /// <param name="decenterSyncInfo"></param>
-        /// <returns></returns>
         public Memory<byte> Add(DecenterSyncInfo decenterSyncInfo)
         {
             IDecenter sync = decenters.FirstOrDefault(c => c.Name == decenterSyncInfo.Name);
@@ -54,10 +45,6 @@ namespace linker.messenger.decenter
             }
             return Helper.EmptyArray;
         }
-        /// <summary>
-        /// 通知
-        /// </summary>
-        /// <param name="decenterSyncInfo"></param>
         public void Notify(DecenterSyncInfo decenterSyncInfo)
         {
             IDecenter sync = decenters.FirstOrDefault(c => c.Name == decenterSyncInfo.Name);
@@ -71,10 +58,22 @@ namespace linker.messenger.decenter
 
         private Memory<byte> GetData(IDecenter decenter)
         {
-            Memory<byte> data = decenter.GetData();
-            decenter.AddData(data);
-            decenter.DataVersion.Increment();
-            return data;
+            try
+            {
+                Memory<byte> data = decenter.GetData();
+                decenter.AddData(data);
+                decenter.DataVersion.Increment();
+                return data;
+            }
+            catch (Exception ex)
+            {
+
+                if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                {
+                    LoggerHelper.Instance.Error(ex);
+                }
+            }
+            return Helper.EmptyArray;
         }
 
         private void ClearData()
@@ -83,8 +82,18 @@ namespace linker.messenger.decenter
             {
                 foreach (IDecenter item in decenters)
                 {
-                    item.ClearData();
-                    item.PushVersion.Increment();
+                    try
+                    {
+                        item.ClearData();
+                        item.PushVersion.Increment();
+                    }
+                    catch (Exception ex)
+                    {
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        {
+                            LoggerHelper.Instance.Error(ex);
+                        }
+                    }
                 }
             }
         }
@@ -96,7 +105,17 @@ namespace linker.messenger.decenter
                 {
                     operatingMultipleManager.StartOperation(item.Name, async () =>
                     {
-                        item.ProcData();
+                        try
+                        {
+                            item.ProcData();
+                        }
+                        catch (Exception ex)
+                        {
+                            if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                            {
+                                LoggerHelper.Instance.Error(ex);
+                            }
+                        }
                     });
                 }
             }
@@ -124,9 +143,11 @@ namespace linker.messenger.decenter
 
             await Task.WhenAll(updates.Select(c =>
             {
-                //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                //    LoggerHelper.Instance.Debug($"decenter push {c.Name}");
-
+                Memory<byte> memory = GetData(c);
+                if (memory.IsEmpty)
+                {
+                    return Task.CompletedTask;
+                }
                 return messengerSender.SendOnly(new MessageRequestWrap
                 {
                     Connection = signInClientState.Connection,
@@ -137,7 +158,6 @@ namespace linker.messenger.decenter
 
             List<DecenterSyncTaskInfo> pullTasks = updates.Select(c =>
             {
-                //LoggerHelper.Instance.Debug($"decenter pull {c.Name}:{c.Count}:{c.Force}");
                 return new DecenterSyncTaskInfo
                 {
                     Decenter = c,
@@ -154,12 +174,20 @@ namespace linker.messenger.decenter
             MessageResponeInfo[] pulls = await Task.WhenAll(pullTasks.Select(c => c.Task)).ConfigureAwait(false);
             foreach (var task in pullTasks.Where(c => c.Task.Result.Code == MessageResponeCodes.OK && c.Task.Result.Data.Span.SequenceEqual(Helper.FalseArray) == false))
             {
-                //if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
-                //    LoggerHelper.Instance.Debug($"decenter pull {task.Decenter.Name}->{task.Task.Result.Data.Length}");
-                List<ReadOnlyMemory<byte>> list = serializer.Deserialize<List<ReadOnlyMemory<byte>>>(task.Task.Result.Data.Span);
-                task.Decenter.AddData(list);
-                task.Decenter.DataVersion.Increment();
-                versionMultipleManager.Increment(task.Decenter.Name);
+                try
+                {
+                    List<ReadOnlyMemory<byte>> list = serializer.Deserialize<List<ReadOnlyMemory<byte>>>(task.Task.Result.Data.Span);
+                    task.Decenter.AddData(list);
+                    task.Decenter.DataVersion.Increment();
+                    versionMultipleManager.Increment(task.Decenter.Name);
+                }
+                catch (Exception ex)
+                {
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                    {
+                        LoggerHelper.Instance.Error(ex);
+                    }
+                }
             }
             foreach (var task in pullTasks.Where(c => c.Task.Result.Code != MessageResponeCodes.OK || c.Task.Result.Data.Span.SequenceEqual(Helper.FalseArray)))
             {

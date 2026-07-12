@@ -20,12 +20,16 @@ namespace linker.discovery
         private readonly List<LanInterface> _lanInterfaces;
         private readonly HashSet<IPAddress> _lanIps;
         private readonly IDiscoveryProtocolMatcher _matcher;
+        private readonly IReadOnlyList<DiscoveryAddressMapEntry> _addressMaps;
         private readonly DiscoveryRelayQueryTracker _tracker;
         private readonly Socket _socket;
         private readonly Socket _tunSendSocket;
         private readonly int _tunInterfaceIndex;
         private readonly IPv4Network _tunNetwork;
         private readonly Action<DiscoveryRelayError> _raiseError;
+        private readonly Action<DiscoveryRelayAddressRewrite> _raiseAddressRewrite;
+        private readonly Action<DiscoveryRelayPayloadRewrite> _raisePayloadRewrite;
+        private readonly Action<DiscoveryRelayPacketTrace> _raisePacketTrace;
         private readonly bool _allowRecentFallback;
         private readonly bool _receiveLanResponsesOnForwardSockets;
         private readonly DiscoveryProtocolRecentPacketCache _sentToLan = new(TimeSpan.FromSeconds(2));
@@ -37,10 +41,27 @@ namespace linker.discovery
             IPAddress tunIp,
             IReadOnlyList<IPAddress> lanIps,
             Action<DiscoveryRelayError> raiseError)
+            : this(protocol, tunIp, lanIps, Array.Empty<DiscoveryAddressMapEntry>(), raiseError, static _ => { }, static _ => { }, static _ => { })
+        {
+        }
+
+        internal DiscoveryRelaySession(
+            DiscoveryProtocolInfo protocol,
+            IPAddress tunIp,
+            IReadOnlyList<IPAddress> lanIps,
+            IReadOnlyList<DiscoveryAddressMapEntry> addressMaps,
+            Action<DiscoveryRelayError> raiseError,
+            Action<DiscoveryRelayAddressRewrite> raiseAddressRewrite,
+            Action<DiscoveryRelayPayloadRewrite> raisePayloadRewrite,
+            Action<DiscoveryRelayPacketTrace> raisePacketTrace)
         {
             _protocol = protocol;
             _tunIp = tunIp;
+            _addressMaps = addressMaps;
             _raiseError = raiseError;
+            _raiseAddressRewrite = raiseAddressRewrite;
+            _raisePayloadRewrite = raisePayloadRewrite;
+            _raisePacketTrace = raisePacketTrace;
             _tracker = new DiscoveryRelayQueryTracker(QueryTtl, RecentFallbackTtl);
             _matcher = protocol.Matcher ?? DiscoveryProtocolMatcherSelector.Select(protocol);
             _allowRecentFallback = protocol.Matcher is not null || _matcher is DiscoveryProtocolMatcherPayloadHash;
@@ -180,10 +201,12 @@ namespace linker.discovery
                     PacketSource source = GetPacketSource(result.PacketInformation.Interface, remote.Address);
                     if (source == PacketSource.Tun)
                     {
+                        RaisePacketTrace("tun-receive", _tunIp, remote, null, packet.Length, "received discovery query from TUN");
                         await RelayTunToLanAsync(remote, packet, hash, keys, cancellationToken).ConfigureAwait(false);
                     }
                     else if (source == PacketSource.Lan)
                     {
+                        RaisePacketTrace("lan-receive", IPAddress.Any, remote, null, packet.Length, "received discovery response on shared protocol socket");
                         await RelayLanToTunAsync(remote, packet, hash, keys, destinations, cancellationToken).ConfigureAwait(false);
                     }
                     else
@@ -243,6 +266,7 @@ namespace linker.discovery
                         continue;
                     }
 
+                    RaisePacketTrace("lan-response-receive", lan.Address, remote, null, packet.Length, "received LAN response on forward response socket");
                     await RelayLanToTunAsync(remote, packet, hash, keys, destinations, cancellationToken).ConfigureAwait(false);
                 }
             }
@@ -283,6 +307,7 @@ namespace linker.discovery
                     }
 
                     await socket.SendToAsync(packet, SocketFlags.None, lan.Target, cancellationToken).ConfigureAwait(false);
+                    RaisePacketTrace("tun-to-lan-send", lan.Address, remote, lan.Target, packet.Length, "forwarded TUN query to LAN");
                 }
                 catch (Exception ex) when (IsRecoverableSocketError(ex, cancellationToken))
                 {
@@ -315,15 +340,27 @@ namespace linker.discovery
 
             if (destinations.Count == 0)
             {
+                RaisePacketTrace("lan-to-tun-drop", IPAddress.Any, remote, null, packet.Length, keys.Count == 0 ? "no response keys matched" : "no tracked TUN requester matched response keys");
                 return;
             }
 
-            _sentToTun.Add(hash);
+            ReadOnlyMemory<byte> sendPacket = DiscoveryProtocolAddressRewriter.RewriteLanToTun(
+                _protocol,
+                _matcher,
+                packet,
+                _addressMaps,
+                RaiseAddressRewrite,
+                RaisePayloadRewrite,
+                out bool rewritten);
+            ulong sendHash = rewritten ? DiscoveryProtocolPacketHash.Compute(sendPacket.Span) : hash;
+
+            _sentToTun.Add(sendHash);
             foreach (IPEndPoint destination in destinations)
             {
                 try
                 {
-                    await _tunSendSocket.SendToAsync(packet, SocketFlags.None, destination, cancellationToken).ConfigureAwait(false);
+                    await _tunSendSocket.SendToAsync(sendPacket, SocketFlags.None, destination, cancellationToken).ConfigureAwait(false);
+                    RaisePacketTrace("lan-to-tun-send", _tunIp, remote, destination, sendPacket.Length, rewritten ? "forwarded rewritten LAN response to TUN" : "forwarded LAN response to TUN");
                 }
                 catch (Exception ex) when (IsRecoverableSocketError(ex, cancellationToken))
                 {
@@ -524,6 +561,37 @@ namespace linker.discovery
         private void RaiseError(string direction, IPAddress localAddress, EndPoint? remoteEndPoint, Exception exception)
         {
             _raiseError(new DiscoveryRelayError(_protocol, direction, localAddress, remoteEndPoint, exception));
+        }
+
+        private void RaiseAddressRewrite(IPAddress originalAddress, IPAddress mappedAddress)
+        {
+            _raiseAddressRewrite(new DiscoveryRelayAddressRewrite(
+                _protocol,
+                "lan-to-tun",
+                originalAddress,
+                mappedAddress));
+        }
+
+        private void RaisePayloadRewrite(string fieldName, string originalValue, string rewrittenValue)
+        {
+            _raisePayloadRewrite(new DiscoveryRelayPayloadRewrite(
+                _protocol,
+                "lan-to-tun",
+                fieldName,
+                originalValue,
+                rewrittenValue));
+        }
+
+        private void RaisePacketTrace(string direction, IPAddress localAddress, EndPoint? remoteEndPoint, EndPoint? targetEndPoint, int bytes, string remark)
+        {
+            _raisePacketTrace(new DiscoveryRelayPacketTrace(
+                _protocol,
+                direction,
+                localAddress,
+                remoteEndPoint,
+                targetEndPoint,
+                bytes,
+                remark));
         }
 
         private static bool IsExpectedStop(Exception ex, CancellationToken cancellationToken)

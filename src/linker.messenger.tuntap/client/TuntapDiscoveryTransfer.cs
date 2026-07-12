@@ -1,5 +1,7 @@
 ﻿using linker.discovery;
+using linker.libs;
 using linker.libs.extends;
+using System.Net;
 
 namespace linker.messenger.tuntap.client
 {
@@ -49,7 +51,9 @@ namespace linker.messenger.tuntap.client
 
         private void SetupSuccess()
         {
-            discoveryRelayTransfer.StartRelay(tuntapConfigTransfer.Info.IP, BuildProtocols());
+            List<DiscoveryAddressMap> maps = BuildMaps();
+            LoggerHelper.Instance.Info($"Discovery relay maps:{maps.ToJson()}");
+            discoveryRelayTransfer.StartRelay(tuntapConfigTransfer.Info.IP, BuildProtocols(), maps);
         }
         private List<DiscoveryProtocolInfo> BuildProtocols()
         {
@@ -64,6 +68,15 @@ namespace linker.messenger.tuntap.client
                 }
             }
             return result;
+        }
+        private List<DiscoveryAddressMap> BuildMaps()
+        {
+            return tuntapConfigTransfer.Info.Lans.Where(c => c.MapIP != null && IPAddress.Any.Equals(c.MapIP) == false).Select(c => new DiscoveryAddressMap
+            {
+                MappedNetwork = c.IP,
+                RealNetwork = c.MapIP,
+                PrefixLength = c.PrefixLength
+            }).ToList();
         }
 
         private void ShutdownSuccess()
