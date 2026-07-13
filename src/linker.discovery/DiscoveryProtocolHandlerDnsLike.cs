@@ -36,6 +36,11 @@ namespace linker.discovery
                 return 0;
             }
 
+            if ((payload[2] & 0x80) == 0)
+            {
+                return 0;
+            }
+
             int questionCount = DiscoveryProtocolDnsPacket.ReadUInt16(payload, 4);
             int answerCount = DiscoveryProtocolDnsPacket.ReadUInt16(payload, 6);
             int authorityCount = DiscoveryProtocolDnsPacket.ReadUInt16(payload, 8);

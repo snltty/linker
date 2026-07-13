@@ -10,6 +10,8 @@ internal static class DiscoveryProtocolHelper
 {
     public static void EnsureIPv4(IPAddress address, string paramName)
     {
+        ArgumentNullException.ThrowIfNull(address, paramName);
+
         if (address.AddressFamily != AddressFamily.InterNetwork)
         {
             throw new ArgumentException("Only IPv4 addresses are supported.", paramName);
@@ -18,17 +20,23 @@ internal static class DiscoveryProtocolHelper
 
     public static bool IsAny(IPAddress address)
     {
+        ArgumentNullException.ThrowIfNull(address);
+
         return address.Equals(IPAddress.Any) || address.Equals(IPAddress.None);
     }
 
     public static bool IsMulticast(IPAddress address)
     {
+        ArgumentNullException.ThrowIfNull(address);
+
         byte first = address.GetAddressBytes()[0];
         return first is >= 224 and <= 239;
     }
 
     public static bool IsLinkLocal(IPAddress address)
     {
+        ArgumentNullException.ThrowIfNull(address);
+
         byte[] bytes = address.GetAddressBytes();
         return bytes[0] == 169 && bytes[1] == 254;
     }

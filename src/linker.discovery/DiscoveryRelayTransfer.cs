@@ -176,10 +176,7 @@ public sealed class DiscoveryRelayTransfer : IDisposable
 
     private static void ValidateProtocol(DiscoveryProtocolInfo protocol)
     {
-        if (protocol.Address.AddressFamily != AddressFamily.InterNetwork)
-        {
-            throw new ArgumentException("Only IPv4 protocol addresses are supported.", nameof(protocol));
-        }
+        DiscoveryProtocolHelper.EnsureIPv4(protocol.Address, nameof(protocol.Address));
 
         if (protocol.Port is < IPEndPoint.MinPort or > IPEndPoint.MaxPort)
         {
@@ -189,6 +186,11 @@ public sealed class DiscoveryRelayTransfer : IDisposable
         if (protocol.Ttl is < 1 or > 255)
         {
             throw new ArgumentOutOfRangeException(nameof(protocol), "Protocol TTL must be between 1 and 255.");
+        }
+
+        if (protocol.Type is not DiscoveryProtocolType.Multicast and not DiscoveryProtocolType.Broadcast)
+        {
+            throw new ArgumentOutOfRangeException(nameof(protocol), "Protocol type must be Multicast or Broadcast.");
         }
 
         if (protocol.Type == DiscoveryProtocolType.Multicast && !DiscoveryProtocolHelper.IsMulticast(protocol.Address))

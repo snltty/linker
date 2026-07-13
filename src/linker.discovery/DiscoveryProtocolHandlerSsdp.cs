@@ -21,6 +21,11 @@ namespace linker.discovery
 
         public int GetResponseKeys(DiscoveryProtocolInfo protocol, ReadOnlySpan<byte> payload, ICollection<string> keys)
         {
+            if (!IsHttpResponse(payload))
+            {
+                return 0;
+            }
+
             if (!DiscoveryProtocolHttpLikeHeaders.TryGetHeader(payload, "ST", out ReadOnlySpan<byte> value))
             {
                 return 0;
@@ -36,7 +41,7 @@ namespace linker.discovery
             ReadOnlyMemory<byte> payload,
             out bool rewritten)
         {
-            byte[]? next = DiscoveryProtocolPayloadRewriteHelper.RewriteUrlHosts(context, payload);
+            byte[]? next = DiscoveryProtocolPayloadRewriteHelper.RewriteHttpHeaderUrlHosts(context, payload, "LOCATION");
             rewritten = next is not null;
             return next ?? payload;
         }
@@ -54,6 +59,49 @@ namespace linker.discovery
             {
                 DiscoveryProtocolKeyHelper.AddDistinct(keys, "ssdp:*");
             }
+        }
+
+        private static bool IsHttpResponse(ReadOnlySpan<byte> payload)
+        {
+            ReadOnlySpan<byte> line = payload;
+            int lf = payload.IndexOf((byte)'\n');
+            if (lf >= 0)
+            {
+                line = payload[..lf];
+            }
+
+            line = DiscoveryProtocolHttpLikeHeaders.TrimAscii(line);
+            return StartsWithAsciiIgnoreCase(line, "HTTP/");
+        }
+
+        private static bool StartsWithAsciiIgnoreCase(ReadOnlySpan<byte> value, string prefix)
+        {
+            if (value.Length < prefix.Length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < prefix.Length; i++)
+            {
+                byte left = value[i];
+                char right = prefix[i];
+                if (left is >= (byte)'A' and <= (byte)'Z')
+                {
+                    left = (byte)(left + 32);
+                }
+
+                if (right is >= 'A' and <= 'Z')
+                {
+                    right = (char)(right + 32);
+                }
+
+                if (left != right)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }

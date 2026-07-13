@@ -115,6 +115,8 @@ internal readonly record struct DiscoveryAddressMapEntry(
 
     private static void EnsureIPv4(IPAddress address, string paramName)
     {
+        ArgumentNullException.ThrowIfNull(address, paramName);
+
         if (address.AddressFamily != AddressFamily.InterNetwork)
         {
             throw new ArgumentException("Only IPv4 addresses are supported.", paramName);

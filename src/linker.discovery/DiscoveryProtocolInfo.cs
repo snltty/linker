@@ -17,7 +17,7 @@ public sealed class DiscoveryProtocolInfo
 
     public int Ttl { get; set; } = 255;
 
-    public bool Disabled { get; set; } = true;
+    public bool Disabled { get; set; }
 
     public List<IPAddress>? LanIps { get; set; } = [];
 
@@ -30,14 +30,14 @@ public sealed class DiscoveryProtocolInfo
     {
         return new DiscoveryProtocolInfo
         {
-            Name = Name,
+            Name = Name ?? string.Empty,
             Address = Address,
             Port = Port,
             Type = Type,
             Ttl = Ttl,
             Disabled = Disabled,
             LanIps = LanIps is null ? null : new List<IPAddress>(LanIps),
-            Remark = Remark,
+            Remark = Remark ?? string.Empty,
             Handler = Handler
         };
     }

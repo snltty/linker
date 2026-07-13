@@ -45,7 +45,7 @@ namespace linker.discovery
                 return payload;
             }
 
-            byte[]? next = DiscoveryProtocolPayloadRewriteHelper.RewriteUrlHosts(context, payload);
+            byte[]? next = DiscoveryProtocolPayloadRewriteHelper.RewriteXmlElementUrlHosts(context, payload, "XAddrs");
             DiscoveryProtocolPayloadRewriteHelper.ReportXmlElementRewrite(
                 context,
                 "XAddrs",

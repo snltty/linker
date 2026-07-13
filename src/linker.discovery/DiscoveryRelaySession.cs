@@ -12,6 +12,7 @@ namespace linker.discovery
     {
         private static readonly TimeSpan QueryTtl = TimeSpan.FromSeconds(30);
         private static readonly TimeSpan RecentFallbackTtl = TimeSpan.FromSeconds(5);
+        private const int MaxRequesterResponseSocketsPerLan = 512;
 
         private static readonly IPEndPoint AnyEndpoint = new(IPAddress.Any, 0);
         private readonly DiscoveryProtocolInfo _protocol;
@@ -34,6 +35,7 @@ namespace linker.discovery
         private readonly DiscoveryProtocolRecentPacketCache _sentToLan = new(TimeSpan.FromSeconds(2));
         private readonly DiscoveryProtocolRecentPacketCache _sentToTun = new(TimeSpan.FromSeconds(2));
         private Task? _receiveTask;
+        private volatile bool _disposed;
 
         public DiscoveryRelaySession(
             DiscoveryProtocolInfo protocol,
@@ -63,7 +65,7 @@ namespace linker.discovery
             _tracker = new DiscoveryRelayQueryTracker(QueryTtl, RecentFallbackTtl);
             _handler = protocol.Handler ?? DiscoveryProtocolHandlerSelector.Select(protocol);
             _rewriteContext = new DiscoveryProtocolRewriteContext(protocol, addressMaps, RaiseAddressRewrite, RaisePayloadRewrite);
-            _allowRecentFallback = protocol.Handler is not null || _handler is DiscoveryProtocolHandlerPayloadHash;
+            _allowRecentFallback = _handler.AllowRecentResponseFallback;
             _receiveLanResponsesOnForwardSockets = _handler.ReceiveLanResponsesOnForwardSockets;
             _tunInterfaceIndex = DiscoveryProtocolHelper.GetInterfaceIndex(tunIp);
             if (_tunInterfaceIndex == 0)
@@ -148,6 +150,7 @@ namespace linker.discovery
 
         public void Dispose()
         {
+            _disposed = true;
             _socket.Dispose();
             _tunSendSocket.Dispose();
             foreach (LanInterface lan in _lanInterfaces)
@@ -196,12 +199,26 @@ namespace linker.discovery
                     if (source == PacketSource.Tun)
                     {
                         RaisePacketTrace("tun-receive", _tunIp, remote, null, packet.Length, "received discovery query from TUN");
-                        await RelayTunToLanAsync(remote, packet, hash, keys, cancellationToken).ConfigureAwait(false);
+                        try
+                        {
+                            await RelayTunToLanAsync(remote, packet, hash, keys, cancellationToken).ConfigureAwait(false);
+                        }
+                        catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+                        {
+                            RaiseError("tun-to-lan-process", _tunIp, remote, ex);
+                        }
                     }
                     else if (source == PacketSource.Lan)
                     {
                         RaisePacketTrace("lan-receive", IPAddress.Any, remote, null, packet.Length, "received discovery response on shared protocol socket");
-                        await RelayLanToTunAsync(remote, packet, hash, keys, destinations, cancellationToken).ConfigureAwait(false);
+                        try
+                        {
+                            await RelayLanToTunAsync(remote, packet, hash, keys, destinations, cancellationToken).ConfigureAwait(false);
+                        }
+                        catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+                        {
+                            RaiseError("lan-to-tun-process", IPAddress.Any, remote, ex);
+                        }
                     }
                     else
                     {
@@ -259,7 +276,14 @@ namespace linker.discovery
                     }
 
                     RaisePacketTrace("lan-response-receive", lan.Address, remote, responseSocket.Requester, packet.Length, "received LAN response on requester-bound forward response socket");
-                    await RelayLanToTunAsync(remote, packet, hash, keys, destinations, cancellationToken, responseSocket.Requester).ConfigureAwait(false);
+                    try
+                    {
+                        await RelayLanToTunAsync(remote, packet, hash, keys, destinations, cancellationToken, responseSocket.Requester).ConfigureAwait(false);
+                    }
+                    catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+                    {
+                        RaiseError("lan-response-process", lan.Address, remote, ex);
+                    }
                 }
             }
             catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
@@ -290,12 +314,22 @@ namespace linker.discovery
 
             foreach (LanInterface lan in _lanInterfaces)
             {
+                if (cancellationToken.IsCancellationRequested || _disposed)
+                {
+                    return;
+                }
+
                 try
                 {
                     Socket socket;
                     if (_receiveLanResponsesOnForwardSockets)
                     {
-                        RequesterResponseSocket responseSocket = GetOrCreateRequesterResponseSocket(lan, remote, cancellationToken);
+                        RequesterResponseSocket? responseSocket = GetOrCreateRequesterResponseSocket(lan, remote, cancellationToken);
+                        if (responseSocket is null)
+                        {
+                            return;
+                        }
+
                         socket = responseSocket.Socket;
                     }
                     else
@@ -327,36 +361,13 @@ namespace linker.discovery
             CancellationToken cancellationToken,
             IPEndPoint? boundDestination = null)
         {
-            destinations.Clear();
-            if (boundDestination is not null)
+            if (!TryResolveTunDestinationsForLanResponse(remote, packet, keys, destinations, boundDestination))
             {
-                destinations.Add(boundDestination);
-            }
-            else
-            {
-                keys.Clear();
-                _handler.GetResponseKeys(_protocol, packet.Span, keys);
-
-                if (keys.Count > 0)
-                {
-                    _tracker.GetDestinations(keys, destinations);
-                }
-
-                if (destinations.Count == 0 && _allowRecentFallback)
-                {
-                    _tracker.GetRecentDestinations(destinations);
-                }
-            }
-
-            if (destinations.Count == 0)
-            {
-                RaisePacketTrace("lan-to-tun-drop", IPAddress.Any, remote, null, packet.Length, keys.Count == 0 ? "no response keys matched" : "no tracked TUN requester matched response keys");
                 return;
             }
 
-            bool rewritten = false;
-            ReadOnlyMemory<byte> sendPacket = packet;
-            sendPacket = _handler.RewritePayload(_rewriteContext, packet, out rewritten);
+            // Rewrite only after this LAN packet has been accepted for relay to tracked TUN requester(s).
+            ReadOnlyMemory<byte> sendPacket = _handler.RewritePayload(_rewriteContext, packet, out bool rewritten);
 
             ulong sendHash = rewritten ? DiscoveryProtocolPacketHash.Compute(sendPacket.Span) : hash;
 
@@ -373,6 +384,43 @@ namespace linker.discovery
                     RaiseError("lan-to-tun", _tunIp, destination, ex);
                 }
             }
+        }
+
+        private bool TryResolveTunDestinationsForLanResponse(
+            IPEndPoint remote,
+            ReadOnlyMemory<byte> packet,
+            List<string> keys,
+            List<IPEndPoint> destinations,
+            IPEndPoint? boundDestination)
+        {
+            destinations.Clear();
+            keys.Clear();
+
+            if (boundDestination is not null)
+            {
+                destinations.Add(boundDestination);
+                return true;
+            }
+
+            _handler.GetResponseKeys(_protocol, packet.Span, keys);
+
+            if (keys.Count > 0)
+            {
+                _tracker.GetDestinations(keys, destinations);
+            }
+
+            if (destinations.Count == 0 && _allowRecentFallback)
+            {
+                _tracker.GetRecentDestinations(destinations);
+            }
+
+            if (destinations.Count > 0)
+            {
+                return true;
+            }
+
+            RaisePacketTrace("lan-to-tun-drop", IPAddress.Any, remote, null, packet.Length, keys.Count == 0 ? "no response keys matched" : "no tracked TUN requester matched response keys");
+            return false;
         }
 
         private static Socket CreateSocket(
@@ -475,15 +523,25 @@ namespace linker.discovery
             return socket;
         }
 
-        private RequesterResponseSocket GetOrCreateRequesterResponseSocket(
+        private RequesterResponseSocket? GetOrCreateRequesterResponseSocket(
             LanInterface lan,
             IPEndPoint requester,
             CancellationToken cancellationToken)
         {
+            if (cancellationToken.IsCancellationRequested || _disposed)
+            {
+                return null;
+            }
+
             EndpointKey key = EndpointKey.From(requester);
 
             lock (lan.Gate)
             {
+                if (cancellationToken.IsCancellationRequested || _disposed)
+                {
+                    return null;
+                }
+
                 PruneRequesterResponseSockets(lan, DateTime.UtcNow);
 
                 if (lan.ResponseSockets.TryGetValue(key, out RequesterResponseSocket? existing))
@@ -497,6 +555,7 @@ namespace linker.discovery
                 responseSocket.ReceiveTask = Task.Run(
                     () => RunLanResponseReceiveAsync(lan, responseSocket, cancellationToken),
                     CancellationToken.None);
+                EnsureRequesterResponseSocketCapacity(lan);
                 lan.ResponseSockets.Add(key, responseSocket);
                 return responseSocket;
             }
@@ -525,6 +584,32 @@ namespace linker.discovery
                 {
                     responseSocket.Dispose();
                 }
+            }
+        }
+
+        private static void EnsureRequesterResponseSocketCapacity(LanInterface lan)
+        {
+            while (lan.ResponseSockets.Count >= MaxRequesterResponseSocketsPerLan)
+            {
+                EndpointKey? oldestKey = null;
+                DateTime oldestUsedUtc = DateTime.MaxValue;
+
+                foreach ((EndpointKey key, RequesterResponseSocket responseSocket) in lan.ResponseSockets)
+                {
+                    if (responseSocket.LastUsedUtc < oldestUsedUtc)
+                    {
+                        oldestKey = key;
+                        oldestUsedUtc = responseSocket.LastUsedUtc;
+                    }
+                }
+
+                if (oldestKey is not { } keyToRemove ||
+                    !lan.ResponseSockets.Remove(keyToRemove, out RequesterResponseSocket? removed))
+                {
+                    return;
+                }
+
+                removed.Dispose();
             }
         }
 

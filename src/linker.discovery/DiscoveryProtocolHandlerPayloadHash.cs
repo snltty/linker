@@ -8,6 +8,8 @@ namespace linker.discovery
 {
     public sealed class DiscoveryProtocolHandlerPayloadHash : IDiscoveryProtocolHandler
     {
+        public bool AllowRecentResponseFallback => true;
+
         public int GetQueryKeys(DiscoveryProtocolInfo protocol, ReadOnlySpan<byte> payload, ICollection<string> keys)
         {
             DiscoveryProtocolKeyHelper.AddPayloadHashKey(keys, DiscoveryProtocolPacketHash.Compute(payload));
