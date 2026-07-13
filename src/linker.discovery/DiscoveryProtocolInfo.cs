@@ -24,7 +24,7 @@ public sealed class DiscoveryProtocolInfo
     public string Remark { get; set; } = string.Empty;
 
     [JsonIgnore]
-    public IDiscoveryProtocolMatcher? Matcher { get; set; }
+    public IDiscoveryProtocolHandler? Handler { get; set; }
 
     internal DiscoveryProtocolInfo Clone()
     {
@@ -38,7 +38,7 @@ public sealed class DiscoveryProtocolInfo
             Disabled = Disabled,
             LanIps = LanIps is null ? null : new List<IPAddress>(LanIps),
             Remark = Remark,
-            Matcher = Matcher
+            Handler = Handler
         };
     }
 }

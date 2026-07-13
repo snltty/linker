@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -145,8 +144,8 @@ public sealed class DiscoveryRelayTransfer : IDisposable
         var tasks = new List<Task>(sessions.Count * 2);
         foreach (DiscoveryRelaySession session in sessions)
         {
-            session.Dispose();
             session.AddTasks(tasks);
+            session.Dispose();
         }
 
         try
@@ -192,7 +191,7 @@ public sealed class DiscoveryRelayTransfer : IDisposable
             throw new ArgumentOutOfRangeException(nameof(protocol), "Protocol TTL must be between 1 and 255.");
         }
 
-        if (protocol.Type == DiscoveryProtocolType.Multicast && !IsMulticast(protocol.Address))
+        if (protocol.Type == DiscoveryProtocolType.Multicast && !DiscoveryProtocolHelper.IsMulticast(protocol.Address))
         {
             throw new ArgumentException("Multicast protocols require a multicast IPv4 address.", nameof(protocol));
         }
@@ -264,8 +263,8 @@ public sealed class DiscoveryRelayTransfer : IDisposable
 
     private static IPAddress ResolveTunIp(IPAddress tunIp)
     {
-        EnsureIPv4(tunIp, nameof(tunIp));
-        if (IsAny(tunIp))
+        DiscoveryProtocolHelper.EnsureIPv4(tunIp, nameof(tunIp));
+        if (DiscoveryProtocolHelper.IsAny(tunIp))
         {
             throw new ArgumentException("TUN IPv4 address must be explicitly specified and cannot be 0.0.0.0.", nameof(tunIp));
         }
@@ -275,12 +274,12 @@ public sealed class DiscoveryRelayTransfer : IDisposable
 
     private static List<IPAddress> ResolveLanIps(List<IPAddress>? lanIps, IPAddress? tunIp)
     {
-        if (lanIps is { Count: > 0 } && !lanIps.Any(IsAny))
+        if (lanIps is { Count: > 0 } && !lanIps.Any(DiscoveryProtocolHelper.IsAny))
         {
             var selected = new List<IPAddress>(lanIps.Count);
             foreach (IPAddress lanIp in lanIps)
             {
-                EnsureIPv4(lanIp, nameof(lanIps));
+                DiscoveryProtocolHelper.EnsureIPv4(lanIp, nameof(lanIps));
                 if ((tunIp is null || !lanIp.Equals(tunIp)) && !selected.Contains(lanIp))
                 {
                     selected.Add(lanIp);
@@ -294,7 +293,7 @@ public sealed class DiscoveryRelayTransfer : IDisposable
         }
 
         var result = new List<IPAddress>();
-        foreach ((NetworkInterface adapter, IPAddress address) in EnumerateUpIPv4Addresses())
+        foreach ((_, IPAddress address) in DiscoveryProtocolHelper.EnumerateUpIPv4Addresses())
         {
             if ((tunIp is null || !address.Equals(tunIp)) && !result.Contains(address))
             {
@@ -303,61 +302,6 @@ public sealed class DiscoveryRelayTransfer : IDisposable
         }
 
         return result;
-    }
-
-    private static IEnumerable<(NetworkInterface Adapter, IPAddress Address)> EnumerateUpIPv4Addresses()
-    {
-        foreach (NetworkInterface adapter in NetworkInterface.GetAllNetworkInterfaces())
-        {
-            if (adapter.OperationalStatus != OperationalStatus.Up ||
-                adapter.NetworkInterfaceType == NetworkInterfaceType.Loopback)
-            {
-                continue;
-            }
-
-            IPInterfaceProperties properties;
-            try
-            {
-                properties = adapter.GetIPProperties();
-            }
-            catch (NetworkInformationException)
-            {
-                continue;
-            }
-
-            foreach (UnicastIPAddressInformation unicast in properties.UnicastAddresses)
-            {
-                IPAddress address = unicast.Address;
-                if (address.AddressFamily == AddressFamily.InterNetwork &&
-                    !IPAddress.IsLoopback(address) &&
-                    !IsLinkLocal(address))
-                {
-                    yield return (adapter, address);
-                }
-            }
-        }
-    }
-
-    private static bool IsLinkLocal(IPAddress address)
-    {
-        byte[] bytes = address.GetAddressBytes();
-        return bytes[0] == 169 && bytes[1] == 254;
-    }
-    private static bool IsAny(IPAddress address)
-    {
-        return address.Equals(IPAddress.Any) || address.Equals(IPAddress.None);
-    }
-    private static bool IsMulticast(IPAddress address)
-    {
-        byte first = address.GetAddressBytes()[0];
-        return first is >= 224 and <= 239;
-    }
-    private static void EnsureIPv4(IPAddress address, string paramName)
-    {
-        if (address.AddressFamily != AddressFamily.InterNetwork)
-        {
-            throw new ArgumentException("Only IPv4 addresses are supported.", paramName);
-        }
     }
 
     private void ThrowIfDisposed()

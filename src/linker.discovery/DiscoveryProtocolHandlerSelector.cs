@@ -1,17 +1,18 @@
-﻿using System;
+using System;
 
 namespace linker.discovery
 {
-    public static class DiscoveryProtocolMatcherSelector
+    public static class DiscoveryProtocolHandlerSelector
     {
-        private static readonly IDiscoveryProtocolMatcher Mdns = new DiscoveryProtocolMatcherMdns();
-        private static readonly IDiscoveryProtocolMatcher Llmnr = new DiscoveryProtocolMatcherLlmnr();
-        private static readonly IDiscoveryProtocolMatcher Nbns = new DiscoveryProtocolMatcherNbns();
-        private static readonly IDiscoveryProtocolMatcher Ssdp = new DiscoveryProtocolMatcherSsdp();
-        private static readonly IDiscoveryProtocolMatcher WsDiscovery = new DiscoveryProtocolMatcherWs();
-        private static readonly IDiscoveryProtocolMatcher PayloadHash = new DiscoveryProtocolMatcherPayloadHash();
+        private static readonly IDiscoveryProtocolHandler Mdns = new DiscoveryProtocolHandlerMdns();
+        private static readonly IDiscoveryProtocolHandler Llmnr = new DiscoveryProtocolHandlerLlmnr();
+        private static readonly IDiscoveryProtocolHandler Nbns = new DiscoveryProtocolHandlerNbns();
+        private static readonly IDiscoveryProtocolHandler Ssdp = new DiscoveryProtocolHandlerSsdp();
+        private static readonly IDiscoveryProtocolHandler WsDiscovery = new DiscoveryProtocolHandlerWs();
+        private static readonly IDiscoveryProtocolHandler Sadp = new DiscoveryProtocolHandlerSadp();
+        private static readonly IDiscoveryProtocolHandler PayloadHash = new DiscoveryProtocolHandlerPayloadHash();
 
-        public static IDiscoveryProtocolMatcher Select(DiscoveryProtocolInfo protocol)
+        public static IDiscoveryProtocolHandler Select(DiscoveryProtocolInfo protocol)
         {
             if (protocol.Port == 5353 ||
                 protocol.Name.Contains("mdns", StringComparison.OrdinalIgnoreCase))
@@ -44,6 +45,13 @@ namespace linker.discovery
                 protocol.Name.Contains("onvif", StringComparison.OrdinalIgnoreCase))
             {
                 return WsDiscovery;
+            }
+
+            if (protocol.Port == 37020 ||
+                protocol.Name.Contains("sadp", StringComparison.OrdinalIgnoreCase) ||
+                protocol.Name.Contains("hikvision", StringComparison.OrdinalIgnoreCase))
+            {
+                return Sadp;
             }
 
             return PayloadHash;

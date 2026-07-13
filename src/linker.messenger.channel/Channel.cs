@@ -121,32 +121,59 @@ namespace linker.messenger.channel
                 return connection;
             }
 
-            if (operatingMultipleManager.StartOperation($"{machineId}@{TransactionId}"))
+            if (await HasContinute(machineId).ConfigureAwait(false))
             {
-                _ = RelayAndP2P(machineId, configures).ContinueWith((result) =>
+                return connection;
+            }
+
+            if (operatingMultipleManager.StartOperation($"{machineId}@{TransactionId}@relay"))
+            {
+                _ = DoRelay(machineId, configures).ContinueWith((result) =>
                 {
-                    operatingMultipleManager.StopOperation($"{machineId}@{TransactionId}");
-                    if (result.Result != null)
-                    {
-                        channelConnectionCaching.Add(result.Result);
-                    }
+                    operatingMultipleManager.StopOperation($"{machineId}@{TransactionId}@relay");
+
+                }).ConfigureAwait(false);
+            }
+
+            if (operatingMultipleManager.StartOperation($"{machineId}@{TransactionId}@p2p"))
+            {
+                _ = DoP2P(machineId, configures).ContinueWith((result) =>
+                {
+                    operatingMultipleManager.StopOperation($"{machineId}@{TransactionId}@p2p");
+
                 }).ConfigureAwait(false);
             }
 
             return null;
         }
-        private async Task<ITunnelConnection> RelayAndP2P(string machineId, Dictionary<string, string> configures)
+        private async Task<bool> HasContinute(string machineId)
         {
             if (signInClientStore.Id == machineId)
             {
-                return null;
+                return true;
             }
             if (await signInClientTransfer.GetOnline(machineId).ConfigureAwait(false) == false)
             {
-                return null;
+                return true;
             }
+            return false;
+        }
+        private async Task DoRelay(string machineId, Dictionary<string, string> configures)
+        {
+            ITunnelConnection connection = await tunnelTransfer.ConnectAsync(machineId, TransactionId, configures, tunnelTypes: [TunnelType.Relay]).ConfigureAwait(false);
+            if (connection != null)
+            {
+                channelConnectionCaching.Add(connection);
+            }
+        }
+        private async Task DoP2P(string machineId, Dictionary<string, string> configures)
+        {
 
-            ITunnelConnection connection = await tunnelTransfer.ConnectAsync(machineId, TransactionId, configures).ConfigureAwait(false);
+            ITunnelConnection connection = await tunnelTransfer.ConnectAsync(machineId, TransactionId, configures, exTunnelTypes: [TunnelType.Relay]).ConfigureAwait(false);
+            if (connection != null)
+            {
+                channelConnectionCaching.Add(connection);
+            }
             if (connection != null && connection.Type != TunnelType.P2P)
             {
                 tunnelTransfer.StartBackground(machineId, TransactionId, configures, () =>
@@ -155,10 +182,15 @@ namespace linker.messenger.channel
                     && _connection.Connected
                     && _connection.Type == TunnelType.P2P;
 
-                }, (_connection) => Task.CompletedTask, 65535, 10000);
+                }, (_connection) =>
+                {
+                    if (_connection != null)
+                    {
+                        channelConnectionCaching.Add(_connection);
+                    }
+                    return Task.CompletedTask;
+                }, 65535, 10000);
             }
-
-            return connection;
         }
     }
 }

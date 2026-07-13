@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace linker.discovery
 {
-    public sealed class DiscoveryProtocolMatcherPayloadHash : IDiscoveryProtocolMatcher
+    public sealed class DiscoveryProtocolHandlerPayloadHash : IDiscoveryProtocolHandler
     {
         public int GetQueryKeys(DiscoveryProtocolInfo protocol, ReadOnlySpan<byte> payload, ICollection<string> keys)
         {

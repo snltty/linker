@@ -1,8 +1,7 @@
-﻿using System;
+using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Net;
-using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,13 +18,13 @@ namespace linker.discovery
         private readonly IPAddress _tunIp;
         private readonly List<LanInterface> _lanInterfaces;
         private readonly HashSet<IPAddress> _lanIps;
-        private readonly IDiscoveryProtocolMatcher _matcher;
-        private readonly IReadOnlyList<DiscoveryAddressMapEntry> _addressMaps;
+        private readonly IDiscoveryProtocolHandler _handler;
+        private readonly DiscoveryProtocolRewriteContext _rewriteContext;
         private readonly DiscoveryRelayQueryTracker _tracker;
         private readonly Socket _socket;
         private readonly Socket _tunSendSocket;
         private readonly int _tunInterfaceIndex;
-        private readonly IPv4Network _tunNetwork;
+        private readonly DiscoveryProtocolHelper.IPv4Network _tunNetwork;
         private readonly Action<DiscoveryRelayError> _raiseError;
         private readonly Action<DiscoveryRelayAddressRewrite> _raiseAddressRewrite;
         private readonly Action<DiscoveryRelayPayloadRewrite> _raisePayloadRewrite;
@@ -57,22 +56,22 @@ namespace linker.discovery
         {
             _protocol = protocol;
             _tunIp = tunIp;
-            _addressMaps = addressMaps;
             _raiseError = raiseError;
             _raiseAddressRewrite = raiseAddressRewrite;
             _raisePayloadRewrite = raisePayloadRewrite;
             _raisePacketTrace = raisePacketTrace;
             _tracker = new DiscoveryRelayQueryTracker(QueryTtl, RecentFallbackTtl);
-            _matcher = protocol.Matcher ?? DiscoveryProtocolMatcherSelector.Select(protocol);
-            _allowRecentFallback = protocol.Matcher is not null || _matcher is DiscoveryProtocolMatcherPayloadHash;
-            _receiveLanResponsesOnForwardSockets = ShouldReceiveLanResponsesOnForwardSockets(protocol, _matcher);
-            _tunInterfaceIndex = GetInterfaceIndex(tunIp);
+            _handler = protocol.Handler ?? DiscoveryProtocolHandlerSelector.Select(protocol);
+            _rewriteContext = new DiscoveryProtocolRewriteContext(protocol, addressMaps, RaiseAddressRewrite, RaisePayloadRewrite);
+            _allowRecentFallback = protocol.Handler is not null || _handler is DiscoveryProtocolHandlerPayloadHash;
+            _receiveLanResponsesOnForwardSockets = _handler.ReceiveLanResponsesOnForwardSockets;
+            _tunInterfaceIndex = DiscoveryProtocolHelper.GetInterfaceIndex(tunIp);
             if (_tunInterfaceIndex == 0)
             {
                 throw new InvalidOperationException($"Unable to find an IPv4 interface for TUN address {tunIp}.");
             }
 
-            _tunNetwork = GetNetworkRange(tunIp);
+            _tunNetwork = DiscoveryProtocolHelper.GetNetworkRange(tunIp);
             _lanInterfaces = new List<LanInterface>(lanIps.Count);
             _lanIps = new HashSet<IPAddress>();
 
@@ -83,27 +82,23 @@ namespace linker.discovery
             {
                 foreach (IPAddress lanIp in lanIps)
                 {
-                    int lanInterfaceIndex = GetInterfaceIndex(lanIp);
+                    int lanInterfaceIndex = DiscoveryProtocolHelper.GetInterfaceIndex(lanIp);
                     if (lanInterfaceIndex == 0)
                     {
                         throw new InvalidOperationException($"Unable to find an IPv4 interface for LAN address {lanIp}.");
                     }
 
-                    IPAddress broadcastAddress = GetBroadcastAddress(lanIp);
+                    IPAddress broadcastAddress = DiscoveryProtocolHelper.GetBroadcastAddress(lanIp);
                     byte[] multicastInterfaceBytes = lanIp.GetAddressBytes();
-                    Socket? responseSocket = _receiveLanResponsesOnForwardSockets
-                        ? CreateLanResponseSocket(protocol, lanIp, multicastInterfaceBytes)
-                        : null;
 
                     _lanIps.Add(lanIp);
                     _lanInterfaces.Add(new LanInterface(
                         lanIp,
                         lanInterfaceIndex,
                         broadcastAddress,
-                        GetNetworkRange(lanIp),
-                        GetLanTarget(protocol, broadcastAddress),
-                        multicastInterfaceBytes,
-                        responseSocket));
+                        DiscoveryProtocolHelper.GetNetworkRange(lanIp),
+                        DiscoveryProtocolHelper.GetLanTarget(protocol, broadcastAddress),
+                        multicastInterfaceBytes));
                 }
 
                 socket = CreateSocket(protocol, tunIp, _lanInterfaces);
@@ -127,13 +122,6 @@ namespace linker.discovery
         public void Start(CancellationToken cancellationToken)
         {
             _receiveTask = Task.Run(() => RunReceiveAsync(cancellationToken), CancellationToken.None);
-            foreach (LanInterface lan in _lanInterfaces)
-            {
-                if (lan.ResponseSocket is not null)
-                {
-                    lan.ResponseReceiveTask = Task.Run(() => RunLanResponseReceiveAsync(lan, cancellationToken), CancellationToken.None);
-                }
-            }
         }
 
         public void AddTasks(List<Task> tasks)
@@ -145,9 +133,15 @@ namespace linker.discovery
 
             foreach (LanInterface lan in _lanInterfaces)
             {
-                if (lan.ResponseReceiveTask is not null)
+                lock (lan.Gate)
                 {
-                    tasks.Add(lan.ResponseReceiveTask);
+                    foreach (RequesterResponseSocket responseSocket in lan.ResponseSockets.Values)
+                    {
+                        if (responseSocket.ReceiveTask is not null)
+                        {
+                            tasks.Add(responseSocket.ReceiveTask);
+                        }
+                    }
                 }
             }
         }
@@ -225,13 +219,11 @@ namespace linker.discovery
             }
         }
 
-        private async Task RunLanResponseReceiveAsync(LanInterface lan, CancellationToken cancellationToken)
+        private async Task RunLanResponseReceiveAsync(
+            LanInterface lan,
+            RequesterResponseSocket responseSocket,
+            CancellationToken cancellationToken)
         {
-            if (lan.ResponseSocket is null)
-            {
-                return;
-            }
-
             byte[] rented = ArrayPool<byte>.Shared.Rent(65535);
             var keys = new List<string>(4);
             var destinations = new List<IPEndPoint>(4);
@@ -243,7 +235,7 @@ namespace linker.discovery
                     SocketReceiveFromResult result;
                     try
                     {
-                        result = await lan.ResponseSocket
+                        result = await responseSocket.Socket
                             .ReceiveFromAsync(rented.AsMemory(0, 65535), SocketFlags.None, AnyEndpoint, cancellationToken)
                             .ConfigureAwait(false);
                     }
@@ -266,8 +258,8 @@ namespace linker.discovery
                         continue;
                     }
 
-                    RaisePacketTrace("lan-response-receive", lan.Address, remote, null, packet.Length, "received LAN response on forward response socket");
-                    await RelayLanToTunAsync(remote, packet, hash, keys, destinations, cancellationToken).ConfigureAwait(false);
+                    RaisePacketTrace("lan-response-receive", lan.Address, remote, responseSocket.Requester, packet.Length, "received LAN response on requester-bound forward response socket");
+                    await RelayLanToTunAsync(remote, packet, hash, keys, destinations, cancellationToken, responseSocket.Requester).ConfigureAwait(false);
                 }
             }
             catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
@@ -288,7 +280,7 @@ namespace linker.discovery
             CancellationToken cancellationToken)
         {
             keys.Clear();
-            if (_matcher.GetQueryKeys(_protocol, packet.Span, keys) == 0)
+            if (_handler.GetQueryKeys(_protocol, packet.Span, keys) == 0)
             {
                 DiscoveryProtocolKeyHelper.AddPayloadHashKey(keys, hash);
             }
@@ -300,8 +292,18 @@ namespace linker.discovery
             {
                 try
                 {
-                    Socket socket = lan.ResponseSocket ?? _socket;
-                    if (_protocol.Type == DiscoveryProtocolType.Multicast && lan.ResponseSocket is null)
+                    Socket socket;
+                    if (_receiveLanResponsesOnForwardSockets)
+                    {
+                        RequesterResponseSocket responseSocket = GetOrCreateRequesterResponseSocket(lan, remote, cancellationToken);
+                        socket = responseSocket.Socket;
+                    }
+                    else
+                    {
+                        socket = _socket;
+                    }
+
+                    if (_protocol.Type == DiscoveryProtocolType.Multicast && !_receiveLanResponsesOnForwardSockets)
                     {
                         socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastInterface, lan.MulticastInterfaceBytes);
                     }
@@ -322,20 +324,28 @@ namespace linker.discovery
             ulong hash,
             List<string> keys,
             List<IPEndPoint> destinations,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            IPEndPoint? boundDestination = null)
         {
-            keys.Clear();
-            _matcher.GetResponseKeys(_protocol, packet.Span, keys);
-
             destinations.Clear();
-            if (keys.Count > 0)
+            if (boundDestination is not null)
             {
-                _tracker.GetDestinations(keys, destinations);
+                destinations.Add(boundDestination);
             }
-
-            if (destinations.Count == 0 && _allowRecentFallback)
+            else
             {
-                _tracker.GetRecentDestinations(destinations);
+                keys.Clear();
+                _handler.GetResponseKeys(_protocol, packet.Span, keys);
+
+                if (keys.Count > 0)
+                {
+                    _tracker.GetDestinations(keys, destinations);
+                }
+
+                if (destinations.Count == 0 && _allowRecentFallback)
+                {
+                    _tracker.GetRecentDestinations(destinations);
+                }
             }
 
             if (destinations.Count == 0)
@@ -344,14 +354,10 @@ namespace linker.discovery
                 return;
             }
 
-            ReadOnlyMemory<byte> sendPacket = DiscoveryProtocolAddressRewriter.RewriteLanToTun(
-                _protocol,
-                _matcher,
-                packet,
-                _addressMaps,
-                RaiseAddressRewrite,
-                RaisePayloadRewrite,
-                out bool rewritten);
+            bool rewritten = false;
+            ReadOnlyMemory<byte> sendPacket = packet;
+            sendPacket = _handler.RewritePayload(_rewriteContext, packet, out rewritten);
+
             ulong sendHash = rewritten ? DiscoveryProtocolPacketHash.Compute(sendPacket.Span) : hash;
 
             _sentToTun.Add(sendHash);
@@ -469,41 +475,62 @@ namespace linker.discovery
             return socket;
         }
 
-        private static bool ShouldReceiveLanResponsesOnForwardSockets(
-            DiscoveryProtocolInfo protocol,
-            IDiscoveryProtocolMatcher matcher)
+        private RequesterResponseSocket GetOrCreateRequesterResponseSocket(
+            LanInterface lan,
+            IPEndPoint requester,
+            CancellationToken cancellationToken)
         {
-            return protocol.Port is 137 or 1900 or 3702 or 5355 ||
-                matcher is DiscoveryProtocolMatcherSsdp or
-                    DiscoveryProtocolMatcherWs or
-                    DiscoveryProtocolMatcherLlmnr or
-                    DiscoveryProtocolMatcherNbns;
+            EndpointKey key = EndpointKey.From(requester);
+
+            lock (lan.Gate)
+            {
+                PruneRequesterResponseSockets(lan, DateTime.UtcNow);
+
+                if (lan.ResponseSockets.TryGetValue(key, out RequesterResponseSocket? existing))
+                {
+                    existing.Touch();
+                    return existing;
+                }
+
+                Socket socket = CreateLanResponseSocket(_protocol, lan.Address, lan.MulticastInterfaceBytes);
+                var responseSocket = new RequesterResponseSocket(socket, new IPEndPoint(requester.Address, requester.Port));
+                responseSocket.ReceiveTask = Task.Run(
+                    () => RunLanResponseReceiveAsync(lan, responseSocket, cancellationToken),
+                    CancellationToken.None);
+                lan.ResponseSockets.Add(key, responseSocket);
+                return responseSocket;
+            }
+        }
+
+        private static void PruneRequesterResponseSockets(LanInterface lan, DateTime nowUtc)
+        {
+            List<EndpointKey>? stale = null;
+            foreach ((EndpointKey key, RequesterResponseSocket responseSocket) in lan.ResponseSockets)
+            {
+                if (nowUtc - responseSocket.LastUsedUtc > QueryTtl)
+                {
+                    stale ??= [];
+                    stale.Add(key);
+                }
+            }
+
+            if (stale is null)
+            {
+                return;
+            }
+
+            foreach (EndpointKey key in stale)
+            {
+                if (lan.ResponseSockets.Remove(key, out RequesterResponseSocket? responseSocket))
+                {
+                    responseSocket.Dispose();
+                }
+            }
         }
 
         private static void JoinMulticast(Socket socket, IPAddress multicastAddress, IPAddress interfaceAddress)
         {
             socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership, new MulticastOption(multicastAddress, interfaceAddress));
-        }
-
-        private static IPAddress GetProtocolTargetAddress(DiscoveryProtocolInfo protocol)
-        {
-            if (protocol.Type == DiscoveryProtocolType.Broadcast && IsAny(protocol.Address))
-            {
-                return IPAddress.Broadcast;
-            }
-
-            return protocol.Address;
-        }
-
-        private static IPEndPoint GetLanTarget(DiscoveryProtocolInfo protocol, IPAddress broadcastAddress)
-        {
-            if (protocol.Type == DiscoveryProtocolType.Broadcast &&
-                (IsAny(protocol.Address) || protocol.Address.Equals(IPAddress.Broadcast)))
-            {
-                return new IPEndPoint(broadcastAddress, protocol.Port);
-            }
-
-            return new IPEndPoint(GetProtocolTargetAddress(protocol), protocol.Port);
         }
 
         private PacketSource GetPacketSource(int interfaceIndex, IPAddress remoteAddress)
@@ -608,121 +635,15 @@ namespace linker.discovery
                    (ex is SocketException or ObjectDisposedException or OperationCanceledException);
         }
 
-        private static int GetInterfaceIndex(IPAddress address)
-        {
-            foreach (NetworkInterface adapter in NetworkInterface.GetAllNetworkInterfaces())
-            {
-                IPInterfaceProperties properties;
-                IPv4InterfaceProperties? ipv4Properties;
-                try
-                {
-                    properties = adapter.GetIPProperties();
-                    ipv4Properties = properties.GetIPv4Properties();
-                }
-                catch (NetworkInformationException)
-                {
-                    continue;
-                }
-
-                if (ipv4Properties is null)
-                {
-                    continue;
-                }
-
-                foreach (UnicastIPAddressInformation unicast in properties.UnicastAddresses)
-                {
-                    if (unicast.Address.Equals(address))
-                    {
-                        return ipv4Properties.Index;
-                    }
-                }
-            }
-
-            return 0;
-        }
-
-        private static IPAddress GetBroadcastAddress(IPAddress address)
-        {
-            foreach (NetworkInterface adapter in NetworkInterface.GetAllNetworkInterfaces())
-            {
-                IPInterfaceProperties properties;
-                try
-                {
-                    properties = adapter.GetIPProperties();
-                }
-                catch (NetworkInformationException)
-                {
-                    continue;
-                }
-
-                foreach (UnicastIPAddressInformation unicast in properties.UnicastAddresses)
-                {
-                    if (!unicast.Address.Equals(address) ||
-                        unicast.IPv4Mask is null ||
-                        unicast.IPv4Mask.AddressFamily != AddressFamily.InterNetwork)
-                    {
-                        continue;
-                    }
-
-                    Span<byte> ipBytes = stackalloc byte[4];
-                    Span<byte> maskBytes = stackalloc byte[4];
-                    if (!address.TryWriteBytes(ipBytes, out _) ||
-                        !unicast.IPv4Mask.TryWriteBytes(maskBytes, out _))
-                    {
-                        break;
-                    }
-
-                    Span<byte> broadcast = stackalloc byte[4];
-                    for (int i = 0; i < broadcast.Length; i++)
-                    {
-                        broadcast[i] = (byte)(ipBytes[i] | ~maskBytes[i]);
-                    }
-
-                    return new IPAddress(broadcast);
-                }
-            }
-
-            return IPAddress.Broadcast;
-        }
-
-        private static IPv4Network GetNetworkRange(IPAddress address)
-        {
-            foreach (NetworkInterface adapter in NetworkInterface.GetAllNetworkInterfaces())
-            {
-                IPInterfaceProperties properties;
-                try
-                {
-                    properties = adapter.GetIPProperties();
-                }
-                catch (NetworkInformationException)
-                {
-                    continue;
-                }
-
-                foreach (UnicastIPAddressInformation unicast in properties.UnicastAddresses)
-                {
-                    if (unicast.Address.Equals(address) &&
-                        unicast.IPv4Mask is not null &&
-                        unicast.IPv4Mask.AddressFamily == AddressFamily.InterNetwork)
-                    {
-                        return IPv4Network.Create(address, unicast.IPv4Mask);
-                    }
-                }
-            }
-
-            return IPv4Network.Create(address, IPAddress.Broadcast);
-        }
-
         private sealed class LanInterface : IDisposable
         {
             public LanInterface(
                 IPAddress address,
                 int interfaceIndex,
                 IPAddress broadcastAddress,
-                IPv4Network network,
+                DiscoveryProtocolHelper.IPv4Network network,
                 IPEndPoint target,
-                byte[] multicastInterfaceBytes,
-                Socket? responseSocket)
+                byte[] multicastInterfaceBytes)
             {
                 Address = address;
                 InterfaceIndex = interfaceIndex;
@@ -730,8 +651,9 @@ namespace linker.discovery
                 Network = network;
                 Target = target;
                 MulticastInterfaceBytes = multicastInterfaceBytes;
-                ResponseSocket = responseSocket;
             }
+
+            public object Gate { get; } = new();
 
             public IPAddress Address { get; }
 
@@ -739,62 +661,62 @@ namespace linker.discovery
 
             public IPAddress BroadcastAddress { get; }
 
-            public IPv4Network Network { get; }
+            public DiscoveryProtocolHelper.IPv4Network Network { get; }
 
             public IPEndPoint Target { get; }
 
             public byte[] MulticastInterfaceBytes { get; }
 
-            public Socket? ResponseSocket { get; }
-
-            public Task? ResponseReceiveTask { get; set; }
+            public Dictionary<EndpointKey, RequesterResponseSocket> ResponseSockets { get; } = [];
 
             public void Dispose()
             {
-                ResponseSocket?.Dispose();
+                lock (Gate)
+                {
+                    foreach (RequesterResponseSocket responseSocket in ResponseSockets.Values)
+                    {
+                        responseSocket.Dispose();
+                    }
+
+                    ResponseSockets.Clear();
+                }
             }
         }
 
-        private readonly record struct IPv4Network(uint Address, uint Mask)
+        private sealed class RequesterResponseSocket : IDisposable
         {
-            public static IPv4Network Create(IPAddress address, IPAddress mask)
+            public RequesterResponseSocket(Socket socket, IPEndPoint requester)
             {
-                if (!TryToUInt32(address, out uint addressValue) ||
-                    !TryToUInt32(mask, out uint maskValue))
-                {
-                    return default;
-                }
-
-                return new IPv4Network(addressValue & maskValue, maskValue);
+                Socket = socket;
+                Requester = requester;
+                LastUsedUtc = DateTime.UtcNow;
             }
 
-            public bool Contains(IPAddress address)
+            public Socket Socket { get; }
+
+            public IPEndPoint Requester { get; }
+
+            public DateTime LastUsedUtc { get; private set; }
+
+            public Task? ReceiveTask { get; set; }
+
+            public void Touch()
             {
-                return Mask != 0 &&
-                    TryToUInt32(address, out uint addressValue) &&
-                    (addressValue & Mask) == Address;
+                LastUsedUtc = DateTime.UtcNow;
             }
 
-            private static bool TryToUInt32(IPAddress address, out uint value)
+            public void Dispose()
             {
-                Span<byte> bytes = stackalloc byte[4];
-                if (!address.TryWriteBytes(bytes, out int written) || written != 4)
-                {
-                    value = 0;
-                    return false;
-                }
-
-                value = ((uint)bytes[0] << 24) |
-                    ((uint)bytes[1] << 16) |
-                    ((uint)bytes[2] << 8) |
-                    bytes[3];
-                return true;
+                Socket.Dispose();
             }
         }
 
-        private static bool IsAny(IPAddress address)
+        private readonly record struct EndpointKey(IPAddress Address, int Port)
         {
-            return address.Equals(IPAddress.Any) || address.Equals(IPAddress.None);
+            public static EndpointKey From(IPEndPoint endpoint)
+            {
+                return new EndpointKey(endpoint.Address, endpoint.Port);
+            }
         }
 
         private enum PacketSource

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace linker.discovery
 {
-    internal static class DiscoveryProtocolMatcherDnsLike
+    internal static class DiscoveryProtocolHandlerDnsLike
     {
         public static int GetQueryKeys(ReadOnlySpan<byte> payload, ICollection<string> keys, string prefix)
         {

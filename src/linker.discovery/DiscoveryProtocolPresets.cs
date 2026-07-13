@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net;
 
 namespace linker.discovery;
@@ -16,7 +16,7 @@ public static class DiscoveryProtocolPresets
                 Port = 5353,
                 Type = DiscoveryProtocolType.Multicast,
                 Ttl = 255,
-                Remark = "Bonjour、DNS-SD、打印机及本地服务"
+                Remark = "Bonjour, DNS-SD, printers, and local services"
             },
             new DiscoveryProtocolInfo
             {
@@ -25,7 +25,7 @@ public static class DiscoveryProtocolPresets
                 Port = 1900,
                 Type = DiscoveryProtocolType.Multicast,
                 Ttl = 4,
-                Remark = "UPnP、DLNA、路由器、NAS 及媒体设备"
+                Remark = "UPnP, DLNA, routers, NAS, and media devices"
             },
             new DiscoveryProtocolInfo
             {
@@ -34,7 +34,7 @@ public static class DiscoveryProtocolPresets
                 Port = 5355,
                 Type = DiscoveryProtocolType.Multicast,
                 Ttl = 255,
-                Remark = "Windows 链路本地多播名称解析"
+                Remark = "Windows link-local multicast name resolution"
             },
             new DiscoveryProtocolInfo
             {
@@ -43,7 +43,7 @@ public static class DiscoveryProtocolPresets
                 Port = 137,
                 Type = DiscoveryProtocolType.Broadcast,
                 Ttl = 255,
-                Remark = "NetBIOS 名称服务及旧版 Windows 发现"
+                Remark = "NetBIOS name service and legacy Windows discovery"
             },
             new DiscoveryProtocolInfo
             {
@@ -52,7 +52,16 @@ public static class DiscoveryProtocolPresets
                 Port = 3702,
                 Type = DiscoveryProtocolType.Multicast,
                 Ttl = 4,
-                Remark = "ONVIF、打印机及 Windows 网络发现"
+                Remark = "ONVIF, printers, and Windows network discovery"
+            },
+            new DiscoveryProtocolInfo
+            {
+                Name = "Hikvision-SADP",
+                Address = IPAddress.Parse("239.255.255.250"),
+                Port = 37020,
+                Type = DiscoveryProtocolType.Multicast,
+                Ttl = 4,
+                Remark = "Hikvision SADP transparent discovery relay"
             }
         ];
     }

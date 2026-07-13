@@ -5,78 +5,21 @@ using System.Text;
 
 namespace linker.discovery;
 
-internal static class DiscoveryProtocolAddressRewriter
+internal static class DiscoveryProtocolPayloadRewriteHelper
 {
     private static readonly UTF8Encoding StrictUtf8 = new(false, true);
 
-    public static ReadOnlyMemory<byte> RewriteLanToTun(
-        DiscoveryProtocolInfo protocol,
-        IDiscoveryProtocolMatcher matcher,
-        ReadOnlyMemory<byte> packet,
-        IReadOnlyList<DiscoveryAddressMapEntry> maps,
-        Action<IPAddress, IPAddress>? addressRewritten,
-        Action<string, string, string>? payloadRewritten,
-        out bool rewritten)
+    public static byte[]? RewriteUrlHosts(DiscoveryProtocolRewriteContext context, ReadOnlyMemory<byte> packet)
     {
-        rewritten = false;
-        bool isWsDiscovery = IsWsDiscoveryProtocol(protocol, matcher);
-        if (packet.Length == 0 || (maps.Count == 0 && !isWsDiscovery))
+        if (!context.HasAddressMaps)
         {
-            return packet;
+            return null;
         }
 
-        byte[]? next = null;
-        if (IsTextUrlProtocol(protocol, matcher))
-        {
-            next = RewriteUrlHosts(packet.Span, maps, addressRewritten);
-        }
-        else if (IsDnsLikeProtocol(protocol, matcher))
-        {
-            next = RewriteDnsLikeAddresses(protocol, matcher, packet, maps, addressRewritten);
-        }
-
-        if (isWsDiscovery)
-        {
-            RaiseXmlElementRewrite("XAddrs", packet.Span, next ?? packet.Span, payloadRewritten);
-        }
-
-        if (next is null)
-        {
-            return packet;
-        }
-
-        rewritten = true;
-        return next;
-    }
-
-    private static bool IsTextUrlProtocol(DiscoveryProtocolInfo protocol, IDiscoveryProtocolMatcher matcher)
-    {
-        return protocol.Port is 1900 or 3702 ||
-            matcher is DiscoveryProtocolMatcherSsdp or DiscoveryProtocolMatcherWs;
-    }
-
-    private static bool IsWsDiscoveryProtocol(DiscoveryProtocolInfo protocol, IDiscoveryProtocolMatcher matcher)
-    {
-        return protocol.Port == 3702 || matcher is DiscoveryProtocolMatcherWs;
-    }
-
-    private static bool IsDnsLikeProtocol(DiscoveryProtocolInfo protocol, IDiscoveryProtocolMatcher matcher)
-    {
-        return protocol.Port is 137 or 5353 or 5355 ||
-            matcher is DiscoveryProtocolMatcherMdns or
-                DiscoveryProtocolMatcherLlmnr or
-                DiscoveryProtocolMatcherNbns;
-    }
-
-    private static byte[]? RewriteUrlHosts(
-        ReadOnlySpan<byte> packet,
-        IReadOnlyList<DiscoveryAddressMapEntry> maps,
-        Action<IPAddress, IPAddress>? addressRewritten)
-    {
         string text;
         try
         {
-            text = StrictUtf8.GetString(packet);
+            text = StrictUtf8.GetString(packet.Span);
         }
         catch (DecoderFallbackException)
         {
@@ -119,12 +62,12 @@ internal static class DiscoveryProtocolAddressRewriter
 
             int hostEnd = FindHostEnd(text, hostStart, authorityEnd);
             if (TryParseDottedDecimal(text, hostStart, hostEnd - hostStart, out byte a, out byte b, out byte c, out byte d) &&
-                TryMapAddress(a, b, c, d, maps, out string mappedAddress, out IPAddress originalIp, out IPAddress mappedIp))
+                TryMapAddress(context, a, b, c, d, out string mappedAddress, out IPAddress originalIp, out IPAddress mappedIp))
             {
                 builder ??= new StringBuilder(text.Length + 16);
                 builder.Append(text, copyFrom, hostStart - copyFrom);
                 builder.Append(mappedAddress);
-                addressRewritten?.Invoke(originalIp, mappedIp);
+                context.ReportAddressRewrite(originalIp, mappedIp);
                 copyFrom = hostEnd;
             }
 
@@ -140,13 +83,16 @@ internal static class DiscoveryProtocolAddressRewriter
         return StrictUtf8.GetBytes(builder.ToString());
     }
 
-    private static byte[]? RewriteDnsLikeAddresses(
-        DiscoveryProtocolInfo protocol,
-        IDiscoveryProtocolMatcher matcher,
+    public static byte[]? RewriteDnsLikeAddresses(
+        DiscoveryProtocolRewriteContext context,
         ReadOnlyMemory<byte> packet,
-        IReadOnlyList<DiscoveryAddressMapEntry> maps,
-        Action<IPAddress, IPAddress>? addressRewritten)
+        bool rewriteNbRecords)
     {
+        if (!context.HasAddressMaps)
+        {
+            return null;
+        }
+
         ReadOnlySpan<byte> span = packet.Span;
         if (span.Length < 12)
         {
@@ -167,7 +113,6 @@ internal static class DiscoveryProtocolAddressRewriter
             }
         }
 
-        bool rewriteNbRecords = protocol.Port == 137 || matcher is DiscoveryProtocolMatcherNbns;
         byte[]? rewritten = null;
         int recordCount = answerCount + authorityCount + additionalCount;
 
@@ -191,13 +136,13 @@ internal static class DiscoveryProtocolAddressRewriter
 
             if (type == 1 && dataLength == 4)
             {
-                TryRewriteDnsAddress(packet, ref rewritten, offset, maps, addressRewritten);
+                TryRewriteDnsAddress(context, packet, ref rewritten, offset);
             }
             else if (rewriteNbRecords && type == 32 && dataLength >= 6)
             {
                 for (int dataOffset = offset + 2; dataOffset + 4 <= offset + dataLength; dataOffset += 6)
                 {
-                    TryRewriteDnsAddress(packet, ref rewritten, dataOffset, maps, addressRewritten);
+                    TryRewriteDnsAddress(context, packet, ref rewritten, dataOffset);
                 }
             }
 
@@ -207,31 +152,184 @@ internal static class DiscoveryProtocolAddressRewriter
         return rewritten;
     }
 
+    public static byte[]? RewriteXmlIPv4ElementTexts(
+        DiscoveryProtocolRewriteContext context,
+        ReadOnlyMemory<byte> packet,
+        params string[] localNames)
+    {
+        if (!context.HasAddressMaps || packet.Length == 0)
+        {
+            return null;
+        }
+
+        string text;
+        try
+        {
+            text = StrictUtf8.GetString(packet.Span);
+        }
+        catch (DecoderFallbackException)
+        {
+            return null;
+        }
+
+        StringBuilder? builder = null;
+        int copyFrom = 0;
+        int searchFrom = 0;
+
+        while (searchFrom < text.Length)
+        {
+            int open = text.IndexOf('<', searchFrom);
+            if (open < 0 || open + 1 >= text.Length)
+            {
+                break;
+            }
+
+            char marker = text[open + 1];
+            if (marker is '/' or '!' or '?')
+            {
+                searchFrom = open + 1;
+                continue;
+            }
+
+            int nameStart = open + 1;
+            int nameEnd = nameStart;
+            while (nameEnd < text.Length)
+            {
+                char current = text[nameEnd];
+                if (current is '>' or '/' || char.IsWhiteSpace(current))
+                {
+                    break;
+                }
+
+                nameEnd++;
+            }
+
+            if (nameEnd == nameStart)
+            {
+                searchFrom = open + 1;
+                continue;
+            }
+
+            ReadOnlySpan<char> elementName = text.AsSpan(nameStart, nameEnd - nameStart);
+            int colon = elementName.LastIndexOf(':');
+            if (colon >= 0)
+            {
+                elementName = elementName[(colon + 1)..];
+            }
+
+            if (!ContainsLocalName(localNames, elementName))
+            {
+                searchFrom = nameEnd;
+                continue;
+            }
+
+            int tagEnd = text.IndexOf('>', nameEnd);
+            if (tagEnd < 0)
+            {
+                break;
+            }
+
+            int valueStart = tagEnd + 1;
+            int close = text.IndexOf('<', valueStart);
+            if (close < 0)
+            {
+                break;
+            }
+
+            int trimmedStart = valueStart;
+            int trimmedEnd = close;
+            while (trimmedStart < trimmedEnd && text[trimmedStart] <= 0x20)
+            {
+                trimmedStart++;
+            }
+
+            while (trimmedEnd > trimmedStart && text[trimmedEnd - 1] <= 0x20)
+            {
+                trimmedEnd--;
+            }
+
+            if (TryParseDottedDecimal(
+                    text,
+                    trimmedStart,
+                    trimmedEnd - trimmedStart,
+                    out byte a,
+                    out byte b,
+                    out byte c,
+                    out byte d) &&
+                TryMapAddress(context, a, b, c, d, out string mappedAddress, out IPAddress originalIp, out IPAddress mappedIp))
+            {
+                builder ??= new StringBuilder(text.Length + 16);
+                builder.Append(text, copyFrom, trimmedStart - copyFrom);
+                builder.Append(mappedAddress);
+                context.ReportAddressRewrite(originalIp, mappedIp);
+                context.ReportPayloadRewrite(elementName.ToString(), text[trimmedStart..trimmedEnd], mappedAddress);
+                copyFrom = trimmedEnd;
+            }
+
+            searchFrom = close + 1;
+        }
+
+        if (builder is null)
+        {
+            return null;
+        }
+
+        builder.Append(text, copyFrom, text.Length - copyFrom);
+        return StrictUtf8.GetBytes(builder.ToString());
+    }
+
+    public static void ReportXmlElementRewrite(
+        DiscoveryProtocolRewriteContext context,
+        string localName,
+        ReadOnlySpan<byte> originalPayload,
+        ReadOnlySpan<byte> rewrittenPayload)
+    {
+        if (!DiscoveryProtocolXmlLite.TryGetElementText(originalPayload, localName, out ReadOnlySpan<byte> originalValue) ||
+            !DiscoveryProtocolXmlLite.TryGetElementText(rewrittenPayload, localName, out ReadOnlySpan<byte> rewrittenValue))
+        {
+            return;
+        }
+
+        context.ReportPayloadRewrite(localName, StrictUtf8.GetString(originalValue), StrictUtf8.GetString(rewrittenValue));
+    }
+
+    private static bool ContainsLocalName(IReadOnlyList<string> localNames, ReadOnlySpan<char> candidate)
+    {
+        foreach (string localName in localNames)
+        {
+            if (candidate.Equals(localName, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private static void TryRewriteDnsAddress(
+        DiscoveryProtocolRewriteContext context,
         ReadOnlyMemory<byte> packet,
         ref byte[]? rewritten,
-        int offset,
-        IReadOnlyList<DiscoveryAddressMapEntry> maps,
-        Action<IPAddress, IPAddress>? addressRewritten)
+        int offset)
     {
         ReadOnlySpan<byte> address = packet.Span.Slice(offset, 4);
         Span<byte> mapped = stackalloc byte[4];
-        if (!TryMapAddress(address, mapped, maps) || address.SequenceEqual(mapped))
+        if (!context.TryMapRealToMapped(address, mapped) || address.SequenceEqual(mapped))
         {
             return;
         }
 
         rewritten ??= packet.ToArray();
         mapped.CopyTo(rewritten.AsSpan(offset, 4));
-        addressRewritten?.Invoke(new IPAddress(address), new IPAddress(mapped));
+        context.ReportAddressRewrite(new IPAddress(address), new IPAddress(mapped));
     }
 
     private static bool TryMapAddress(
+        DiscoveryProtocolRewriteContext context,
         byte a,
         byte b,
         byte c,
         byte d,
-        IReadOnlyList<DiscoveryAddressMapEntry> maps,
         out string mappedAddress,
         out IPAddress originalIp,
         out IPAddress mappedIp)
@@ -242,7 +340,7 @@ internal static class DiscoveryProtocolAddressRewriter
         address[2] = c;
         address[3] = d;
         Span<byte> mapped = stackalloc byte[4];
-        if (!TryMapAddress(address, mapped, maps) || address.SequenceEqual(mapped))
+        if (!context.TryMapRealToMapped(address, mapped) || address.SequenceEqual(mapped))
         {
             mappedAddress = string.Empty;
             originalIp = IPAddress.None;
@@ -254,38 +352,6 @@ internal static class DiscoveryProtocolAddressRewriter
         originalIp = new IPAddress(address);
         mappedIp = new IPAddress(mapped);
         return true;
-    }
-
-    private static bool TryMapAddress(
-        ReadOnlySpan<byte> address,
-        Span<byte> mapped,
-        IReadOnlyList<DiscoveryAddressMapEntry> maps)
-    {
-        foreach (DiscoveryAddressMapEntry map in maps)
-        {
-            if (map.TryMapRealToMapped(address, mapped))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static void RaiseXmlElementRewrite(
-        string localName,
-        ReadOnlySpan<byte> originalPayload,
-        ReadOnlySpan<byte> rewrittenPayload,
-        Action<string, string, string>? payloadRewritten)
-    {
-        if (payloadRewritten is null ||
-            !DiscoveryProtocolXmlLite.TryGetElementText(originalPayload, localName, out ReadOnlySpan<byte> originalValue) ||
-            !DiscoveryProtocolXmlLite.TryGetElementText(rewrittenPayload, localName, out ReadOnlySpan<byte> rewrittenValue))
-        {
-            return;
-        }
-
-        payloadRewritten(localName, StrictUtf8.GetString(originalValue), StrictUtf8.GetString(rewrittenValue));
     }
 
     private static int FindSchemeStart(string text, int schemeSeparator)
