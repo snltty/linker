@@ -102,7 +102,7 @@ namespace linker.messenger.serializer.memorypack
         }
     }
    
-    public class AccessBotsInfoFormatter : MemoryPackFormatter<AccessBitsInfo>
+    public class AccessBitsInfoFormatter : MemoryPackFormatter<AccessBitsInfo>
     {
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref AccessBitsInfo value)
         {
