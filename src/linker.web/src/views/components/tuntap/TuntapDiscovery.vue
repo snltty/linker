@@ -22,7 +22,6 @@
                             </el-select>
                         </template>
                         <template v-else>
-                            <!-- <a href="javascript:;" class="a-line" @click="handleEdit(scope.row, 'LanIps')">{{ scope.row.LanIps }}</a> -->
                             <a href="javascript:;" class="a-line" @click="handleEdit(scope.row, 'LanIps')">{{ scope.row.LanIps.join('、') || '0.0.0.0' }}</a>
                         </template>
                     </template>
@@ -70,7 +69,7 @@ export default {
                     return json;
                 },{})
                 res.forEach(c=>{
-                    const item = settings[c.Name] || {Disabled:false,LanIps:[]};
+                    const item = settings[c.Name] || {Disabled:true,LanIps:[]};
                     c.Disabled = item.Disabled;
                     c.LanIps = item.LanIps;
                 })

@@ -17,7 +17,7 @@ public sealed class DiscoveryProtocolInfo
 
     public int Ttl { get; set; } = 255;
 
-    public bool Disabled { get; set; }
+    public bool Disabled { get; set; } = true;
 
     public List<IPAddress>? LanIps { get; set; } = [];
 
