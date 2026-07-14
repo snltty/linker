@@ -20,26 +20,28 @@ jobs:
 
       - name: build web
         run: |
+          rm -rf global.json && \
           cd src/linker.web && \
           npm install && \
           npm run build && \
           cd ../../
+
+      - name: Probe Loongnix .NET image
+        run: |
+          docker run --rm cr.loongnix.cn/extra/dotnet:8.0.7 \
+          bash -lc 'uname -m && dotnet --info && dotnet --list-runtimes'
         
       - name: build linker with loongnix docker
         run: |
-          docker run --rm --platform linux/loong64 \
-            -v ${{ github.workspace }}:/dst \
-            -w /dst \
-            snltty/loongarch:latest \
-            /bin/bash -c "
-            find src -type f -name "*.csproj" -exec sed -i 's/net8.0/net9.0/g' {} \; && \
-            cat src/linker/linker.csproj && \
+          docker run --rm \
+            -v "${{ github.workspace }}:/src" \
+            -w /src \
+            cr.loongnix.cn/extra/dotnet:8.0.7 \
+            bash -lc '
             dotnet nuget locals all --clear && \
-            uname -m && \
-            rm -rf global.json && \
             dotnet publish src/linker -c release -f net8.0 -o public/publish/loongarch64 -r linux-loongarch64 -p:PublishSingleFile=true  --self-contained true \
             -p:TrimMode=partial -p:TieredPGO=true  -p:DebugType=full -p:EventSourceSupport=false -p:DebugSymbols=true -p:EnableCompressionInSingleFile=true -p:DebuggerSupport=false -p:EnableUnsafeBinaryFormatterSerialization=false -p:EnableUnsafeUTF7Encoding=false -p:HttpActivityPropagationSupport=false -p:InvariantGlobalization=true  -p:MetadataUpdaterSupport=false  -p:UseSystemResourceKeys=true -p:MetricsSupport=false -p:StackTraceSupport=false -p:XmlResolverIsNetworkingEnabledByDefault=false
-            "
+            '
               
             
       - name: zip package
