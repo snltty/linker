@@ -190,6 +190,10 @@ namespace linker.upnp
         {
             foreach (var cache in localMappings.Values.Where(c => c.Deleted == false))
             {
+                if(cache == null || cache.Info == null)
+                {
+                    continue;
+                }
                 await AddInternal(cache.Info).ConfigureAwait(false);
             }
         }
@@ -201,6 +205,10 @@ namespace linker.upnp
                 {
                     await services[i].Add(mapping).ConfigureAwait(false);
                     PortMappingInfo _mapping = await services[i].Get(mapping.PublicPort, mapping.ProtocolType).ConfigureAwait(false);
+                    if(_mapping == null)
+                    {
+                        continue;
+                    }
                     if (_mapping != null && _mapping.LeaseDuration > 0 && _mapping.Description == mapping.Description)
                     {
                         break;
