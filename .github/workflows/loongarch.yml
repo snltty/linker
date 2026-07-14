@@ -33,16 +33,48 @@ jobs:
         
       - name: build linker with loongnix docker
         run: |
-          docker run --rm \
-            -v "${{ github.workspace }}:/src" \
-            -w /src \
-            cr.loongnix.cn/extra/dotnet:8.0.7 \
-            bash -lc '
-            dotnet nuget locals all --clear && \
-            dotnet publish src/linker -c release -f net8.0 -o public/publish/loongarch64 -r linux-loongarch64 -p:PublishSingleFile=true  --self-contained true \
-            -p:TrimMode=partial -p:TieredPGO=true  -p:DebugType=full -p:EventSourceSupport=false -p:DebugSymbols=true -p:EnableCompressionInSingleFile=true -p:DebuggerSupport=false -p:EnableUnsafeBinaryFormatterSerialization=false -p:EnableUnsafeUTF7Encoding=false -p:HttpActivityPropagationSupport=false -p:InvariantGlobalization=true  -p:MetadataUpdaterSupport=false  -p:UseSystemResourceKeys=true -p:MetricsSupport=false -p:StackTraceSupport=false -p:XmlResolverIsNetworkingEnabledByDefault=false
-            '
-              
+          docker run --rm --platform linux/loong64 \
+          -e DOTNET_CLI_HOME=/tmp/dotnet-home \
+          -e DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1 \
+          -e DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+          -e DOTNET_NOLOGO=1 \
+          -e XDG_DATA_HOME=/tmp/dotnet-xdg \
+          -e NUGET_PACKAGES=/tmp/nuget/packages \
+          -v "${{ github.workspace }}:/src" \
+          -w /src \
+          cr.loongnix.cn/extra/dotnet:8.0.7 \
+          bash -lc '
+            set -e
+
+            mkdir -p "$XDG_DATA_HOME/NuGet/Migrations"
+            touch "$XDG_DATA_HOME/NuGet/Migrations/1"
+
+            dotnet --info
+
+            dotnet publish src/linker \
+              -c Release \
+              -f net8.0 \
+              -o public/publish/loongarch64 \
+              -r linux-loongarch64 \
+              --self-contained true \
+              -p:PublishSingleFile=true \
+              -p:TrimMode=partial \
+              -p:TieredPGO=true \
+              -p:DebugType=full \
+              -p:EventSourceSupport=false \
+              -p:DebugSymbols=true \
+              -p:EnableCompressionInSingleFile=true \
+              -p:DebuggerSupport=false \
+              -p:EnableUnsafeBinaryFormatterSerialization=false \
+              -p:EnableUnsafeUTF7Encoding=false \
+              -p:HttpActivityPropagationSupport=false \
+              -p:InvariantGlobalization=true \
+              -p:MetadataUpdaterSupport=false \
+              -p:UseSystemResourceKeys=true \
+              -p:MetricsSupport=false \
+              -p:StackTraceSupport=false \
+              -p:XmlResolverIsNetworkingEnabledByDefault=false
+          '    
             
       - name: zip package
         run: |
