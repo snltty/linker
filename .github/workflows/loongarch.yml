@@ -51,29 +51,39 @@ jobs:
 
             dotnet --info
 
-            dotnet publish src/linker \
-              -c Release \
-              -f net8.0 \
-              -o public/publish/loongarch64 \
-              -r linux-loongarch64 \
-              --self-contained true \
-              -p:PublishSingleFile=true \
-              -p:TrimMode=partial \
-              -p:TieredPGO=true \
-              -p:DebugType=full \
-              -p:EventSourceSupport=false \
-              -p:DebugSymbols=true \
-              -p:EnableCompressionInSingleFile=true \
-              -p:DebuggerSupport=false \
-              -p:EnableUnsafeBinaryFormatterSerialization=false \
-              -p:EnableUnsafeUTF7Encoding=false \
-              -p:HttpActivityPropagationSupport=false \
-              -p:InvariantGlobalization=true \
-              -p:MetadataUpdaterSupport=false \
-              -p:UseSystemResourceKeys=true \
-              -p:MetricsSupport=false \
-              -p:StackTraceSupport=false \
-              -p:XmlResolverIsNetworkingEnabledByDefault=false
+            SDK=/root/dotnet/sdk/8.0.107
+            PROJECT=src/linker/linker.csproj
+
+            dotnet "$SDK/MSBuild.dll" "$PROJECT" \
+              /restore \
+              /t:Publish \
+              /m:1 \
+              /nodeReuse:false \
+              /p:Configuration=Release \
+              /p:TargetFramework=net8.0 \
+              /p:RuntimeIdentifier=linux-loongarch64 \
+              /p:SelfContained=true \
+              /p:PublishDir=/src/public/publish/loongarch64/ \
+              /p:PublishSingleFile=true \
+              /p:TrimMode=partial \
+              /p:TieredPGO=true \
+              /p:DebugType=full \
+              /p:EventSourceSupport=false \
+              /p:DebugSymbols=true \
+              /p:EnableCompressionInSingleFile=true \
+              /p:DebuggerSupport=false \
+              /p:EnableUnsafeBinaryFormatterSerialization=false \
+              /p:EnableUnsafeUTF7Encoding=false \
+              /p:HttpActivityPropagationSupport=false \
+              /p:InvariantGlobalization=true \
+              /p:MetadataUpdaterSupport=false \
+              /p:UseSystemResourceKeys=true \
+              /p:MetricsSupport=false \
+              /p:StackTraceSupport=false \
+              /p:XmlResolverIsNetworkingEnabledByDefault=false \
+              /p:UseSharedCompilation=false
+
+            ls -lah /src/public/publish/loongarch64
           '    
             
       - name: zip package
