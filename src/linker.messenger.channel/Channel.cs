@@ -127,8 +127,8 @@ namespace linker.messenger.channel
                 return connection;
             }
 
-            await WithSync(machineId,"relay", DoRelay(machineId, configures)).ConfigureAwait(false);
-            await WithASync(machineId,"p2p", DoP2P(machineId, configures)).ConfigureAwait(false);
+            await WithRelaySync(machineId, () => DoRelay(machineId, configures)).ConfigureAwait(false);
+            await WithP2pASync(machineId, () => DoP2P(machineId, configures)).ConfigureAwait(false);
             return null;
         }
         private async Task<bool> HasContinute(string machineId)
@@ -143,29 +143,29 @@ namespace linker.messenger.channel
             }
             return false;
         }
-        private async Task<bool> WithSync(string machineId, string type, Task action)
+        private async Task<bool> WithRelaySync(string machineId, Func<Task> action)
         {
-            if (operatingMultipleManager.StartOperation($"{machineId}@{TransactionId}@{type}"))
+            if (operatingMultipleManager.StartOperation($"{machineId}@{TransactionId}@relay"))
             {
                 try
                 {
-                    await action.ConfigureAwait(false);
+                    await action().ConfigureAwait(false);
                 }
                 finally
                 {
-                    operatingMultipleManager.StopOperation($"{machineId}@{TransactionId}@{type}");
+                    operatingMultipleManager.StopOperation($"{machineId}@{TransactionId}@relay");
                 }
                 return true;
             }
             return false;
         }
-        private async Task<bool> WithASync(string machineId, string type, Task action)
+        private async Task<bool> WithP2pASync(string machineId, Func<Task> action)
         {
-            if (operatingMultipleManager.StartOperation($"{machineId}@{TransactionId}@{type}"))
+            if (operatingMultipleManager.StartOperation($"{machineId}@{TransactionId}@p2p"))
             {
-                _ = action.ContinueWith((result) =>
+                _ = action().ContinueWith((result) =>
                 {
-                    operatingMultipleManager.StopOperation($"{machineId}@{TransactionId}@{type}");
+                    operatingMultipleManager.StopOperation($"{machineId}@{TransactionId}@p2p");
 
                 }).ConfigureAwait(false);
                 return true;
@@ -174,6 +174,7 @@ namespace linker.messenger.channel
         }
         private async Task DoRelay(string machineId, Dictionary<string, string> configures)
         {
+            configures["flag"] = "relay";
             ITunnelConnection connection = await tunnelTransfer.ConnectAsync(machineId, TransactionId, configures, tunnelTypes: [TunnelType.Relay]).ConfigureAwait(false);
             if (connection != null)
             {
@@ -182,7 +183,7 @@ namespace linker.messenger.channel
         }
         private async Task DoP2P(string machineId, Dictionary<string, string> configures)
         {
-
+            configures["flag"] = "default";
             ITunnelConnection connection = await tunnelTransfer.ConnectAsync(machineId, TransactionId, configures, exTunnelTypes: [TunnelType.Relay]).ConfigureAwait(false);
             if (connection != null)
             {
