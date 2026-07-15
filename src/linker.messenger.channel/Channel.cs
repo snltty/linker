@@ -127,7 +127,7 @@ namespace linker.messenger.channel
                 return connection;
             }
 
-            await WithRelaySync(machineId, () => DoRelay(machineId, configures)).ConfigureAwait(false);
+            await WithRelayASync(machineId, () => DoRelay(machineId, configures)).ConfigureAwait(false);
             await WithP2pASync(machineId, () => DoP2P(machineId, configures)).ConfigureAwait(false);
             return null;
         }
@@ -143,18 +143,15 @@ namespace linker.messenger.channel
             }
             return false;
         }
-        private async Task<bool> WithRelaySync(string machineId, Func<Task> action)
+        private async Task<bool> WithRelayASync(string machineId, Func<Task> action)
         {
             if (operatingMultipleManager.StartOperation($"{machineId}@{TransactionId}@relay"))
             {
-                try
-                {
-                    await action().ConfigureAwait(false);
-                }
-                finally
+                _ = action().ContinueWith((result) =>
                 {
                     operatingMultipleManager.StopOperation($"{machineId}@{TransactionId}@relay");
-                }
+
+                }).ConfigureAwait(false);
                 return true;
             }
             return false;
