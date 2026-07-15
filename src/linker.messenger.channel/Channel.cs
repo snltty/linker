@@ -6,6 +6,7 @@ using linker.tunnel;
 using linker.tunnel.connection;
 using linker.tunnel.transport;
 using System.Collections.Concurrent;
+using System.Reflection.PortableExecutable;
 
 namespace linker.messenger.channel
 {
@@ -126,24 +127,8 @@ namespace linker.messenger.channel
                 return connection;
             }
 
-            if (operatingMultipleManager.StartOperation($"{machineId}@{TransactionId}@relay"))
-            {
-                _ = DoRelay(machineId, configures).ContinueWith((result) =>
-                {
-                    operatingMultipleManager.StopOperation($"{machineId}@{TransactionId}@relay");
-
-                }).ConfigureAwait(false);
-            }
-
-            if (operatingMultipleManager.StartOperation($"{machineId}@{TransactionId}@p2p"))
-            {
-                _ = DoP2P(machineId, configures).ContinueWith((result) =>
-                {
-                    operatingMultipleManager.StopOperation($"{machineId}@{TransactionId}@p2p");
-
-                }).ConfigureAwait(false);
-            }
-
+            await WithSync(machineId,"relay", DoRelay(machineId, configures)).ConfigureAwait(false);
+            await WithASync(machineId,"p2p", DoP2P(machineId, configures)).ConfigureAwait(false);
             return null;
         }
         private async Task<bool> HasContinute(string machineId)
@@ -154,6 +139,35 @@ namespace linker.messenger.channel
             }
             if (await signInClientTransfer.GetOnline(machineId).ConfigureAwait(false) == false)
             {
+                return true;
+            }
+            return false;
+        }
+        private async Task<bool> WithSync(string machineId, string type, Task action)
+        {
+            if (operatingMultipleManager.StartOperation($"{machineId}@{TransactionId}@{type}"))
+            {
+                try
+                {
+                    await action.ConfigureAwait(false);
+                }
+                finally
+                {
+                    operatingMultipleManager.StopOperation($"{machineId}@{TransactionId}@{type}");
+                }
+                return true;
+            }
+            return false;
+        }
+        private async Task<bool> WithASync(string machineId, string type, Task action)
+        {
+            if (operatingMultipleManager.StartOperation($"{machineId}@{TransactionId}@{type}"))
+            {
+                _ = action.ContinueWith((result) =>
+                {
+                    operatingMultipleManager.StopOperation($"{machineId}@{TransactionId}@{type}");
+
+                }).ConfigureAwait(false);
                 return true;
             }
             return false;
