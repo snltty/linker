@@ -15,11 +15,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
-          tag_name: v2.0.16
-          release_name: v2.0.16.${{ steps.date.outputs.today }}
+          tag_name: v2.0.17
+          release_name: v2.0.17.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 请勿第一时间更新，建议延后2-3个小版本\r\n2. 隧道4字节长度头改为2长度+1消息类型(data/ping/pong/fin)+1保留\r\n3. UDP隧道支持策略冗余FEC和KCP\r\n4. 重写RFC5780NAT类型检测\r\n5. 端口转发和socks5底层逻辑合并\r\n6. 更多的Task向ValueTask优化\r\n7. 支持Mesh网络\r\n8. TCP/IP校验和全量扫描200ns改为增量更新10ns\r\n9. 可能的STUN端口预测\r\n10. 网络设备发现协议代理\r\n11. 序列化导致的APP闪退"
+          body: "1. 请勿第一时间更新，建议延后2-3个小版本\r\n2. 隧道4字节长度头改为2长度+1消息类型(data/ping/pong/fin)+1保留\r\n3. UDP隧道支持策略冗余FEC和KCP\r\n4. 重写RFC5780NAT类型检测\r\n5. 端口转发和socks5底层逻辑合并\r\n6. 更多的Task向ValueTask优化\r\n7. 支持Mesh网络\r\n8. TCP/IP校验和全量扫描200ns改为增量更新10ns\r\n9. 可能的STUN端口预测\r\n10. 网络设备发现协议代理，支持海康SADP\r\n11. 修复APP闪退问题"
       - name: setup node.js
         uses: actions/setup-node@v4
         with:
@@ -43,7 +43,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-zip/linker-win-x86.zip:/downloads/linker/v2.0.16/linker-win-x86.zip
+            ./public/publish-zip/linker-win-x86.zip:/downloads/linker/v2.0.17/linker-win-x86.zip
           timeout: '720000'
       - name: upload-win-x86
         id: upload-win-x86
@@ -64,7 +64,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-zip/linker-win-x64.zip:/downloads/linker/v2.0.16/linker-win-x64.zip
+            ./public/publish-zip/linker-win-x64.zip:/downloads/linker/v2.0.17/linker-win-x64.zip
           timeout: '720000'
       - name: upload-win-x64
         id: upload-win-x64
@@ -85,7 +85,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-zip/linker-win-arm64.zip:/downloads/linker/v2.0.16/linker-win-arm64.zip
+            ./public/publish-zip/linker-win-arm64.zip:/downloads/linker/v2.0.17/linker-win-arm64.zip
           timeout: '720000'
       - name: upload-win-arm64
         id: upload-win-arm64
@@ -106,7 +106,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-zip/linker-linux-x64.zip:/downloads/linker/v2.0.16/linker-linux-x64.zip
+            ./public/publish-zip/linker-linux-x64.zip:/downloads/linker/v2.0.17/linker-linux-x64.zip
           timeout: '720000'
       - name: upload-linux-x64
         id: upload-linux-x64
@@ -127,7 +127,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-zip/linker-linux-arm.zip:/downloads/linker/v2.0.16/linker-linux-arm.zip
+            ./public/publish-zip/linker-linux-arm.zip:/downloads/linker/v2.0.17/linker-linux-arm.zip
           timeout: '720000'
       - name: upload-linux-arm
         id: upload-linux-arm
@@ -148,7 +148,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-zip/linker-linux-arm64.zip:/downloads/linker/v2.0.16/linker-linux-arm64.zip
+            ./public/publish-zip/linker-linux-arm64.zip:/downloads/linker/v2.0.17/linker-linux-arm64.zip
           timeout: '720000'
       - name: upload-linux-arm64
         id: upload-linux-arm64
@@ -169,7 +169,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-zip/linker-linux-musl-x64.zip:/downloads/linker/v2.0.16/linker-linux-musl-x64.zip
+            ./public/publish-zip/linker-linux-musl-x64.zip:/downloads/linker/v2.0.17/linker-linux-musl-x64.zip
           timeout: '720000'
       - name: upload-linux-musl-x64
         id: upload-linux-musl-x64
@@ -190,7 +190,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-zip/linker-linux-musl-arm.zip:/downloads/linker/v2.0.16/linker-linux-musl-arm.zip
+            ./public/publish-zip/linker-linux-musl-arm.zip:/downloads/linker/v2.0.17/linker-linux-musl-arm.zip
           timeout: '720000'
       - name: upload-linux-musl-arm
         id: upload-linux-musl-arm
@@ -211,7 +211,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-zip/linker-linux-musl-arm64.zip:/downloads/linker/v2.0.16/linker-linux-musl-arm64.zip
+            ./public/publish-zip/linker-linux-musl-arm64.zip:/downloads/linker/v2.0.17/linker-linux-musl-arm64.zip
           timeout: '720000'
       - name: upload-linux-musl-arm64
         id: upload-linux-musl-arm64
@@ -232,7 +232,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-zip/linker-osx-x64.zip:/downloads/linker/v2.0.16/linker-osx-x64.zip
+            ./public/publish-zip/linker-osx-x64.zip:/downloads/linker/v2.0.17/linker-osx-x64.zip
           timeout: '720000'
       - name: upload-osx-x64
         id: upload-osx-x64
@@ -253,7 +253,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-zip/linker-osx-arm64.zip:/downloads/linker/v2.0.16/linker-osx-arm64.zip
+            ./public/publish-zip/linker-osx-arm64.zip:/downloads/linker/v2.0.17/linker-osx-arm64.zip
           timeout: '720000'
       - name: upload-osx-arm64
         id: upload-osx-arm64
@@ -274,7 +274,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-zip/linker-anywhere.zip:/downloads/linker/v2.0.16/linker-anywhere.zip
+            ./public/publish-zip/linker-anywhere.zip:/downloads/linker/v2.0.17/linker-anywhere.zip
           timeout: '720000'
       - name: upload-anywhere
         id: upload-anywhere
@@ -324,7 +324,7 @@ jobs:
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
-          assets: ./public/publish-zip/linker.apk:/downloads/linker/v2.0.16/linker.apk
+          assets: ./public/publish-zip/linker.apk:/downloads/linker/v2.0.17/linker.apk
           timeout: '720000'
       - name: upload-apk
         id: upload-apk
