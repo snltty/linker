@@ -4,19 +4,17 @@ namespace linker.messenger.reverse.client
 {
     public sealed class ReversePlanHandle : IPlanHandle
     {
-        public string CategoryName => "Reverse";
+        public string CategoryName => "reverse";
 
         public string flag = "plan";
 
-        private readonly ReverseClientTransfer ReverseClientTransfer;
-        private readonly PlanTransfer planTransfer;
-        public ReversePlanHandle(ReverseClientTransfer ReverseClientTransfer, PlanTransfer planTransfer)
+        private readonly ReverseClientTransfer reverseClientTransfer;
+        public ReversePlanHandle(ReverseClientTransfer reverseClientTransfer, PlanTransfer planTransfer)
         {
-            this.ReverseClientTransfer = ReverseClientTransfer;
-            this.planTransfer = planTransfer;
+            this.reverseClientTransfer = reverseClientTransfer;
 
-            ReverseClientTransfer.OnOpen += (id, _flag) => { if (_flag != flag) planTransfer.Trigger(CategoryName, id.ToString(), "start"); };
-            ReverseClientTransfer.OnClose += (id, _flag) => { if (_flag != flag) planTransfer.Trigger(CategoryName, id.ToString(), "stop"); };
+            reverseClientTransfer.OnOpen += (id, _flag) => { if (_flag != flag) planTransfer.Trigger(CategoryName, id.ToString(), "start"); };
+            reverseClientTransfer.OnClose += (id, _flag) => { if (_flag != flag) planTransfer.Trigger(CategoryName, id.ToString(), "stop"); };
         }
 
         public async Task HandleAsync(string handle, string key, string value)
@@ -26,10 +24,10 @@ namespace linker.messenger.reverse.client
             switch (handle)
             {
                 case "start":
-                    ReverseClientTransfer.Start(id, flag);
+                    reverseClientTransfer.Start(id, flag);
                     break;
                 case "stop":
-                    ReverseClientTransfer.Stop(id, flag);
+                    reverseClientTransfer.Stop(id, flag);
                     break;
                 default:
                     break;

@@ -8,6 +8,13 @@ namespace linker.tunnel;
 
 public sealed class RadarTransfer : IDisposable
 {
+    private const int MinimumSamplesForAddressSwitch = 3;
+    private const int StepModelMaxAbsoluteStep = 4096;
+    private const int ClusteredCircularSpanThreshold = 2048;
+    private const int WeakStepPreviewCount = 24;
+    private const int MediumStepPreviewCount = 32;
+    private const int StrongStepPreviewCount = 48;
+
     private readonly object _gate = new();
     private readonly List<PublicEndpointSample> _samples = new();
     private readonly RadarOptions _options;
@@ -41,6 +48,16 @@ public sealed class RadarTransfer : IDisposable
         {
             throw new ArgumentOutOfRangeException(nameof(options), "TargetSampleCount cannot be greater than MaxSamples.");
         }
+
+        if (_options.StunServers is null)
+        {
+            throw new ArgumentException("StunServers cannot be null.", nameof(options));
+        }
+
+        if (_options.StunServers.Any(static server => server is null))
+        {
+            throw new ArgumentException("StunServers cannot contain null entries.", nameof(options));
+        }
     }
 
     public event EventHandler<IReadOnlyList<PublicEndpointSample>>? SamplesReceived;
@@ -51,6 +68,8 @@ public sealed class RadarTransfer : IDisposable
 
         lock (_gate)
         {
+            ThrowIfDisposed();
+
             if (_probeThread is { IsAlive: true })
             {
                 return;
@@ -94,7 +113,7 @@ public sealed class RadarTransfer : IDisposable
         cancellation?.Dispose();
     }
 
-    public IReadOnlyList<int> Predict(int currentPublicPort, int maxCount = 400)
+    public IReadOnlyList<int> Predict(int currentPublicPort, int maxCount = 64)
     {
         ThrowIfDisposed();
         ValidatePort(currentPublicPort, nameof(currentPublicPort));
@@ -103,7 +122,6 @@ public sealed class RadarTransfer : IDisposable
         {
             return Array.Empty<int>();
         }
-        
 
         maxCount = Math.Min(maxCount, _options.MaxPredictionCount);
 
@@ -112,11 +130,14 @@ public sealed class RadarTransfer : IDisposable
 
         lock (_gate)
         {
+            ThrowIfDisposed();
+
             report = _currentReport;
             samples = _samples.ToArray();
         }
 
         var candidates = new PortCandidateSet(maxCount);
+        var predictionSamples = SelectPredictionSamples(samples, report);
 
         switch (report.Pattern)
         {
@@ -127,25 +148,24 @@ public sealed class RadarTransfer : IDisposable
             case PortPattern.Incremental:
             case PortPattern.Decremental:
             case PortPattern.FixedStep:
-                AddStepPredictions(candidates, currentPublicPort, report.EstimatedStep);
-                AddHotSegments(candidates, samples);
+                AddStepPredictions(candidates, currentPublicPort, report.EstimatedStep, report.Confidence);
                 break;
 
             case PortPattern.Clustered:
                 AddRing(candidates, currentPublicPort, _options.NearPortRadius);
-                AddHotSegments(candidates, samples);
+                AddHotSegments(candidates, predictionSamples, _options.SegmentPortRadius);
                 break;
 
             case PortPattern.RandomLike:
                 AddRing(candidates, currentPublicPort, Math.Min(32, _options.NearPortRadius));
-                AddHotSegments(candidates, samples);
+                AddHotSegments(candidates, predictionSamples, Math.Min(8, _options.SegmentPortRadius));
                 AddDistributedCandidates(candidates, currentPublicPort);
                 break;
 
             case PortPattern.Unknown:
             default:
                 AddRing(candidates, currentPublicPort, _options.NearPortRadius);
-                AddHotSegments(candidates, samples);
+                AddHotSegments(candidates, predictionSamples, _options.SegmentPortRadius);
                 break;
         }
 
@@ -168,6 +188,7 @@ public sealed class RadarTransfer : IDisposable
         {
             lock (_gate)
             {
+                ThrowIfDisposed();
                 return _currentReport;
             }
         }
@@ -176,6 +197,8 @@ public sealed class RadarTransfer : IDisposable
 
         lock (_gate)
         {
+            ThrowIfDisposed();
+
             _samples.Clear();
 
             foreach (var sample in imported)
@@ -193,13 +216,17 @@ public sealed class RadarTransfer : IDisposable
 
     public void Dispose()
     {
-        if (_disposed)
+        lock (_gate)
         {
-            return;
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
         }
 
         StopProbe();
-        _disposed = true;
     }
 
     private void RunProbeLoop(CancellationTokenSource cancellation)
@@ -383,7 +410,9 @@ public sealed class RadarTransfer : IDisposable
     {
         if (IPAddress.TryParse(server.Host, out var parsed))
         {
-            return new IPEndPoint(parsed, server.Port);
+            return parsed.AddressFamily == AddressFamily.InterNetwork
+                ? new IPEndPoint(parsed, server.Port)
+                : null;
         }
 
         var addresses = await Dns.GetHostAddressesAsync(server.Host, cancellationToken).ConfigureAwait(false);
@@ -430,7 +459,7 @@ public sealed class RadarTransfer : IDisposable
             if (!fallbackAddress.Equals(latestAddress))
             {
                 var latestAddressSampleCount = samples.Count(sample => sample.Address.Equals(latestAddress));
-                if (latestAddressSampleCount < 3)
+                if (latestAddressSampleCount < MinimumSamplesForAddressSwitch)
                 {
                     return fallbackReport;
                 }
@@ -441,29 +470,28 @@ public sealed class RadarTransfer : IDisposable
         var ports = analysisSamples.Select(sample => sample.Port).ToArray();
         var distinctPorts = ports.Distinct().ToArray();
         var last = analysisSamples[^1];
+        var distinctSourceCount = CountDistinctSources(analysisSamples);
 
         if (ports.Length < 3)
         {
-            return new PortPredictionReport(
+            return CreateReport(
                 PortPattern.Unknown,
-                ports.Length,
-                last.Address,
-                last.Port,
                 0,
                 0.2,
-                new ReadOnlyCollection<int>(ports));
+                ports,
+                last,
+                distinctSourceCount);
         }
 
         if (distinctPorts.Length == 1)
         {
-            return new PortPredictionReport(
+            return CreateReport(
                 PortPattern.Stable,
-                ports.Length,
-                last.Address,
-                last.Port,
                 0,
                 1.0,
-                new ReadOnlyCollection<int>(ports));
+                ports,
+                last,
+                distinctSourceCount);
         }
 
         var deltas = new List<int>(ports.Length - 1);
@@ -475,24 +503,23 @@ public sealed class RadarTransfer : IDisposable
         var nonZeroDeltas = deltas.Where(delta => delta != 0).ToArray();
         if (nonZeroDeltas.Length == 0)
         {
-            return new PortPredictionReport(
+            return CreateReport(
                 PortPattern.Stable,
-                ports.Length,
-                last.Address,
-                last.Port,
                 0,
                 0.95,
-                new ReadOnlyCollection<int>(ports));
+                ports,
+                last,
+                distinctSourceCount);
         }
 
-        var estimatedStep = RoundMedian(nonZeroDeltas);
+        var estimatedStep = EstimateDominantStep(nonZeroDeltas);
         var sameStepCount = nonZeroDeltas.Count(delta => Math.Abs(delta - estimatedStep) <= 1);
         var sameDirectionCount = nonZeroDeltas.Count(delta => Math.Sign(delta) == Math.Sign(estimatedStep));
         var sameStepRatio = sameStepCount / (double)nonZeroDeltas.Length;
         var sameDirectionRatio = sameDirectionCount / (double)nonZeroDeltas.Length;
-        var portRange = distinctPorts.Max() - distinctPorts.Min();
+        var portRange = GetSmallestCircularPortRange(distinctPorts);
 
-        if (sameStepRatio >= 0.75 && Math.Abs(estimatedStep) <= 4096)
+        if (sameStepRatio >= 0.75 && Math.Abs(estimatedStep) <= StepModelMaxAbsoluteStep)
         {
             var pattern = estimatedStep switch
             {
@@ -503,48 +530,44 @@ public sealed class RadarTransfer : IDisposable
                 _ => PortPattern.Unknown
             };
 
-            return new PortPredictionReport(
+            return CreateReport(
                 pattern,
-                ports.Length,
-                last.Address,
-                last.Port,
                 estimatedStep,
                 Math.Min(0.95, 0.55 + sameStepRatio * 0.4),
-                new ReadOnlyCollection<int>(ports));
+                ports,
+                last,
+                distinctSourceCount);
         }
 
-        if (sameDirectionRatio >= 0.75 && Math.Abs(estimatedStep) <= 4096)
+        if (sameDirectionRatio >= 0.75 && Math.Abs(estimatedStep) <= StepModelMaxAbsoluteStep)
         {
-            return new PortPredictionReport(
+            return CreateReport(
                 estimatedStep > 0 ? PortPattern.Incremental : PortPattern.Decremental,
-                ports.Length,
-                last.Address,
-                last.Port,
                 estimatedStep,
                 Math.Min(0.8, 0.35 + sameDirectionRatio * 0.4),
-                new ReadOnlyCollection<int>(ports));
+                ports,
+                last,
+                distinctSourceCount);
         }
 
-        if (portRange <= 2048 || distinctPorts.Length <= Math.Max(3, ports.Length / 2))
+        if (portRange <= ClusteredCircularSpanThreshold || distinctPorts.Length <= Math.Max(3, ports.Length / 2))
         {
-            return new PortPredictionReport(
+            return CreateReport(
                 PortPattern.Clustered,
-                ports.Length,
-                last.Address,
-                last.Port,
                 estimatedStep,
                 0.45,
-                new ReadOnlyCollection<int>(ports));
+                ports,
+                last,
+                distinctSourceCount);
         }
 
-        return new PortPredictionReport(
+        return CreateReport(
             PortPattern.RandomLike,
-            ports.Length,
-            last.Address,
-            last.Port,
             estimatedStep,
             0.15,
-            new ReadOnlyCollection<int>(ports));
+            ports,
+            last,
+            distinctSourceCount);
     }
 
     private static IReadOnlyList<PublicEndpointSample> SelectAnalysisSamples(
@@ -576,18 +599,38 @@ public sealed class RadarTransfer : IDisposable
         return latestAddressSamples;
     }
 
-    private void AddStepPredictions(PortCandidateSet candidates, int currentPublicPort, int estimatedStep)
+    private static IReadOnlyList<PublicEndpointSample> SelectPredictionSamples(
+        IReadOnlyList<PublicEndpointSample> samples,
+        PortPredictionReport report)
     {
-        var step = estimatedStep == 0 ? 1 : estimatedStep;
-        var direction = Math.Sign(step);
+        if (samples.Count == 0 || report.LastPublicAddress is null)
+        {
+            return samples;
+        }
 
-        AddStepRing(candidates, currentPublicPort, step, _options.NearPortRadius);
-        AddRing(candidates, WrapPort(currentPublicPort + step), Math.Min(16, _options.NearPortRadius));
-        AddRing(candidates, currentPublicPort, Math.Min(16, _options.NearPortRadius));
-        AddDirectionalSweep(candidates, currentPublicPort, direction, _options.NearPortRadius);
+        var reportAddressSamples = samples
+            .Where(sample => sample.Address.Equals(report.LastPublicAddress))
+            .ToArray();
+
+        return reportAddressSamples.Length > 0 ? reportAddressSamples : samples;
     }
 
-    private void AddHotSegments(PortCandidateSet candidates, IReadOnlyList<PublicEndpointSample> samples)
+    private void AddStepPredictions(
+        PortCandidateSet candidates,
+        int currentPublicPort,
+        int estimatedStep,
+        double confidence)
+    {
+        var step = estimatedStep == 0 ? 1 : estimatedStep;
+        var previewCount = GetStepPreviewCount(confidence);
+
+        for (var multiplier = 1; multiplier <= previewCount && !candidates.IsFull; multiplier++)
+        {
+            candidates.Add(WrapPort(currentPublicPort + step * multiplier));
+        }
+    }
+
+    private void AddHotSegments(PortCandidateSet candidates, IReadOnlyList<PublicEndpointSample> samples, int radius)
     {
         foreach (var port in samples
                      .Select(sample => sample.Port)
@@ -595,7 +638,7 @@ public sealed class RadarTransfer : IDisposable
                      .Distinct()
                      .Take(_options.HotSegmentCount))
         {
-            AddRing(candidates, port, _options.SegmentPortRadius);
+            AddRing(candidates, port, radius);
             if (candidates.IsFull)
             {
                 return;
@@ -608,13 +651,14 @@ public sealed class RadarTransfer : IDisposable
         var min = Math.Clamp(_options.DistributedPortMin, 1, 65535);
         var max = Math.Clamp(_options.DistributedPortMax, min, 65535);
         var width = max - min + 1;
-        var stride = Math.Max(1, _options.DistributedStride);
+        var stride = NormalizeDistributedStride(_options.DistributedStride, width);
         var seed = unchecked((uint)(currentPublicPort * 1103515245 + 12345));
-        var start = (int)(seed % (uint)width);
+        var offset = (int)(seed % (uint)width);
 
-        for (var i = 0; i < width && !candidates.IsFull; i += stride)
+        for (var emitted = 0; emitted < width && !candidates.IsFull; emitted++)
         {
-            candidates.Add(min + ((start + i) % width));
+            candidates.Add(min + offset);
+            offset = (offset + stride) % width;
         }
     }
 
@@ -626,35 +670,6 @@ public sealed class RadarTransfer : IDisposable
         {
             candidates.Add(WrapPort(centerPort + offset));
             candidates.Add(WrapPort(centerPort - offset));
-        }
-    }
-
-    private static void AddStepRing(PortCandidateSet candidates, int centerPort, int step, int radius)
-    {
-        var normalizedStep = step == 0 ? 1 : step;
-        var maxOffset = Math.Max(1, radius / Math.Max(1, Math.Abs(normalizedStep)));
-
-        candidates.Add(WrapPort(centerPort + normalizedStep));
-        candidates.Add(centerPort);
-        candidates.Add(WrapPort(centerPort - normalizedStep));
-
-        for (var offset = 2; offset <= maxOffset && !candidates.IsFull; offset++)
-        {
-            candidates.Add(WrapPort(centerPort + normalizedStep * offset));
-            candidates.Add(WrapPort(centerPort - normalizedStep * offset));
-        }
-    }
-
-    private static void AddDirectionalSweep(PortCandidateSet candidates, int currentPublicPort, int direction, int distance)
-    {
-        if (direction == 0)
-        {
-            direction = 1;
-        }
-
-        for (var offset = 1; offset <= distance && !candidates.IsFull; offset++)
-        {
-            candidates.Add(WrapPort(currentPublicPort + offset * direction));
         }
     }
 
@@ -675,17 +690,156 @@ public sealed class RadarTransfer : IDisposable
         return delta;
     }
 
-    private static int RoundMedian(IReadOnlyList<int> values)
+    private static int GetSmallestCircularPortRange(IReadOnlyCollection<int> ports)
     {
-        var sorted = values.Order().ToArray();
-        var middle = sorted.Length / 2;
-
-        if (sorted.Length % 2 == 1)
+        if (ports.Count <= 1)
         {
-            return sorted[middle];
+            return 0;
         }
 
-        return (int)Math.Round((sorted[middle - 1] + sorted[middle]) / 2.0, MidpointRounding.AwayFromZero);
+        const int portCount = 65535;
+        var sorted = ports.Order().ToArray();
+        var largestGap = sorted[0] + portCount - sorted[^1];
+
+        for (var i = 1; i < sorted.Length; i++)
+        {
+            largestGap = Math.Max(largestGap, sorted[i] - sorted[i - 1]);
+        }
+
+        return portCount - largestGap;
+    }
+
+    private static int NormalizeDistributedStride(int configuredStride, int width)
+    {
+        if (width <= 1)
+        {
+            return 1;
+        }
+
+        var stride = (int)(Math.Abs((long)configuredStride) % width);
+        if (stride == 0)
+        {
+            stride = 1;
+        }
+
+        while (GreatestCommonDivisor(stride, width) != 1)
+        {
+            stride++;
+            if (stride >= width)
+            {
+                stride = 1;
+            }
+        }
+
+        return stride;
+    }
+
+    private static int GreatestCommonDivisor(int left, int right)
+    {
+        while (right != 0)
+        {
+            var remainder = left % right;
+            left = right;
+            right = remainder;
+        }
+
+        return Math.Abs(left);
+    }
+
+    private static int CountDistinctSources(IEnumerable<PublicEndpointSample> samples)
+    {
+        return samples
+            .Select(sample => sample.Source)
+            .Where(source => !string.IsNullOrWhiteSpace(source))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Count();
+    }
+
+    private static int EstimateDominantStep(IReadOnlyList<int> values)
+    {
+        if (values.Count == 0)
+        {
+            return 0;
+        }
+
+        var bestStep = values[0];
+        var bestCount = 0;
+
+        foreach (var group in values.GroupBy(static value => value))
+        {
+            var step = group.Key;
+            var count = group.Count();
+            if (count > bestCount || count == bestCount && IsBetterStepCandidate(step, bestStep))
+            {
+                bestStep = step;
+                bestCount = count;
+            }
+        }
+
+        return bestStep;
+    }
+
+    private static bool IsBetterStepCandidate(int candidate, int current)
+    {
+        var candidateAbs = Math.Abs(candidate);
+        var currentAbs = Math.Abs(current);
+
+        if (candidateAbs != currentAbs)
+        {
+            return candidateAbs < currentAbs;
+        }
+
+        return candidate > current;
+    }
+
+    private static PortPredictionReport CreateReport(
+        PortPattern pattern,
+        int estimatedStep,
+        double confidence,
+        int[] ports,
+        PublicEndpointSample last,
+        int distinctSourceCount)
+    {
+        return new PortPredictionReport(
+            pattern,
+            ports.Length,
+            last.Address,
+            last.Port,
+            estimatedStep,
+            ApplySourceDiversityPenalty(confidence, distinctSourceCount, ports.Length),
+            new ReadOnlyCollection<int>(ports));
+    }
+
+    private static double ApplySourceDiversityPenalty(double confidence, int distinctSourceCount, int sampleCount)
+    {
+        confidence = Math.Clamp(confidence, 0, 1);
+
+        if (sampleCount < 3)
+        {
+            return Math.Min(confidence, 0.35);
+        }
+
+        return distinctSourceCount switch
+        {
+            <= 1 => Math.Min(confidence * 0.75, 0.72),
+            2 => Math.Min(confidence * 0.9, 0.88),
+            _ => confidence
+        };
+    }
+
+    private static int GetStepPreviewCount(double confidence)
+    {
+        if (confidence >= 0.85)
+        {
+            return StrongStepPreviewCount;
+        }
+
+        if (confidence >= 0.65)
+        {
+            return MediumStepPreviewCount;
+        }
+
+        return WeakStepPreviewCount;
     }
 
     private static int WrapPort(int port)

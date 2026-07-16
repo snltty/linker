@@ -39,6 +39,7 @@ namespace linker.tunnel
             transports = new List<ITunnelTransport> {
                 new TransportUdp(tunnelMessengerAdapter),
                 new TransportUdpP2PNAT(tunnelMessengerAdapter),
+                new TransportUdpTest(tunnelMessengerAdapter),
                 new TransportTcpP2PNAT(tunnelMessengerAdapter),
                 new TransportTcpNutssb(tunnelMessengerAdapter),
                 transportUdpPortMap,

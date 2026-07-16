@@ -370,6 +370,8 @@ namespace linker.tun
         }
         private LinkerTunPacketHookFlags ExecReadHook(Memory<byte> rawPacket)
         {
+            //return LinkerTunPacketHookFlags.Next | LinkerTunPacketHookFlags.Send;
+
             ReadOnlySpan<byte> span = rawPacket.Span;
             ChecksumHelper.ChecksumState state = ChecksumHelper.CaptureChecksumState(span);
 
@@ -415,6 +417,8 @@ namespace linker.tun
         }
         private async ValueTask<LinkerTunPacketHookFlags> ExecWriteHook(ReadOnlyMemory<byte> rawPacket, string srcId)
         {
+            //return LinkerTunPacketHookFlags.Next | LinkerTunPacketHookFlags.Write;
+
             ChecksumHelper.ChecksumState state = ChecksumHelper.CaptureChecksumState(rawPacket);
             uint dstIp = BinaryPrimitives.ReverseEndianness((uint)(state.Addr >> 32));
 
