@@ -1,6 +1,7 @@
 ﻿using linker.libs;
 using linker.libs.extends;
 using Microsoft.Win32.SafeHandles;
+using System;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
@@ -417,6 +418,7 @@ pass inet proto icmp all
         }
 
         private readonly byte[] buffer = new byte[65 * 1024];
+        private readonly byte[] writeBuffer = new byte[65 * 1024];
         private readonly object writeLockObj = new object();
 
         public byte[] Read(out uint length)
@@ -428,6 +430,14 @@ pass inet proto icmp all
             }
 
             length = (uint)fsRead.Read(buffer.AsSpan(4));
+
+            bool hasAfHeader = length >= 4 && buffer[4] == 0 && buffer[5] == 0 && buffer[6] == 0 && (buffer[7] == 2 || buffer[7] == 30);
+            if (hasAfHeader)
+            {
+                length -= 4;
+                buffer.AsSpan(8, (int)length).CopyTo(buffer.AsSpan(4));
+            }
+
             ((ushort)(length + 2)).ToBytes(buffer.AsSpan());
             buffer[2] = 0;
             buffer[3] = 0;
@@ -438,7 +448,7 @@ pass inet proto icmp all
 
         public bool Write(ReadOnlyMemory<byte> packet)
         {
-            if (safeFileHandle == null || fsWrite == null)
+            if (safeFileHandle == null || fsWrite == null || packet.Length == 0)
             {
                 return false;
             }
@@ -447,7 +457,15 @@ pass inet proto icmp all
             {
                 try
                 {
-                    fsWrite.Write(packet.Span);
+                    ReadOnlySpan<byte> span = packet.Span;
+
+                    writeBuffer[0] = 0;
+                    writeBuffer[1] = 0;
+                    writeBuffer[2] = 0;
+                    writeBuffer[3] = (span[0] >> 4) == 6 ? (byte)30 : (byte)2;
+                    span.CopyTo(writeBuffer.AsSpan(4));
+                    fsWrite.Write(writeBuffer.AsSpan(0, span.Length + 4));
+
                     fsWrite.Flush();
                     return true;
                 }
