@@ -285,8 +285,9 @@ namespace linker.forward
         }
         private async Task Recver(AsyncUserToken token, byte[] buffer, ForwardFlags flag)
         {
+            Memory<byte> memory = buffer.AsMemory(ForwardReadPacket.HeaderLength,8*1024- ForwardReadPacket.HeaderLength);
             int bytesRead;
-            while ((bytesRead = await token.Socket.ReceiveAsync(buffer.AsMemory(ForwardReadPacket.HeaderLength), SocketFlags.None).ConfigureAwait(false)) != 0)
+            while ((bytesRead = await token.Socket.ReceiveAsync(memory, SocketFlags.None).ConfigureAwait(false)) != 0)
             {
                 if (HookForward(token) == false)
                 {

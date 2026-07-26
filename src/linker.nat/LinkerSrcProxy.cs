@@ -215,7 +215,8 @@ namespace linker.nat
                 ConnectionState state = new ConnectionState
                 {
                     Socket = source,
-                    ReadPacket = new LinkerSrcProxyReadPacket(buffer)
+                    ReadPacket = new LinkerSrcProxyReadPacket(buffer),
+                    Tcs = new TaskCompletionSource()
                 };
                 state.ReadPacket.HashCode = hashcode;
 
@@ -264,7 +265,8 @@ namespace linker.nat
                 {
                     state.Sending = window > 0;
                     ReadOnlyMemory<byte> memory = packet.Slice(40);
-                    await state.Pipe.Writer.WriteAsync(memory).ConfigureAwait(false);
+
+                    await state.Pipe.Writer.WriteAsync(memory, state.Cts.Token).ConfigureAwait(false);
                     state.AddReceived(memory.Length);
 
                     if (state.NeedPause) await SendWindow(state, 0).ConfigureAwait(false);
@@ -293,9 +295,9 @@ namespace linker.nat
         }
         private async Task Sender(ConnectionState state)
         {
-            while (true)
+            while (state.Cts.IsCancellationRequested == false)
             {
-                ReadResult result = await state.Pipe.Reader.ReadAsync().ConfigureAwait(false);
+                ReadResult result = await state.Pipe.Reader.ReadAsync(state.Cts.Token).ConfigureAwait(false);
                 if (result.IsCompleted && result.Buffer.IsEmpty)
                 {
                     break;
@@ -303,7 +305,7 @@ namespace linker.nat
                 ReadOnlySequence<byte> buffer = result.Buffer;
                 foreach (ReadOnlyMemory<byte> memoryBlock in result.Buffer)
                 {
-                    int length = await state.Socket.SendAllAsync(memoryBlock).ConfigureAwait(false);
+                    int length = await state.Socket.SendAllAsync(memoryBlock, state.Cts.Token).ConfigureAwait(false);
                     state.AddReceived(-memoryBlock.Length);
                     if (state.NeedResume) await SendWindow(state, 1).ConfigureAwait(false);
                 }
@@ -312,11 +314,13 @@ namespace linker.nat
         }
         private async Task Rcver(ConnectionState state, byte[] buffer)
         {
+            Memory<byte> memory = buffer.AsMemory(LinkerSrcProxyReadPacket.HeaderSize, 8 * 1024 - LinkerSrcProxyReadPacket.HeaderSize);
             int bytesRead;
-            while ((bytesRead = await state.Socket.ReceiveAsync(buffer.AsMemory(LinkerSrcProxyReadPacket.HeaderSize), SocketFlags.None).ConfigureAwait(false)) != 0)
+            while (state.Cts.IsCancellationRequested == false && (bytesRead = await state.Socket.ReceiveAsync(memory, SocketFlags.None, state.Cts.Token).ConfigureAwait(false)) != 0)
             {
                 state.ReadPacket.Flags = LinkerSrcProxyFlags.Psh;
                 state.ReadPacket.TotalLength = bytesRead;
+
                 if (await CallbackPacket(state.ReadPacket).ConfigureAwait(false) == false)
                 {
                     break;
@@ -324,7 +328,7 @@ namespace linker.nat
 
                 if (state.Sending == false)
                 {
-                    while (state.Sending == false && state.Socket != null)
+                    while (state.Cts.IsCancellationRequested == false && state.Sending == false && state.Socket != null)
                     {
                         await Task.Delay(10).ConfigureAwait(false);
                     }
@@ -461,6 +465,8 @@ namespace linker.nat
 
         sealed class ConnectionState
         {
+            public CancellationTokenSource Cts { get; set; } = new CancellationTokenSource();
+
             public Socket Socket { get; set; }
             public LinkerSrcProxyReadPacket ReadPacket { get; init; }
             public TaskCompletionSource Tcs { get; init; }
@@ -487,6 +493,8 @@ namespace linker.nat
                 Socket?.SafeClose();
                 Socket = null;
                 ReadPacket?.Dispose();
+
+                Cts?.Cancel();
             }
         }
         readonly unsafe struct LinkerSrcProxyWritePacket

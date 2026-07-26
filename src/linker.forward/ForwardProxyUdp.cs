@@ -59,9 +59,10 @@ namespace linker.forward
             try
             {
                 IPEndPoint ep = new IPEndPoint(IPAddress.Any, IPEndPoint.MinPort);
+                Memory<byte> memory = buffer.AsMemory(ForwardReadPacket.HeaderLength,8*1024- ForwardReadPacket.HeaderLength);
                 while (true)
                 {
-                    SocketReceiveFromResult result = await socket.ReceiveFromAsync(buffer.AsMemory(ForwardReadPacket.HeaderLength), ep).ConfigureAwait(false);
+                    SocketReceiveFromResult result = await socket.ReceiveFromAsync(memory, ep).ConfigureAwait(false);
                     if (result.ReceivedBytes == 0)
                     {
                         continue;
@@ -179,9 +180,11 @@ namespace linker.forward
                 };
                 udpConnections.AddOrUpdate(connectId, token, (a, b) => token);
 
+
+                Memory<byte> _memory = buffer.AsMemory(ForwardReadPacket.HeaderLength, 8 * 1024 - ForwardReadPacket.HeaderLength);
                 while (true)
                 {
-                    SocketReceiveFromResult result = await socket.ReceiveFromAsync(buffer.AsMemory(ForwardReadPacket.HeaderLength), SocketFlags.None, target).ConfigureAwait(false);
+                    SocketReceiveFromResult result = await socket.ReceiveFromAsync(_memory, SocketFlags.None, target).ConfigureAwait(false);
 
                     if (result.ReceivedBytes == 0)
                     {
