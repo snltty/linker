@@ -14,7 +14,7 @@ namespace linker.tunnel.transport
     public sealed class TransportUdpTest : ITunnelTransport
     {
         public string Name => "UdpTest";
-        public string Label => "UDP、测试";
+        public string Label => "UDP、NAT4测试";
         public TunnelProtocolType ProtocolType => TunnelProtocolType.Udp;
         public TunnelWanPortProtocolType AllowWanPortProtocolType => TunnelWanPortProtocolType.Udp;
         public TunnelType TunnelType => TunnelType.P2P;
@@ -153,13 +153,13 @@ namespace linker.tunnel.transport
                     foreach (var item in remoteEndPoints.Where(c => c.AddressFamily == AddressFamily.InterNetwork))
                     {
                         socket.SendTo(authBytes, item);
-                        if(++index % 15 == 0)
+                        if (++index % 15 == 0)
                         {
                             await Task.Delay(100, token).ConfigureAwait(false);
                         }
                     }
                 }
-               
+
                 await Task.Delay(100, token).ConfigureAwait(false);
             }
             for (int i = 0; i < 50 && token.IsCancellationRequested == false; i++)
@@ -221,15 +221,21 @@ namespace linker.tunnel.transport
             IPEndPoint tempEP = new IPEndPoint(IPAddress.IPv6Any, 0);
             try
             {
-                SocketReceiveFromResult result = await socket.ReceiveFromAsync(buffer.Memory, tempEP, cts.Token).ConfigureAwait(false);
-
-                if (buffer.Memory.Span.Slice(0, result.ReceivedBytes).SequenceEqual(authBytes))
+                while (cts.IsCancellationRequested == false)
                 {
-                    socket.SendTo(endBytes, result.RemoteEndPoint);
-                }
-                cts.Cancel();
+                    SocketReceiveFromResult result = await socket.ReceiveFromAsync(buffer.Memory, tempEP, cts.Token).ConfigureAwait(false);
 
-                return (socket, result.RemoteEndPoint as IPEndPoint);
+                    if (buffer.Memory.Span.Slice(0, result.ReceivedBytes).SequenceEqual(authBytes))
+                    {
+                        socket.SendTo(endBytes, result.RemoteEndPoint);
+                    }
+                    else if (buffer.Memory.Span.Slice(0, result.ReceivedBytes).SequenceEqual(endBytes))
+                    {
+                        socket.SendTo(endBytes, result.RemoteEndPoint);
+                        cts.Cancel();
+                        return (socket, result.RemoteEndPoint as IPEndPoint);
+                    }
+                }
             }
             catch (Exception)
             {
