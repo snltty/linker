@@ -122,7 +122,7 @@ namespace linker.tunnel.transport
             {
                 try
                 {
-                   
+
                     SocketReceiveFromResult result;
                     try
                     {
@@ -133,6 +133,10 @@ namespace linker.tunnel.transport
                         using CancellationTokenSource cts1 = new CancellationTokenSource(500);
                         result = await targetSocket.ReceiveFromAsync(buffer.Memory, tempEP, cts1.Token).ConfigureAwait(false);
                         targetSocket.SendTo(endBytes, result.RemoteEndPoint);
+                        if (buffer.Memory.Span.Slice(0, result.ReceivedBytes).SequenceEqual(endBytes) == false)
+                        {
+                            result = await targetSocket.ReceiveFromAsync(buffer.Memory, tempEP, cts1.Token).ConfigureAwait(false);
+                        }
                     }
                     catch (Exception)
                     {
@@ -143,8 +147,12 @@ namespace linker.tunnel.transport
                         using CancellationTokenSource cts2 = new CancellationTokenSource(500);
                         result = await targetSocket.ReceiveFromAsync(buffer.Memory, tempEP, cts2.Token).ConfigureAwait(false);
                         targetSocket.SendTo(endBytes, result.RemoteEndPoint);
+                        if (buffer.Memory.Span.Slice(0, result.ReceivedBytes).SequenceEqual(endBytes) == false)
+                        {
+                            result = await targetSocket.ReceiveFromAsync(buffer.Memory, tempEP, cts2.Token).ConfigureAwait(false);
+                        }
                     }
-                   
+
 
                     while (true)
                     {
@@ -152,7 +160,7 @@ namespace linker.tunnel.transport
                         try
                         {
                             result = await targetSocket.ReceiveFromAsync(buffer.Memory, tempEP, cts.Token).ConfigureAwait(false);
-                            if(buffer.Memory.Span.Slice(0, result.ReceivedBytes).SequenceEqual(authBytes))
+                            if (buffer.Memory.Span.Slice(0, result.ReceivedBytes).SequenceEqual(authBytes))
                             {
                                 targetSocket.SendTo(endBytes, result.RemoteEndPoint);
                             }
