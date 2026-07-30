@@ -5,6 +5,7 @@ namespace linker.upnp
 {
     public enum DeviceType : byte
     {
+        None = 0,
         Upnp = 1,
         Pmp = 2,
         Pcp = 4,

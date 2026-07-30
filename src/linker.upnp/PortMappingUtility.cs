@@ -88,7 +88,7 @@ namespace linker.upnp
                     {
                     }
                 }
-               
+
             });
         }
         private static void RefreshDevice()
@@ -190,33 +190,38 @@ namespace linker.upnp
         {
             foreach (var cache in localMappings.Values.Where(c => c.Deleted == false))
             {
-                if(cache == null || cache.Info == null)
+                if (cache == null || cache.Info == null)
                 {
                     continue;
                 }
                 await AddInternal(cache.Info).ConfigureAwait(false);
             }
         }
+
+        private static DeviceType exDeviceType = DeviceType.None;
         private static async Task AddInternal(PortMappingInfo mapping)
         {
             for (int i = 0; i < services.Length; i++)
             {
-                if ((services[i].Type & mapping.DeviceType) == services[i].Type && services[i].GetDevices().Count > 0)
+                bool sameType = (services[i].Type & mapping.DeviceType) == services[i].Type;
+                bool differentType = (exDeviceType & mapping.DeviceType) != services[i].Type;
+                if (sameType && differentType)
                 {
                     await services[i].Add(mapping).ConfigureAwait(false);
                     PortMappingInfo _mapping = await services[i].Get(mapping.PublicPort, mapping.ProtocolType).ConfigureAwait(false);
-                    if(_mapping == null)
+                    if (_mapping == null)
                     {
                         continue;
                     }
-                    if (_mapping != null && _mapping.LeaseDuration > 0 && _mapping.Description == mapping.Description)
+                    if (_mapping.Description != mapping.Description || _mapping.LeaseDuration == 0)
                     {
-                        break;
-                    }
-                    if (_mapping.Description != mapping.Description)
-                    {
+                        exDeviceType |= services[i].Type;
                         await services[i].Delete(mapping.PublicPort, mapping.ProtocolType).ConfigureAwait(false);
                     }
+                }
+                else
+                {
+                    await services[i].Delete(mapping.PublicPort, mapping.ProtocolType).ConfigureAwait(false);
                 }
             }
             Change?.Invoke();
@@ -264,6 +269,16 @@ namespace linker.upnp
                     if ((services[i].Type & cache.Info.DeviceType) == services[i].Type)
                     {
                         await services[i].Delete(cache.Info.PublicPort, cache.Info.ProtocolType).ConfigureAwait(false);
+                    }
+                }
+            }
+            foreach (var cache in mappings.Where(c => c.LeaseDuration == 0 && localMappings.Any(d => d.Value.Info.PrivatePort == c.PrivatePort && d.Value.Info.PublicPort == c.PublicPort)))
+            {
+                for (int i = 0; i < services.Length; i++)
+                {
+                    if ((services[i].Type & cache.DeviceType) == services[i].Type)
+                    {
+                        await services[i].Delete(cache.PublicPort, cache.ProtocolType).ConfigureAwait(false);
                     }
                 }
             }

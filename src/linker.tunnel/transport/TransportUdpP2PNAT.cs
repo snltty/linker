@@ -149,7 +149,7 @@ namespace linker.tunnel.transport
                         targetSocket.SendTo(endBytes, result.RemoteEndPoint);
                         if (buffer.Memory.Span.Slice(0, result.ReceivedBytes).SequenceEqual(endBytes) == false)
                         {
-                            result = await targetSocket.ReceiveFromAsync(buffer.Memory, tempEP, cts2.Token).ConfigureAwait(false);
+                            await targetSocket.ReceiveFromAsync(buffer.Memory, tempEP, cts2.Token).ConfigureAwait(false);
                         }
                     }
 
