@@ -198,29 +198,24 @@ namespace linker.upnp
             }
         }
 
-        private static DeviceType exDeviceType = DeviceType.None;
         private static async Task AddInternal(PortMappingInfo mapping)
         {
             for (int i = 0; i < services.Length; i++)
             {
-                bool sameType = (services[i].Type & mapping.DeviceType) == services[i].Type;
-                bool differentType = (exDeviceType & mapping.DeviceType) != services[i].Type;
-                if (sameType && differentType)
+                if (services[i].GetDevices().Count == 0)
+                {
+                    continue;
+                }
+
+                if ((services[i].Type & mapping.DeviceType) == services[i].Type)
                 {
                     await services[i].Add(mapping).ConfigureAwait(false);
-                    PortMappingInfo _mapping = await services[i].Get(mapping.PublicPort, mapping.ProtocolType).ConfigureAwait(false);
-                    if (_mapping == null)
+                    List<PortMappingInfo> mappings = await services[i].Get().ConfigureAwait(false);
+                    PortMappingInfo _mapping = mappings.FirstOrDefault(c=>c.PrivatePort == mapping.PrivatePort && c.ProtocolType == mapping.ProtocolType);
+                    if (_mapping != null && _mapping.Description == mapping.Description && _mapping.LeaseDuration > 0)
                     {
-                        continue;
+                        break;
                     }
-                    if (_mapping.Description != mapping.Description || _mapping.LeaseDuration == 0)
-                    {
-                        exDeviceType |= services[i].Type;
-                        await services[i].Delete(mapping.PublicPort, mapping.ProtocolType).ConfigureAwait(false);
-                    }
-                }
-                else
-                {
                     await services[i].Delete(mapping.PublicPort, mapping.ProtocolType).ConfigureAwait(false);
                 }
             }
