@@ -14,7 +14,7 @@ namespace linker.messenger.store.file.mesh
         }
         public void AddHistory(ITunnelConnection connection)
         {
-            if (connection.Type != TunnelType.P2P || connection.TransactionId == "mesh")
+            if (connection == null || connection.Type != TunnelType.P2P || connection.TransactionId == "mesh")
             {
                 return;
             }

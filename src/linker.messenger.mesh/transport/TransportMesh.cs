@@ -63,6 +63,7 @@ namespace linker.messenger.mesh
         }
         private void _OnConnected(ITunnelConnection connection, TunnelTransportInfo info)
         {
+            if (connection == null) return;
             if (connection.Configure.TryGetValue(_transactionId, out string config))
             {
                 MeshInfo tag = config.DeJson<MeshInfo>();

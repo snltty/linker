@@ -376,6 +376,7 @@ namespace linker.tunnel
         }
         private void OnConnected(ITunnelConnection connection, TunnelTransportInfo info)
         {
+            if (connection == null) return;
             //调用以下别人注册的回调
             if (OnConnectedDic.TryGetValue(Helper.GlobalString, out List<Action<ITunnelConnection, TunnelTransportInfo>> callbacks))
             {
