@@ -15,9 +15,9 @@
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker messenger socks5</PackageReleaseNotes>
-		<Version>2.0.18</Version>
-		<AssemblyVersion>2.0.18</AssemblyVersion>
-		<FileVersion>2.0.18</FileVersion>
+		<Version>2.0.19</Version>
+		<AssemblyVersion>2.0.19</AssemblyVersion>
+		<FileVersion>2.0.19</FileVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

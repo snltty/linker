@@ -25,14 +25,15 @@
 8. TCP/IP校验和全量扫描200ns改为增量更新10ns
 9. 可能的STUN端口预测
 10. 网络设备发现协议代理，支持海康SADP
-11. 限制隧道数据长度，MAC4字节头，NAT4测试</Description>
+11. 限制隧道数据长度，MAC4字节头，NAT4测试
+12. 可能的导致程序闪退的空引用异常</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>2.0.18</Version>
-		<AssemblyVersion>2.0.18</AssemblyVersion>
-		<FileVersion>2.0.18</FileVersion>
+		<Version>2.0.19</Version>
+		<AssemblyVersion>2.0.19</AssemblyVersion>
+		<FileVersion>2.0.19</FileVersion>
 		<DelaySign>False</DelaySign>
 
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>

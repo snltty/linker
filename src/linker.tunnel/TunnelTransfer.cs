@@ -240,7 +240,7 @@ namespace linker.tunnel
                 (TunnelTransportWanPortInfo local, TunnelTransportWanPortInfo remote) = await GetWanPort(remoteMachineId, protocolType, transport).ConfigureAwait(false);
                 if(local == null || remote == null)
                 {
-                    continue;
+                    return null;
                 }
 
                 tunnelTransportInfo = new TunnelTransportInfo
