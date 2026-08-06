@@ -1,5 +1,6 @@
 ﻿using linker.libs;
 using linker.libs.extends;
+using linker.stun;
 using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
@@ -30,6 +31,32 @@ namespace linker.tunnel.wanport
             ushort port = buffer.AsMemory(1 + iplength).ToUInt16();
 
             return new IPEndPoint(ip, port);
+        }
+
+        private readonly StunClient stun = new StunClient();
+        protected async Task<TunnelWanPortEndPoint> TryStun()
+        {
+            try
+            {
+                StunNatBehaviorResult result = await stun.DiscoverNatBehaviorAsync("linker.snltty.com", 3478, new StunClientOptions
+                {
+                    AddressFamilyMode = StunAddressFamilyMode.Ipv6Preferred,
+                    MaxAttempts = 3
+                }).ConfigureAwait(false);
+                StunNatMappingBehavior mapping = result.MappingBehavior;
+                StunNatFilteringBehavior filtering = result.FilteringBehavior;
+
+
+                return new TunnelWanPortEndPoint
+                {
+                    Local = result.Binding.LocalEndPoint,
+                    Remote = result.Binding.ReflexiveEndPoint
+                };
+            }
+            catch (Exception)
+            {
+            }
+            return null;
         }
     }
 
@@ -91,7 +118,8 @@ namespace linker.tunnel.wanport
                 ArrayPool<byte>.Shared.Return(buffer);
             }
 
-            return null;
+
+            return await TryStun().ConfigureAwait(false);
         }
 
     }
@@ -136,7 +164,7 @@ namespace linker.tunnel.wanport
                 ArrayPool<byte>.Shared.Return(buffer);
             }
 
-            return null;
+            return await TryStun().ConfigureAwait(false);
         }
     }
 }

@@ -935,7 +935,8 @@ public sealed record StunServer(string Host, int Port)
         new("stun.sipgate.net", 3478),
         new("stun.1und1.de", 3478),
         new("stun.gmx.de", 3478),
-        new("stun.3cx.com", 3478)
+        new("stun.3cx.com", 3478),
+        new("stunserver2025.stunprotocol.org", 3478),
     ];
 
     public override string ToString() => $"{Host}:{Port}";
