@@ -44,6 +44,7 @@
 		<ProjectReference Include="..\linker.fec\linker.fec.csproj" />
 		<ProjectReference Include="..\linker.kcp\linker.kcp.csproj" />
 		<ProjectReference Include="..\linker.libs\linker.libs.csproj" />
+		<ProjectReference Include="..\linker.stun\linker.stun.csproj" />
 		<ProjectReference Include="..\linker.upnp\linker.upnp.csproj" />
 	</ItemGroup>
 
