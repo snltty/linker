@@ -78,14 +78,18 @@ namespace linker.messenger.listen
                         LoggerHelper.Instance.Error($"udp server recv 0");
                         continue;
                     }
+                   
                     IPEndPoint ep = (result.RemoteEndPoint as IPEndPoint).MapToIPv4();
+                    if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                        LoggerHelper.Instance.Error($"udp server recv type {buffer.Memory.Span[0]} with {ep}");
                     try
                     {
                         if (countryTransfer.Test(buffer.Memory.Span[0], ep.Address) == false)
                         {
                             continue;
                         }
-
+                        if (LoggerHelper.Instance.LoggerLevel <= LoggerTypes.DEBUG)
+                            LoggerHelper.Instance.Error($"udp server recv type {buffer.Memory.Span[0]} begin recv  with {ep}");
                         await resolverTransfer.BeginReceive(socketUdp, ep, buffer.Memory.Slice(0, result.ReceivedBytes)).ConfigureAwait(false);
                     }
                     catch (Exception ex)

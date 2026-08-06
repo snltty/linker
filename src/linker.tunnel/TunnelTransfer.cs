@@ -238,6 +238,10 @@ namespace linker.tunnel
                     return null;
                 }
                 (TunnelTransportWanPortInfo local, TunnelTransportWanPortInfo remote) = await GetWanPort(remoteMachineId, protocolType, transport).ConfigureAwait(false);
+                if(local == null || remote == null)
+                {
+                    continue;
+                }
 
                 tunnelTransportInfo = new TunnelTransportInfo
                 {
