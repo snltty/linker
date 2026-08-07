@@ -37,13 +37,16 @@ namespace linker.tunnel.wanport
         private readonly List<StunServer> stunServers = new List<StunServer>
         {
             new StunServer { Host = "linker.snltty.com", Port = 3478 },
+            new StunServer { Host = "linker.snltty.com", Port = 3478 },
             new StunServer { Host = "stunserver2025.stunprotocol.org", Port = 3478 },
         };
         private readonly StunClient stun = new StunClient();
-        protected async Task<TunnelWanPortEndPoint> TryStun()
+        protected async Task<TunnelWanPortEndPoint> TryStun(IPAddress ip)
         {
             try
             {
+                stunServers[0] = new StunServer { Host = ip.ToString(), Port = 3478 };
+
                 foreach (var server in stunServers)
                 {
                     StunNatBehaviorResult result = await stun.DiscoverNatBehaviorAsync(server.Host, server.Port, new StunClientOptions
@@ -136,7 +139,7 @@ namespace linker.tunnel.wanport
             }
 
 
-            return await TryStun().ConfigureAwait(false);
+            return await TryStun(server.Address).ConfigureAwait(false);
         }
 
     }
@@ -181,7 +184,7 @@ namespace linker.tunnel.wanport
                 ArrayPool<byte>.Shared.Return(buffer);
             }
 
-            return await TryStun().ConfigureAwait(false);
+            return await TryStun(server.Address).ConfigureAwait(false);
         }
     }
 }
