@@ -4,8 +4,6 @@ using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Net;
 using System.Net.NetworkInformation;
-using System.Net.Sockets;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text.RegularExpressions;
@@ -90,6 +88,7 @@ namespace linker.tun.device
                     interfaceNumber = GetWindowsInterfaceNum();
                     tokenSource = new CancellationTokenSource();
 
+                    SetInterfaceMetric();
                     return true;
                 }
                 catch (Exception)
@@ -381,7 +380,7 @@ namespace linker.tun.device
                     WinTun.WaitForSingleObject(waitHandle, 0xFFFFFFFF);
                 }
             }
-           
+
             return Helper.EmptyArray;
         }
 
@@ -494,6 +493,10 @@ namespace linker.tun.device
             }
         }
 
+        private void SetInterfaceMetric()
+        {
+            CommandHelper.Windows(string.Empty, [$"netsh interface ipv4 set interface \"{Name}\" metric=999"]);
+        }
     }
 }
 

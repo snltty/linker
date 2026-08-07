@@ -3,7 +3,7 @@
         <el-table-column prop="machineName" :label="$t('device')" width="108" sortable="custom" ></el-table-column>
         <el-table-column prop="version" :label="$t('common.version')" width="98" sortable="custom"></el-table-column>
         <el-table-column prop="tunnel" :label="$t('network')" width="104" sortable="custom"></el-table-column>
-        <el-table-column prop="tuntap" :label="$t('tuntap')" width="170" sortable="custom"></el-table-column>
+        <el-table-column prop="tuntap" :label="$t('tuntap')" width="190" sortable="custom"></el-table-column>
         <el-table-column prop="socks5" :label="$t('socks5')" width="140" sortable="custom"></el-table-column>
         <el-table-column prop="forward" :label="$t('forward')" width="96" sortable="custom"></el-table-column>
         <el-table-column prop="oper" fixed="right" sortable="custom" min-width="110">

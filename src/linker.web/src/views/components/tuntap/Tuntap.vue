@@ -1,5 +1,5 @@
 <template>
-    <el-table-column prop="tuntap" :label="$t('tuntap')" width="170">
+    <el-table-column prop="tuntap" :label="$t('tuntap')" width="190">
         <template #header>
             <div class="flex">
                 <a href="javascript:;" class="a-line" @click="handleShowLease">{{$t('tuntap')}}</a>

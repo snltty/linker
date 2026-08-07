@@ -70,7 +70,7 @@ export default {
     box-sizing:border-box;
     background-color:#fff;
     border:1px solid #cfd7e3;
-    width:86rem;
+    width:88rem;
     max-width : 98%;
     height:94%;
     position:absolute;
