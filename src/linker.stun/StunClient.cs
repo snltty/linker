@@ -1,9 +1,9 @@
 using System;
-using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -553,8 +553,24 @@ public sealed class StunClient
         public static StunUdpTransport Create(IPEndPoint remoteEndPoint, StunClientOptions options)
         {
             var socket = new Socket(remoteEndPoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
+            
             try
             {
+                socket.ExclusiveAddressUse = false;
+                socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    try
+                    {
+                        const uint IOC_IN = 0x80000000;
+                        int IOC_VENDOR = 0x18000000;
+                        int SIO_UDP_CONNRESET = (int)(IOC_IN | IOC_VENDOR | 12);
+                        socket.IOControl((int)SIO_UDP_CONNRESET, new byte[] { Convert.ToByte(false) }, null);
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
                 if (options.LocalEndPoint is not null)
                 {
                     socket.Bind(options.LocalEndPoint);

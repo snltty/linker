@@ -33,30 +33,47 @@ namespace linker.tunnel.wanport
             return new IPEndPoint(ip, port);
         }
 
+
+        private readonly List<StunServer> stunServers = new List<StunServer>
+        {
+            new StunServer { Host = "linker.snltty.com", Port = 3478 },
+            new StunServer { Host = "stunserver2025.stunprotocol.org", Port = 3478 },
+        };
         private readonly StunClient stun = new StunClient();
         protected async Task<TunnelWanPortEndPoint> TryStun()
         {
             try
             {
-                StunNatBehaviorResult result = await stun.DiscoverNatBehaviorAsync("linker.snltty.com", 3478, new StunClientOptions
+                foreach (var server in stunServers)
                 {
-                    AddressFamilyMode = StunAddressFamilyMode.Ipv6Preferred,
-                    MaxAttempts = 3
-                }).ConfigureAwait(false);
-                StunNatMappingBehavior mapping = result.MappingBehavior;
-                StunNatFilteringBehavior filtering = result.FilteringBehavior;
+                    StunNatBehaviorResult result = await stun.DiscoverNatBehaviorAsync(server.Host, server.Port, new StunClientOptions
+                    {
+                        AddressFamilyMode = StunAddressFamilyMode.Ipv6Preferred,
+                        MaxAttempts = 3
+                    }).ConfigureAwait(false);
+                    StunNatMappingBehavior mapping = result.MappingBehavior;
+                    StunNatFilteringBehavior filtering = result.FilteringBehavior;
 
-
-                return new TunnelWanPortEndPoint
-                {
-                    Local = result.Binding.LocalEndPoint,
-                    Remote = result.Binding.ReflexiveEndPoint
-                };
+                    if (result.Binding.ReflexiveEndPoint is not null)
+                    {
+                        return new TunnelWanPortEndPoint
+                        {
+                            Local = result.Binding.LocalEndPoint,
+                            Remote = result.Binding.ReflexiveEndPoint
+                        };
+                    }
+                }
             }
             catch (Exception)
             {
             }
             return null;
+        }
+
+        record StunServer
+        {
+            public string Host { get; init; }
+            public int Port { get; init; }
         }
     }
 
