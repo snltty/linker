@@ -322,9 +322,12 @@ namespace linker.tunnel.transport
             foreach (var ep in eps)
             {
                 Socket targetSocket = new(ep.AddressFamily, SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
+                
                 using CancellationTokenSource cts = new CancellationTokenSource(500);
                 try
                 {
+                    targetSocket.ReceiveBufferSize = 512 * 1024;
+                    targetSocket.SendBufferSize = 512 * 1024;
                     targetSocket.KeepAlive();
                     targetSocket.IPv6Only(ep.AddressFamily, false);
                     targetSocket.ReuseBind(new IPEndPoint(ep.AddressFamily == AddressFamily.InterNetwork ? IPAddress.Any : IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));

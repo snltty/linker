@@ -1,13 +1,14 @@
 ﻿
-using linker.tunnel.connection;
 using linker.libs;
 using linker.libs.extends;
-using System.Net;
-using System.Net.Sockets;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
+using linker.tunnel.connection;
 using linker.tunnel.wanport;
 using System.Buffers;
+using System.Net;
+using System.Net.Sockets;
+using System.Runtime.Intrinsics.Arm;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
 
 namespace linker.tunnel.transport
 {
@@ -128,12 +129,16 @@ namespace linker.tunnel.transport
 
             Socket socket = new(AddressFamily.InterNetworkV6, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
             socket.IPv6Only(AddressFamily.InterNetworkV6, false);
+            socket.SendBufferSize = 512 * 1024;
+            socket.ReceiveBufferSize = 512 * 1024;
             socket.WindowsUdpBug();
             socket.ReuseBind(new IPEndPoint(IPAddress.IPv6Any, localPort));
             sockets.Add(socket);
             for (int i = 0; i < 25; i++)
             {
                 socket = new(AddressFamily.InterNetworkV6, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
+                socket.SendBufferSize = 512 * 1024;
+                socket.ReceiveBufferSize = 512 * 1024;
                 socket.IPv6Only(AddressFamily.InterNetworkV6, false);
                 socket.WindowsUdpBug();
                 socket.ReuseBind(new IPEndPoint(IPAddress.IPv6Any, 0));
@@ -213,6 +218,12 @@ namespace linker.tunnel.transport
             {
                 result = success[0].Result;
             }
+
+            for (int i = 1; i < success.Count; i++)
+            {
+                success[0].Result.socket?.SafeClose();
+            }
+
             return result;
         }
         private async Task<(Socket socket, IPEndPoint remote)> WaitRcv(Socket socket, CancellationTokenSource cts)

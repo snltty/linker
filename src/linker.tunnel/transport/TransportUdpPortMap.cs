@@ -7,6 +7,7 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.Intrinsics.Arm;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
@@ -80,11 +81,13 @@ namespace linker.tunnel.transport
             socket?.SafeClose();
 
 
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(8 * 1024);
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(32 * 1024);
             try
             {
                 IPAddress localIP = IPAddress.IPv6Any;
                 socket = new Socket(localIP.AddressFamily, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
+                socket.SendBufferSize = 512 * 1024;
+                socket.ReceiveBufferSize = 512 * 1024;
                 socket.WindowsUdpBug();
                 socket.IPv6Only(localIP.AddressFamily, false);
                 socket.Bind(new IPEndPoint(localIP, localPort));
@@ -329,6 +332,8 @@ namespace linker.tunnel.transport
             foreach (var ep in eps)
             {
                 Socket targetSocket = new(ep.AddressFamily, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
+                targetSocket.SendBufferSize = 512 * 1024;
+                targetSocket.ReceiveBufferSize = 512 * 1024;
                 using CancellationTokenSource cts = new CancellationTokenSource(500);
                 try
                 {
@@ -345,6 +350,7 @@ namespace linker.tunnel.transport
                     string _key = GetKey(buffer.Memory.Slice(0, recvRestlt.ReceivedBytes));
                     if (key != _key)
                     {
+                        targetSocket?.SafeClose();
                         continue;
                     }
 

@@ -1,5 +1,4 @@
-﻿using linker.libs;
-using linker.libs.extends;
+﻿using linker.libs.extends;
 using linker.messenger.channel;
 using linker.messenger.signin;
 using linker.messenger.tuntap.cidr;
@@ -15,6 +14,7 @@ namespace linker.messenger.tuntap.client
     {
         public ValueTask Close(ITunnelConnection connection);
         public ValueTask<bool> Receive(ITunnelConnection connection, ReadOnlyMemory<byte> packet);
+        public ValueTask<bool> Receive(string machineId, ReadOnlyMemory<byte> buffer);
     }
 
     public class TuntapProxy : Channel, ITunnelConnectionReceiveCallback
@@ -40,6 +40,9 @@ namespace linker.messenger.tuntap.client
             this.tuntapDecenter = tuntapDecenter;
         }
 
+        
+
+
         protected override void Connected(ITunnelConnection connection)
         {
             Add(connection);
@@ -58,25 +61,24 @@ namespace linker.messenger.tuntap.client
             return Callback.Close(connection);
 
         }
-        public ValueTask<bool> InputPacket(LinkerTunDevicPacket packet)
+        public async ValueTask<bool> InputPacket(LinkerTunDevicPacket packet)
         {
-            StopWatchHelper.StartTimestamp(StopWatchHelper.StopWatchType.Tun_Read_Connecttion);
+            //StopWatchHelper.StartTimestamp(StopWatchHelper.StopWatchType.Tun_Read_Connecttion);
 
             if ((packet.IPV4Broadcast || packet.IPV6Multicast) && tuntapConfigTransfer.Info.Multicast == false)
             {
-                return SendAll(packet);
+                return await SendAll(packet).ConfigureAwait(false);
             }
             else
             {
                 uint ip = BinaryPrimitives.ReadUInt32BigEndian(packet.DstIp.Span[^4..]);
                 if (tuntapCidrConnectionManager.TryGet(ip, out ITunnelConnection connection) && connection.Connected)
                 {
-                    StopWatchHelper.EndTimestamp(StopWatchHelper.StopWatchType.Tun_Read_Connecttion);
-                    return connection.SendAsync(packet.Buffer, packet.Offset, packet.Length);
+                    //StopWatchHelper.EndTimestamp(StopWatchHelper.StopWatchType.Tun_Read_Connecttion);
+                    return await connection.SendAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);
                 }
-                return ConnectTunnel(ip);
+                return await ConnectTunnel(ip).ConfigureAwait(false);
             }
-
         }
         private async ValueTask<bool> SendAll(LinkerTunDevicPacket packet)
         {

@@ -1,13 +1,14 @@
 ﻿
-using linker.tunnel.connection;
 using linker.libs;
 using linker.libs.extends;
-using System.Net;
-using System.Net.Sockets;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
+using linker.tunnel.connection;
 using linker.tunnel.wanport;
 using System.Buffers;
+using System.Net;
+using System.Net.Sockets;
+using System.Runtime.Intrinsics.Arm;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
 
 namespace linker.tunnel.transport
 {
@@ -34,10 +35,6 @@ namespace linker.tunnel.transport
         public byte Order => 3;
 
         public bool EnableAddr => true;
-
-        /// <summary>
-        /// 连接成功
-        /// </summary>
         public Action<ITunnelConnection, TunnelTransportInfo> OnConnected { get; set; } = (state, info) => { };
 
 
@@ -54,12 +51,6 @@ namespace linker.tunnel.transport
         {
             this.certificate = certificate;
         }
-
-        /// <summary>
-        /// 连接对方
-        /// </summary>
-        /// <param name="tunnelTransportInfo"></param>
-        /// <returns></returns>
         public async Task<ITunnelConnection> ConnectAsync(TunnelTransportInfo tunnelTransportInfo)
         {
             if (await tunnelMessengerAdapter.SendConnectBegin(tunnelTransportInfo).ConfigureAwait(false) == false)
@@ -76,10 +67,6 @@ namespace linker.tunnel.transport
             await tunnelMessengerAdapter.SendConnectFail(tunnelTransportInfo).ConfigureAwait(false);
             return null;
         }
-        /// <summary>
-        /// 收到对方开始连接的消息
-        /// </summary>
-        /// <param name="tunnelTransportInfo"></param>
         public async Task OnBegin(TunnelTransportInfo tunnelTransportInfo)
         {
             ITunnelConnection connection = await ConnectForward(tunnelTransportInfo, TunnelMode.Server).ConfigureAwait(false);
@@ -113,6 +100,8 @@ namespace linker.tunnel.transport
 
             IPEndPoint tempEP = new IPEndPoint(IPAddress.IPv6Any, 0);
             Socket targetSocket = new(AddressFamily.InterNetworkV6, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
+            targetSocket.SendBufferSize = 512 * 1024;
+            targetSocket.ReceiveBufferSize = 512 * 1024;
             targetSocket.IPv6Only(AddressFamily.InterNetworkV6, false);
             targetSocket.WindowsUdpBug();
             targetSocket.ReuseBind(new IPEndPoint(IPAddress.IPv6Any, tunnelTransportInfo.Local.Local.Port));

@@ -357,28 +357,25 @@ namespace linker.tun.device
         public unsafe byte[] Read(out uint length)
         {
             length = 0;
-            if (session > 0)
+            for (; session > 0 && tokenSource.IsCancellationRequested == false;)
             {
-                for (; tokenSource.IsCancellationRequested == false;)
+                nint packetPtr = WinTun.WintunReceivePacket(session, out length);
+                if (packetPtr != 0)
                 {
-                    nint packetPtr = WinTun.WintunReceivePacket(session, out length);
-                    if (packetPtr != 0)
-                    {
-                        new Span<byte>((byte*)packetPtr, (int)length).CopyTo(buffer.AsSpan(4, (int)length));
-                        ((ushort)(length + 2)).ToBytes(buffer.AsSpan());
-                        buffer[2] = 0;
-                        buffer[3] = 0;
-                        length += 4;
-                        WinTun.WintunReleaseReceivePacket(session, packetPtr);
-                        return buffer;
-                    }
-                    int error = Marshal.GetLastWin32Error();
-                    if (error != 0 && error != ERROR_NO_MORE_ITEMS)
-                    {
-                        return Helper.EmptyArray;
-                    }
-                    WinTun.WaitForSingleObject(waitHandle, 0xFFFFFFFF);
+                    new Span<byte>((byte*)packetPtr, (int)length).CopyTo(buffer.AsSpan(4, (int)length));
+                    ((ushort)(length + 2)).ToBytes(buffer.AsSpan());
+                    buffer[2] = 0;
+                    buffer[3] = 0;
+                    length += 4;
+                    WinTun.WintunReleaseReceivePacket(session, packetPtr);
+                    return buffer;
                 }
+                int error = Marshal.GetLastWin32Error();
+                if (error != 0 && error != ERROR_NO_MORE_ITEMS)
+                {
+                    return Helper.EmptyArray;
+                }
+                WinTun.WaitForSingleObject(waitHandle, 0xFFFFFFFF);
             }
 
             return Helper.EmptyArray;

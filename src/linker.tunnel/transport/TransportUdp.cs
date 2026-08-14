@@ -1,14 +1,15 @@
-﻿using linker.tunnel.connection;
-using linker.libs;
+﻿using linker.libs;
 using linker.libs.extends;
+using linker.libs.timer;
+using linker.tunnel.connection;
+using linker.tunnel.wanport;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
-using linker.tunnel.wanport;
+using System.Runtime.Intrinsics.Arm;
 using System.Security.Cryptography.X509Certificates;
-using linker.libs.timer;
-using System.Buffers;
+using System.Text;
 
 namespace linker.tunnel.transport
 {
@@ -218,6 +219,8 @@ namespace linker.tunnel.transport
         {
             local = new IPEndPoint(IPAddress.IPv6Any, local.Port);
             Socket socket = new Socket(local.AddressFamily, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
+            socket.SendBufferSize = 512 * 1024;
+            socket.ReceiveBufferSize = 512 * 1024;
             socket.IPv6Only(local.AddressFamily, false);
             socket.WindowsUdpBug();
             socket.ReuseBind(local);
@@ -251,6 +254,8 @@ namespace linker.tunnel.transport
         {
             local = new IPEndPoint(IPAddress.IPv6Any, local.Port);
             Socket socket = new Socket(local.AddressFamily, SocketType.Dgram, System.Net.Sockets.ProtocolType.Udp);
+            socket.SendBufferSize = 512 * 1024;
+            socket.ReceiveBufferSize = 512 * 1024;
             try
             {
                 socket.IPv6Only(local.AddressFamily, false);
