@@ -85,6 +85,6 @@
 
 [![Contributors](https://contrib.rocks/image?repo=snltty/linker&columns=8)](https://github.com/snltty/linker/graphs/contributors)
 
-[![Star History Chart](https://api.star-history.com/svg?repos=snltty/linker&type=Date)](https://www.star-history.com/#snltty/linker&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=snltty/linker&type=Date)](https://star-history.dera.page/#snltty/linker&Date)
 
 
