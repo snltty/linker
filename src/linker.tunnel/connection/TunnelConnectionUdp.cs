@@ -299,9 +299,9 @@ namespace linker.tunnel.connection
             //StopWatchHelper.EndTimestamp(StopWatchHelper.StopWatchType.Udp_Send);
             return true;
         }
-        private async ValueTask<bool> RecvAsyncDefault(ReadOnlyMemory<byte> data)
+        private ValueTask<bool> RecvAsyncDefault(ReadOnlyMemory<byte> data)
         {
-            return await ProcessPacket(data).ConfigureAwait(false);
+            return ProcessPacket(data);
         }
 
 
