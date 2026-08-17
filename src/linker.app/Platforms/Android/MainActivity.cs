@@ -129,8 +129,12 @@ namespace linker.app
         {
            return  tuntapTransfer.Write(connection.RemoteMachineId, buffer);
         }
+        public ValueTask<bool> Receive(string machineId, ReadOnlyMemory<byte> buffer)
+        {
+            return tuntapTransfer.Write(machineId, buffer);
+        }
 
-       
+
     }
 
     /// <summary>
