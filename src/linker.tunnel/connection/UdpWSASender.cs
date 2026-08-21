@@ -28,13 +28,6 @@ namespace linker.tunnel.connection
         public Socket Socket { get; }
         public IPEndPoint RemoteEndPoint { get; }
 
-        public Channel<ChannelPacket> Channel { get; } = System.Threading.Channels.Channel.CreateBounded<ChannelPacket>(new BoundedChannelOptions(8192)
-        {
-            FullMode = BoundedChannelFullMode.Wait,
-            SingleReader = true,
-            SingleWriter = false
-        });
-
         private readonly ArrayPool<byte> pool;
         private readonly object batchGate = new();
         private readonly object sendGate;
@@ -48,6 +41,13 @@ namespace linker.tunnel.connection
         private bool usoAvailable = OperatingSystem.IsWindows();
         private bool sendMmsgAvailable = OperatingSystem.IsLinux();
         private bool disposed;
+
+        public Channel<ChannelPacket> Channel { get; } = System.Threading.Channels.Channel.CreateBounded<ChannelPacket>(new BoundedChannelOptions(8192)
+        {
+            FullMode = BoundedChannelFullMode.Wait,
+            SingleReader = true,
+            SingleWriter = false
+        });
 
         public UdpWSASender(
             Socket socket,
@@ -82,8 +82,11 @@ namespace linker.tunnel.connection
         {
             ArgumentNullException.ThrowIfNull(reader);
 
+            Console.WriteLine($"SendAvailable");
+
             lock (batchGate)
             {
+                Console.WriteLine($"SendAvailable lock");
                 if (disposed)
                     throw new ObjectDisposedException(nameof(UdpWSASender));
 
@@ -324,7 +327,7 @@ namespace linker.tunnel.connection
                 sendMmsgAvailable = false;
                 return false;
             }
-            catch (SocketException ex) when (ex.ErrorCode == 38) // ENOSYS
+            catch (SocketException ex) when (IsSendMmsgUnavailable(ex))
             {
                 sendMmsgAvailable = false;
                 return false;
@@ -397,6 +400,12 @@ namespace linker.tunnel.connection
             SocketError.InvalidArgument or
             SocketError.MessageSize or
             SocketError.Fault;
+
+        private static bool IsSendMmsgUnavailable(SocketException exception) =>
+            // ENOSYS means the kernel lacks sendmmsg. EINVAL means this host
+            // rejected the batch ABI, so use the ordinary Socket path instead.
+            exception.ErrorCode is 38 or 22;
+
         private static byte[] CreateNativeSocketAddress(Socket socket, IPEndPoint endpoint)
         {
             if (socket.AddressFamily == AddressFamily.InterNetwork &&
@@ -406,7 +415,7 @@ namespace linker.tunnel.connection
 
                 BitConverter.TryWriteBytes(
                     address.AsSpan(0, 2),
-                    (ushort)AddressFamily.InterNetwork);
+                    GetNativeAddressFamily(AddressFamily.InterNetwork));
 
                 BinaryPrimitives.WriteUInt16BigEndian(
                     address.AsSpan(2, 2),
@@ -426,7 +435,7 @@ namespace linker.tunnel.connection
 
                 BitConverter.TryWriteBytes(
                     address.AsSpan(0, 2),
-                    (ushort)AddressFamily.InterNetworkV6);
+                    GetNativeAddressFamily(AddressFamily.InterNetworkV6));
 
                 BinaryPrimitives.WriteUInt16BigEndian(
                     address.AsSpan(2, 2),
@@ -451,7 +460,7 @@ namespace linker.tunnel.connection
 
                 BitConverter.TryWriteBytes(
                     address.AsSpan(0, 2),
-                    (ushort)AddressFamily.InterNetworkV6);
+                    GetNativeAddressFamily(AddressFamily.InterNetworkV6));
 
                 BinaryPrimitives.WriteUInt16BigEndian(
                     address.AsSpan(2, 2),
@@ -468,6 +477,17 @@ namespace linker.tunnel.connection
 
             throw new NotSupportedException(
                 $"Socket address family {socket.AddressFamily} cannot send to {endpoint.AddressFamily}.");
+        }
+
+        private static ushort GetNativeAddressFamily(AddressFamily addressFamily)
+        {
+            // AddressFamily uses Winsock values. Linux's AF_INET6 is 10, while
+            // AddressFamily.InterNetworkV6 is 23. sendmmsg consumes sockaddr
+            // directly, so the value must match the host kernel ABI.
+            if (OperatingSystem.IsLinux() && addressFamily == AddressFamily.InterNetworkV6)
+                return 10;
+
+            return checked((ushort)addressFamily);
         }
 
         public void Dispose()
