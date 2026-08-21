@@ -82,11 +82,8 @@ namespace linker.tunnel.connection
         {
             ArgumentNullException.ThrowIfNull(reader);
 
-            Console.WriteLine($"SendAvailable");
-
             lock (batchGate)
             {
-                Console.WriteLine($"SendAvailable lock");
                 if (disposed)
                     throw new ObjectDisposedException(nameof(UdpWSASender));
 
