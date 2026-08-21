@@ -91,7 +91,7 @@ namespace linker.tunnel.connection
             this.sendFunc = SendAsyncDefault;
             this.recvFunc = RecvAsyncDefault;
 
-            _ = SenderAsync();
+            InitializeSender();
 
             if (TransactionId != "tuntap")
             {
@@ -178,6 +178,7 @@ namespace linker.tunnel.connection
             }
             return ValueTask.FromResult(true);
         }
+
         private async Task ProcessHeart()
         {
             try
@@ -217,6 +218,18 @@ namespace linker.tunnel.connection
 
             return true;
         }
+        private ValueTask<bool> ProcessPong()
+        {
+            Delay = (int)pingPongTicks.Diff();
+            return ValueTask.FromResult(true);
+        }
+        private ValueTask<bool> ProcessFin()
+        {
+            Dispose();
+            return ValueTask.FromResult(true);
+        }
+
+
 
         private readonly SemaphoreSlim slm = new SemaphoreSlim(1);
         public async ValueTask<bool> SendAsync(ReadOnlyMemory<byte> data)
@@ -276,65 +289,24 @@ namespace linker.tunnel.connection
             return recvFunc(data);
         }
 
-        private ValueTask<bool> ProcessPong()
-        {
-            Delay = (int)pingPongTicks.Diff();
-            return ValueTask.FromResult(true);
-        }
-        private ValueTask<bool> ProcessFin()
-        {
-            Dispose();
-            return ValueTask.FromResult(true);
-        }
+       
+
 
         private UdpWSASender sender;
-        private async ValueTask<int> SendAsyncDefault(TunnelPacket packet)
-        {
-            var length = packet.Payload.Length;
-            var data = ArrayPool<byte>.Shared.Rent(length);
-            try
-            {
-                packet.Payload.CopyTo(data.AsMemory(0, length));
-                await sender.Channel.Writer.WriteAsync(new ChannelPacket(data, length), cts.Token).ConfigureAwait(false);
-                return length;
-            }
-            catch
-            {
-                ArrayPool<byte>.Shared.Return(data);
-                throw;
-            }
-        }
-        private async Task SenderAsync()
+        private void InitializeSender()
         {
             sender = new UdpWSASender(UdpClient, IPEndPoint, ArrayPool<byte>.Shared);
-            try
-            {
-                while (await sender.Channel.Reader.WaitToReadAsync(cts.Token).ConfigureAwait(false))
-                {
-                    sender.SendAvailable(sender.Channel.Reader);
-                }
-            }
-            catch (OperationCanceledException ex) when (cts.IsCancellationRequested)
-            {
-                LoggerHelper.Instance.Error(ex);
-            }
-            catch (Exception ex)
-            {
-                LoggerHelper.Instance.Error(ex);
-            }
-            finally
-            {
-                while (sender.Channel.Reader.TryRead(out var packet))
-                    ArrayPool<byte>.Shared.Return(packet.buffer);
-
-
-                sender?.Dispose();
-            }
+            _ = sender.SenderAsync(cts.Token);
         }
-        private ValueTask<bool> RecvAsyncDefault(ReadOnlyMemory<byte> data)
+        private async ValueTask<int> SendAsyncDefault(TunnelPacket packet)
         {
-            return ProcessPacket(data);
+            return await sender.WriteAsync(packet, cts.Token).ConfigureAwait(false);
         }
+        private ValueTask<bool> RecvAsyncDefault(ReadOnlyMemory<byte> packet)
+        {
+            return ProcessPacket(packet);
+        }
+
 
 
         private LinkerFecCodec fecEncoder;
@@ -410,49 +382,56 @@ namespace linker.tunnel.connection
         }
         private async Task FlushTaskFec()
         {
-            while (cts.IsCancellationRequested == false)
+            try
             {
-                ReadOnlyMemory<byte> packets = await stickyEncoder.ReadPacketsAsync(cts.Token).ConfigureAwait(false);
-                if (packets.Length == 0)
+                while (cts.IsCancellationRequested == false)
                 {
-                    if (stickyEncoder.IsCompleted)
+                    ReadOnlyMemory<byte> packets = await stickyEncoder.ReadPacketsAsync(cts.Token).ConfigureAwait(false);
+                    if (packets.Length == 0)
                     {
-                        cts.Cancel();
-                        break;
+                        if (stickyEncoder.IsCompleted)
+                        {
+                            cts.Cancel();
+                            break;
+                        }
+                        continue;
                     }
-                    continue;
-                }
-                if (fecEncoder.TryEncodePacket(packets, fecEncodeBuffer, out int bytesWritten, out int packetCount))
-                {
-                    var memory = fecEncodeBuffer.AsMemory(0, bytesWritten);
+                    if (fecEncoder.TryEncodePacket(packets, fecEncodeBuffer, out int bytesWritten, out int packetCount))
+                    {
+                        var memory = fecEncodeBuffer.AsMemory(0, bytesWritten);
 
-                    for (int i = 0; i < packetCount; i++)
-                    {
-                        int packetLength = BinaryPrimitives.ReadUInt16LittleEndian(memory.Span);
-                        Memory<byte> packet = memory.Slice(LinkerFecOptions.FrameLengthPrefixSize, packetLength);
-                        try
+                        for (int i = 0; i < packetCount; i++)
                         {
-                            await UdpClient.SendToAsync(packet, IPEndPoint, cts.Token).ConfigureAwait(false);
+                            int packetLength = BinaryPrimitives.ReadUInt16LittleEndian(memory.Span);
+                            Memory<byte> packet = memory.Slice(LinkerFecOptions.FrameLengthPrefixSize, packetLength);
+                            try
+                            {
+                                await UdpClient.SendToAsync(packet, IPEndPoint, cts.Token).ConfigureAwait(false);
+                            }
+                            catch (OperationCanceledException) when (cts.IsCancellationRequested)
+                            {
+                                break;
+                            }
+                            catch (SocketException)
+                            {
+                            }
+                            catch (ObjectDisposedException)
+                            {
+                                break;
+                            }
+                            memory = memory.Slice(LinkerFecOptions.FrameLengthPrefixSize + packetLength);
                         }
-                        catch (OperationCanceledException) when (cts.IsCancellationRequested)
-                        {
-                            break;
-                        }
-                        catch (SocketException)
-                        {
-                        }
-                        catch (ObjectDisposedException)
-                        {
-                            break;
-                        }
-                        memory = memory.Slice(LinkerFecOptions.FrameLengthPrefixSize + packetLength);
                     }
                 }
+            }
+            catch (Exception)
+            {
             }
             fecEncoder?.Dispose();
             fecDecoder?.Dispose();
             stickyEncoder?.Dispose();
         }
+
 
 
         private KcpConnection kcpConnection;
@@ -477,7 +456,6 @@ namespace linker.tunnel.connection
         private async Task FlushTaskKcp()
         {
             using IMemoryOwner<byte> owner = MemoryPool<byte>.Shared.Rent(64 * 1024);
-
             while (!cts.IsCancellationRequested)
             {
                 int length = await kcpConnection.ReceiveAsync(owner.Memory, cts.Token).ConfigureAwait(false);
@@ -487,7 +465,6 @@ namespace linker.tunnel.connection
                 }
 
                 Memory<byte> packets = owner.Memory.Slice(0, length);
-
                 do
                 {
                     int packetLength = TunnelPacket.ReadLength(packets);
@@ -502,6 +479,7 @@ namespace linker.tunnel.connection
 
             await (kcpConnection?.DisposeAsync() ?? ValueTask.CompletedTask).ConfigureAwait(false);
         }
+
 
         public void Dispose()
         {

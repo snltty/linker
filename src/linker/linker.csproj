@@ -15,25 +15,16 @@
 		<Title>linker</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>1. 请勿第一时间更新，建议延后2-3个小版本
-2. 隧道4字节长度头改为2长度+1消息类型(data/ping/pong/fin)+1保留
-3. UDP隧道支持策略冗余FEC和KCP
-4. 重写RFC5780NAT类型检测
-5. 端口转发和socks5底层逻辑合并
-6. 更多的Task向ValueTask优化
-7. 支持Mesh网络
-8. TCP/IP校验和全量扫描200ns改为增量更新10ns
-9. 可能的STUN端口预测
-10. 网络设备发现协议代理，支持海康SADP
-11. 限制隧道数据长度，MAC4字节头，NAT4测试
-12. 可能的导致程序闪退的空引用异常</Description>
+		<Description>1. 2026-08-21 16:30:00
+2. 使用WSASendTo和SendMmsg批量发送UDP数据包，提升发送效率
+3. 装路径泄露和CORS宽松修复</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>2.0.19</Version>
-		<AssemblyVersion>2.0.19</AssemblyVersion>
-		<FileVersion>2.0.19</FileVersion>
+		<Version>2.0.20</Version>
+		<AssemblyVersion>2.0.20</AssemblyVersion>
+		<FileVersion>2.0.20</FileVersion>
 		<DelaySign>False</DelaySign>
 
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>

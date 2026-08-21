@@ -1,7 +1,9 @@
-﻿using System.Buffers;
+﻿using linker.libs;
+using System.Buffers;
 using System.Buffers.Binary;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Channels;
 
@@ -30,6 +32,8 @@ namespace linker.tunnel.connection
 
         private readonly ArrayPool<byte> pool;
         private readonly object batchGate = new();
+
+
         private readonly object sendGate;
         private readonly ChannelPacket[] batch = new ChannelPacket[MaxBatchPackets];
         private readonly MemoryHandle[] handles = new MemoryHandle[MaxBatchPackets];
@@ -76,6 +80,49 @@ namespace linker.tunnel.connection
             addressSize = nativeAddress.Length;
 
             this.usoAvailable = this.usoAvailable && usoAvailable;
+        }
+
+        public async ValueTask<int> WriteAsync(TunnelPacket packet,CancellationToken token = default)
+        {
+            var length = packet.Payload.Length;
+            var data = ArrayPool<byte>.Shared.Rent(length);
+            try
+            {
+                packet.Payload.CopyTo(data.AsMemory(0, length));
+                await Channel.Writer.WriteAsync(new ChannelPacket(data, length), token).ConfigureAwait(false);
+                return length;
+            }
+            catch
+            {
+                ArrayPool<byte>.Shared.Return(data);
+                throw;
+            }
+        }
+        public async Task SenderAsync(CancellationToken token = default)
+        {
+            try
+            {
+                while (await Channel.Reader.WaitToReadAsync(token).ConfigureAwait(false))
+                {
+                    SendAvailable(Channel.Reader);
+                }
+            }
+            catch (OperationCanceledException ex) when (token.IsCancellationRequested)
+            {
+                LoggerHelper.Instance.Error(ex);
+            }
+            catch (Exception ex)
+            {
+                LoggerHelper.Instance.Error(ex);
+            }
+            finally
+            {
+                while (Channel.Reader.TryRead(out var packet))
+                    ArrayPool<byte>.Shared.Return(packet.buffer);
+
+
+                Dispose();
+            }
         }
 
         public int SendAvailable(ChannelReader<ChannelPacket> reader)
@@ -499,6 +546,7 @@ namespace linker.tunnel.connection
                 if (addressHandle.IsAllocated)
                     addressHandle.Free();
 
+                Channel.Writer?.TryComplete();
             }
         }
 
