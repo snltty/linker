@@ -66,7 +66,8 @@ namespace linker.libs.web
             try
             {
                 response.Headers.Set("Server", Helper.GlobalString);
-                response.Headers.Set("Access-Control-Allow-Origin", "*");
+                response.Headers.Set("Access-Control-Allow-Private-Network", "true");
+                response.Headers.Set("Access-Control-Allow-Origin", request.Headers["Origin"]);
                 response.Headers.Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
                 response.Headers.Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
                 response.Headers.Set("Access-Control-Allow-Credentials", "true");
@@ -102,19 +103,14 @@ namespace linker.libs.web
                         response.StatusCode = (int)HttpStatusCode.NotFound;
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    byte[] bytes = System.Text.Encoding.UTF8.GetBytes(ex + $"");
-                    response.ContentLength64 = bytes.Length;
-                    response.ContentType = "text/plain; charset=utf-8";
-                    await response.OutputStream.WriteAsync(bytes.AsMemory(0, bytes.Length));
-                    await response.OutputStream.FlushAsync();
-                    response.OutputStream.Close();
+                    response.StatusCode = (int)HttpStatusCode.NotFound;
                 }
             }
             catch (Exception)
             {
-                response.StatusCode = (int)HttpStatusCode.BadRequest;
+                response.StatusCode = (int)HttpStatusCode.NotFound;
             }
 
             response.Close();

@@ -115,19 +115,14 @@ namespace linker.libs.web
                         response.StatusCode = (int)HttpStatusCode.NotFound;
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    byte[] bytes = System.Text.Encoding.UTF8.GetBytes(ex + $"");
-                    response.ContentLength64 = bytes.Length;
-                    response.ContentType = "text/plain; charset=utf-8";
-                    await response.OutputStream.WriteAsync(bytes, 0, bytes.Length);
-                    await response.OutputStream.FlushAsync();
-                    response.OutputStream.Close();
+                    response.StatusCode = (int)HttpStatusCode.NotFound;
                 }
             }
             catch (Exception)
             {
-                response.StatusCode = (int)HttpStatusCode.BadRequest;
+                response.StatusCode = (int)HttpStatusCode.NotFound;
             }
 
             response.Close();
@@ -198,7 +193,7 @@ namespace linker.libs.web
             }
             catch (Exception ex)
             {
-                
+
                 LoggerHelper.Instance.Error(ex);
             }
             finally
@@ -343,6 +338,11 @@ namespace linker.libs.web
         public byte[] Read(string root, string fileName, out DateTime lastModified)
         {
             fileName = Path.Join(root, fileName);
+            if (fileName.StartsWith(root) == false)
+            {
+                throw new Exception("404");
+            }
+
             lastModified = File.GetLastWriteTimeUtc(fileName);
             return File.ReadAllBytes(fileName);
         }

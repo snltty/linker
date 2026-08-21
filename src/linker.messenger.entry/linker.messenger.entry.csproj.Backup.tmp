@@ -1,0 +1,64 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net8.0</TargetFrameworks>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>disable</Nullable>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<PublishAot>false</PublishAot>
+		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+		<Title>linker messenger entry</Title>
+		<Authors>snltty</Authors>
+		<Company>snltty</Company>
+		<Description>linker messenger entry</Description>
+		<Copyright>snltty</Copyright>
+		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
+		<PackageReleaseNotes>linker messenger entry</PackageReleaseNotes>
+		<Version>2.0.19</Version>
+		<AssemblyVersion>2.0.19</AssemblyVersion>
+		<FileVersion>2.0.19</FileVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<DebugType>full</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<DebugType>full</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+		<Optimize>True</Optimize>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0|AnyCPU'">
+		<DebugType>full</DebugType>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0|AnyCPU'">
+		<DebugType>full</DebugType>
+	</PropertyGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\linker.messenger.access\linker.messenger.access.csproj" />
+	  <ProjectReference Include="..\linker.messenger.action\linker.messenger.action.csproj" />
+	  <ProjectReference Include="..\linker.messenger.api\linker.messenger.api.csproj" />
+	  <ProjectReference Include="..\linker.messenger.channel\linker.messenger.channel.csproj" />
+	  <ProjectReference Include="..\linker.messenger.decenter\linker.messenger.decenter.csproj" />
+	  <ProjectReference Include="..\linker.messenger.flow\linker.messenger.flow.csproj" />
+	  <ProjectReference Include="..\linker.messenger.forward\linker.messenger.forward.csproj" />
+	  <ProjectReference Include="..\linker.messenger.listen\linker.messenger.listen.csproj" />
+	  <ProjectReference Include="..\linker.messenger.logger\linker.messenger.logger.csproj" />
+	  <ProjectReference Include="..\linker.messenger.mesh\linker.messenger.mesh.csproj" />
+	  <ProjectReference Include="..\linker.messenger.relay\linker.messenger.relay.csproj" />
+	  <ProjectReference Include="..\linker.messenger.rpolicy\linker.messenger.rpolicy.csproj" />
+	  <ProjectReference Include="..\linker.messenger.serializer.memorypack\linker.messenger.serializer.memorypack.csproj" />
+	  <ProjectReference Include="..\linker.messenger.reverse\linker.messenger.reverse.csproj" />
+	  <ProjectReference Include="..\linker.messenger.signin\linker.messenger.signin.csproj" />
+	  <ProjectReference Include="..\linker.messenger.socks5\linker.messenger.socks5.csproj" />
+	  <ProjectReference Include="..\linker.messenger.store.file\linker.messenger.store.file.csproj" />
+	  <ProjectReference Include="..\linker.messenger.sync\linker.messenger.sync.csproj" />
+	  <ProjectReference Include="..\linker.messenger.tunnel\linker.messenger.tunnel.csproj" />
+	  <ProjectReference Include="..\linker.messenger.tuntap\linker.messenger.tuntap.csproj" />
+	  <ProjectReference Include="..\linker.messenger.updater\linker.messenger.updater.csproj" />
+	  <ProjectReference Include="..\linker.messenger.wakeup\linker.messenger.wakeup.csproj" />
+	  <ProjectReference Include="..\linker.messenger.wlist\linker.messenger.wlist.csproj" />
+	  <ProjectReference Include="..\linker.messenger\linker.messenger.csproj" />
+	</ItemGroup>
+</Project>

@@ -1,7 +1,6 @@
 ﻿using linker.libs.extends;
 using linker.libs.web;
 using linker.messenger.signin;
-using System.Threading.Tasks;
 namespace linker.messenger.flow.webapi
 {
     public sealed class WebApiOnlineController : IWebApiController

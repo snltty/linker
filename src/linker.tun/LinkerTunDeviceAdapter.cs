@@ -332,20 +332,13 @@ namespace linker.tun
                         {
                             continue;
                         }
-                        //StopWatchHelper.EndTimestamp(StopWatchHelper.StopWatchType.Tun_Write_Read);
-                        //StopWatchHelper.StartTimestamp(StopWatchHelper.StopWatchType.Tun_Read_Write);
-
-                        //StopWatchHelper.StartTimestamp(StopWatchHelper.StopWatchType.Tun_Read_Unpacket);
                         packet.Unpacket(buffer, 0, (int)length);
-                        //StopWatchHelper.EndTimestamp(StopWatchHelper.StopWatchType.Tun_Read_Unpacket);
                         if (packet.DstIp.Length == 0 || packet.Version != 4)
                         {
                             continue;
                         }
                         
-                        //StopWatchHelper.StartTimestamp(StopWatchHelper.StopWatchType.Tun_Read_Hook);
                         LinkerTunPacketHookFlags flags = ExecReadHook(packet.RawPacket);
-                        //StopWatchHelper.EndTimestamp(StopWatchHelper.StopWatchType.Tun_Read_Hook);
                         if ((flags & LinkerTunPacketHookFlags.WriteBack) == LinkerTunPacketHookFlags.WriteBack)
                         {
                             linkerTunDevice.Write(packet.RawPacket);
@@ -353,13 +346,11 @@ namespace linker.tun
 
                         if ((flags & LinkerTunPacketHookFlags.Send) == LinkerTunPacketHookFlags.Send)
                         {
-                            //StopWatchHelper.StartTimestamp(StopWatchHelper.StopWatchType.Tun_Read_Callback);
                             bool result = await linkerTunDeviceCallback.Callback(packet).ConfigureAwait(false);
                             if (result == false && packet.ProtocolType == ProtocolType.Icmp && ChecksumHelper.CreateIcmpHostUnreachablePacket(packet.RawPacket.Span))
                             {
                                 linkerTunDevice.Write(packet.RawPacket);
                             }
-                            //StopWatchHelper.EndTimestamp(StopWatchHelper.StopWatchType.Tun_Read_Callback);
                         }
                         
                     }
@@ -405,16 +396,10 @@ namespace linker.tun
             bool result = false;
             if (Status == LinkerTunDeviceStatus.Running)
             {
-                //StopWatchHelper.StartTimestamp(StopWatchHelper.StopWatchType.Tun_Write_Hook);
                 LinkerTunPacketHookFlags flags = await ExecWriteHook(buffer, srcId).ConfigureAwait(false);
-                //StopWatchHelper.EndTimestamp(StopWatchHelper.StopWatchType.Tun_Write_Hook);
                 if ((flags & LinkerTunPacketHookFlags.Write) == LinkerTunPacketHookFlags.Write)
                 {
-                    //StopWatchHelper.StartTimestamp(StopWatchHelper.StopWatchType.Tun_Write);
                     result = linkerTunDevice.Write(buffer);
-                    //StopWatchHelper.EndTimestamp(StopWatchHelper.StopWatchType.Tun_Write);
-                    //StopWatchHelper.EndTimestamp(StopWatchHelper.StopWatchType.Tun_Read_Write);
-                    //StopWatchHelper.StartTimestamp(StopWatchHelper.StopWatchType.Tun_Write_Read);
                 }
             }
             return result;

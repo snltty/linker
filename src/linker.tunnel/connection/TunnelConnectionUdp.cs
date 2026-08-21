@@ -6,7 +6,6 @@ using System.Buffers;
 using System.Buffers.Binary;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -61,6 +60,8 @@ namespace linker.tunnel.connection
 
         [JsonIgnore]
         public Socket UdpClient { get; init; }
+
+
         [JsonIgnore]
         public ICrypto Crypto { get; init; }
         private readonly byte[] cryptoEncodeBuffer = new byte[16 * 1024];
@@ -72,7 +73,7 @@ namespace linker.tunnel.connection
 
         private readonly LastTicksManager pingPongTicks = new LastTicksManager();
 
-        delegate ValueTask<bool> SendFunc(TunnelPacket packet);
+        delegate ValueTask<int> SendFunc(TunnelPacket packet);
         private SendFunc sendFunc = null;
         delegate ValueTask<bool> RecvFunc(ReadOnlyMemory<byte> data);
         private RecvFunc recvFunc = null;
@@ -89,6 +90,8 @@ namespace linker.tunnel.connection
             this.cts = new CancellationTokenSource();
             this.sendFunc = SendAsyncDefault;
             this.recvFunc = RecvAsyncDefault;
+
+            _ = SenderAsync();
 
             if (TransactionId != "tuntap")
             {
@@ -222,15 +225,11 @@ namespace linker.tunnel.connection
             {
                 return false;
             }
-            //StopWatchHelper.StartTimestamp(StopWatchHelper.StopWatchType.Udp_Lock);
             await slm.WaitAsync(cts.Token).ConfigureAwait(false);
-            //StopWatchHelper.EndTimestamp(StopWatchHelper.StopWatchType.Udp_Lock);
             try
             {
-                //StopWatchHelper.StartTimestamp(StopWatchHelper.StopWatchType.Tun_Read_Send);
-                bool result = await SendHook(data).ConfigureAwait(false);
-                //StopWatchHelper.EndTimestamp(StopWatchHelper.StopWatchType.Tun_Read_Send);
-                return result;
+                int result = await SendHook(data).ConfigureAwait(false);
+                return result > 0;
             }
             catch (Exception ex)
             {
@@ -245,21 +244,18 @@ namespace linker.tunnel.connection
             }
             return false;
         }
-        public async ValueTask<bool> SendAsync(byte[] buffer, int offset, int length)
+        public ValueTask<bool> SendAsync(byte[] buffer, int offset, int length)
         {
-            return await SendAsync(buffer.AsMemory(offset, length)).ConfigureAwait(false);
+            return SendAsync(buffer.AsMemory(offset, length));
         }
 
-        private ValueTask<bool> SendHook(ReadOnlyMemory<byte> data)
+        private ValueTask<int> SendHook(ReadOnlyMemory<byte> data)
         {
-
             if (SSL)
             {
-                //StopWatchHelper.StartTimestamp(StopWatchHelper.StopWatchType.Udp_Encode);
                 Crypto.TryEncode(data.Slice(TunnelPacket.PacketLengthSize).Span, cryptoEncodeBuffer.AsSpan(TunnelPacket.PacketLengthSize), out int bytesWritten);
                 TunnelPacket.WriteLength(bytesWritten, cryptoEncodeBuffer);
                 SendBytes += bytesWritten;
-                //StopWatchHelper.EndTimestamp(StopWatchHelper.StopWatchType.Udp_Encode);
 
                 TunnelPacket packet = new TunnelPacket(cryptoEncodeBuffer.AsMemory(0, bytesWritten + TunnelPacket.PacketLengthSize));
 
@@ -291,13 +287,49 @@ namespace linker.tunnel.connection
             return ValueTask.FromResult(true);
         }
 
-
-        private async ValueTask<bool> SendAsyncDefault(TunnelPacket packet)
+        private UdpWSASender sender;
+        private async ValueTask<int> SendAsyncDefault(TunnelPacket packet)
         {
-            //StopWatchHelper.StartTimestamp(StopWatchHelper.StopWatchType.Udp_Send);
-            await UdpClient.SendToAsync(packet.Payload, IPEndPoint, cts.Token).ConfigureAwait(false);
-            //StopWatchHelper.EndTimestamp(StopWatchHelper.StopWatchType.Udp_Send);
-            return true;
+            var length = packet.Payload.Length;
+            var data = ArrayPool<byte>.Shared.Rent(length);
+            try
+            {
+                packet.Payload.CopyTo(data.AsMemory(0, length));
+                await sender.Channel.Writer.WriteAsync(new ChannelPacket(data, length), cts.Token).ConfigureAwait(false);
+                return length;
+            }
+            catch
+            {
+                ArrayPool<byte>.Shared.Return(data);
+                throw;
+            }
+        }
+        private async Task SenderAsync()
+        {
+            sender = new UdpWSASender(UdpClient, IPEndPoint, ArrayPool<byte>.Shared);
+            try
+            {
+                while (await sender.Channel.Reader.WaitToReadAsync(cts.Token).ConfigureAwait(false))
+                {
+                    sender.SendAvailable(sender.Channel.Reader);
+                }
+            }
+            catch (OperationCanceledException ex) when (cts.IsCancellationRequested)
+            {
+                LoggerHelper.Instance.Error(ex);
+            }
+            catch (Exception ex)
+            {
+                LoggerHelper.Instance.Error(ex);
+            }
+            finally
+            {
+                while (sender.Channel.Reader.TryRead(out var packet))
+                    ArrayPool<byte>.Shared.Return(packet.buffer);
+
+
+                sender?.Dispose();
+            }
         }
         private ValueTask<bool> RecvAsyncDefault(ReadOnlyMemory<byte> data)
         {
@@ -354,10 +386,10 @@ namespace linker.tunnel.connection
                 LoggerHelper.Instance.Error(ex);
             }
         }
-        private async ValueTask<bool> SendAsyncFec(TunnelPacket packet)
+        private async ValueTask<int> SendAsyncFec(TunnelPacket packet)
         {
             await stickyEncoder.WriteAsync(packet.RawData, cts.Token).ConfigureAwait(false);
-            return true;
+            return packet.RawData.Length;
         }
         private async ValueTask<bool> RecvAsyncFec(ReadOnlyMemory<byte> data)
         {
@@ -417,6 +449,9 @@ namespace linker.tunnel.connection
                     }
                 }
             }
+            fecEncoder?.Dispose();
+            fecDecoder?.Dispose();
+            stickyEncoder?.Dispose();
         }
 
 
@@ -429,10 +464,10 @@ namespace linker.tunnel.connection
             _ = FlushTaskKcp();
 
         }
-        private async ValueTask<bool> SendAsyncKcp(TunnelPacket packet)
+        private async ValueTask<int> SendAsyncKcp(TunnelPacket packet)
         {
             await kcpConnection.SendAsync(packet.Payload, cts.Token).ConfigureAwait(false);
-            return true;
+            return packet.Payload.Length;
         }
         private ValueTask<bool> RecvAsyncKcp(ReadOnlyMemory<byte> data)
         {
@@ -464,6 +499,8 @@ namespace linker.tunnel.connection
 
                 } while (packets.Length > 0);
             }
+
+            await (kcpConnection?.DisposeAsync() ?? ValueTask.CompletedTask).ConfigureAwait(false);
         }
 
         public void Dispose()
@@ -485,16 +522,11 @@ namespace linker.tunnel.connection
 
                 cts?.Cancel();
                 Crypto?.Dispose();
-                fecEncoder?.Dispose();
-                fecDecoder?.Dispose();
-                stickyEncoder?.Dispose();
-
-                kcpConnection?.DisposeAsync();
-
-                GC.Collect();
 
                 _callback?.Closed(this, userToken);
                 userToken = null;
+
+                GC.Collect();
             });
         }
         public override string ToString()
@@ -506,145 +538,5 @@ namespace linker.tunnel.connection
             return connection != null && GetHashCode() == connection.GetHashCode() && TransactionId == connection.TransactionId && IPEndPoint.Equals(connection.IPEndPoint);
         }
 
-    }
-
-
-    public sealed class UdpWSASender : IDisposable
-    {
-        public Socket Socket { get; private set; }
-        public IPEndPoint RemoteEndPoint { get; private set; }
-
-        private readonly WSABUF[] wsaBufs = new WSABUF[512];
-        private readonly MemoryHandle[] handles = new MemoryHandle[512];
-        private readonly GCHandle wsaBufsHandle;
-        private readonly IntPtr wsaBufsPtr;
-
-
-        private GCHandle addrHandle;
-        private readonly SOCKADDR_IN addr;
-        private readonly IntPtr addrPtr;
-        private readonly int addrSize = Marshal.SizeOf<SOCKADDR_IN>();
-
-        private readonly nint handle;
-
-        public UdpWSASender(Socket socket, IPEndPoint remoteEndPoint)
-        {
-            wsaBufsHandle = GCHandle.Alloc(wsaBufs, GCHandleType.Pinned);
-            wsaBufsPtr = wsaBufsHandle.AddrOfPinnedObject();
-
-            Socket = socket;
-            RemoteEndPoint = remoteEndPoint;
-
-            addr = new SOCKADDR_IN
-            {
-                sin_family = 2,
-                sin_port = (ushort)IPAddress.HostToNetworkOrder((short)remoteEndPoint.Port),
-                sin_addr = BinaryPrimitives.ReverseEndianness(NetworkHelper.ToValue(remoteEndPoint.Address))
-            };
-            addrHandle = GCHandle.Alloc(addr, GCHandleType.Pinned);
-            addrPtr = addrHandle.AddrOfPinnedObject();
-
-            handle = socket.Handle;
-        }
-        public unsafe int SendPackets(ReadOnlyMemory<byte> buffer)
-        {
-            int length = 0;
-            do
-            {
-                try
-                {
-                    int packetLength = buffer.ToUInt16();
-
-                    var segment = buffer.Slice(2, packetLength);
-                    handles[length] = segment.Pin();
-                    wsaBufs[length] = new WSABUF
-                    {
-                        len = segment.Length,
-                        buf = (nint)handles[length].Pointer
-                    };
-                    length++;
-
-                    buffer = buffer.Slice(2 + packetLength);
-                }
-                catch (Exception ex)
-                {
-                    LoggerHelper.Instance.Error($"TCP process packet error:{ex}");
-                    break;
-                }
-
-            } while (buffer.Length > 0);
-            return SendInternal(length);
-        }
-        public unsafe int SendReadResult(ReadOnlySequence<byte> sequence)
-        {
-            int length = 0;
-            foreach (var segment in sequence)
-            {
-                handles[length] = segment.Pin();
-                wsaBufs[length] = new WSABUF
-                {
-                    len = segment.Length,
-                    buf = (nint)handles[length].Pointer
-                };
-                length++;
-            }
-            return SendInternal(length);
-        }
-        private int SendInternal(int length)
-        {
-            try
-            {
-                int result = WSASendTo(
-                    handle,
-                    wsaBufsPtr,
-                    (uint)length,
-                    out uint bytesSent,
-                    0,
-                    addrPtr,
-                    addrSize,
-                    IntPtr.Zero,
-                    IntPtr.Zero
-                );
-
-                if (result == 0)
-                    return (int)bytesSent;
-            }
-            finally
-            {
-                for (int i = 0; i < length; i++)
-                    handles[i].Dispose();
-
-            }
-            return 0;
-        }
-
-        private bool _disposed;
-        public void Dispose()
-        {
-            if (_disposed) return;
-            _disposed = true;
-            wsaBufsHandle.Free();
-            addrHandle.Free();
-        }
-
-
-        [DllImport("ws2_32.dll", SetLastError = true)]
-        static extern int WSASendTo(IntPtr socket, IntPtr lpBuffers, uint dwBufferCount, out uint lpNumberOfBytesSent, uint dwFlags, IntPtr lpTo, int iTolen, IntPtr lpOverlapped, IntPtr lpCompletionRoutine);
-
-        [StructLayout(LayoutKind.Sequential)]
-        struct WSABUF
-        {
-            public int len;
-            public IntPtr buf;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        struct SOCKADDR_IN
-        {
-            public short sin_family;
-            public ushort sin_port;
-            public uint sin_addr;
-            public long sin_zero;
-        }
     }
 }

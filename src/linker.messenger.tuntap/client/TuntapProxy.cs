@@ -61,23 +61,20 @@ namespace linker.messenger.tuntap.client
             return Callback.Close(connection);
 
         }
-        public async ValueTask<bool> InputPacket(LinkerTunDevicPacket packet)
+        public  ValueTask<bool> InputPacket(LinkerTunDevicPacket packet)
         {
-            //StopWatchHelper.StartTimestamp(StopWatchHelper.StopWatchType.Tun_Read_Connecttion);
-
             if ((packet.IPV4Broadcast || packet.IPV6Multicast) && tuntapConfigTransfer.Info.Multicast == false)
             {
-                return await SendAll(packet).ConfigureAwait(false);
+                return  SendAll(packet);
             }
             else
             {
                 uint ip = BinaryPrimitives.ReadUInt32BigEndian(packet.DstIp.Span[^4..]);
                 if (tuntapCidrConnectionManager.TryGet(ip, out ITunnelConnection connection) && connection.Connected)
                 {
-                    //StopWatchHelper.EndTimestamp(StopWatchHelper.StopWatchType.Tun_Read_Connecttion);
-                    return await connection.SendAsync(packet.Buffer, packet.Offset, packet.Length).ConfigureAwait(false);
+                    return connection.SendAsync(packet.Buffer, packet.Offset, packet.Length);
                 }
-                return await ConnectTunnel(ip).ConfigureAwait(false);
+                return ConnectTunnel(ip);
             }
         }
         private async ValueTask<bool> SendAll(LinkerTunDevicPacket packet)
