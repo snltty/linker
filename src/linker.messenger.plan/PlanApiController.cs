@@ -6,7 +6,7 @@ using linker.messenger.signin;
 namespace linker.messenger.plan
 {
     /// <summary>
-    /// 中继管理接口
+    /// 计划任务控制器
     /// </summary>
     public sealed class PlanApiController : IApiController
     {
@@ -24,6 +24,12 @@ namespace linker.messenger.plan
             this.signInClientStore = signInClientStore;
             this.planTransfer = planTransfer;
         }
+
+        /// <summary>
+        /// 获取计划任务
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<List<PlanInfo>> Get(ApiControllerParamsInfo param)
         {
             PlanGetInfo info = param.Content.DeJson<PlanGetInfo>();
@@ -44,6 +50,11 @@ namespace linker.messenger.plan
             }
             return new List<PlanInfo>();
         }
+        /// <summary>
+        /// 添加计划任务
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<bool> Add(ApiControllerParamsInfo param)
         {
             PlanAddInfo info = param.Content.DeJson<PlanAddInfo>();
@@ -59,6 +70,11 @@ namespace linker.messenger.plan
             }).ConfigureAwait(false);
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
+        /// <summary>
+        /// 移除计划任务
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<bool> Remove(ApiControllerParamsInfo param)
         {
             PlanRemoveInfo info = param.Content.DeJson<PlanRemoveInfo>();

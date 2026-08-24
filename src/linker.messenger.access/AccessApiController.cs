@@ -8,6 +8,9 @@ using linker.libs.web;
 
 namespace linker.messenger.access
 {
+    /// <summary>
+    /// 权限控制器
+    /// </summary>
     public sealed class AccessApiController : IApiController
     {
         private readonly IMessengerSender sender;
@@ -51,10 +54,16 @@ namespace linker.messenger.access
             return new AccessListInfo { HashCode = version };
         }
 
+        /// <summary>
+        /// 设置权限
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         [Access(AccessValue.Access)]
         public async Task<bool> SetAccess(ApiControllerParamsInfo param)
         {
             AccessBitsUpdateInfo configUpdateAccessInfo = param.Content.DeJson<AccessBitsUpdateInfo>();
+            //不能设置自己的权限
             if (configUpdateAccessInfo.ToMachineId == signInClientStore.Id)
             {
                 return false;
@@ -68,9 +77,15 @@ namespace linker.messenger.access
             }).ConfigureAwait(false);
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
+        /// <summary>
+        /// 设置API密码
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<bool> SetApiPassword(ApiControllerParamsInfo param)
         {
             ApiPasswordUpdateInfo info = param.Content.DeJson<ApiPasswordUpdateInfo>();
+            //设置自己的API密码
             if (info.MachineId == signInClientStore.Id)
             {
                 if (accessStore.HasAccess(AccessValue.SetApiPassword) == false) return false;

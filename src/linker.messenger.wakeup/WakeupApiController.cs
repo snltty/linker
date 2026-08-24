@@ -6,6 +6,9 @@ using linker.libs.web;
 
 namespace linker.messenger.wakeup
 {
+    /// <summary>
+    /// 唤醒控制器
+    /// </summary>
     public sealed class WakeupApiController : IApiController
     {
         private readonly IMessengerSender messengerSender;

@@ -7,6 +7,9 @@ using linker.libs.web;
 
 namespace linker.messenger.forward
 {
+    /// <summary>
+    /// 端口转发控制器
+    /// </summary>
     public sealed class ForwardApiController : IApiController
     {
         private readonly ForwardTransfer forwardTransfer;

@@ -5,6 +5,9 @@ using linker.messenger.api;
 
 namespace linker.messenger.signin
 {
+    /// <summary>
+    /// 登入控制器
+    /// </summary>
     public sealed class SignInApiController : IApiController
     {
         private readonly SignInClientState signInClientState;
@@ -24,6 +27,10 @@ namespace linker.messenger.signin
             this.accessStore = accessStore;
         }
 
+        /// <summary>
+        /// 更改配置
+        /// </summary>
+        /// <param name="param"></param>
         public void Set(ApiControllerParamsInfo param)
         {
             ConfigSetInfo info = param.Content.DeJson<ConfigSetInfo>();
@@ -38,7 +45,11 @@ namespace linker.messenger.signin
 
             signInClientTransfer.ReSignIn();
         }
-
+        /// <summary>
+        /// 设置客户端名
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<bool> SetName(ApiControllerParamsInfo param)
         {
             SignInConfigSetNameInfo info = param.Content.DeJson<SignInConfigSetNameInfo>();
@@ -63,6 +74,10 @@ namespace linker.messenger.signin
             return true;
         }
 
+        /// <summary>
+        /// 设置客户端组
+        /// </summary>
+        /// <param name="param"></param>
         [Access(AccessValue.Group)]
         public void SetGroups(ApiControllerParamsInfo param)
         {
@@ -70,7 +85,11 @@ namespace linker.messenger.signin
             signInClientStore.SetGroups(info);
             //signInClientTransfer.ReSignIn();
         }
-
+        /// <summary>
+        /// 设置服务器
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         [Access(AccessValue.Config)]
         public bool SetServers(ApiControllerParamsInfo param)
         {
@@ -85,6 +104,11 @@ namespace linker.messenger.signin
             return signInClientState;
         }
 
+        /// <summary>
+        /// 删除客户端
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         [Access(AccessValue.Config)]
         public async Task Del(ApiControllerParamsInfo param)
         {
@@ -158,9 +182,6 @@ namespace linker.messenger.signin
         {
             await signInClientTransfer.CheckSuper().ConfigureAwait(false);
         }
-
-
-      
     }
 
   

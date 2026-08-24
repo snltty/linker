@@ -12,6 +12,9 @@ using linker.tunnel.transport;
 
 namespace linker.messenger.relay.client
 {
+    /// <summary>
+    /// 中继控制器
+    /// </summary>
     public sealed class RelayApiController : IApiController
     {
         private readonly RelayClientTestTransfer relayTestTransfer;
@@ -42,6 +45,12 @@ namespace linker.messenger.relay.client
             relayTestTransfer.Subscribe();
             return relayTestTransfer.Nodes;
         }
+
+        /// <summary>
+        /// 连接中继
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public bool Connect(ApiControllerParamsInfo param)
         {
             RelayConnectInfo relayConnectInfo = param.Content.DeJson<RelayConnectInfo>();
@@ -51,6 +60,11 @@ namespace linker.messenger.relay.client
             return true;
         }
 
+        /// <summary>
+        /// 默认节点
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public KeyValueInfo<string, TunnelProtocolType> GetDefault(ApiControllerParamsInfo param)
         {
             return new KeyValueInfo<string, TunnelProtocolType> { Key = relayClientStore.DefaultNodeId, Value = relayClientStore.DefaultProtocol };
@@ -67,7 +81,11 @@ namespace linker.messenger.relay.client
             }
         }
 
-
+        /// <summary>
+        /// 分享节点
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<string> Share(ApiControllerParamsInfo param)
         {
             var resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -78,6 +96,11 @@ namespace linker.messenger.relay.client
             });
             return resp.Code == MessageResponeCodes.OK ? serializer.Deserialize<string>(resp.Data.Span) : $"network error:{resp.Code}";
         }
+        /// <summary>
+        /// 导入节点
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<string> Import(ApiControllerParamsInfo param)
         {
             var resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -88,6 +111,11 @@ namespace linker.messenger.relay.client
             });
             return resp.Code == MessageResponeCodes.OK ? serializer.Deserialize<string>(resp.Data.Span) : $"network error:{resp.Code}";
         }
+        /// <summary>
+        /// 移除节点
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<string> Remove(ApiControllerParamsInfo param)
         {
             var resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -98,7 +126,11 @@ namespace linker.messenger.relay.client
             });
             return resp.Code == MessageResponeCodes.OK ? serializer.Deserialize<string>(resp.Data.Span) : $"network error:{resp.Code}";
         }
-
+        /// <summary>
+        /// 更新节点
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<bool> Update(ApiControllerParamsInfo param)
         {
             var resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -109,7 +141,11 @@ namespace linker.messenger.relay.client
             });
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
-
+        /// <summary>
+        /// 升级节点
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<bool> Upgrade(ApiControllerParamsInfo param)
         {
             KeyValueInfo<string, string> info = param.Content.DeJson<KeyValueInfo<string, string>>();
@@ -122,6 +158,11 @@ namespace linker.messenger.relay.client
             });
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
+        /// <summary>
+        /// 重启节点
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<bool> Exit(ApiControllerParamsInfo param)
         {
             var resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -133,6 +174,11 @@ namespace linker.messenger.relay.client
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
 
+        /// <summary>
+        /// 已连接节点的主机列表
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<MastersResponseInfo> Masters(ApiControllerParamsInfo param)
         {
             var resp = await messengerSender.SendReply(new MessageRequestWrap

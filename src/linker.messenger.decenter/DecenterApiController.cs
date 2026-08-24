@@ -3,6 +3,9 @@ using System.Collections.Concurrent;
 
 namespace linker.messenger.decenter
 {
+    /// <summary>
+    /// 数据同步
+    /// </summary>
     public sealed class DecenterApiController : IApiController
     {
         private readonly CounterDecenter counterDecenter;

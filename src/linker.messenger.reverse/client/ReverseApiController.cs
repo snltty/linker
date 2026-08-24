@@ -9,6 +9,9 @@ using linker.messenger.signin;
 
 namespace linker.messenger.reverse.client
 {
+    /// <summary>
+    /// 穿透控制器
+    /// </summary>
     public sealed class ReverseApiController : IApiController
     {
         private readonly ReverseClientTransfer forwardTransfer;
@@ -113,6 +116,11 @@ namespace linker.messenger.reverse.client
             }).ConfigureAwait(false);
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
+        /// <summary>
+        /// 启动穿透
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<bool> Start(ApiControllerParamsInfo param)
         {
             ReverseRemoveForwardInfo info = param.Content.DeJson<ReverseRemoveForwardInfo>();
@@ -131,6 +139,11 @@ namespace linker.messenger.reverse.client
             }).ConfigureAwait(false);
             return true;
         }
+        /// <summary>
+        /// 停止穿透
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<bool> Stop(ApiControllerParamsInfo param)
         {
             ReverseRemoveForwardInfo info = param.Content.DeJson<ReverseRemoveForwardInfo>();
@@ -171,7 +184,11 @@ namespace linker.messenger.reverse.client
             return true;
         }
 
-
+        /// <summary>
+        /// 分享节点
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<string> Share(ApiControllerParamsInfo param)
         {
             var resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -182,6 +199,11 @@ namespace linker.messenger.reverse.client
             });
             return resp.Code == MessageResponeCodes.OK ? serializer.Deserialize<string>(resp.Data.Span) : $"network error:{resp.Code}";
         }
+        /// <summary>
+        /// 导入节点
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<string> Import(ApiControllerParamsInfo param)
         {
             var resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -192,6 +214,11 @@ namespace linker.messenger.reverse.client
             });
             return resp.Code == MessageResponeCodes.OK ? serializer.Deserialize<string>(resp.Data.Span) : $"network error:{resp.Code}";
         }
+        /// <summary>
+        /// 移除节点
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<string> Remove(ApiControllerParamsInfo param)
         {
             var resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -202,7 +229,11 @@ namespace linker.messenger.reverse.client
             });
             return resp.Code == MessageResponeCodes.OK ? serializer.Deserialize<string>(resp.Data.Span) : $"network error:{resp.Code}";
         }
-
+        /// <summary>
+        /// 更新节点
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<bool> Update(ApiControllerParamsInfo param)
         {
             var resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -213,7 +244,11 @@ namespace linker.messenger.reverse.client
             });
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
-
+        /// <summary>
+        /// 升级节点
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<bool> Upgrade(ApiControllerParamsInfo param)
         {
             KeyValueInfo<string, string> info = param.Content.DeJson<KeyValueInfo<string, string>>();
@@ -226,6 +261,11 @@ namespace linker.messenger.reverse.client
             });
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
+        /// <summary>
+        /// 重启节点
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<bool> Exit(ApiControllerParamsInfo param)
         {
             var resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -238,6 +278,11 @@ namespace linker.messenger.reverse.client
         }
 
 
+        /// <summary>
+        /// 已连接节点的主机列表
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<MastersResponseInfo> Masters(ApiControllerParamsInfo param)
         {
             var resp = await messengerSender.SendReply(new MessageRequestWrap

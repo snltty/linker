@@ -5,6 +5,9 @@ using linker.libs.web;
 
 namespace linker.messenger.logger
 {
+    /// <summary>
+    /// 日志控制器
+    /// </summary>
     public sealed class LoggerApiController : IApiController
     {
         private readonly List<LoggerInfo> loggers = new List<LoggerInfo>();

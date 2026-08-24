@@ -6,6 +6,9 @@ using linker.tunnel.connection;
 
 namespace linker.messenger.mesh
 {
+    /// <summary>
+    /// 网状网络Mesh控制器
+    /// </summary>
     public sealed class MeshApiController : IApiController
     {
         private readonly TunnelTransfer tunnelTransfer;

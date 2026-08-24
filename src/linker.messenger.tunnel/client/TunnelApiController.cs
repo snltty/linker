@@ -14,7 +14,7 @@ using System.Net.Sockets;
 namespace linker.messenger.tunnel.client
 {
     /// <summary>
-    /// 管理接口
+    /// 隧道控制器
     /// </summary>
     public sealed class TunnelApiController : IApiController
     {
@@ -44,6 +44,11 @@ namespace linker.messenger.tunnel.client
 
         }
 
+        /// <summary>
+        /// 获取端口映射
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<List<PortMappingInfo>> GetMapping(ApiControllerParamsInfo param)
         {
             if (param.Content == signInClientStore.Id || string.IsNullOrWhiteSpace(param.Content))
@@ -63,6 +68,11 @@ namespace linker.messenger.tunnel.client
             }
             return [];
         }
+        /// <summary>
+        /// 获取本地端口映射
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<List<PortMappingInfo>> GetMappingLocal(ApiControllerParamsInfo param)
         {
             if (param.Content == signInClientStore.Id || string.IsNullOrWhiteSpace(param.Content))
@@ -82,6 +92,11 @@ namespace linker.messenger.tunnel.client
             }
             return [];
         }
+        /// <summary>
+        /// 添加端口映射
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<bool> AddMapping(ApiControllerParamsInfo param)
         {
             KeyValueInfo<string, PortMappingInfo> info = param.Content.DeJson<KeyValueInfo<string, PortMappingInfo>>();
@@ -99,6 +114,11 @@ namespace linker.messenger.tunnel.client
             }).ConfigureAwait(false);
             return resp.Code == MessageResponeCodes.OK && resp.Data.Span.SequenceEqual(Helper.TrueArray);
         }
+        /// <summary>
+        /// 删除端口映射
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<bool> DelMapping(ApiControllerParamsInfo param)
         {
             KeyValueInfo<string, KeyValueInfo<int, ProtocolType>> info = param.Content.DeJson<KeyValueInfo<string, KeyValueInfo<int, ProtocolType>>>();

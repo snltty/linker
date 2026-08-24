@@ -6,6 +6,9 @@ using linker.libs.web;
 
 namespace linker.messenger.firewall
 {
+    /// <summary>
+    /// 防火墙控制器
+    /// </summary>
     public sealed class FirewallApiController : IApiController
     {
         private readonly FirewallTransfer firewallTransfer;

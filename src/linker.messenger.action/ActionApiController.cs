@@ -3,11 +3,12 @@ using linker.libs.extends;
 using linker.libs.web;
 using linker.messenger.api;
 using linker.messenger.signin;
-using linker.tunnel.connection;
-using linker.tunnel.transport;
 
 namespace linker.messenger.action
 {
+    /// <summary>
+    /// 自定义验证控制器
+    /// </summary>
     public sealed class ActionApiController : IApiController
     {
         private readonly ActionTransfer actionTransfer;
@@ -25,12 +26,22 @@ namespace linker.messenger.action
             this.serializer = serializer;
         }
 
-
+        /// <summary>
+        /// 设置动态参数
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         [Access(AccessValue.Action)]
         public bool SetArgs(ApiControllerParamsInfo param)
         {
             return actionTransfer.SetActionDynamicArg(param.Content);
         }
+
+        /// <summary>
+        /// 获取静态参数
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         [Access(AccessValue.Action)]
         public async Task<string> GetServerArgs(ApiControllerParamsInfo param)
         {
@@ -50,6 +61,11 @@ namespace linker.messenger.action
             }
             return string.Empty;
         }
+        /// <summary>
+        /// 设置静态参数
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         [Access(AccessValue.Action)]
         public async Task<bool> SetServerArgs(ApiControllerParamsInfo param)
         {

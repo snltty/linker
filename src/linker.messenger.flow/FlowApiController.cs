@@ -7,6 +7,9 @@ using linker.messenger.signin;
 
 namespace linker.messenger.flow
 {
+    /// <summary>
+    /// 流量统计控制器
+    /// </summary>
     public sealed class FlowApiController : IApiController
     {
         private readonly IMessengerSender messengerSender;
@@ -38,6 +41,11 @@ namespace linker.messenger.flow
             this.tunnelFlow = tunnelFlow;
         }
 
+        /// <summary>
+        /// 获取流量信息
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<FlowInfo> GetFlows(ApiControllerParamsInfo param)
         {
             ushort messengerId = string.IsNullOrWhiteSpace(param.Content) ? (ushort)FlowMessengerIds.List : (ushort)FlowMessengerIds.ListForward;
@@ -64,6 +72,11 @@ namespace linker.messenger.flow
             }
             return new FlowInfo();
         }
+        /// <summary>
+        /// 获取城市流量信息
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<List<FlowReportNetInfo>> GetCitys(ApiControllerParamsInfo param)
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -78,6 +91,11 @@ namespace linker.messenger.flow
             return new List<FlowReportNetInfo>();
         }
 
+        /// <summary>
+        /// 获取信标流量信息
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<Dictionary<ushort, FlowItemInfo>> GetMessengerFlows(ApiControllerParamsInfo param)
         {
             ushort messengerId = string.IsNullOrWhiteSpace(param.Content) ? (ushort)FlowMessengerIds.Messenger : (ushort)FlowMessengerIds.MessengerForward;
@@ -98,6 +116,12 @@ namespace linker.messenger.flow
             }
             return [];
         }
+
+        /// <summary>
+        /// 获取性能信息
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<Dictionary<ushort, FlowItemInfo>> GetStopwatch(ApiControllerParamsInfo param)
         {
             ushort messengerId = string.IsNullOrWhiteSpace(param.Content) ? (ushort)FlowMessengerIds.StopwatchServer : (ushort)FlowMessengerIds.StopwatchForward;
@@ -118,7 +142,11 @@ namespace linker.messenger.flow
             }
             return [];
         }
-
+        /// <summary>
+        /// 获取穿透
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         [Access(AccessValue.ReverseFlow)]
         public async Task<ReverseFlowResponseInfo> GetReverseFlows(ApiControllerParamsInfo param)
         {
@@ -141,7 +169,11 @@ namespace linker.messenger.flow
             }
             return new ReverseFlowResponseInfo();
         }
-
+        /// <summary>
+        /// 获取端口转发流量
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         [Access(AccessValue.ForwardFlow)]
         public async Task<ForwardFlowResponseInfo> GetForwardFlows(ApiControllerParamsInfo param)
         {
@@ -164,7 +196,11 @@ namespace linker.messenger.flow
             }
             return new ForwardFlowResponseInfo();
         }
-
+        /// <summary>
+        /// 获取中继流量
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         [Access(AccessValue.RelayFlow)]
         public async Task<RelayFlowResponseInfo> GetRelayFlows(ApiControllerParamsInfo param)
         {
@@ -183,7 +219,11 @@ namespace linker.messenger.flow
             return new RelayFlowResponseInfo();
         }
 
-
+        /// <summary>
+        /// 获取Socks5流量
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         [Access(AccessValue.Socks5Flow)]
         public async Task<Socks5FlowResponseInfo> GetSocks5Flows(ApiControllerParamsInfo param)
         {
@@ -206,7 +246,11 @@ namespace linker.messenger.flow
             }
             return new Socks5FlowResponseInfo();
         }
-
+        /// <summary>
+        /// 获取隧道流量
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         [Access(AccessValue.TunnelFlow)]
         public async Task<TunnelFlowResponseInfo> GetTunnelFlows(ApiControllerParamsInfo param)
         {

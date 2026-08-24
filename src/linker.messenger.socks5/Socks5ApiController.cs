@@ -1,6 +1,5 @@
 ﻿using linker.libs.extends;
 using System.Collections.Concurrent;
-using linker.tunnel.connection;
 using linker.messenger.signin;
 using linker.libs;
 using linker.messenger.api;
@@ -8,6 +7,9 @@ using linker.libs.web;
 
 namespace linker.messenger.socks5
 {
+    /// <summary>
+    /// socks5控制器
+    /// </summary>
     public sealed class Socks5ApiController : IApiController
     {
         private readonly IMessengerSender messengerSender;

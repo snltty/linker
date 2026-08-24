@@ -5,6 +5,9 @@ using linker.libs.web;
 
 namespace linker.messenger.updater
 {
+    /// <summary>
+    /// 更新控制器
+    /// </summary>
     public sealed class UpdaterApiController : IApiController
     {
         private readonly IMessengerSender messengerSender;
@@ -31,16 +34,29 @@ namespace linker.messenger.updater
         {
             return updaterClientStore.Info;
         }
+
+        /// <summary>
+        /// 设置是否同步到服务器
+        /// </summary>
+        /// <param name="param"></param>
         public void SetSync2Server(ApiControllerParamsInfo param)
         {
             updaterClientStore.SetSync2Server(bool.Parse(param.Content));
         }
+        /// <summary>
+        /// 设置更新间隔
+        /// </summary>
+        /// <param name="param"></param>
         public void SetInterval(ApiControllerParamsInfo param)
         {
             updaterCommonTransfer.SetInterval(int.Parse(param.Content));
         }
 
-
+        /// <summary>
+        /// 获取服务器更新信息
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<UpdaterInfo170> GetServer(ApiControllerParamsInfo param)
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -54,6 +70,11 @@ namespace linker.messenger.updater
             }
             return new UpdaterInfo170();
         }
+        /// <summary>
+        /// 获取服务器更新信息
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<UpdaterInfo> GetMsg(ApiControllerParamsInfo param)
         {
             MessageResponeInfo resp = await messengerSender.SendReply(new MessageRequestWrap
@@ -67,6 +88,11 @@ namespace linker.messenger.updater
             }
             return new UpdaterInfo();
         }
+        /// <summary>
+        /// 确认更新服务端
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task ConfirmServer(ApiControllerParamsInfo param)
         {
             await messengerSender.SendOnly(new MessageRequestWrap
@@ -76,6 +102,11 @@ namespace linker.messenger.updater
                 Payload = serializer.Serialize(new UpdaterConfirmServerInfo {  Version = param.Content })
             }).ConfigureAwait(false);
         }
+        /// <summary>
+        /// 重启服务端
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task ExitServer(ApiControllerParamsInfo param)
         {
             await messengerSender.SendOnly(new MessageRequestWrap
@@ -86,6 +117,11 @@ namespace linker.messenger.updater
             }).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// 获取当前客户端更新信息
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public UpdaterInfo170 GetCurrent(ApiControllerParamsInfo param)
         {
             var updaters = updaterTransfer.Get();
@@ -95,6 +131,11 @@ namespace linker.messenger.updater
             }
             return new UpdaterInfo170 { };
         }
+        /// <summary>
+        /// 获取列表更新信息
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public UpdaterListInfo Get(ApiControllerParamsInfo param)
         {
             ulong hashCode = ulong.Parse(param.Content);
@@ -109,6 +150,11 @@ namespace linker.messenger.updater
             return new UpdaterListInfo { HashCode = version };
 
         }
+        /// <summary>
+        /// 确认更新
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<bool> Confirm(ApiControllerParamsInfo param)
         {
             UpdaterConfirmInfo confirm = param.Content.DeJson<UpdaterConfirmInfo>();
@@ -132,6 +178,11 @@ namespace linker.messenger.updater
             }
             return true;
         }
+        /// <summary>
+        /// 重启客户端
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public async Task<bool> Exit(ApiControllerParamsInfo param)
         {
             if (string.IsNullOrWhiteSpace(param.Content) || param.Content == signInClientStore.Id)
@@ -176,8 +227,5 @@ namespace linker.messenger.updater
                 updaterTransfer.Check();
             }
         }
-
     }
-
-
 }

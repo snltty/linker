@@ -7,6 +7,9 @@ using linker.tunnel;
 
 namespace linker.messenger.channel
 {
+    /// <summary>
+    /// 频道控制器
+    /// </summary>
     public sealed class ChannelApiController : IApiController
     {
         private readonly ChannelConnectionCaching channelConnectionCaching;
@@ -17,6 +20,11 @@ namespace linker.messenger.channel
             this.tunnelTransfer = tunnelTransfer;
         }
 
+        /// <summary>
+        /// 获取隧道连接列表
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
         public ConnectionListInfo Get(ApiControllerParamsInfo param)
         {
             ulong hashCode = ulong.Parse(param.Content);
@@ -31,6 +39,10 @@ namespace linker.messenger.channel
             return new ConnectionListInfo { HashCode = version };
         }
 
+        /// <summary>
+        /// 移除隧道连接
+        /// </summary>
+        /// <param name="param"></param>
         [Access(AccessValue.TunnelRemove)]
         public void Remove(ApiControllerParamsInfo param)
         {

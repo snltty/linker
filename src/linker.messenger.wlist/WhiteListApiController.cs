@@ -6,7 +6,7 @@ using linker.messenger.signin;
 namespace linker.messenger.wlist
 {
     /// <summary>
-    /// 中继管理接口
+    /// 白名单控制器
     /// </summary>
     public sealed class WhiteListApiController : IApiController
     {
