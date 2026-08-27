@@ -69,7 +69,10 @@
 - **FEC向前纠错:** 内置强优化FEC（增强了 批量编码、源包直接输出、批量解码输出），支持策略性冗余或多倍发包，带宽换稳定，优化丢包链路
 - **强优化KCP:** 内置强优化KCP(增强了 ACK Range、选择性确认、快速重传、批量 flush)，让端口转发，socks代理等功能也能使用UDP隧道，
 - **发现协议代理:** 发现局域网下其它设备，摄像头打印机啥的，暂时内置mDNS、SSDP、LLMNR、NBNS、WS-Discovery、海康SADP，以后碰到新的再加
+- **批量UDP包发送** 使用Windows的WSASendTo发送卸载，和Linux的sendmmsg批量发送UDP数据包减少CPU调用
 
+
+![uso](readme/uso.jpg)
 
 ## [🎁]为爱发电
 
