@@ -321,7 +321,7 @@ namespace linker.tun
                 {
                     if (linkerTunDevice == null || linkerTunDevice.Running == false)
                     {
-                        await Task.Delay(1000);
+                        await Task.Delay(1000).ConfigureAwait(false);
                         continue;
                     }
 
@@ -330,14 +330,16 @@ namespace linker.tun
                         byte[] buffer = linkerTunDevice.Read(out uint length);
                         if (length <= 4)
                         {
+                            await Task.Delay(10).ConfigureAwait(false);
                             continue;
                         }
                         packet.Unpacket(buffer, 0, (int)length);
                         if (packet.DstIp.Length == 0 || packet.Version != 4)
                         {
+                            await Task.Delay(10).ConfigureAwait(false);
                             continue;
                         }
-                        
+
                         LinkerTunPacketHookFlags flags = ExecReadHook(packet.RawPacket);
                         if ((flags & LinkerTunPacketHookFlags.WriteBack) == LinkerTunPacketHookFlags.WriteBack)
                         {

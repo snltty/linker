@@ -15,11 +15,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         with:
-          tag_name: v2.0.20
-          release_name: v2.0.20.${{ steps.date.outputs.today }}
+          tag_name: v2.0.21
+          release_name: v2.0.21.${{ steps.date.outputs.today }}
           draft: false
           prerelease: false
-          body: "1. 2026-08-21 16:30:00\r\n2. 使用WSASendTo和SendMmsg批量发送UDP数据包，提升发送效率\r\n3. 装路径泄露和CORS宽松修复"
+          body: "1. 2026-10-20 14:47:00\r\n2. 去除linux创建网卡的ifconfig依赖\r\n3. 修复可能的虚拟网卡读取数据包导致的CPU100%问题"
       - name: setup node.js
         uses: actions/setup-node@v4
         with:
@@ -43,7 +43,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-zip/linker-win-x86.zip:/downloads/linker/v2.0.20/linker-win-x86.zip
+            ./public/publish-zip/linker-win-x86.zip:/downloads/linker/v2.0.21/linker-win-x86.zip
           timeout: '720000'
       - name: upload-win-x86
         id: upload-win-x86
@@ -64,7 +64,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-zip/linker-win-x64.zip:/downloads/linker/v2.0.20/linker-win-x64.zip
+            ./public/publish-zip/linker-win-x64.zip:/downloads/linker/v2.0.21/linker-win-x64.zip
           timeout: '720000'
       - name: upload-win-x64
         id: upload-win-x64
@@ -85,7 +85,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-zip/linker-win-arm64.zip:/downloads/linker/v2.0.20/linker-win-arm64.zip
+            ./public/publish-zip/linker-win-arm64.zip:/downloads/linker/v2.0.21/linker-win-arm64.zip
           timeout: '720000'
       - name: upload-win-arm64
         id: upload-win-arm64
@@ -106,7 +106,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-zip/linker-linux-x64.zip:/downloads/linker/v2.0.20/linker-linux-x64.zip
+            ./public/publish-zip/linker-linux-x64.zip:/downloads/linker/v2.0.21/linker-linux-x64.zip
           timeout: '720000'
       - name: upload-linux-x64
         id: upload-linux-x64
@@ -127,7 +127,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-zip/linker-linux-arm.zip:/downloads/linker/v2.0.20/linker-linux-arm.zip
+            ./public/publish-zip/linker-linux-arm.zip:/downloads/linker/v2.0.21/linker-linux-arm.zip
           timeout: '720000'
       - name: upload-linux-arm
         id: upload-linux-arm
@@ -148,7 +148,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-zip/linker-linux-arm64.zip:/downloads/linker/v2.0.20/linker-linux-arm64.zip
+            ./public/publish-zip/linker-linux-arm64.zip:/downloads/linker/v2.0.21/linker-linux-arm64.zip
           timeout: '720000'
       - name: upload-linux-arm64
         id: upload-linux-arm64
@@ -169,7 +169,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-zip/linker-linux-musl-x64.zip:/downloads/linker/v2.0.20/linker-linux-musl-x64.zip
+            ./public/publish-zip/linker-linux-musl-x64.zip:/downloads/linker/v2.0.21/linker-linux-musl-x64.zip
           timeout: '720000'
       - name: upload-linux-musl-x64
         id: upload-linux-musl-x64
@@ -190,7 +190,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-zip/linker-linux-musl-arm.zip:/downloads/linker/v2.0.20/linker-linux-musl-arm.zip
+            ./public/publish-zip/linker-linux-musl-arm.zip:/downloads/linker/v2.0.21/linker-linux-musl-arm.zip
           timeout: '720000'
       - name: upload-linux-musl-arm
         id: upload-linux-musl-arm
@@ -211,7 +211,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-zip/linker-linux-musl-arm64.zip:/downloads/linker/v2.0.20/linker-linux-musl-arm64.zip
+            ./public/publish-zip/linker-linux-musl-arm64.zip:/downloads/linker/v2.0.21/linker-linux-musl-arm64.zip
           timeout: '720000'
       - name: upload-linux-musl-arm64
         id: upload-linux-musl-arm64
@@ -232,7 +232,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-zip/linker-osx-x64.zip:/downloads/linker/v2.0.20/linker-osx-x64.zip
+            ./public/publish-zip/linker-osx-x64.zip:/downloads/linker/v2.0.21/linker-osx-x64.zip
           timeout: '720000'
       - name: upload-osx-x64
         id: upload-osx-x64
@@ -253,7 +253,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-zip/linker-osx-arm64.zip:/downloads/linker/v2.0.20/linker-osx-arm64.zip
+            ./public/publish-zip/linker-osx-arm64.zip:/downloads/linker/v2.0.21/linker-osx-arm64.zip
           timeout: '720000'
       - name: upload-osx-arm64
         id: upload-osx-arm64
@@ -274,7 +274,7 @@ jobs:
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
           assets: >-
-            ./public/publish-zip/linker-anywhere.zip:/downloads/linker/v2.0.20/linker-anywhere.zip
+            ./public/publish-zip/linker-anywhere.zip:/downloads/linker/v2.0.21/linker-anywhere.zip
           timeout: '720000'
       - name: upload-anywhere
         id: upload-anywhere
@@ -324,7 +324,7 @@ jobs:
           key-id: ${{ secrets.ALIYUN_OSS_ID }}
           key-secret: ${{ secrets.ALIYUN_OSS_SECRET }}
           bucket: ide-qbcode
-          assets: ./public/publish-zip/linker.apk:/downloads/linker/v2.0.20/linker.apk
+          assets: ./public/publish-zip/linker.apk:/downloads/linker/v2.0.21/linker.apk
           timeout: '720000'
       - name: upload-apk
         id: upload-apk

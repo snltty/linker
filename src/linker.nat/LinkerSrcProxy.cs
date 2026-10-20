@@ -199,6 +199,8 @@ namespace linker.nat
 
         private async Task HandleSyn(NatKey key, uint originDstIp)
         {
+            Console.WriteLine($"Handling SYN -> {new IPEndPoint(NetworkHelper.ToIP(key.DstIp), key.DstPort)}");
+
             int hashcode = callback.Callback(key.SrcIp);
             if (hashcode == 0)
             {

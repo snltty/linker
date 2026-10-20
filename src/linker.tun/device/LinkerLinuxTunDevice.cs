@@ -68,7 +68,7 @@ namespace linker.tun.device
                 $"ip link set dev {Name} up"
             });
 
-            string str = CommandHelper.Linux(string.Empty, new string[] { $"ifconfig" });
+            string str = CommandHelper.Linux(string.Empty, new string[] { $"ls /sys/class/net" });
             if (str.Contains(Name) == false)
             {
                 CommandHelper.Linux(string.Empty, new string[] { $"ip tuntap add mode tun dev {Name}" }, out error);

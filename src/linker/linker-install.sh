@@ -286,7 +286,7 @@ install_dependencies() {
         apk add curl wget unzip iproute2 net-tools iptables bash traceroute >/dev/null 2>&1
     else
         warn "无法确定包管理器，跳过依赖安装"
-        warn "请确保已安装: curl/wget, unzip, ip, ifconfig, iptables, bash, traceroute"
+        warn "请确保已安装: curl/wget, unzip, ip, iptables, bash, traceroute"
     fi
 }
 

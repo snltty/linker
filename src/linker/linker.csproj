@@ -15,16 +15,16 @@
 		<Title>linker</Title>
 		<Authors>snltty</Authors>
 		<Company>snltty</Company>
-		<Description>1. 2026-08-21 16:30:00
-2. 使用WSASendTo和SendMmsg批量发送UDP数据包，提升发送效率
-3. 装路径泄露和CORS宽松修复</Description>
+		<Description>1. 2026-10-20 14:47:00
+2. 去除linux创建网卡的ifconfig依赖
+3. 修复可能的虚拟网卡读取数据包导致的CPU100%问题</Description>
 		<Copyright>snltty</Copyright>
 		<PackageProjectUrl>https://github.com/snltty/linker</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/snltty/linker</RepositoryUrl>
 		<PackageReleaseNotes>linker</PackageReleaseNotes>
-		<Version>2.0.20</Version>
-		<AssemblyVersion>2.0.20</AssemblyVersion>
-		<FileVersion>2.0.20</FileVersion>
+		<Version>2.0.21</Version>
+		<AssemblyVersion>2.0.21</AssemblyVersion>
+		<FileVersion>2.0.21</FileVersion>
 		<DelaySign>False</DelaySign>
 
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
