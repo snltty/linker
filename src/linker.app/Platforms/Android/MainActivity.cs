@@ -165,6 +165,7 @@ namespace linker.app
 
         public override StartCommandResult OnStartCommand(Intent intent, StartCommandFlags flags, int startId)
         {
+            this.intent = intent ?? new Intent(this, typeof(MainActivity));
             intent.SetFlags(ActivityFlags.NewTask);
             this.intent = intent;
 
